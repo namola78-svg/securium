@@ -27,9 +27,9 @@ export default async function Home() {
               <span>하나의 성장 체계로.</span>
             </h1>
             <p className="hero-copy">
-              정보보호와 개인정보보호 과정을 한곳에서 선택하고, 과정별 진도를
-              섞이지 않게 관리하세요. Phase 1에서는 수강 기반과 공통
-              커리큘럼 구조를 제공합니다.
+              정보보호와 개인정보보호를
+              <br />
+              하나의 플랫폼에서 체계적으로 학습하세요.
             </p>
             <div className="button-row">
               <Link className="button button-lime" href="/courses">
