@@ -20,7 +20,11 @@ export async function GET(request: NextRequest) {
   const code = url.searchParams.get("code");
   const providerError = url.searchParams.get("error");
   if (!code || providerError) {
-    return NextResponse.redirect(new URL("/login?error=oauth_failed", request.url));
+    const params = new URLSearchParams({
+      error: providerError === "access_denied" ? "oauth_cancelled" : "oauth_callback_failed",
+      return_to: returnTo,
+    });
+    return NextResponse.redirect(new URL(`/login?${params.toString()}`, request.url));
   }
 
   const cookiesToSet: Array<{
@@ -44,7 +48,11 @@ export async function GET(request: NextRequest) {
 
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
   if (error || !data.session) {
-    return NextResponse.redirect(new URL("/login?error=oauth_failed", request.url));
+    const params = new URLSearchParams({
+      error: "oauth_callback_failed",
+      return_to: returnTo,
+    });
+    return NextResponse.redirect(new URL(`/login?${params.toString()}`, request.url));
   }
 
   const response = NextResponse.redirect(new URL(returnTo, request.url));

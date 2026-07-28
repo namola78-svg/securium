@@ -44,7 +44,11 @@ export async function GET(request: NextRequest) {
   });
 
   if (error || !data.url) {
-    return NextResponse.redirect(new URL("/login?error=oauth_failed", request.url));
+    const params = new URLSearchParams({
+      error: "oauth_provider_failed",
+      return_to: returnTo,
+    });
+    return NextResponse.redirect(new URL(`/login?${params.toString()}`, request.url));
   }
 
   const response = NextResponse.redirect(data.url);
