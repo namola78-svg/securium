@@ -55,9 +55,8 @@ account/project decision.
 
 The current implementation uses Supabase Auth REST endpoints through a small
 server-side provider. The `@supabase/ssr` and `@supabase/supabase-js` packages
-were not confirmed in `package.json` in this workspace after the attempted
-install, so SDK adoption remains an optional internal replacement rather than a
-runtime dependency.
+are installed and can replace the provider internals later, but the current
+runtime does not depend on direct SDK imports.
 
 Do not set `dist` as a Vercel static output: it belongs only to the preserved
 Cloudflare Worker target.

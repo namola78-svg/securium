@@ -498,6 +498,7 @@ HttpOnly cookies, and keeps application roles in the existing `users`,
 `roles`, and `user_roles` tables.
 
 Do not put database passwords, service role keys, OAuth tokens, or API keys in
-`NEXT_PUBLIC_*` variables. `@supabase/ssr` and `@supabase/supabase-js` are not
-required by the current REST-based provider; they can replace the provider
-internals later after dependency installation is confirmed.
+`NEXT_PUBLIC_*` variables. `@supabase/ssr` and `@supabase/supabase-js` are
+installed, but the current runtime still uses the small REST-based provider.
+Those SDK packages can replace the provider internals later without changing
+the application RBAC model.
