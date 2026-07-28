@@ -12,6 +12,7 @@ import {
   getPublicCourseBySlug,
 } from "@/db/repositories";
 import { requireCurrentAppUser } from "@/lib/auth";
+import { publicCopy } from "@/lib/public-copy";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,11 @@ export default async function LessonPage({
   if (!enrollment) redirect(`/courses/${course.slug}`);
   const lesson = await getPublishedLessonForUser(user.id, course.id, lessonId);
   if (!lesson) notFound();
+  const lessonTitle = publicCopy(lesson.title);
+  const lessonSummary = publicCopy(lesson.summary);
+  const lessonContent = publicCopy(lesson.content);
+  const learningUnitTitle = publicCopy(lesson.learningUnitTitle);
+  const topicName = publicCopy(lesson.topicName);
   const audioContents = await listPublishedAudioForLesson(
     user.id,
     course.id,
@@ -43,6 +49,17 @@ export default async function LessonPage({
       ),
     ),
   ]);
+  const sanitizedLessonRevision = sanitizeRevision(lessonRevision);
+  const sanitizedAudioRevisions = audioRevisions.map(sanitizeRevision);
+  const sanitizedAudioContents = audioContents.map((audio) => ({
+    ...audio,
+    title: publicCopy(audio.title),
+    transcript: publicCopy(audio.transcript),
+    transcriptSegments: audio.transcriptSegments.map((segment) => ({
+      ...segment,
+      text: publicCopy(segment.text),
+    })),
+  }));
 
   return (
     <main className="page-main">
@@ -52,14 +69,14 @@ export default async function LessonPage({
             className="breadcrumb"
             href={`/learn/${course.slug}/subjects/${lesson.subjectId}`}
           >
-            ← {lesson.subjectName}
+            ← {publicCopy(lesson.subjectName)}
           </Link>
           <p className="eyebrow">THEORY LESSON</p>
-          <h1>{lesson.title}</h1>
-          <p>{lesson.summary}</p>
+          <h1>{lessonTitle}</h1>
+          <p>{lessonSummary}</p>
           <div className="lesson-meta">
-            <span>{lesson.learningUnitTitle}</span>
-            <span>{lesson.topicName}</span>
+            <span>{learningUnitTitle}</span>
+            <span>{topicName}</span>
             <span>예상 {lesson.estimatedMinutes}분</span>
             <span>
               완료 정책{" "}
@@ -76,18 +93,18 @@ export default async function LessonPage({
       <section className="section">
         <article className="shell narrow lesson-reader">
           <SafeLessonContent
-            content={lesson.content}
+            content={lessonContent}
             format={lesson.contentFormat}
           />
-          <ContentVersionInfo revision={lessonRevision} />
-          {audioRevisions.map((revision, index) => (
+          <ContentVersionInfo revision={sanitizedLessonRevision} />
+          {sanitizedAudioRevisions.map((revision, index) => (
             <ContentVersionInfo
               compact
-              key={audioContents[index].id}
+              key={sanitizedAudioContents[index].id}
               revision={revision}
             />
           ))}
-          <AudioLearningPlayer items={audioContents} />
+          <AudioLearningPlayer items={sanitizedAudioContents} />
           <LessonActions
             lessonId={lesson.id}
             initialStatus={lesson.status}
@@ -100,7 +117,7 @@ export default async function LessonPage({
                 className="button button-ghost"
                 href={`/learn/${course.slug}/lessons/${lesson.previousLesson.id}`}
               >
-                ← 이전 · {lesson.previousLesson.title}
+                ← 이전 · {publicCopy(lesson.previousLesson.title)}
               </Link>
             ) : (
               <span />
@@ -110,7 +127,7 @@ export default async function LessonPage({
                 className="button button-dark"
                 href={`/learn/${course.slug}/lessons/${lesson.nextLesson.id}`}
               >
-                다음 · {lesson.nextLesson.title} →
+                다음 · {publicCopy(lesson.nextLesson.title)} →
               </Link>
             ) : (
               <Link
@@ -125,4 +142,29 @@ export default async function LessonPage({
       </section>
     </main>
   );
+}
+
+type DisplayRevision = {
+  id: string;
+  contentDate: string;
+  version: string;
+  reviewedAt: string | null;
+  revisionStatus: string;
+  isLatest: boolean;
+  changeSummary: string;
+};
+
+function sanitizeRevision(
+  revision: (DisplayRevision & { title?: string; snapshotJson?: string }) | null,
+): DisplayRevision | null {
+  if (!revision) return revision;
+  return {
+    id: revision.id,
+    contentDate: revision.contentDate,
+    version: revision.version,
+    reviewedAt: revision.reviewedAt,
+    revisionStatus: revision.revisionStatus,
+    isLatest: revision.isLatest,
+    changeSummary: publicCopy(revision.changeSummary),
+  };
 }

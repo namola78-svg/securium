@@ -82,7 +82,8 @@ test("과정별 강의 목록은 검색·과목·주제 필터와 접근 상태�
   const html = await response.text();
   assert.equal(response.status, 200);
   assert.match(html, /개인정보 영향평가(?:<!-- -->)? 강의/);
-  assert.match(html, /Mock 개발용 영상/);
+  assert.match(html, /강의 영상/);
+  assert.doesNotMatch(html, /Mock 개발용 영상/);
   assert.match(html, /무료/);
   assert.doesNotMatch(html, /허용되지 않은 URL/);
 });

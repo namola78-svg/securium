@@ -166,7 +166,7 @@ test("문제풀이 UI는 답안 제출 전 AI 해설을 노출하지 않는다",
   );
   const html = await response.text();
   assert.equal(response.status, 200, html.slice(0, 800));
-  assert.match(html, /제출 즉시 서버에서 채점하고 해설을 제공합니다/);
+  assert.match(html, /제출 후 서버에서 채점하고 해설을 제공합니다/);
   assert.doesNotMatch(html, /AI 생성 해설/);
   assert.doesNotMatch(html, /Mock AI 해설/);
 });

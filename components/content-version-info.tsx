@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { publicCopy } from "@/lib/public-copy";
 
 type VersionInfo = {
   id: string;
@@ -26,6 +27,7 @@ export function ContentVersionInfo({
     );
   }
   const outdated = !revision.isLatest || revision.revisionStatus === "superseded";
+  const changeSummary = publicCopy(revision.changeSummary);
   return (
     <aside
       className={`content-version-info ${compact ? "compact" : ""} ${
@@ -45,7 +47,7 @@ export function ContentVersionInfo({
         <span className={outdated ? "warning-label" : "badge"}>
           {outdated ? "구버전 · 최신 내용 확인 필요" : "최신 검수 버전"}
         </span>
-        {revision.changeSummary ? <small>개정: {revision.changeSummary}</small> : null}
+        {changeSummary ? <small>개정: {changeSummary}</small> : null}
         <Link href={`/content-versions/${revision.id}`}>버전 상세</Link>
       </div>
     </aside>

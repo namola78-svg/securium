@@ -6,6 +6,7 @@ import {
   listCurriculum,
 } from "@/db/repositories";
 import { getCurrentAppUser } from "@/lib/auth";
+import { publicCopy } from "@/lib/public-copy";
 
 export const dynamic = "force-dynamic";
 
@@ -31,24 +32,25 @@ export default async function LectureListPage({
     listCurriculum(course.id),
     listPublishedLectures(course.id, user?.id ?? null, filters),
   ]);
-  const recent = items
+  const displayItems = items.map(sanitizeLecture);
+  const recent = displayItems
     .filter((item) => item.lastPlayedAt)
     .sort((a, b) =>
       String(b.lastPlayedAt).localeCompare(String(a.lastPlayedAt)),
     )
     .slice(0, 3);
   const recommended =
-    items.find((item) => item.accessAllowed && !item.completed) ?? null;
+    displayItems.find((item) => item.accessAllowed && !item.completed) ?? null;
 
   return (
     <main className="page-main">
       <section className="page-hero">
         <div className="shell">
           <Link className="breadcrumb" href={`/courses/${course.slug}`}>
-            ← {course.name}
+            ← {publicCopy(course.name)}
           </Link>
           <p className="eyebrow">LECTURES</p>
-          <h1>{course.name} 강의</h1>
+          <h1>{publicCopy(course.name)} 강의</h1>
           <p>
             과정·과목·주제별 공개 강의를 조회하고 이어보기와 개인 메모를
             관리합니다.
@@ -77,7 +79,7 @@ export default async function LectureListPage({
                 <option value="">전체 과목</option>
                 {curriculum.map((subject) => (
                   <option key={subject.id} value={subject.id}>
-                    {subject.name}
+                    {publicCopy(subject.name)}
                   </option>
                 ))}
               </select>
@@ -89,7 +91,7 @@ export default async function LectureListPage({
                 {curriculum.flatMap((subject) =>
                   subject.topics.map((topic) => (
                     <option key={topic.id} value={topic.id}>
-                      {subject.name} · {topic.name}
+                      {publicCopy(subject.name)} · {publicCopy(topic.name)}
                     </option>
                   )),
                 )}
@@ -144,11 +146,11 @@ export default async function LectureListPage({
               <p className="eyebrow">CATALOG</p>
               <h2>강의 목록</h2>
             </div>
-            <span className="count-label">{items.length}개</span>
+            <span className="count-label">{displayItems.length}개</span>
           </div>
-          {items.length ? (
+          {displayItems.length ? (
             <div className="lecture-card-grid">
-              {items.map((lecture) => (
+              {displayItems.map((lecture) => (
                 <LectureCard
                   key={lecture.id}
                   courseSlug={course.slug}
@@ -165,6 +167,25 @@ export default async function LectureListPage({
       </section>
     </main>
   );
+}
+
+function sanitizeLecture<T extends {
+  title: string;
+  description: string;
+  instructorName: string;
+  subjectName: string;
+  topicName: string;
+  providerLabel: string;
+}>(lecture: T): T {
+  return {
+    ...lecture,
+    title: publicCopy(lecture.title),
+    description: publicCopy(lecture.description),
+    instructorName: publicCopy(lecture.instructorName),
+    subjectName: publicCopy(lecture.subjectName),
+    topicName: publicCopy(lecture.topicName),
+    providerLabel: publicCopy(lecture.providerLabel),
+  };
 }
 
 function LectureCard({

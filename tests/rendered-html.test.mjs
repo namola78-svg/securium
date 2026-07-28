@@ -73,7 +73,7 @@ test("통합 학습 플랫폼 랜딩페이지를 서버 렌더링한다", async 
   const html = await response.text();
   assert.match(html, /SECURIUM/);
   assert.match(html, /정보보호 전문 역량을/);
-  assert.match(html, /과정별 학습 진도 자동 관리/);
+  assert.match(html, /과정별 진도 자동 관리/);
   assert.match(html, /AI 기반 맞춤 설명/);
   assert.doesNotMatch(html, /codex-preview/);
   assert.doesNotMatch(html, /react-loading-skeleton/);
@@ -92,7 +92,7 @@ test("로그인 화면이 플랫폼 소유 인증 경로를 사용한다", async
   const response = await fetch(`${baseUrl}/login`);
   assert.equal(response.status, 200);
   const html = await response.text();
-  assert.match(html, /ChatGPT로 안전하게 로그인/);
+  assert.match(html, /안전하게 로그인/);
   assert.match(html, /signin-with-chatgpt/);
   assert.doesNotMatch(html, /name="password"/i);
 });
@@ -293,6 +293,7 @@ test("관리자가 학습단위와 레슨을 생성·수정하고 학습자는 �
     200,
     await updateLessonResponse.text(),
   );
+  const publicUpdatedTitle = updatedTitle.replace(/\[개발용 CMS 테스트\]\s*/, "");
 
   const publishedResponse = await fetch(
     `${baseUrl}/learn/isms-p/lessons/${lesson.id}`,
@@ -304,7 +305,7 @@ test("관리자가 학습단위와 레슨을 생성·수정하고 학습자는 �
   );
   const publishedHtml = await publishedResponse.text();
   assert.equal(publishedResponse.status, 200, publishedHtml.slice(0, 1200));
-  assert.match(publishedHtml, new RegExp(updatedTitle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.match(publishedHtml, new RegExp(publicUpdatedTitle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   assert.match(publishedHtml, /<table/);
   assert.match(publishedHtml, /<blockquote/);
   assert.doesNotMatch(publishedHtml, /<script>alert/);
@@ -358,7 +359,7 @@ test("관리자가 학습단위와 레슨을 생성·수정하고 학습자는 �
   assert.equal(isolatedCourseResponse.status, 200);
   assert.doesNotMatch(
     isolatedCourseHtml,
-    new RegExp(updatedTitle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
+    new RegExp(publicUpdatedTitle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
   );
 });
 
@@ -377,7 +378,7 @@ test("본문형 레슨을 조회하고 사용자별 완료를 멱등 처리한�
   assert.equal(pageResponse.status, 200, html.slice(0, 1200));
   assert.match(html, /본문형 이론 레슨|THEORY LESSON/);
   assert.doesNotMatch(html, /\[개발용 샘플 본문\]/);
-  assert.match(html, /본문/);
+  assert.match(html, /학습용 콘텐츠|학습 기록 원칙/);
 
   const headers = {
     "content-type": "application/json",

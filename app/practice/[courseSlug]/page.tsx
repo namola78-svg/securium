@@ -13,6 +13,7 @@ import {
 } from "@/db/question-repositories";
 import { listDueReviews } from "@/db/phase3-repositories";
 import { requireCurrentAppUser } from "@/lib/auth";
+import { publicCopy } from "@/lib/public-copy";
 
 export const dynamic = "force-dynamic";
 
@@ -76,6 +77,15 @@ export default async function PracticePage({
     questionIds: reviewQuestionIds ?? wrongQuestionIds,
     limit,
   });
+  const sanitizedQuestions = questions.map((question) => ({
+    ...question,
+    title: publicCopy(question.title),
+    content: publicCopy(question.content),
+    choices: question.choices.map((choice) => ({
+      ...choice,
+      content: publicCopy(choice.content),
+    })),
+  }));
 
   return (
     <main className="page-main practice-page">
@@ -176,7 +186,7 @@ export default async function PracticePage({
             </button>
           </form>
         </aside>
-        <PracticeSession questions={questions} courseId={course.id} />
+        <PracticeSession questions={sanitizedQuestions} courseId={course.id} />
       </div>
     </main>
   );

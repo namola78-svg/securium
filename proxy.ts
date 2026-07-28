@@ -28,6 +28,10 @@ type RefreshedSession = {
 };
 
 export async function proxy(request: NextRequest) {
+  if (resolveProxyAuthProvider() !== "supabase") {
+    return NextResponse.next();
+  }
+
   const { pathname, searchParams } = request.nextUrl;
   const isAuthPage = AUTH_PAGES.has(pathname);
   const isProtectedPage = PROTECTED_PREFIXES.some(
@@ -75,6 +79,12 @@ export async function proxy(request: NextRequest) {
   response.cookies.delete(SUPABASE_ACCESS_COOKIE);
   response.cookies.delete(SUPABASE_REFRESH_COOKIE);
   return response;
+}
+
+function resolveProxyAuthProvider() {
+  return process.env.AUTH_PROVIDER?.trim().toLowerCase() === "supabase"
+    ? "supabase"
+    : "sites";
 }
 
 export const config = {

@@ -5,6 +5,7 @@ import {
   supportsSpeechSynthesis,
   type TranscriptSegment,
 } from "@/lib/services/audio-service";
+import { publicCopy } from "@/lib/public-copy";
 
 type AudioLearningItem = {
   id: string;
@@ -68,7 +69,13 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
   );
 
   const usesBrowserVoice = !item.audioUrl;
-  const activeSegment = item.transcriptSegments.findIndex(
+  const safeTitle = publicCopy(item.title);
+  const safeTranscript = publicCopy(item.transcript);
+  const safeTranscriptSegments = item.transcriptSegments.map((segment) => ({
+    ...segment,
+    text: publicCopy(segment.text),
+  }));
+  const activeSegment = safeTranscriptSegments.findIndex(
     (segment) =>
       position >= segment.startSeconds &&
       position < segment.endSeconds,
@@ -187,12 +194,12 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
       return;
     }
     window.speechSynthesis.cancel();
-    const remainingSegments = item.transcriptSegments.filter(
+    const remainingSegments = safeTranscriptSegments.filter(
       (segment) => segment.endSeconds > position,
     );
     const speechText = remainingSegments.length
       ? remainingSegments.map((segment) => segment.text).join(" ")
-      : item.transcript;
+      : safeTranscript;
     if (!speechText.trim()) {
       setMessage("재생할 스크립트가 없습니다.");
       return;
@@ -276,7 +283,7 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
     <article className="audio-learning-card">
       <div className="audio-learning-title">
         <div>
-          <h3>{item.title}</h3>
+          <h3>{safeTitle}</h3>
           <p>
             {formatTime(position)} / {formatTime(item.durationSeconds)}
           </p>
@@ -329,7 +336,7 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
         </div>
       )}
 
-      <div className="audio-controls" aria-label={`${item.title} 재생 제어`}>
+      <div className="audio-controls" aria-label={`${safeTitle} 재생 제어`}>
         <button
           className="button button-ghost"
           type="button"
@@ -404,9 +411,9 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
 
       <details className="audio-transcript" open>
         <summary>스크립트</summary>
-        {item.transcriptSegments.length ? (
+        {safeTranscriptSegments.length ? (
           <ol>
-            {item.transcriptSegments.map((segment, index) => (
+            {safeTranscriptSegments.map((segment, index) => (
               <li
                 key={`${segment.startSeconds}-${segment.endSeconds}`}
                 className={index === activeSegment ? "is-current" : ""}
@@ -426,7 +433,7 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
             ))}
           </ol>
         ) : (
-          <p>{item.transcript || "등록된 스크립트가 없습니다."}</p>
+          <p>{safeTranscript || "등록된 스크립트가 없습니다."}</p>
         )}
       </details>
 

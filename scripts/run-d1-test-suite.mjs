@@ -15,6 +15,7 @@ const child = spawn(process.execPath, argumentsToNode, {
     // Local integration and E2E suites own their D1 fixtures. Explicitly
     // isolate them from a developer's Supabase settings in .env.local.
     APP_BUILD_TARGET: "cloudflare",
+    AUTH_PROVIDER: "sites",
     DB_PROVIDER: "d1",
     D1_TEST_MODE: "1",
     CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV: "false",
