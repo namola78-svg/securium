@@ -1,0 +1,51 @@
+name: Full E2E
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "23 18 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: "true"
+  APP_ENV: development
+  DEV_AUTH_EMAIL: dev-super-admin@example.invalid
+  STORAGE_PROVIDER: local
+
+jobs:
+  e2e:
+    name: Full local-D1 regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22.13.0"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Validate Drizzle schema and migrations
+        run: npm run db:check
+
+      - name: Prepare isolated local D1
+        run: npm run db:setup
+
+      - name: Run full E2E suite
+        run: npm run test:e2e

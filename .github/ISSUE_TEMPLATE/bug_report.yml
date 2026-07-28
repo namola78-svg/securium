@@ -1,0 +1,38 @@
+name: Bug report
+description: Report a reproducible product defect without sensitive data.
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: Do not include passwords, tokens, personal data, answer contents, or production exports.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      description: Provide the minimum safe steps and identify the affected route.
+    validations:
+      required: true
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      options:
+        - Local development
+        - Preview
+        - Production
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Sanitized evidence
+      description: Include request IDs or screenshots only after removing sensitive information.

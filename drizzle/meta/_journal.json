@@ -1,0 +1,104 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1784938454086,
+      "tag": "0000_phase1_foundation",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1785104826192,
+      "tag": "0001_steady_genesis",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1785105693796,
+      "tag": "0002_concerned_rachel_grey",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1785106084397,
+      "tag": "0003_violet_anthem",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1785108264648,
+      "tag": "0004_glamorous_nicolaos",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1785110835005,
+      "tag": "0005_daily_electro",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1785112779712,
+      "tag": "0006_cute_morg",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1785114091387,
+      "tag": "0007_noisy_kylun",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1785120219198,
+      "tag": "0008_neat_lady_ursula",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1785123990219,
+      "tag": "0009_natural_mojo",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1785125191004,
+      "tag": "0010_overconfident_mantis",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1785125913455,
+      "tag": "0011_remarkable_polaris",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1785127160703,
+      "tag": "0012_fresh_doorman",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1785128396182,
+      "tag": "0013_last_dakota_north",
+      "breakpoints": true
+    }
+  ]
+}

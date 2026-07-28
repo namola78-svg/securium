@@ -1,0 +1,66 @@
+name: Pull request CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: "true"
+  APP_ENV: development
+  DEV_AUTH_EMAIL: dev-super-admin@example.invalid
+  STORAGE_PROVIDER: local
+
+jobs:
+  verify:
+    name: Schema, code, tests, and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22.13.0"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Generate Drizzle migration metadata
+        run: |
+          npm run db:generate
+          test -z "$(git status --porcelain -- drizzle)"
+
+      - name: Validate Drizzle schema and migrations
+        run: npm run db:check
+
+      - name: Prepare isolated local D1
+        run: npm run db:setup
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      - name: Integration smoke tests
+        run: npm run test:integration
+
+      - name: Production build
+        run: npm run build

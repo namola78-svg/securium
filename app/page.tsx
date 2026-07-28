@@ -1,0 +1,121 @@
+import Link from "next/link";
+import { CourseCard } from "@/components/course-card";
+import { listPublishedCourses } from "@/db/repositories";
+import type { CourseListItem } from "@/db/repositories";
+
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  let courses: CourseListItem[] = [];
+  let databaseReady = true;
+  try {
+    courses = await listPublishedCourses();
+  } catch {
+    databaseReady = false;
+  }
+
+  return (
+    <main>
+      <section className="hero">
+        <div className="shell hero-grid">
+          <div>
+            <p className="eyebrow light">SECURITY LEARNING, STRUCTURED</p>
+            <h1>
+              흩어진 전문 자격 학습을
+              <br />
+              <span>하나의 성장 체계로.</span>
+            </h1>
+            <p className="hero-copy">
+              정보보호와 개인정보보호 과정을 한곳에서 선택하고, 과정별 진도를
+              섞이지 않게 관리하세요. Phase 1에서는 수강 기반과 공통
+              커리큘럼 구조를 제공합니다.
+            </p>
+            <div className="button-row">
+              <Link className="button button-lime" href="/courses">
+                과정 둘러보기
+              </Link>
+              <Link className="button button-outline-light" href="/login">
+                학습 시작하기
+              </Link>
+            </div>
+          </div>
+          <div className="hero-panel" aria-label="플랫폼 핵심 지표">
+            <div className="hero-panel-header">
+              <span>COMMON LEARNING CORE</span>
+              <span className="live-dot">Phase 1</span>
+            </div>
+            <div className="metric-large">
+              <strong>{databaseReady ? courses.length : "—"}</strong>
+              <span>공개 과정</span>
+            </div>
+            <div className="signal-list">
+              <div>
+                <span>다중 과정 수강</span>
+                <strong>지원</strong>
+              </div>
+              <div>
+                <span>과정별 진도 분리</span>
+                <strong>적용</strong>
+              </div>
+              <div>
+                <span>문제·복습 콘텐츠</span>
+                <strong className="muted">준비 중</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="shell">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">COURSE CATALOG</p>
+              <h2>한 계정으로 이어지는 전문 과정</h2>
+            </div>
+            <Link className="text-link" href="/courses">
+              전체 과정 보기 →
+            </Link>
+          </div>
+          {!databaseReady ? (
+            <div className="notice warning">
+              로컬 데이터베이스 준비가 필요합니다. README의 DB 설정 절차를
+              실행하면 과정이 표시됩니다.
+            </div>
+          ) : courses.length ? (
+            <div className="course-grid">
+              {courses.slice(0, 3).map((course) => (
+                <CourseCard key={course.id} course={course} />
+              ))}
+            </div>
+          ) : (
+            <div className="empty-state">
+              <strong>공개된 과정이 없습니다.</strong>
+              <p>관리자가 과정을 공개하면 이곳에 표시됩니다.</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="section section-ink">
+        <div className="shell value-grid">
+          <div>
+            <span className="value-number">01</span>
+            <h3>공통 구조</h3>
+            <p>과정을 복제하지 않고 같은 학습 엔진과 동적 라우트로 운영합니다.</p>
+          </div>
+          <div>
+            <span className="value-number">02</span>
+            <h3>독립 진도</h3>
+            <p>여러 과정을 수강해도 진도와 단계, 정답률이 과정별로 분리됩니다.</p>
+          </div>
+          <div>
+            <span className="value-number">03</span>
+            <h3>운영 확장</h3>
+            <p>관리자가 과정군·과정·과목·주제를 추가하고 공개 상태를 관리합니다.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}

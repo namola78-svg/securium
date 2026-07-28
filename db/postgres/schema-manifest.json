@@ -1,0 +1,2559 @@
+{
+  "sourceSnapshot": "drizzle/meta/0013_snapshot.json",
+  "tableCount": 68,
+  "tableOrder": [
+    "course_groups",
+    "isms_standards",
+    "legal_articles",
+    "privacy_impact_assessment_items",
+    "risk_calculation_methods",
+    "roles",
+    "secure_coding_weaknesses",
+    "users",
+    "admin_audit_logs",
+    "courses",
+    "isms_defect_cases",
+    "legal_article_versions",
+    "questions",
+    "risk_grade_criteria",
+    "user_learning_settings",
+    "ai_generation_records",
+    "ai_specialized_generation_records",
+    "audit_logs",
+    "bookmarks",
+    "content_bookmarks",
+    "content_course_links",
+    "content_question_links",
+    "content_revisions",
+    "course_specializations",
+    "learning_activities",
+    "levels",
+    "mock_exams",
+    "privacy_assessment_scenarios",
+    "question_attempts",
+    "question_choices",
+    "question_courses",
+    "question_reports",
+    "question_versions",
+    "review_schedules",
+    "risk_scenarios",
+    "secure_code_samples",
+    "subjects",
+    "user_course_enrollments",
+    "user_roles",
+    "written_answer_rules",
+    "ai_reviewed_contents",
+    "ai_specialized_reviews",
+    "code_analysis_answers",
+    "level_contents",
+    "mock_exam_attempts",
+    "mock_exam_sections",
+    "privacy_assessment_answers",
+    "privacy_flow_nodes",
+    "question_subjects",
+    "risk_register_items",
+    "secure_code_grading_rules",
+    "topics",
+    "user_level_progress",
+    "wrong_notes",
+    "learning_units",
+    "lectures",
+    "mock_exam_answers",
+    "mock_exam_questions",
+    "privacy_flow_edges",
+    "question_topics",
+    "user_progress",
+    "lecture_bookmarks",
+    "lecture_notes",
+    "lecture_progress",
+    "lessons",
+    "audio_contents",
+    "user_lesson_progress",
+    "audio_progress"
+  ],
+  "tables": {
+    "course_groups": {
+      "columns": [
+        "id",
+        "code",
+        "name",
+        "description",
+        "display_order",
+        "active",
+        "is_sample",
+        "deleted_at",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": []
+    },
+    "isms_standards": {
+      "columns": [
+        "id",
+        "code",
+        "title",
+        "major_category",
+        "middle_category",
+        "description",
+        "key_points",
+        "evidence_examples",
+        "defect_examples",
+        "audit_points",
+        "version",
+        "effective_date",
+        "source_url",
+        "active",
+        "is_sample",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": []
+    },
+    "legal_articles": {
+      "columns": [
+        "id",
+        "law_name",
+        "article_number",
+        "article_title",
+        "content",
+        "effective_date",
+        "revision_date",
+        "source_url",
+        "version",
+        "active",
+        "is_sample",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": []
+    },
+    "privacy_impact_assessment_items": {
+      "columns": [
+        "id",
+        "code",
+        "category",
+        "title",
+        "description",
+        "check_points",
+        "evidence_examples",
+        "risk_examples",
+        "improvement_examples",
+        "version",
+        "effective_date",
+        "active",
+        "is_sample",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": []
+    },
+    "risk_calculation_methods": {
+      "columns": [
+        "id",
+        "name",
+        "description",
+        "formula_type",
+        "configuration_json",
+        "active",
+        "is_sample",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": []
+    },
+    "roles": {
+      "columns": [
+        "id",
+        "code",
+        "name",
+        "description",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": []
+    },
+    "secure_coding_weaknesses": {
+      "columns": [
+        "id",
+        "code",
+        "name",
+        "category",
+        "description",
+        "language",
+        "cwe_code",
+        "risk",
+        "detection_guide",
+        "remediation_guide",
+        "reference",
+        "version",
+        "active",
+        "is_sample",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": []
+    },
+    "users": {
+      "columns": [
+        "id",
+        "email",
+        "display_name",
+        "status",
+        "last_signed_in_at",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": []
+    },
+    "admin_audit_logs": {
+      "columns": [
+        "id",
+        "actor_user_id",
+        "actor_role",
+        "action",
+        "resource_type",
+        "resource_id",
+        "result",
+        "ip_hash",
+        "user_agent_summary",
+        "request_id",
+        "metadata_json",
+        "created_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "admin_audit_logs_actor_user_id_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "actor_user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "courses": {
+      "columns": [
+        "id",
+        "course_group_id",
+        "code",
+        "slug",
+        "name",
+        "short_name",
+        "description",
+        "thumbnail_url",
+        "total_levels",
+        "passing_score",
+        "difficulty",
+        "active",
+        "published",
+        "display_order",
+        "is_sample",
+        "deleted_at",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "courses_course_group_id_course_groups_id_fk",
+          "tableTo": "course_groups",
+          "columnsFrom": [
+            "course_group_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "isms_defect_cases": {
+      "columns": [
+        "id",
+        "title",
+        "situation",
+        "defect_description",
+        "related_standard_id",
+        "evidence",
+        "corrective_action",
+        "source",
+        "source_date",
+        "is_sample",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "isms_defect_cases_related_standard_id_isms_standards_id_fk",
+          "tableTo": "isms_standards",
+          "columnsFrom": [
+            "related_standard_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "legal_article_versions": {
+      "columns": [
+        "id",
+        "legal_article_id",
+        "version",
+        "content",
+        "effective_date",
+        "revision_date",
+        "change_summary",
+        "source_url",
+        "created_by",
+        "created_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "legal_article_versions_legal_article_id_legal_articles_id_fk",
+          "tableTo": "legal_articles",
+          "columnsFrom": [
+            "legal_article_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "legal_article_versions_created_by_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "questions": {
+      "columns": [
+        "id",
+        "title",
+        "content",
+        "type",
+        "difficulty",
+        "explanation",
+        "wrong_answer_explanation",
+        "status",
+        "source",
+        "source_date",
+        "version",
+        "answer_config_json",
+        "is_sample",
+        "created_by",
+        "reviewed_by",
+        "published_at",
+        "archived_at",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "questions_created_by_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "questions_reviewed_by_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "reviewed_by"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "risk_grade_criteria": {
+      "columns": [
+        "id",
+        "calculation_method_id",
+        "code",
+        "label",
+        "min_value",
+        "max_value",
+        "treatment_guidance",
+        "display_order"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "risk_grade_criteria_calculation_method_id_risk_calculation_methods_id_fk",
+          "tableTo": "risk_calculation_methods",
+          "columnsFrom": [
+            "calculation_method_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "user_learning_settings": {
+      "columns": [
+        "id",
+        "user_id",
+        "daily_question_goal",
+        "daily_study_minutes",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "user_learning_settings_user_id_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "ai_generation_records": {
+      "columns": [
+        "id",
+        "user_id",
+        "course_id",
+        "question_id",
+        "provider",
+        "model",
+        "generated_at",
+        "source_context_ids_json",
+        "disclaimer",
+        "reviewed",
+        "reviewed_by",
+        "reviewed_at",
+        "request_id",
+        "latency_ms",
+        "status",
+        "result_json",
+        "error_code",
+        "prompt_fingerprint",
+        "input_tokens",
+        "output_tokens",
+        "estimated_cost_micros",
+        "retention_until"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "ai_generation_records_user_id_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "ai_generation_records_course_id_courses_id_fk",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "ai_generation_records_question_id_questions_id_fk",
+          "tableTo": "questions",
+          "columnsFrom": [
+            "question_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "ai_generation_records_reviewed_by_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "reviewed_by"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "ai_specialized_generation_records": {
+      "columns": [
+        "id",
+        "user_id",
+        "course_id",
+        "target_type",
+        "target_id",
+        "provider",
+        "model",
+        "generated_at",
+        "source_context_ids_json",
+        "disclaimer",
+        "request_id",
+        "latency_ms",
+        "generation_status",
+        "review_status",
+        "original_result_json",
+        "error_code",
+        "input_fingerprint",
+        "input_tokens",
+        "output_tokens",
+        "estimated_cost_micros",
+        "retention_until",
+        "deleted_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "ai_specialized_generation_records_user_id_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "ai_specialized_generation_records_course_id_courses_id_fk",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "audit_logs": {
+      "columns": [
+        "id",
+        "actor_user_id",
+        "action",
+        "target_type",
+        "target_id",
+        "course_id",
+        "request_id",
+        "metadata_json",
+        "created_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "audit_logs_actor_user_id_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "actor_user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "audit_logs_course_id_courses_id_fk",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "bookmarks": {
+      "columns": [
+        "id",
+        "user_id",
+        "target_type",
+        "target_id",
+        "course_id",
+        "created_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "bookmarks_user_id_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "bookmarks_course_id_courses_id_fk",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "content_bookmarks": {
+      "columns": [
+        "id",
+        "user_id",
+        "course_id",
+        "content_type",
+        "content_id",
+        "created_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "content_bookmarks_user_id_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "content_bookmarks_course_id_courses_id_fk",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "content_course_links": {
+      "columns": [
+        "id",
+        "content_type",
+        "content_id",
+        "course_id",
+        "relation_type",
+        "display_order",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "content_course_links_course_id_courses_id_fk",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "content_question_links": {
+      "columns": [
+        "id",
+        "content_type",
+        "content_id",
+        "question_id",
+        "relation_type",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "content_question_links_question_id_questions_id_fk",
+          "tableTo": "questions",
+          "columnsFrom": [
+            "question_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "content_revisions": {
+      "columns": [
+        "id",
+        "content_type",
+        "content_id",
+        "course_id",
+        "title",
+        "content_date",
+        "version",
+        "revision_status",
+        "snapshot_json",
+        "reviewed_at",
+        "reviewed_by",
+        "published_at",
+        "superseded_at",
+        "change_summary",
+        "previous_version_id",
+        "is_latest",
+        "created_by",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "content_revisions_course_id_courses_id_fk",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "content_revisions_reviewed_by_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "reviewed_by"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "content_revisions_created_by_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "content_revisions_previous_fk",
+          "tableTo": "content_revisions",
+          "columnsFrom": [
+            "previous_version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "course_specializations": {
+      "columns": [
+        "id",
+        "course_id",
+        "feature_type",
+        "display_name",
+        "description",
+        "configuration_json",
+        "display_order",
+        "active",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "course_specializations_course_id_courses_id_fk",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "learning_activities": {
+      "columns": [
+        "id",
+        "user_id",
+        "course_id",
+        "activity_type",
+        "target_id",
+        "metadata_json",
+        "created_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "learning_activities_user_id_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "learning_activities_course_id_courses_id_fk",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "levels": {
+      "columns": [
+        "id",
+        "course_id",
+        "code",
+        "number",
+        "title",
+        "description",
+        "passing_score",
+        "required_level_id",
+        "display_order",
+        "active",
+        "published",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "levels_course_id_courses_id_fk",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "levels_required_level_fk",
+          "tableTo": "levels",
+          "columnsFrom": [
+            "required_level_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "mock_exams": {
+      "columns": [
+        "id",
+        "course_id",
+        "title",
+        "description",
+        "exam_type",
+        "question_count",
+        "time_limit_minutes",
+        "passing_score",
+        "start_at",
+        "end_at",
+        "result_open_at",
+        "max_attempts",
+        "randomize_questions",
+        "randomize_choices",
+        "status",
+        "published",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "mock_exams_course_id_courses_id_fk",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "privacy_assessment_scenarios": {
+      "columns": [
+        "id",
+        "course_id",
+        "title",
+        "description",
+        "organization_type",
+        "system_type",
+        "processed_data",
+        "data_subjects",
+        "processing_purpose",
+        "track",
+        "correct_target_decision",
+        "expected_assessment_items_json",
+        "model_improvement_plan",
+        "scoring_rules_json",
+        "sample_only",
+        "active",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "privacy_assessment_scenarios_course_id_courses_id_fk",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "question_attempts": {
+      "columns": [
+        "id",
+        "idempotency_key",
+        "user_id",
+        "question_id",
+        "course_id",
+        "mode",
+        "exam_session_id",
+        "selected_answer",
+        "is_correct",
+        "score",
+        "response_time",
+        "attempted_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "question_attempts_user_id_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "question_attempts_question_id_questions_id_fk",
+          "tableTo": "questions",
+          "columnsFrom": [
+            "question_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "question_attempts_course_id_courses_id_fk",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "question_choices": {
+      "columns": [
+        "id",
+        "question_id",
+        "content",
+        "display_order",
+        "is_correct",
+        "explanation"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "question_choices_question_id_questions_id_fk",
+          "tableTo": "questions",
+          "columnsFrom": [
+            "question_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "question_courses": {
+      "columns": [
+        "question_id",
+        "course_id",
+        "weight"
+      ],
+      "primaryKey": null,
+      "foreignKeys": [
+        {
+          "name": "question_courses_question_id_questions_id_fk",
+          "tableTo": "questions",
+          "columnsFrom": [
+            "question_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "question_courses_course_id_courses_id_fk",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "question_reports": {
+      "columns": [
+        "id",
+        "user_id",
+        "question_id",
+        "reason",
+        "content",
+        "status",
+        "resolution_note",
+        "handled_by",
+        "handled_at",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "question_reports_user_id_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "question_reports_question_id_questions_id_fk",
+          "tableTo": "questions",
+          "columnsFrom": [
+            "question_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "question_reports_handled_by_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "handled_by"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "question_versions": {
+      "columns": [
+        "id",
+        "question_id",
+        "version",
+        "snapshot_json",
+        "review_comment",
+        "created_by",
+        "created_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "question_versions_question_id_questions_id_fk",
+          "tableTo": "questions",
+          "columnsFrom": [
+            "question_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "question_versions_created_by_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "review_schedules": {
+      "columns": [
+        "id",
+        "user_id",
+        "course_id",
+        "target_type",
+        "target_id",
+        "last_reviewed_at",
+        "next_review_at",
+        "interval_days",
+        "ease_factor",
+        "consecutive_correct",
+        "consecutive_wrong",
+        "review_count",
+        "status",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "review_schedules_user_id_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "review_schedules_course_id_courses_id_fk",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "risk_scenarios": {
+      "columns": [
+        "id",
+        "course_id",
+        "calculation_method_id",
+        "title",
+        "asset",
+        "threat",
+        "vulnerability",
+        "existing_controls",
+        "likelihood",
+        "impact",
+        "risk_value",
+        "risk_level",
+        "treatment_option",
+        "residual_risk",
+        "description",
+        "reference_date",
+        "is_sample",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "risk_scenarios_course_id_courses_id_fk",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "risk_scenarios_calculation_method_id_risk_calculation_methods_id_fk",
+          "tableTo": "risk_calculation_methods",
+          "columnsFrom": [
+            "calculation_method_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "secure_code_samples": {
+      "columns": [
+        "id",
+        "weakness_id",
+        "question_id",
+        "language",
+        "title",
+        "vulnerable_code",
+        "secure_code",
+        "vulnerable_lines_json",
+        "explanation",
+        "false_positive_possible",
+        "expected_true_positive",
+        "call_relation",
+        "execution_flow",
+        "remediation_keywords_json",
+        "source_date",
+        "sample_only",
+        "active",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "secure_code_samples_weakness_id_secure_coding_weaknesses_id_fk",
+          "tableTo": "secure_coding_weaknesses",
+          "columnsFrom": [
+            "weakness_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "secure_code_samples_question_id_questions_id_fk",
+          "tableTo": "questions",
+          "columnsFrom": [
+            "question_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "subjects": {
+      "columns": [
+        "id",
+        "course_id",
+        "code",
+        "name",
+        "description",
+        "display_order",
+        "active",
+        "is_sample",
+        "deleted_at",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "subjects_course_id_courses_id_fk",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "user_course_enrollments": {
+      "columns": [
+        "id",
+        "user_id",
+        "course_id",
+        "status",
+        "enrolled_at",
+        "completed_at",
+        "current_level",
+        "progress_percent",
+        "total_xp",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "user_course_enrollments_user_id_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "user_course_enrollments_course_id_courses_id_fk",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "user_roles": {
+      "columns": [
+        "id",
+        "user_id",
+        "role_id",
+        "course_id",
+        "granted_by",
+        "granted_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "user_roles_user_id_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "user_roles_role_id_roles_id_fk",
+          "tableTo": "roles",
+          "columnsFrom": [
+            "role_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "user_roles_course_id_courses_id_fk",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "user_roles_granted_by_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "granted_by"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "written_answer_rules": {
+      "columns": [
+        "question_id",
+        "model_answer",
+        "required_keywords_json",
+        "optional_keywords_json",
+        "maximum_score",
+        "partial_score_rules_json",
+        "guidance",
+        "reference_date",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "question_id",
+      "foreignKeys": [
+        {
+          "name": "written_answer_rules_question_id_questions_id_fk",
+          "tableTo": "questions",
+          "columnsFrom": [
+            "question_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "ai_reviewed_contents": {
+      "columns": [
+        "id",
+        "generation_id",
+        "course_id",
+        "target_type",
+        "target_id",
+        "title",
+        "content_json",
+        "created_by",
+        "active",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "ai_reviewed_contents_generation_id_ai_specialized_generation_records_id_fk",
+          "tableTo": "ai_specialized_generation_records",
+          "columnsFrom": [
+            "generation_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "ai_reviewed_contents_course_id_courses_id_fk",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "ai_reviewed_contents_created_by_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "ai_specialized_reviews": {
+      "columns": [
+        "id",
+        "generation_id",
+        "reviewer_id",
+        "revision",
+        "action",
+        "edited_result_json",
+        "review_note",
+        "created_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "ai_specialized_reviews_generation_id_ai_specialized_generation_records_id_fk",
+          "tableTo": "ai_specialized_generation_records",
+          "columnsFrom": [
+            "generation_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "ai_specialized_reviews_reviewer_id_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "reviewer_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "code_analysis_answers": {
+      "columns": [
+        "id",
+        "attempt_id",
+        "sample_id",
+        "selected_lines_json",
+        "weakness_id",
+        "selected_cwe_code",
+        "true_positive",
+        "user_explanation",
+        "remediation_code",
+        "matched_criteria_json",
+        "is_correct",
+        "score",
+        "created_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "code_analysis_answers_attempt_id_question_attempts_id_fk",
+          "tableTo": "question_attempts",
+          "columnsFrom": [
+            "attempt_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "code_analysis_answers_sample_id_secure_code_samples_id_fk",
+          "tableTo": "secure_code_samples",
+          "columnsFrom": [
+            "sample_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "code_analysis_answers_weakness_id_secure_coding_weaknesses_id_fk",
+          "tableTo": "secure_coding_weaknesses",
+          "columnsFrom": [
+            "weakness_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "level_contents": {
+      "columns": [
+        "id",
+        "level_id",
+        "content_type",
+        "content_id",
+        "display_order",
+        "required"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "level_contents_level_id_levels_id_fk",
+          "tableTo": "levels",
+          "columnsFrom": [
+            "level_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "mock_exam_attempts": {
+      "columns": [
+        "id",
+        "mock_exam_id",
+        "user_id",
+        "started_at",
+        "expires_at",
+        "submitted_at",
+        "status",
+        "score",
+        "correct_count",
+        "wrong_count",
+        "unanswered_count",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "mock_exam_attempts_mock_exam_id_mock_exams_id_fk",
+          "tableTo": "mock_exams",
+          "columnsFrom": [
+            "mock_exam_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "mock_exam_attempts_user_id_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "mock_exam_sections": {
+      "columns": [
+        "id",
+        "mock_exam_id",
+        "subject_id",
+        "title",
+        "question_count",
+        "score_weight",
+        "display_order"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "mock_exam_sections_mock_exam_id_mock_exams_id_fk",
+          "tableTo": "mock_exams",
+          "columnsFrom": [
+            "mock_exam_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "mock_exam_sections_subject_id_subjects_id_fk",
+          "tableTo": "subjects",
+          "columnsFrom": [
+            "subject_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "privacy_assessment_answers": {
+      "columns": [
+        "id",
+        "user_id",
+        "scenario_id",
+        "target_decision",
+        "selected_assessment_items_json",
+        "identified_risks",
+        "improvement_plan",
+        "score",
+        "feedback_json",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "privacy_assessment_answers_user_id_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "privacy_assessment_answers_scenario_id_privacy_assessment_scenarios_id_fk",
+          "tableTo": "privacy_assessment_scenarios",
+          "columnsFrom": [
+            "scenario_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "privacy_flow_nodes": {
+      "columns": [
+        "id",
+        "scenario_id",
+        "node_type",
+        "title",
+        "description",
+        "system_name",
+        "organization_name",
+        "display_x",
+        "display_y",
+        "display_order",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "privacy_flow_nodes_scenario_id_privacy_assessment_scenarios_id_fk",
+          "tableTo": "privacy_assessment_scenarios",
+          "columnsFrom": [
+            "scenario_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "question_subjects": {
+      "columns": [
+        "question_id",
+        "subject_id"
+      ],
+      "primaryKey": null,
+      "foreignKeys": [
+        {
+          "name": "question_subjects_question_id_questions_id_fk",
+          "tableTo": "questions",
+          "columnsFrom": [
+            "question_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "question_subjects_subject_id_subjects_id_fk",
+          "tableTo": "subjects",
+          "columnsFrom": [
+            "subject_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "risk_register_items": {
+      "columns": [
+        "id",
+        "user_id",
+        "scenario_id",
+        "asset",
+        "threat",
+        "vulnerability",
+        "likelihood",
+        "impact",
+        "risk_value",
+        "treatment",
+        "owner",
+        "due_date",
+        "status",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "risk_register_items_user_id_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "risk_register_items_scenario_id_risk_scenarios_id_fk",
+          "tableTo": "risk_scenarios",
+          "columnsFrom": [
+            "scenario_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "secure_code_grading_rules": {
+      "columns": [
+        "id",
+        "sample_id",
+        "line_score",
+        "weakness_score",
+        "cwe_score",
+        "judgment_score",
+        "keyword_score",
+        "remediation_code_score",
+        "maximum_score",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "secure_code_grading_rules_sample_id_secure_code_samples_id_fk",
+          "tableTo": "secure_code_samples",
+          "columnsFrom": [
+            "sample_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "topics": {
+      "columns": [
+        "id",
+        "subject_id",
+        "parent_topic_id",
+        "code",
+        "name",
+        "description",
+        "display_order",
+        "active",
+        "is_sample",
+        "deleted_at",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "topics_subject_id_subjects_id_fk",
+          "tableTo": "subjects",
+          "columnsFrom": [
+            "subject_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "topics_parent_topic_fk",
+          "tableTo": "topics",
+          "columnsFrom": [
+            "parent_topic_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "user_level_progress": {
+      "columns": [
+        "id",
+        "user_id",
+        "course_id",
+        "level_id",
+        "status",
+        "best_score",
+        "attempt_count",
+        "completed_at",
+        "mastered_at",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "user_level_progress_user_id_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "user_level_progress_course_id_courses_id_fk",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "user_level_progress_level_id_levels_id_fk",
+          "tableTo": "levels",
+          "columnsFrom": [
+            "level_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "wrong_notes": {
+      "columns": [
+        "id",
+        "user_id",
+        "question_id",
+        "course_id",
+        "last_attempt_id",
+        "wrong_count",
+        "mastered",
+        "user_memo",
+        "last_reviewed_at",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "wrong_notes_user_id_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "wrong_notes_question_id_questions_id_fk",
+          "tableTo": "questions",
+          "columnsFrom": [
+            "question_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "wrong_notes_course_id_courses_id_fk",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "wrong_notes_last_attempt_id_question_attempts_id_fk",
+          "tableTo": "question_attempts",
+          "columnsFrom": [
+            "last_attempt_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "learning_units": {
+      "columns": [
+        "id",
+        "course_id",
+        "subject_id",
+        "topic_id",
+        "code",
+        "title",
+        "description",
+        "display_order",
+        "active",
+        "published",
+        "completion_policy",
+        "minimum_progress_percent",
+        "minimum_study_seconds",
+        "is_sample",
+        "deleted_at",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "learning_units_course_id_courses_id_fk",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "learning_units_subject_id_subjects_id_fk",
+          "tableTo": "subjects",
+          "columnsFrom": [
+            "subject_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "learning_units_topic_id_topics_id_fk",
+          "tableTo": "topics",
+          "columnsFrom": [
+            "topic_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "lectures": {
+      "columns": [
+        "id",
+        "course_id",
+        "subject_id",
+        "topic_id",
+        "title",
+        "instructor_name",
+        "description",
+        "video_provider",
+        "video_url",
+        "thumbnail_url",
+        "duration_seconds",
+        "free",
+        "published",
+        "display_order",
+        "is_sample",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "lectures_course_id_courses_id_fk",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "lectures_subject_id_subjects_id_fk",
+          "tableTo": "subjects",
+          "columnsFrom": [
+            "subject_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "lectures_topic_id_topics_id_fk",
+          "tableTo": "topics",
+          "columnsFrom": [
+            "topic_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "mock_exam_answers": {
+      "columns": [
+        "id",
+        "attempt_id",
+        "question_id",
+        "answer_data",
+        "is_correct",
+        "score",
+        "answered_at",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "mock_exam_answers_attempt_id_mock_exam_attempts_id_fk",
+          "tableTo": "mock_exam_attempts",
+          "columnsFrom": [
+            "attempt_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "mock_exam_answers_question_id_questions_id_fk",
+          "tableTo": "questions",
+          "columnsFrom": [
+            "question_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "mock_exam_questions": {
+      "columns": [
+        "mock_exam_id",
+        "question_id",
+        "section_id",
+        "score",
+        "display_order"
+      ],
+      "primaryKey": null,
+      "foreignKeys": [
+        {
+          "name": "mock_exam_questions_mock_exam_id_mock_exams_id_fk",
+          "tableTo": "mock_exams",
+          "columnsFrom": [
+            "mock_exam_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "mock_exam_questions_question_id_questions_id_fk",
+          "tableTo": "questions",
+          "columnsFrom": [
+            "question_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "mock_exam_questions_section_id_mock_exam_sections_id_fk",
+          "tableTo": "mock_exam_sections",
+          "columnsFrom": [
+            "section_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "privacy_flow_edges": {
+      "columns": [
+        "id",
+        "scenario_id",
+        "source_node_id",
+        "target_node_id",
+        "data_types",
+        "transfer_method",
+        "purpose",
+        "protection_measures",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "privacy_flow_edges_scenario_id_privacy_assessment_scenarios_id_fk",
+          "tableTo": "privacy_assessment_scenarios",
+          "columnsFrom": [
+            "scenario_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "privacy_flow_edges_source_fk",
+          "tableTo": "privacy_flow_nodes",
+          "columnsFrom": [
+            "scenario_id",
+            "source_node_id"
+          ],
+          "columnsTo": [
+            "scenario_id",
+            "id"
+          ]
+        },
+        {
+          "name": "privacy_flow_edges_target_fk",
+          "tableTo": "privacy_flow_nodes",
+          "columnsFrom": [
+            "scenario_id",
+            "target_node_id"
+          ],
+          "columnsTo": [
+            "scenario_id",
+            "id"
+          ]
+        }
+      ]
+    },
+    "question_topics": {
+      "columns": [
+        "question_id",
+        "topic_id"
+      ],
+      "primaryKey": null,
+      "foreignKeys": [
+        {
+          "name": "question_topics_question_id_questions_id_fk",
+          "tableTo": "questions",
+          "columnsFrom": [
+            "question_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "question_topics_topic_id_topics_id_fk",
+          "tableTo": "topics",
+          "columnsFrom": [
+            "topic_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "user_progress": {
+      "columns": [
+        "id",
+        "user_id",
+        "course_id",
+        "subject_id",
+        "topic_id",
+        "progress_percent",
+        "completed_lessons",
+        "completed_questions",
+        "correct_answers",
+        "total_answers",
+        "last_studied_at",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "user_progress_user_id_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "user_progress_course_id_courses_id_fk",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "user_progress_subject_id_subjects_id_fk",
+          "tableTo": "subjects",
+          "columnsFrom": [
+            "subject_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "user_progress_topic_id_topics_id_fk",
+          "tableTo": "topics",
+          "columnsFrom": [
+            "topic_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "lecture_bookmarks": {
+      "columns": [
+        "id",
+        "user_id",
+        "lecture_id",
+        "created_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "lecture_bookmarks_user_id_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "lecture_bookmarks_lecture_id_lectures_id_fk",
+          "tableTo": "lectures",
+          "columnsFrom": [
+            "lecture_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "lecture_notes": {
+      "columns": [
+        "id",
+        "user_id",
+        "lecture_id",
+        "content",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "lecture_notes_user_id_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "lecture_notes_lecture_id_lectures_id_fk",
+          "tableTo": "lectures",
+          "columnsFrom": [
+            "lecture_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "lecture_progress": {
+      "columns": [
+        "id",
+        "user_id",
+        "lecture_id",
+        "current_position_seconds",
+        "completed",
+        "completed_at",
+        "last_played_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "lecture_progress_user_id_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "lecture_progress_lecture_id_lectures_id_fk",
+          "tableTo": "lectures",
+          "columnsFrom": [
+            "lecture_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "lessons": {
+      "columns": [
+        "id",
+        "learning_unit_id",
+        "course_id",
+        "subject_id",
+        "topic_id",
+        "code",
+        "title",
+        "summary",
+        "content",
+        "content_format",
+        "estimated_minutes",
+        "display_order",
+        "active",
+        "published",
+        "is_sample",
+        "version",
+        "deleted_at",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "lessons_learning_unit_id_learning_units_id_fk",
+          "tableTo": "learning_units",
+          "columnsFrom": [
+            "learning_unit_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "lessons_course_id_courses_id_fk",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "lessons_subject_id_subjects_id_fk",
+          "tableTo": "subjects",
+          "columnsFrom": [
+            "subject_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "lessons_topic_id_topics_id_fk",
+          "tableTo": "topics",
+          "columnsFrom": [
+            "topic_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "audio_contents": {
+      "columns": [
+        "id",
+        "lesson_id",
+        "title",
+        "audio_url",
+        "transcript",
+        "transcript_segments_json",
+        "duration_seconds",
+        "voice_provider",
+        "voice_name",
+        "speed_options_json",
+        "published",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "audio_contents_lesson_id_lessons_id_fk",
+          "tableTo": "lessons",
+          "columnsFrom": [
+            "lesson_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "user_lesson_progress": {
+      "columns": [
+        "id",
+        "user_id",
+        "course_id",
+        "lesson_id",
+        "status",
+        "progress_percent",
+        "started_at",
+        "completed_at",
+        "last_viewed_at",
+        "last_position",
+        "study_seconds",
+        "last_studied_at",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "user_lesson_progress_user_id_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "user_lesson_progress_course_id_courses_id_fk",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "user_lesson_progress_lesson_id_lessons_id_fk",
+          "tableTo": "lessons",
+          "columnsFrom": [
+            "lesson_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "audio_progress": {
+      "columns": [
+        "id",
+        "user_id",
+        "audio_content_id",
+        "current_position_seconds",
+        "completed",
+        "completed_at",
+        "last_played_at",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "audio_progress_user_id_users_id_fk",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "audio_progress_audio_content_id_audio_contents_id_fk",
+          "tableTo": "audio_contents",
+          "columnsFrom": [
+            "audio_content_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    }
+  }
+}
