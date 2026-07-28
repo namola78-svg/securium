@@ -16,9 +16,7 @@ export function CourseEnrollAction({
   courseSlug,
   initialSignedIn,
 }: CourseEnrollActionProps) {
-  const [status, setStatus] = useState<AuthStatus>(
-    initialSignedIn ? "authenticated" : "checking",
-  );
+  const [status, setStatus] = useState<AuthStatus>("checking");
 
   useEffect(() => {
     let active = true;
@@ -31,7 +29,7 @@ export function CourseEnrollAction({
         });
         if (!active) return;
         if (!response.ok) {
-          setStatus(initialSignedIn ? "authenticated" : "anonymous");
+          setStatus("anonymous");
           return;
         }
         const payload = (await response.json()) as { authenticated?: boolean };
@@ -62,17 +60,20 @@ export function CourseEnrollAction({
     );
   }
 
+  if (status === "checking") {
+    return (
+      <button className="button button-dark full-width" type="button" disabled>
+        로그인 상태 확인 중
+      </button>
+    );
+  }
+
   return (
-    <>
-      <Link
-        className="button button-dark full-width"
-        href={`/login?return_to=${encodeURIComponent(`/courses/${courseSlug}`)}`}
-      >
-        로그인하고 수강하기
-      </Link>
-      {status === "checking" ? (
-        <p className="auth-check-note">로그인 상태 확인 중입니다.</p>
-      ) : null}
-    </>
+    <Link
+      className="button button-dark full-width"
+      href={`/login?return_to=${encodeURIComponent(`/courses/${courseSlug}`)}`}
+    >
+      로그인하고 수강하기
+    </Link>
   );
 }
