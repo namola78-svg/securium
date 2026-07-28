@@ -10,8 +10,9 @@ export type AuthenticatedIdentity = {
 
 export const SUPABASE_ACCESS_COOKIE = "sa_access_token";
 export const SUPABASE_REFRESH_COOKIE = "sa_refresh_token";
+export const SUPABASE_OAUTH_RETURN_COOKIE = "sa_oauth_return_to";
 
-type SupabaseAuthSession = {
+export type SupabaseAuthSession = {
   accessToken: string;
   refreshToken: string;
   expiresIn: number;
@@ -71,6 +72,7 @@ export function resolveSupabaseAuthConfig(
   }
 
   return {
+    supabaseUrl: parsed.origin,
     authUrl: `${parsed.origin}/auth/v1`,
     anonKey,
   };
@@ -174,20 +176,39 @@ export async function signUpWithSupabasePassword(input: {
 export async function persistSupabaseSession(session: SupabaseAuthSession) {
   const cookieStore = await getCookieStore();
   const secure = process.env.NODE_ENV === "production";
-  cookieStore.set(SUPABASE_ACCESS_COOKIE, session.accessToken, {
-    httpOnly: true,
-    secure,
-    sameSite: "lax",
-    path: "/",
-    maxAge: Math.max(60, session.expiresIn),
-  });
-  cookieStore.set(SUPABASE_REFRESH_COOKIE, session.refreshToken, {
-    httpOnly: true,
-    secure,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 30,
-  });
+  for (const cookie of supabaseSessionCookieSpecs(session, secure)) {
+    cookieStore.set(cookie.name, cookie.value, cookie.options);
+  }
+}
+
+export function supabaseSessionCookieSpecs(
+  session: SupabaseAuthSession,
+  secure: boolean,
+) {
+  return [
+    {
+      name: SUPABASE_ACCESS_COOKIE,
+      value: session.accessToken,
+      options: {
+        httpOnly: true,
+        secure,
+        sameSite: "lax" as const,
+        path: "/",
+        maxAge: Math.max(60, session.expiresIn),
+      },
+    },
+    {
+      name: SUPABASE_REFRESH_COOKIE,
+      value: session.refreshToken,
+      options: {
+        httpOnly: true,
+        secure,
+        sameSite: "lax" as const,
+        path: "/",
+        maxAge: 60 * 60 * 24 * 30,
+      },
+    },
+  ];
 }
 
 export async function clearSupabaseSession() {

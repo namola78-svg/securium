@@ -20,6 +20,7 @@ test("supabase auth config uses credential-free HTTPS project URL", () => {
       SUPABASE_ANON_KEY: "a".repeat(32),
     }),
     {
+      supabaseUrl: "https://project.supabase.co",
       authUrl: "https://project.supabase.co/auth/v1",
       anonKey: "a".repeat(32),
     },
@@ -58,4 +59,8 @@ test("auth return paths reject external and reserved targets", () => {
   assert.equal(safeAuthReturnPath("https://evil.example"), "/dashboard");
   assert.equal(safeAuthReturnPath("//evil.example"), "/dashboard");
   assert.equal(safeAuthReturnPath("/api/auth/supabase/logout"), "/dashboard");
+  assert.equal(
+    safeAuthReturnPath("/api/auth/supabase/oauth/google"),
+    "/dashboard",
+  );
 });

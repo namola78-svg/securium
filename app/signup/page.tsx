@@ -36,6 +36,16 @@ export default async function SignupPage({
               확인하세요.
             </div>
           ) : null}
+          <Link
+            className="google-auth-button"
+            href={`/api/auth/supabase/oauth/google?return_to=${encodeURIComponent(returnTo)}`}
+          >
+            <span aria-hidden="true">G</span>
+            Google로 시작하기
+          </Link>
+          <div className="auth-divider" aria-hidden="true">
+            <span>또는</span>
+          </div>
           <form
             className="form-stack"
             action="/api/auth/supabase/signup"

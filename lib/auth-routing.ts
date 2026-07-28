@@ -4,6 +4,8 @@ const RESERVED_AUTH_PATHS = new Set([
   "/signout-with-chatgpt",
   "/api/auth/supabase/login",
   "/api/auth/supabase/logout",
+  "/api/auth/supabase/oauth/callback",
+  "/api/auth/supabase/oauth/google",
   "/api/auth/supabase/signup",
 ]);
 
