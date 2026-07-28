@@ -19,7 +19,8 @@ export default async function Home() {
       <section className="hero">
         <div className="shell hero-grid">
           <div>
-            <p className="eyebrow light">SECURITY LEARNING, STRUCTURED</p>
+            <p className="eyebrow light">SECURIUM</p>
+            <p className="hero-subtitle">Security Learning Platform</p>
             <h1>
               정보보호 전문 자격 학습을
               <br />

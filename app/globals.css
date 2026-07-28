@@ -784,6 +784,14 @@ a {
   color: var(--aqua);
 }
 
+.hero-subtitle {
+  margin: 0 0 18px;
+  color: #d7eeee;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
 .hero-panel {
   padding: 28px;
   border: 1px solid rgb(255 255 255 / 0.16);
