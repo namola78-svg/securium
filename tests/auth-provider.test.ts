@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  getSupabaseIdentityFromAccessToken,
   resolveAuthProvider,
   resolveSupabaseAuthConfig,
   validateAuthForm,
@@ -63,4 +64,33 @@ test("auth return paths reject external and reserved targets", () => {
     safeAuthReturnPath("/api/auth/supabase/oauth/google"),
     "/dashboard",
   );
+});
+
+test("supabase access token fallback extracts non-expired identity only", () => {
+  const futurePayload = {
+    email: "Learner@Example.COM",
+    exp: Math.floor(Date.now() / 1000) + 600,
+    user_metadata: { full_name: "Learner" },
+  };
+  const token = [
+    "header",
+    Buffer.from(JSON.stringify(futurePayload)).toString("base64url"),
+    "signature",
+  ].join(".");
+
+  assert.deepEqual(getSupabaseIdentityFromAccessToken(token), {
+    email: "learner@example.com",
+    displayName: "Learner",
+    fullName: "Learner",
+  });
+
+  const expiredToken = [
+    "header",
+    Buffer.from(
+      JSON.stringify({ email: "old@example.com", exp: 1 }),
+    ).toString("base64url"),
+    "signature",
+  ].join(".");
+  assert.equal(getSupabaseIdentityFromAccessToken(expiredToken), null);
+  assert.equal(getSupabaseIdentityFromAccessToken("not-a-jwt"), null);
 });

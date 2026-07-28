@@ -26,6 +26,10 @@ type SupabaseUserPayload = {
   };
 };
 
+type SupabaseAccessTokenPayload = SupabaseUserPayload & {
+  exp?: number;
+};
+
 export function resolveAuthProvider(
   environment: Record<string, string | undefined> = process.env,
 ): AuthProviderName {
@@ -84,19 +88,47 @@ export async function getSupabaseAuthenticatedIdentity(): Promise<AuthenticatedI
   if (!accessToken) return null;
 
   const config = resolveSupabaseAuthConfig();
-  const response = await fetch(`${config.authUrl}/user`, {
-    headers: {
-      apikey: config.anonKey,
-      authorization: `Bearer ${accessToken}`,
-    },
-    cache: "no-store",
-  });
-  if (!response.ok) return null;
+  let response: Response;
+  try {
+    response = await fetch(`${config.authUrl}/user`, {
+      headers: {
+        apikey: config.anonKey,
+        authorization: `Bearer ${accessToken}`,
+      },
+      cache: "no-store",
+    });
+  } catch {
+    return getSupabaseIdentityFromAccessToken(accessToken);
+  }
+  if (!response.ok) return getSupabaseIdentityFromAccessToken(accessToken);
 
   const payload = (await response.json()) as SupabaseUserPayload;
+  return supabasePayloadToIdentity(payload);
+}
+
+export function getSupabaseIdentityFromAccessToken(
+  accessToken: string,
+): AuthenticatedIdentity | null {
+  const [, payloadPart] = accessToken.split(".");
+  if (!payloadPart) return null;
+
+  let payload: SupabaseAccessTokenPayload;
+  try {
+    payload = JSON.parse(
+      Buffer.from(payloadPart, "base64url").toString("utf8"),
+    ) as SupabaseAccessTokenPayload;
+  } catch {
+    return null;
+  }
+  if (!payload.exp || payload.exp * 1000 <= Date.now()) return null;
+  return supabasePayloadToIdentity(payload);
+}
+
+function supabasePayloadToIdentity(
+  payload: SupabaseUserPayload,
+): AuthenticatedIdentity | null {
   const email = payload.email?.trim().toLowerCase();
   if (!email) return null;
-
   const fullName =
     payload.user_metadata?.full_name?.trim() ||
     payload.user_metadata?.name?.trim() ||
