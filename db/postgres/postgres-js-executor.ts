@@ -22,7 +22,17 @@ type PostgresJsResult<Row extends Record<string, unknown>> = Row[] & {
 type PostgresJsPendingQuery<Row extends Record<string, unknown>> =
   PromiseLike<PostgresJsResult<Row>> & {
     cancel?: () => void;
+    values?: () => PostgresJsPendingValuesQuery;
   };
+
+type PostgresJsValuesResult = unknown[][] & {
+  columns?: Array<{ name: string }>;
+  count?: number | null;
+};
+
+type PostgresJsPendingValuesQuery = PromiseLike<PostgresJsValuesResult> & {
+  cancel?: () => void;
+};
 
 export type PostgresJsClient = {
   unsafe<Row extends Record<string, unknown>>(
@@ -82,6 +92,31 @@ export class PostgresJsExecutor implements PostgresExecutor {
     parameters: readonly DatabaseValue[],
   ): Promise<PostgresQueryResult<Record<string, unknown>>> {
     return this.query<Record<string, unknown>>(sql, parameters);
+  }
+
+  async queryRaw(
+    sql: string,
+    parameters: readonly DatabaseValue[],
+  ) {
+    try {
+      const pending = this.client.unsafe(sql, parameters).values?.();
+      if (!pending) {
+        throw new AppError(
+          "The PostgreSQL driver cannot return positional rows.",
+          500,
+          "POSTGRES_RAW_ROWS_UNAVAILABLE",
+        );
+      }
+      const rows = await withQueryTimeout(pending, this.queryTimeoutMs);
+      return {
+        rows: Array.from(rows, (row) => Array.from(row)),
+        columns: rows.columns?.map((column) => column.name) ?? [],
+        rowCount:
+          typeof rows.count === "number" ? rows.count : rows.length,
+      };
+    } catch (error) {
+      throw normalizeDatabaseError(error, "query");
+    }
   }
 
   async transaction<T>(
@@ -208,8 +243,8 @@ async function loadPostgresJs() {
   };
 }
 
-function withQueryTimeout<Row extends Record<string, unknown>>(
-  pending: PostgresJsPendingQuery<Row>,
+function withQueryTimeout<Result>(
+  pending: PromiseLike<Result> & { cancel?: () => void },
   timeoutMs: number,
 ) {
   let timer: ReturnType<typeof setTimeout> | undefined;

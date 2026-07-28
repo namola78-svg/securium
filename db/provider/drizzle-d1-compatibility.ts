@@ -4,6 +4,7 @@ import type {
   DatabaseStatement,
   DatabaseValue,
 } from "./database-provider.ts";
+import type { PostgresDatabaseProvider } from "./postgres-database-provider.ts";
 
 type DatabaseProviderFactory = () =>
   | DatabaseProvider
@@ -112,6 +113,13 @@ class CompatibilityPreparedStatement implements D1PreparedStatement {
     options?: { columnNames?: boolean },
   ): Promise<T[]> {
     const provider = await this.providerFactory();
+    if (isRawRowProvider(provider)) {
+      const result = await provider.raw(this.databaseStatement());
+      if (options?.columnNames) {
+        return [result.columns, ...result.rows] as T[];
+      }
+      return result.rows as T[];
+    }
     const result = await provider.query<Record<string, unknown>>(
       this.databaseStatement(),
     );
@@ -130,6 +138,12 @@ class CompatibilityPreparedStatement implements D1PreparedStatement {
       parameters: this.parameters,
     };
   }
+}
+
+function isRawRowProvider(
+  provider: DatabaseProvider,
+): provider is DatabaseProvider & Pick<PostgresDatabaseProvider, "raw"> {
+  return typeof (provider as { raw?: unknown }).raw === "function";
 }
 
 export function translateD1SqlForProvider(sql: string) {

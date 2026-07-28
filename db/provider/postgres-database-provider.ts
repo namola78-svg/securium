@@ -12,6 +12,12 @@ export type PostgresQueryResult<Row extends Record<string, unknown>> = {
   rowCount: number;
 };
 
+export type PostgresRawQueryResult = {
+  rows: unknown[][];
+  columns: string[];
+  rowCount: number;
+};
+
 export interface PostgresTransactionExecutor {
   query<Row extends Record<string, unknown>>(
     sql: string,
@@ -24,6 +30,10 @@ export interface PostgresExecutor extends PostgresTransactionExecutor {
     callback: (executor: PostgresTransactionExecutor) => Promise<T>,
   ): Promise<T>;
   close?(): Promise<void>;
+  queryRaw?(
+    sql: string,
+    parameters: readonly DatabaseValue[],
+  ): Promise<PostgresRawQueryResult>;
 }
 
 export class PostgresDatabaseProvider implements DatabaseProvider {
@@ -99,6 +109,19 @@ export class PostgresDatabaseProvider implements DatabaseProvider {
       sql: "SELECT 1 AS ok",
     });
     return row?.ok === 1;
+  }
+
+  async raw(statement: DatabaseStatement) {
+    assertSafeStatement(statement);
+    if (!this.executor.queryRaw) {
+      throw new AppError(
+        "The PostgreSQL executor cannot return positional rows.",
+        500,
+        "POSTGRES_RAW_ROWS_UNAVAILABLE",
+      );
+    }
+    const normalized = normalizePostgresStatement(statement);
+    return this.executor.queryRaw(normalized.sql, normalized.parameters);
   }
 }
 

@@ -14,6 +14,7 @@ import {
 import {
   DatabaseProviderError,
 } from "../db/provider/database-error.ts";
+import { PostgresDatabaseProvider } from "../db/provider/postgres-database-provider.ts";
 import {
   createRuntimeDatabaseProvider,
 } from "../db/provider/provider-factory.ts";
@@ -284,6 +285,32 @@ test("D1 Drizzle batch uses one provider transaction and returns statement resul
   assert.equal(results[0].meta.changes, 1);
 });
 
+test("D1 Drizzle raw compatibility preserves duplicate PostgreSQL column positions", async () => {
+  const executor = new PostgresJsExecutor(
+    createFakeClient({
+      onQuery: () => rows([]),
+      onRawQuery: () =>
+        rawRows(
+          [["group-name", "course-name", 100, 60, "INTERMEDIATE"]],
+          ["name", "name", "total_levels", "passing_score", "difficulty"],
+        ),
+    }),
+    1000,
+  );
+  const provider = new PostgresDatabaseProvider(executor);
+  const compatibility = new DrizzleD1CompatibilityDatabase(() => provider);
+  const raw = await compatibility
+    .prepare(
+      'SELECT "course_groups"."name", "courses"."name", "courses"."total_levels", "courses"."passing_score", "courses"."difficulty" FROM "courses"',
+    )
+    .raw({ columnNames: true });
+
+  assert.deepEqual(raw, [
+    ["name", "name", "total_levels", "passing_score", "difficulty"],
+    ["group-name", "course-name", 100, 60, "INTERMEDIATE"],
+  ]);
+});
+
 test("D1 SQL translation keeps aggregate max and normalizes scalar max and LIKE", () => {
   const translated = translateD1SqlForProvider(
     `SELECT max("score") AS best, max("progress", ?) AS next, 'LIKE' AS label FROM "progress" WHERE "title" LIKE ?`,
@@ -301,6 +328,17 @@ function rows<Row extends Record<string, unknown>>(
   return Object.assign(values, { count });
 }
 
+function rawRows(
+  values: unknown[][],
+  columns: string[],
+  count = values.length,
+) {
+  return Object.assign(values, {
+    columns: columns.map((name) => ({ name })),
+    count,
+  });
+}
+
 function createFakeClient(options: {
   onQuery: (
     sql: string,
@@ -308,13 +346,27 @@ function createFakeClient(options: {
   ) =>
     | ReturnType<typeof rows>
     | PromiseLike<ReturnType<typeof rows>>;
+  onRawQuery?: (
+    sql: string,
+    parameters: readonly unknown[],
+  ) =>
+    | ReturnType<typeof rawRows>
+    | PromiseLike<ReturnType<typeof rawRows>>;
   onCommit?: () => void;
   onRollback?: () => void;
 }): PostgresJsClient {
   return {
     unsafe(sql, parameters) {
-      return Promise.resolve(
-        options.onQuery(sql, parameters),
+      return Object.assign(
+        Promise.resolve(options.onQuery(sql, parameters)),
+        {
+          values: () =>
+            Promise.resolve(
+              options.onRawQuery
+                ? options.onRawQuery(sql, parameters)
+                : rawRows([], []),
+            ),
+        },
       ) as never;
     },
     async begin(callback) {
