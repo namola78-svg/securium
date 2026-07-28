@@ -2,7 +2,6 @@ import Link from "next/link";
 import type { CourseListItem } from "@/db/repositories";
 import {
   courseDescription,
-  difficultyLabel,
   estimateWeeks,
   recommendedAudience,
   safeCount,
@@ -10,7 +9,6 @@ import {
 
 export function CourseCard({ course }: { course: CourseListItem }) {
   const description = courseDescription(course.description);
-  const difficulty = difficultyLabel(course.difficulty);
   const recommendedFor = recommendedAudience(course.difficulty);
   const subjectCount = safeCount(course.subjectCount);
   const topicCount = safeCount(course.topicCount);
@@ -39,10 +37,6 @@ export function CourseCard({ course }: { course: CourseListItem }) {
         <div>
           <dt>추천 대상</dt>
           <dd>{recommendedFor}</dd>
-        </div>
-        <div>
-          <dt>난이도</dt>
-          <dd>{difficulty}</dd>
         </div>
         <div>
           <dt>학습 구성</dt>

@@ -7,7 +7,6 @@ import { getEnrollmentForCourse } from "@/db/repositories";
 import {
   courseDescription,
   courseLearningGoals,
-  difficultyLabel,
   estimateWeeks,
   formatCount,
   formatCourseDate,
@@ -74,10 +73,6 @@ export default async function CourseDetailPage({ params }: PageProps) {
               <div>
                 <dt>추천 대상</dt>
                 <dd>{recommendedAudience(course.difficulty)}</dd>
-              </div>
-              <div>
-                <dt>난이도</dt>
-                <dd>{difficultyLabel(course.difficulty)}</dd>
               </div>
               <div>
                 <dt>예상 학습기간</dt>

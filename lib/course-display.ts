@@ -17,7 +17,7 @@ export function difficultyLabel(value: string | null | undefined) {
 export function recommendedAudience(value: string | null | undefined) {
   if (value === "BEGINNER") return "처음 준비하는 학습자 · 실무 담당자";
   if (value === "INTERMEDIATE") return "자격 준비자 · 정보보호 담당자";
-  if (value === "ADVANCED") return "심화 학습자 · 실무 리더";
+  if (value === "ADVANCED") return "실무 리더 · 전문 담당자";
   return "정보보호·개인정보보호 학습자";
 }
 
