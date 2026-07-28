@@ -21,7 +21,7 @@ export default async function Home() {
           <div>
             <p className="eyebrow light">SECURITY LEARNING, STRUCTURED</p>
             <h1>
-              흩어진 전문 자격 학습을
+              정보보호 전문 자격 학습을
               <br />
               <span>하나의 성장 체계로.</span>
             </h1>
