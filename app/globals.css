@@ -1250,6 +1250,11 @@ a {
   font-size: 14px;
 }
 
+.auth-check-note {
+  margin-top: 10px;
+  font-size: 12px;
+}
+
 .curriculum-list {
   border-top: 1px solid var(--line);
 }

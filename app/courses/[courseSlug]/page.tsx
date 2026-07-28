@@ -6,6 +6,7 @@ import {
   listCurriculum,
 } from "@/db/repositories";
 import { getChatGPTUser } from "@/app/chatgpt-auth";
+import { CourseEnrollAction } from "@/components/course-enroll-action";
 
 export const dynamic = "force-dynamic";
 
@@ -54,23 +55,11 @@ export default async function CourseDetailPage({ params }: PageProps) {
             <span className="eyebrow">START LEARNING</span>
             <h2>이 과정을 내 학습에 추가</h2>
             <p>수강 후 과정별 진도와 단계가 다른 과정과 분리되어 기록됩니다.</p>
-            {identity ? (
-              <form action="/api/enrollments" method="post">
-                <input type="hidden" name="courseId" value={course.id} />
-                <input
-                  type="hidden"
-                  name="returnTo"
-                  value={`/learn/${course.slug}`}
-                />
-                <button className="button button-dark full-width" type="submit">
-                  수강 시작
-                </button>
-              </form>
-            ) : (
-              <Link className="button button-dark full-width" href="/login">
-                로그인하고 수강하기
-              </Link>
-            )}
+            <CourseEnrollAction
+              courseId={course.id}
+              courseSlug={course.slug}
+              initialSignedIn={Boolean(identity)}
+            />
           </aside>
         </div>
       </section>
