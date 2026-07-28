@@ -2,6 +2,7 @@ import { and, asc, desc, eq, isNull, sql } from "drizzle-orm";
 import { getDb } from ".";
 import {
   courseGroups,
+  questionCourses,
   courses,
   roles,
   subjects,
@@ -41,6 +42,9 @@ export type CourseListItem = {
   published: boolean;
   displayOrder: number;
   isSample: boolean;
+  subjectCount?: number;
+  topicCount?: number;
+  questionCount?: number;
 };
 
 export async function listPublishedCourses(): Promise<CourseListItem[]> {
@@ -61,6 +65,28 @@ export async function listPublishedCourses(): Promise<CourseListItem[]> {
       published: courses.published,
       displayOrder: courses.displayOrder,
       isSample: courses.isSample,
+      subjectCount: sql<number>`(
+        SELECT COUNT(*)
+        FROM ${subjects}
+        WHERE ${subjects.courseId} = ${courses.id}
+          AND ${subjects.active} = 1
+          AND ${subjects.deletedAt} IS NULL
+      )`,
+      topicCount: sql<number>`(
+        SELECT COUNT(*)
+        FROM ${topics}
+        INNER JOIN ${subjects} ON ${topics.subjectId} = ${subjects.id}
+        WHERE ${subjects.courseId} = ${courses.id}
+          AND ${subjects.active} = 1
+          AND ${subjects.deletedAt} IS NULL
+          AND ${topics.active} = 1
+          AND ${topics.deletedAt} IS NULL
+      )`,
+      questionCount: sql<number>`(
+        SELECT COUNT(*)
+        FROM ${questionCourses}
+        WHERE ${questionCourses.courseId} = ${courses.id}
+      )`,
     })
     .from(courses)
     .innerJoin(courseGroups, eq(courses.courseGroupId, courseGroups.id))
