@@ -27,11 +27,7 @@ export default async function LoginPage({
       <main className="auth-main">
         <section className="auth-card">
           <p className="eyebrow">로그인</p>
-          <h1>학습을 계속하려면 로그인하세요</h1>
-          <p>
-            Supabase Auth 계정으로 안전하게 로그인합니다. 세션은 HttpOnly
-            쿠키로 보호되며, 사용자 권한은 플랫폼 RBAC 구조에서 관리됩니다.
-          </p>
+          <h1>로그인</h1>
           {error ? (
             <div className="notice notice-warning">
               로그인에 실패했습니다. 이메일과 비밀번호를 다시 확인하세요.
@@ -96,7 +92,7 @@ export default async function LoginPage({
     <main className="auth-main">
       <section className="auth-card">
         <p className="eyebrow">로그인</p>
-        <h1>학습을 계속하려면 로그인하세요</h1>
+        <h1>로그인</h1>
         <p>
           이 환경은 플랫폼 로그인 흐름을 사용합니다. 애플리케이션은 비밀번호나
           OAuth 비밀값을 저장하지 않습니다.
