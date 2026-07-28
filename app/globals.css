@@ -131,6 +131,32 @@ a {
   color: var(--lime);
 }
 
+.main-nav a {
+  position: relative;
+  border-radius: 999px;
+  padding: 8px 10px;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.main-nav a.active {
+  background: rgba(205, 255, 81, 0.14);
+  color: var(--lime);
+  font-weight: 800;
+}
+
+.main-nav a.active::after {
+  position: absolute;
+  right: 10px;
+  bottom: 2px;
+  left: 10px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--lime);
+  content: "";
+}
+
 .header-actions {
   display: flex;
   align-items: center;

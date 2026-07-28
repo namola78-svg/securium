@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getChatGPTUser, chatGPTSignOutPath } from "@/app/chatgpt-auth";
+import { SiteNav } from "@/components/site-nav";
 
 export async function SiteHeader() {
   const user = await getChatGPTUser();
@@ -16,21 +17,7 @@ export async function SiteHeader() {
             <small>Security learning system</small>
           </span>
         </Link>
-        <nav className="main-nav" aria-label="주요 메뉴">
-          <Link href="/courses">과정</Link>
-          {user ? (
-            <>
-              <Link href="/dashboard">대시보드</Link>
-              <Link href="/my-courses">내 과정</Link>
-              <Link href="/wrong-notes">오답노트</Link>
-              <Link href="/reviews">오늘의 복습</Link>
-              <Link href="/mock-exams">모의고사</Link>
-              <Link href="/analytics">학습분석</Link>
-              <Link href="/bookmarks">즐겨찾기</Link>
-              <Link href="/profile">프로필</Link>
-            </>
-          ) : null}
-        </nav>
+        <SiteNav signedIn={Boolean(user)} />
         <div className="header-actions">
           {user ? (
             <>
