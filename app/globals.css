@@ -759,6 +759,10 @@ button:disabled {
   margin-top: 34px;
 }
 
+.hero .button-row .button {
+  min-height: 46px;
+}
+
 .hero {
   position: relative;
   overflow: hidden;
@@ -822,6 +826,37 @@ button:disabled {
   line-height: 1.75;
 }
 
+.hero-value-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  max-width: 720px;
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hero-value-list li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 7px 11px;
+  border: 1px solid rgb(255 255 255 / 0.14);
+  border-radius: 999px;
+  color: #d5dedf;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.hero-value-list li::before {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--lime);
+  content: "";
+}
+
 .eyebrow {
   margin: 0 0 8px;
   color: #657479;
@@ -867,6 +902,67 @@ button:disabled {
   border-radius: 999px;
   background: rgb(200 244 90 / 0.12);
   color: var(--lime);
+}
+
+.today-card-title {
+  padding: 34px 0 24px;
+  border-bottom: 1px solid rgb(255 255 255 / 0.13);
+}
+
+.today-card-title span {
+  display: inline-flex;
+  margin-bottom: 14px;
+  color: var(--aqua);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.today-card-title strong {
+  display: block;
+  color: var(--white);
+  font-size: clamp(24px, 3vw, 34px);
+  letter-spacing: -0.04em;
+  line-height: 1.2;
+}
+
+.today-card-title p {
+  margin: 12px 0 0;
+  color: #bac5c7;
+  line-height: 1.65;
+}
+
+.hero-progress {
+  padding: 24px 0 4px;
+}
+
+.hero-progress > div:first-child {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 12px;
+}
+
+.hero-progress span {
+  color: #aeb9bb;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.hero-progress strong {
+  color: var(--lime);
+  font-size: 32px;
+  letter-spacing: -0.05em;
+}
+
+.hero-progress .progress-track {
+  height: 10px;
+  background: rgb(255 255 255 / 0.12);
+}
+
+.hero-progress .progress-track span {
+  background: linear-gradient(90deg, var(--lime), var(--aqua));
 }
 
 .metric-large {
@@ -2389,8 +2485,27 @@ textarea {
     font-size: 42px;
   }
 
+  .hero h1 .hero-title-line {
+    white-space: normal;
+  }
+
   .hero-copy {
     font-size: 16px;
+  }
+
+  .hero .button-row {
+    width: 100%;
+  }
+
+  .hero .button-row .button {
+    flex: 1 1 100%;
+    justify-content: center;
+    min-height: 50px;
+  }
+
+  .hero-value-list {
+    display: grid;
+    grid-template-columns: 1fr;
   }
 
   .section,

@@ -72,9 +72,9 @@ test("통합 학습 플랫폼 랜딩페이지를 서버 렌더링한다", async 
 
   const html = await response.text();
   assert.match(html, /SECURIUM/);
-  assert.match(html, /정보보호 전문 자격 학습을/);
+  assert.match(html, /정보보호 전문 역량을/);
   assert.match(html, /과정별 학습 진도 자동 관리/);
-  assert.match(html, /학습 콘텐츠를 준비하고 있습니다/);
+  assert.match(html, /AI 기반 맞춤 설명/);
   assert.doesNotMatch(html, /codex-preview/);
   assert.doesNotMatch(html, /react-loading-skeleton/);
 });

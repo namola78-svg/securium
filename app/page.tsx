@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { CourseCard } from "@/components/course-card";
 import type { CourseListItem } from "@/db/repositories";
-import { BRAND } from "@/lib/brand";
+import { getOptionalCurrentAppUser } from "@/lib/auth";
 import { listPublishedCoursesCached } from "@/lib/cached-catalog";
 
 export const dynamic = "force-dynamic";
@@ -14,53 +14,71 @@ export default async function Home() {
   } catch {
     databaseReady = false;
   }
+  const user = await getOptionalCurrentAppUser();
+  const primaryCtaHref = user ? "/dashboard" : "/signup";
 
   return (
     <main>
       <section className="hero">
         <div className="shell hero-grid">
           <div>
-            <p className="eyebrow light">{BRAND.englishName}</p>
-            <p className="hero-subtitle">{BRAND.systemLabel}</p>
+            <p className="eyebrow light">AI-POWERED SECURITY LEARNING</p>
             <h1>
-              <span className="hero-title-line">정보보호 전문 자격 학습을</span>
+              <span className="hero-title-line">정보보호 전문 역량을</span>
               <br />
-              <span>하나의 성장 체계로.</span>
+              <span>하나의 학습 체계로.</span>
             </h1>
             <p className="hero-copy">
-              정보보호와 개인정보보호를
+              자격시험, 실무사례, AI 튜터와 맞춤 복습을 연결하여
               <br />
-              하나의 플랫폼에서 체계적으로 학습하세요.
+              정보보호·개인정보보호 역량을 체계적으로 성장시키세요.
             </p>
             <div className="button-row">
-              <Link className="button button-lime" href="/courses">
+              <Link className="button button-lime" href={primaryCtaHref}>
+                무료로 학습 시작하기
+              </Link>
+              <Link className="button button-outline-light" href="/courses">
                 과정 둘러보기
               </Link>
-              <Link className="button button-outline-light" href="/login">
-                학습 시작하기
-              </Link>
             </div>
+            <ul className="hero-value-list" aria-label="핵심 학습 가치">
+              <li>전문과정 통합 학습</li>
+              <li>과정별 진도 자동 관리</li>
+              <li>AI 기반 맞춤 설명</li>
+              <li>오답 및 취약영역 복습</li>
+            </ul>
           </div>
-          <div className="hero-panel" aria-label="플랫폼 핵심 지표">
+          <div className="hero-panel" aria-label="오늘의 학습 예시">
             <div className="hero-panel-header">
-              <span>AI LEARNING PLATFORM</span>
+              <span>오늘의 학습</span>
+              <span className="live-dot">맞춤 추천</span>
             </div>
-            <div className="metric-large">
-              <strong>{databaseReady ? courses.length : "—"}</strong>
-              <span>공개 과정</span>
+            <div className="today-card-title">
+              <span>ISMS-P</span>
+              <strong>인증기준 2.6 접근통제</strong>
+              <p>심사 관점과 실무 증적을 함께 점검합니다.</p>
+            </div>
+            <div className="hero-progress" aria-label="오늘의 학습 진행률 68%">
+              <div>
+                <span>진행률</span>
+                <strong>68%</strong>
+              </div>
+              <div className="progress-track" aria-hidden="true">
+                <span style={{ width: "68%" }} />
+              </div>
             </div>
             <div className="signal-list">
               <div>
-                <span>여러 전문과정을 한곳에서 학습</span>
-                <strong>지원</strong>
+                <span>오늘의 추천</span>
+                <strong>오답 5문제 복습</strong>
               </div>
               <div>
-                <span>과정별 학습 진도 자동 관리</span>
-                <strong>적용</strong>
+                <span>AI 튜터</span>
+                <strong>취약 기준 설명</strong>
               </div>
               <div>
-                <span>학습 콘텐츠를 준비하고 있습니다</span>
-                <strong className="muted">개설 예정</strong>
+                <span>공개 과정</span>
+                <strong>{databaseReady ? `${courses.length}개` : "확인 중"}</strong>
               </div>
             </div>
           </div>
