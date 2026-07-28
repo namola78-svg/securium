@@ -1,18 +1,11 @@
 import Link from "next/link";
 import type { CourseListItem } from "@/db/repositories";
 
-const difficultyLabel: Record<string, string> = {
-  BEGINNER: "입문",
-  INTERMEDIATE: "중급",
-  ADVANCED: "심화",
-};
-
 export function CourseCard({ course }: { course: CourseListItem }) {
   return (
     <article className="course-card">
       <div className="course-card-top">
         <span className="course-code">{course.code}</span>
-        <span className="badge">{difficultyLabel[course.difficulty] ?? course.difficulty}</span>
       </div>
       <p className="eyebrow">{course.groupName}</p>
       <h3>{course.name}</h3>
