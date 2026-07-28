@@ -321,6 +321,22 @@ test("D1 SQL translation keeps aggregate max and normalizes scalar max and LIKE"
   assert.match(translated, /"title" ILIKE \?/);
 });
 
+test("D1 SQL translation removes qualified columns from PostgreSQL ON CONFLICT targets", () => {
+  const translated = translateD1SqlForProvider(
+    `insert into "users" ("id", "email") values (?, ?) on conflict ("users"."email") do nothing`,
+  );
+  assert.match(translated, /on conflict \("email"\) do nothing/);
+  assert.doesNotMatch(translated, /"users"\."email"/);
+
+  const composite = translateD1SqlForProvider(
+    `insert into "user_roles" ("id", "user_id", "role_id") values (?, ?, ?) on conflict ("user_roles"."user_id", "user_roles"."role_id") do nothing`,
+  );
+  assert.match(
+    composite,
+    /on conflict \("user_id", "role_id"\) do nothing/,
+  );
+});
+
 function rows<Row extends Record<string, unknown>>(
   values: Row[],
   count = values.length,

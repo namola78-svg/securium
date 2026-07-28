@@ -147,11 +147,31 @@ function isRawRowProvider(
 }
 
 export function translateD1SqlForProvider(sql: string) {
-  return replaceScalarFunction(
-    replaceKeywordOutsideQuotes(sql, "like", "ILIKE"),
-    "max",
-    "greatest",
+  return stripQualifiedOnConflictTargets(
+    replaceScalarFunction(
+      replaceKeywordOutsideQuotes(sql, "like", "ILIKE"),
+      "max",
+      "greatest",
+    ),
   );
+}
+
+function stripQualifiedOnConflictTargets(sql: string) {
+  const pattern = /\bon\s+conflict\s*\(/gi;
+  let result = "";
+  let cursor = 0;
+  for (const match of sql.matchAll(pattern)) {
+    const start = match.index;
+    if (start < cursor) continue;
+    const open = start + match[0].lastIndexOf("(");
+    const close = matchingParenthesis(sql, open);
+    if (close === -1) continue;
+    const body = sql.slice(open + 1, close);
+    result += sql.slice(cursor, open + 1);
+    result += body.replace(/"[^"]+"\."([^"]+)"/g, '"$1"');
+    cursor = close;
+  }
+  return result + sql.slice(cursor);
 }
 
 function replaceKeywordOutsideQuotes(

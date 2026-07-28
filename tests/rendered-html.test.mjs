@@ -72,7 +72,7 @@ test("통합 학습 플랫폼 랜딩페이지를 서버 렌더링한다", async 
 
   const html = await response.text();
   assert.match(html, /Shield Academy/);
-  assert.match(html, /흩어진 전문 자격 학습을/);
+  assert.match(html, /정보보호 전문 자격 학습을/);
   assert.match(html, /과정별 진도 분리/);
   assert.match(html, /문제·복습 콘텐츠/);
   assert.doesNotMatch(html, /codex-preview/);
