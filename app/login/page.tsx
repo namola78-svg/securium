@@ -4,7 +4,7 @@ import { chatGPTSignInPath } from "@/app/chatgpt-auth";
 import { resolveAuthProvider } from "@/lib/auth-provider";
 import { safeAuthReturnPath } from "@/lib/auth-routing";
 
-export const metadata: Metadata = { title: "Login" };
+export const metadata: Metadata = { title: "로그인" };
 
 export default async function LoginPage({
   searchParams,
@@ -21,22 +21,20 @@ export default async function LoginPage({
     return (
       <main className="auth-main">
         <section className="auth-card">
-          <p className="eyebrow">SECURE SIGN IN</p>
-          <h1>Sign in to continue learning</h1>
+          <p className="eyebrow">로그인</p>
+          <h1>학습을 계속하려면 로그인하세요</h1>
           <p>
-            Use the Supabase Auth account connected to this deployment. Session
-            tokens are stored in HttpOnly cookies, while roles stay in the
-            existing platform RBAC tables.
+            Supabase Auth 계정으로 안전하게 로그인합니다. 세션은 HttpOnly
+            쿠키로 보호되며, 사용자 권한은 플랫폼 RBAC 구조에서 관리됩니다.
           </p>
           {error ? (
             <div className="notice notice-warning">
-              Sign in failed. Check your email, password, and Supabase Auth
-              settings.
+              로그인에 실패했습니다. 이메일과 비밀번호를 다시 확인하세요.
             </div>
           ) : null}
           {notice === "confirm_email" ? (
             <div className="notice">
-              Check your email to confirm the new account before signing in.
+              가입한 이메일에서 인증을 완료한 뒤 로그인하세요.
             </div>
           ) : null}
           <form
@@ -46,7 +44,7 @@ export default async function LoginPage({
           >
             <input type="hidden" name="returnTo" value={returnTo} />
             <label>
-              Email
+              이메일
               <input
                 name="email"
                 type="email"
@@ -55,7 +53,7 @@ export default async function LoginPage({
               />
             </label>
             <label>
-              Password
+              비밀번호
               <input
                 name="password"
                 type="password"
@@ -65,14 +63,14 @@ export default async function LoginPage({
               />
             </label>
             <button className="button button-dark full-width" type="submit">
-              Sign in
+              로그인
             </button>
           </form>
           <Link
             className="text-link"
             href={`/signup?return_to=${encodeURIComponent(returnTo)}`}
           >
-            Create an account
+            계정 만들기
           </Link>
         </section>
       </main>
@@ -82,11 +80,11 @@ export default async function LoginPage({
   return (
     <main className="auth-main">
       <section className="auth-card">
-        <p className="eyebrow">SECURE SIGN IN</p>
-        <h1>Continue learning</h1>
+        <p className="eyebrow">로그인</p>
+        <h1>학습을 계속하려면 로그인하세요</h1>
         <p>
-          This environment uses the platform Sign in with ChatGPT flow. The
-          application does not store passwords or OAuth secrets.
+          이 환경은 플랫폼 로그인 흐름을 사용합니다. 애플리케이션은 비밀번호나
+          OAuth 비밀값을 저장하지 않습니다.
         </p>
         <Link
           className="button button-dark full-width"
@@ -95,10 +93,10 @@ export default async function LoginPage({
           ChatGPT로 안전하게 로그인
         </Link>
         <p className="auth-note">
-          A minimal learner profile is created automatically on first sign in.
+          최초 로그인 시 기본 학습자 프로필이 자동 생성됩니다.
         </p>
         <Link className="text-link" href="/signup">
-          Account creation guide
+          계정 생성 안내
         </Link>
       </section>
     </main>

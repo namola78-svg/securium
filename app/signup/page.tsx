@@ -4,7 +4,7 @@ import { chatGPTSignInPath } from "@/app/chatgpt-auth";
 import { resolveAuthProvider } from "@/lib/auth-provider";
 import { safeAuthReturnPath } from "@/lib/auth-routing";
 
-export const metadata: Metadata = { title: "Sign up" };
+export const metadata: Metadata = { title: "회원가입" };
 
 export default async function SignupPage({
   searchParams,
@@ -20,16 +20,16 @@ export default async function SignupPage({
     return (
       <main className="auth-main">
         <section className="auth-card">
-          <p className="eyebrow">ACCOUNT CREATION</p>
-          <h1>Create a Supabase Auth account</h1>
+          <p className="eyebrow">회원가입</p>
+          <h1>새 계정을 만드세요</h1>
           <p>
-            New accounts are authenticated by Supabase Auth and then mapped to
-            the existing application user and role tables on first access.
+            Supabase Auth로 계정을 만들고, 최초 접속 시 플랫폼의 사용자 및
+            권한 구조와 연결합니다.
           </p>
           {error ? (
             <div className="notice notice-warning">
-              Account creation failed. Check the password length and Supabase
-              email confirmation settings.
+              계정 생성에 실패했습니다. 비밀번호 길이와 이메일 인증 설정을
+              확인하세요.
             </div>
           ) : null}
           <form
@@ -39,7 +39,7 @@ export default async function SignupPage({
           >
             <input type="hidden" name="returnTo" value={returnTo} />
             <label>
-              Display name
+              표시 이름
               <input
                 name="displayName"
                 type="text"
@@ -48,7 +48,7 @@ export default async function SignupPage({
               />
             </label>
             <label>
-              Email
+              이메일
               <input
                 name="email"
                 type="email"
@@ -57,7 +57,7 @@ export default async function SignupPage({
               />
             </label>
             <label>
-              Password
+              비밀번호
               <input
                 name="password"
                 type="password"
@@ -67,14 +67,14 @@ export default async function SignupPage({
               />
             </label>
             <button className="button button-dark full-width" type="submit">
-              Create account
+              계정 만들기
             </button>
           </form>
           <Link
             className="text-link"
             href={`/login?return_to=${encodeURIComponent(returnTo)}`}
           >
-            Already have an account?
+            이미 계정이 있으신가요?
           </Link>
         </section>
       </main>
@@ -84,21 +84,21 @@ export default async function SignupPage({
   return (
     <main className="auth-main">
       <section className="auth-card">
-        <p className="eyebrow">ACCOUNT CREATION</p>
-        <h1>No separate password signup is needed here</h1>
+        <p className="eyebrow">회원가입</p>
+        <h1>별도 비밀번호 회원가입이 필요하지 않습니다</h1>
         <p>
-          This environment delegates identity to the hosting platform. On first
-          sign in, the app creates a learner profile with the default USER role.
+          이 환경은 호스팅 플랫폼의 인증을 사용합니다. 최초 로그인 시 기본
+          USER 권한의 학습자 프로필이 생성됩니다.
         </p>
         <div className="notice">
-          Supabase Auth signup is enabled when AUTH_PROVIDER is set to
-          supabase.
+          AUTH_PROVIDER가 supabase로 설정된 환경에서 Supabase Auth 회원가입을
+          사용할 수 있습니다.
         </div>
         <Link
           className="button button-dark full-width"
           href={chatGPTSignInPath(returnTo)}
         >
-          Start with platform sign in
+          플랫폼 로그인으로 시작하기
         </Link>
       </section>
     </main>
