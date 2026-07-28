@@ -1042,6 +1042,55 @@ a {
   min-height: 70vh;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.route-loading-page {
+  min-height: 16vh;
+  padding-top: 20px;
+}
+
+.route-loading {
+  width: min(280px, 100%);
+}
+
+.route-loading-bar {
+  display: block;
+  width: 100%;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #dfe4df;
+}
+
+.route-loading-bar::after {
+  display: block;
+  width: 42%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--lime);
+  content: "";
+  animation: route-loading-slide 1.05s ease-in-out infinite;
+}
+
+@keyframes route-loading-slide {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(250%);
+  }
+}
+
 .page-hero {
   padding: 70px 0 56px;
   border-bottom: 1px solid var(--line);
