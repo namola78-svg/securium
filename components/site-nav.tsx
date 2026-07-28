@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 const publicNavItems = [{ href: "/courses", label: "과정" }];
 
@@ -18,6 +18,8 @@ const userNavItems = [
 
 export function SiteNav({ signedIn }: { signedIn: boolean }) {
   const pathname = usePathname() || "/";
+  const searchParams = useSearchParams();
+  const activePath = resolveActivePath(pathname, searchParams);
   const navItems = signedIn
     ? [...publicNavItems, ...userNavItems]
     : publicNavItems;
@@ -25,7 +27,7 @@ export function SiteNav({ signedIn }: { signedIn: boolean }) {
   return (
     <nav className="main-nav" aria-label="주요 메뉴">
       {navItems.map((item) => {
-        const active = isActivePath(pathname, item.href);
+        const active = isActivePath(activePath, item.href);
         return (
           <Link
             aria-current={active ? "page" : undefined}
@@ -40,6 +42,22 @@ export function SiteNav({ signedIn }: { signedIn: boolean }) {
       })}
     </nav>
   );
+}
+
+function resolveActivePath(
+  pathname: string,
+  searchParams: ReturnType<typeof useSearchParams>,
+) {
+  if (pathname !== "/login" && pathname !== "/signup") return pathname;
+
+  const returnTo = searchParams.get("return_to");
+  if (!returnTo?.startsWith("/") || returnTo.startsWith("//")) return pathname;
+
+  try {
+    return new URL(returnTo, "https://app.local").pathname;
+  } catch {
+    return pathname;
+  }
 }
 
 function isActivePath(pathname: string, href: string) {
