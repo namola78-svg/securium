@@ -125,7 +125,7 @@ function SpecializedAIResultView({
       <div className="ai-explanation-heading">
         <div>
           <p className="eyebrow">
-            {mock ? "MOCK AI 특화 검토" : "AI 특화 검토"}
+            {mock ? "AI 특화 검토 미리보기" : "AI 특화 검토"}
           </p>
           <h3>{targetLabel(result.targetType)}</h3>
         </div>

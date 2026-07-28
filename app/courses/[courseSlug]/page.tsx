@@ -7,6 +7,7 @@ import {
   getPublicCourseBySlugCached,
   listCurriculumCached,
 } from "@/lib/cached-catalog";
+import { publicCopy } from "@/lib/public-copy";
 
 export const dynamic = "force-dynamic";
 
@@ -44,11 +45,11 @@ export default async function CourseDetailPage({ params }: PageProps) {
             </Link>
             <p className="eyebrow light">{course.groupName}</p>
             <h1>{course.name}</h1>
-            <p>{course.description}</p>
+            <p>{publicCopy(course.description)}</p>
             <div className="hero-tags">
               <span>{course.totalLevels}단계</span>
               <span>통과 기준 {course.passingScore}점</span>
-              {course.isSample ? <span>개발용 샘플</span> : null}
+              {course.isSample ? <span>과정 소개</span> : null}
             </div>
           </div>
           <aside className="enroll-panel">
@@ -80,13 +81,13 @@ export default async function CourseDetailPage({ params }: PageProps) {
                 </span>
                 <div>
                   <h3>{subject.name}</h3>
-                  <p>{subject.description}</p>
+                  <p>{publicCopy(subject.description)}</p>
                   <ul>
                     {subject.topics.map((topic) => (
                       <li key={topic.id}>
                         {topic.name}
                         {topic.isSample ? (
-                          <span className="sample-label">샘플 · 준비 중</span>
+                          <span className="sample-label">개설 예정</span>
                         ) : null}
                       </li>
                     ))}

@@ -12,7 +12,7 @@ export default async function MockExamsPage() {
       <div className="shell">
         <header className="dashboard-intro">
           <div>
-            <p className="eyebrow">MOCK EXAMS</p>
+            <p className="eyebrow">모의고사</p>
             <h1>모의고사</h1>
             <p>서버 기준 제한시간과 제출 상태로 실력을 점검합니다.</p>
           </div>
@@ -42,4 +42,3 @@ export default async function MockExamsPage() {
     </main>
   );
 }
-

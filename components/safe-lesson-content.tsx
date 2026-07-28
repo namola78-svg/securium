@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { publicCopy } from "@/lib/public-copy";
 
 function safeReferenceUrl(value: string) {
   const trimmed = value.trim();
@@ -85,17 +86,19 @@ export function SafeLessonContent({
   content: string;
   format: string;
 }) {
+  const safeContent = publicCopy(content);
+
   if (format === "PLAIN_TEXT") {
     return (
       <div className="lesson-prose">
-        {content.split(/\r?\n\r?\n/).map((paragraph, index) => (
+        {safeContent.split(/\r?\n\r?\n/).map((paragraph, index) => (
           <p key={`plain-${index}`}>{paragraph}</p>
         ))}
       </div>
     );
   }
 
-  const lines = content.replace(/\r\n/g, "\n").split("\n");
+  const lines = safeContent.replace(/\r\n/g, "\n").split("\n");
   const blocks: ReactNode[] = [];
   let index = 0;
   while (index < lines.length) {

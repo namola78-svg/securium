@@ -92,7 +92,7 @@ export function WrittenAnswerPractice({
     <article className="specialized-card written-practice">
       <p className="eyebrow">ADVISORY GRADING</p>
       <h3>{title}</h3>
-      <p>배점 {maximumScore}점 · 개발용 샘플</p>
+      <p>배점 {maximumScore}점 · 학습용 문항</p>
       <textarea
         value={answer}
         onChange={(event) => setAnswer(event.target.value)}

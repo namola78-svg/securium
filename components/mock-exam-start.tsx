@@ -42,7 +42,7 @@ export function MockExamStart({ mockExamId }: { mockExamId: string }) {
         disabled={starting}
         onClick={start}
       >
-        {starting ? "시험 준비 중…" : "시험 시작"}
+        {starting ? "시험을 여는 중…" : "시험 시작"}
       </button>
       {message ? <p className="form-message">{message}</p> : null}
     </>

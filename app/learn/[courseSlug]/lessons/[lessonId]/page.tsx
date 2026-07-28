@@ -69,7 +69,7 @@ export default async function LessonPage({
                   ? "본문 하단 도달"
                   : "최소 학습 조건"}
             </span>
-            {lesson.isSample ? <span>개발용 샘플</span> : null}
+            {lesson.isSample ? <span>학습 자료</span> : null}
           </div>
         </div>
       </section>

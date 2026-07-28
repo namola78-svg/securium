@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { requireCurrentAppUser } from "@/lib/auth";
+import { publicCopy } from "@/lib/public-copy";
 import {
   getSubjectTheoryProgress,
   listPublishedLearningUnitsForSubject,
@@ -77,9 +78,9 @@ async function ProtectedSubject({
                   {String(index + 1).padStart(2, "0")}
                 </span>
                 <h3>{topic.name}</h3>
-                <p>{topic.description}</p>
+                <p>{publicCopy(topic.description)}</p>
                 <span className="sample-label">
-                  {topic.isSample ? "개발용 샘플" : "학습 주제"}
+                  {topic.isSample ? "과정 소개" : "학습 주제"}
                 </span>
               </article>
             ))}

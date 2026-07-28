@@ -40,7 +40,7 @@ export default async function SpecializedCoursePage({
           <p className="eyebrow">COURSE SPECIALIZATION</p>
           <h1>{course.name} 특화 학습</h1>
           <p>공통 수강·문제·단계·복습 엔진에 과정별 기준, 법령, 서술형 또는 위험평가 데이터를 연결합니다.</p>
-          <p className="sample-notice">아래 콘텐츠는 모두 독립 제작한 개발용 샘플이며 공식 기준·법령 원문·기출문제가 아닙니다.</p>
+          <p className="sample-notice">아래 콘텐츠는 학습용 사례이며 공식 기준·법령 원문·기출문제가 아닙니다.</p>
         </div>
       </header>
       <div className="shell">

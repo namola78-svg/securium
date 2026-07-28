@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { CourseListItem } from "@/db/repositories";
+import { publicCopy } from "@/lib/public-copy";
 
 export function CourseCard({ course }: { course: CourseListItem }) {
   return (
@@ -9,11 +10,11 @@ export function CourseCard({ course }: { course: CourseListItem }) {
       </div>
       <p className="eyebrow">{course.groupName}</p>
       <h3>{course.name}</h3>
-      <p>{course.description}</p>
+      <p>{publicCopy(course.description)}</p>
       <div className="course-meta">
         <span>{course.totalLevels}단계</span>
         <span>권장 통과 {course.passingScore}점</span>
-        {course.isSample ? <span className="sample-label">개발용 샘플</span> : null}
+        {course.isSample ? <span className="sample-label">과정 소개</span> : null}
       </div>
       <Link className="text-link" href={`/courses/${course.slug}`}>
         과정 살펴보기 <span aria-hidden="true">→</span>

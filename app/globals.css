@@ -735,8 +735,17 @@ a {
 
 .button-disabled {
   cursor: not-allowed;
+  border-color: #d5dbd2;
   background: #e3e6e1;
   color: #7f8a8c;
+  opacity: 0.68;
+  box-shadow: none;
+  pointer-events: none;
+}
+
+.button:disabled,
+button:disabled {
+  cursor: not-allowed;
 }
 
 .full-width {

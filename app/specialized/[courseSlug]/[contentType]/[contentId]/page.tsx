@@ -74,7 +74,7 @@ export default async function SpecializedContentPage({
         <div className="shell">
           <p className="eyebrow">{contentType.replaceAll("_", " ")}</p>
           <h1>{title}</h1>
-          <p className="sample-notice">개발용 샘플 · 기준일 {referenceDate || "미설정"} · 운영 사용 전 공식 출처 확인 필요</p>
+          <p className="sample-notice">학습용 콘텐츠 · 기준일 {referenceDate || "미설정"} · 공식 출처 확인 필요</p>
           {contentType === "ISMS_STANDARD" ||
           contentType === "LEGAL_ARTICLE" ? (
             <ContentVersionInfo revision={commonRevision} compact />

@@ -127,7 +127,7 @@ export function MockExamSession({
     <section className="exam-shell">
       <header className="exam-header">
         <div>
-          <p className="eyebrow">MOCK EXAM</p>
+          <p className="eyebrow">모의고사</p>
           <h1>{attempt.title}</h1>
         </div>
         {submitted && attempt.resultsAvailable ? (

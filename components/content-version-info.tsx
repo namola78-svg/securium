@@ -20,7 +20,7 @@ export function ContentVersionInfo({
   if (!revision) {
     return (
       <aside className={`content-version-info ${compact ? "compact" : ""}`}>
-        <strong>버전 정보 준비 중</strong>
+        <strong>검수 정보가 등록되지 않았습니다</strong>
         <span>공통 기준일·검수 이력이 아직 등록되지 않았습니다.</span>
       </aside>
     );
@@ -51,4 +51,3 @@ export function ContentVersionInfo({
     </aside>
   );
 }
-

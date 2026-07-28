@@ -50,7 +50,7 @@ export default async function LectureDetailPage({
               {lecture.free ? "무료 강의" : "수강 전용"}
             </span>
             {lecture.isSample ? (
-              <span className="sample-label">Mock 개발용 영상</span>
+              <span className="sample-label">강의 영상</span>
             ) : null}
           </div>
           <h1>{lecture.title}</h1>

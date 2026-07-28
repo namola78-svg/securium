@@ -243,7 +243,7 @@ export default async function LearnCoursePage({
                 </Link>
               </div>
               <div className="side-card">
-                <span className="eyebrow">MOCK EXAM</span>
+                <span className="eyebrow">모의고사</span>
                 <h3>실력 점검</h3>
                 <p>{exams.length}개 시험에 응시할 수 있습니다.</p>
                 <Link className="button button-ghost full-width" href="/mock-exams">

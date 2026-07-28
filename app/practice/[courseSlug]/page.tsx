@@ -124,8 +124,8 @@ export default async function PracticePage({
                 <option value="SINGLE_CHOICE">단일선택형</option>
                 <option value="MULTIPLE_CHOICE">복수선택형</option>
                 <option value="SHORT_ANSWER">단답형</option>
-                <option value="ESSAY">서술형 · 준비 중</option>
-                <option value="CALCULATION">계산형 · 준비 중</option>
+                <option value="ESSAY" disabled>서술형 · 개설 예정</option>
+                <option value="CALCULATION" disabled>계산형 · 개설 예정</option>
               </select>
             </label>
             <label>

@@ -198,7 +198,7 @@ function LectureCard({
         <div className="course-card-top">
           <span className="badge">{lecture.free ? "무료" : "수강 전용"}</span>
           {lecture.isSample ? (
-            <span className="sample-label">Mock 개발용 영상</span>
+            <span className="sample-label">강의 영상</span>
           ) : null}
           {lecture.bookmarked ? <span aria-label="즐겨찾기">★</span> : null}
         </div>

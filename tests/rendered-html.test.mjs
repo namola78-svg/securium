@@ -73,8 +73,8 @@ test("통합 학습 플랫폼 랜딩페이지를 서버 렌더링한다", async 
   const html = await response.text();
   assert.match(html, /SECURIUM/);
   assert.match(html, /정보보호 전문 자격 학습을/);
-  assert.match(html, /과정별 진도 분리/);
-  assert.match(html, /문제·복습 콘텐츠/);
+  assert.match(html, /과정별 학습 진도 자동 관리/);
+  assert.match(html, /학습 콘텐츠를 준비하고 있습니다/);
   assert.doesNotMatch(html, /codex-preview/);
   assert.doesNotMatch(html, /react-loading-skeleton/);
 });
@@ -376,7 +376,8 @@ test("본문형 레슨을 조회하고 사용자별 완료를 멱등 처리한�
   const html = await pageResponse.text();
   assert.equal(pageResponse.status, 200, html.slice(0, 1200));
   assert.match(html, /본문형 이론 레슨|THEORY LESSON/);
-  assert.match(html, /\[개발용 샘플 본문\]/);
+  assert.doesNotMatch(html, /\[개발용 샘플 본문\]/);
+  assert.match(html, /본문/);
 
   const headers = {
     "content-type": "application/json",
@@ -423,7 +424,7 @@ test("공개 문제만 표시하고 제출 전 정답 플래그를 노출하지 
   const html = await response.text();
   assert.equal(response.status, 200, html.slice(0, 1200));
   assert.match(html, /ISMS-P[\s\S]{0,40}문제풀이/);
-  assert.match(html, /\[개발용 샘플\]/);
+  assert.doesNotMatch(html, /\[개발용 샘플\]/);
   assert.doesNotMatch(html, /"isCorrect":true/);
   assert.doesNotMatch(html, /answerConfigJson/);
 });

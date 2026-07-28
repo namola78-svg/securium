@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
+import { publicCopy } from "@/lib/public-copy";
 
 type PublicQuestion = {
   id: string;
@@ -280,13 +281,13 @@ export function PracticeSession({
         />
       </div>
       <p className="eyebrow">{question.type.replaceAll("_", " ")}</p>
-      <h2>{question.title}</h2>
-      <p className="question-content">{question.content}</p>
+      <h2>{publicCopy(question.title)}</h2>
+      <p className="question-content">{publicCopy(question.content)}</p>
 
       {!question.automaticGradingAvailable ? (
         <div className="notice warning">
-          이 문제 유형의 자동채점은 준비 중입니다. 데이터 구조와 확장
-          인터페이스만 제공됩니다.
+          이 문제 유형은 개설 예정입니다. 현재는 자동채점을 지원하는
+          문제부터 이용할 수 있습니다.
         </div>
       ) : question.type === "SHORT_ANSWER" ? (
         <label className="answer-short">
@@ -316,7 +317,7 @@ export function PracticeSession({
                       : setSingle(choice.id)
                   }
                 />
-                <span>{choice.content}</span>
+                <span>{publicCopy(choice.content)}</span>
               </label>
             );
           })}
@@ -337,11 +338,11 @@ export function PracticeSession({
               {result.explanationVersion.reviewedAt?.slice(0, 10) ?? "미등록"}
             </p>
           ) : (
-            <p className="muted-copy">공통 버전 정보 준비 중</p>
+            <p className="muted-copy">검수 정보가 등록되지 않았습니다.</p>
           )}
-          <p>{result.explanation}</p>
-          {!result.isCorrect ? <p>{result.wrongAnswerExplanation}</p> : null}
-          <p>정답: {result.correctAnswer.join(", ")}</p>
+          <p>{publicCopy(result.explanation)}</p>
+          {!result.isCorrect ? <p>{publicCopy(result.wrongAnswerExplanation)}</p> : null}
+          <p>정답: {result.correctAnswer.map(publicCopy).join(", ")}</p>
         </div>
       ) : null}
       {result ? (
@@ -430,7 +431,7 @@ function AIExplanationPanel({ result }: { result: AIExplanationResult }) {
     >
       <div className="ai-explanation-heading">
         <div>
-          <p className="eyebrow">{isMock ? "MOCK AI 해설" : "AI 생성 해설"}</p>
+          <p className="eyebrow">{isMock ? "AI 해설 미리보기" : "AI 생성 해설"}</p>
           <h3 id={`ai-explanation-${result.requestId}`}>AI 참고 해설</h3>
         </div>
         <span className="status-badge">{result.status}</span>
@@ -486,7 +487,7 @@ function AIExplanationPanel({ result }: { result: AIExplanationResult }) {
               <h4>유사 문제</h4>
               <ul className="ai-reason-list">
                 {result.content.similarQuestions.map((item) => (
-                  <li key={item.id}>{item.title}</li>
+              <li key={item.id}>{publicCopy(item.title)}</li>
                 ))}
               </ul>
             </div>
@@ -494,12 +495,12 @@ function AIExplanationPanel({ result }: { result: AIExplanationResult }) {
         </div>
       )}
       <details className="ai-source-details">
-        <summary>내부 근거 콘텐츠</summary>
+        <summary>참고한 학습 근거</summary>
         {result.content.internalSources.length ? (
           <ul>
             {result.content.internalSources.map((source) => (
               <li key={source.id}>
-                {source.title} <span>({source.kind})</span>
+                {publicCopy(source.title)} <span>({source.kind})</span>
               </li>
             ))}
           </ul>
@@ -508,7 +509,9 @@ function AIExplanationPanel({ result }: { result: AIExplanationResult }) {
         )}
       </details>
       <small>
-        {result.provider} · {result.model} · 요청 ID {result.requestId}
+        {process.env.NODE_ENV !== "production"
+          ? `${result.provider} · ${result.model} · 요청 ID ${result.requestId}`
+          : "AI가 생성한 참고용 설명입니다."}
       </small>
     </section>
   );

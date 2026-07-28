@@ -43,8 +43,7 @@ export default async function Home() {
           </div>
           <div className="hero-panel" aria-label="플랫폼 핵심 지표">
             <div className="hero-panel-header">
-              <span>COMMON LEARNING CORE</span>
-              <span className="live-dot">Phase 1</span>
+              <span>AI LEARNING PLATFORM</span>
             </div>
             <div className="metric-large">
               <strong>{databaseReady ? courses.length : "—"}</strong>
@@ -52,16 +51,16 @@ export default async function Home() {
             </div>
             <div className="signal-list">
               <div>
-                <span>다중 과정 수강</span>
+                <span>여러 전문과정을 한곳에서 학습</span>
                 <strong>지원</strong>
               </div>
               <div>
-                <span>과정별 진도 분리</span>
+                <span>과정별 학습 진도 자동 관리</span>
                 <strong>적용</strong>
               </div>
               <div>
-                <span>문제·복습 콘텐츠</span>
-                <strong className="muted">준비 중</strong>
+                <span>학습 콘텐츠를 준비하고 있습니다</span>
+                <strong className="muted">개설 예정</strong>
               </div>
             </div>
           </div>

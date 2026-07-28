@@ -218,7 +218,7 @@ export function gradeQuestion(
 export function requireSupportedGrade(result: GradeResult) {
   if (!result.supported) {
     throw new AppError(
-      "이 문제 유형의 자동채점은 준비 중입니다.",
+      "이 문제 유형은 개설 예정입니다.",
       422,
       "GRADING_NOT_SUPPORTED",
     );

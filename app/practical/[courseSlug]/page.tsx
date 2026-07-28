@@ -31,7 +31,7 @@ export default async function PracticalOverviewPage({
           <p className="eyebrow">PRACTICAL LAB</p>
           <h1>{course.name} 실무형 학습</h1>
           <p>공통 수강·문제은행·오답노트·복습 기록과 연결되는 과정별 실무 연습입니다.</p>
-          <p className="sample-notice">모든 사례와 코드는 독립 작성한 개발용 샘플이며 공식 문제나 실제 평가 결과가 아닙니다.</p>
+          <p className="sample-notice">과정 이해를 돕기 위한 학습용 사례이며 공식 문제나 실제 평가 결과가 아닙니다.</p>
         </div>
       </header>
       <div className="shell">
@@ -44,7 +44,7 @@ export default async function PracticalOverviewPage({
                   <span className="badge">{sample.language} · {sample.risk}</span>
                   <h3>{sample.title}</h3>
                   <p>{sample.weaknessCode} · {sample.weaknessName}</p>
-                  <small>{sample.cweCode} · 개발용 샘플 · 기준일 {sample.sourceDate}</small>
+                  <small>{sample.cweCode} · 학습용 사례 · 기준일 {sample.sourceDate}</small>
                 </Link>
               ))}
             </div>
@@ -59,7 +59,7 @@ export default async function PracticalOverviewPage({
                   <span className="badge">{scenario.track === "EXAM_PREP" ? "평가자 시험 대비" : "영향평가 실무"}</span>
                   <h3>{scenario.title}</h3>
                   <p>{scenario.description}</p>
-                  <small>{scenario.organizationType} · {scenario.systemType} · 개발용 샘플</small>
+                  <small>{scenario.organizationType} · {scenario.systemType} · 학습용 사례</small>
                 </Link>
               ))}
             </div>

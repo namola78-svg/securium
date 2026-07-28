@@ -46,7 +46,7 @@ test("ISMS-P 인증기준과 연결된 결함·문제·법령을 조회한다", 
   assert.equal(overview.status, 200, overviewHtml.slice(0, 1200));
   assert.match(overviewHtml, /인증기준 탐색/);
   assert.match(overviewHtml, /결함사례 학습/);
-  assert.match(overviewHtml, /개발용 샘플/);
+  assert.match(overviewHtml, /학습용 사례/);
 
   const detail = await fetch(
     `${baseUrl}/specialized/isms-p/ISMS_STANDARD/sample-isms-standard-01`,
