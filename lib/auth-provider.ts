@@ -290,13 +290,40 @@ export function supabaseSessionCookieSpecs(
 
 export async function clearSupabaseSession() {
   const cookieStore = await getCookieStore();
-  cookieStore.delete(SUPABASE_ACCESS_COOKIE);
-  cookieStore.delete(SUPABASE_REFRESH_COOKIE);
-  for (const cookie of cookieStore.getAll()) {
-    if (isSupabaseSsrAuthCookieName(cookie.name)) {
-      cookieStore.delete(cookie.name);
-    }
+  for (const cookieName of supabaseSessionCookieNamesForLogout(
+    cookieStore.getAll().map((cookie) => cookie.name),
+  )) {
+    cookieStore.delete(cookieName);
   }
+}
+
+export function supabaseSessionCookieNamesForLogout(cookieNames: string[]) {
+  return Array.from(
+    new Set([
+      SUPABASE_ACCESS_COOKIE,
+      SUPABASE_REFRESH_COOKIE,
+      SUPABASE_OAUTH_RETURN_COOKIE,
+      ...cookieNames.filter(isSupabaseSsrAuthCookieName),
+    ]),
+  );
+}
+
+export function expiredSupabaseSessionCookieSpecs(
+  cookieNames: string[],
+  secure: boolean,
+) {
+  return supabaseSessionCookieNamesForLogout(cookieNames).map((name) => ({
+    name,
+    value: "",
+    options: {
+      httpOnly: true,
+      secure,
+      sameSite: "lax" as const,
+      path: "/",
+      maxAge: 0,
+      expires: new Date(0),
+    },
+  }));
 }
 
 export function isSupabaseSsrAuthCookieName(name: string) {

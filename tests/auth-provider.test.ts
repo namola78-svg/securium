@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  expiredSupabaseSessionCookieSpecs,
   getSupabaseIdentityFromAccessToken,
   isSupabaseSsrAuthCookieName,
   resolveAuthProvider,
   resolveSupabaseAuthConfig,
+  supabaseSessionCookieNamesForLogout,
   validateAuthForm,
 } from "../lib/auth-provider.ts";
 import { safeAuthReturnPath } from "../lib/auth-routing.ts";
@@ -105,4 +107,29 @@ test("supabase SSR auth cookie names are recognized for logout cleanup", () => {
   );
   assert.equal(isSupabaseSsrAuthCookieName("sa_access_token"), false);
   assert.equal(isSupabaseSsrAuthCookieName("sb-project-other"), false);
+});
+
+test("logout expires custom and Supabase SSR auth cookies explicitly", () => {
+  assert.deepEqual(
+    supabaseSessionCookieNamesForLogout([
+      "sb-project-auth-token",
+      "sb-project-auth-token.0",
+      "unrelated",
+    ]),
+    [
+      "sa_access_token",
+      "sa_refresh_token",
+      "sa_oauth_return_to",
+      "sb-project-auth-token",
+      "sb-project-auth-token.0",
+    ],
+  );
+
+  const expiredCookies = expiredSupabaseSessionCookieSpecs(
+    ["sb-project-auth-token"],
+    true,
+  );
+  assert.equal(expiredCookies[0].options.maxAge, 0);
+  assert.equal(expiredCookies[0].options.secure, true);
+  assert.equal(expiredCookies[0].options.path, "/");
 });
