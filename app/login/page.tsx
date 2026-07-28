@@ -6,6 +6,7 @@ import { resolveAuthProvider } from "@/lib/auth-provider";
 import { safeAuthReturnPath } from "@/lib/auth-routing";
 
 export const metadata: Metadata = { title: "로그인" };
+export const dynamic = "force-dynamic";
 
 export default async function LoginPage({
   searchParams,

@@ -6,6 +6,7 @@ import { resolveAuthProvider } from "@/lib/auth-provider";
 import { safeAuthReturnPath } from "@/lib/auth-routing";
 
 export const metadata: Metadata = { title: "회원가입" };
+export const dynamic = "force-dynamic";
 
 export default async function SignupPage({
   searchParams,
