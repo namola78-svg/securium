@@ -13,14 +13,19 @@ export const dynamic = "force-dynamic";
 export default async function DashboardPage() {
   const user = await requireCurrentAppUser("/dashboard");
   const [enrollments, todayPlan] = await Promise.all([
-    listUserEnrollments(user.id),
-    getTodayLearningPlan(user.id),
+    safeDashboardData(() => listUserEnrollments(user.id), []),
+    safeDashboardData(() => getTodayLearningPlan(user.id), null),
   ]);
   const activeEnrollments = enrollments.filter((item) => item.status === "ACTIVE");
-  const theoryProgress = await listCourseTheoryProgress(
-    user.id,
-    activeEnrollments.map((enrollment) => enrollment.courseId),
+  const theoryProgress = await safeDashboardData(
+    () =>
+      listCourseTheoryProgress(
+        user.id,
+        activeEnrollments.map((enrollment) => enrollment.courseId),
+      ),
+    [],
   );
+  const plan = todayPlan ?? createEmptyTodayPlan();
 
   return (
     <main className="page-main dashboard-page">
@@ -49,15 +54,15 @@ export default async function DashboardPage() {
           </div>
           <div className="stat-card">
             <span>오늘의 학습</span>
-            <strong>{todayPlan.completedQuestions}</strong>
+            <strong>{plan.completedQuestions}</strong>
             <small>
-              목표 {todayPlan.settings.dailyQuestionGoal}문제 ·{" "}
-              {todayPlan.completionPercent}%
+              목표 {plan.settings.dailyQuestionGoal}문제 ·{" "}
+              {plan.completionPercent}%
             </small>
           </div>
           <div className="stat-card">
             <span>오늘의 복습</span>
-            <strong>{todayPlan.reviewSummary.dueCount}</strong>
+            <strong>{plan.reviewSummary.dueCount}</strong>
             <small>
               <Link href="/reviews">예정된 복습 시작</Link>
             </small>
@@ -77,16 +82,16 @@ export default async function DashboardPage() {
           <div className="today-plan-grid">
             <div className="admin-panel">
               <ProgressBar
-                value={todayPlan.completionPercent}
+                value={plan.completionPercent}
                 label="오늘 문제 목표"
               />
               <LearningSettingsForm
-                dailyQuestionGoal={todayPlan.settings.dailyQuestionGoal}
-                dailyStudyMinutes={todayPlan.settings.dailyStudyMinutes}
+                dailyQuestionGoal={plan.settings.dailyQuestionGoal}
+                dailyStudyMinutes={plan.settings.dailyStudyMinutes}
               />
             </div>
             <div className="recommendation-list">
-              {todayPlan.recommendations.slice(0, 5).map((item) => (
+              {plan.recommendations.slice(0, 5).map((item) => (
                 <Link className="recommendation-card" href={item.href} key={`${item.kind}-${item.id}`}>
                   <span className="badge">{item.kind}</span>
                   <div>
@@ -96,7 +101,7 @@ export default async function DashboardPage() {
                   <small>약 {item.estimatedMinutes}분 →</small>
                 </Link>
               ))}
-              {!todayPlan.recommendations.length ? (
+              {!plan.recommendations.length ? (
                 <div className="empty-state">
                   <strong>추천을 만들 학습 기록이 없습니다.</strong>
                   <p>과정의 첫 단계를 시작하면 실제 기록을 기반으로 추천합니다.</p>
@@ -194,4 +199,34 @@ export default async function DashboardPage() {
       </div>
     </main>
   );
+}
+
+async function safeDashboardData<T>(
+  loader: () => Promise<T>,
+  fallback: T,
+): Promise<T> {
+  try {
+    return await loader();
+  } catch {
+    return fallback;
+  }
+}
+
+function createEmptyTodayPlan() {
+  return {
+    settings: {
+      dailyQuestionGoal: 10,
+      dailyStudyMinutes: 30,
+    },
+    completedQuestions: 0,
+    completionPercent: 0,
+    reviewSummary: {
+      dueCount: 0,
+      overdueCount: 0,
+      estimatedMinutes: 0,
+      completionPercent: 0,
+      byCourse: [],
+    },
+    recommendations: [],
+  };
 }
