@@ -16,9 +16,13 @@ export function CourseEnrollAction({
   courseSlug,
   initialSignedIn,
 }: CourseEnrollActionProps) {
-  const [status, setStatus] = useState<AuthStatus>("checking");
+  const [status, setStatus] = useState<AuthStatus>(
+    initialSignedIn ? "authenticated" : "checking",
+  );
 
   useEffect(() => {
+    if (initialSignedIn) return;
+
     let active = true;
 
     async function refreshSession() {
@@ -36,7 +40,7 @@ export function CourseEnrollAction({
         setStatus(payload.authenticated ? "authenticated" : "anonymous");
       } catch {
         if (active) {
-          setStatus(initialSignedIn ? "authenticated" : "anonymous");
+          setStatus("anonymous");
         }
       }
     }
