@@ -115,6 +115,13 @@ export async function getSupabaseAuthenticatedIdentity(): Promise<AuthenticatedI
   return supabasePayloadToIdentity(payload);
 }
 
+export async function getSupabaseSessionCookieIdentity(): Promise<AuthenticatedIdentity | null> {
+  const cookieStore = await getCookieStore();
+  const accessToken = cookieStore.get(SUPABASE_ACCESS_COOKIE)?.value;
+  if (!accessToken) return null;
+  return getSupabaseIdentityFromAccessToken(accessToken);
+}
+
 async function getSupabaseIdentityFromSsrCookies(): Promise<AuthenticatedIdentity | null> {
   const config = resolveSupabaseAuthConfig();
   const cookieStore = await getCookieStore();

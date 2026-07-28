@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { CourseCard } from "@/components/course-card";
-import { listPublishedCourses } from "@/db/repositories";
 import type { CourseListItem } from "@/db/repositories";
+import { listPublishedCoursesCached } from "@/lib/cached-catalog";
 
 export const dynamic = "force-dynamic";
 
@@ -9,7 +9,7 @@ export default async function Home() {
   let courses: CourseListItem[] = [];
   let databaseReady = true;
   try {
-    courses = await listPublishedCourses();
+    courses = await listPublishedCoursesCached();
   } catch {
     databaseReady = false;
   }

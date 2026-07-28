@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  getPublicCourseBySlug,
-  listCurriculum,
-} from "@/db/repositories";
-import { getChatGPTUser } from "@/app/chatgpt-auth";
+import { getChatGPTUserForDisplay } from "@/app/chatgpt-auth";
 import { CourseEnrollAction } from "@/components/course-enroll-action";
+import {
+  getPublicCourseBySlugCached,
+  listCurriculumCached,
+} from "@/lib/cached-catalog";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +18,7 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { courseSlug } = await params;
-  const course = await getPublicCourseBySlug(courseSlug);
+  const course = await getPublicCourseBySlugCached(courseSlug);
   return course
     ? { title: course.name, description: course.description }
     : { title: "과정을 찾을 수 없음" };
@@ -26,12 +26,12 @@ export async function generateMetadata({
 
 export default async function CourseDetailPage({ params }: PageProps) {
   const { courseSlug } = await params;
-  const course = await getPublicCourseBySlug(courseSlug);
+  const course = await getPublicCourseBySlugCached(courseSlug);
   if (!course) notFound();
 
   const [curriculum, identity] = await Promise.all([
-    listCurriculum(course.id),
-    getChatGPTUser(),
+    listCurriculumCached(course.id),
+    getChatGPTUserForDisplay(),
   ]);
 
   return (

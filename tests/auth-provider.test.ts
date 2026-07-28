@@ -98,6 +98,21 @@ test("supabase access token fallback extracts non-expired identity only", () => 
   assert.equal(getSupabaseIdentityFromAccessToken("not-a-jwt"), null);
 });
 
+test("expired Supabase access token is not used for fast display identity", () => {
+  const expiredToken = [
+    "header",
+    Buffer.from(
+      JSON.stringify({
+        email: "learner@example.com",
+        exp: Math.floor(Date.now() / 1000) - 60,
+      }),
+    ).toString("base64url"),
+    "signature",
+  ].join(".");
+
+  assert.equal(getSupabaseIdentityFromAccessToken(expiredToken), null);
+});
+
 test("supabase SSR auth cookie names are recognized for logout cleanup", () => {
   assert.equal(isSupabaseSsrAuthCookieName("sb-project-auth-token"), true);
   assert.equal(isSupabaseSsrAuthCookieName("sb-project-auth-token.0"), true);

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { CourseCard } from "@/components/course-card";
-import { listPublishedCourses } from "@/db/repositories";
+import { listPublishedCoursesCached } from "@/lib/cached-catalog";
 
 export const metadata: Metadata = {
   title: "과정 목록",
@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function CoursesPage() {
-  const courses = await listPublishedCourses();
+  const courses = await listPublishedCoursesCached();
   const grouped = Map.groupBy(courses, (course) => course.groupName);
 
   return (

@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import {
   getSupabaseAuthenticatedIdentity,
+  getSupabaseSessionCookieIdentity,
   resolveAuthProvider,
 } from "@/lib/auth-provider";
 
@@ -41,6 +42,14 @@ export async function getChatGPTUser(): Promise<ChatGPTUser | null> {
     email,
     fullName,
   };
+}
+
+export async function getChatGPTUserForDisplay(): Promise<ChatGPTUser | null> {
+  if (resolveAuthProvider() === "supabase") {
+    return getSupabaseSessionCookieIdentity();
+  }
+
+  return getChatGPTUser();
 }
 
 export async function requireChatGPTUser(

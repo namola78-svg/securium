@@ -1,9 +1,12 @@
 import Link from "next/link";
-import { getChatGPTUser, chatGPTSignOutPath } from "@/app/chatgpt-auth";
+import {
+  getChatGPTUserForDisplay,
+  chatGPTSignOutPath,
+} from "@/app/chatgpt-auth";
 import { SiteNav } from "@/components/site-nav";
 
 export async function SiteHeader() {
-  const user = await getChatGPTUser();
+  const user = await getChatGPTUserForDisplay();
 
   return (
     <header className="site-header">
