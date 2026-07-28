@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { spawn } from "node:child_process";
@@ -191,11 +191,28 @@ function spawnCaptured(command, args, environment = process.env) {
       stdout += chunk.toString();
     });
     child.stderr.on("data", () => {});
-    child.on("error", () => resolvePromise({ code: 1, stdout: "" }));
+    child.on("error", (error) =>
+      resolvePromise({
+        code: 1,
+        stdout: "",
+        diagnostic: safeDiagnosticCode(error),
+      }),
+    );
     child.on("exit", (code) =>
       resolvePromise({ code: code ?? 1, stdout }),
     );
   });
+}
+
+function safeDiagnosticCode(error) {
+  const code =
+    typeof error?.code === "string"
+      ? error.code
+      : typeof error?.cause?.code === "string"
+        ? error.cause.code
+        : "FAILED";
+  const normalized = code.toUpperCase().replace(/[^A-Z0-9_]/g, "_");
+  return normalized.slice(0, 40) || "FAILED";
 }
 
 function readCount(output, provider) {
@@ -248,14 +265,79 @@ async function executePsql(args) {
     PGDATABASE: decodeURIComponent(url.pathname.slice(1)),
     PGSSLMODE: url.searchParams.get("sslmode") ?? "require",
   };
+  const diagnostics = [];
   for (const executable of candidates) {
     const result = await spawnCaptured(executable, args, environment);
     if (result.code === 0) return result;
+    if (result.diagnostic) diagnostics.push(result.diagnostic);
+  }
+  const postgresJsResult = await executePostgresJs(args, directUrl);
+  if (postgresJsResult.code === 0) return postgresJsResult;
+  if (postgresJsResult.diagnostic) diagnostics.push(postgresJsResult.diagnostic);
+  const diagnostic = diagnostics.find((value) => value !== "ENOENT");
+  if (diagnostic) {
+    fail(
+      "The PostgreSQL bootstrap operation failed. Provider output was suppressed.",
+      `ADMIN_BOOTSTRAP_POSTGRES_${diagnostic}`,
+    );
   }
   fail(
     "The PostgreSQL bootstrap operation failed. Provider output was suppressed.",
     "ADMIN_BOOTSTRAP_POSTGRES_FAILED",
   );
+}
+
+async function executePostgresJs(args, directUrl) {
+  let sql;
+  try {
+    const mod = await import("postgres");
+    sql = mod.default(directUrl, {
+      max: 1,
+      ssl: "require",
+      idle_timeout: 1,
+      connect_timeout: 10,
+    });
+    if (args.includes("-c")) {
+      const query = args[args.indexOf("-c") + 1];
+      if (!query) return { code: 1, stdout: "" };
+      const rows = await sql.unsafe(query);
+      return {
+        code: 0,
+        stdout: rows.length ? `${Object.values(rows[0])[0]}\n` : "",
+      };
+    }
+    if (args.includes("-f")) {
+      const sqlPath = args[args.indexOf("-f") + 1];
+      if (!sqlPath) return { code: 1, stdout: "" };
+      const sqlText = await readFile(sqlPath, "utf8");
+      await executeBootstrapSqlText(sql, sqlText);
+      return { code: 0, stdout: "" };
+    }
+  } catch (error) {
+    return {
+      code: 1,
+      stdout: "",
+      diagnostic: safeDiagnosticCode(error),
+    };
+  } finally {
+    await sql?.end({ timeout: 1 }).catch(() => {});
+  }
+  return { code: 1, stdout: "" };
+}
+
+async function executeBootstrapSqlText(sql, sqlText) {
+  const statements = sqlText
+    .split(";")
+    .map((statement) => statement.trim())
+    .filter(Boolean)
+    .filter((statement) => !/^BEGIN$/i.test(statement))
+    .filter((statement) => !/^COMMIT$/i.test(statement));
+
+  await sql.begin(async (transaction) => {
+    for (const statement of statements) {
+      await transaction.unsafe(statement);
+    }
+  });
 }
 
 function activeSuperAdminCountSql() {
@@ -358,7 +440,8 @@ Remote execution additionally requires --remote --confirm-remote and a
 separately reviewed Wrangler configuration.
 
 For PostgreSQL, set DB_PROVIDER=supabase and DIRECT_URL, then use
---confirm-remote. A local psql executable is required. No password is accepted.`);
+--confirm-remote. The script uses local psql when available and falls back to
+the installed postgres.js driver. No password is accepted.`);
 }
 
 function fail(message, code) {

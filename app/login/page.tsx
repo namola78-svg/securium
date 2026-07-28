@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { chatGPTSignInPath, getChatGPTUser } from "@/app/chatgpt-auth";
+import {
+  chatGPTSignInPath,
+  getChatGPTUserForDisplay,
+} from "@/app/chatgpt-auth";
 import { resolveAuthProvider } from "@/lib/auth-provider";
 import { safeAuthReturnPath } from "@/lib/auth-routing";
 
@@ -18,7 +21,7 @@ export default async function LoginPage({
   const provider = resolveAuthProvider();
   const error = params.error ? String(params.error) : "";
   const notice = params.notice ? String(params.notice) : "";
-  const user = await getChatGPTUser();
+  const user = await getChatGPTUserForDisplay();
 
   if (user) redirect(returnTo);
 
