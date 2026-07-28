@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { chatGPTSignInPath } from "@/app/chatgpt-auth";
+import { redirect } from "next/navigation";
+import { chatGPTSignInPath, getChatGPTUser } from "@/app/chatgpt-auth";
 import { resolveAuthProvider } from "@/lib/auth-provider";
 import { safeAuthReturnPath } from "@/lib/auth-routing";
 
@@ -15,6 +16,9 @@ export default async function SignupPage({
   const returnTo = safeAuthReturnPath(params.return_to);
   const provider = resolveAuthProvider();
   const error = params.error ? String(params.error) : "";
+  const user = await getChatGPTUser();
+
+  if (user) redirect(returnTo);
 
   if (provider === "supabase") {
     return (
