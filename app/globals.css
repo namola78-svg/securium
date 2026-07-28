@@ -22,6 +22,7 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: clip;
 }
 
 body {
@@ -30,6 +31,7 @@ body {
   color: var(--ink);
   font-family: var(--font-geist-sans), "Noto Sans KR", Arial, sans-serif;
   line-height: 1.6;
+  overflow-x: clip;
   overflow-wrap: anywhere;
 }
 
@@ -93,6 +95,7 @@ a {
 
 .brand {
   display: inline-flex;
+  min-height: 44px;
   align-items: center;
   gap: 11px;
   flex-shrink: 0;
@@ -147,6 +150,9 @@ a {
 .main-nav a,
 .nav-disabled {
   position: relative;
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
   border-radius: 999px;
   padding: 8px 10px;
   white-space: nowrap;
@@ -198,13 +204,17 @@ a {
   display: none;
 }
 
+.mobile-nav-actions {
+  display: none;
+}
+
 .profile-menu {
   position: relative;
 }
 
 .profile-menu-trigger {
   display: inline-flex;
-  min-height: 38px;
+  min-height: 44px;
   align-items: center;
   gap: 8px;
   border: 1px solid rgb(255 255 255 / 0.18);
@@ -816,7 +826,7 @@ a {
 }
 
 .button-small {
-  min-height: 37px;
+  min-height: 44px;
   padding-inline: 14px;
   font-size: 13px;
   white-space: nowrap;
@@ -852,7 +862,7 @@ a {
   border-color: #d5dbd2;
   background: #e3e6e1;
   color: #7f8a8c;
-  opacity: 0.68;
+  opacity: 0.78;
   box-shadow: none;
   pointer-events: none;
 }
@@ -860,6 +870,7 @@ a {
 .button:disabled,
 button:disabled {
   cursor: not-allowed;
+  opacity: 0.78;
 }
 
 .full-width {
@@ -973,7 +984,7 @@ button:disabled {
 
 .eyebrow {
   margin: 0 0 8px;
-  color: #657479;
+  color: #5d6c71;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.15em;
@@ -1154,6 +1165,9 @@ button:disabled {
 }
 
 .text-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: #183a38;
   font-weight: 750;
 }
@@ -1314,6 +1328,8 @@ button:disabled {
   font-size: 13px;
   font-weight: 700;
   line-height: 1.45;
+  min-width: 0;
+  word-break: keep-all;
 }
 
 .course-card-cta {
@@ -2980,12 +2996,13 @@ textarea {
 @media (max-width: 960px) {
   .header-inner {
     grid-template-columns: 1fr auto auto;
+    gap: 12px;
   }
 
   .mobile-menu-button {
     display: inline-grid;
-    width: 42px;
-    height: 42px;
+    width: 44px;
+    height: 44px;
     place-items: center;
     border: 1px solid rgb(255 255 255 / 0.22);
     border-radius: 11px;
@@ -3029,7 +3046,16 @@ textarea {
 
   .main-nav a,
   .main-nav .nav-disabled {
+    min-height: 44px;
     padding: 13px 14px;
+  }
+
+  .mobile-nav-actions {
+    display: grid;
+    gap: 8px;
+    padding-top: 10px;
+    margin-top: 6px;
+    border-top: 1px solid rgb(255 255 255 / 0.1);
   }
 
   .mobile-menu-backdrop {
@@ -3043,8 +3069,7 @@ textarea {
   }
 
   .header-actions {
-    grid-column: 1 / -1;
-    justify-content: flex-start;
+    justify-content: flex-end;
   }
 
   .profile-menu {
@@ -3128,15 +3153,26 @@ textarea {
 @media (max-width: 680px) {
   .shell,
   .narrow {
-    width: min(100% - 28px, 1180px);
+    width: min(100% - 32px, 1180px);
   }
 
   .site-header {
-    position: relative;
+    position: sticky;
   }
 
   .header-inner {
+    grid-template-columns: minmax(0, 1fr) auto auto;
     min-height: 68px;
+  }
+
+  .brand {
+    min-width: 0;
+  }
+
+  .brand strong {
+    max-width: 42vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .brand small,
@@ -3144,8 +3180,14 @@ textarea {
     display: none;
   }
 
-  .header-actions .button {
-    min-height: 36px;
+  .header-actions > a {
+    display: none;
+  }
+
+  .profile-menu-trigger {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 7px 12px;
   }
 
   .hero {
@@ -3153,7 +3195,8 @@ textarea {
   }
 
   .hero h1 {
-    font-size: 42px;
+    font-size: clamp(36px, 11vw, 42px);
+    line-height: 1.12;
   }
 
   .hero h1 .hero-title-line {
@@ -3162,6 +3205,10 @@ textarea {
 
   .hero-copy {
     font-size: 16px;
+  }
+
+  .hero-copy br {
+    display: none;
   }
 
   .hero .button-row {
@@ -3215,6 +3262,20 @@ textarea {
 
   .course-card {
     min-height: 340px;
+    padding: 22px;
+  }
+
+  .course-card h3 {
+    min-height: auto;
+  }
+
+  .course-summary {
+    min-height: auto;
+  }
+
+  .course-comparison-list div {
+    grid-template-columns: 1fr;
+    gap: 4px;
   }
 
   .value-grid {
@@ -3260,6 +3321,7 @@ textarea {
   }
 
   .auth-card {
+    width: 100%;
     padding: 30px 22px;
     border-radius: 14px;
   }

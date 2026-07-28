@@ -173,6 +173,7 @@ export function HeaderControls({ user }: HeaderControlsProps) {
       <button
         className="mobile-menu-button"
         type="button"
+        aria-label={mobileOpen ? "메뉴 닫기" : "메뉴 열기"}
         aria-expanded={mobileOpen}
         aria-controls="site-navigation"
         onClick={() => setMobileOpen((open) => !open)}
@@ -180,7 +181,7 @@ export function HeaderControls({ user }: HeaderControlsProps) {
         <span aria-hidden="true" />
         <span aria-hidden="true" />
         <span aria-hidden="true" />
-        <span className="sr-only">메뉴 열기</span>
+        <span className="sr-only">{mobileOpen ? "메뉴 닫기" : "메뉴 열기"}</span>
       </button>
 
       <nav
@@ -196,6 +197,16 @@ export function HeaderControls({ user }: HeaderControlsProps) {
             onClick={closeMenus}
           />
         ))}
+        {!isSignedIn ? (
+          <div className="mobile-nav-actions" aria-label="계정 메뉴">
+            <Link className="button button-ghost full-width" href="/login" onClick={closeMenus}>
+              로그인
+            </Link>
+            <Link className="button button-lime full-width" href="/signup" onClick={closeMenus}>
+              무료로 시작하기
+            </Link>
+          </div>
+        ) : null}
       </nav>
 
       <div className="header-actions">
@@ -204,6 +215,7 @@ export function HeaderControls({ user }: HeaderControlsProps) {
             <button
               className="profile-menu-trigger"
               type="button"
+              aria-label={`${currentUser.displayName} 프로필 메뉴`}
               aria-expanded={profileOpen}
               aria-haspopup="menu"
               onClick={() => setProfileOpen((open) => !open)}
