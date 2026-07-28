@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 const publicNavItems = [{ href: "/courses", label: "과정" }];
 
@@ -18,11 +19,18 @@ const userNavItems = [
 
 export function SiteNav({ signedIn }: { signedIn: boolean }) {
   const pathname = usePathname() || "/";
+  const router = useRouter();
   const searchParams = useSearchParams();
   const activePath = resolveActivePath(pathname, searchParams);
+  const authReturnPath = resolveAuthReturnPath(pathname, searchParams);
   const navItems = signedIn
     ? [...publicNavItems, ...userNavItems]
     : publicNavItems;
+
+  useEffect(() => {
+    if (!signedIn || !authReturnPath) return;
+    router.replace(authReturnPath);
+  }, [authReturnPath, router, signedIn]);
 
   return (
     <nav className="main-nav" aria-label="주요 메뉴">
@@ -44,19 +52,33 @@ export function SiteNav({ signedIn }: { signedIn: boolean }) {
   );
 }
 
+function resolveAuthReturnPath(
+  pathname: string,
+  searchParams: ReturnType<typeof useSearchParams>,
+) {
+  if (pathname !== "/login" && pathname !== "/signup") return null;
+  return safeReturnPath(searchParams.get("return_to")) ?? "/dashboard";
+}
+
 function resolveActivePath(
   pathname: string,
   searchParams: ReturnType<typeof useSearchParams>,
 ) {
   if (pathname !== "/login" && pathname !== "/signup") return pathname;
 
-  const returnTo = searchParams.get("return_to");
-  if (!returnTo?.startsWith("/") || returnTo.startsWith("//")) return pathname;
+  return safeReturnPath(searchParams.get("return_to")) ?? pathname;
+}
+
+function safeReturnPath(value: string | null) {
+  if (!value?.startsWith("/") || value.startsWith("//")) return null;
 
   try {
-    return new URL(returnTo, "https://app.local").pathname;
+    const url = new URL(value, "https://app.local");
+    if (url.origin !== "https://app.local") return null;
+    if (url.pathname === "/login" || url.pathname === "/signup") return null;
+    return `${url.pathname}${url.search}${url.hash}`;
   } catch {
-    return pathname;
+    return null;
   }
 }
 
