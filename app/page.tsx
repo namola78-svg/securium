@@ -98,25 +98,6 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="section section-ink">
-        <div className="shell value-grid">
-          <div>
-            <span className="value-number">01</span>
-            <h3>공통 구조</h3>
-            <p>과정을 복제하지 않고 같은 학습 엔진과 동적 라우트로 운영합니다.</p>
-          </div>
-          <div>
-            <span className="value-number">02</span>
-            <h3>독립 진도</h3>
-            <p>여러 과정을 수강해도 진도와 단계, 정답률이 과정별로 분리됩니다.</p>
-          </div>
-          <div>
-            <span className="value-number">03</span>
-            <h3>운영 확장</h3>
-            <p>관리자가 과정군·과정·과목·주제를 추가하고 공개 상태를 관리합니다.</p>
-          </div>
-        </div>
-      </section>
     </main>
   );
 }

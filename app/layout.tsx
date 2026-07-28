@@ -56,7 +56,6 @@ export default function RootLayout({
           <div className="shell footer-inner">
             <strong>Shield Academy</strong>
             <span>정보보호·개인정보보호 통합 학습 플랫폼</span>
-              <span>Phase 2 MVP · 샘플 콘텐츠는 학습 자료가 아닙니다.</span>
           </div>
         </footer>
       </body>
