@@ -42,6 +42,7 @@ export type CourseListItem = {
   published: boolean;
   displayOrder: number;
   isSample: boolean;
+  updatedAt?: string;
   subjectCount?: number;
   topicCount?: number;
   questionCount?: number;
@@ -65,6 +66,7 @@ export async function listPublishedCourses(): Promise<CourseListItem[]> {
       published: courses.published,
       displayOrder: courses.displayOrder,
       isSample: courses.isSample,
+      updatedAt: courses.updatedAt,
       subjectCount: sql<number>`(
         SELECT COUNT(*)
         FROM ${subjects}
@@ -120,6 +122,29 @@ export async function getPublicCourseBySlug(slug: string) {
       published: courses.published,
       displayOrder: courses.displayOrder,
       isSample: courses.isSample,
+      updatedAt: courses.updatedAt,
+      subjectCount: sql<number>`(
+        SELECT COUNT(*)
+        FROM ${subjects}
+        WHERE ${subjects.courseId} = ${courses.id}
+          AND ${subjects.active} = 1
+          AND ${subjects.deletedAt} IS NULL
+      )`,
+      topicCount: sql<number>`(
+        SELECT COUNT(*)
+        FROM ${topics}
+        INNER JOIN ${subjects} ON ${topics.subjectId} = ${subjects.id}
+        WHERE ${subjects.courseId} = ${courses.id}
+          AND ${subjects.active} = 1
+          AND ${subjects.deletedAt} IS NULL
+          AND ${topics.active} = 1
+          AND ${topics.deletedAt} IS NULL
+      )`,
+      questionCount: sql<number>`(
+        SELECT COUNT(*)
+        FROM ${questionCourses}
+        WHERE ${questionCourses.courseId} = ${courses.id}
+      )`,
     })
     .from(courses)
     .innerJoin(courseGroups, eq(courses.courseGroupId, courseGroups.id))
@@ -206,6 +231,7 @@ export async function listAllCourses() {
       published: courses.published,
       displayOrder: courses.displayOrder,
       isSample: courses.isSample,
+      updatedAt: courses.updatedAt,
     })
     .from(courses)
     .innerJoin(courseGroups, eq(courses.courseGroupId, courseGroups.id))

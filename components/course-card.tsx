@@ -1,9 +1,15 @@
 import Link from "next/link";
 import type { CourseListItem } from "@/db/repositories";
-import { publicCopy } from "@/lib/public-copy";
+import {
+  courseDescription,
+  difficultyLabel,
+  estimateWeeks,
+  recommendedAudience,
+  safeCount,
+} from "@/lib/course-display";
 
 export function CourseCard({ course }: { course: CourseListItem }) {
-  const description = publicCopy(course.description) || "과정 설명을 준비하고 있습니다.";
+  const description = courseDescription(course.description);
   const difficulty = difficultyLabel(course.difficulty);
   const recommendedFor = recommendedAudience(course.difficulty);
   const subjectCount = safeCount(course.subjectCount);
@@ -62,31 +68,4 @@ export function CourseCard({ course }: { course: CourseListItem }) {
       )}
     </article>
   );
-}
-
-function safeCount(value: unknown) {
-  const numberValue = Number(value ?? 0);
-  return Number.isFinite(numberValue) && numberValue > 0
-    ? Math.floor(numberValue)
-    : 0;
-}
-
-function difficultyLabel(value: string | null | undefined) {
-  if (value === "BEGINNER") return "입문";
-  if (value === "INTERMEDIATE") return "중급";
-  if (value === "ADVANCED") return "심화";
-  return "수준 안내 예정";
-}
-
-function recommendedAudience(value: string | null | undefined) {
-  if (value === "BEGINNER") return "입문 학습자 · 실무 담당자";
-  if (value === "INTERMEDIATE") return "자격 준비자 · 보안 담당자";
-  if (value === "ADVANCED") return "심화 학습자 · 실무 리더";
-  return "정보보호·개인정보보호 학습자";
-}
-
-function estimateWeeks(totalLevels: number | null | undefined) {
-  const levels = safeCount(totalLevels);
-  if (!levels) return 4;
-  return Math.max(2, Math.min(12, Math.ceil(levels / 15)));
 }
