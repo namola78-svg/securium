@@ -1,3 +1,4 @@
+import { createServerClient } from "@supabase/ssr";
 import { AppError } from "./errors.ts";
 
 export type AuthProviderName = "sites" | "supabase";
@@ -85,7 +86,7 @@ export function resolveSupabaseAuthConfig(
 export async function getSupabaseAuthenticatedIdentity(): Promise<AuthenticatedIdentity | null> {
   const cookieStore = await getCookieStore();
   const accessToken = cookieStore.get(SUPABASE_ACCESS_COOKIE)?.value;
-  if (!accessToken) return null;
+  if (!accessToken) return getSupabaseIdentityFromSsrCookies();
 
   const config = resolveSupabaseAuthConfig();
   let response: Response;
@@ -98,12 +99,56 @@ export async function getSupabaseAuthenticatedIdentity(): Promise<AuthenticatedI
       cache: "no-store",
     });
   } catch {
-    return getSupabaseIdentityFromAccessToken(accessToken);
+    return (
+      getSupabaseIdentityFromAccessToken(accessToken) ??
+      (await getSupabaseIdentityFromSsrCookies())
+    );
   }
-  if (!response.ok) return getSupabaseIdentityFromAccessToken(accessToken);
+  if (!response.ok) {
+    return (
+      getSupabaseIdentityFromAccessToken(accessToken) ??
+      (await getSupabaseIdentityFromSsrCookies())
+    );
+  }
 
   const payload = (await response.json()) as SupabaseUserPayload;
   return supabasePayloadToIdentity(payload);
+}
+
+async function getSupabaseIdentityFromSsrCookies(): Promise<AuthenticatedIdentity | null> {
+  const config = resolveSupabaseAuthConfig();
+  const cookieStore = await getCookieStore();
+  const supabase = createServerClient(config.supabaseUrl, config.anonKey, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll() {
+        // Server components cannot persist refreshed cookies here. Route handlers
+        // and proxy keep the custom HttpOnly session cookies refreshed.
+      },
+    },
+  });
+
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    if (error || !data.user) return null;
+    return supabasePayloadToIdentity({
+      email: data.user.email,
+      user_metadata: {
+        full_name:
+          typeof data.user.user_metadata?.full_name === "string"
+            ? data.user.user_metadata.full_name
+            : undefined,
+        name:
+          typeof data.user.user_metadata?.name === "string"
+            ? data.user.user_metadata.name
+            : undefined,
+      },
+    });
+  } catch {
+    return null;
+  }
 }
 
 export function getSupabaseIdentityFromAccessToken(
@@ -247,6 +292,20 @@ export async function clearSupabaseSession() {
   const cookieStore = await getCookieStore();
   cookieStore.delete(SUPABASE_ACCESS_COOKIE);
   cookieStore.delete(SUPABASE_REFRESH_COOKIE);
+  for (const cookie of cookieStore.getAll()) {
+    if (isSupabaseSsrAuthCookieName(cookie.name)) {
+      cookieStore.delete(cookie.name);
+    }
+  }
+}
+
+export function isSupabaseSsrAuthCookieName(name: string) {
+  return (
+    name.startsWith("sb-") &&
+    (name.endsWith("-auth-token") ||
+      /-auth-token\.\d+$/.test(name) ||
+      name.endsWith("-auth-token-code-verifier"))
+  );
 }
 
 export function validateAuthForm(input: {

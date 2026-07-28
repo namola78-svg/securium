@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   getSupabaseIdentityFromAccessToken,
+  isSupabaseSsrAuthCookieName,
   resolveAuthProvider,
   resolveSupabaseAuthConfig,
   validateAuthForm,
@@ -93,4 +94,15 @@ test("supabase access token fallback extracts non-expired identity only", () => 
   ].join(".");
   assert.equal(getSupabaseIdentityFromAccessToken(expiredToken), null);
   assert.equal(getSupabaseIdentityFromAccessToken("not-a-jwt"), null);
+});
+
+test("supabase SSR auth cookie names are recognized for logout cleanup", () => {
+  assert.equal(isSupabaseSsrAuthCookieName("sb-project-auth-token"), true);
+  assert.equal(isSupabaseSsrAuthCookieName("sb-project-auth-token.0"), true);
+  assert.equal(
+    isSupabaseSsrAuthCookieName("sb-project-auth-token-code-verifier"),
+    true,
+  );
+  assert.equal(isSupabaseSsrAuthCookieName("sa_access_token"), false);
+  assert.equal(isSupabaseSsrAuthCookieName("sb-project-other"), false);
 });
