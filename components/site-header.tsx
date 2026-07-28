@@ -1,12 +1,10 @@
 import Link from "next/link";
-import {
-  getChatGPTUserForDisplay,
-  chatGPTSignOutPath,
-} from "@/app/chatgpt-auth";
+import { Suspense } from "react";
 import { SiteNav } from "@/components/site-nav";
+import { getOptionalCurrentAppUser } from "@/lib/auth";
 
 export async function SiteHeader() {
-  const user = await getChatGPTUserForDisplay();
+  const user = await getOptionalCurrentAppUser();
 
   return (
     <header className="site-header">
@@ -20,14 +18,19 @@ export async function SiteHeader() {
             <small>Security learning system</small>
           </span>
         </Link>
-        <SiteNav signedIn={Boolean(user)} />
+        <Suspense fallback={<nav className="main-nav" aria-label="주요 메뉴" />}>
+          <SiteNav signedIn={Boolean(user)} />
+        </Suspense>
         <div className="header-actions">
           {user ? (
             <>
               <span className="user-chip">{user.displayName}</span>
-              <Link className="button button-ghost button-small" href={chatGPTSignOutPath("/")}>
-                로그아웃
-              </Link>
+              <form action="/api/auth/supabase/logout" method="post">
+                <input type="hidden" name="returnTo" value="/" />
+                <button className="button button-ghost button-small" type="submit">
+                  로그아웃
+                </button>
+              </form>
             </>
           ) : (
             <Link className="button button-dark button-small" href="/login">

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getChatGPTUserForDisplay } from "@/app/chatgpt-auth";
 import { CourseEnrollAction } from "@/components/course-enroll-action";
+import { getOptionalCurrentAppUser } from "@/lib/auth";
 import {
   getPublicCourseBySlugCached,
   listCurriculumCached,
@@ -31,7 +31,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
 
   const [curriculum, identity] = await Promise.all([
     listCurriculumCached(course.id),
-    getChatGPTUserForDisplay(),
+    getOptionalCurrentAppUser(),
   ]);
 
   return (

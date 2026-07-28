@@ -1,4 +1,4 @@
-import { getChatGPTUserForDisplay } from "@/app/chatgpt-auth";
+import { getOptionalCurrentAppUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -9,8 +9,8 @@ export async function GET() {
   };
 
   try {
-    const identity = await getChatGPTUserForDisplay();
-    return Response.json({ authenticated: Boolean(identity) }, { headers });
+    const user = await getOptionalCurrentAppUser();
+    return Response.json({ authenticated: Boolean(user) }, { headers });
   } catch {
     return Response.json({ authenticated: false }, { headers });
   }

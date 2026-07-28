@@ -49,6 +49,14 @@ export async function getCurrentAppUser(): Promise<AppUser | null> {
   };
 }
 
+export async function getOptionalCurrentAppUser(): Promise<AppUser | null> {
+  try {
+    return await getCurrentAppUser();
+  } catch {
+    return null;
+  }
+}
+
 export async function requireCurrentAppUser(returnTo: string) {
   const user = await getCurrentAppUser();
   if (!user) redirect(chatGPTSignInPath(returnTo));
