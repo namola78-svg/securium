@@ -22,7 +22,7 @@ export default async function Home() {
             <p className="eyebrow light">SECURIUM</p>
             <p className="hero-subtitle">Security Learning Platform</p>
             <h1>
-              정보보호 전문 자격 학습을
+              <span className="hero-title-line">정보보호 전문 자격 학습을</span>
               <br />
               <span>하나의 성장 체계로.</span>
             </h1>

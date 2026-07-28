@@ -796,6 +796,11 @@ a {
   color: var(--lime);
 }
 
+.hero h1 .hero-title-line {
+  color: var(--white);
+  white-space: nowrap;
+}
+
 .hero-copy {
   max-width: 650px;
   margin: 0;
