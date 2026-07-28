@@ -71,7 +71,7 @@ test("통합 학습 플랫폼 랜딩페이지를 서버 렌더링한다", async 
   assert.match(response.headers.get("permissions-policy") ?? "", /camera=\(\)/);
 
   const html = await response.text();
-  assert.match(html, /Shield Academy/);
+  assert.match(html, /SECURIUM/);
   assert.match(html, /정보보호 전문 자격 학습을/);
   assert.match(html, /과정별 진도 분리/);
   assert.match(html, /문제·복습 콘텐츠/);
@@ -558,7 +558,7 @@ test("문제 수정 실패 시 본문과 연결 정보를 함께 롤백한다", 
     difficulty: "EASY",
     explanation: "첫 선택지가 정답입니다.",
     wrongAnswerExplanation: "원자적 저장 여부를 확인합니다.",
-    source: "Shield Academy transaction test",
+    source: "SECURIUM transaction test",
     sourceDate: "2026-07-27",
     answerConfigJson: "{}",
     choices: [

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { SiteNav } from "@/components/site-nav";
 import { getOptionalCurrentAppUser } from "@/lib/auth";
+import { BRAND } from "@/lib/brand";
 
 export async function SiteHeader() {
   const user = await getOptionalCurrentAppUser();
@@ -9,13 +10,13 @@ export async function SiteHeader() {
   return (
     <header className="site-header">
       <div className="shell header-inner">
-        <Link className="brand" href="/" aria-label="Shield Academy 홈">
+        <Link className="brand" href="/" aria-label={`${BRAND.koreanName} 홈`}>
           <span className="brand-mark" aria-hidden="true">
             S
           </span>
           <span>
-            <strong>Shield Academy</strong>
-            <small>Security learning system</small>
+            <strong>{BRAND.englishName}</strong>
+            <small>{BRAND.systemLabel}</small>
           </span>
         </Link>
         <Suspense fallback={<nav className="main-nav" aria-label="주요 메뉴" />}>

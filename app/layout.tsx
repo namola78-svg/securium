@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { SiteHeader } from "@/components/site-header";
+import { BRAND } from "@/lib/brand";
 import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -13,29 +14,29 @@ export async function generateMetadata(): Promise<Metadata> {
     requestHeaders.get("x-forwarded-proto") ??
     (host.startsWith("localhost") ? "http" : "https");
   const metadataBase = new URL(`${protocol}://${host}`);
-  const description =
-    "정보보호와 개인정보보호 전문 과정을 한곳에서 수강하고 과정별 진도를 관리하세요.";
+  const description = BRAND.shortDescription;
 
   return {
     metadataBase,
     title: {
-      default: "Shield Academy | 정보보호 통합 학습",
-      template: "%s | Shield Academy",
+      default: BRAND.officialName,
+      template: `%s | ${BRAND.englishName}`,
     },
     description,
+    applicationName: BRAND.englishName,
     icons: {
       icon: "/favicon.svg",
       shortcut: "/favicon.svg",
     },
     openGraph: {
       type: "website",
-      title: "Shield Academy",
+      title: BRAND.officialName,
       description,
       images: [new URL("/og.png", metadataBase).toString()],
     },
     twitter: {
       card: "summary_large_image",
-      title: "Shield Academy",
+      title: BRAND.officialName,
       description,
       images: [new URL("/og.png", metadataBase).toString()],
     },
@@ -54,8 +55,8 @@ export default function RootLayout({
         {children}
         <footer className="site-footer">
           <div className="shell footer-inner">
-            <strong>Shield Academy</strong>
-            <span>정보보호·개인정보보호 통합 학습 플랫폼</span>
+            <strong>{BRAND.officialName}</strong>
+            <span>{BRAND.shortDescription}</span>
           </div>
         </footer>
       </body>

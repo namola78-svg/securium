@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CourseCard } from "@/components/course-card";
 import type { CourseListItem } from "@/db/repositories";
+import { BRAND } from "@/lib/brand";
 import { listPublishedCoursesCached } from "@/lib/cached-catalog";
 
 export const dynamic = "force-dynamic";
@@ -19,8 +20,8 @@ export default async function Home() {
       <section className="hero">
         <div className="shell hero-grid">
           <div>
-            <p className="eyebrow light">SECURIUM</p>
-            <p className="hero-subtitle">Security Learning Platform</p>
+            <p className="eyebrow light">{BRAND.englishName}</p>
+            <p className="hero-subtitle">{BRAND.systemLabel}</p>
             <h1>
               <span className="hero-title-line">정보보호 전문 자격 학습을</span>
               <br />

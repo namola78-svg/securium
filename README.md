@@ -1,4 +1,4 @@
-# Shield Academy
+# 시큐리움 | SECURIUM
 
 ## Repository and deployment guides
 

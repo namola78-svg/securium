@@ -309,7 +309,7 @@ SELECT
   '[개발용 샘플 해설] 위험을 식별하고 근거와 변경 이력을 남기는 것이 핵심입니다.',
   '[개발용 샘플 오답 해설] 선택한 답과 통제 목적의 연결 관계를 다시 확인하세요.',
   'PUBLISHED',
-  'Shield Academy 독립 제작 개발용 샘플',
+  'SECURIUM 독립 제작 개발용 샘플',
   '2026-07-27',
   1,
   CASE WHEN n % 4 = 0
@@ -817,7 +817,7 @@ SELECT
     ELSE '{}'
   END,
   'PUBLISHED',
-  '[개발용 독립 샘플] Shield Academy 제작',
+  '[개발용 독립 샘플] SECURIUM 제작',
   '2026-07-27',
   1,
   'user-admin',
