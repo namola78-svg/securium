@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { EmptyState } from "@/components/state-ui";
 import { getRecommendations } from "@/db/phase3-repositories";
 import { listUserEnrollments } from "@/db/repositories";
 import { requireCurrentAppUser } from "@/lib/auth";
@@ -74,10 +75,11 @@ export default async function AiTutorPage() {
                 ))}
               </div>
             ) : (
-              <div className="empty-state">
-                <strong>AI 해설을 시작할 수 있는 수강 과정이 없습니다.</strong>
-                <p>먼저 과정을 내 학습에 추가한 뒤 문제풀이를 시작해 주세요.</p>
-              </div>
+              <EmptyState
+                title="AI 해설을 시작할 수 있는 수강 과정이 없습니다"
+                description="먼저 과정을 내 학습에 추가한 뒤 문제풀이를 시작해 주세요."
+                action={{ href: "/courses", label: "과정 둘러보기" }}
+              />
             )}
           </article>
 
@@ -102,10 +104,11 @@ export default async function AiTutorPage() {
                 ))}
               </div>
             ) : (
-              <div className="empty-state">
-                <strong>아직 추천을 만들 학습 기록이 없습니다.</strong>
-                <p>문제풀이와 복습 기록이 쌓이면 추천이 표시됩니다.</p>
-              </div>
+              <EmptyState
+                title="아직 추천을 만들 학습 기록이 없습니다"
+                description="문제풀이와 복습 기록이 쌓이면 추천이 표시됩니다."
+                action={{ href: "/practice", label: "문제풀이 시작" }}
+              />
             )}
           </article>
         </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
+import { EmptyState } from "@/components/state-ui";
 import { publicCopy } from "@/lib/public-copy";
 
 type PublicQuestion = {
@@ -100,10 +101,11 @@ export function PracticeSession({
 
   if (!questions.length) {
     return (
-      <div className="empty-state">
-        <strong>조건에 맞는 공개 문제가 없습니다.</strong>
-        <p>필터를 바꾸거나 관리자가 문제를 게시한 뒤 다시 시도하세요.</p>
-      </div>
+      <EmptyState
+        title="조건에 맞는 공개 문제가 없습니다"
+        description="필터를 바꾸거나 공개된 문제가 추가된 뒤 다시 시도해 주세요."
+        action={{ label: "다시 시도", onClick: () => window.location.reload() }}
+      />
     );
   }
 

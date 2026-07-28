@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { CardSkeleton, InlineError, RetryButton } from "@/components/state-ui";
 
 type EnrollmentStatus = "ACTIVE" | "PAUSED" | "COMPLETED" | "CANCELLED";
 type ActionStatus =
@@ -20,6 +21,22 @@ type CourseEnrollActionProps = {
   initialSignedIn: boolean;
   initialEnrollmentStatus?: EnrollmentStatus | null;
 };
+
+const TEXT = {
+  duplicate: "\uC774\uBBF8 \uB0B4 \uD559\uC2B5\uC5D0 \uCD94\uAC00\uB41C \uACFC\uC815\uC785\uB2C8\uB2E4.",
+  enrolled: "\uACFC\uC815\uC744 \uB0B4 \uD559\uC2B5\uC5D0 \uCD94\uAC00\uD588\uC2B5\uB2C8\uB2E4.",
+  enrollError:
+    "\uACFC\uC815\uC744 \uCD94\uAC00\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574\uC8FC\uC138\uC694.",
+  loginAndAdd:
+    "\uB85C\uADF8\uC778\uD558\uACE0 \uACFC\uC815 \uCD94\uAC00",
+  continueLearning: "\uD559\uC2B5 \uACC4\uC18D\uD558\uAE30",
+  review: "\uBCF5\uC2B5\uD558\uAE30",
+  retry: "\uB2E4\uC2DC \uC2DC\uB3C4",
+  enrolling:
+    "\uB0B4 \uD559\uC2B5\uC5D0 \uCD94\uAC00\uD558\uB294 \uC911",
+  addToLearning:
+    "\uB0B4 \uD559\uC2B5\uC5D0 \uCD94\uAC00",
+} as const;
 
 export function CourseEnrollAction({
   courseId,
@@ -89,7 +106,7 @@ export function CourseEnrollAction({
       if (!response.ok) {
         if (payload?.code === "DUPLICATE_ENROLLMENT") {
           setStatus("enrolled");
-          setMessage("이미 내 학습에 추가된 과정입니다.");
+          setMessage(TEXT.duplicate);
           router.refresh();
           return;
         }
@@ -97,21 +114,21 @@ export function CourseEnrollAction({
       }
 
       setStatus("enrolled");
-      setMessage("과정이 내 학습에 추가되었습니다.");
+      setMessage(TEXT.enrolled);
       router.refresh();
-    } catch {
+    } catch (error) {
+      console.error("SECURIUM_ENROLLMENT_ERROR", {
+        name: error instanceof Error ? error.name : "UnknownError",
+      });
       setStatus("error");
-      setMessage("과정을 추가하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+      setMessage(TEXT.enrollError);
     }
   }
 
   if (status === "checking") {
     return (
       <div className="enroll-action" aria-live="polite">
-        <div className="enroll-skeleton" aria-busy="true">
-          <span />
-          <span />
-        </div>
+        <CardSkeleton compact />
       </div>
     );
   }
@@ -123,7 +140,7 @@ export function CourseEnrollAction({
           className="button button-dark full-width"
           href={`/login?return_to=${encodeURIComponent(`/courses/${courseSlug}`)}`}
         >
-          로그인하고 과정 추가
+          {TEXT.loginAndAdd}
         </Link>
       </div>
     );
@@ -133,7 +150,7 @@ export function CourseEnrollAction({
     return (
       <div className="enroll-action">
         <Link className="button button-dark full-width" href={`/learn/${courseSlug}`}>
-          학습 계속하기
+          {TEXT.continueLearning}
         </Link>
         {message ? <p className="enroll-message success">{message}</p> : null}
       </div>
@@ -147,7 +164,7 @@ export function CourseEnrollAction({
           className="button button-dark full-width"
           href={`/practice/${courseSlug}?mode=review`}
         >
-          복습하기
+          {TEXT.review}
         </Link>
       </div>
     );
@@ -156,14 +173,8 @@ export function CourseEnrollAction({
   if (status === "error") {
     return (
       <div className="enroll-action" aria-live="polite">
-        <button
-          className="button button-dark full-width"
-          type="button"
-          onClick={handleEnroll}
-        >
-          다시 시도
-        </button>
-        {message ? <p className="enroll-message error">{message}</p> : null}
+        <RetryButton label={TEXT.retry} onRetry={handleEnroll} />
+        {message ? <InlineError message={message} /> : null}
       </div>
     );
   }
@@ -177,7 +188,7 @@ export function CourseEnrollAction({
         disabled={status === "enrolling"}
         aria-busy={status === "enrolling"}
       >
-        {status === "enrolling" ? "내 학습에 추가하는 중" : "내 학습에 추가"}
+        {status === "enrolling" ? TEXT.enrolling : TEXT.addToLearning}
       </button>
     </div>
   );

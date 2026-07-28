@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { EmptyState } from "@/components/state-ui";
 import { listUserEnrollments } from "@/db/repositories";
 import { requireCurrentAppUser } from "@/lib/auth";
 
@@ -86,13 +87,11 @@ export default async function PracticeHubPage() {
               ))}
             </div>
           ) : (
-            <div className="empty-state">
-              <strong>아직 문제를 풀 수 있는 수강 과정이 없습니다.</strong>
-              <p>먼저 관심 있는 과정을 내 학습에 추가해 주세요.</p>
-              <Link className="button button-dark" href="/courses">
-                과정 둘러보기
-              </Link>
-            </div>
+            <EmptyState
+              title="문제를 풀 수 있는 수강 과정이 없습니다"
+              description="관심 있는 과정을 찾아 학습을 시작해보세요"
+              action={{ href: "/courses", label: "과정 둘러보기" }}
+            />
           )}
         </div>
       </section>

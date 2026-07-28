@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { PracticeSession } from "@/components/practice-session";
+import { EmptyState } from "@/components/state-ui";
 import {
   getEnrollmentForCourse,
   getPublicCourseBySlug,
@@ -27,17 +28,23 @@ export default async function PracticePage({
   const user = await requireCurrentAppUser(`/practice/${courseSlug}`);
   const course = await getPublicCourseBySlug(courseSlug);
   if (!course) notFound();
+
   const enrollment = await getEnrollmentForCourse(user.id, course.id);
   if (!enrollment) {
     return (
       <main className="page-main dashboard-page">
-        <div className="shell empty-state">
-          <strong>수강 등록이 필요합니다.</strong>
-          <p>과정 상세에서 수강을 시작한 뒤 문제를 풀 수 있습니다.</p>
+        <div className="shell section">
+          <EmptyState
+            title="수강 등록이 필요합니다"
+            description="과정 상세에서 내 학습에 추가한 뒤 문제풀이를 시작할 수 있습니다."
+            action={{ href: `/courses/${course.slug}`, label: "과정 자세히 보기" }}
+            secondaryAction={{ href: "/courses", label: "과정 둘러보기" }}
+          />
         </div>
       </main>
     );
   }
+
   const subjects = await listSubjectsForCourse(course.id);
   const subjectId =
     typeof query.subjectId === "string" ? query.subjectId : undefined;
@@ -77,8 +84,8 @@ export default async function PracticePage({
           <p className="eyebrow">PRACTICE MODE</p>
           <h1>{course.shortName} 문제풀이</h1>
           <p>
-            제출 즉시 서버에서 채점하고 해설을 제공합니다. 정답 데이터는 제출
-            전 응답에 포함되지 않습니다.
+            제출 후 서버에서 채점하고 해설을 제공합니다. 정답 데이터는 제출 전
+            응답에 포함되지 않습니다.
           </p>
         </div>
       </header>
@@ -124,8 +131,12 @@ export default async function PracticePage({
                 <option value="SINGLE_CHOICE">단일선택형</option>
                 <option value="MULTIPLE_CHOICE">복수선택형</option>
                 <option value="SHORT_ANSWER">단답형</option>
-                <option value="ESSAY" disabled>서술형 · 개설 예정</option>
-                <option value="CALCULATION" disabled>계산형 · 개설 예정</option>
+                <option value="ESSAY" disabled>
+                  서술형 · 개설 예정
+                </option>
+                <option value="CALCULATION" disabled>
+                  계산형 · 개설 예정
+                </option>
               </select>
             </label>
             <label>

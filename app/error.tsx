@@ -1,21 +1,30 @@
 "use client";
 
+import { useEffect } from "react";
+import { ErrorState } from "@/components/state-ui";
+
 export default function ErrorPage({
+  error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    console.error("SECURIUM_PAGE_ERROR", {
+      digest: error.digest,
+      name: error.name,
+    });
+  }, [error.digest, error.name]);
+
   return (
     <main className="page-main">
       <div className="shell section">
-        <div className="empty-state" role="alert">
-          <strong>요청한 화면을 표시하지 못했습니다.</strong>
-          <p>민감한 내부 정보는 표시하지 않습니다. 잠시 후 다시 시도해 주세요.</p>
-          <button className="button button-dark" type="button" onClick={reset}>
-            다시 시도
-          </button>
-        </div>
+        <ErrorState
+          title="정보를 불러오지 못했습니다"
+          description="잠시 후 다시 시도해주세요"
+          onRetry={reset}
+        />
       </div>
     </main>
   );

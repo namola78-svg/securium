@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CourseEnrollAction } from "@/components/course-enroll-action";
+import { EmptyState } from "@/components/state-ui";
 import { getEnrollmentForCourse } from "@/db/repositories";
 import {
   courseDescription,
@@ -88,9 +89,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
               </div>
               <div>
                 <dt>총 문제 수</dt>
-                <dd>
-                  {formatCount(questionCount, "문항", "문항 업데이트 예정")}
-                </dd>
+                <dd>{formatCount(questionCount, "문항", "문항 업데이트 예정")}</dd>
               </div>
               <div>
                 <dt>통과 기준</dt>
@@ -107,8 +106,8 @@ export default async function CourseDetailPage({ params }: PageProps) {
             <span className="eyebrow">START LEARNING</span>
             <h2>수강 신청</h2>
             <p>
-              내 학습에 추가하면 과정별 진도, 문제풀이, 복습 기록이 분리되어
-              관리됩니다.
+              내 학습에 추가하면 과정별 진도, 문제풀이, 복습 기록이 다른
+              과정과 분리되어 관리됩니다.
             </p>
             <CourseEnrollAction
               courseId={course.id}
@@ -186,10 +185,10 @@ export default async function CourseDetailPage({ params }: PageProps) {
                   </article>
                 ))
               ) : (
-                <div className="empty-state">
-                  <h3>커리큘럼을 준비하고 있습니다.</h3>
-                  <p>과목과 주제가 공개되면 이곳에서 확인할 수 있습니다.</p>
-                </div>
+                <EmptyState
+                  title="커리큘럼을 준비하고 있습니다"
+                  description="과목과 주제가 공개되면 이곳에서 확인할 수 있습니다."
+                />
               )}
             </div>
           </article>
@@ -221,7 +220,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
               <p className="eyebrow">READY TO START</p>
               <h2>수강 신청 또는 학습 계속하기</h2>
               <p>
-                선택한 과정의 학습 기록은 다른 과정과 섞이지 않게 별도로
+                선택한 과정의 학습 기록은 다른 과정과 섞이지 않도록 별도로
                 저장됩니다.
               </p>
             </div>

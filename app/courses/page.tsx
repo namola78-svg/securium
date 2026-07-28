@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { CourseCard } from "@/components/course-card";
+import { EmptyState } from "@/components/state-ui";
 import { listPublishedCoursesCached } from "@/lib/cached-catalog";
 
 export const metadata: Metadata = {
   title: "과정 목록",
-  description: "DB에서 조회한 정보보호·개인정보보호 전문 과정을 확인하세요.",
+  description:
+    "DB에서 관리되는 정보보호·개인정보보호 전문 과정을 확인하세요.",
 };
 export const dynamic = "force-dynamic";
 
@@ -19,8 +21,8 @@ export default async function CoursesPage() {
           <p className="eyebrow">COURSE DIRECTORY</p>
           <h1>과정 목록</h1>
           <p>
-            과정 정보는 데이터베이스에서 관리됩니다. 새로운 과정도 같은 템플릿과
-            라우트에 자동으로 연결됩니다.
+            정보보호·개인정보보호 전문 과정을 비교하고 현재 목표에 맞는 학습을
+            시작하세요.
           </p>
         </div>
       </section>
@@ -43,10 +45,11 @@ export default async function CoursesPage() {
             </section>
           ))
         ) : (
-          <div className="empty-state">
-            <strong>현재 공개된 과정이 없습니다.</strong>
-            <p>관리자가 공개한 과정만 표시됩니다.</p>
-          </div>
+          <EmptyState
+            title="공개된 과정이 없습니다"
+            description="관리자가 공개한 과정이 생기면 이곳에 표시됩니다."
+            action={{ href: "/", label: "홈으로 이동" }}
+          />
         )}
       </div>
     </main>

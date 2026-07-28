@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ProgressBar } from "@/components/progress-bar";
+import { EmptyState } from "@/components/state-ui";
 import { requireCurrentAppUser } from "@/lib/auth";
 import { listUserEnrollments } from "@/db/repositories";
 
-export const metadata: Metadata = { title: "내 과정" };
+export const metadata: Metadata = { title: "내 학습" };
 export const dynamic = "force-dynamic";
 
 export default async function MyCoursesPage() {
@@ -15,9 +16,12 @@ export default async function MyCoursesPage() {
     <main className="page-main">
       <section className="page-hero">
         <div className="shell">
-          <p className="eyebrow">ENROLLMENT CENTER</p>
-          <h1>내 과정</h1>
-          <p>수강 상태를 관리하고 각 과정의 독립된 학습 공간으로 이동합니다.</p>
+          <p className="eyebrow">MY LEARNING</p>
+          <h1>내 학습</h1>
+          <p>
+            수강 상태를 관리하고 각 과정의 문제풀이와 학습 공간으로 이동할 수
+            있습니다.
+          </p>
         </div>
       </section>
       <section className="section">
@@ -27,7 +31,7 @@ export default async function MyCoursesPage() {
               {enrollments.map((enrollment) => (
                 <article className="my-course-row" key={enrollment.id}>
                   <div>
-                    <span className="badge">{enrollment.status}</span>
+                    <span className="badge">{statusLabel(enrollment.status)}</span>
                     <h2>{enrollment.courseName}</h2>
                     <p>{enrollment.groupName}</p>
                   </div>
@@ -74,15 +78,22 @@ export default async function MyCoursesPage() {
               ))}
             </div>
           ) : (
-            <div className="empty-state">
-              <strong>등록된 과정이 없습니다.</strong>
-              <Link className="button button-dark" href="/courses">
-                과정 찾기
-              </Link>
-            </div>
+            <EmptyState
+              title="아직 등록한 과정이 없습니다"
+              description="관심 있는 과정을 찾아 학습을 시작해보세요"
+              action={{ href: "/courses", label: "과정 둘러보기" }}
+            />
           )}
         </div>
       </section>
     </main>
   );
+}
+
+function statusLabel(status: string) {
+  if (status === "ACTIVE") return "수강 중";
+  if (status === "PAUSED") return "일시정지";
+  if (status === "COMPLETED") return "완료";
+  if (status === "CANCELLED") return "취소";
+  return status;
 }

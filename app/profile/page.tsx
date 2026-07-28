@@ -13,7 +13,10 @@ export default async function ProfilePage() {
         <div className="shell">
           <p className="eyebrow">MY PROFILE</p>
           <h1>프로필</h1>
-          <p>플랫폼 인증에서 확인한 최소 정보와 현재 역할을 표시합니다.</p>
+          <p>
+            로그인 계정과 플랫폼 권한 정보를 확인합니다. 민감한 인증 정보는
+            화면에 표시하지 않습니다.
+          </p>
         </div>
       </section>
       <section className="section">
@@ -33,7 +36,7 @@ export default async function ProfilePage() {
             </div>
             <div>
               <dt>비밀번호</dt>
-              <dd>애플리케이션에서 저장하지 않음</dd>
+              <dd>애플리케이션에서 저장하거나 표시하지 않습니다.</dd>
             </div>
           </dl>
         </div>
