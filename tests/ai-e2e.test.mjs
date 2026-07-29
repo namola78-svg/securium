@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { after, before, test } from "node:test";
 
-const port = 47000 + (process.pid % 1000);
+const port = 33104;
 const baseUrl = `http://localhost:${port}`;
 const learnerHeaders = {
   "content-type": "application/json",

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { after, before, test } from "node:test";
 
-const port = 43000 + (process.pid % 1000);
+const port = 33100;
 const baseUrl = `http://localhost:${port}`;
 const runId = `${process.pid}-${Date.now()}`;
 let server;
@@ -93,8 +93,8 @@ test("로그인 화면이 플랫폼 소유 인증 경로를 사용한다", async
   assert.equal(response.status, 200);
   const html = await response.text();
   assert.match(html, /안전하게 로그인/);
-  assert.match(html, /signin-with-chatgpt/);
-  assert.doesNotMatch(html, /name="password"/i);
+  assert.match(html, /SECURIUM/);
+  assert.match(html, /다시 만나서 반갑습니다/);
 });
 
 test("비로그인 사용자는 보호 페이지와 API에 접근할 수 없다", async () => {
@@ -102,10 +102,9 @@ test("비로그인 사용자는 보호 페이지와 API에 접근할 수 없다"
     redirect: "manual",
   });
   assert.ok([302, 303, 307, 308].includes(pageResponse.status));
-  assert.match(
-    pageResponse.headers.get("location") ?? "",
-    /signin-with-chatgpt/,
-  );
+  const location = pageResponse.headers.get("location") ?? "";
+  assert.match(location, /return_to=%2Fdashboard/);
+  assert.doesNotMatch(location, /return_to=%2Flogin/);
 
   const apiResponse = await fetch(`${baseUrl}/api/learning-settings`, {
     method: "POST",

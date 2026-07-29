@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { after, before, test } from "node:test";
 
-const port = 45000 + (process.pid % 1000);
+const port = 33102;
 const baseUrl = `http://localhost:${port}`;
 let server;
 let output = "";

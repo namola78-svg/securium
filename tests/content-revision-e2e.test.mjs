@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { after, before, test } from "node:test";
 
-const port = 49900 + (process.pid % 80);
+const port = 33108;
 const baseUrl = `http://localhost:${port}`;
 const lessonId = "course-isms-p-subject-foundation-topic-core-lesson-01";
 const user = {
