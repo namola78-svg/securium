@@ -83,7 +83,7 @@ export function LoginPanel({ returnTo, error = "", notice = "" }: LoginPanelProp
         </div>
       ) : null}
 
-      <Link
+      <a
         className={`google-auth-button ${isGoogleLoading ? "is-loading" : ""}`}
         href={googleHref}
         onClick={() => setIsGoogleLoading(true)}
@@ -91,7 +91,7 @@ export function LoginPanel({ returnTo, error = "", notice = "" }: LoginPanelProp
       >
         <GoogleIcon />
         {isGoogleLoading ? "Google로 이동하는 중" : "Google로 계속하기"}
-      </Link>
+      </a>
 
       <div className="auth-divider" aria-hidden="true">
         <span>또는</span>

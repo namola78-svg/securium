@@ -48,6 +48,13 @@ export async function GET(request: NextRequest) {
 
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
   if (error || !data.session) {
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("Supabase OAuth callback failed", {
+        message: error?.message ?? "Session was not returned.",
+        name: error?.name,
+        status: error?.status,
+      });
+    }
     const params = new URLSearchParams({
       error: "oauth_callback_failed",
       return_to: returnTo,
