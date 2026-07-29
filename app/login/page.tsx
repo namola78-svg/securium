@@ -19,11 +19,19 @@ export default async function LoginPage({
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = (await searchParams) ?? {};
-  const returnTo = safeAuthReturnPath(params.return_to);
+  const requestedReturnTo = firstParam(params.return_to);
+  const returnTo = safeAuthReturnPath(requestedReturnTo);
   const provider = resolveAuthProvider();
   const error = firstParam(params.error);
   const notice = firstParam(params.notice);
   const user = await getOptionalCurrentAppUser();
+
+  if (requestedReturnTo && requestedReturnTo !== returnTo) {
+    const canonicalParams = new URLSearchParams({ return_to: returnTo });
+    if (error) canonicalParams.set("error", error);
+    if (notice) canonicalParams.set("notice", notice);
+    redirect(`/login?${canonicalParams.toString()}`);
+  }
 
   if (user) redirect(returnTo);
 

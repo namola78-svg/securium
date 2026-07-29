@@ -94,6 +94,8 @@ function safeRelativeReturnPath(value: string): string {
 
 function isReservedAuthPath(pathname: string): boolean {
   return (
+    pathname === "/login" ||
+    pathname === "/signup" ||
     pathname === SIGN_IN_PATH ||
     pathname === SIGN_OUT_PATH ||
     pathname === CALLBACK_PATH

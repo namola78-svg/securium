@@ -15,10 +15,17 @@ export default async function SignupPage({
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = (await searchParams) ?? {};
-  const returnTo = safeAuthReturnPath(params.return_to);
+  const requestedReturnTo = firstParam(params.return_to);
+  const returnTo = safeAuthReturnPath(requestedReturnTo);
   const provider = resolveAuthProvider();
-  const error = params.error ? String(params.error) : "";
+  const error = firstParam(params.error);
   const user = await getOptionalCurrentAppUser();
+
+  if (requestedReturnTo && requestedReturnTo !== returnTo) {
+    const canonicalParams = new URLSearchParams({ return_to: returnTo });
+    if (error) canonicalParams.set("error", error);
+    redirect(`/signup?${canonicalParams.toString()}`);
+  }
 
   if (user) redirect(returnTo);
 
@@ -119,4 +126,9 @@ export default async function SignupPage({
       </section>
     </main>
   );
+}
+
+function firstParam(value: string | string[] | undefined) {
+  if (Array.isArray(value)) return value[0] ?? "";
+  return value ?? "";
 }

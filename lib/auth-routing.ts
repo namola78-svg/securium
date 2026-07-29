@@ -1,4 +1,6 @@
 const RESERVED_AUTH_PATHS = new Set([
+  "/login",
+  "/signup",
   "/callback",
   "/signin-with-chatgpt",
   "/signout-with-chatgpt",
