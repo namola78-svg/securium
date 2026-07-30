@@ -77,6 +77,32 @@ export function createCourseLessonProgressKey(input: {
   return `${input.userId}:${input.courseId}:${input.courseLessonId}`;
 }
 
+export function normalizeCourseLessonProgressPercent(value: number) {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.min(100, Math.round(value)));
+}
+
+export function assertCourseLessonCompletionAllowed(input: {
+  completionRule: string;
+  explicitRequest: boolean;
+  progressPercent: number;
+}) {
+  if (input.completionRule === "SCROLL_END" && input.progressPercent < 90) {
+    throw new AppError(
+      "본문을 충분히 학습한 뒤 완료할 수 있습니다.",
+      400,
+      "COURSE_LESSON_SCROLL_REQUIRED",
+    );
+  }
+  if (!input.explicitRequest) {
+    throw new AppError(
+      "학습 완료 요청을 확인할 수 없습니다.",
+      400,
+      "COURSE_LESSON_COMPLETION_NOT_CONFIRMED",
+    );
+  }
+}
+
 export function parseJsonArray(value: string | null | undefined) {
   if (!value) return [];
   const parsed = JSON.parse(value);

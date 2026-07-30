@@ -19,6 +19,7 @@ import {
   getCourseTheoryProgress,
   listSubjectTheoryProgress,
 } from "@/db/lesson-repositories";
+import { listPublishedCourseLessonsForUser } from "@/db/shared-content-repositories";
 
 export const dynamic = "force-dynamic";
 
@@ -44,6 +45,7 @@ export default async function LearnCoursePage({
     theoryProgress,
     subjectTheoryProgress,
     curriculumPath,
+    sharedLessonProgress,
   ] =
     await Promise.all([
       listCurriculum(course.id),
@@ -55,6 +57,7 @@ export default async function LearnCoursePage({
       getCourseTheoryProgress(user.id, course.id),
       listSubjectTheoryProgress(user.id, course.id),
       getPublishedCurriculumPathForCourse(course.id, user.id),
+      listPublishedCourseLessonsForUser(user.id, course.id),
     ]);
   const courseReviews = reviews.byCourse.find(
     (item) => item.courseId === course.id,
@@ -168,6 +171,58 @@ export default async function LearnCoursePage({
               courseSlug={course.slug}
               path={curriculumPath}
             />
+          ) : null}
+
+          {sharedLessonProgress.totalLessons ? (
+            <section className="section-block">
+              <div className="section-heading compact">
+                <div>
+                  <p className="eyebrow">SHARED THEORY</p>
+                  <h2>공통 이론 레슨</h2>
+                  <p>
+                    여러 과정에서 함께 사용하는 핵심 이론을 이 과정 맥락에
+                    맞춰 학습합니다.
+                  </p>
+                </div>
+                <span className="count-label">
+                  {sharedLessonProgress.completedLessons}/
+                  {sharedLessonProgress.totalLessons} 완료
+                </span>
+              </div>
+              <ProgressBar
+                value={sharedLessonProgress.progressPercent}
+                label="공통 이론 진도"
+              />
+              <div className="course-lesson-grid">
+                {sharedLessonProgress.lessons.map((lesson) => (
+                  <Link
+                    className="course-lesson-card"
+                    href={`/learn/${course.slug}/course-lessons/${lesson.id}`}
+                    key={lesson.id}
+                  >
+                    <div className="course-card-top">
+                      <span className="badge">
+                        {lesson.status === "COMPLETED"
+                          ? "완료"
+                          : lesson.status === "IN_PROGRESS"
+                            ? "학습 중"
+                            : "시작 전"}
+                      </span>
+                      <span>{lesson.estimatedMinutes}분</span>
+                    </div>
+                    <h3>{lesson.title}</h3>
+                    <p>{lesson.summary}</p>
+                    <div className="course-lesson-meta">
+                      {lesson.isRequired ? <span>필수</span> : <span>선택</span>}
+                      {lesson.difficulty ? <span>{lesson.difficulty}</span> : null}
+                      {lesson.importance !== null ? (
+                        <span>중요도 {lesson.importance}</span>
+                      ) : null}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
           ) : null}
 
           <div className="dashboard-layout section-block">

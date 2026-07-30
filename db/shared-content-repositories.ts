@@ -8,12 +8,18 @@ import {
   courses,
   curriculumNodes,
   curriculumTrees,
+  learningActivities,
+  userCourseEnrollments,
+  userCourseLessonProgress,
 } from "./schema";
 import { createAuditInsert } from "./audit-repositories";
 import { AppError } from "@/lib/errors";
 import {
+  assertCourseLessonCompletionAllowed,
   assertContentCanBeLinked,
   normalizeCanonicalKey,
+  normalizeCourseLessonProgressPercent,
+  mergeCourseLessonPresentation,
 } from "@/lib/services/shared-content-service";
 import type {
   courseLessonExtensionSchema,
@@ -332,4 +338,418 @@ export async function listSharedContentUsage(contentId: string) {
       and(eq(courseLessons.contentId, contentId), isNull(courseLessons.deletedAt)),
     )
     .orderBy(asc(courses.displayOrder), asc(courseLessons.sortOrder));
+}
+
+export async function listPublishedCourseLessonsForUser(
+  userId: string,
+  courseId: string,
+) {
+  const rows = await getDb()
+    .select({
+      id: courseLessons.id,
+      courseId: courseLessons.courseId,
+      contentId: courseLessons.contentId,
+      contentTitle: contents.title,
+      contentSummary: contents.summary,
+      contentBody: contents.body,
+      displayTitle: courseLessons.displayTitle,
+      sortOrder: courseLessons.sortOrder,
+      difficulty: courseLessons.difficulty,
+      importance: courseLessons.importance,
+      estimatedMinutes: courseLessons.estimatedMinutes,
+      isRequired: courseLessons.isRequired,
+      completionRule: courseLessons.completionRule,
+      curriculumNodeId: courseLessons.curriculumNodeId,
+      status: courseLessons.status,
+      progressStatus: sql<string>`coalesce(${userCourseLessonProgress.status}, 'NOT_STARTED')`,
+      progressPercent: sql<number>`coalesce(${userCourseLessonProgress.progressPercent}, 0)`,
+      completedAt: userCourseLessonProgress.completedAt,
+    })
+    .from(courseLessons)
+    .innerJoin(contents, eq(courseLessons.contentId, contents.id))
+    .leftJoin(
+      userCourseLessonProgress,
+      and(
+        eq(userCourseLessonProgress.userId, userId),
+        eq(userCourseLessonProgress.courseId, courseLessons.courseId),
+        eq(userCourseLessonProgress.courseLessonId, courseLessons.id),
+      ),
+    )
+    .where(
+      and(
+        eq(courseLessons.courseId, courseId),
+        eq(courseLessons.status, "PUBLISHED"),
+        isNull(courseLessons.deletedAt),
+        eq(contents.status, "PUBLISHED"),
+        isNull(contents.deletedAt),
+      ),
+    )
+    .orderBy(asc(courseLessons.sortOrder), asc(courseLessons.displayTitle));
+
+  const totalLessons = rows.length;
+  const completedLessons = rows.filter(
+    (row) => row.progressStatus === "COMPLETED",
+  ).length;
+
+  return {
+    totalLessons,
+    completedLessons,
+    progressPercent: totalLessons
+      ? Math.round((completedLessons / totalLessons) * 100)
+      : 0,
+    lessons: rows.map((row) => ({
+      id: row.id,
+      courseId: row.courseId,
+      contentId: row.contentId,
+      title: row.displayTitle || row.contentTitle,
+      summary: row.contentSummary,
+      sortOrder: row.sortOrder,
+      difficulty: row.difficulty,
+      importance: row.importance,
+      estimatedMinutes: row.estimatedMinutes,
+      isRequired: row.isRequired,
+      completionRule: row.completionRule,
+      curriculumNodeId: row.curriculumNodeId,
+      status: row.progressStatus,
+      progressPercent: Number(row.progressPercent ?? 0),
+      completedAt: row.completedAt,
+    })),
+  };
+}
+
+export async function getPublishedCourseLessonForUser(input: {
+  userId: string;
+  courseId: string;
+  courseLessonId: string;
+}) {
+  const [row] = await getDb()
+    .select({
+      id: courseLessons.id,
+      courseId: courseLessons.courseId,
+      contentId: courseLessons.contentId,
+      displayTitle: courseLessons.displayTitle,
+      estimatedMinutes: courseLessons.estimatedMinutes,
+      isRequired: courseLessons.isRequired,
+      completionRule: courseLessons.completionRule,
+      contentTitle: contents.title,
+      contentSummary: contents.summary,
+      contentBody: contents.body,
+      contentBodyFormat: contents.bodyFormat,
+      contentVersion: contents.version,
+      extensionAdditionalBody: courseLessonExtensions.additionalBody,
+      extensionExamPointsJson: courseLessonExtensions.examPointsJson,
+      extensionPracticalNotes: courseLessonExtensions.practicalNotes,
+      extensionLegalNotes: courseLessonExtensions.legalNotes,
+      extensionStandardNotes: courseLessonExtensions.standardNotes,
+      extensionEvidenceNotes: courseLessonExtensions.evidenceNotes,
+      extensionCommonMistakes: courseLessonExtensions.commonMistakes,
+      progressStatus: sql<string>`coalesce(${userCourseLessonProgress.status}, 'NOT_STARTED')`,
+      progressPercent: sql<number>`coalesce(${userCourseLessonProgress.progressPercent}, 0)`,
+      completedAt: userCourseLessonProgress.completedAt,
+    })
+    .from(courseLessons)
+    .innerJoin(contents, eq(courseLessons.contentId, contents.id))
+    .leftJoin(
+      courseLessonExtensions,
+      and(
+        eq(courseLessonExtensions.courseLessonId, courseLessons.id),
+        eq(courseLessonExtensions.status, "PUBLISHED"),
+      ),
+    )
+    .leftJoin(
+      userCourseLessonProgress,
+      and(
+        eq(userCourseLessonProgress.userId, input.userId),
+        eq(userCourseLessonProgress.courseId, courseLessons.courseId),
+        eq(userCourseLessonProgress.courseLessonId, courseLessons.id),
+      ),
+    )
+    .where(
+      and(
+        eq(courseLessons.id, input.courseLessonId),
+        eq(courseLessons.courseId, input.courseId),
+        eq(courseLessons.status, "PUBLISHED"),
+        isNull(courseLessons.deletedAt),
+        eq(contents.status, "PUBLISHED"),
+        isNull(contents.deletedAt),
+      ),
+    )
+    .limit(1);
+  if (!row) return null;
+
+  const navigation = await getDb()
+    .select({
+      id: courseLessons.id,
+      title: courseLessons.displayTitle,
+    })
+    .from(courseLessons)
+    .innerJoin(contents, eq(courseLessons.contentId, contents.id))
+    .where(
+      and(
+        eq(courseLessons.courseId, input.courseId),
+        eq(courseLessons.status, "PUBLISHED"),
+        isNull(courseLessons.deletedAt),
+        eq(contents.status, "PUBLISHED"),
+        isNull(contents.deletedAt),
+      ),
+    )
+    .orderBy(asc(courseLessons.sortOrder), asc(courseLessons.displayTitle));
+  const index = navigation.findIndex((lesson) => lesson.id === row.id);
+  const presentation = mergeCourseLessonPresentation({
+    content: {
+      id: row.contentId,
+      title: row.contentTitle,
+      summary: row.contentSummary,
+      body: row.contentBody,
+    },
+    courseLesson: {
+      id: row.id,
+      displayTitle: row.displayTitle,
+    },
+    extension: {
+      additionalBody: row.extensionAdditionalBody,
+      examPointsJson: row.extensionExamPointsJson ?? "[]",
+      practicalNotes: row.extensionPracticalNotes ?? "",
+      legalNotes: row.extensionLegalNotes ?? "",
+      standardNotes: row.extensionStandardNotes ?? "",
+      evidenceNotes: row.extensionEvidenceNotes ?? "",
+      commonMistakes: row.extensionCommonMistakes ?? "",
+    },
+  });
+
+  return {
+    id: row.id,
+    courseId: row.courseId,
+    contentId: row.contentId,
+    title: presentation.title,
+    summary: presentation.summary,
+    body: presentation.body,
+    bodyFormat: row.contentBodyFormat,
+    version: row.contentVersion,
+    estimatedMinutes: row.estimatedMinutes,
+    isRequired: row.isRequired,
+    completionRule: row.completionRule,
+    examPoints: presentation.examPoints,
+    practicalNotes: presentation.practicalNotes,
+    legalNotes: presentation.legalNotes,
+    standardNotes: presentation.standardNotes,
+    evidenceNotes: presentation.evidenceNotes,
+    commonMistakes: presentation.commonMistakes,
+    status: row.progressStatus,
+    progressPercent: Number(row.progressPercent ?? 0),
+    completedAt: row.completedAt,
+    previousLesson: index > 0 ? navigation[index - 1] : null,
+    nextLesson:
+      index >= 0 && index < navigation.length - 1
+        ? navigation[index + 1]
+        : null,
+  };
+}
+
+async function requireAccessibleCourseLesson(input: {
+  userId: string;
+  courseLessonId: string;
+}) {
+  const [row] = await getDb()
+    .select({
+      id: courseLessons.id,
+      courseId: courseLessons.courseId,
+      completionRule: courseLessons.completionRule,
+      enrollmentStatus: userCourseEnrollments.status,
+    })
+    .from(courseLessons)
+    .innerJoin(courses, eq(courseLessons.courseId, courses.id))
+    .innerJoin(contents, eq(courseLessons.contentId, contents.id))
+    .innerJoin(
+      userCourseEnrollments,
+      and(
+        eq(userCourseEnrollments.userId, input.userId),
+        eq(userCourseEnrollments.courseId, courseLessons.courseId),
+      ),
+    )
+    .where(
+      and(
+        eq(courseLessons.id, input.courseLessonId),
+        eq(courseLessons.status, "PUBLISHED"),
+        isNull(courseLessons.deletedAt),
+        eq(contents.status, "PUBLISHED"),
+        isNull(contents.deletedAt),
+        eq(courses.active, true),
+        eq(courses.published, true),
+        isNull(courses.deletedAt),
+      ),
+    )
+    .limit(1);
+  if (!row) {
+    throw new AppError(
+      "수강 가능한 공통 레슨을 찾을 수 없습니다.",
+      404,
+      "COURSE_LESSON_NOT_FOUND",
+    );
+  }
+  if (row.enrollmentStatus === "CANCELLED") {
+    throw new AppError(
+      "취소된 수강 과정의 레슨에는 접근할 수 없습니다.",
+      403,
+      "COURSE_LESSON_ENROLLMENT_INACTIVE",
+    );
+  }
+  return row;
+}
+
+export async function updateCourseLessonProgress(input: {
+  userId: string;
+  courseLessonId: string;
+  action: "START" | "UPDATE" | "COMPLETE";
+  progressPercent: number;
+}) {
+  const lesson = await requireAccessibleCourseLesson(input);
+  const progressPercent = normalizeCourseLessonProgressPercent(
+    input.progressPercent,
+  );
+  const nowIso = new Date().toISOString();
+  const [current] = await getDb()
+    .select()
+    .from(userCourseLessonProgress)
+    .where(
+      and(
+        eq(userCourseLessonProgress.userId, input.userId),
+        eq(userCourseLessonProgress.courseId, lesson.courseId),
+        eq(userCourseLessonProgress.courseLessonId, lesson.id),
+      ),
+    )
+    .limit(1);
+
+  if (current?.status === "COMPLETED") {
+    await getDb()
+      .update(userCourseLessonProgress)
+      .set({
+        progressPercent: 100,
+        lastStudiedAt: nowIso,
+        updatedAt: nowIso,
+      })
+      .where(eq(userCourseLessonProgress.id, current.id));
+    return {
+      status: "COMPLETED",
+      progressPercent: 100,
+      completedAt: current.completedAt,
+      idempotentReplay: true,
+    };
+  }
+
+  if (input.action !== "COMPLETE") {
+    await getDb()
+      .insert(userCourseLessonProgress)
+      .values({
+        id: current?.id ?? crypto.randomUUID(),
+        userId: input.userId,
+        courseId: lesson.courseId,
+        courseLessonId: lesson.id,
+        status: "IN_PROGRESS",
+        progressPercent: Math.max(current?.progressPercent ?? 0, progressPercent),
+        lastStudiedAt: nowIso,
+      })
+      .onConflictDoUpdate({
+        target: [
+          userCourseLessonProgress.userId,
+          userCourseLessonProgress.courseId,
+          userCourseLessonProgress.courseLessonId,
+        ],
+        set: {
+          status: "IN_PROGRESS",
+          progressPercent: sql`max(${userCourseLessonProgress.progressPercent}, ${progressPercent})`,
+          lastStudiedAt: nowIso,
+          updatedAt: nowIso,
+        },
+      });
+    return {
+      status: "IN_PROGRESS",
+      progressPercent,
+      completedAt: null,
+      idempotentReplay: Boolean(current),
+    };
+  }
+
+  assertCourseLessonCompletionAllowed({
+    completionRule: lesson.completionRule,
+    explicitRequest: true,
+    progressPercent,
+  });
+
+  const activityId = `course-lesson-completed:${input.userId}:${lesson.id}`;
+  await getDb().batch(
+    batchItems([
+      getDb()
+        .insert(userCourseLessonProgress)
+        .values({
+          id: current?.id ?? crypto.randomUUID(),
+          userId: input.userId,
+          courseId: lesson.courseId,
+          courseLessonId: lesson.id,
+          status: "COMPLETED",
+          progressPercent: 100,
+          completedAt: nowIso,
+          lastStudiedAt: nowIso,
+        })
+        .onConflictDoUpdate({
+          target: [
+            userCourseLessonProgress.userId,
+            userCourseLessonProgress.courseId,
+            userCourseLessonProgress.courseLessonId,
+          ],
+          set: {
+            status: "COMPLETED",
+            progressPercent: 100,
+            completedAt: sql`coalesce(${userCourseLessonProgress.completedAt}, ${nowIso})`,
+            lastStudiedAt: nowIso,
+            updatedAt: nowIso,
+          },
+        }),
+      getDb()
+        .insert(learningActivities)
+        .values({
+          id: activityId,
+          userId: input.userId,
+          courseId: lesson.courseId,
+          activityType: "COURSE_LESSON_COMPLETED",
+          targetId: lesson.id,
+          metadataJson: JSON.stringify({ contentModel: "COURSE_LESSON" }),
+        })
+        .onConflictDoNothing(),
+      getDb()
+        .update(userCourseEnrollments)
+        .set({
+          progressPercent: sql<number>`max(${userCourseEnrollments.progressPercent}, coalesce((
+            SELECT round(
+              100.0 * count(uclp.course_lesson_id) /
+              nullif((SELECT count(*) FROM course_lessons cl
+                JOIN contents c ON c.id = cl.content_id
+                WHERE cl.course_id = ${lesson.courseId}
+                  AND cl.status = 'PUBLISHED'
+                  AND cl.deleted_at IS NULL
+                  AND c.status = 'PUBLISHED'
+                  AND c.deleted_at IS NULL), 0)
+            )
+            FROM user_course_lesson_progress uclp
+            WHERE uclp.user_id = ${input.userId}
+              AND uclp.course_id = ${lesson.courseId}
+              AND uclp.status = 'COMPLETED'
+          ), 0))`,
+          updatedAt: nowIso,
+        })
+        .where(
+          and(
+            eq(userCourseEnrollments.userId, input.userId),
+            eq(userCourseEnrollments.courseId, lesson.courseId),
+          ),
+        ),
+    ]),
+  );
+
+  return {
+    status: "COMPLETED",
+    progressPercent: 100,
+    completedAt: nowIso,
+    idempotentReplay: false,
+  };
 }

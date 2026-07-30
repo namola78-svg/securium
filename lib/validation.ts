@@ -304,6 +304,12 @@ export const lessonProgressSchema = z.object({
   lastPosition: z.coerce.number().int().min(0).max(10000).default(0),
 });
 
+export const courseLessonProgressSchema = z.object({
+  courseLessonId: id,
+  action: z.enum(["START", "UPDATE", "COMPLETE"]),
+  progressPercent: z.coerce.number().int().min(0).max(100).default(0),
+});
+
 export const audioProgressSchema = z.object({
   audioContentId: id,
   currentPositionSeconds: z.coerce
