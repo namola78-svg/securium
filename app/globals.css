@@ -3060,7 +3060,10 @@ textarea {
 
   .mobile-menu-backdrop {
     position: fixed;
-    inset: 76px 0 0;
+    top: 76px;
+    right: 0;
+    bottom: 0;
+    left: 0;
     z-index: 40;
     display: block;
     border: 0;
