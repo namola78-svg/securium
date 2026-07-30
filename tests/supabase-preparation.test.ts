@@ -208,11 +208,18 @@ test("D1 LIKE와 PostgreSQL ILIKE·full-text 검색을 분리한다", () => {
   );
 });
 
-test("PostgreSQL 호환 schema는 68개 테이블과 SQLite 문법 차단을 검증한다", async () => {
-  const [sql, manifestText] = await Promise.all([
+test("PostgreSQL compatible migrations validate 70 tables and block SQLite syntax", async () => {
+  const [baseSql, curriculumSql, manifestText] = await Promise.all([
     readFile(
       new URL(
         "../db/postgres/migrations/0001_d1_compatibility_schema.sql",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+    readFile(
+      new URL(
+        "../db/postgres/migrations/0003_curriculum_tree.sql",
         import.meta.url,
       ),
       "utf8",
@@ -223,17 +230,22 @@ test("PostgreSQL 호환 schema는 68개 테이블과 SQLite 문법 차단을 검
     ),
   ]);
   const manifest = JSON.parse(manifestText) as { tableCount: number };
-  assert.equal(manifest.tableCount, 68);
+  const sql = `${baseSql}\n${curriculumSql}`;
+  assert.equal(manifest.tableCount, 70);
+  assert.match(manifestText, /curriculum_trees/);
+  assert.match(manifestText, /curriculum_nodes/);
   assert.doesNotMatch(
     sql,
     /\bPRAGMA\b|\bAUTOINCREMENT\b|\bINSERT\s+OR\s+|last_insert_rowid|`/,
   );
-  assert.match(sql, /\bBEGIN;/);
-  assert.match(sql, /\bCOMMIT;/);
+  assert.match(baseSql, /\bBEGIN;/);
+  assert.match(baseSql, /\bCOMMIT;/);
+  assert.match(curriculumSql, /\bBEGIN;/);
+  assert.match(curriculumSql, /\bCOMMIT;/);
   assert.ok(
-    sql.indexOf(
+    baseSql.indexOf(
       'CREATE UNIQUE INDEX "privacy_flow_nodes_scenario_id_unique"',
-    ) < sql.indexOf('CREATE TABLE "privacy_flow_edges"'),
+    ) < baseSql.indexOf('CREATE TABLE "privacy_flow_edges"'),
     "referenced composite unique indexes must exist before dependent foreign keys",
   );
 });

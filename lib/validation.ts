@@ -86,6 +86,76 @@ export const topicSchema = z.object({
   returnTo: z.string().trim().startsWith("/").max(300),
 });
 
+export const curriculumTreeSchema = z.object({
+  id: id.optional(),
+  courseId: id,
+  title: z.string().trim().min(2).max(200),
+  version: z.string().trim().min(1).max(60),
+  sourceType: z.string().trim().max(80).optional().default(""),
+  sourceDocument: z.string().trim().max(500).optional().default(""),
+  effectiveFrom: z.string().trim().max(30).optional().default(""),
+  effectiveTo: z.string().trim().max(30).optional().default(""),
+  status: z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]),
+  returnTo: z.string().trim().startsWith("/").max(300).default("/admin/courses"),
+});
+
+export const curriculumNodeTypes = [
+  "TRACK",
+  "SUBJECT",
+  "DOMAIN",
+  "MAJOR_ITEM",
+  "SUB_ITEM",
+  "STANDARD",
+  "LIFECYCLE",
+  "PRACTICAL",
+  "MODULE",
+  "CHAPTER",
+  "CUSTOM",
+] as const;
+
+export const curriculumNodeSchema = z.object({
+  id: id.optional(),
+  curriculumTreeId: id,
+  parentId: z.string().trim().max(100).optional().default(""),
+  nodeType: z.enum(curriculumNodeTypes),
+  title: z.string().trim().min(2).max(200),
+  description: z.string().trim().max(5000).optional().default(""),
+  officialCode: z.string().trim().max(100).optional().default(""),
+  officialTitle: z.string().trim().max(200).optional().default(""),
+  sortOrder: z.coerce.number().int().min(0).max(100000),
+  isRequired: activeBoolean.default(false),
+  isPractical: activeBoolean.default(false),
+  difficulty: z.string().trim().max(40).optional().default(""),
+  importance: z
+    .preprocess(
+      (value) => (value === "" || value === null ? undefined : value),
+      z.coerce.number().int().min(0).max(100).optional(),
+    )
+    .optional(),
+  metadata: z
+    .string()
+    .trim()
+    .max(20000)
+    .optional()
+    .default("")
+    .refine((value) => {
+      if (!value) return true;
+      try {
+        JSON.parse(value);
+        return true;
+      } catch {
+        return false;
+      }
+    }, "metadata는 올바른 JSON이어야 합니다."),
+  status: z.enum(["ACTIVE", "INACTIVE", "ARCHIVED"]),
+  returnTo: z.string().trim().startsWith("/").max(300).default("/admin/courses"),
+});
+
+export const curriculumNodeArchiveSchema = z.object({
+  id,
+  returnTo: z.string().trim().startsWith("/").max(300).default("/admin/courses"),
+});
+
 export const learningUnitSchema = z.object({
   id: id.optional(),
   courseId: id,

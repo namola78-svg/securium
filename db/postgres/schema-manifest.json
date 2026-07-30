@@ -1,6 +1,6 @@
 {
-  "sourceSnapshot": "drizzle/meta/0013_snapshot.json",
-  "tableCount": 68,
+  "sourceSnapshot": "drizzle/meta/0014_snapshot.json",
+  "tableCount": 70,
   "tableOrder": [
     "course_groups",
     "isms_standards",
@@ -26,6 +26,7 @@
     "content_question_links",
     "content_revisions",
     "course_specializations",
+    "curriculum_trees",
     "learning_activities",
     "levels",
     "mock_exams",
@@ -45,6 +46,7 @@
     "ai_reviewed_contents",
     "ai_specialized_reviews",
     "code_analysis_answers",
+    "curriculum_nodes",
     "level_contents",
     "mock_exam_attempts",
     "mock_exam_sections",
@@ -799,6 +801,34 @@
         }
       ]
     },
+    "curriculum_trees": {
+      "columns": [
+        "id",
+        "course_id",
+        "title",
+        "version",
+        "source_type",
+        "source_document",
+        "effective_from",
+        "effective_to",
+        "status",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "curriculum_trees_course_id_courses_id_fk",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
     "learning_activities": {
       "columns": [
         "id",
@@ -1533,6 +1563,52 @@
           "tableTo": "secure_coding_weaknesses",
           "columnsFrom": [
             "weakness_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
+    "curriculum_nodes": {
+      "columns": [
+        "id",
+        "curriculum_tree_id",
+        "parent_id",
+        "node_type",
+        "title",
+        "description",
+        "official_code",
+        "official_title",
+        "sort_order",
+        "depth",
+        "path",
+        "is_required",
+        "is_practical",
+        "difficulty",
+        "importance",
+        "metadata",
+        "status",
+        "created_at",
+        "updated_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "curriculum_nodes_curriculum_tree_id_curriculum_trees_id_fk",
+          "tableTo": "curriculum_trees",
+          "columnsFrom": [
+            "curriculum_tree_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        },
+        {
+          "name": "curriculum_nodes_parent_fk",
+          "tableTo": "curriculum_nodes",
+          "columnsFrom": [
+            "parent_id"
           ],
           "columnsTo": [
             "id"

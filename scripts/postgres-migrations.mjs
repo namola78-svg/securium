@@ -1,24 +1,22 @@
 import { createHash } from "node:crypto";
-import { access, readFile } from "node:fs/promises";
+import { access, readdir, readFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import process from "node:process";
 import { resolve } from "node:path";
 
-const migrationPath = resolve(
-  "db/postgres/migrations/0001_d1_compatibility_schema.sql",
-);
+const migrationsDirectory = resolve("db/postgres/migrations");
 const command = process.argv[2] ?? "validate";
 
 if (!["validate", "status", "deploy"].includes(command)) {
   fail("POSTGRES_MIGRATION_COMMAND_INVALID");
 }
 
-const sql = await readFile(migrationPath, "utf8");
-const validation = validateMigration(sql);
+const migrations = await loadMigrations();
+const validation = validateMigrations(migrations);
 
 if (command === "validate") {
   console.log(
-    `POSTGRES_MIGRATION_VALID tables=${validation.tableCount} checksum=${validation.checksum}`,
+    `POSTGRES_MIGRATIONS_VALID files=${validation.fileCount} tables=${validation.tableCount} checksum=${validation.checksum}`,
   );
   process.exit(0);
 }
@@ -35,10 +33,14 @@ if (command === "status") {
     "SELECT id FROM app_schema_migrations ORDER BY applied_at",
   ]);
   if (result.code !== 0) fail("POSTGRES_MIGRATION_STATUS_FAILED");
+  const applied = new Set(result.stdout.split(/\r?\n/).filter(Boolean));
+  const pending = migrations
+    .map((migration) => migration.id)
+    .filter((id) => !applied.has(id));
   console.log(
-    result.stdout.includes("0001_d1_compatibility_schema")
-      ? "POSTGRES_MIGRATION_APPLIED"
-      : "POSTGRES_MIGRATION_PENDING",
+    pending.length
+      ? `POSTGRES_MIGRATIONS_PENDING ${pending.join(",")}`
+      : "POSTGRES_MIGRATIONS_APPLIED",
   );
   process.exit(0);
 }
@@ -49,16 +51,43 @@ if (
 ) {
   fail("POSTGRES_MIGRATION_APPROVAL_REQUIRED");
 }
-const result = await runPsql(psql, connectionEnvironment, [
-  "-v",
-  "ON_ERROR_STOP=1",
-  "-f",
-  migrationPath,
-]);
-if (result.code !== 0) fail("POSTGRES_MIGRATION_DEPLOY_FAILED");
-console.log("POSTGRES_MIGRATION_DEPLOYED");
+for (const migration of migrations) {
+  const status = await runPsql(psql, connectionEnvironment, [
+    "-At",
+    "-c",
+    `SELECT id FROM app_schema_migrations WHERE id = '${migration.id.replaceAll("'", "''")}'`,
+  ]);
+  if (status.code !== 0) fail("POSTGRES_MIGRATION_STATUS_FAILED");
+  if (status.stdout.trim() === migration.id) continue;
+  const result = await runPsql(psql, connectionEnvironment, [
+    "-v",
+    "ON_ERROR_STOP=1",
+    "-f",
+    migration.path,
+  ]);
+  if (result.code !== 0) fail("POSTGRES_MIGRATION_DEPLOY_FAILED");
+}
+console.log("POSTGRES_MIGRATIONS_DEPLOYED");
 
-function validateMigration(value) {
+async function loadMigrations() {
+  const entries = (await readdir(migrationsDirectory))
+    .filter((entry) => /^\d{4}_.+\.sql$/.test(entry))
+    .sort();
+  if (!entries.length) fail("POSTGRES_MIGRATION_NOT_FOUND");
+  return Promise.all(
+    entries.map(async (entry) => {
+      const path = resolve(migrationsDirectory, entry);
+      const sql = await readFile(path, "utf8");
+      return {
+        id: entry.replace(/\.sql$/, ""),
+        path,
+        sql,
+      };
+    }),
+  );
+}
+
+function validateMigrations(migrations) {
   const banned = [
     /\bPRAGMA\b/i,
     /\bAUTOINCREMENT\b/i,
@@ -67,20 +96,40 @@ function validateMigration(value) {
     /`/,
     /\bDEFAULT\s+(true|false)\b/i,
   ];
-  if (banned.some((pattern) => pattern.test(value))) {
-    fail("POSTGRES_MIGRATION_SQLITE_SYNTAX_FOUND");
+  let tableCount = 0;
+  for (const migration of migrations) {
+    if (banned.some((pattern) => pattern.test(migration.sql))) {
+      fail("POSTGRES_MIGRATION_SQLITE_SYNTAX_FOUND");
+    }
+    if (
+      !migration.sql.trimStart().startsWith("--") ||
+      !/\bBEGIN;\s*[\s\S]*\bCOMMIT;\s*$/i.test(migration.sql.trim())
+    ) {
+      fail("POSTGRES_MIGRATION_TRANSACTION_REQUIRED");
+    }
+    const registrationPattern = new RegExp(
+      `INSERT\\s+INTO\\s+(?:public\\.)?app_schema_migrations\\s*\\(id,\\s*checksum\\)\\s*VALUES\\s*\\('${escapeRegExp(migration.id)}'`,
+      "i",
+    );
+    if (!registrationPattern.test(migration.sql)) {
+      fail("POSTGRES_MIGRATION_REGISTRATION_MISSING");
+    }
+    tableCount += [
+      ...migration.sql.matchAll(/\bCREATE TABLE(?: IF NOT EXISTS)? "(?!app_schema_migrations)([^"]+)"/g),
+    ].length;
   }
-  if (!value.trim().startsWith("-- GENERATED") || !/\bCOMMIT;\s*$/i.test(value)) {
-    fail("POSTGRES_MIGRATION_TRANSACTION_REQUIRED");
-  }
-  const tableCount =
-    [...value.matchAll(/\bCREATE TABLE "(?!app_schema_migrations)([^"]+)"/g)]
-      .length;
-  if (tableCount !== 68) fail("POSTGRES_MIGRATION_TABLE_COUNT_INVALID");
   return {
+    fileCount: migrations.length,
     tableCount,
-    checksum: createHash("sha256").update(value).digest("hex").slice(0, 16),
+    checksum: createHash("sha256")
+      .update(migrations.map((migration) => migration.sql).join("\n"))
+      .digest("hex")
+      .slice(0, 16),
   };
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 async function findPsql() {

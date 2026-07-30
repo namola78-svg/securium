@@ -112,6 +112,111 @@ export const courses = sqliteTable(
   ],
 );
 
+export const curriculumTrees = sqliteTable(
+  "curriculum_trees",
+  {
+    id: text("id").primaryKey(),
+    courseId: text("course_id")
+      .notNull()
+      .references(() => courses.id, { onDelete: "restrict" }),
+    title: text("title").notNull(),
+    version: text("version").notNull(),
+    sourceType: text("source_type"),
+    sourceDocument: text("source_document"),
+    effectiveFrom: text("effective_from"),
+    effectiveTo: text("effective_to"),
+    status: text("status").notNull().default("DRAFT"),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("curriculum_trees_course_version_unique").on(
+      table.courseId,
+      table.version,
+    ),
+    uniqueIndex("curriculum_trees_course_active_unique")
+      .on(table.courseId)
+      .where(sql`${table.status} = 'ACTIVE'`),
+    index("curriculum_trees_course_status_idx").on(
+      table.courseId,
+      table.status,
+      table.version,
+    ),
+    check(
+      "curriculum_trees_status_check",
+      sql`${table.status} IN ('DRAFT', 'ACTIVE', 'ARCHIVED')`,
+    ),
+  ],
+);
+
+export const curriculumNodes = sqliteTable(
+  "curriculum_nodes",
+  {
+    id: text("id").primaryKey(),
+    curriculumTreeId: text("curriculum_tree_id")
+      .notNull()
+      .references(() => curriculumTrees.id, { onDelete: "restrict" }),
+    parentId: text("parent_id"),
+    nodeType: text("node_type").notNull(),
+    title: text("title").notNull(),
+    description: text("description").notNull().default(""),
+    officialCode: text("official_code"),
+    officialTitle: text("official_title"),
+    sortOrder: integer("sort_order").notNull().default(0),
+    depth: integer("depth").notNull().default(0),
+    path: text("path"),
+    isRequired: integer("is_required", { mode: "boolean" })
+      .notNull()
+      .default(true),
+    isPractical: integer("is_practical", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    difficulty: text("difficulty"),
+    importance: integer("importance"),
+    metadata: text("metadata"),
+    status: text("status").notNull().default("ACTIVE"),
+    ...timestamps,
+  },
+  (table) => [
+    index("curriculum_nodes_tree_parent_order_idx").on(
+      table.curriculumTreeId,
+      table.parentId,
+      table.sortOrder,
+      table.id,
+    ),
+    index("curriculum_nodes_tree_path_idx").on(table.curriculumTreeId, table.path),
+    index("curriculum_nodes_parent_idx").on(table.parentId),
+    foreignKey({
+      name: "curriculum_nodes_parent_fk",
+      columns: [table.parentId],
+      foreignColumns: [table.id],
+    }).onDelete("restrict"),
+    check(
+      "curriculum_nodes_status_check",
+      sql`${table.status} IN ('ACTIVE', 'INACTIVE', 'ARCHIVED')`,
+    ),
+    check(
+      "curriculum_nodes_depth_check",
+      sql`${table.depth} >= 0 AND ${table.depth} <= 20`,
+    ),
+    check(
+      "curriculum_nodes_sort_order_check",
+      sql`${table.sortOrder} >= 0`,
+    ),
+    check(
+      "curriculum_nodes_importance_check",
+      sql`${table.importance} IS NULL OR (${table.importance} >= 0 AND ${table.importance} <= 100)`,
+    ),
+    check(
+      "curriculum_nodes_parent_self_check",
+      sql`${table.parentId} IS NULL OR ${table.parentId} <> ${table.id}`,
+    ),
+    check(
+      "curriculum_nodes_metadata_length_check",
+      sql`${table.metadata} IS NULL OR length(${table.metadata}) <= 20000`,
+    ),
+  ],
+);
+
 export const subjects = sqliteTable(
   "subjects",
   {

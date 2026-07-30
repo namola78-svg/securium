@@ -1,0 +1,440 @@
+import { and, asc, eq, isNull, ne, sql } from "drizzle-orm";
+import type { BatchItem } from "drizzle-orm/batch";
+import { getDb } from ".";
+import { courses, curriculumNodes, curriculumTrees } from "./schema";
+import { AppError } from "@/lib/errors";
+import type {
+  curriculumNodeArchiveSchema,
+  curriculumNodeSchema,
+  curriculumTreeSchema,
+} from "@/lib/validation";
+import type { z } from "zod";
+import {
+  assertNoDuplicateSortOrder,
+  assertValidParentSelection,
+  buildCurriculumTree,
+  computeNodeDepth,
+  computeNodePath,
+  normalizeMetadata,
+  normalizeOptionalText,
+  recalculateSubtreePaths,
+  type CurriculumNodeRecord,
+} from "@/lib/services/curriculum-service";
+import { createAuditInsert } from "./audit-repositories";
+
+type CurriculumTreeInput = z.infer<typeof curriculumTreeSchema>;
+type CurriculumNodeInput = z.infer<typeof curriculumNodeSchema>;
+type CurriculumNodeArchiveInput = z.infer<typeof curriculumNodeArchiveSchema>;
+
+function batchItems(items: BatchItem<"sqlite">[]) {
+  return items as unknown as Parameters<ReturnType<typeof getDb>["batch"]>[0];
+}
+
+export async function listCurriculumTrees(courseId?: string) {
+  return getDb()
+    .select({
+      id: curriculumTrees.id,
+      courseId: curriculumTrees.courseId,
+      courseName: courses.name,
+      title: curriculumTrees.title,
+      version: curriculumTrees.version,
+      sourceType: curriculumTrees.sourceType,
+      sourceDocument: curriculumTrees.sourceDocument,
+      effectiveFrom: curriculumTrees.effectiveFrom,
+      effectiveTo: curriculumTrees.effectiveTo,
+      status: curriculumTrees.status,
+      createdAt: curriculumTrees.createdAt,
+      updatedAt: curriculumTrees.updatedAt,
+    })
+    .from(curriculumTrees)
+    .innerJoin(courses, eq(curriculumTrees.courseId, courses.id))
+    .where(courseId ? eq(curriculumTrees.courseId, courseId) : undefined)
+    .orderBy(asc(courses.displayOrder), asc(curriculumTrees.version));
+}
+
+export async function getCurriculumTreeById(treeId: string) {
+  const [tree] = await getDb()
+    .select()
+    .from(curriculumTrees)
+    .where(eq(curriculumTrees.id, treeId))
+    .limit(1);
+  return tree ?? null;
+}
+
+export async function getActiveCurriculumTreeForCourse(courseId: string) {
+  const [tree] = await getDb()
+    .select()
+    .from(curriculumTrees)
+    .where(
+      and(
+        eq(curriculumTrees.courseId, courseId),
+        eq(curriculumTrees.status, "ACTIVE"),
+      ),
+    )
+    .limit(1);
+  return tree ?? null;
+}
+
+export async function saveCurriculumTree(
+  input: CurriculumTreeInput,
+  actorUserId: string,
+) {
+  const [course] = await getDb()
+    .select({ id: courses.id })
+    .from(courses)
+    .where(and(eq(courses.id, input.courseId), isNull(courses.deletedAt)))
+    .limit(1);
+  if (!course) {
+    throw new AppError(
+      "커리큘럼을 연결할 과정을 찾을 수 없습니다.",
+      404,
+      "CURRICULUM_COURSE_NOT_FOUND",
+    );
+  }
+
+  const existing = input.id
+    ? await getCurriculumTreeById(input.id)
+    : null;
+  if (input.id && !existing) {
+    throw new AppError(
+      "커리큘럼 트리를 찾을 수 없습니다.",
+      404,
+      "CURRICULUM_TREE_NOT_FOUND",
+    );
+  }
+  if (existing && existing.courseId !== input.courseId) {
+    throw new AppError(
+      "기존 커리큘럼 트리의 과정은 변경할 수 없습니다.",
+      409,
+      "CURRICULUM_TREE_COURSE_IMMUTABLE",
+    );
+  }
+
+  const duplicateVersionFilters = [
+    eq(curriculumTrees.courseId, input.courseId),
+    eq(curriculumTrees.version, input.version),
+    input.id ? ne(curriculumTrees.id, input.id) : undefined,
+  ];
+  const [duplicateVersion] = await getDb()
+    .select({ id: curriculumTrees.id })
+    .from(curriculumTrees)
+    .where(and(...duplicateVersionFilters))
+    .limit(1);
+  if (duplicateVersion) {
+    throw new AppError(
+      "같은 과정에 동일한 커리큘럼 버전이 이미 존재합니다.",
+      409,
+      "CURRICULUM_TREE_VERSION_DUPLICATE",
+    );
+  }
+
+  if (input.status === "ACTIVE") {
+    const activeTreeFilters = [
+      eq(curriculumTrees.courseId, input.courseId),
+      eq(curriculumTrees.status, "ACTIVE"),
+      input.id ? ne(curriculumTrees.id, input.id) : undefined,
+    ];
+    const [activeTree] = await getDb()
+      .select({ id: curriculumTrees.id })
+      .from(curriculumTrees)
+      .where(and(...activeTreeFilters))
+      .limit(1);
+    if (activeTree) {
+      throw new AppError(
+        "같은 과정에 활성 커리큘럼 트리가 이미 존재합니다.",
+        409,
+        "CURRICULUM_TREE_ACTIVE_DUPLICATE",
+      );
+    }
+  }
+
+  const id = input.id ?? crypto.randomUUID();
+  const values = {
+    courseId: input.courseId,
+    title: input.title,
+    version: input.version,
+    sourceType: normalizeOptionalText(input.sourceType),
+    sourceDocument: normalizeOptionalText(input.sourceDocument),
+    effectiveFrom: normalizeOptionalText(input.effectiveFrom),
+    effectiveTo: normalizeOptionalText(input.effectiveTo),
+    status: input.status,
+    updatedAt: sql`CURRENT_TIMESTAMP`,
+  };
+
+  await getDb().batch(
+    batchItems([
+      existing
+        ? getDb()
+            .update(curriculumTrees)
+            .set(values)
+            .where(eq(curriculumTrees.id, id))
+        : getDb().insert(curriculumTrees).values({ id, ...values }),
+      createAuditInsert({
+        actorUserId,
+        action: existing
+          ? "CURRICULUM_TREE_UPDATED"
+          : "CURRICULUM_TREE_CREATED",
+        resourceType: "CURRICULUM_TREE",
+        resourceId: id,
+        courseId: input.courseId,
+      }),
+    ]),
+  );
+  return { id };
+}
+
+export async function listCurriculumNodes(treeId: string) {
+  return getDb()
+    .select()
+    .from(curriculumNodes)
+    .where(
+      and(
+        eq(curriculumNodes.curriculumTreeId, treeId),
+        ne(curriculumNodes.status, "ARCHIVED"),
+      ),
+    )
+    .orderBy(
+      asc(curriculumNodes.depth),
+      asc(curriculumNodes.sortOrder),
+      asc(curriculumNodes.title),
+      asc(curriculumNodes.id),
+    );
+}
+
+export async function getCurriculumNodeTree(treeId: string) {
+  const nodes = await listCurriculumNodes(treeId);
+  return buildCurriculumTree(nodes);
+}
+
+async function listAllNodesForTree(treeId: string): Promise<CurriculumNodeRecord[]> {
+  return getDb()
+    .select({
+      id: curriculumNodes.id,
+      curriculumTreeId: curriculumNodes.curriculumTreeId,
+      parentId: curriculumNodes.parentId,
+      sortOrder: curriculumNodes.sortOrder,
+      depth: curriculumNodes.depth,
+      path: curriculumNodes.path,
+      status: curriculumNodes.status,
+    })
+    .from(curriculumNodes)
+    .where(eq(curriculumNodes.curriculumTreeId, treeId));
+}
+
+async function getParentNode(parentId: string | null) {
+  if (!parentId) return null;
+  const [parent] = await getDb()
+    .select({
+      id: curriculumNodes.id,
+      curriculumTreeId: curriculumNodes.curriculumTreeId,
+      parentId: curriculumNodes.parentId,
+      sortOrder: curriculumNodes.sortOrder,
+      depth: curriculumNodes.depth,
+      path: curriculumNodes.path,
+      status: curriculumNodes.status,
+    })
+    .from(curriculumNodes)
+    .where(eq(curriculumNodes.id, parentId))
+    .limit(1);
+  return parent ?? null;
+}
+
+export async function saveCurriculumNode(
+  input: CurriculumNodeInput,
+  actorUserId: string,
+) {
+  const tree = await getCurriculumTreeById(input.curriculumTreeId);
+  if (!tree) {
+    throw new AppError(
+      "커리큘럼 트리를 찾을 수 없습니다.",
+      404,
+      "CURRICULUM_TREE_NOT_FOUND",
+    );
+  }
+  if (tree.status === "ARCHIVED") {
+    throw new AppError(
+      "보관된 커리큘럼 트리는 수정할 수 없습니다.",
+      409,
+      "CURRICULUM_TREE_ARCHIVED",
+    );
+  }
+
+  const existing = input.id
+    ? (
+        await getDb()
+          .select()
+          .from(curriculumNodes)
+          .where(eq(curriculumNodes.id, input.id))
+          .limit(1)
+      )[0]
+    : null;
+  if (input.id && !existing) {
+    throw new AppError(
+      "커리큘럼 노드를 찾을 수 없습니다.",
+      404,
+      "CURRICULUM_NODE_NOT_FOUND",
+    );
+  }
+  if (existing && existing.curriculumTreeId !== input.curriculumTreeId) {
+    throw new AppError(
+      "기존 커리큘럼 노드의 트리는 변경할 수 없습니다.",
+      409,
+      "CURRICULUM_NODE_TREE_IMMUTABLE",
+    );
+  }
+
+  const parentId = normalizeOptionalText(input.parentId);
+  const [nodes, parent] = await Promise.all([
+    listAllNodesForTree(input.curriculumTreeId),
+    getParentNode(parentId),
+  ]);
+  assertValidParentSelection({
+    nodeId: input.id,
+    treeId: input.curriculumTreeId,
+    parent,
+    parentId,
+    nodes,
+  });
+  assertNoDuplicateSortOrder({
+    nodes,
+    treeId: input.curriculumTreeId,
+    nodeId: input.id,
+    parentId,
+    sortOrder: input.sortOrder,
+  });
+
+  const id = input.id ?? crypto.randomUUID();
+  const depth = computeNodeDepth(parent);
+  if (depth > 20) {
+    throw new AppError(
+      "커리큘럼 노드 깊이는 20단계를 초과할 수 없습니다.",
+      400,
+      "CURRICULUM_DEPTH_LIMIT",
+    );
+  }
+  const path = computeNodePath(parent, id);
+  const descendantUpdates =
+    existing && (existing.parentId !== parentId || existing.path !== path)
+      ? recalculateSubtreePaths({
+          nodes,
+          rootId: id,
+          rootDepth: depth,
+          rootPath: path,
+        })
+      : [];
+
+  const values = {
+    curriculumTreeId: input.curriculumTreeId,
+    parentId,
+    nodeType: input.nodeType,
+    title: input.title,
+    description: input.description,
+    officialCode: normalizeOptionalText(input.officialCode),
+    officialTitle: normalizeOptionalText(input.officialTitle),
+    sortOrder: input.sortOrder,
+    depth,
+    path,
+    isRequired: input.isRequired,
+    isPractical: input.isPractical,
+    difficulty: normalizeOptionalText(input.difficulty),
+    importance: input.importance ?? null,
+    metadata: normalizeMetadata(input.metadata),
+    status: input.status,
+    updatedAt: sql`CURRENT_TIMESTAMP`,
+  };
+
+  await getDb().batch(
+    batchItems([
+      existing
+        ? getDb()
+            .update(curriculumNodes)
+            .set(values)
+            .where(eq(curriculumNodes.id, id))
+        : getDb().insert(curriculumNodes).values({ id, ...values }),
+      ...descendantUpdates.map((update) =>
+        getDb()
+          .update(curriculumNodes)
+          .set({
+            depth: update.depth,
+            path: update.path,
+            updatedAt: sql`CURRENT_TIMESTAMP`,
+          })
+          .where(eq(curriculumNodes.id, update.id)),
+      ),
+      createAuditInsert({
+        actorUserId,
+        action: existing
+          ? "CURRICULUM_NODE_UPDATED"
+          : "CURRICULUM_NODE_CREATED",
+        resourceType: "CURRICULUM_NODE",
+        resourceId: id,
+        courseId: tree.courseId,
+      }),
+    ]),
+  );
+  return { id, depth, path };
+}
+
+export async function archiveCurriculumNode(
+  input: CurriculumNodeArchiveInput,
+  actorUserId: string,
+) {
+  const [node] = await getDb()
+    .select({
+      id: curriculumNodes.id,
+      curriculumTreeId: curriculumNodes.curriculumTreeId,
+      status: curriculumNodes.status,
+      courseId: curriculumTrees.courseId,
+    })
+    .from(curriculumNodes)
+    .innerJoin(
+      curriculumTrees,
+      eq(curriculumNodes.curriculumTreeId, curriculumTrees.id),
+    )
+    .where(eq(curriculumNodes.id, input.id))
+    .limit(1);
+  if (!node) {
+    throw new AppError(
+      "커리큘럼 노드를 찾을 수 없습니다.",
+      404,
+      "CURRICULUM_NODE_NOT_FOUND",
+    );
+  }
+  const [child] = await getDb()
+    .select({ id: curriculumNodes.id })
+    .from(curriculumNodes)
+    .where(
+      and(
+        eq(curriculumNodes.parentId, input.id),
+        ne(curriculumNodes.status, "ARCHIVED"),
+      ),
+    )
+    .limit(1);
+  if (child) {
+    throw new AppError(
+      "하위 노드가 있는 커리큘럼 노드는 보관할 수 없습니다.",
+      409,
+      "CURRICULUM_NODE_HAS_CHILDREN",
+    );
+  }
+
+  await getDb().batch(
+    batchItems([
+      getDb()
+        .update(curriculumNodes)
+        .set({
+          status: "ARCHIVED",
+          updatedAt: sql`CURRENT_TIMESTAMP`,
+        })
+        .where(eq(curriculumNodes.id, input.id)),
+      createAuditInsert({
+        actorUserId,
+        action: "CURRICULUM_NODE_ARCHIVED",
+        resourceType: "CURRICULUM_NODE",
+        resourceId: input.id,
+        courseId: node.courseId,
+      }),
+    ]),
+  );
+  return { id: input.id };
+}
