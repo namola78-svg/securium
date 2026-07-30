@@ -9,6 +9,7 @@ export type RecommendationCandidate = {
     | "EXAM_WRONG"
     | "LOW_ACCURACY"
     | "CURRICULUM_LESSON"
+    | "CURRICULUM_QUESTION"
     | "INCOMPLETE_LEVEL"
     | "STALE_SUBJECT"
     | "UNSEEN_QUESTION";
@@ -22,6 +23,7 @@ const priorityScore: Record<RecommendationCandidate["priority"], number> = {
   EXAM_WRONG: 500,
   LOW_ACCURACY: 400,
   CURRICULUM_LESSON: 350,
+  CURRICULUM_QUESTION: 325,
   INCOMPLETE_LEVEL: 300,
   STALE_SUBJECT: 200,
   UNSEEN_QUESTION: 100,

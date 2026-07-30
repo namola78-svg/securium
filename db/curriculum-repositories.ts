@@ -376,6 +376,7 @@ export async function getPublishedCurriculumPathForCourse(
     ).length;
     return {
       ...node,
+      linkedContent,
       linkedContentCount: linkedContent.length,
       linkedLessonCount: linkedLessons.length,
       completedLinkedLessons,

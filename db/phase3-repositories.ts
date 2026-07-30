@@ -1316,6 +1316,10 @@ function flattenCurriculumPathNodes(nodes: PublishedCurriculumNode[]) {
   return flattened;
 }
 
+function uniqueValues(values: Array<string | null | undefined>) {
+  return [...new Set(values.filter((value): value is string => Boolean(value)))];
+}
+
 export async function getRecommendations(userId: string) {
   const [reviews, enrollments] = await Promise.all([
     listDueReviews(userId),
@@ -1428,13 +1432,16 @@ export async function getRecommendations(userId: string) {
       enrollment.courseId,
       userId,
     );
+    const curriculumNodes = curriculumPath
+      ? flattenCurriculumPathNodes(curriculumPath.nodes)
+      : [];
     const nextCurriculumNode = curriculumPath
-      ? flattenCurriculumPathNodes(curriculumPath.nodes).find(
-          (node) =>
-            node.linkedLessonCount > 0 &&
-            node.linkedLessonProgressPercent < 100 &&
-            Boolean(node.linkedLesson),
-        )
+      ? curriculumNodes.find(
+        (node) =>
+          node.linkedLessonCount > 0 &&
+          node.linkedLessonProgressPercent < 100 &&
+          Boolean(node.linkedLesson),
+      )
       : null;
     if (nextCurriculumNode?.linkedLesson) {
       candidates.push({
@@ -1445,6 +1452,105 @@ export async function getRecommendations(userId: string) {
         priority: "CURRICULUM_LESSON",
         estimatedMinutes: 10,
         href: `/learn/${enrollment.courseSlug}/lessons/${nextCurriculumNode.linkedLesson.id}`,
+      });
+    }
+    const curriculumTopicIds = uniqueValues(
+      curriculumNodes.flatMap((node) =>
+        node.linkedContent
+          .filter((link) => link.type === "TOPIC")
+          .map((link) => link.id),
+      ),
+    );
+    const curriculumSubjectIds = uniqueValues(
+      curriculumNodes.flatMap((node) =>
+        node.linkedContent
+          .filter((link) => link.type === "SUBJECT")
+          .map((link) => link.id),
+      ),
+    );
+    const nodeByLinkedContentId = new Map(
+      curriculumNodes.flatMap((node) =>
+        node.linkedContent.map((link) => [link.id, node] as const),
+      ),
+    );
+    const [curriculumTopicQuestion] = curriculumTopicIds.length
+      ? await getDb()
+          .select({
+            id: questions.id,
+            title: questions.title,
+            topicId: questionTopics.topicId,
+          })
+          .from(questionTopics)
+          .innerJoin(questionCourses, eq(questionTopics.questionId, questionCourses.questionId))
+          .innerJoin(questions, eq(questionTopics.questionId, questions.id))
+          .leftJoin(
+            questionAttempts,
+            and(
+              eq(questionAttempts.questionId, questions.id),
+              eq(questionAttempts.userId, userId),
+              eq(questionAttempts.courseId, enrollment.courseId),
+            ),
+          )
+          .where(
+            and(
+              inArray(questionTopics.topicId, curriculumTopicIds),
+              eq(questionCourses.courseId, enrollment.courseId),
+              eq(questions.status, "PUBLISHED"),
+              sql`${questionAttempts.id} IS NULL`,
+            ),
+          )
+          .limit(1)
+      : [];
+    const [curriculumSubjectQuestion] =
+      !curriculumTopicQuestion && curriculumSubjectIds.length
+        ? await getDb()
+            .select({
+              id: questions.id,
+              title: questions.title,
+              subjectId: questionSubjects.subjectId,
+            })
+            .from(questionSubjects)
+            .innerJoin(questionCourses, eq(questionSubjects.questionId, questionCourses.questionId))
+            .innerJoin(questions, eq(questionSubjects.questionId, questions.id))
+            .leftJoin(
+              questionAttempts,
+              and(
+                eq(questionAttempts.questionId, questions.id),
+                eq(questionAttempts.userId, userId),
+                eq(questionAttempts.courseId, enrollment.courseId),
+              ),
+            )
+            .where(
+              and(
+                inArray(questionSubjects.subjectId, curriculumSubjectIds),
+                eq(questionCourses.courseId, enrollment.courseId),
+                eq(questions.status, "PUBLISHED"),
+                sql`${questionAttempts.id} IS NULL`,
+              ),
+            )
+            .limit(1)
+        : [];
+    if (curriculumTopicQuestion) {
+      const node = nodeByLinkedContentId.get(curriculumTopicQuestion.topicId);
+      candidates.push({
+        id: `curriculum-question:${curriculumTopicQuestion.topicId}:${curriculumTopicQuestion.id}`,
+        kind: "QUESTION",
+        title: node ? `${node.title} 문제풀이` : curriculumTopicQuestion.title,
+        reason: "커리큘럼 연결 주제의 미풀이 문제",
+        priority: "CURRICULUM_QUESTION",
+        estimatedMinutes: 10,
+        href: `/practice/${enrollment.courseSlug}?topicId=${curriculumTopicQuestion.topicId}&count=10`,
+      });
+    } else if (curriculumSubjectQuestion) {
+      const node = nodeByLinkedContentId.get(curriculumSubjectQuestion.subjectId);
+      candidates.push({
+        id: `curriculum-question:${curriculumSubjectQuestion.subjectId}:${curriculumSubjectQuestion.id}`,
+        kind: "QUESTION",
+        title: node ? `${node.title} 문제풀이` : curriculumSubjectQuestion.title,
+        reason: "커리큘럼 연결 과목의 미풀이 문제",
+        priority: "CURRICULUM_QUESTION",
+        estimatedMinutes: 10,
+        href: `/practice/${enrollment.courseSlug}?subjectId=${curriculumSubjectQuestion.subjectId}&count=10`,
       });
     }
     const subjectActivity = await getDb()

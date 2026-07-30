@@ -45,6 +45,31 @@ test("curriculum lesson recommendations are prioritized before generic levels", 
   assert.equal(results[0]?.id, "curriculum-lesson");
 });
 
+test("curriculum question recommendations are prioritized before generic levels", () => {
+  const service = new RuleBasedRecommendationService();
+  const results = service.recommend([
+    {
+      id: "level",
+      kind: "LEVEL",
+      title: "level",
+      reason: "incomplete level",
+      priority: "INCOMPLETE_LEVEL",
+      estimatedMinutes: 15,
+      href: "/learn/course/levels/1",
+    },
+    {
+      id: "curriculum-question",
+      kind: "QUESTION",
+      title: "curriculum topic questions",
+      reason: "unseen curriculum topic questions",
+      priority: "CURRICULUM_QUESTION",
+      estimatedMinutes: 10,
+      href: "/practice/course?topicId=topic-1&count=10",
+    },
+  ]);
+  assert.equal(results[0]?.id, "curriculum-question");
+});
+
 test("통과 시 다음 단계를 해제하고 미통과 시 잠금을 유지한다", () => {
   const base = {
     status: "AVAILABLE" as const,
