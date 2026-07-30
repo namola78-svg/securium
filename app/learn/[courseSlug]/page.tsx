@@ -141,7 +141,7 @@ export default async function LearnCoursePage({
               <p className="eyebrow">LEVEL PATH</p>
               <h2>단계 학습</h2>
             </div>
-            <span className="count-label">실제 단계 {levelRows.length}개</span>
+            <span className="count-label">학습 단계 {levelRows.length}개</span>
           </div>
           <div className="level-path">
             {levelRows.map((level) => (
