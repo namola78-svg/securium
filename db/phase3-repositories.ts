@@ -449,6 +449,73 @@ export async function getReviewSummary(userId: string) {
   };
 }
 
+async function getDashboardReviewSummary(userId: string) {
+  const now = new Date().toISOString();
+  const overdueCutoff = new Date(Date.now() - 86_400_000).toISOString();
+  const today = new Date().toISOString().slice(0, 10);
+  const [summaryRows, completedRows, byCourseRows] = await Promise.all([
+    getDb()
+      .select({
+        dueCount: sql<number>`count(*)`,
+        overdueCount: sql<number>`coalesce(sum(case when ${reviewSchedules.nextReviewAt} < ${overdueCutoff} then 1 else 0 end), 0)`,
+      })
+      .from(reviewSchedules)
+      .where(
+        and(
+          eq(reviewSchedules.userId, userId),
+          lte(reviewSchedules.nextReviewAt, now),
+          inArray(reviewSchedules.status, ["DUE", "SCHEDULED"]),
+        ),
+      ),
+    getDb()
+      .select({ count: sql<number>`count(*)` })
+      .from(reviewSchedules)
+      .where(
+        and(
+          eq(reviewSchedules.userId, userId),
+          sql`substr(${reviewSchedules.lastReviewedAt}, 1, 10) = ${today}`,
+          gt(reviewSchedules.intervalDays, 0),
+        ),
+      ),
+    getDb()
+      .select({
+        courseId: reviewSchedules.courseId,
+        name: courses.shortName,
+        slug: courses.slug,
+        count: sql<number>`count(*)`,
+      })
+      .from(reviewSchedules)
+      .innerJoin(courses, eq(reviewSchedules.courseId, courses.id))
+      .where(
+        and(
+          eq(reviewSchedules.userId, userId),
+          lte(reviewSchedules.nextReviewAt, now),
+          inArray(reviewSchedules.status, ["DUE", "SCHEDULED"]),
+        ),
+      )
+      .groupBy(reviewSchedules.courseId, courses.shortName, courses.slug)
+      .limit(5),
+  ]);
+  const summaryRow = summaryRows[0];
+  const completedRow = completedRows[0];
+  const dueCount = Number(summaryRow?.dueCount ?? 0);
+  const completedToday = Number(completedRow?.count ?? 0);
+  return {
+    dueCount,
+    overdueCount: Number(summaryRow?.overdueCount ?? 0),
+    estimatedMinutes: dueCount * 2,
+    completedToday,
+    completionRate: safeRate(completedToday, completedToday + dueCount),
+    byCourse: byCourseRows.map((row) => ({
+      courseId: row.courseId,
+      name: row.name,
+      slug: row.slug,
+      count: Number(row.count),
+    })),
+    items: [],
+  };
+}
+
 export async function updateReviewScheduleForAttempt(input: {
   userId: string;
   courseId: string;
@@ -1881,7 +1948,7 @@ export async function getTodayLearningPlan(userId: string) {
   const [settings, recommendations, reviewSummary] = await Promise.all([
     getLearningSettings(userId),
     getDashboardRecommendations(userId),
-    getReviewSummary(userId),
+    getDashboardReviewSummary(userId),
   ]);
   const today = new Date().toISOString().slice(0, 10);
   const [activity] = await getDb()
@@ -1908,8 +1975,33 @@ export async function getTodayLearningPlan(userId: string) {
 }
 
 async function getDashboardRecommendations(userId: string) {
+  const now = new Date().toISOString();
   const [reviews, enrollments] = await Promise.all([
-    listDueReviews(userId),
+    getDb()
+      .select({
+        id: reviewSchedules.id,
+        courseId: reviewSchedules.courseId,
+        targetType: reviewSchedules.targetType,
+        nextReviewAt: reviewSchedules.nextReviewAt,
+        questionTitle: questions.title,
+      })
+      .from(reviewSchedules)
+      .leftJoin(
+        questions,
+        and(
+          eq(reviewSchedules.targetType, "QUESTION"),
+          eq(reviewSchedules.targetId, questions.id),
+        ),
+      )
+      .where(
+        and(
+          eq(reviewSchedules.userId, userId),
+          lte(reviewSchedules.nextReviewAt, now),
+          inArray(reviewSchedules.status, ["DUE", "SCHEDULED"]),
+        ),
+      )
+      .orderBy(asc(reviewSchedules.nextReviewAt))
+      .limit(8),
     getDb()
       .select({
         courseId: userCourseEnrollments.courseId,
@@ -1955,7 +2047,7 @@ async function getDashboardRecommendations(userId: string) {
   const courseById = new Map(
     enrollments.map((enrollment) => [enrollment.courseId, enrollment]),
   );
-  const [repeatedRows, staleSubjectRows, unseenRows] = await Promise.all([
+  const [repeatedRows, unseenRows] = await Promise.all([
     getDb()
       .select({
         id: wrongNotes.id,
@@ -1976,25 +2068,6 @@ async function getDashboardRecommendations(userId: string) {
       )
       .orderBy(desc(wrongNotes.wrongCount))
       .limit(8),
-    getDb()
-      .select({
-        courseId: subjects.courseId,
-        subjectId: subjects.id,
-        subjectName: subjects.name,
-        lastStudiedAt: sql<string | null>`max(${questionAttempts.attemptedAt})`,
-      })
-      .from(subjects)
-      .leftJoin(questionSubjects, eq(subjects.id, questionSubjects.subjectId))
-      .leftJoin(
-        questionAttempts,
-        and(
-          eq(questionSubjects.questionId, questionAttempts.questionId),
-          eq(questionAttempts.userId, userId),
-          eq(questionAttempts.courseId, subjects.courseId),
-        ),
-      )
-      .where(inArray(subjects.courseId, courseIds))
-      .groupBy(subjects.courseId, subjects.id, subjects.name),
     getDb()
       .select({
         id: questions.id,
@@ -2034,6 +2107,12 @@ async function getDashboardRecommendations(userId: string) {
       };
     }),
   );
+  const staleSubjectRows: Array<{
+    courseId: string;
+    subjectId: string;
+    subjectName: string;
+    lastStudiedAt: string | null;
+  }> = [];
   const staleByCourse = new Map<
     string,
     (typeof staleSubjectRows)[number]
