@@ -11,7 +11,7 @@
 | `DIRECT_URL` | migration·상태 확인용 직접 연결 | migration 명령 |
 | `POSTGRES_MAX_CONNECTIONS` | 인스턴스별 pool 상한(1~20) | 선택, 기본 1 |
 | `POSTGRES_IDLE_TIMEOUT_SECONDS` | idle 종료(1~600초) | 선택, 기본 20 |
-| `POSTGRES_CONNECT_TIMEOUT_SECONDS` | 연결 제한(1~60초) | 선택, 기본 10 |
+| `POSTGRES_CONNECT_TIMEOUT_SECONDS` | 연결 제한(1~60초) | 선택, 기본 3 |
 | `POSTGRES_QUERY_TIMEOUT_MS` | query 제한(100~120000ms) | 선택, 기본 10000 |
 | `POSTGRES_SSL_MODE` | `disable`, `require`, `verify-full` | 선택, 기본 `require` |
 

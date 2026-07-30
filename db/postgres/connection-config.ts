@@ -73,7 +73,7 @@ export function createPostgreSqlConnectionPlan(
       "POSTGRES_CONNECT_TIMEOUT_SECONDS",
       1,
       60,
-      10,
+      3,
     ),
     queryTimeoutMs: parseInteger(
       environment.POSTGRES_QUERY_TIMEOUT_MS,
@@ -115,7 +115,7 @@ export function validatePostgreSqlEnvironment(
     "POSTGRES_CONNECT_TIMEOUT_SECONDS",
     1,
     60,
-    10,
+    3,
   );
   parseInteger(
     environment.POSTGRES_QUERY_TIMEOUT_MS,

@@ -49,7 +49,7 @@ npm install postgres@3.4.7 --save-exact
 
 - 기본 최대 연결 수: 인스턴스당 1
 - 기본 idle timeout: 20초
-- 기본 connect timeout: 10초
+- 기본 connect timeout: 3초
 - 기본 query timeout: 10초
 - query timeout 시 진행 중 query의 cancel을 요청하고 안전한 timeout 오류로 변환
 - Pooler transaction mode에서는 prepared statement를 비활성화
