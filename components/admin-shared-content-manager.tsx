@@ -119,6 +119,9 @@ export function AdminSharedContentManager({
   const [editingCourseLessonId, setEditingCourseLessonId] = useState(
     courseLessons[0]?.id || "",
   );
+  const [contentQuery, setContentQuery] = useState("");
+  const [contentStatusFilter, setContentStatusFilter] = useState("ALL");
+  const [contentPage, setContentPage] = useState(1);
 
   const selectedCourse = courses.find((course) => course.id === selectedCourseId);
   const editingContent =
@@ -135,6 +138,38 @@ export function AdminSharedContentManager({
     const tree = active ?? fallback;
     return tree ? `${tree.title} · ${tree.version}` : "연결 가능한 커리큘럼 없음";
   }, [curriculumTrees]);
+
+  const filteredContents = useMemo(() => {
+    const query = contentQuery.trim().toLowerCase();
+    return contents.filter((content) => {
+      const matchesQuery =
+        !query ||
+        [content.title, content.summary, content.slug, content.canonicalKey]
+          .join(" ")
+          .toLowerCase()
+          .includes(query);
+      const matchesStatus =
+        contentStatusFilter === "ALL" || content.status === contentStatusFilter;
+      return matchesQuery && matchesStatus;
+    });
+  }, [contentQuery, contentStatusFilter, contents]);
+  const pageSize = 8;
+  const pageCount = Math.max(1, Math.ceil(filteredContents.length / pageSize));
+  const safePage = Math.min(contentPage, pageCount);
+  const pagedContents = filteredContents.slice(
+    (safePage - 1) * pageSize,
+    safePage * pageSize,
+  );
+
+  function updateContentQuery(value: string) {
+    setContentQuery(value);
+    setContentPage(1);
+  }
+
+  function updateContentStatusFilter(value: string) {
+    setContentStatusFilter(value);
+    setContentPage(1);
+  }
 
   async function submitJson(body: Record<string, unknown>, pendingLabel: string) {
     setPendingAction(pendingLabel);
@@ -693,9 +728,37 @@ export function AdminSharedContentManager({
 
       <section className="admin-panel">
         <h2>공유 Content 목록</h2>
+        <div className="admin-list-toolbar">
+          <label>
+            검색
+            <input
+              type="search"
+              value={contentQuery}
+              onChange={(event) => updateContentQuery(event.target.value)}
+              placeholder="제목, slug, canonical key"
+            />
+          </label>
+          <label>
+            상태
+            <select
+              value={contentStatusFilter}
+              onChange={(event) => updateContentStatusFilter(event.target.value)}
+            >
+              <option value="ALL">전체</option>
+              {statuses.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
+          </label>
+          <span className="admin-helper">
+            {filteredContents.length}개 결과 · {safePage}/{pageCount}쪽
+          </span>
+        </div>
         <div className="admin-record-list">
-          {contents.length ? (
-            contents.map((content) => (
+          {pagedContents.length ? (
+            pagedContents.map((content) => (
               <article className="admin-record shared-content-record" key={content.id}>
                 <div>
                   <strong>{content.title}</strong>
@@ -724,6 +787,29 @@ export function AdminSharedContentManager({
           ) : (
             <p className="empty-copy">아직 등록된 공통 Content가 없습니다.</p>
           )}
+        </div>
+        <div className="pagination" aria-label="공통 Content 페이지 이동">
+          <button
+            className="button button-ghost"
+            type="button"
+            disabled={safePage <= 1}
+            onClick={() => setContentPage((page) => Math.max(1, page - 1))}
+          >
+            이전
+          </button>
+          <span>
+            {safePage} / {pageCount}
+          </span>
+          <button
+            className="button button-ghost"
+            type="button"
+            disabled={safePage >= pageCount}
+            onClick={() =>
+              setContentPage((page) => Math.min(pageCount, page + 1))
+            }
+          >
+            다음
+          </button>
         </div>
       </section>
 
