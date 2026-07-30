@@ -465,6 +465,8 @@ test("문제 제출을 서버에서 채점하고 반복 오답을 한 노트에 
   );
   const notesHtml = await notesResponse.text();
   assert.equal(notesResponse.status, 200);
+  assert.match(notesHtml, /CURRENT WRONG NOTES/);
+  assert.match(notesHtml, /현재 오답노트 조건/);
   assert.match(notesHtml, /오답[\s\S]{0,50}회/);
 });
 
@@ -523,6 +525,19 @@ test("다른 사용자의 오답노트와 관리자 문제 작업을 차단한�
     }),
   });
   assert.equal(adminResponse.status, 403);
+});
+
+test("오늘의 복습은 과정별 복습 CTA와 우선순위 항목을 표시한다", async () => {
+  const response = await fetch(`${baseUrl}/reviews`, {
+    headers: {
+      "oai-authenticated-user-email": "dev-user-1@example.invalid",
+    },
+  });
+  const html = await response.text();
+  assert.equal(response.status, 200, html.slice(0, 1000));
+  assert.match(html, /SMART REVIEW/);
+  assert.match(html, /우선 복습 항목/);
+  assert.match(html, /\/practice\/isms-p\?reviewOnly=1/);
 });
 
 test("관리자 수정 API는 존재하지 않는 ID를 성공으로 처리하지 않는다", async () => {

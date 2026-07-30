@@ -41,6 +41,18 @@ export default async function WrongNotesPage({
       repeated: query.repeated === "1",
     }),
   ]);
+  const selectedCourse = courses.find((course) => course.id === courseId);
+  const selectedSubject = subjects.find((subject) => subject.id === subjectId);
+  const selectedTopic = topics.find((topic) => topic.id === topicId);
+  const difficulty =
+    typeof query.difficulty === "string" ? query.difficulty : undefined;
+  const mastered =
+    query.mastered === "1"
+      ? "숙지 완료"
+      : query.mastered === "0"
+        ? "미숙지"
+        : undefined;
+
   return (
     <main className="page-main dashboard-page">
       <div className="shell">
@@ -113,6 +125,16 @@ export default async function WrongNotesPage({
             필터 적용
           </button>
         </form>
+        <WrongNoteFilterSummary
+          courseSlug={selectedCourse?.slug}
+          difficulty={difficulty}
+          mastered={mastered}
+          noteCount={notes.length}
+          repeated={query.repeated === "1"}
+          selectedCourseName={selectedCourse?.shortName ?? selectedCourse?.name}
+          selectedSubjectName={selectedSubject?.name}
+          selectedTopicName={selectedTopic?.name}
+        />
         {notes.length ? (
           <div className="review-grid">
             {notes.map((note) => (
@@ -128,4 +150,73 @@ export default async function WrongNotesPage({
       </div>
     </main>
   );
+}
+
+function WrongNoteFilterSummary({
+  courseSlug,
+  difficulty,
+  mastered,
+  noteCount,
+  repeated,
+  selectedCourseName,
+  selectedSubjectName,
+  selectedTopicName,
+}: {
+  courseSlug?: string;
+  difficulty?: string;
+  mastered?: string;
+  noteCount: number;
+  repeated: boolean;
+  selectedCourseName?: string;
+  selectedSubjectName?: string;
+  selectedTopicName?: string;
+}) {
+  const filters = [
+    selectedCourseName ? `과정: ${selectedCourseName}` : "전체 과정",
+    selectedSubjectName ? `과목: ${selectedSubjectName}` : "전체 과목",
+    selectedTopicName ? `주제: ${selectedTopicName}` : "전체 주제",
+    difficulty ? `난이도: ${formatDifficulty(difficulty)}` : "전체 난이도",
+    repeated ? "반복 오답" : null,
+    mastered ? `상태: ${mastered}` : "전체 숙지 상태",
+  ].filter((item): item is string => Boolean(item));
+
+  return (
+    <section className="review-context-card" aria-label="현재 오답노트 조건">
+      <div>
+        <p className="eyebrow">CURRENT WRONG NOTES</p>
+        <h2>현재 오답노트 조건</h2>
+        <p>
+          {noteCount}개 오답 기록을 불러왔습니다. 과정·과목·주제 기준으로
+          필터링해 취약 영역을 좁혀볼 수 있습니다.
+        </p>
+      </div>
+      <div className="practice-context-tags" aria-label="적용된 오답 필터">
+        {filters.map((filter) => (
+          <span key={filter}>{filter}</span>
+        ))}
+      </div>
+      <div className="card-actions">
+        {courseSlug ? (
+          <Link
+            className="button button-dark"
+            href={`/practice/${courseSlug}?wrongOnly=1&count=50`}
+          >
+            이 조건으로 다시 풀기
+          </Link>
+        ) : null}
+        <Link className="button button-ghost" href="/wrong-notes">
+          필터 초기화
+        </Link>
+      </div>
+    </section>
+  );
+}
+
+function formatDifficulty(difficulty: string) {
+  const labels: Record<string, string> = {
+    EASY: "쉬움",
+    MEDIUM: "보통",
+    HARD: "어려움",
+  };
+  return labels[difficulty] ?? difficulty;
 }

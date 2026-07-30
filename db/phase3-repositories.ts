@@ -358,6 +358,7 @@ export async function listDueReviews(userId: string, courseId?: string) {
       id: reviewSchedules.id,
       courseId: reviewSchedules.courseId,
       courseName: courses.shortName,
+      courseSlug: courses.slug,
       targetType: reviewSchedules.targetType,
       targetId: reviewSchedules.targetId,
       nextReviewAt: reviewSchedules.nextReviewAt,
@@ -393,12 +394,16 @@ export async function getReviewSummary(userId: string) {
         gt(reviewSchedules.intervalDays, 0),
       ),
     );
-  const byCourse = new Map<string, { name: string; count: number }>();
+  const byCourse = new Map<
+    string,
+    { name: string; slug: string; count: number }
+  >();
   let overdue = 0;
   for (const item of due) {
     if (new Date(item.nextReviewAt).getTime() < now - 86_400_000) overdue += 1;
     const current = byCourse.get(item.courseId) ?? {
       name: item.courseName,
+      slug: item.courseSlug,
       count: 0,
     };
     current.count += 1;

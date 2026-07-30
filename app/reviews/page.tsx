@@ -52,10 +52,44 @@ export default async function ReviewsPage() {
               <span className="badge">{course.count}개 예정</span>
               <h2>{course.name}</h2>
               <p>예정일이 빠른 문제부터 복습합니다.</p>
-              <ReviewStartLink courseId={course.courseId} />
+              <Link
+                className="button button-dark"
+                href={`/practice/${course.slug}?reviewOnly=1&count=50`}
+              >
+                복습 시작
+              </Link>
             </article>
           ))}
         </section>
+        {summary.items.length ? (
+          <section className="section-block review-priority-panel">
+            <div className="section-heading compact">
+              <div>
+                <p className="eyebrow">REVIEW PRIORITY</p>
+                <h2>우선 복습 항목</h2>
+                <p>예정일이 빠른 순서로 최대 5개 항목을 보여줍니다.</p>
+              </div>
+            </div>
+            <div className="admin-record-list">
+              {summary.items.slice(0, 5).map((item) => (
+                <article className="admin-record review-priority-item" key={item.id}>
+                  <summary>
+                    <span>
+                      <strong>
+                        {item.questionTitle ?? `${item.targetType} ${item.targetId}`}
+                      </strong>
+                      <small>
+                        {item.courseName} · 예정일 {item.nextReviewAt.slice(0, 10)} ·
+                        반복 오답 {item.consecutiveWrong}회
+                      </small>
+                    </span>
+                    <span className="status-on">{item.targetType}</span>
+                  </summary>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
         {!summary.dueCount ? (
           <div className="empty-state">
             <strong>오늘 예정된 복습이 없습니다.</strong>
@@ -64,19 +98,5 @@ export default async function ReviewsPage() {
         ) : null}
       </div>
     </main>
-  );
-}
-
-async function ReviewStartLink({ courseId }: { courseId: string }) {
-  const { getCourseById } = await import("@/db/repositories");
-  const course = await getCourseById(courseId);
-  if (!course) return null;
-  return (
-    <Link
-      className="button button-dark"
-      href={`/practice/${course.slug}?reviewOnly=1&count=50`}
-    >
-      복습 시작
-    </Link>
   );
 }

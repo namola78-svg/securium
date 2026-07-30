@@ -2975,6 +2975,37 @@ textarea {
   font-weight: 800;
 }
 
+.review-context-card {
+  display: grid;
+  gap: 18px;
+  margin: 20px 0 28px;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--white);
+}
+
+.review-context-card h2,
+.review-priority-panel h2 {
+  margin: 4px 0 8px;
+  font-size: clamp(22px, 3vw, 30px);
+}
+
+.review-context-card p,
+.review-priority-panel p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.review-context-card .card-actions {
+  justify-content: flex-start;
+}
+
+.review-priority-item summary {
+  cursor: default;
+}
+
 .practice-filter form {
   display: grid;
   gap: 14px;
