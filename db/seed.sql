@@ -1162,6 +1162,283 @@ SELECT 'revision-question-' || q.id, 'QUESTION_EXPLANATION', q.id,
        '[개발용 Seed] 기존 문제 해설 기준선', 1, 'user-super-admin'
 FROM questions q WHERE q.status = 'PUBLISHED';
 
+-- Sprint A shared curriculum seed: common theory contents reused by multiple courses.
+-- Sample data is identified by stable "sample.shared.*" canonical keys instead of exposing
+-- development labels in learner-facing titles.
+INSERT OR IGNORE INTO contents
+  (id, slug, canonical_key, title, summary, body, body_format,
+   learning_objectives_json, core_concepts_json, practical_examples_json,
+   diagrams_json, media_json, version, status, created_by)
+VALUES
+  (
+    'content-shared-access-control-basics',
+    'shared-access-control-basics',
+    'sample.shared.access-control-basics',
+    '접근통제 기본 원칙',
+    '인증, 인가, 계정 관리, 최소 권한 원칙을 공통 보안 관점에서 정리합니다.',
+    '# 접근통제 기본 원칙' || char(10) || char(10) ||
+    '접근통제는 사용자가 누구인지 확인하고, 확인된 사용자에게 필요한 권한만 부여하며, 권한 사용 내역을 추적하는 관리 체계입니다.' || char(10) || char(10) ||
+    '## 핵심 흐름' || char(10) ||
+    '- 식별: 사용자를 구분합니다.' || char(10) ||
+    '- 인증: 사용자가 본인인지 확인합니다.' || char(10) ||
+    '- 인가: 필요한 범위의 권한만 허용합니다.' || char(10) ||
+    '- 감사: 권한 사용 기록을 남기고 점검합니다.' || char(10) || char(10) ||
+    '> 최소 권한과 직무 분리는 여러 자격 과정에서 반복되는 공통 핵심입니다.' || char(10) || char(10) ||
+    '| 점검 영역 | 확인 예시 |' || char(10) ||
+    '| --- | --- |' || char(10) ||
+    '| 계정 관리 | 불필요한 계정 비활성화 여부 |' || char(10) ||
+    '| 권한 관리 | 관리자 권한 부여 승인 기록 |' || char(10) ||
+    '| 로그 관리 | 중요 권한 사용 이력 보존 |',
+    'MARKDOWN',
+    '["접근통제의 식별·인증·인가·감사 흐름을 설명할 수 있다","최소 권한 원칙과 직무 분리의 필요성을 설명할 수 있다","과정별 시험과 실무 사례에 접근통제 개념을 적용할 수 있다"]',
+    '["식별","인증","인가","최소 권한","직무 분리","감사로그"]',
+    '["퇴사자 계정을 비활성화하지 않으면 불필요한 접근 권한이 유지될 수 있다","관리자 권한은 승인, 부여, 회수, 점검 기록이 함께 관리되어야 한다"]',
+    '[]',
+    '[]',
+    '1.0.0',
+    'PUBLISHED',
+    'user-admin'
+  ),
+  (
+    'content-shared-personal-data-encryption',
+    'shared-personal-data-encryption',
+    'sample.shared.personal-data-encryption',
+    '개인정보와 중요정보 보호',
+    '개인정보와 중요정보를 식별하고 저장·전송 구간에서 보호하는 기본 방식을 학습합니다.',
+    '# 개인정보와 중요정보 보호' || char(10) || char(10) ||
+    '개인정보와 중요정보는 수집 목적, 처리 위치, 접근 권한, 보존 기간을 함께 관리해야 합니다.' || char(10) || char(10) ||
+    '## 보호 관점' || char(10) ||
+    '- 수집 최소화' || char(10) ||
+    '- 저장 구간 암호화' || char(10) ||
+    '- 전송 구간 보호' || char(10) ||
+    '- 접근 기록 관리' || char(10) ||
+    '- 보존 기간 종료 후 안전한 파기' || char(10) || char(10) ||
+    '```text' || char(10) ||
+    '중요정보 식별 → 보호 조치 적용 → 접근 기록 확인 → 주기적 점검' || char(10) ||
+    '```',
+    'MARKDOWN',
+    '["개인정보와 중요정보의 보호 기준을 구분할 수 있다","저장·전송 구간 보호 조치를 설명할 수 있다","보존 기간과 파기 관리의 필요성을 설명할 수 있다"]',
+    '["개인정보","중요정보","암호화","전송구간 보호","보존 기간","파기"]',
+    '["고객 식별정보를 저장할 때 암호화와 접근권한 통제를 함께 적용한다","외부 연계 구간은 TLS 등 안전한 전송 보호를 적용한다"]',
+    '[]',
+    '[]',
+    '1.0.0',
+    'PUBLISHED',
+    'user-admin'
+  ),
+  (
+    'content-shared-incident-response-lifecycle',
+    'shared-incident-response-lifecycle',
+    'sample.shared.incident-response-lifecycle',
+    '침해사고 대응 절차',
+    '탐지부터 분석, 차단, 복구, 재발 방지까지 침해사고 대응 흐름을 정리합니다.',
+    '# 침해사고 대응 절차' || char(10) || char(10) ||
+    '침해사고 대응은 단순한 장애 처리와 다르게 증거 보존, 영향 범위 판단, 재발 방지 대책이 함께 필요합니다.' || char(10) || char(10) ||
+    '## 대응 단계' || char(10) ||
+    '1. 탐지 및 신고' || char(10) ||
+    '2. 초기 분류와 영향 범위 확인' || char(10) ||
+    '3. 증거 보존과 원인 분석' || char(10) ||
+    '4. 차단 및 복구' || char(10) ||
+    '5. 재발 방지 대책 수립' || char(10) || char(10) ||
+    '> 사고 대응 기록은 사후 분석과 관리체계 개선의 근거가 됩니다.',
+    'MARKDOWN',
+    '["침해사고 대응의 주요 단계를 순서대로 설명할 수 있다","증거 보존과 영향 범위 판단의 중요성을 설명할 수 있다","재발 방지 대책을 학습 기록과 문제풀이에 연결할 수 있다"]',
+    '["침해사고","증거 보존","영향 범위","복구","재발 방지"]',
+    '["웹 서버 이상 로그가 탐지되면 로그 보존 후 영향 시스템을 분류한다","복구 후에는 원인과 통제 미흡점을 개선 계획에 반영한다"]',
+    '[]',
+    '[]',
+    '1.0.0',
+    'PUBLISHED',
+    'user-admin'
+  ),
+  (
+    'content-shared-risk-assessment-method',
+    'shared-risk-assessment-method',
+    'sample.shared.risk-assessment-method',
+    '위험평가 기본 방법',
+    '자산, 위협, 취약점, 가능성, 영향을 연결해 위험 수준을 판단하는 기본 구조를 학습합니다.',
+    '# 위험평가 기본 방법' || char(10) || char(10) ||
+    '위험평가는 보호해야 할 자산과 발생 가능한 위협, 악용될 수 있는 취약점을 연결해 우선순위를 정하는 활동입니다.' || char(10) || char(10) ||
+    '| 구성 요소 | 의미 |' || char(10) ||
+    '| --- | --- |' || char(10) ||
+    '| 자산 | 보호 가치가 있는 정보와 시스템 |' || char(10) ||
+    '| 위협 | 사고를 유발할 수 있는 원인 |' || char(10) ||
+    '| 취약점 | 위협이 실현될 수 있는 약점 |' || char(10) ||
+    '| 가능성 | 사고가 발생할 확률 또는 빈도 |' || char(10) ||
+    '| 영향 | 사고 발생 시 피해 규모 |' || char(10) || char(10) ||
+    '위험도 계산식은 조직의 평가 기준에 따라 달라질 수 있으므로, 공식처럼 하나로 고정하지 않고 평가 방법과 등급 기준을 함께 확인해야 합니다.',
+    'MARKDOWN',
+    '["자산·위협·취약점의 관계를 설명할 수 있다","가능성과 영향을 바탕으로 위험 수준을 판단할 수 있다","평가 방법이 조직 기준에 따라 달라질 수 있음을 이해한다"]',
+    '["자산","위협","취약점","가능성","영향","위험처리"]',
+    '["개인정보 처리 시스템은 유출 위협과 접근통제 취약점을 함께 평가한다","위험 수준에 따라 회피, 완화, 전가, 수용을 선택한다"]',
+    '[]',
+    '[]',
+    '1.0.0',
+    'PUBLISHED',
+    'user-admin'
+  ),
+  (
+    'content-shared-secure-input-validation',
+    'shared-secure-input-validation',
+    'sample.shared.secure-input-validation',
+    '입력값 검증과 안전한 처리',
+    'SQL 삽입, 명령어 삽입, 경로 조작 등 입력값 기반 취약점을 예방하는 공통 원칙을 학습합니다.',
+    '# 입력값 검증과 안전한 처리' || char(10) || char(10) ||
+    '외부 입력은 신뢰할 수 없다는 전제로 길이, 형식, 허용 문자, 업무 규칙을 검증해야 합니다.' || char(10) || char(10) ||
+    '## 안전한 처리 원칙' || char(10) ||
+    '- 허용 목록 기반 검증을 우선 적용합니다.' || char(10) ||
+    '- SQL은 파라미터 바인딩을 사용합니다.' || char(10) ||
+    '- 파일 경로는 기준 디렉터리 밖으로 벗어나지 못하게 검증합니다.' || char(10) ||
+    '- 오류 메시지에 내부 구조를 노출하지 않습니다.' || char(10) || char(10) ||
+    '```java' || char(10) ||
+    'PreparedStatement stmt = connection.prepareStatement("SELECT * FROM users WHERE id = ?");' || char(10) ||
+    'stmt.setString(1, userId);' || char(10) ||
+    '```',
+    'MARKDOWN',
+    '["외부 입력을 신뢰하지 않는 이유를 설명할 수 있다","허용 목록 검증과 파라미터 바인딩의 차이를 설명할 수 있다","코드 분석 문제에서 취약 처리 지점을 찾을 수 있다"]',
+    '["입력값 검증","허용 목록","파라미터 바인딩","SQL 삽입","명령어 삽입","경로 조작"]',
+    '["사용자 ID를 SQL 문자열에 직접 결합하지 않고 바인딩 변수로 처리한다","업로드 파일명은 서버 생성 키로 대체한다"]',
+    '[]',
+    '[]',
+    '1.0.0',
+    'PUBLISHED',
+    'user-admin'
+  ),
+  (
+    'content-shared-privacy-data-flow',
+    'shared-privacy-data-flow',
+    'sample.shared.privacy-data-flow',
+    '개인정보 처리 흐름 이해',
+    '수집, 이용, 제공, 보관, 파기 단계에서 개인정보가 어떻게 이동하는지 학습합니다.',
+    '# 개인정보 처리 흐름 이해' || char(10) || char(10) ||
+    '개인정보 처리 흐름은 개인정보가 어디에서 수집되고, 어떤 시스템을 거쳐, 누구에게 제공되며, 언제 파기되는지 나타냅니다.' || char(10) || char(10) ||
+    '## 확인 항목' || char(10) ||
+    '- 정보주체와 수집 채널' || char(10) ||
+    '- 처리 시스템과 저장 위치' || char(10) ||
+    '- 제3자 제공 또는 위탁 여부' || char(10) ||
+    '- 접근 권한과 보호 조치' || char(10) ||
+    '- 보존 기간과 파기 절차' || char(10) || char(10) ||
+    '> 흐름도를 읽을 때는 데이터 종류, 목적, 전달 방식, 보호 조치를 함께 확인합니다.',
+    'MARKDOWN',
+    '["개인정보 처리 흐름의 주요 구성 요소를 설명할 수 있다","위탁과 제3자 제공 여부를 구분하는 관점을 이해한다","흐름도 기반 영향평가 문제를 분석할 수 있다"]',
+    '["개인정보 흐름","수집","이용","제공","위탁","파기","보호 조치"]',
+    '["회원가입 화면에서 수집된 연락처가 고객관리 시스템과 알림 발송 업체로 전달되는 흐름을 점검한다"]',
+    '[]',
+    '[]',
+    '1.0.0',
+    'PUBLISHED',
+    'user-admin'
+  );
+
+INSERT OR IGNORE INTO course_lessons
+  (id, course_id, curriculum_node_id, content_id, display_title, sort_order,
+   difficulty, importance, estimated_minutes, is_required, completion_rule, status)
+VALUES
+  ('course-lesson-isms-access-control', 'course-isms-p', NULL, 'content-shared-access-control-basics', 'ISMS-P 관점의 접근통제 기본 원칙', 101, NULL, 95, 12, 1, 'MANUAL', 'PUBLISHED'),
+  ('course-lesson-cppg-access-control', 'course-cppg', NULL, 'content-shared-access-control-basics', '개인정보 관리 관점의 접근통제', 101, NULL, 88, 12, 1, 'MANUAL', 'PUBLISHED'),
+  ('course-lesson-pia-access-control', 'course-pia', NULL, 'content-shared-access-control-basics', '영향평가 관점의 접근통제 점검', 101, NULL, 88, 12, 1, 'MANUAL', 'PUBLISHED'),
+  ('course-lesson-ise-access-control', 'course-ise', NULL, 'content-shared-access-control-basics', '정보보안기사 접근통제 핵심', 101, NULL, 86, 12, 1, 'MANUAL', 'PUBLISHED'),
+  ('course-lesson-isie-access-control', 'course-isie', NULL, 'content-shared-access-control-basics', '정보보안산업기사 접근통제 핵심', 101, NULL, 84, 12, 1, 'MANUAL', 'PUBLISHED'),
+  ('course-lesson-isms-encryption', 'course-isms-p', NULL, 'content-shared-personal-data-encryption', 'ISMS-P 개인정보와 중요정보 보호', 102, NULL, 92, 11, 1, 'MANUAL', 'PUBLISHED'),
+  ('course-lesson-cppg-encryption', 'course-cppg', NULL, 'content-shared-personal-data-encryption', 'CPPG 개인정보 보호 조치', 102, NULL, 92, 11, 1, 'MANUAL', 'PUBLISHED'),
+  ('course-lesson-pia-encryption', 'course-pia', NULL, 'content-shared-personal-data-encryption', '영향평가 보호 조치 확인', 102, NULL, 90, 11, 1, 'MANUAL', 'PUBLISHED'),
+  ('course-lesson-ise-encryption', 'course-ise', NULL, 'content-shared-personal-data-encryption', '정보보안기사 암호화와 중요정보 보호', 102, NULL, 86, 11, 1, 'MANUAL', 'PUBLISHED'),
+  ('course-lesson-isie-encryption', 'course-isie', NULL, 'content-shared-personal-data-encryption', '정보보안산업기사 중요정보 보호', 102, NULL, 82, 11, 1, 'MANUAL', 'PUBLISHED'),
+  ('course-lesson-isms-incident-response', 'course-isms-p', NULL, 'content-shared-incident-response-lifecycle', 'ISMS-P 침해사고 대응 체계', 103, NULL, 90, 10, 1, 'MANUAL', 'PUBLISHED'),
+  ('course-lesson-ise-incident-response', 'course-ise', NULL, 'content-shared-incident-response-lifecycle', '정보보안기사 침해사고 대응', 103, NULL, 86, 10, 1, 'MANUAL', 'PUBLISHED'),
+  ('course-lesson-isie-incident-response', 'course-isie', NULL, 'content-shared-incident-response-lifecycle', '정보보안산업기사 침해사고 대응', 103, NULL, 82, 10, 1, 'MANUAL', 'PUBLISHED'),
+  ('course-lesson-sw-vuln-incident-response', 'course-sw-vuln', NULL, 'content-shared-incident-response-lifecycle', '보안약점 진단 결과와 사고 대응', 103, NULL, 78, 10, 0, 'MANUAL', 'PUBLISHED'),
+  ('course-lesson-isms-risk-assessment', 'course-isms-p', NULL, 'content-shared-risk-assessment-method', 'ISMS-P 위험평가 기본 방법', 104, NULL, 93, 13, 1, 'MANUAL', 'PUBLISHED'),
+  ('course-lesson-isrm-risk-assessment', 'course-isrm', NULL, 'content-shared-risk-assessment-method', 'ISRM 위험평가 기본 방법', 101, NULL, 98, 13, 1, 'MANUAL', 'PUBLISHED'),
+  ('course-lesson-pia-risk-assessment', 'course-pia', NULL, 'content-shared-risk-assessment-method', '영향평가 위험 판단 기초', 103, NULL, 90, 13, 1, 'MANUAL', 'PUBLISHED'),
+  ('course-lesson-sw-vuln-input-validation', 'course-sw-vuln', NULL, 'content-shared-secure-input-validation', '보안약점 진단 입력값 검증', 101, NULL, 96, 14, 1, 'MANUAL', 'PUBLISHED'),
+  ('course-lesson-ise-input-validation', 'course-ise', NULL, 'content-shared-secure-input-validation', '정보보안기사 입력값 검증과 취약점', 104, NULL, 84, 14, 1, 'MANUAL', 'PUBLISHED'),
+  ('course-lesson-isie-input-validation', 'course-isie', NULL, 'content-shared-secure-input-validation', '정보보안산업기사 입력값 검증', 104, NULL, 82, 14, 1, 'MANUAL', 'PUBLISHED'),
+  ('course-lesson-pia-privacy-flow', 'course-pia', NULL, 'content-shared-privacy-data-flow', '개인정보 영향평가 처리 흐름 이해', 104, NULL, 96, 12, 1, 'MANUAL', 'PUBLISHED'),
+  ('course-lesson-cppg-privacy-flow', 'course-cppg', NULL, 'content-shared-privacy-data-flow', 'CPPG 개인정보 처리 흐름 이해', 103, NULL, 90, 12, 1, 'MANUAL', 'PUBLISHED'),
+  ('course-lesson-isms-privacy-flow', 'course-isms-p', NULL, 'content-shared-privacy-data-flow', 'ISMS-P 개인정보 처리 흐름 점검', 105, NULL, 88, 12, 1, 'MANUAL', 'PUBLISHED');
+
+INSERT OR IGNORE INTO course_lesson_extensions
+  (id, course_lesson_id, learning_objectives_override_json, additional_body,
+   exam_points_json, practical_notes, legal_notes, standard_notes, evidence_notes,
+   common_mistakes, instructor_notes, version, status)
+VALUES
+  (
+    'course-lesson-extension-isms-access-control',
+    'course-lesson-isms-access-control',
+    '["인증기준 관점에서 접근통제 확인사항을 해석한다","권한 부여·변경·말소 증적을 설명한다"]',
+    'ISMS-P에서는 접근통제 정책, 권한 승인 기록, 계정 점검 이력, 관리자 권한 관리 증적을 함께 확인합니다.',
+    '["접근권한 검토 주기","특권 계정 관리","퇴직자 계정 회수"]',
+    '심사 준비 시 계정 목록과 권한 승인 기록의 기준일을 맞춰 확인합니다.',
+    '',
+    '접근통제 영역은 정책, 운영 기록, 로그 점검이 함께 연결되어야 합니다.',
+    '계정 신청서, 권한 변경 이력, 관리자 권한 점검표, 접속 로그',
+    '정책 문서만 있고 실제 권한 점검 기록이 없는 경우를 놓치기 쉽습니다.',
+    '공통 레슨을 ISMS-P 심사 관점으로 확장한 예시입니다.',
+    '1.0.0',
+    'PUBLISHED'
+  ),
+  (
+    'course-lesson-extension-cppg-encryption',
+    'course-lesson-cppg-encryption',
+    '["개인정보 보호 조치 관점에서 암호화 적용 대상을 정리한다","보존 기간과 파기 관리까지 함께 설명한다"]',
+    'CPPG 학습에서는 개인정보의 처리 단계별 보호 조치와 관리 책임을 함께 연결해 보는 것이 중요합니다.',
+    '["개인정보 안전성 확보조치","접근통제와 암호화","보존 및 파기"]',
+    '암호화 여부만 보지 말고 접근 권한과 이용 기록 관리까지 함께 확인합니다.',
+    '법령과 고시 기준은 운영 기준일에 따라 달라질 수 있으므로 최신 검수 버전을 확인합니다.',
+    '',
+    '처리방침, 접근권한 관리대장, 암호화 적용 현황, 파기 이력',
+    '암호화가 적용되면 접근통제가 불필요하다고 오해하기 쉽습니다.',
+    '공통 레슨을 CPPG 개인정보 관리 관점으로 확장한 예시입니다.',
+    '1.0.0',
+    'PUBLISHED'
+  ),
+  (
+    'course-lesson-extension-isrm-risk-assessment',
+    'course-lesson-isrm-risk-assessment',
+    '["위험 시나리오를 자산·위협·취약점으로 분해한다","위험처리 방안을 위험 수준에 맞게 선택한다"]',
+    'ISRM에서는 위험평가 계산 자체보다 평가 기준, 등급 정의, 처리 의사결정의 일관성이 중요합니다.',
+    '["자산 식별","위협과 취약점 매핑","위험처리 선택"]',
+    '위험등록부에는 소유자, 조치 기한, 잔여위험 수용 여부를 함께 기록합니다.',
+    '',
+    '',
+    '자산 목록, 위험평가표, 위험처리 계획, 잔여위험 승인 기록',
+    '가능성과 영향을 곱하는 방식만 외우고 평가 기준의 근거를 놓치기 쉽습니다.',
+    '공통 레슨을 ISRM 위험관리 실무 관점으로 확장한 예시입니다.',
+    '1.0.0',
+    'PUBLISHED'
+  ),
+  (
+    'course-lesson-extension-sw-vuln-input-validation',
+    'course-lesson-sw-vuln-input-validation',
+    '["취약 코드에서 입력값 검증 누락 지점을 찾는다","안전한 수정 방향을 코드와 설명으로 제시한다"]',
+    'SW 보안약점 진단에서는 입력값이 코드 흐름에서 어디까지 전달되는지 추적하고, 검증·정규화·바인딩 여부를 확인합니다.',
+    '["취약 라인 식별","CWE 매핑","안전한 코드 제안"]',
+    '코드를 직접 실행하지 않고 정적 분석 관점에서 위험한 처리 패턴을 찾습니다.',
+    '',
+    '',
+    '취약 코드, 안전한 코드, 검출 근거, 오탐 가능성 설명',
+    '필터링 함수 호출만 보고 안전하다고 판단하지 말고 실제 허용 목록 검증인지 확인해야 합니다.',
+    '공통 레슨을 SW 보안약점 코드 분석 관점으로 확장한 예시입니다.',
+    '1.0.0',
+    'PUBLISHED'
+  ),
+  (
+    'course-lesson-extension-pia-privacy-flow',
+    'course-lesson-pia-privacy-flow',
+    '["개인정보 처리 흐름에서 수집·이용·제공·파기 단계를 구분한다","흐름도 기반으로 누락된 보호 조치를 찾는다"]',
+    '영향평가에서는 처리 흐름을 기준으로 개인정보 유형, 처리 목적, 이전 방식, 보호 조치, 보존 기간을 함께 확인합니다.',
+    '["처리 흐름도","침해요인 식별","개선방안 도출"]',
+    '모바일 화면에서는 흐름도와 함께 텍스트 기반 대체 목록을 제공해야 접근성을 확보할 수 있습니다.',
+    '관련 법령과 평가 기준은 기준일과 버전을 함께 확인합니다.',
+    '',
+    '처리 흐름도, 시스템 구성도, 위탁 계약서, 보호 조치 목록',
+    '흐름도에는 노드가 있지만 실제 데이터 유형과 목적이 누락되는 경우가 많습니다.',
+    '공통 레슨을 개인정보 영향평가 실무 관점으로 확장한 예시입니다.',
+    '1.0.0',
+    'PUBLISHED'
+  );
+
 INSERT OR IGNORE INTO content_revisions
   (id, content_type, content_id, course_id, title, content_date, version,
    revision_status, snapshot_json, reviewed_at, reviewed_by, published_at,
