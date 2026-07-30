@@ -195,26 +195,30 @@ export async function listAdminSpecializedAIRecords(limit = 100) {
     .orderBy(desc(aiSpecializedGenerationRecords.generatedAt))
     .limit(Math.max(1, Math.min(limit, 200)));
   const ids = records.map((record) => record.id);
-  const reviews = ids.length
-    ? await getDb()
-        .select({
-          id: aiSpecializedReviews.id,
-          generationId: aiSpecializedReviews.generationId,
-          reviewerEmail: users.email,
-          revision: aiSpecializedReviews.revision,
-          action: aiSpecializedReviews.action,
-          editedResultJson: aiSpecializedReviews.editedResultJson,
-          reviewNote: aiSpecializedReviews.reviewNote,
-          createdAt: aiSpecializedReviews.createdAt,
-        })
-        .from(aiSpecializedReviews)
-        .innerJoin(users, eq(aiSpecializedReviews.reviewerId, users.id))
-        .where(inArray(aiSpecializedReviews.generationId, ids))
-        .orderBy(
-          desc(aiSpecializedReviews.createdAt),
-          desc(aiSpecializedReviews.revision),
-        )
-    : [];
+  const reviews = (
+    await Promise.all(
+      chunkIds(ids, 50).map((chunk) =>
+        getDb()
+          .select({
+            id: aiSpecializedReviews.id,
+            generationId: aiSpecializedReviews.generationId,
+            reviewerEmail: users.email,
+            revision: aiSpecializedReviews.revision,
+            action: aiSpecializedReviews.action,
+            editedResultJson: aiSpecializedReviews.editedResultJson,
+            reviewNote: aiSpecializedReviews.reviewNote,
+            createdAt: aiSpecializedReviews.createdAt,
+          })
+          .from(aiSpecializedReviews)
+          .innerJoin(users, eq(aiSpecializedReviews.reviewerId, users.id))
+          .where(inArray(aiSpecializedReviews.generationId, chunk))
+          .orderBy(
+            desc(aiSpecializedReviews.createdAt),
+            desc(aiSpecializedReviews.revision),
+          ),
+      ),
+    )
+  ).flat();
   return records.map((record) => ({
     ...record,
     originalResult: parseJson<Record<string, unknown>>(
@@ -231,6 +235,14 @@ export async function listAdminSpecializedAIRecords(limit = 100) {
         ),
       })),
   }));
+}
+
+function chunkIds<T>(items: T[], size: number) {
+  const chunks: T[][] = [];
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+  return chunks;
 }
 
 export async function reviewSpecializedAI(input: {

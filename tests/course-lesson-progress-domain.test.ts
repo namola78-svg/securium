@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   assertCourseLessonCompletionAllowed,
   normalizeCourseLessonProgressPercent,
+  normalizeCourseLessonTimeSpentSeconds,
 } from "../lib/services/shared-content-service.ts";
 
 test("CourseLesson progress percent is clamped and rounded on the server", () => {
@@ -11,6 +12,14 @@ test("CourseLesson progress percent is clamped and rounded on the server", () =>
   assert.equal(normalizeCourseLessonProgressPercent(42.6), 43);
   assert.equal(normalizeCourseLessonProgressPercent(150), 100);
   assert.equal(normalizeCourseLessonProgressPercent(Number.NaN), 0);
+});
+
+test("CourseLesson time spent is sanitized on the server", () => {
+  assert.equal(normalizeCourseLessonTimeSpentSeconds(-10), 0);
+  assert.equal(normalizeCourseLessonTimeSpentSeconds(10.4), 10);
+  assert.equal(normalizeCourseLessonTimeSpentSeconds(10.6), 11);
+  assert.equal(normalizeCourseLessonTimeSpentSeconds(Number.NaN), 0);
+  assert.equal(normalizeCourseLessonTimeSpentSeconds(40_000_000), 31_536_000);
 });
 
 test("CourseLesson scroll-end completion requires enough reading progress", () => {

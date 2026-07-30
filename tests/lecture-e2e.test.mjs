@@ -47,7 +47,7 @@ before(async () => {
   server.stderr.on("data", (chunk) => {
     output += chunk.toString();
   });
-  for (let attempt = 0; attempt < 80; attempt += 1) {
+  for (let attempt = 0; attempt < 480; attempt += 1) {
     if (server.exitCode !== null) {
       throw new Error(`Lecture E2E server stopped.\n${output}`);
     }

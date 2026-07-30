@@ -26,6 +26,7 @@ export async function POST(request: Request) {
       courseLessonId: input.courseLessonId,
       action: input.action,
       progressPercent: input.progressPercent,
+      timeSpentSeconds: input.timeSpentSeconds,
     });
     return successResponse(request, { result });
   } catch (error) {

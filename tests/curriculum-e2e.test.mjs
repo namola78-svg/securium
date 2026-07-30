@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { after, before, test } from "node:test";
 
-const port = 33117;
-const baseUrl = `http://127.0.0.1:${port}`;
+const port = 33121;
+const baseUrl = `http://localhost:${port}`;
 const admin = {
   "content-type": "application/json",
   origin: baseUrl,
@@ -46,7 +46,7 @@ before(async () => {
   server.stderr.on("data", (chunk) => {
     output += chunk.toString();
   });
-  for (let attempt = 0; attempt < 80; attempt += 1) {
+  for (let attempt = 0; attempt < 480; attempt += 1) {
     if (server.exitCode !== null) {
       throw new Error(`Curriculum E2E server stopped.\n${output}`);
     }

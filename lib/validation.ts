@@ -203,6 +203,7 @@ export const courseLessonSchema = z.object({
   id: id.optional(),
   courseId: id,
   curriculumNodeId: z.string().trim().max(100).optional().default(""),
+  lessonId: z.string().trim().max(100).optional().default(""),
   contentId: id,
   displayTitle: z.string().trim().min(2).max(200),
   sortOrder: z.coerce.number().int().min(0).max(100000),
@@ -215,6 +216,7 @@ export const courseLessonSchema = z.object({
     .optional(),
   estimatedMinutes: z.coerce.number().int().min(1).max(1440),
   isRequired: activeBoolean.default(false),
+  unlockCondition: z.string().trim().max(20000).optional().default(""),
   completionRule: z.enum(["MANUAL", "SCROLL_END", "MINIMUM_REQUIREMENTS"]),
   status: contentStatusSchema,
 });
@@ -308,6 +310,7 @@ export const courseLessonProgressSchema = z.object({
   courseLessonId: id,
   action: z.enum(["START", "UPDATE", "COMPLETE"]),
   progressPercent: z.coerce.number().int().min(0).max(100).default(0),
+  timeSpentSeconds: z.coerce.number().int().min(0).max(86400).default(0),
 });
 
 export const audioProgressSchema = z.object({

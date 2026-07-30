@@ -20,7 +20,14 @@ export function CourseLessonActions({
   const [message, setMessage] = useState("");
   const [pending, setPending] = useState(false);
   const startedRef = useRef(false);
+  const openedAtRef = useRef<number | null>(null);
   const savedProgressRef = useRef(initialProgressPercent);
+
+  function getTimeSpentSeconds() {
+    const openedAt = openedAtRef.current ?? Date.now();
+    openedAtRef.current = openedAt;
+    return Math.max(0, Math.round((Date.now() - openedAt) / 1000));
+  }
 
   async function run(
     action: "START" | "UPDATE" | "COMPLETE",
@@ -37,6 +44,7 @@ export function CourseLessonActions({
           courseLessonId,
           action,
           progressPercent: nextProgress,
+          timeSpentSeconds: getTimeSpentSeconds(),
         }),
       });
       const payload = (await response.json()) as {

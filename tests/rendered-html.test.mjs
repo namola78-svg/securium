@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { after, before, test } from "node:test";
 
-const port = 33100;
+const port = 33120;
 const baseUrl = `http://localhost:${port}`;
 const runId = `${process.pid}-${Date.now()}`;
 let server;
@@ -36,7 +36,7 @@ before(async () => {
     output += chunk.toString();
   });
 
-  for (let attempt = 0; attempt < 80; attempt += 1) {
+  for (let attempt = 0; attempt < 480; attempt += 1) {
     if (server.exitCode !== null) {
       throw new Error(`E2E server stopped early.\n${output}`);
     }

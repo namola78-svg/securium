@@ -2,7 +2,7 @@ import {
   listAdminSpecializedAIRecords,
   reviewSpecializedAI,
 } from "@/db/ai-specialized-repositories";
-import { recordAudit } from "@/db/audit-repositories";
+import { recordAuditEventSafely } from "@/db/audit-repositories";
 import { requireQuestionReviewer } from "@/lib/auth";
 import {
   assertSameOrigin,
@@ -41,12 +41,12 @@ export async function POST(request: Request) {
       reviewerId: user.id,
       ...input,
     });
-    await recordAudit({
+    await recordAuditEventSafely({
       actorUserId: user.id,
       actorRoles: user.roles,
       action: `AI_SPECIALIZED_${input.action}`,
-      targetType: "AI_SPECIALIZED_GENERATION",
-      targetId: input.generationId,
+      resourceType: "AI_SPECIALIZED_GENERATION",
+      resourceId: input.generationId,
       requestId: result.reviewId,
     }, request);
     return successResponse(request, { result });

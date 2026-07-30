@@ -9,6 +9,7 @@ import {
   curriculumNodes,
   curriculumTrees,
   learningActivities,
+  lessons,
   userCourseEnrollments,
   userCourseLessonProgress,
 } from "./schema";
@@ -19,6 +20,7 @@ import {
   assertContentCanBeLinked,
   normalizeCanonicalKey,
   normalizeCourseLessonProgressPercent,
+  normalizeCourseLessonTimeSpentSeconds,
   mergeCourseLessonPresentation,
 } from "@/lib/services/shared-content-service";
 import type {
@@ -132,6 +134,7 @@ export async function listCourseLessons(courseId: string) {
       courseId: courseLessons.courseId,
       curriculumNodeId: courseLessons.curriculumNodeId,
       contentId: courseLessons.contentId,
+      lessonId: courseLessons.lessonId,
       contentTitle: contents.title,
       displayTitle: courseLessons.displayTitle,
       sortOrder: courseLessons.sortOrder,
@@ -139,6 +142,7 @@ export async function listCourseLessons(courseId: string) {
       importance: courseLessons.importance,
       estimatedMinutes: courseLessons.estimatedMinutes,
       isRequired: courseLessons.isRequired,
+      unlockCondition: courseLessons.unlockCondition,
       completionRule: courseLessons.completionRule,
       status: courseLessons.status,
       updatedAt: courseLessons.updatedAt,
@@ -200,7 +204,7 @@ export async function saveCourseLesson(
     );
   }
 
-  const [course, content, node] = await Promise.all([
+  const [course, content, node, linkedLesson] = await Promise.all([
     getDb()
       .select({ id: courses.id })
       .from(courses)
@@ -221,6 +225,20 @@ export async function saveCourseLesson(
             eq(curriculumNodes.curriculumTreeId, curriculumTrees.id),
           )
           .where(eq(curriculumNodes.id, input.curriculumNodeId))
+          .limit(1)
+          .then((rows) => rows[0] ?? null)
+      : Promise.resolve(null),
+    optionalText(input.lessonId)
+      ? getDb()
+          .select({
+            id: lessons.id,
+            courseId: lessons.courseId,
+            active: lessons.active,
+            published: lessons.published,
+            deletedAt: lessons.deletedAt,
+          })
+          .from(lessons)
+          .where(eq(lessons.id, input.lessonId))
           .limit(1)
           .then((rows) => rows[0] ?? null)
       : Promise.resolve(null),
@@ -251,17 +269,40 @@ export async function saveCourseLesson(
       "COURSE_LESSON_NODE_ARCHIVED",
     );
   }
+  if (input.lessonId && !linkedLesson) {
+    throw new AppError(
+      "연결할 이론 레슨을 찾을 수 없습니다.",
+      404,
+      "LESSON_NOT_FOUND",
+    );
+  }
+  if (linkedLesson && linkedLesson.courseId !== input.courseId) {
+    throw new AppError(
+      "다른 과정의 이론 레슨은 이 과정 연결에 사용할 수 없습니다.",
+      400,
+      "COURSE_LESSON_LESSON_SCOPE_MISMATCH",
+    );
+  }
+  if (linkedLesson && (!linkedLesson.active || linkedLesson.deletedAt)) {
+    throw new AppError(
+      "비활성 또는 삭제된 이론 레슨은 과정 레슨에 연결할 수 없습니다.",
+      409,
+      "COURSE_LESSON_LESSON_INACTIVE",
+    );
+  }
 
   const values = {
     courseId: input.courseId,
     curriculumNodeId: optionalText(input.curriculumNodeId),
     contentId: input.contentId,
+    lessonId: optionalText(input.lessonId),
     displayTitle: input.displayTitle,
     sortOrder: input.sortOrder,
     difficulty: optionalText(input.difficulty),
     importance: input.importance ?? null,
     estimatedMinutes: input.estimatedMinutes,
     isRequired: input.isRequired,
+    unlockCondition: optionalText(input.unlockCondition),
     completionRule: input.completionRule,
     status: input.status,
     updatedAt: sql`CURRENT_TIMESTAMP`,
@@ -370,6 +411,7 @@ export async function listPublishedCourseLessonsForUser(
       id: courseLessons.id,
       courseId: courseLessons.courseId,
       contentId: courseLessons.contentId,
+      lessonId: courseLessons.lessonId,
       contentTitle: contents.title,
       contentSummary: contents.summary,
       contentBody: contents.body,
@@ -380,6 +422,7 @@ export async function listPublishedCourseLessonsForUser(
       estimatedMinutes: courseLessons.estimatedMinutes,
       isRequired: courseLessons.isRequired,
       completionRule: courseLessons.completionRule,
+      unlockCondition: courseLessons.unlockCondition,
       curriculumNodeId: courseLessons.curriculumNodeId,
       status: courseLessons.status,
       progressStatus: sql<string>`coalesce(${userCourseLessonProgress.status}, 'NOT_STARTED')`,
@@ -422,6 +465,7 @@ export async function listPublishedCourseLessonsForUser(
       id: row.id,
       courseId: row.courseId,
       contentId: row.contentId,
+      lessonId: row.lessonId,
       title: row.displayTitle || row.contentTitle,
       summary: row.contentSummary,
       sortOrder: row.sortOrder,
@@ -430,6 +474,7 @@ export async function listPublishedCourseLessonsForUser(
       estimatedMinutes: row.estimatedMinutes,
       isRequired: row.isRequired,
       completionRule: row.completionRule,
+      unlockCondition: row.unlockCondition,
       curriculumNodeId: row.curriculumNodeId,
       status: row.progressStatus,
       progressPercent: Number(row.progressPercent ?? 0),
@@ -448,9 +493,11 @@ export async function getPublishedCourseLessonForUser(input: {
       id: courseLessons.id,
       courseId: courseLessons.courseId,
       contentId: courseLessons.contentId,
+      lessonId: courseLessons.lessonId,
       displayTitle: courseLessons.displayTitle,
       estimatedMinutes: courseLessons.estimatedMinutes,
       isRequired: courseLessons.isRequired,
+      unlockCondition: courseLessons.unlockCondition,
       completionRule: courseLessons.completionRule,
       contentTitle: contents.title,
       contentSummary: contents.summary,
@@ -542,6 +589,7 @@ export async function getPublishedCourseLessonForUser(input: {
     id: row.id,
     courseId: row.courseId,
     contentId: row.contentId,
+    lessonId: row.lessonId,
     title: presentation.title,
     summary: presentation.summary,
     body: presentation.body,
@@ -549,6 +597,7 @@ export async function getPublishedCourseLessonForUser(input: {
     version: row.contentVersion,
     estimatedMinutes: row.estimatedMinutes,
     isRequired: row.isRequired,
+    unlockCondition: row.unlockCondition,
     completionRule: row.completionRule,
     examPoints: presentation.examPoints,
     practicalNotes: presentation.practicalNotes,
@@ -623,12 +672,16 @@ export async function updateCourseLessonProgress(input: {
   courseLessonId: string;
   action: "START" | "UPDATE" | "COMPLETE";
   progressPercent: number;
+  timeSpentSeconds?: number;
 }) {
   const lesson = await requireAccessibleCourseLesson(input);
   const progressPercent = normalizeCourseLessonProgressPercent(
     input.progressPercent,
   );
   const nowIso = new Date().toISOString();
+  const timeSpentSeconds = normalizeCourseLessonTimeSpentSeconds(
+    input.timeSpentSeconds ?? 0,
+  );
   const [current] = await getDb()
     .select()
     .from(userCourseLessonProgress)
@@ -646,6 +699,8 @@ export async function updateCourseLessonProgress(input: {
       .update(userCourseLessonProgress)
       .set({
         progressPercent: 100,
+        lastViewedAt: nowIso,
+        timeSpentSeconds: sql`max(${userCourseLessonProgress.timeSpentSeconds}, ${timeSpentSeconds})`,
         lastStudiedAt: nowIso,
         updatedAt: nowIso,
       })
@@ -668,6 +723,11 @@ export async function updateCourseLessonProgress(input: {
         courseLessonId: lesson.id,
         status: "IN_PROGRESS",
         progressPercent: Math.max(current?.progressPercent ?? 0, progressPercent),
+        lastViewedAt: nowIso,
+        timeSpentSeconds: Math.max(
+          current?.timeSpentSeconds ?? 0,
+          timeSpentSeconds,
+        ),
         lastStudiedAt: nowIso,
       })
       .onConflictDoUpdate({
@@ -679,13 +739,15 @@ export async function updateCourseLessonProgress(input: {
         set: {
           status: "IN_PROGRESS",
           progressPercent: sql`max(${userCourseLessonProgress.progressPercent}, ${progressPercent})`,
+          lastViewedAt: nowIso,
+          timeSpentSeconds: sql`max(${userCourseLessonProgress.timeSpentSeconds}, ${timeSpentSeconds})`,
           lastStudiedAt: nowIso,
           updatedAt: nowIso,
         },
       });
     return {
       status: "IN_PROGRESS",
-      progressPercent,
+      progressPercent: Math.max(current?.progressPercent ?? 0, progressPercent),
       completedAt: null,
       idempotentReplay: Boolean(current),
     };
@@ -710,6 +772,11 @@ export async function updateCourseLessonProgress(input: {
           status: "COMPLETED",
           progressPercent: 100,
           completedAt: nowIso,
+          lastViewedAt: nowIso,
+          timeSpentSeconds: Math.max(
+            current?.timeSpentSeconds ?? 0,
+            timeSpentSeconds,
+          ),
           lastStudiedAt: nowIso,
         })
         .onConflictDoUpdate({
@@ -722,6 +789,8 @@ export async function updateCourseLessonProgress(input: {
             status: "COMPLETED",
             progressPercent: 100,
             completedAt: sql`coalesce(${userCourseLessonProgress.completedAt}, ${nowIso})`,
+            lastViewedAt: nowIso,
+            timeSpentSeconds: sql`max(${userCourseLessonProgress.timeSpentSeconds}, ${timeSpentSeconds})`,
             lastStudiedAt: nowIso,
             updatedAt: nowIso,
           },

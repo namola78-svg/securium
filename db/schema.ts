@@ -490,6 +490,9 @@ export const courseLessons = sqliteTable(
     contentId: text("content_id")
       .notNull()
       .references(() => contents.id, { onDelete: "restrict" }),
+    lessonId: text("lesson_id").references(() => lessons.id, {
+      onDelete: "restrict",
+    }),
     displayTitle: text("display_title").notNull(),
     sortOrder: integer("sort_order").notNull().default(0),
     difficulty: text("difficulty"),
@@ -498,6 +501,7 @@ export const courseLessons = sqliteTable(
     isRequired: integer("is_required", { mode: "boolean" })
       .notNull()
       .default(true),
+    unlockCondition: text("unlock_condition"),
     completionRule: text("completion_rule").notNull().default("MANUAL"),
     status: text("status").notNull().default("DRAFT"),
     deletedAt: text("deleted_at"),
@@ -520,6 +524,7 @@ export const courseLessons = sqliteTable(
       table.sortOrder,
     ),
     index("course_lessons_content_usage_idx").on(table.contentId, table.courseId),
+    index("course_lessons_lesson_usage_idx").on(table.lessonId, table.courseId),
     check(
       "course_lessons_status_check",
       sql`${table.status} IN ('DRAFT', 'PUBLISHED', 'ARCHIVED')`,
@@ -594,6 +599,8 @@ export const userCourseLessonProgress = sqliteTable(
     status: text("status").notNull().default("IN_PROGRESS"),
     progressPercent: integer("progress_percent").notNull().default(0),
     completedAt: text("completed_at"),
+    lastViewedAt: text("last_viewed_at"),
+    timeSpentSeconds: integer("time_spent_seconds").notNull().default(0),
     lastStudiedAt: text("last_studied_at"),
     ...timestamps,
   },
@@ -620,6 +627,10 @@ export const userCourseLessonProgress = sqliteTable(
     check(
       "user_course_lesson_progress_percent_check",
       sql`${table.progressPercent} >= 0 AND ${table.progressPercent} <= 100`,
+    ),
+    check(
+      "user_course_lesson_progress_time_spent_check",
+      sql`${table.timeSpentSeconds} >= 0 AND ${table.timeSpentSeconds} <= 31536000`,
     ),
   ],
 );

@@ -82,6 +82,11 @@ export function normalizeCourseLessonProgressPercent(value: number) {
   return Math.max(0, Math.min(100, Math.round(value)));
 }
 
+export function normalizeCourseLessonTimeSpentSeconds(value: number) {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.min(31_536_000, Math.round(value)));
+}
+
 export function assertCourseLessonCompletionAllowed(input: {
   completionRule: string;
   explicitRequest: boolean;

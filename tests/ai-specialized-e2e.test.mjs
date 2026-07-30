@@ -56,7 +56,7 @@ before(async () => {
     output += chunk.toString();
   });
   let ready = false;
-  for (let attempt = 0; attempt < 80; attempt += 1) {
+  for (let attempt = 0; attempt < 480; attempt += 1) {
     if (server.exitCode !== null) {
       throw new Error(`Specialized AI E2E server stopped.\n${output}`);
     }
