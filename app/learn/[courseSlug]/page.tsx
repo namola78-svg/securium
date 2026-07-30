@@ -335,6 +335,8 @@ function CurriculumPathNodeCard({
   courseSlug: string;
   node: CurriculumPathNode;
 }) {
+  const practiceHref = getCurriculumPracticeHref(courseSlug, node);
+
   return (
     <article className="curriculum-path-node">
       <div className="curriculum-path-node-body">
@@ -390,6 +392,11 @@ function CurriculumPathNodeCard({
             연결 레슨 보기 · {node.linkedLesson.title}
           </Link>
         ) : null}
+        {practiceHref ? (
+          <Link className="button button-dark" href={practiceHref}>
+            커리큘럼 문제 풀기
+          </Link>
+        ) : null}
       </div>
       {node.children.length ? (
         <div className="curriculum-path-children">
@@ -404,4 +411,21 @@ function CurriculumPathNodeCard({
       ) : null}
     </article>
   );
+}
+
+function getCurriculumPracticeHref(
+  courseSlug: string,
+  node: CurriculumPathNode,
+) {
+  if (!node.questionStats.questionCount) return null;
+  const topicLink = node.linkedContent.find((link) => link.type === "TOPIC");
+  const subjectLink = node.linkedContent.find(
+    (link) => link.type === "SUBJECT",
+  );
+  if (!subjectLink && !topicLink) return null;
+
+  const params = new URLSearchParams({ count: "10" });
+  if (subjectLink) params.set("subjectId", subjectLink.id);
+  if (topicLink) params.set("topicId", topicLink.id);
+  return `/practice/${courseSlug}?${params.toString()}`;
 }

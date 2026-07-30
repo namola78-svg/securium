@@ -286,6 +286,8 @@ test("ACTIVE 커리큘럼 트리는 수강자의 학습 화면에 읽기 전용 
   assert.match(html, /통합 커리큘럼 경로/);
   assert.match(html, /ISMS-P 2027 커리큘럼/);
   assert.match(html, /연결 레슨 보기/);
+  assert.match(html, /커리큘럼 문제 풀기/);
+  assert.match(html, /\/practice\/isms-p\?/);
 });
 
 test("자기 자신, 하위 노드, 다른 Tree parent 지정은 차단된다", async () => {
