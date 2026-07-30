@@ -42,7 +42,10 @@ export function HeaderControls({ user }: HeaderControlsProps) {
   const [signedOutLocally, setSignedOutLocally] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [logoutError, setLogoutError] = useState("");
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const navRef = useRef<HTMLElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+  const lockedScrollY = useRef(0);
   const activePath = resolveActivePath(pathname, searchParams);
   const currentUser = signedOutLocally ? null : user;
   const isSignedIn = Boolean(currentUser);
@@ -61,22 +64,54 @@ export function HeaderControls({ user }: HeaderControlsProps) {
 
   useEffect(() => {
     if (!mobileOpen) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const body = document.body;
+    const previousOverflow = body.style.overflow;
+    const previousPosition = body.style.position;
+    const previousTop = body.style.top;
+    const previousWidth = body.style.width;
+    lockedScrollY.current = window.scrollY;
+    body.style.overflow = "hidden";
+    body.style.position = "fixed";
+    body.style.top = `-${lockedScrollY.current}px`;
+    body.style.width = "100%";
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setMobileOpen(false);
         setProfileOpen(false);
+        window.requestAnimationFrame(() => menuButtonRef.current?.focus());
       }
     }
 
     window.addEventListener("keydown", handleKeyDown);
+    window.requestAnimationFrame(() => {
+      const focusTarget = navRef.current?.querySelector<HTMLElement>(
+        'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      focusTarget?.focus();
+    });
+
     return () => {
-      document.body.style.overflow = previousOverflow;
+      body.style.overflow = previousOverflow;
+      body.style.position = previousPosition;
+      body.style.top = previousTop;
+      body.style.width = previousWidth;
+      window.scrollTo(0, lockedScrollY.current);
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [mobileOpen]);
+
+  useEffect(() => {
+    function handleResize() {
+      if (window.innerWidth > 960) {
+        setMobileOpen(false);
+        setProfileOpen(false);
+      }
+    }
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     function handlePointerDown(event: PointerEvent) {
@@ -172,6 +207,7 @@ export function HeaderControls({ user }: HeaderControlsProps) {
     <>
       <button
         className="mobile-menu-button"
+        ref={menuButtonRef}
         type="button"
         aria-label={mobileOpen ? "메뉴 닫기" : "메뉴 열기"}
         aria-expanded={mobileOpen}
@@ -187,6 +223,7 @@ export function HeaderControls({ user }: HeaderControlsProps) {
       <nav
         className={`main-nav ${mobileOpen ? "open" : ""}`}
         id="site-navigation"
+        ref={navRef}
         aria-label="주요 메뉴"
       >
         {navItems.map((item) => (
