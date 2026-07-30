@@ -423,6 +423,8 @@ test("공개 문제만 표시하고 제출 전 정답 플래그를 노출하지 
   );
   const html = await response.text();
   assert.equal(response.status, 200, html.slice(0, 1200));
+  assert.match(html, /CURRENT PRACTICE/);
+  assert.match(html, /현재 문제풀이 조건/);
   assert.match(html, /ISMS-P[\s\S]{0,40}문제풀이/);
   assert.doesNotMatch(html, /\[개발용 샘플\]/);
   assert.doesNotMatch(html, /"isCorrect":true/);

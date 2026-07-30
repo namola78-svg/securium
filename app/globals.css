@@ -2910,7 +2910,14 @@ textarea {
   padding-block: 48px 92px;
 }
 
+.practice-main-stack {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
 .practice-filter,
+.practice-context-card,
 .practice-card,
 .review-card {
   border: 1px solid var(--line);
@@ -2926,6 +2933,46 @@ textarea {
 .practice-filter h2 {
   margin: 0 0 18px;
   font-size: 20px;
+}
+
+.practice-context-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: end;
+  padding: 22px;
+}
+
+.practice-context-card h2 {
+  margin: 4px 0 8px;
+  font-size: clamp(22px, 3vw, 30px);
+}
+
+.practice-context-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.practice-context-card .text-link {
+  justify-self: end;
+}
+
+.practice-context-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  grid-column: 1 / -1;
+}
+
+.practice-context-tags span {
+  padding: 7px 10px;
+  border: 1px solid rgba(89, 112, 101, 0.16);
+  border-radius: 999px;
+  background: #f8faf5;
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .practice-filter form {
@@ -3332,6 +3379,14 @@ textarea {
 
   .practice-layout {
     grid-template-columns: 1fr;
+  }
+
+  .practice-context-card {
+    grid-template-columns: 1fr;
+  }
+
+  .practice-context-card .text-link {
+    justify-self: start;
   }
 
   .side-stack {

@@ -50,6 +50,9 @@ export default async function PracticePage({
   const subjectId =
     typeof query.subjectId === "string" ? query.subjectId : undefined;
   const topics = subjectId ? await listTopicsForSubject(subjectId) : [];
+  const topicId = typeof query.topicId === "string" ? query.topicId : undefined;
+  const selectedSubject = subjects.find((subject) => subject.id === subjectId);
+  const selectedTopic = topics.find((topic) => topic.id === topicId);
   const wrongQuestionIds =
     query.wrongOnly === "1"
       ? await listWrongQuestionIds(user.id, course.id)
@@ -69,7 +72,7 @@ export default async function PracticePage({
   const questions = await listPublicQuestions({
     courseId: course.id,
     subjectId,
-    topicId: typeof query.topicId === "string" ? query.topicId : undefined,
+    topicId,
     type: typeof query.type === "string" ? query.type : undefined,
     difficulty:
       typeof query.difficulty === "string" ? query.difficulty : undefined,
@@ -186,8 +189,103 @@ export default async function PracticePage({
             </button>
           </form>
         </aside>
-        <PracticeSession questions={sanitizedQuestions} courseId={course.id} />
+        <div className="practice-main-stack">
+          <PracticeContextSummary
+            courseSlug={course.slug}
+            count={limit}
+            difficulty={
+              typeof query.difficulty === "string"
+                ? query.difficulty
+                : undefined
+            }
+            questionCount={sanitizedQuestions.length}
+            questionType={typeof query.type === "string" ? query.type : undefined}
+            random={query.random === "1"}
+            reviewOnly={query.reviewOnly === "1"}
+            selectedSubjectName={selectedSubject?.name}
+            selectedTopicName={selectedTopic?.name}
+            wrongOnly={query.wrongOnly === "1"}
+          />
+          <PracticeSession questions={sanitizedQuestions} courseId={course.id} />
+        </div>
       </div>
     </main>
   );
+}
+
+function PracticeContextSummary({
+  courseSlug,
+  count,
+  difficulty,
+  questionCount,
+  questionType,
+  random,
+  reviewOnly,
+  selectedSubjectName,
+  selectedTopicName,
+  wrongOnly,
+}: {
+  courseSlug: string;
+  count: number;
+  difficulty?: string;
+  questionCount: number;
+  questionType?: string;
+  random: boolean;
+  reviewOnly: boolean;
+  selectedSubjectName?: string;
+  selectedTopicName?: string;
+  wrongOnly: boolean;
+}) {
+  const filters = [
+    selectedSubjectName ? `과목: ${selectedSubjectName}` : "전체 과목",
+    selectedTopicName ? `주제: ${selectedTopicName}` : "전체 주제",
+    questionType ? `유형: ${formatQuestionType(questionType)}` : "전체 유형",
+    difficulty ? `난이도: ${formatDifficulty(difficulty)}` : "전체 난이도",
+    random ? "무작위 출제" : "기본 순서",
+    wrongOnly ? "오답만" : null,
+    reviewOnly ? "복습 예정" : null,
+    `최대 ${count}문항`,
+  ].filter((item): item is string => Boolean(item));
+
+  return (
+    <section className="practice-context-card" aria-label="현재 문제풀이 조건">
+      <div>
+        <p className="eyebrow">CURRENT PRACTICE</p>
+        <h2>현재 문제풀이 조건</h2>
+        <p>
+          {questionCount}개 문항을 불러왔습니다. 커리큘럼에서 진입한 경우
+          연결된 과목과 주제 기준으로 문제가 구성됩니다.
+        </p>
+      </div>
+      <div className="practice-context-tags" aria-label="적용된 필터">
+        {filters.map((filter) => (
+          <span key={filter}>{filter}</span>
+        ))}
+      </div>
+      <a className="text-link" href={`/practice/${courseSlug}`}>
+        필터 초기화
+      </a>
+    </section>
+  );
+}
+
+function formatQuestionType(type: string) {
+  const labels: Record<string, string> = {
+    TRUE_FALSE: "OX",
+    SINGLE_CHOICE: "단일선택",
+    MULTIPLE_CHOICE: "복수선택",
+    SHORT_ANSWER: "단답형",
+    ESSAY: "서술형",
+    CALCULATION: "계산형",
+  };
+  return labels[type] ?? type;
+}
+
+function formatDifficulty(difficulty: string) {
+  const labels: Record<string, string> = {
+    EASY: "쉬움",
+    MEDIUM: "보통",
+    HARD: "어려움",
+  };
+  return labels[difficulty] ?? difficulty;
 }
