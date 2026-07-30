@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { EmptyState } from "@/components/state-ui";
-import { getRecommendations } from "@/db/phase3-repositories";
 import { listUserEnrollments } from "@/db/repositories";
 import { requireCurrentAppUser } from "@/lib/auth";
 
@@ -13,10 +12,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AiTutorPage() {
   const user = await requireCurrentAppUser("/ai-tutor");
-  const [enrollments, recommendations] = await Promise.all([
-    listUserEnrollments(user.id),
-    getRecommendations(user.id),
-  ]);
+  const enrollments = await listUserEnrollments(user.id);
   const activeEnrollments = enrollments.filter(
     (enrollment) => enrollment.status === "ACTIVE",
   );
@@ -86,30 +82,11 @@ export default async function AiTutorPage() {
           <article className="course-detail-section">
             <p className="eyebrow">RECOMMENDED</p>
             <h2>오늘 참고할 학습 추천</h2>
-            {recommendations.length ? (
-              <div className="recommendation-list">
-                {recommendations.slice(0, 5).map((item) => (
-                  <Link
-                    className="recommendation-card"
-                    href={item.href}
-                    key={`${item.kind}-${item.id}`}
-                  >
-                    <span className="badge">{item.kind}</span>
-                    <div>
-                      <strong>{item.title}</strong>
-                      <p>{item.reason}</p>
-                    </div>
-                    <small>약 {item.estimatedMinutes}분</small>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <EmptyState
-                title="아직 추천을 만들 학습 기록이 없습니다"
-                description="문제풀이와 복습 기록이 쌓이면 추천이 표시됩니다."
-                action={{ href: "/practice", label: "문제풀이 시작" }}
-              />
-            )}
+            <EmptyState
+              title="AI 맞춤 추천을 준비하고 있습니다"
+              description="문제풀이와 복습 기록이 쌓이면 추천 학습과 AI 해설을 더 정교하게 연결할 예정입니다."
+              action={{ href: "/practice", label: "문제풀이 시작" }}
+            />
           </article>
         </div>
       </section>
