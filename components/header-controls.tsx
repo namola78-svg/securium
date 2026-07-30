@@ -30,6 +30,7 @@ const signedInItems: NavItem[] = [
   { href: "/my-courses", label: "내 학습" },
   { href: "/practice", label: "문제풀이" },
   { href: "/wrong-notes", label: "오답노트" },
+  { href: "/reviews", label: "오늘의 복습" },
   { href: "/ai-tutor", label: "AI 튜터" },
 ];
 
