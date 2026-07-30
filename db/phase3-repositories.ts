@@ -5,6 +5,7 @@ import {
   eq,
   gt,
   inArray,
+  isNull,
   lte,
   sql,
 } from "drizzle-orm";
@@ -12,6 +13,8 @@ import type { BatchItem } from "drizzle-orm/batch";
 import { getDb } from ".";
 import {
   courses,
+  contents,
+  courseLessons,
   learningActivities,
   levelContents,
   levels,
@@ -30,6 +33,7 @@ import {
   subjects,
   topics,
   userCourseEnrollments,
+  userCourseLessonProgress,
   userLearningSettings,
   userLevelProgress,
   wrongNotes,
@@ -1246,12 +1250,142 @@ export async function getIntegratedStatistics(userId: string) {
       .from(learningActivities)
       .where(eq(learningActivities.userId, userId)),
   ]);
-  const courseStats = await Promise.all(
-    enrollments.map(async (enrollment) => ({
-      ...enrollment,
-      stats: await getCourseStatistics(userId, enrollment.courseId),
-    })),
+  const courseIds = enrollments.map((enrollment) => enrollment.courseId);
+  const [attemptRows, attemptDayRows, levelRows, courseLessonRows] =
+    courseIds.length
+      ? await Promise.all([
+        getDb()
+          .select({
+            courseId: questionAttempts.courseId,
+            totalQuestions: sql<number>`count(*)`,
+            correctAnswers: sql<number>`coalesce(sum(case when ${questionAttempts.isCorrect} then 1 else 0 end), 0)`,
+          })
+          .from(questionAttempts)
+          .where(
+            and(
+              eq(questionAttempts.userId, userId),
+              inArray(questionAttempts.courseId, courseIds),
+            ),
+          )
+          .groupBy(questionAttempts.courseId),
+        getDb()
+          .selectDistinct({
+            day: sql<string>`substr(${questionAttempts.attemptedAt}, 1, 10)`,
+          })
+          .from(questionAttempts)
+          .where(
+            and(
+              eq(questionAttempts.userId, userId),
+              inArray(questionAttempts.courseId, courseIds),
+            ),
+          ),
+        getDb()
+          .select({
+            courseId: userLevelProgress.courseId,
+            totalLevels: sql<number>`count(*)`,
+            completedLevels: sql<number>`coalesce(sum(case when ${userLevelProgress.status} in ('COMPLETED', 'MASTERED') then 1 else 0 end), 0)`,
+          })
+          .from(userLevelProgress)
+          .where(
+            and(
+              eq(userLevelProgress.userId, userId),
+              inArray(userLevelProgress.courseId, courseIds),
+            ),
+          )
+          .groupBy(userLevelProgress.courseId),
+        getDb()
+          .select({
+            courseId: courseLessons.courseId,
+            totalLessons: sql<number>`count(${courseLessons.id})`,
+            completedLessons: sql<number>`coalesce(sum(case when ${userCourseLessonProgress.status} = 'COMPLETED' then 1 else 0 end), 0)`,
+          })
+          .from(courseLessons)
+          .innerJoin(contents, eq(courseLessons.contentId, contents.id))
+          .leftJoin(
+            userCourseLessonProgress,
+            and(
+              eq(userCourseLessonProgress.userId, userId),
+              eq(userCourseLessonProgress.courseId, courseLessons.courseId),
+              eq(
+                userCourseLessonProgress.courseLessonId,
+                courseLessons.id,
+              ),
+            ),
+          )
+          .where(
+            and(
+              inArray(courseLessons.courseId, courseIds),
+              eq(courseLessons.status, "PUBLISHED"),
+              isNull(courseLessons.deletedAt),
+              eq(contents.status, "PUBLISHED"),
+              isNull(contents.deletedAt),
+            ),
+          )
+          .groupBy(courseLessons.courseId),
+      ])
+    : [[], [], [], []];
+  const attemptMap = new Map(
+    attemptRows.map((row) => [
+      row.courseId,
+      {
+        totalQuestions: Number(row.totalQuestions),
+        correctAnswers: Number(row.correctAnswers),
+      },
+    ]),
   );
+  const levelMap = new Map(
+    levelRows.map((row) => [
+      row.courseId,
+      {
+        totalLevels: Number(row.totalLevels),
+        completedLevels: Number(row.completedLevels),
+      },
+    ]),
+  );
+  const courseLessonMap = new Map(
+    courseLessonRows.map((row) => [
+      row.courseId,
+      {
+        totalLessons: Number(row.totalLessons),
+        completedLessons: Number(row.completedLessons),
+      },
+    ]),
+  );
+  const courseStats = enrollments.map((enrollment) => {
+    const attempts = attemptMap.get(enrollment.courseId) ?? {
+      totalQuestions: 0,
+      correctAnswers: 0,
+    };
+    const levels = levelMap.get(enrollment.courseId) ?? {
+      totalLevels: 0,
+      completedLevels: 0,
+    };
+    const lessons = courseLessonMap.get(enrollment.courseId) ?? {
+      totalLessons: 0,
+      completedLessons: 0,
+    };
+    return {
+      ...enrollment,
+      stats: {
+        totalQuestions: attempts.totalQuestions,
+        correctAnswers: attempts.correctAnswers,
+        overallAccuracy: safeRate(
+          attempts.correctAnswers,
+          attempts.totalQuestions,
+        ),
+        levelCompletionRate: safeRate(
+          levels.completedLevels,
+          levels.totalLevels,
+        ),
+        theoryProgressPercent: safeRate(
+          lessons.completedLessons,
+          lessons.totalLessons,
+        ),
+        theoryCompletedLessons: lessons.completedLessons,
+        theoryTotalLessons: lessons.totalLessons,
+      },
+    };
+  });
   const totalQuestions = courseStats.reduce(
     (sum, item) => sum + item.stats.totalQuestions,
     0,
@@ -1262,7 +1396,7 @@ export async function getIntegratedStatistics(userId: string) {
   );
   const studyDays = [
     ...new Set([
-      ...courseStats.flatMap((item) => item.stats.studyDays),
+      ...attemptDayRows.map((item) => item.day),
       ...activityDays.map((item) => item.day),
     ]),
   ];

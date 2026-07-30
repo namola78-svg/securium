@@ -53,6 +53,7 @@ export default async function IntegratedAnalyticsPage() {
                   label="정답률"
                 />
                 <span>{course.stats.levelCompletionRate}% 단계 완료</span>
+                <span>{course.stats.theoryProgressPercent}% 이론 학습</span>
                 <div className="analytics-row-actions">
                   <Link
                     className="button button-ghost"
