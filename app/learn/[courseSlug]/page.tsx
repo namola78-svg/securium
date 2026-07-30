@@ -354,6 +354,30 @@ function CurriculumPathNodeCard({
             {node.linkedLessonProgressPercent}%
           </p>
         ) : null}
+        {node.questionStats.questionCount ? (
+          <dl className="curriculum-path-stats" aria-label={`${node.title} 문제 통계`}>
+            <div>
+              <dt>문제</dt>
+              <dd>{node.questionStats.questionCount}개</dd>
+            </div>
+            <div>
+              <dt>정답률</dt>
+              <dd>
+                {node.questionStats.attemptCount
+                  ? `${node.questionStats.accuracy}%`
+                  : "기록 없음"}
+              </dd>
+            </div>
+            <div>
+              <dt>오답</dt>
+              <dd>{node.questionStats.wrongQuestionCount}개</dd>
+            </div>
+            <div>
+              <dt>복습</dt>
+              <dd>{node.questionStats.dueReviewCount}개</dd>
+            </div>
+          </dl>
+        ) : null}
         <p className="curriculum-path-meta">
           연결 콘텐츠 {node.linkedContentCount}개
           {node.importance !== null ? ` · 중요도 ${node.importance}` : ""}

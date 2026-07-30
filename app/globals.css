@@ -2439,6 +2439,37 @@ textarea {
   color: var(--ink);
 }
 
+.curriculum-path-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.curriculum-path-stats div {
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--white) 94%, var(--accent));
+}
+
+.curriculum-path-stats dt,
+.curriculum-path-stats dd {
+  margin: 0;
+}
+
+.curriculum-path-stats dt {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.curriculum-path-stats dd {
+  margin-top: 4px;
+  font-size: 15px;
+  font-weight: 900;
+}
+
 .subject-row {
   display: grid;
   grid-template-columns: 48px 1fr auto;
@@ -3453,6 +3484,10 @@ textarea {
 
   .curriculum-path-children {
     padding-left: 12px;
+  }
+
+  .curriculum-path-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .my-course-row {

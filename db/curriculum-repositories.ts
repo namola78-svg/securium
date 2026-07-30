@@ -7,9 +7,14 @@ import {
   curriculumTrees,
   learningUnits,
   lessons,
+  questionAttempts,
+  questionSubjects,
+  questionTopics,
+  reviewSchedules,
   subjects,
   topics,
   userLessonProgress,
+  wrongNotes,
 } from "./schema";
 import { AppError } from "@/lib/errors";
 import type {
@@ -140,6 +145,18 @@ function parseLinkedContent(metadata: string | null | undefined): LinkedContent[
         ["SUBJECT", "TOPIC", "LEARNING_UNIT", "LESSON"].includes(link.type),
     )
     .map((link) => ({ type: link.type, id: link.id }));
+}
+
+function safeRate(numerator: number, denominator: number) {
+  return denominator ? Math.round((numerator / denominator) * 100) : 0;
+}
+
+function chunkValues<T>(values: T[], size = 75) {
+  const chunks: T[][] = [];
+  for (let index = 0; index < values.length; index += size) {
+    chunks.push(values.slice(index, index + size));
+  }
+  return chunks;
 }
 
 async function assertLinkedContentBelongsToCourse(input: {
@@ -350,6 +367,136 @@ export async function getPublishedCurriculumPathForCourse(
   const progressByLessonId = new Map(
     progressRows.map((progress) => [progress.lessonId, progress]),
   );
+  const allLinkedContent = nodeRows.flatMap((node) =>
+    parseLinkedContent(node.metadata),
+  );
+  const subjectIds = [
+    ...new Set(
+      allLinkedContent
+        .filter((link) => link.type === "SUBJECT")
+        .map((link) => link.id),
+    ),
+  ];
+  const topicIds = [
+    ...new Set(
+      allLinkedContent
+        .filter((link) => link.type === "TOPIC")
+        .map((link) => link.id),
+    ),
+  ];
+  const [subjectQuestionRows, topicQuestionRows] = await Promise.all([
+    subjectIds.length
+      ? getDb()
+          .select({
+            subjectId: questionSubjects.subjectId,
+            questionId: questionSubjects.questionId,
+          })
+          .from(questionSubjects)
+          .where(inArray(questionSubjects.subjectId, subjectIds))
+      : [],
+    topicIds.length
+      ? getDb()
+          .select({
+            topicId: questionTopics.topicId,
+            questionId: questionTopics.questionId,
+          })
+          .from(questionTopics)
+          .where(inArray(questionTopics.topicId, topicIds))
+      : [],
+  ]);
+  const questionIdsBySubject = new Map<string, Set<string>>();
+  for (const row of subjectQuestionRows) {
+    const set = questionIdsBySubject.get(row.subjectId) ?? new Set<string>();
+    set.add(row.questionId);
+    questionIdsBySubject.set(row.subjectId, set);
+  }
+  const questionIdsByTopic = new Map<string, Set<string>>();
+  for (const row of topicQuestionRows) {
+    const set = questionIdsByTopic.get(row.topicId) ?? new Set<string>();
+    set.add(row.questionId);
+    questionIdsByTopic.set(row.topicId, set);
+  }
+  const mappedQuestionIds = [
+    ...new Set([
+      ...subjectQuestionRows.map((row) => row.questionId),
+      ...topicQuestionRows.map((row) => row.questionId),
+    ]),
+  ];
+  const nowIso = new Date().toISOString();
+  const [attemptRows, wrongRows, reviewRows] =
+    userId && mappedQuestionIds.length
+      ? await Promise.all([
+          Promise.all(
+            chunkValues(mappedQuestionIds).map((questionIdChunk) =>
+              getDb()
+                .select({
+                  questionId: questionAttempts.questionId,
+                  isCorrect: questionAttempts.isCorrect,
+                })
+                .from(questionAttempts)
+                .where(
+                  and(
+                    eq(questionAttempts.userId, userId),
+                    eq(questionAttempts.courseId, courseId),
+                    inArray(questionAttempts.questionId, questionIdChunk),
+                  ),
+                ),
+            ),
+          ).then((chunks) => chunks.flat()),
+          Promise.all(
+            chunkValues(mappedQuestionIds).map((questionIdChunk) =>
+              getDb()
+                .select({
+                  questionId: wrongNotes.questionId,
+                  wrongCount: wrongNotes.wrongCount,
+                })
+                .from(wrongNotes)
+                .where(
+                  and(
+                    eq(wrongNotes.userId, userId),
+                    eq(wrongNotes.courseId, courseId),
+                    eq(wrongNotes.mastered, false),
+                    inArray(wrongNotes.questionId, questionIdChunk),
+                  ),
+                ),
+            ),
+          ).then((chunks) => chunks.flat()),
+          Promise.all(
+            chunkValues(mappedQuestionIds).map((questionIdChunk) =>
+              getDb()
+                .select({
+                  questionId: reviewSchedules.targetId,
+                })
+                .from(reviewSchedules)
+                .where(
+                  and(
+                    eq(reviewSchedules.userId, userId),
+                    eq(reviewSchedules.courseId, courseId),
+                    eq(reviewSchedules.targetType, "QUESTION"),
+                    inArray(reviewSchedules.status, ["DUE", "SCHEDULED"]),
+                    sql`${reviewSchedules.nextReviewAt} <= ${nowIso}`,
+                    inArray(reviewSchedules.targetId, questionIdChunk),
+                  ),
+                ),
+            ),
+          ).then((chunks) => chunks.flat()),
+        ])
+      : [[], [], []];
+  const attemptsByQuestionId = new Map<
+    string,
+    Array<{ isCorrect: boolean }>
+  >();
+  for (const attempt of attemptRows) {
+    const rows = attemptsByQuestionId.get(attempt.questionId) ?? [];
+    rows.push({ isCorrect: attempt.isCorrect });
+    attemptsByQuestionId.set(attempt.questionId, rows);
+  }
+  const wrongCountByQuestionId = new Map(
+    wrongRows.map((row) => [row.questionId, row.wrongCount]),
+  );
+  const dueReviewQuestionIds = new Set(
+    reviewRows.map((row) => row.questionId),
+  );
   const nodes = nodeRows.map((node) => {
     const linkedContent = parseLinkedContent(node.metadata);
     const linkedLessons = linkedContent
@@ -374,6 +521,35 @@ export async function getPublishedCurriculumPathForCourse(
     const completedLinkedLessons = linkedLessons.filter(
       (lesson) => progressByLessonId.get(lesson.id)?.status === "COMPLETED",
     ).length;
+    const nodeQuestionIds = new Set<string>();
+    for (const link of linkedContent) {
+      if (link.type === "SUBJECT") {
+        for (const questionId of questionIdsBySubject.get(link.id) ?? []) {
+          nodeQuestionIds.add(questionId);
+        }
+      }
+      if (link.type === "TOPIC") {
+        for (const questionId of questionIdsByTopic.get(link.id) ?? []) {
+          nodeQuestionIds.add(questionId);
+        }
+      }
+    }
+    const nodeAttempts = [...nodeQuestionIds].flatMap(
+      (questionId) => attemptsByQuestionId.get(questionId) ?? [],
+    );
+    const correctAttempts = nodeAttempts.filter(
+      (attempt) => attempt.isCorrect,
+    ).length;
+    const wrongQuestionCount = [...nodeQuestionIds].filter(
+      (questionId) => (wrongCountByQuestionId.get(questionId) ?? 0) > 0,
+    ).length;
+    const wrongAttemptCount = [...nodeQuestionIds].reduce(
+      (sum, questionId) => sum + (wrongCountByQuestionId.get(questionId) ?? 0),
+      0,
+    );
+    const dueReviewCount = [...nodeQuestionIds].filter((questionId) =>
+      dueReviewQuestionIds.has(questionId),
+    ).length;
     return {
       ...node,
       linkedContent,
@@ -387,6 +563,15 @@ export async function getPublishedCurriculumPathForCourse(
       linkedLesson: firstLesson
         ? { id: firstLesson.id, title: firstLesson.title }
         : null,
+      questionStats: {
+        questionCount: nodeQuestionIds.size,
+        attemptCount: nodeAttempts.length,
+        correctAttempts,
+        accuracy: safeRate(correctAttempts, nodeAttempts.length),
+        wrongQuestionCount,
+        wrongAttemptCount,
+        dueReviewCount,
+      },
     };
   });
   const completedLinkedLessons = visibleLessonIds.filter(
