@@ -3063,7 +3063,7 @@ textarea {
     top: 76px;
     right: 0;
     left: 0;
-    height: calc(100dvh - 76px);
+    height: calc(100vh - 76px);
     z-index: 40;
     display: block;
     border: 0;
