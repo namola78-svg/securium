@@ -48,13 +48,15 @@ export async function GET(request: NextRequest) {
       error: "oauth_provider_failed",
       return_to: returnTo,
     });
-    return NextResponse.redirect(new URL(`/login?${params.toString()}`, request.url));
+    const response = NextResponse.redirect(
+      new URL(`/login?${params.toString()}`, request.url),
+    );
+    applySupabaseSsrCookies(response, cookiesToSet);
+    return response;
   }
 
   const response = NextResponse.redirect(data.url);
-  for (const cookie of cookiesToSet) {
-    response.cookies.set(cookie.name, cookie.value, cookie.options);
-  }
+  applySupabaseSsrCookies(response, cookiesToSet);
   response.cookies.set(SUPABASE_OAUTH_RETURN_COOKIE, returnTo, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -63,4 +65,17 @@ export async function GET(request: NextRequest) {
     maxAge: 10 * 60,
   });
   return response;
+}
+
+function applySupabaseSsrCookies(
+  response: NextResponse,
+  cookiesToSet: Array<{
+    name: string;
+    value: string;
+    options: Record<string, unknown>;
+  }>,
+) {
+  for (const cookie of cookiesToSet) {
+    response.cookies.set(cookie.name, cookie.value, cookie.options);
+  }
 }

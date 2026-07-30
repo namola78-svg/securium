@@ -59,13 +59,15 @@ export async function GET(request: NextRequest) {
       error: "oauth_callback_failed",
       return_to: returnTo,
     });
-    return NextResponse.redirect(new URL(`/login?${params.toString()}`, request.url));
+    const response = NextResponse.redirect(
+      new URL(`/login?${params.toString()}`, request.url),
+    );
+    applySupabaseSsrCookies(response, cookiesToSet);
+    return response;
   }
 
   const response = NextResponse.redirect(new URL(returnTo, request.url));
-  for (const cookie of cookiesToSet) {
-    response.cookies.set(cookie.name, cookie.value, cookie.options);
-  }
+  applySupabaseSsrCookies(response, cookiesToSet);
   for (const cookie of supabaseSessionCookieSpecs(
     {
       accessToken: data.session.access_token,
@@ -78,4 +80,17 @@ export async function GET(request: NextRequest) {
   }
   response.cookies.delete(SUPABASE_OAUTH_RETURN_COOKIE);
   return response;
+}
+
+function applySupabaseSsrCookies(
+  response: NextResponse,
+  cookiesToSet: Array<{
+    name: string;
+    value: string;
+    options: Record<string, unknown>;
+  }>,
+) {
+  for (const cookie of cookiesToSet) {
+    response.cookies.set(cookie.name, cookie.value, cookie.options);
+  }
 }
