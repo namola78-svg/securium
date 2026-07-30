@@ -26,12 +26,18 @@ export function CourseCard({ course }: { course: CourseListItem }) {
         <span className="course-code" aria-label={`과정 코드 ${course.code}`}>
           {course.code}
         </span>
-        <span className={`course-status ${status === "학습 가능" ? "available" : "planned"}`}>
+        <span
+          className={`course-status ${
+            status === "학습 가능" ? "available" : "planned"
+          }`}
+        >
           {status}
         </span>
       </div>
       <p className="eyebrow">{course.groupName}</p>
-      <h3 id={`course-${course.id}`}>{course.name || course.shortName || "이름 없는 과정"}</h3>
+      <h3 id={`course-${course.id}`}>
+        {course.name || course.shortName || "이름 없는 과정"}
+      </h3>
       <p className="course-summary">{description}</p>
       <dl className="course-comparison-list">
         <div>
@@ -40,7 +46,9 @@ export function CourseCard({ course }: { course: CourseListItem }) {
         </div>
         <div>
           <dt>학습 구성</dt>
-          <dd>{subjectCount}개 과목 · {topicCount}개 주제</dd>
+          <dd>
+            {subjectCount}개 과목 · {topicCount}개 주제
+          </dd>
         </div>
         <div>
           <dt>예상 기간</dt>
@@ -52,11 +60,18 @@ export function CourseCard({ course }: { course: CourseListItem }) {
         </div>
       </dl>
       {available ? (
-        <Link className="button button-dark full-width course-card-cta" href={`/courses/${course.slug}`}>
+        <Link
+          className="button button-dark full-width course-card-cta"
+          href={`/courses/${course.slug}`}
+        >
           과정 자세히 보기
         </Link>
       ) : (
-        <button className="button button-disabled full-width course-card-cta" type="button" disabled>
+        <button
+          className="button button-disabled full-width course-card-cta"
+          type="button"
+          disabled
+        >
           개설 예정
         </button>
       )}

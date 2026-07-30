@@ -20,6 +20,7 @@ import {
   listSubjectTheoryProgress,
 } from "@/db/lesson-repositories";
 import { listPublishedCourseLessonsForUser } from "@/db/shared-content-repositories";
+import { publicCopy } from "@/lib/public-copy";
 
 export const dynamic = "force-dynamic";
 
@@ -71,6 +72,19 @@ export default async function LearnCoursePage({
           100,
       )
     : 0;
+  const displayedTheoryProgress = sharedLessonProgress.totalLessons
+    ? {
+        completedLessons: sharedLessonProgress.completedLessons,
+        totalLessons: sharedLessonProgress.totalLessons,
+        progressPercent: sharedLessonProgress.progressPercent,
+      }
+    : theoryProgress;
+  const nextSharedLesson =
+    sharedLessonProgress.lessons.find((lesson) => lesson.status !== "COMPLETED") ??
+    null;
+  const latestSharedLesson =
+    sharedLessonProgress.lessons.find((lesson) => lesson.status === "COMPLETED") ??
+    null;
 
   return (
     <main className="page-main">
@@ -111,7 +125,8 @@ export default async function LearnCoursePage({
                 <div>
                   <dt>이론 진도</dt>
                   <dd>
-                    {theoryProgress.completedLessons}/{theoryProgress.totalLessons}
+                    {displayedTheoryProgress.completedLessons}/
+                    {displayedTheoryProgress.totalLessons}
                   </dd>
                 </div>
               </dl>
@@ -210,8 +225,8 @@ export default async function LearnCoursePage({
                       </span>
                       <span>{lesson.estimatedMinutes}분</span>
                     </div>
-                    <h3>{lesson.title}</h3>
-                    <p>{lesson.summary}</p>
+                    <h3>{publicCopy(lesson.title)}</h3>
+                    <p>{publicCopy(lesson.summary)}</p>
                     <div className="course-lesson-meta">
                       {lesson.isRequired ? <span>필수</span> : <span>선택</span>}
                       {lesson.difficulty ? <span>{lesson.difficulty}</span> : null}
@@ -243,7 +258,7 @@ export default async function LearnCoursePage({
                     <span>{String(index + 1).padStart(2, "0")}</span>
                     <div>
                       <h3>{subject.name}</h3>
-                      <p>{subject.description}</p>
+                      <p>{publicCopy(subject.description)}</p>
                     </div>
                     <strong>
                       {subjectTheoryProgress.find(
@@ -258,18 +273,27 @@ export default async function LearnCoursePage({
             <aside className="side-stack">
               <div className="side-card">
                 <span className="eyebrow">THEORY</span>
-                <h3>이론 학습 {theoryProgress.progressPercent}%</h3>
+                <h3>이론 학습 {displayedTheoryProgress.progressPercent}%</h3>
                 <p>
-                  {theoryProgress.latestLesson
-                    ? `최근: ${theoryProgress.latestLesson.title}`
+                  {latestSharedLesson
+                    ? `최근: ${publicCopy(latestSharedLesson.title)}`
+                    : theoryProgress.latestLesson
+                      ? `최근: ${publicCopy(theoryProgress.latestLesson.title)}`
                     : "아직 학습한 레슨이 없습니다."}
                 </p>
-                {theoryProgress.nextLesson ? (
+                {nextSharedLesson ? (
+                  <Link
+                    className="button button-dark full-width"
+                    href={`/learn/${course.slug}/course-lessons/${nextSharedLesson.id}`}
+                  >
+                    다음 추천 · {publicCopy(nextSharedLesson.title)}
+                  </Link>
+                ) : theoryProgress.nextLesson ? (
                   <Link
                     className="button button-dark full-width"
                     href={`/learn/${course.slug}/lessons/${theoryProgress.nextLesson.id}`}
                   >
-                    다음 추천 · {theoryProgress.nextLesson.title}
+                    다음 추천 · {publicCopy(theoryProgress.nextLesson.title)}
                   </Link>
                 ) : (
                   <span className="sample-label">공개 레슨 학습 완료</span>

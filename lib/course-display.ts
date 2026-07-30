@@ -11,7 +11,7 @@ export function difficultyLabel(value: string | null | undefined) {
   if (value === "BEGINNER") return "입문";
   if (value === "INTERMEDIATE") return "중급";
   if (value === "ADVANCED") return "심화";
-  return "수준 안내 예정";
+  return "난이도 안내 예정";
 }
 
 export function recommendedAudience(value: string | null | undefined) {
