@@ -310,6 +310,34 @@ export async function findUserByEmail(email: string) {
   return user ?? null;
 }
 
+export async function findUserWithRoleCodesByEmail(email: string) {
+  const rows = await getDb()
+    .select({
+      id: users.id,
+      email: users.email,
+      displayName: users.displayName,
+      status: users.status,
+      roleCode: roles.code,
+    })
+    .from(users)
+    .leftJoin(userRoles, eq(userRoles.userId, users.id))
+    .leftJoin(roles, eq(userRoles.roleId, roles.id))
+    .where(eq(users.email, email.toLowerCase()));
+
+  const first = rows[0];
+  if (!first) return null;
+
+  return {
+    id: first.id,
+    email: first.email,
+    displayName: first.displayName,
+    status: first.status,
+    roles: rows
+      .map((row) => row.roleCode)
+      .filter((roleCode): roleCode is string => Boolean(roleCode)),
+  };
+}
+
 export async function ensureUser(input: {
   email: string;
   displayName: string;

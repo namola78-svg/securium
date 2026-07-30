@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import { getChatGPTUser, chatGPTSignInPath } from "@/app/chatgpt-auth";
-import { ensureUser, listRoleCodes } from "@/db/repositories";
+import { ensureUser, findUserWithRoleCodesByEmail } from "@/db/repositories";
 import { AppError } from "./errors";
 import { assertCatalogManager } from "./services/catalog-service";
 import { assertQuestionEditor } from "./services/question-workflow-service";
@@ -34,14 +34,20 @@ async function resolveCurrentAppUser(): Promise<AppUser | null> {
   const identity = await getIdentity();
   if (!identity) return null;
 
-  const user = await ensureUser({
-    email: identity.email,
-    displayName: identity.displayName,
-  });
+  const existingUser = await findUserWithRoleCodesByEmail(identity.email);
+  const user =
+    existingUser ??
+    (await ensureUser({
+      email: identity.email,
+      displayName: identity.displayName,
+    }));
   if (user.status !== "ACTIVE") {
     throw new AppError("비활성화된 사용자입니다.", 403, "USER_INACTIVE");
   }
-  const roleCodes = await listRoleCodes(user.id);
+  const roleCodes =
+    "roles" in user
+      ? user.roles
+      : (await findUserWithRoleCodesByEmail(user.email))?.roles ?? [];
   return {
     id: user.id,
     email: user.email,
