@@ -269,3 +269,16 @@ test("Node 이동은 하위 depth/path를 함께 갱신하고 하위가 있는 �
   });
   assert.equal(archiveParent.status, 409);
 });
+
+test("관리자 커리큘럼 화면은 Tree와 Node 편집 UI를 제공한다", async () => {
+  const response = await fetch(`${baseUrl}/admin/curriculum?treeId=${treeId}`, {
+    headers: admin,
+  });
+  const html = await response.text();
+  assert.equal(response.status, 200, html.slice(0, 1000));
+  assert.match(html, /커리큘럼 트리 관리/);
+  assert.match(html, /새 커리큘럼 트리 생성/);
+  assert.match(html, /노드 편집/);
+  assert.match(html, /ISMS-P 2027/);
+  assert.match(html, /CURRICULUM ARCHITECTURE/);
+});

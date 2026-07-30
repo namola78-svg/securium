@@ -2560,6 +2560,37 @@ textarea {
   font-size: 21px;
 }
 
+.admin-helper,
+.empty-copy {
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.curriculum-admin-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+}
+
+.curriculum-message {
+  margin: 0;
+}
+
+.curriculum-node-panel {
+  overflow-x: auto;
+}
+
+.curriculum-node-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 20px 20px;
+}
+
+.danger-button {
+  border-color: rgba(192, 57, 43, 0.3);
+  color: var(--danger);
+}
+
 .inline-panel {
   display: flex;
   align-items: center;
