@@ -3062,8 +3062,8 @@ textarea {
     position: fixed;
     top: 76px;
     right: 0;
-    bottom: 0;
     left: 0;
+    height: calc(100dvh - 76px);
     z-index: 40;
     display: block;
     border: 0;
