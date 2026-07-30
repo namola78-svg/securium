@@ -99,11 +99,11 @@ export function CourseEnrollAction({
         },
         body: JSON.stringify({ courseId }),
       });
-      const payload = (await response.json().catch(() => null)) as {
-        code?: string;
-      } | null;
 
       if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as {
+          code?: string;
+        } | null;
         if (payload?.code === "DUPLICATE_ENROLLMENT") {
           setStatus("enrolled");
           setMessage(TEXT.duplicate);
