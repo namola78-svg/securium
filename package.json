@@ -29,6 +29,7 @@
     "db:postgres:status": "node scripts/postgres-migrations.mjs status",
     "db:postgres:runtime-status": "node scripts/postgres-runtime-status.mjs",
     "db:postgres:deploy": "node scripts/postgres-migrations.mjs deploy",
+    "db:postgres:seed:shared-content": "node scripts/apply-shared-content-seed.mjs",
     "db:postgres:security:generate": "node scripts/generate-postgres-rls.mjs",
     "db:postgres:security:validate": "node scripts/generate-postgres-rls.mjs --check",
     "migration:d1:export": "node scripts/d1-postgres-migration.mjs export-d1",
