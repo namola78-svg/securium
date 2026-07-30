@@ -1258,7 +1258,7 @@ export async function getIntegratedStatistics(userId: string) {
           .select({
             courseId: questionAttempts.courseId,
             totalQuestions: sql<number>`count(*)`,
-            correctAnswers: sql<number>`coalesce(sum(case when ${questionAttempts.isCorrect} then 1 else 0 end), 0)`,
+            correctAnswers: sql<number>`coalesce(sum(case when ${questionAttempts.isCorrect} = 1 then 1 else 0 end), 0)`,
           })
           .from(questionAttempts)
           .where(
