@@ -1231,6 +1231,61 @@ export async function getCourseStatistics(userId: string, courseId: string) {
   };
 }
 
+export async function getCourseLearningSummary(
+  userId: string,
+  courseId: string,
+) {
+  const sevenDaysAgo = new Date(Date.now() - 7 * 86_400_000).toISOString();
+  const [attemptSummary, recent7DaysSummary, repeatedWrongSummary] =
+    await Promise.all([
+      getDb()
+        .select({
+          total: sql<number>`count(*)`,
+          correct: sql<number>`coalesce(sum(case when ${questionAttempts.isCorrect} = 1 then 1 else 0 end), 0)`,
+        })
+        .from(questionAttempts)
+        .where(
+          and(
+            eq(questionAttempts.userId, userId),
+            eq(questionAttempts.courseId, courseId),
+          ),
+        )
+        .then((rows) => rows[0]),
+      getDb()
+        .select({ count: sql<number>`count(*)` })
+        .from(questionAttempts)
+        .where(
+          and(
+            eq(questionAttempts.userId, userId),
+            eq(questionAttempts.courseId, courseId),
+            gt(questionAttempts.attemptedAt, sevenDaysAgo),
+          ),
+        )
+        .then((rows) => rows[0]),
+      getDb()
+        .select({ count: sql<number>`count(*)` })
+        .from(wrongNotes)
+        .where(
+          and(
+            eq(wrongNotes.userId, userId),
+            eq(wrongNotes.courseId, courseId),
+            gt(wrongNotes.wrongCount, 1),
+            sql`${wrongNotes.mastered} = 0`,
+          ),
+        )
+        .then((rows) => rows[0]),
+    ]);
+
+  const totalQuestions = Number(attemptSummary?.total ?? 0);
+  const correctAnswers = Number(attemptSummary?.correct ?? 0);
+
+  return {
+    overallAccuracy: safeRate(correctAnswers, totalQuestions),
+    recent7Days: Number(recent7DaysSummary?.count ?? 0),
+    repeatedWrongCount: Number(repeatedWrongSummary?.count ?? 0),
+  };
+}
+
 export async function getIntegratedStatistics(userId: string) {
   const [enrollments, activityDays] = await Promise.all([
     getDb()

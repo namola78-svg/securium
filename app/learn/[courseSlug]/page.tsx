@@ -9,8 +9,8 @@ import {
   listCurriculum,
 } from "@/db/repositories";
 import {
-  getCourseStatistics,
-  getReviewSummary,
+  getCourseLearningSummary,
+  listDueReviews,
   listCourseLevels,
   listPublicMockExams,
 } from "@/db/phase3-repositories";
@@ -39,7 +39,7 @@ export default async function LearnCoursePage({
   const [
     curriculum,
     levelRows,
-    reviews,
+    courseReviews,
     exams,
     stats,
     specializations,
@@ -51,18 +51,15 @@ export default async function LearnCoursePage({
     await Promise.all([
       listCurriculum(course.id),
       listCourseLevels(user.id, course.id),
-      getReviewSummary(user.id),
+      listDueReviews(user.id, course.id),
       listPublicMockExams(user.id, course.id),
-      getCourseStatistics(user.id, course.id),
+      getCourseLearningSummary(user.id, course.id),
       listCourseSpecializations(course.id),
       getCourseTheoryProgress(user.id, course.id),
       listSubjectTheoryProgress(user.id, course.id),
       getPublishedCurriculumPathForCourse(course.id, user.id),
       listPublishedCourseLessonsForUser(user.id, course.id),
     ]);
-  const courseReviews = reviews.byCourse.find(
-    (item) => item.courseId === course.id,
-  );
   const levelCompletion = levelRows.length
     ? Math.round(
         (levelRows.filter((level) =>
@@ -120,7 +117,7 @@ export default async function LearnCoursePage({
               <ProgressBar value={levelCompletion} label="단계 완료율" />
               <dl className="metric-list">
                 <div><dt>전체 정답률</dt><dd>{stats.overallAccuracy}%</dd></div>
-                <div><dt>복습 예정</dt><dd>{courseReviews?.count ?? 0}개</dd></div>
+                <div><dt>복습 예정</dt><dd>{courseReviews.length}개</dd></div>
                 <div><dt>모의고사</dt><dd>{exams.length}개</dd></div>
                 <div>
                   <dt>이론 진도</dt>
@@ -323,7 +320,7 @@ export default async function LearnCoursePage({
               <div className="side-card">
                 <span className="eyebrow">REVIEW</span>
                 <h3>오늘의 복습</h3>
-                <p>{courseReviews?.count ?? 0}개 문제가 예정되어 있습니다.</p>
+                <p>{courseReviews.length}개 문제가 예정되어 있습니다.</p>
                 <Link
                   className="button button-dark full-width"
                   href={`/practice/${course.slug}?reviewOnly=1&count=50`}
