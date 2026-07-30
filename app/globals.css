@@ -2757,6 +2757,11 @@ textarea {
   color: var(--muted);
 }
 
+.admin-inline-select {
+  min-height: 44px;
+  max-width: 360px;
+}
+
 .admin-form {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2814,6 +2819,24 @@ textarea {
 
 .admin-record summary small,
 .admin-table-row small {
+  color: var(--muted);
+}
+
+.shared-content-record {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+}
+
+.shared-content-record > div {
+  display: grid;
+  gap: 6px;
+}
+
+.shared-content-record p {
+  margin: 0;
   color: var(--muted);
 }
 
@@ -3711,6 +3734,11 @@ textarea {
 
   .admin-form .wide {
     grid-column: auto;
+  }
+
+  .shared-content-record {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .curriculum-link-options {

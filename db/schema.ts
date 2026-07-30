@@ -430,6 +430,200 @@ export const lessons = sqliteTable(
   ],
 );
 
+export const contents = sqliteTable(
+  "contents",
+  {
+    id: text("id").primaryKey(),
+    slug: text("slug").notNull(),
+    canonicalKey: text("canonical_key").notNull(),
+    title: text("title").notNull(),
+    summary: text("summary").notNull().default(""),
+    body: text("body").notNull(),
+    bodyFormat: text("body_format").notNull().default("MARKDOWN"),
+    learningObjectivesJson: text("learning_objectives_json")
+      .notNull()
+      .default("[]"),
+    coreConceptsJson: text("core_concepts_json").notNull().default("[]"),
+    practicalExamplesJson: text("practical_examples_json")
+      .notNull()
+      .default("[]"),
+    diagramsJson: text("diagrams_json").notNull().default("[]"),
+    mediaJson: text("media_json").notNull().default("[]"),
+    version: text("version").notNull().default("1.0.0"),
+    status: text("status").notNull().default("DRAFT"),
+    createdBy: text("created_by").references(() => users.id, {
+      onDelete: "restrict",
+    }),
+    deletedAt: text("deleted_at"),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("contents_slug_unique").on(table.slug),
+    uniqueIndex("contents_canonical_key_unique").on(table.canonicalKey),
+    index("contents_status_idx").on(table.status, table.updatedAt),
+    check(
+      "contents_status_check",
+      sql`${table.status} IN ('DRAFT', 'PUBLISHED', 'ARCHIVED')`,
+    ),
+    check(
+      "contents_body_format_check",
+      sql`${table.bodyFormat} IN ('MARKDOWN', 'STRUCTURED_JSON', 'PLAIN_TEXT')`,
+    ),
+    check(
+      "contents_body_length_check",
+      sql`length(${table.body}) <= 200000`,
+    ),
+  ],
+);
+
+export const courseLessons = sqliteTable(
+  "course_lessons",
+  {
+    id: text("id").primaryKey(),
+    courseId: text("course_id")
+      .notNull()
+      .references(() => courses.id, { onDelete: "restrict" }),
+    curriculumNodeId: text("curriculum_node_id").references(
+      () => curriculumNodes.id,
+      { onDelete: "restrict" },
+    ),
+    contentId: text("content_id")
+      .notNull()
+      .references(() => contents.id, { onDelete: "restrict" }),
+    displayTitle: text("display_title").notNull(),
+    sortOrder: integer("sort_order").notNull().default(0),
+    difficulty: text("difficulty"),
+    importance: integer("importance"),
+    estimatedMinutes: integer("estimated_minutes").notNull().default(10),
+    isRequired: integer("is_required", { mode: "boolean" })
+      .notNull()
+      .default(true),
+    completionRule: text("completion_rule").notNull().default("MANUAL"),
+    status: text("status").notNull().default("DRAFT"),
+    deletedAt: text("deleted_at"),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("course_lessons_course_node_content_unique").on(
+      table.courseId,
+      table.curriculumNodeId,
+      table.contentId,
+    ),
+    uniqueIndex("course_lessons_node_order_unique").on(
+      table.courseId,
+      table.curriculumNodeId,
+      table.sortOrder,
+    ),
+    index("course_lessons_course_listing_idx").on(
+      table.courseId,
+      table.status,
+      table.sortOrder,
+    ),
+    index("course_lessons_content_usage_idx").on(table.contentId, table.courseId),
+    check(
+      "course_lessons_status_check",
+      sql`${table.status} IN ('DRAFT', 'PUBLISHED', 'ARCHIVED')`,
+    ),
+    check(
+      "course_lessons_completion_rule_check",
+      sql`${table.completionRule} IN ('MANUAL', 'SCROLL_END', 'MINIMUM_REQUIREMENTS')`,
+    ),
+    check(
+      "course_lessons_estimated_minutes_check",
+      sql`${table.estimatedMinutes} > 0 AND ${table.estimatedMinutes} <= 1440`,
+    ),
+    check(
+      "course_lessons_importance_check",
+      sql`${table.importance} IS NULL OR (${table.importance} >= 0 AND ${table.importance} <= 100)`,
+    ),
+  ],
+);
+
+export const courseLessonExtensions = sqliteTable(
+  "course_lesson_extensions",
+  {
+    id: text("id").primaryKey(),
+    courseLessonId: text("course_lesson_id")
+      .notNull()
+      .references(() => courseLessons.id, { onDelete: "restrict" }),
+    learningObjectivesOverrideJson: text("learning_objectives_override_json"),
+    additionalBody: text("additional_body"),
+    examPointsJson: text("exam_points_json").notNull().default("[]"),
+    practicalNotes: text("practical_notes").notNull().default(""),
+    legalNotes: text("legal_notes").notNull().default(""),
+    standardNotes: text("standard_notes").notNull().default(""),
+    evidenceNotes: text("evidence_notes").notNull().default(""),
+    commonMistakes: text("common_mistakes").notNull().default(""),
+    instructorNotes: text("instructor_notes").notNull().default(""),
+    version: text("version").notNull().default("1.0.0"),
+    status: text("status").notNull().default("DRAFT"),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("course_lesson_extensions_lesson_unique").on(
+      table.courseLessonId,
+    ),
+    index("course_lesson_extensions_status_idx").on(
+      table.status,
+      table.updatedAt,
+    ),
+    check(
+      "course_lesson_extensions_status_check",
+      sql`${table.status} IN ('DRAFT', 'PUBLISHED', 'ARCHIVED')`,
+    ),
+    check(
+      "course_lesson_extensions_additional_body_length_check",
+      sql`${table.additionalBody} IS NULL OR length(${table.additionalBody}) <= 100000`,
+    ),
+  ],
+);
+
+export const userCourseLessonProgress = sqliteTable(
+  "user_course_lesson_progress",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    courseId: text("course_id")
+      .notNull()
+      .references(() => courses.id, { onDelete: "restrict" }),
+    courseLessonId: text("course_lesson_id")
+      .notNull()
+      .references(() => courseLessons.id, { onDelete: "restrict" }),
+    status: text("status").notNull().default("IN_PROGRESS"),
+    progressPercent: integer("progress_percent").notNull().default(0),
+    completedAt: text("completed_at"),
+    lastStudiedAt: text("last_studied_at"),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("user_course_lesson_progress_unique").on(
+      table.userId,
+      table.courseId,
+      table.courseLessonId,
+    ),
+    index("user_course_lesson_progress_user_course_idx").on(
+      table.userId,
+      table.courseId,
+      table.status,
+      table.lastStudiedAt,
+    ),
+    index("user_course_lesson_progress_lesson_idx").on(
+      table.courseLessonId,
+      table.status,
+    ),
+    check(
+      "user_course_lesson_progress_status_check",
+      sql`${table.status} IN ('IN_PROGRESS', 'COMPLETED')`,
+    ),
+    check(
+      "user_course_lesson_progress_percent_check",
+      sql`${table.progressPercent} >= 0 AND ${table.progressPercent} <= 100`,
+    ),
+  ],
+);
+
 export const audioContents = sqliteTable(
   "audio_contents",
   {

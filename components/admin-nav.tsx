@@ -7,6 +7,7 @@ export function AdminNav() {
       <Link href="/admin/course-groups">과정군</Link>
       <Link href="/admin/courses">과정</Link>
       <Link href="/admin/curriculum">커리큘럼</Link>
+      <Link href="/admin/shared-content">공통 콘텐츠</Link>
       <Link href="/admin/lessons">이론 레슨</Link>
       <Link href="/admin/content-revisions">기준일·버전</Link>
       <Link href="/admin/levels">단계</Link>

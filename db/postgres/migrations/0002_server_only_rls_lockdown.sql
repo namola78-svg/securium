@@ -53,6 +53,8 @@ REVOKE ALL PRIVILEGES ON TABLE public."content_revisions" FROM PUBLIC, anon, aut
 ALTER TABLE public."content_revisions" ENABLE ROW LEVEL SECURITY;
 REVOKE ALL PRIVILEGES ON TABLE public."course_specializations" FROM PUBLIC, anon, authenticated;
 ALTER TABLE public."course_specializations" ENABLE ROW LEVEL SECURITY;
+REVOKE ALL PRIVILEGES ON TABLE public."curriculum_trees" FROM PUBLIC, anon, authenticated;
+ALTER TABLE public."curriculum_trees" ENABLE ROW LEVEL SECURITY;
 REVOKE ALL PRIVILEGES ON TABLE public."learning_activities" FROM PUBLIC, anon, authenticated;
 ALTER TABLE public."learning_activities" ENABLE ROW LEVEL SECURITY;
 REVOKE ALL PRIVILEGES ON TABLE public."levels" FROM PUBLIC, anon, authenticated;
@@ -91,6 +93,8 @@ REVOKE ALL PRIVILEGES ON TABLE public."ai_specialized_reviews" FROM PUBLIC, anon
 ALTER TABLE public."ai_specialized_reviews" ENABLE ROW LEVEL SECURITY;
 REVOKE ALL PRIVILEGES ON TABLE public."code_analysis_answers" FROM PUBLIC, anon, authenticated;
 ALTER TABLE public."code_analysis_answers" ENABLE ROW LEVEL SECURITY;
+REVOKE ALL PRIVILEGES ON TABLE public."curriculum_nodes" FROM PUBLIC, anon, authenticated;
+ALTER TABLE public."curriculum_nodes" ENABLE ROW LEVEL SECURITY;
 REVOKE ALL PRIVILEGES ON TABLE public."level_contents" FROM PUBLIC, anon, authenticated;
 ALTER TABLE public."level_contents" ENABLE ROW LEVEL SECURITY;
 REVOKE ALL PRIVILEGES ON TABLE public."mock_exam_attempts" FROM PUBLIC, anon, authenticated;

@@ -251,21 +251,51 @@ test("PostgreSQL compatible migrations validate 70 tables and block SQLite synta
 });
 
 test("server-only RLS migration closes every application table to direct clients", async () => {
-  const sql = await readFile(
-    new URL(
-      "../db/postgres/migrations/0002_server_only_rls_lockdown.sql",
-      import.meta.url,
+  const [sql, manifestText, sharedContentSql] = await Promise.all([
+    readFile(
+      new URL(
+        "../db/postgres/migrations/0002_server_only_rls_lockdown.sql",
+        import.meta.url,
+      ),
+      "utf8",
     ),
-    "utf8",
-  );
+    readFile(
+      new URL("../db/postgres/schema-manifest.json", import.meta.url),
+      "utf8",
+    ),
+    readFile(
+      new URL(
+        "../db/postgres/migrations/0004_shared_content_lesson.sql",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+  ]);
+  const manifest = JSON.parse(manifestText) as { tableCount: number };
+  const expectedLockedTables = manifest.tableCount + 1;
   assert.equal(
     [...sql.matchAll(/\bENABLE ROW LEVEL SECURITY\b/g)].length,
-    69,
+    expectedLockedTables,
   );
   assert.equal(
     [...sql.matchAll(/\bREVOKE ALL PRIVILEGES ON TABLE\b/g)].length,
-    69,
+    expectedLockedTables,
   );
+  for (const tableName of [
+    "contents",
+    "course_lessons",
+    "course_lesson_extensions",
+    "user_course_lesson_progress",
+  ]) {
+    assert.match(
+      sharedContentSql,
+      new RegExp(`ALTER TABLE public\\."${tableName}" ENABLE ROW LEVEL SECURITY`),
+    );
+    assert.match(
+      sharedContentSql,
+      new RegExp(`REVOKE ALL PRIVILEGES ON TABLE public\\."${tableName}"`),
+    );
+  }
   assert.doesNotMatch(sql, /\bCREATE POLICY\b/i);
   assert.doesNotMatch(
     sql,

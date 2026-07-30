@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { listCurriculumTrees } from "@/db/curriculum-repositories";
 import { listAllCourseGroups, listAllCourses } from "@/db/repositories";
+import { listSharedContents } from "@/db/shared-content-repositories";
 import { requireCatalogManager } from "@/lib/auth";
 
 export default async function AdminPage() {
   await requireCatalogManager("/admin");
-  const [groups, courses, curriculumTrees] = await Promise.all([
+  const [groups, courses, curriculumTrees, sharedContents] = await Promise.all([
     listAllCourseGroups(),
     listAllCourses(),
     listCurriculumTrees(),
+    listSharedContents(),
   ]);
 
   return (
@@ -17,8 +19,8 @@ export default async function AdminPage() {
         <p className="eyebrow">OVERVIEW</p>
         <h1>관리자 대시보드</h1>
         <p>
-          과정 구조, 커리큘럼 트리, 콘텐츠 공개 상태를 관리합니다. 중요한
-          관리자 작업은 감사로그에 기록됩니다.
+          과정 구조, 커리큘럼 트리, 공통 콘텐츠와 공개 상태를 관리합니다.
+          중요한 관리자 작업은 감사로그에 기록됩니다.
         </p>
       </header>
       <section className="stats-grid admin-stats">
@@ -40,6 +42,14 @@ export default async function AdminPage() {
             {curriculumTrees.filter((tree) => tree.status === "ACTIVE").length}
           </small>
         </div>
+        <div className="stat-card">
+          <span>공통 Content</span>
+          <strong>{sharedContents.length}</strong>
+          <small>
+            PUBLISHED{" "}
+            {sharedContents.filter((content) => content.status === "PUBLISHED").length}
+          </small>
+        </div>
       </section>
       <section className="admin-actions-grid">
         <Link href="/admin/course-groups" className="admin-action-card">
@@ -56,8 +66,16 @@ export default async function AdminPage() {
           <span>03</span>
           <h2>커리큘럼 트리 관리</h2>
           <p>
-            과정별 커리큘럼 버전과 계층형 노드를 기존 학습 데이터와 분리해
+            과정별 커리큘럼 버전과 계층 노드를 기존 학습 데이터와 분리해
             관리합니다.
+          </p>
+        </Link>
+        <Link href="/admin/shared-content" className="admin-action-card">
+          <span>04</span>
+          <h2>공통 콘텐츠 관리</h2>
+          <p>
+            하나의 Content를 여러 과정의 CourseLesson으로 연결하고 과정별
+            보충 설명을 분리합니다.
           </p>
         </Link>
       </section>

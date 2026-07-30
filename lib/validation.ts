@@ -156,6 +156,113 @@ export const curriculumNodeArchiveSchema = z.object({
   returnTo: z.string().trim().startsWith("/").max(300).default("/admin/courses"),
 });
 
+const jsonArrayText = z
+  .string()
+  .trim()
+  .max(50000)
+  .optional()
+  .default("[]")
+  .refine((value) => {
+    try {
+      return Array.isArray(JSON.parse(value));
+    } catch {
+      return false;
+    }
+  }, "JSON array 형식이어야 합니다.");
+
+export const contentStatusSchema = z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]);
+
+export const sharedContentSchema = z.object({
+  id: id.optional(),
+  slug: z
+    .string()
+    .trim()
+    .min(2)
+    .max(120)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+  canonicalKey: z
+    .string()
+    .trim()
+    .min(2)
+    .max(160)
+    .regex(/^[a-z0-9]+(?:[._:/-][a-z0-9]+)*$/),
+  title: z.string().trim().min(2).max(200),
+  summary: z.string().trim().max(2000).default(""),
+  body: z.string().trim().min(2).max(200000),
+  bodyFormat: z.enum(["MARKDOWN", "STRUCTURED_JSON", "PLAIN_TEXT"]),
+  learningObjectivesJson: jsonArrayText,
+  coreConceptsJson: jsonArrayText,
+  practicalExamplesJson: jsonArrayText,
+  diagramsJson: jsonArrayText,
+  mediaJson: jsonArrayText,
+  version: z.string().trim().min(1).max(60),
+  status: contentStatusSchema,
+});
+
+export const courseLessonSchema = z.object({
+  id: id.optional(),
+  courseId: id,
+  curriculumNodeId: z.string().trim().max(100).optional().default(""),
+  contentId: id,
+  displayTitle: z.string().trim().min(2).max(200),
+  sortOrder: z.coerce.number().int().min(0).max(100000),
+  difficulty: z.string().trim().max(40).optional().default(""),
+  importance: z
+    .preprocess(
+      (value) => (value === "" || value === null ? undefined : value),
+      z.coerce.number().int().min(0).max(100).optional(),
+    )
+    .optional(),
+  estimatedMinutes: z.coerce.number().int().min(1).max(1440),
+  isRequired: activeBoolean.default(false),
+  completionRule: z.enum(["MANUAL", "SCROLL_END", "MINIMUM_REQUIREMENTS"]),
+  status: contentStatusSchema,
+});
+
+export const courseLessonExtensionSchema = z.object({
+  id: id.optional(),
+  courseLessonId: id,
+  learningObjectivesOverrideJson: z
+    .string()
+    .trim()
+    .max(50000)
+    .optional()
+    .default("")
+    .refine((value) => {
+      if (!value) return true;
+      try {
+        return Array.isArray(JSON.parse(value));
+      } catch {
+        return false;
+      }
+    }, "JSON array 형식이어야 합니다."),
+  additionalBody: z.string().trim().max(100000).optional().default(""),
+  examPointsJson: jsonArrayText,
+  practicalNotes: z.string().trim().max(20000).optional().default(""),
+  legalNotes: z.string().trim().max(20000).optional().default(""),
+  standardNotes: z.string().trim().max(20000).optional().default(""),
+  evidenceNotes: z.string().trim().max(20000).optional().default(""),
+  commonMistakes: z.string().trim().max(20000).optional().default(""),
+  instructorNotes: z.string().trim().max(20000).optional().default(""),
+  version: z.string().trim().min(1).max(60),
+  status: contentStatusSchema,
+});
+
+export const sharedContentAdminSchema = z.discriminatedUnion("operation", [
+  z.object({
+    operation: z.literal("saveContent"),
+    content: sharedContentSchema,
+  }),
+  z.object({
+    operation: z.literal("saveCourseLesson"),
+    courseLesson: courseLessonSchema,
+  }),
+  z.object({
+    operation: z.literal("saveCourseLessonExtension"),
+    extension: courseLessonExtensionSchema,
+  }),
+]);
+
 export const learningUnitSchema = z.object({
   id: id.optional(),
   courseId: id,
