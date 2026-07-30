@@ -49,7 +49,11 @@ export async function listSharedContents(status?: string) {
       canonicalKey: contents.canonicalKey,
       title: contents.title,
       summary: contents.summary,
+      body: contents.body,
       bodyFormat: contents.bodyFormat,
+      learningObjectivesJson: contents.learningObjectivesJson,
+      coreConceptsJson: contents.coreConceptsJson,
+      practicalExamplesJson: contents.practicalExamplesJson,
       version: contents.version,
       status: contents.status,
       updatedAt: contents.updatedAt,
@@ -138,9 +142,26 @@ export async function listCourseLessons(courseId: string) {
       completionRule: courseLessons.completionRule,
       status: courseLessons.status,
       updatedAt: courseLessons.updatedAt,
+      extensionId: courseLessonExtensions.id,
+      extensionLearningObjectivesOverrideJson:
+        courseLessonExtensions.learningObjectivesOverrideJson,
+      extensionAdditionalBody: courseLessonExtensions.additionalBody,
+      extensionExamPointsJson: courseLessonExtensions.examPointsJson,
+      extensionPracticalNotes: courseLessonExtensions.practicalNotes,
+      extensionLegalNotes: courseLessonExtensions.legalNotes,
+      extensionStandardNotes: courseLessonExtensions.standardNotes,
+      extensionEvidenceNotes: courseLessonExtensions.evidenceNotes,
+      extensionCommonMistakes: courseLessonExtensions.commonMistakes,
+      extensionInstructorNotes: courseLessonExtensions.instructorNotes,
+      extensionVersion: courseLessonExtensions.version,
+      extensionStatus: courseLessonExtensions.status,
     })
     .from(courseLessons)
     .innerJoin(contents, eq(courseLessons.contentId, contents.id))
+    .leftJoin(
+      courseLessonExtensions,
+      eq(courseLessonExtensions.courseLessonId, courseLessons.id),
+    )
     .where(
       and(eq(courseLessons.courseId, courseId), isNull(courseLessons.deletedAt)),
     )

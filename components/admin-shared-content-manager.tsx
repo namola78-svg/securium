@@ -15,7 +15,11 @@ type SharedContent = {
   canonicalKey: string;
   title: string;
   summary: string;
+  body: string;
   bodyFormat: string;
+  learningObjectivesJson: string;
+  coreConceptsJson: string;
+  practicalExamplesJson: string;
   version: string;
   status: string;
   updatedAt: string;
@@ -36,6 +40,18 @@ type CourseLesson = {
   completionRule: string;
   status: string;
   updatedAt: string;
+  extensionId: string | null;
+  extensionLearningObjectivesOverrideJson: string | null;
+  extensionAdditionalBody: string | null;
+  extensionExamPointsJson: string | null;
+  extensionPracticalNotes: string | null;
+  extensionLegalNotes: string | null;
+  extensionStandardNotes: string | null;
+  extensionEvidenceNotes: string | null;
+  extensionCommonMistakes: string | null;
+  extensionInstructorNotes: string | null;
+  extensionVersion: string | null;
+  extensionStatus: string | null;
 };
 
 type CurriculumTree = {
@@ -67,6 +83,15 @@ const statuses = ["DRAFT", "PUBLISHED", "ARCHIVED"] as const;
 const bodyFormats = ["MARKDOWN", "STRUCTURED_JSON", "PLAIN_TEXT"] as const;
 const completionRules = ["MANUAL", "SCROLL_END", "MINIMUM_REQUIREMENTS"] as const;
 
+function optionalId(value: FormDataEntryValue | null) {
+  const text = typeof value === "string" ? value.trim() : "";
+  return text || undefined;
+}
+
+function jsonDefault(value: string | null | undefined) {
+  return value?.trim() || "[]";
+}
+
 export function AdminSharedContentManager({
   courses,
   contents,
@@ -88,7 +113,18 @@ export function AdminSharedContentManager({
 }) {
   const [message, setMessage] = useState("");
   const [pendingAction, setPendingAction] = useState("");
+  const [editingContentId, setEditingContentId] = useState(
+    selectedContentId || contents[0]?.id || "",
+  );
+  const [editingCourseLessonId, setEditingCourseLessonId] = useState(
+    courseLessons[0]?.id || "",
+  );
+
   const selectedCourse = courses.find((course) => course.id === selectedCourseId);
+  const editingContent =
+    contents.find((content) => content.id === editingContentId) ?? null;
+  const editingCourseLesson =
+    courseLessons.find((lesson) => lesson.id === editingCourseLessonId) ?? null;
   const selectedContent =
     contents.find((content) => content.id === selectedContentId) ??
     contents[0] ??
@@ -97,7 +133,7 @@ export function AdminSharedContentManager({
     const active = curriculumTrees.find((tree) => tree.status === "ACTIVE");
     const fallback = curriculumTrees[0];
     const tree = active ?? fallback;
-    return tree ? `${tree.title} · ${tree.version}` : "연결 가능한 커리큘럼 트리 없음";
+    return tree ? `${tree.title} · ${tree.version}` : "연결 가능한 커리큘럼 없음";
   }, [curriculumTrees]);
 
   async function submitJson(body: Record<string, unknown>, pendingLabel: string) {
@@ -130,6 +166,7 @@ export function AdminSharedContentManager({
       {
         operation: "saveContent",
         content: {
+          id: optionalId(formData.get("id")),
           slug: formData.get("slug"),
           canonicalKey: formData.get("canonicalKey"),
           title: formData.get("title"),
@@ -145,7 +182,7 @@ export function AdminSharedContentManager({
           status: formData.get("status"),
         },
       },
-      "content-create",
+      "content-save",
     );
   }
 
@@ -154,6 +191,7 @@ export function AdminSharedContentManager({
       {
         operation: "saveCourseLesson",
         courseLesson: {
+          id: optionalId(formData.get("id")),
           courseId: selectedCourseId,
           curriculumNodeId: formData.get("curriculumNodeId"),
           contentId: formData.get("contentId"),
@@ -167,7 +205,7 @@ export function AdminSharedContentManager({
           status: formData.get("status"),
         },
       },
-      "course-lesson-create",
+      "course-lesson-save",
     );
   }
 
@@ -176,6 +214,7 @@ export function AdminSharedContentManager({
       {
         operation: "saveCourseLessonExtension",
         extension: {
+          id: optionalId(formData.get("id")),
           courseLessonId: formData.get("courseLessonId"),
           learningObjectivesOverrideJson: formData.get(
             "learningObjectivesOverrideJson",
@@ -192,7 +231,7 @@ export function AdminSharedContentManager({
           status: formData.get("status"),
         },
       },
-      "extension-create",
+      "extension-save",
     );
   }
 
@@ -208,17 +247,48 @@ export function AdminSharedContentManager({
         <div className="section-heading compact">
           <div>
             <p className="eyebrow">CONTENT</p>
-            <h2>공통 Content 등록</h2>
+            <h2>공통 Content 등록·수정</h2>
             <p>
-              여러 과정에서 공유할 원문 학습 콘텐츠입니다. 과정별 차이는
-              CourseLesson과 Extension에서 별도로 관리합니다.
+              여러 과정에서 공유하는 이론 원문입니다. 과정별 표현과 보강 설명은
+              CourseLesson과 Extension에서 따로 관리합니다.
             </p>
           </div>
+          <div className="admin-inline-actions">
+            <select
+              aria-label="수정할 공통 Content 선택"
+              className="admin-inline-select"
+              value={editingContentId}
+              onChange={(event) => setEditingContentId(event.target.value)}
+            >
+              {contents.map((content) => (
+                <option key={content.id} value={content.id}>
+                  {content.title} · {content.status}
+                </option>
+              ))}
+            </select>
+            <button
+              className="button button-ghost"
+              type="button"
+              onClick={() => setEditingContentId("")}
+            >
+              새 Content
+            </button>
+          </div>
         </div>
-        <form className="admin-form" action={saveContent}>
+        <form
+          className="admin-form"
+          action={saveContent}
+          key={editingContent?.id ?? "new-content"}
+        >
+          <input name="id" type="hidden" value={editingContent?.id ?? ""} />
           <label>
             Slug
-            <input name="slug" placeholder="privacy-access-control" required />
+            <input
+              name="slug"
+              placeholder="privacy-access-control"
+              required
+              defaultValue={editingContent?.slug ?? ""}
+            />
           </label>
           <label>
             Canonical Key
@@ -226,19 +296,25 @@ export function AdminSharedContentManager({
               name="canonicalKey"
               placeholder="privacy.access-control"
               required
+              defaultValue={editingContent?.canonicalKey ?? ""}
             />
           </label>
           <label>
             제목
-            <input name="title" placeholder="접근통제 기본 개념" required />
+            <input
+              name="title"
+              placeholder="접근통제 기본 개념"
+              required
+              defaultValue={editingContent?.title ?? ""}
+            />
           </label>
           <label>
             버전
-            <input name="version" defaultValue="1.0.0" required />
+            <input name="version" defaultValue={editingContent?.version ?? "1.0.0"} required />
           </label>
           <label>
             본문 형식
-            <select name="bodyFormat" defaultValue="MARKDOWN">
+            <select name="bodyFormat" defaultValue={editingContent?.bodyFormat ?? "MARKDOWN"}>
               {bodyFormats.map((format) => (
                 <option key={format} value={format}>
                   {format}
@@ -248,7 +324,7 @@ export function AdminSharedContentManager({
           </label>
           <label>
             상태
-            <select name="status" defaultValue="DRAFT">
+            <select name="status" defaultValue={editingContent?.status ?? "DRAFT"}>
               {statuses.map((status) => (
                 <option key={status} value={status}>
                   {status}
@@ -258,34 +334,52 @@ export function AdminSharedContentManager({
           </label>
           <label className="wide">
             요약
-            <textarea name="summary" rows={2} />
+            <textarea name="summary" rows={2} defaultValue={editingContent?.summary ?? ""} />
           </label>
           <label className="wide">
             본문
-            <textarea name="body" rows={8} required />
+            <textarea
+              name="body"
+              rows={8}
+              required
+              defaultValue={editingContent?.body ?? ""}
+              placeholder="Markdown 또는 Plain text 본문을 입력하세요."
+            />
           </label>
           <label className="wide">
             학습 목표 JSON 배열
             <textarea
               name="learningObjectivesJson"
               rows={2}
-              defaultValue="[]"
+              defaultValue={jsonDefault(editingContent?.learningObjectivesJson)}
             />
           </label>
           <label className="wide">
             핵심 개념 JSON 배열
-            <textarea name="coreConceptsJson" rows={2} defaultValue="[]" />
+            <textarea
+              name="coreConceptsJson"
+              rows={2}
+              defaultValue={jsonDefault(editingContent?.coreConceptsJson)}
+            />
           </label>
           <label className="wide">
             실무 예시 JSON 배열
-            <textarea name="practicalExamplesJson" rows={2} defaultValue="[]" />
+            <textarea
+              name="practicalExamplesJson"
+              rows={2}
+              defaultValue={jsonDefault(editingContent?.practicalExamplesJson)}
+            />
           </label>
           <button
             className="button button-dark"
-            disabled={pendingAction === "content-create"}
+            disabled={pendingAction === "content-save"}
             type="submit"
           >
-            {pendingAction === "content-create" ? "저장 중..." : "Content 저장"}
+            {pendingAction === "content-save"
+              ? "저장 중..."
+              : editingContent
+                ? "Content 수정"
+                : "Content 등록"}
           </button>
         </form>
       </section>
@@ -294,31 +388,61 @@ export function AdminSharedContentManager({
         <div className="section-heading compact">
           <div>
             <p className="eyebrow">COURSE LESSON</p>
-            <h2>과정별 CourseLesson 연결</h2>
+            <h2>과정별 CourseLesson 연결·수정</h2>
             <p>
-              선택한 과정: {selectedCourse?.name ?? "과정 없음"} ·{" "}
-              {selectedTreeLabel}
+              선택 과정: {selectedCourse?.name ?? "과정 없음"} · {selectedTreeLabel}
             </p>
           </div>
-          <select
-            aria-label="관리할 과정 선택"
-            className="admin-inline-select"
-            defaultValue={selectedCourseId}
-            onChange={(event) => {
-              window.location.href = `/admin/shared-content?courseId=${event.target.value}`;
-            }}
-          >
-            {courses.map((course) => (
-              <option key={course.id} value={course.id}>
-                {course.groupName} · {course.shortName}
-              </option>
-            ))}
-          </select>
+          <div className="admin-inline-actions">
+            <select
+              aria-label="관리할 과정 선택"
+              className="admin-inline-select"
+              defaultValue={selectedCourseId}
+              onChange={(event) => {
+                window.location.href = `/admin/shared-content?courseId=${event.target.value}`;
+              }}
+            >
+              {courses.map((course) => (
+                <option key={course.id} value={course.id}>
+                  {course.groupName} · {course.shortName}
+                </option>
+              ))}
+            </select>
+            <select
+              aria-label="수정할 CourseLesson 선택"
+              className="admin-inline-select"
+              value={editingCourseLessonId}
+              onChange={(event) => setEditingCourseLessonId(event.target.value)}
+            >
+              <option value="">새 CourseLesson</option>
+              {courseLessons.map((lesson) => (
+                <option key={lesson.id} value={lesson.id}>
+                  {lesson.displayTitle} · {lesson.status}
+                </option>
+              ))}
+            </select>
+            <button
+              className="button button-ghost"
+              type="button"
+              onClick={() => setEditingCourseLessonId("")}
+            >
+              새 연결
+            </button>
+          </div>
         </div>
-        <form className="admin-form" action={saveCourseLesson}>
+        <form
+          className="admin-form"
+          action={saveCourseLesson}
+          key={editingCourseLesson?.id ?? "new-course-lesson"}
+        >
+          <input name="id" type="hidden" value={editingCourseLesson?.id ?? ""} />
           <label>
             공통 Content
-            <select name="contentId" required>
+            <select
+              name="contentId"
+              required
+              defaultValue={editingCourseLesson?.contentId ?? contents[0]?.id ?? ""}
+            >
               {contents.map((content) => (
                 <option key={content.id} value={content.id}>
                   {content.title} · {content.version}
@@ -328,7 +452,10 @@ export function AdminSharedContentManager({
           </label>
           <label>
             커리큘럼 노드
-            <select name="curriculumNodeId">
+            <select
+              name="curriculumNodeId"
+              defaultValue={editingCourseLesson?.curriculumNodeId ?? ""}
+            >
               <option value="">노드 미연결</option>
               {curriculumNodes.map((node) => (
                 <option key={node.id} value={node.id}>
@@ -340,19 +467,38 @@ export function AdminSharedContentManager({
           </label>
           <label>
             과정 표시 제목
-            <input name="displayTitle" required />
+            <input
+              name="displayTitle"
+              required
+              defaultValue={editingCourseLesson?.displayTitle ?? ""}
+            />
           </label>
           <label>
             정렬 순서
-            <input name="sortOrder" type="number" min={0} defaultValue={10} />
+            <input
+              name="sortOrder"
+              type="number"
+              min={0}
+              defaultValue={editingCourseLesson?.sortOrder ?? 10}
+            />
           </label>
           <label>
             난이도
-            <input name="difficulty" placeholder="중급" />
+            <input
+              name="difficulty"
+              placeholder="중급"
+              defaultValue={editingCourseLesson?.difficulty ?? ""}
+            />
           </label>
           <label>
             중요도
-            <input name="importance" type="number" min={0} max={100} />
+            <input
+              name="importance"
+              type="number"
+              min={0}
+              max={100}
+              defaultValue={editingCourseLesson?.importance ?? ""}
+            />
           </label>
           <label>
             예상 학습 시간
@@ -361,12 +507,15 @@ export function AdminSharedContentManager({
               type="number"
               min={1}
               max={1440}
-              defaultValue={10}
+              defaultValue={editingCourseLesson?.estimatedMinutes ?? 10}
             />
           </label>
           <label>
             완료 규칙
-            <select name="completionRule" defaultValue="MANUAL">
+            <select
+              name="completionRule"
+              defaultValue={editingCourseLesson?.completionRule ?? "MANUAL"}
+            >
               {completionRules.map((rule) => (
                 <option key={rule} value={rule}>
                   {rule}
@@ -376,7 +525,7 @@ export function AdminSharedContentManager({
           </label>
           <label>
             상태
-            <select name="status" defaultValue="DRAFT">
+            <select name="status" defaultValue={editingCourseLesson?.status ?? "DRAFT"}>
               {statuses.map((status) => (
                 <option key={status} value={status}>
                   {status}
@@ -385,19 +534,23 @@ export function AdminSharedContentManager({
             </select>
           </label>
           <label className="check-label">
-            <input name="isRequired" type="checkbox" defaultChecked />
+            <input
+              name="isRequired"
+              type="checkbox"
+              defaultChecked={editingCourseLesson?.isRequired ?? true}
+            />
             필수 학습
           </label>
           <button
             className="button button-dark"
-            disabled={
-              pendingAction === "course-lesson-create" || !contents.length
-            }
+            disabled={pendingAction === "course-lesson-save" || !contents.length}
             type="submit"
           >
-            {pendingAction === "course-lesson-create"
-              ? "연결 중..."
-              : "CourseLesson 연결"}
+            {pendingAction === "course-lesson-save"
+              ? "저장 중..."
+              : editingCourseLesson
+                ? "CourseLesson 수정"
+                : "CourseLesson 연결"}
           </button>
         </form>
       </section>
@@ -406,17 +559,28 @@ export function AdminSharedContentManager({
         <div className="section-heading compact">
           <div>
             <p className="eyebrow">EXTENSION</p>
-            <h2>과정별 보충 설명</h2>
+            <h2>과정별 보강 설명</h2>
             <p>
-              원본 Content는 유지하고, 시험 포인트·증적·실무 메모처럼 과정별로
-              달라지는 내용을 분리합니다.
+              원본 Content를 유지하면서 시험 포인트, 실무 메모, 법령·기준 메모를
+              과정별로 보강합니다.
             </p>
           </div>
         </div>
-        <form className="admin-form" action={saveExtension}>
+        <form
+          className="admin-form"
+          action={saveExtension}
+          key={editingCourseLesson?.id ?? "new-extension"}
+        >
+          <input name="id" type="hidden" value={editingCourseLesson?.extensionId ?? ""} />
           <label>
             CourseLesson
-            <select name="courseLessonId" required>
+            <select
+              name="courseLessonId"
+              required
+              value={editingCourseLessonId}
+              onChange={(event) => setEditingCourseLessonId(event.target.value)}
+            >
+              <option value="">CourseLesson 선택</option>
               {courseLessons.map((lesson) => (
                 <option key={lesson.id} value={lesson.id}>
                   {lesson.displayTitle}
@@ -426,11 +590,18 @@ export function AdminSharedContentManager({
           </label>
           <label>
             버전
-            <input name="version" defaultValue="1.0.0" required />
+            <input
+              name="version"
+              defaultValue={editingCourseLesson?.extensionVersion ?? "1.0.0"}
+              required
+            />
           </label>
           <label>
             상태
-            <select name="status" defaultValue="DRAFT">
+            <select
+              name="status"
+              defaultValue={editingCourseLesson?.extensionStatus ?? "DRAFT"}
+            >
               {statuses.map((status) => (
                 <option key={status} value={status}>
                   {status}
@@ -443,49 +614,79 @@ export function AdminSharedContentManager({
             <textarea
               name="learningObjectivesOverrideJson"
               rows={2}
-              defaultValue=""
+              defaultValue={editingCourseLesson?.extensionLearningObjectivesOverrideJson ?? ""}
             />
           </label>
           <label className="wide">
             추가 본문
-            <textarea name="additionalBody" rows={5} />
+            <textarea
+              name="additionalBody"
+              rows={5}
+              defaultValue={editingCourseLesson?.extensionAdditionalBody ?? ""}
+            />
           </label>
           <label className="wide">
             시험 포인트 JSON 배열
-            <textarea name="examPointsJson" rows={2} defaultValue="[]" />
+            <textarea
+              name="examPointsJson"
+              rows={2}
+              defaultValue={jsonDefault(editingCourseLesson?.extensionExamPointsJson)}
+            />
           </label>
           <label className="wide">
             실무 메모
-            <textarea name="practicalNotes" rows={2} />
+            <textarea
+              name="practicalNotes"
+              rows={2}
+              defaultValue={editingCourseLesson?.extensionPracticalNotes ?? ""}
+            />
           </label>
           <label className="wide">
             법령 메모
-            <textarea name="legalNotes" rows={2} />
+            <textarea
+              name="legalNotes"
+              rows={2}
+              defaultValue={editingCourseLesson?.extensionLegalNotes ?? ""}
+            />
           </label>
           <label className="wide">
             기준 메모
-            <textarea name="standardNotes" rows={2} />
+            <textarea
+              name="standardNotes"
+              rows={2}
+              defaultValue={editingCourseLesson?.extensionStandardNotes ?? ""}
+            />
           </label>
           <label className="wide">
             증적 메모
-            <textarea name="evidenceNotes" rows={2} />
+            <textarea
+              name="evidenceNotes"
+              rows={2}
+              defaultValue={editingCourseLesson?.extensionEvidenceNotes ?? ""}
+            />
           </label>
           <label className="wide">
             자주 하는 실수
-            <textarea name="commonMistakes" rows={2} />
+            <textarea
+              name="commonMistakes"
+              rows={2}
+              defaultValue={editingCourseLesson?.extensionCommonMistakes ?? ""}
+            />
           </label>
           <label className="wide">
             관리자 메모
-            <textarea name="instructorNotes" rows={2} />
+            <textarea
+              name="instructorNotes"
+              rows={2}
+              defaultValue={editingCourseLesson?.extensionInstructorNotes ?? ""}
+            />
           </label>
           <button
             className="button button-dark"
-            disabled={
-              pendingAction === "extension-create" || !courseLessons.length
-            }
+            disabled={pendingAction === "extension-save" || !editingCourseLesson}
             type="submit"
           >
-            {pendingAction === "extension-create" ? "저장 중..." : "Extension 저장"}
+            {pendingAction === "extension-save" ? "저장 중..." : "Extension 저장"}
           </button>
         </form>
       </section>
@@ -503,12 +704,21 @@ export function AdminSharedContentManager({
                   </small>
                   <p>{content.summary || "요약 없음"}</p>
                 </div>
-                <a
-                  className="button button-ghost"
-                  href={`/admin/shared-content?courseId=${selectedCourseId}&contentId=${content.id}`}
-                >
-                  사용처 보기
-                </a>
+                <div className="admin-inline-actions">
+                  <button
+                    className="button button-ghost"
+                    type="button"
+                    onClick={() => setEditingContentId(content.id)}
+                  >
+                    수정
+                  </button>
+                  <a
+                    className="button button-ghost"
+                    href={`/admin/shared-content?courseId=${selectedCourseId}&contentId=${content.id}`}
+                  >
+                    사용처 보기
+                  </a>
+                </div>
               </article>
             ))
           ) : (

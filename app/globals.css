@@ -2762,6 +2762,19 @@ textarea {
   max-width: 360px;
 }
 
+.admin-inline-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.admin-inline-actions .button {
+  min-height: 2.5rem;
+  white-space: nowrap;
+}
+
 .admin-form {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
