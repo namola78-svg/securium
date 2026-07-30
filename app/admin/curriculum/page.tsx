@@ -1,5 +1,6 @@
 import { AdminCurriculumManager } from "@/components/admin-curriculum-manager";
 import {
+  listCurriculumLinkableContent,
   listCurriculumNodes,
   listCurriculumTrees,
 } from "@/db/curriculum-repositories";
@@ -23,8 +24,12 @@ export default async function AdminCurriculumPage({
     treeId && trees.some((tree) => tree.id === treeId)
       ? treeId
       : trees[0]?.id ?? "";
+  const selectedTree = trees.find((tree) => tree.id === selectedTreeId) ?? null;
   const nodes = selectedTreeId
     ? await listCurriculumNodes(selectedTreeId)
+    : [];
+  const linkableContent = selectedTree
+    ? await listCurriculumLinkableContent(selectedTree.courseId)
     : [];
 
   return (
@@ -33,9 +38,9 @@ export default async function AdminCurriculumPage({
         <p className="eyebrow">CURRICULUM ARCHITECTURE</p>
         <h1>커리큘럼 트리 관리</h1>
         <p>
-          과정별 커리큘럼 버전과 계층형 노드를 관리합니다. 이 화면은 새
-          Curriculum Tree 기반을 준비하는 관리자 도구이며, 기존
-          과목·주제·레슨·진도 데이터는 변경하지 않습니다.
+          과정별 커리큘럼 버전과 계층형 노드를 관리합니다. 기존
+          과목·주제·학습 단위·레슨 데이터는 유지하면서 노드와 연결해
+          다음 단계의 통합 커리큘럼 화면을 준비합니다.
         </p>
       </header>
       <section className="stats-grid admin-stats">
@@ -47,12 +52,19 @@ export default async function AdminCurriculumPage({
         <div className="stat-card">
           <span>커리큘럼 트리</span>
           <strong>{trees.length}</strong>
-          <small>ACTIVE {trees.filter((tree) => tree.status === "ACTIVE").length}</small>
+          <small>
+            ACTIVE {trees.filter((tree) => tree.status === "ACTIVE").length}
+          </small>
         </div>
         <div className="stat-card">
           <span>선택 트리 노드</span>
           <strong>{nodes.length}</strong>
           <small>soft delete: ARCHIVED</small>
+        </div>
+        <div className="stat-card">
+          <span>연결 가능 콘텐츠</span>
+          <strong>{linkableContent.length}</strong>
+          <small>과목·주제·학습 단위·레슨</small>
         </div>
       </section>
       <AdminCurriculumManager
@@ -64,6 +76,7 @@ export default async function AdminCurriculumPage({
         }))}
         trees={trees}
         nodes={nodes}
+        linkableContent={linkableContent}
         selectedTreeId={selectedTreeId}
       />
     </>

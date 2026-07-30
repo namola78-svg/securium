@@ -44,6 +44,18 @@ type CurriculumNode = {
   status: string;
 };
 
+type LinkableContent = {
+  type: "SUBJECT" | "TOPIC" | "LEARNING_UNIT" | "LESSON";
+  id: string;
+  title: string;
+  subtitle: string;
+  active: boolean;
+  published: boolean;
+  displayOrder: number;
+};
+
+type LinkedContent = Pick<LinkableContent, "type" | "id">;
+
 const nodeTypes = [
   "TRACK",
   "SUBJECT",
@@ -60,16 +72,24 @@ const nodeTypes = [
 
 const treeStatuses = ["DRAFT", "ACTIVE", "ARCHIVED"] as const;
 const nodeStatuses = ["ACTIVE", "INACTIVE", "ARCHIVED"] as const;
+const contentTypeLabels: Record<LinkableContent["type"], string> = {
+  SUBJECT: "과목",
+  TOPIC: "주제",
+  LEARNING_UNIT: "학습 단위",
+  LESSON: "레슨",
+};
 
 export function AdminCurriculumManager({
   courses,
   trees,
   nodes,
+  linkableContent,
   selectedTreeId,
 }: {
   courses: CourseOption[];
   trees: CurriculumTree[];
   nodes: CurriculumNode[];
+  linkableContent: LinkableContent[];
   selectedTreeId: string;
 }) {
   const [message, setMessage] = useState("");
@@ -100,7 +120,9 @@ export function AdminCurriculumManager({
         error?: string;
       };
       if (!response.ok) {
-        setMessage(payload.error ?? "요청을 처리하지 못했습니다.");
+        setMessage(
+          payload.error ?? "요청을 처리하지 못했습니다. 입력값을 확인해주세요.",
+        );
         return;
       }
       window.location.reload();
@@ -144,7 +166,11 @@ export function AdminCurriculumManager({
         isPractical: formData.get("isPractical") === "on",
         difficulty: formData.get("difficulty"),
         importance: formData.get("importance"),
-        metadata: formData.get("metadata"),
+        metadata: buildNodeMetadata(
+          node?.metadata,
+          formData.getAll("linkedContent").map(String),
+          String(formData.get("metadata") ?? ""),
+        ),
         status: formData.get("status"),
       },
       node ? `node-update-${node.id}` : "node-create",
@@ -170,8 +196,8 @@ export function AdminCurriculumManager({
       <section className="admin-panel">
         <h2>커리큘럼 트리</h2>
         <p className="admin-helper">
-          과정별 공식·실무 커리큘럼 버전을 병렬로 관리합니다. 기존
-          과목·주제·레슨 데이터는 이 화면에서 변경하지 않습니다.
+          과정별 공식·실무 커리큘럼 버전을 별도로 관리합니다. 기존
+          과목·주제·레슨 데이터는 이 화면에서 삭제하지 않습니다.
         </p>
         <div className="admin-record-list">
           {trees.length ? (
@@ -184,7 +210,10 @@ export function AdminCurriculumManager({
                       {tree.courseName} · v{tree.version} · {tree.status}
                     </small>
                   </span>
-                  <a className="text-link" href={`/admin/curriculum?treeId=${tree.id}`}>
+                  <a
+                    className="text-link"
+                    href={`/admin/curriculum?treeId=${tree.id}`}
+                  >
                     선택
                   </a>
                 </summary>
@@ -222,18 +251,21 @@ export function AdminCurriculumManager({
         {selectedTree ? (
           <>
             <p className="admin-helper">
-              선택된 트리: <strong>{selectedTree.title}</strong> ·{" "}
+              선택 트리: <strong>{selectedTree.title}</strong> ·{" "}
               {selectedTree.courseName}. 노드 이동 시 depth와 path는 서버에서
               재계산됩니다.
             </p>
             <NodeForm
               nodes={nodes}
+              linkableContent={linkableContent}
               pending={pendingAction === "node-create"}
               onSubmit={(formData) => saveNode(formData)}
             />
           </>
         ) : (
-          <p className="empty-copy">노드를 추가하려면 먼저 트리를 선택하세요.</p>
+          <p className="empty-copy">
+            노드를 추가하려면 먼저 트리를 선택하세요.
+          </p>
         )}
       </section>
 
@@ -250,11 +282,13 @@ export function AdminCurriculumManager({
                       depth {node.depth} · order {node.sortOrder} ·{" "}
                       {node.nodeType} · {node.status}
                     </small>
+                    <small>{linkedContentSummary(node.metadata)}</small>
                   </span>
                   <span className="status-on">{node.path}</span>
                 </summary>
                 <NodeForm
                   nodes={nodes}
+                  linkableContent={linkableContent}
                   node={node}
                   pending={pendingAction === `node-update-${node.id}`}
                   onSubmit={(formData) => saveNode(formData, node)}
@@ -276,8 +310,8 @@ export function AdminCurriculumManager({
           </div>
         ) : (
           <p className="empty-copy">
-            선택한 트리에 등록된 노드가 없습니다. 상단 폼에서 루트 노드를
-            먼저 추가하세요.
+            선택한 트리에 등록된 노드가 없습니다. 위에서 루트 노드를 먼저
+            추가하세요.
           </p>
         )}
       </section>
@@ -357,7 +391,7 @@ function TreeForm({
           name="sourceDocument"
           maxLength={500}
           defaultValue={tree?.sourceDocument ?? ""}
-          placeholder="관리 기준, 내부 설계서, 검수 문서 등"
+          placeholder="관리 기준, 내부 설계서, 검토 문서 등"
         />
       </label>
       <label>
@@ -391,16 +425,22 @@ function TreeForm({
 
 function NodeForm({
   nodes,
+  linkableContent,
   node,
   pending,
   onSubmit,
 }: {
   nodes: CurriculumNode[];
+  linkableContent: LinkableContent[];
   node?: CurriculumNode;
   pending: boolean;
   onSubmit: (formData: FormData) => void;
 }) {
   const parentOptions = nodes.filter((candidate) => candidate.id !== node?.id);
+  const linkedKeys = new Set(
+    parseLinkedContent(node?.metadata).map((link) => linkKey(link)),
+  );
+  const groupedContent = groupLinkableContent(linkableContent);
   return (
     <form className="admin-form" action={onSubmit}>
       <label>
@@ -498,13 +538,51 @@ function NodeForm({
           ))}
         </select>
       </label>
+      <fieldset className="wide curriculum-link-fieldset">
+        <legend>기존 콘텐츠 연결</legend>
+        <p className="admin-helper">
+          이 노드가 대표하는 기존 과목·주제·학습 단위·레슨을 선택합니다.
+          같은 과정의 콘텐츠만 저장됩니다.
+        </p>
+        {linkableContent.length ? (
+          Object.entries(groupedContent).map(([type, items]) => (
+            <div className="curriculum-link-group" key={type}>
+              <h3>{contentTypeLabels[type as LinkableContent["type"]]}</h3>
+              <div className="curriculum-link-options">
+                {items.map((item) => (
+                  <label className="check-label" key={linkKey(item)}>
+                    <input
+                      name="linkedContent"
+                      type="checkbox"
+                      value={linkKey(item)}
+                      defaultChecked={linkedKeys.has(linkKey(item))}
+                    />
+                    <span>
+                      {item.title}
+                      <small>
+                        {item.subtitle}
+                        {!item.active ? " · 비활성" : ""}
+                        {!item.published && item.type !== "SUBJECT" && item.type !== "TOPIC"
+                          ? " · 비공개"
+                          : ""}
+                      </small>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="empty-copy">이 과정에 연결할 기존 콘텐츠가 없습니다.</p>
+        )}
+      </fieldset>
       <label className="wide">
-        metadata JSON
+        추가 metadata JSON
         <textarea
           name="metadata"
           maxLength={20000}
-          defaultValue={node?.metadata ?? ""}
-          placeholder='{"tags":["sample"]}'
+          defaultValue={stripLinkedContent(node?.metadata)}
+          placeholder='{"tags":["review-priority"]}'
         />
       </label>
       <label className="check-label">
@@ -528,4 +606,98 @@ function NodeForm({
       </button>
     </form>
   );
+}
+
+function groupLinkableContent(items: LinkableContent[]) {
+  return items.reduce<Record<LinkableContent["type"], LinkableContent[]>>(
+    (groups, item) => {
+      groups[item.type].push(item);
+      return groups;
+    },
+    {
+      SUBJECT: [],
+      TOPIC: [],
+      LEARNING_UNIT: [],
+      LESSON: [],
+    },
+  );
+}
+
+function parseMetadata(metadata: string | null | undefined) {
+  if (!metadata) return {};
+  try {
+    const parsed = JSON.parse(metadata) as Record<string, unknown>;
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? parsed
+      : {};
+  } catch {
+    return {};
+  }
+}
+
+function parseLinkedContent(metadata: string | null | undefined): LinkedContent[] {
+  const parsed = parseMetadata(metadata) as {
+    linkedContent?: Array<{ type?: unknown; id?: unknown }>;
+  };
+  if (!Array.isArray(parsed.linkedContent)) return [];
+  return parsed.linkedContent.filter(
+    (link): link is LinkedContent =>
+      typeof link.type === "string" &&
+      typeof link.id === "string" &&
+      ["SUBJECT", "TOPIC", "LEARNING_UNIT", "LESSON"].includes(link.type),
+  );
+}
+
+function stripLinkedContent(metadata: string | null | undefined) {
+  const parsed = parseMetadata(metadata);
+  delete parsed.linkedContent;
+  return Object.keys(parsed).length ? JSON.stringify(parsed, null, 2) : "";
+}
+
+function buildNodeMetadata(
+  existingMetadata: string | null | undefined,
+  selectedKeys: string[],
+  metadataText: string,
+) {
+  const base = parseMetadata(existingMetadata);
+  const links = selectedKeys
+    .map(parseLinkKey)
+    .filter((link): link is LinkedContent => Boolean(link));
+  if (links.length) {
+    base.linkedContent = links;
+  } else {
+    delete base.linkedContent;
+  }
+  const extra = parseMetadata(metadataText);
+  return JSON.stringify({ ...extra, linkedContent: base.linkedContent ?? [] });
+}
+
+function parseLinkKey(value: string) {
+  const [type, id] = value.split(":", 2);
+  if (
+    !id ||
+    !["SUBJECT", "TOPIC", "LEARNING_UNIT", "LESSON"].includes(type)
+  ) {
+    return null;
+  }
+  return { type: type as LinkedContent["type"], id };
+}
+
+function linkKey(link: LinkedContent) {
+  return `${link.type}:${link.id}`;
+}
+
+function linkedContentSummary(metadata: string | null) {
+  const links = parseLinkedContent(metadata);
+  if (!links.length) return "연결 콘텐츠 없음";
+  const counts = links.reduce<Record<string, number>>((summary, link) => {
+    summary[link.type] = (summary[link.type] ?? 0) + 1;
+    return summary;
+  }, {});
+  return Object.entries(counts)
+    .map(
+      ([type, count]) =>
+        `${contentTypeLabels[type as LinkableContent["type"]] ?? type} ${count}`,
+    )
+    .join(" · ");
 }

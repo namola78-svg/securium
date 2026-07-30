@@ -1,7 +1,15 @@
-import { and, asc, eq, isNull, ne, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, ne, sql } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
 import { getDb } from ".";
-import { courses, curriculumNodes, curriculumTrees } from "./schema";
+import {
+  courses,
+  curriculumNodes,
+  curriculumTrees,
+  learningUnits,
+  lessons,
+  subjects,
+  topics,
+} from "./schema";
 import { AppError } from "@/lib/errors";
 import type {
   curriculumNodeArchiveSchema,
@@ -50,6 +58,179 @@ export async function listCurriculumTrees(courseId?: string) {
     .innerJoin(courses, eq(curriculumTrees.courseId, courses.id))
     .where(courseId ? eq(curriculumTrees.courseId, courseId) : undefined)
     .orderBy(asc(courses.displayOrder), asc(curriculumTrees.version));
+}
+
+export async function listCurriculumLinkableContent(courseId: string) {
+  const [subjectRows, topicRows, unitRows, lessonRows] = await Promise.all([
+    getDb()
+      .select({
+        type: sql<"SUBJECT">`'SUBJECT'`,
+        id: subjects.id,
+        title: subjects.name,
+        subtitle: subjects.code,
+        active: subjects.active,
+        published: sql<boolean>`1`,
+        displayOrder: subjects.displayOrder,
+      })
+      .from(subjects)
+      .where(and(eq(subjects.courseId, courseId), isNull(subjects.deletedAt)))
+      .orderBy(asc(subjects.displayOrder), asc(subjects.name)),
+    getDb()
+      .select({
+        type: sql<"TOPIC">`'TOPIC'`,
+        id: topics.id,
+        title: topics.name,
+        subtitle: sql<string>`${subjects.name} || ' · ' || ${topics.code}`,
+        active: topics.active,
+        published: sql<boolean>`1`,
+        displayOrder: topics.displayOrder,
+      })
+      .from(topics)
+      .innerJoin(subjects, eq(topics.subjectId, subjects.id))
+      .where(and(eq(subjects.courseId, courseId), isNull(topics.deletedAt)))
+      .orderBy(asc(subjects.displayOrder), asc(topics.displayOrder), asc(topics.name)),
+    getDb()
+      .select({
+        type: sql<"LEARNING_UNIT">`'LEARNING_UNIT'`,
+        id: learningUnits.id,
+        title: learningUnits.title,
+        subtitle: sql<string>`${subjects.name} || ' · ' || ${learningUnits.code}`,
+        active: learningUnits.active,
+        published: learningUnits.published,
+        displayOrder: learningUnits.displayOrder,
+      })
+      .from(learningUnits)
+      .innerJoin(subjects, eq(learningUnits.subjectId, subjects.id))
+      .where(and(eq(learningUnits.courseId, courseId), isNull(learningUnits.deletedAt)))
+      .orderBy(asc(subjects.displayOrder), asc(learningUnits.displayOrder), asc(learningUnits.title)),
+    getDb()
+      .select({
+        type: sql<"LESSON">`'LESSON'`,
+        id: lessons.id,
+        title: lessons.title,
+        subtitle: sql<string>`${subjects.name} || ' · ' || ${topics.name}`,
+        active: lessons.active,
+        published: lessons.published,
+        displayOrder: lessons.displayOrder,
+      })
+      .from(lessons)
+      .innerJoin(subjects, eq(lessons.subjectId, subjects.id))
+      .innerJoin(topics, eq(lessons.topicId, topics.id))
+      .where(and(eq(lessons.courseId, courseId), isNull(lessons.deletedAt)))
+      .orderBy(asc(subjects.displayOrder), asc(topics.displayOrder), asc(lessons.displayOrder), asc(lessons.title)),
+  ]);
+
+  return [...subjectRows, ...topicRows, ...unitRows, ...lessonRows];
+}
+
+function parseLinkedContent(metadata: string | null | undefined) {
+  if (!metadata) return [];
+  const parsed = JSON.parse(metadata) as {
+    linkedContent?: Array<{ type?: unknown; id?: unknown }>;
+  };
+  if (!Array.isArray(parsed.linkedContent)) return [];
+  return parsed.linkedContent
+    .filter(
+      (link): link is { type: string; id: string } =>
+        typeof link.type === "string" && typeof link.id === "string",
+    )
+    .map((link) => ({ type: link.type, id: link.id }));
+}
+
+async function assertLinkedContentBelongsToCourse(input: {
+  courseId: string;
+  metadata: string | null | undefined;
+}) {
+  const links = parseLinkedContent(input.metadata);
+  if (!links.length) return;
+
+  const byType = new Map<string, string[]>();
+  for (const link of links) {
+    const ids = byType.get(link.type) ?? [];
+    ids.push(link.id);
+    byType.set(link.type, ids);
+  }
+
+  const validate = async (
+    type: string,
+    ids: string[],
+    loader: (ids: string[]) => Promise<Array<{ id: string }>>,
+  ) => {
+    const uniqueIds = [...new Set(ids)];
+    const rows = await loader(uniqueIds);
+    if (rows.length !== uniqueIds.length) {
+      throw new AppError(
+        "선택한 연결 콘텐츠 중 현재 과정에 속하지 않는 항목이 있습니다.",
+        400,
+        "CURRICULUM_LINK_SCOPE_MISMATCH",
+      );
+    }
+  };
+
+  const subjectIds = byType.get("SUBJECT") ?? [];
+  if (subjectIds.length) {
+    await validate("SUBJECT", subjectIds, (ids) =>
+      getDb()
+        .select({ id: subjects.id })
+        .from(subjects)
+        .where(
+          and(
+            inArray(subjects.id, ids),
+            eq(subjects.courseId, input.courseId),
+            isNull(subjects.deletedAt),
+          ),
+        ),
+    );
+  }
+
+  const topicIds = byType.get("TOPIC") ?? [];
+  if (topicIds.length) {
+    await validate("TOPIC", topicIds, (ids) =>
+      getDb()
+        .select({ id: topics.id })
+        .from(topics)
+        .innerJoin(subjects, eq(topics.subjectId, subjects.id))
+        .where(
+          and(
+            inArray(topics.id, ids),
+            eq(subjects.courseId, input.courseId),
+            isNull(topics.deletedAt),
+          ),
+        ),
+    );
+  }
+
+  const unitIds = byType.get("LEARNING_UNIT") ?? [];
+  if (unitIds.length) {
+    await validate("LEARNING_UNIT", unitIds, (ids) =>
+      getDb()
+        .select({ id: learningUnits.id })
+        .from(learningUnits)
+        .where(
+          and(
+            inArray(learningUnits.id, ids),
+            eq(learningUnits.courseId, input.courseId),
+            isNull(learningUnits.deletedAt),
+          ),
+        ),
+    );
+  }
+
+  const lessonIds = byType.get("LESSON") ?? [];
+  if (lessonIds.length) {
+    await validate("LESSON", lessonIds, (ids) =>
+      getDb()
+        .select({ id: lessons.id })
+        .from(lessons)
+        .where(
+          and(
+            inArray(lessons.id, ids),
+            eq(lessons.courseId, input.courseId),
+            isNull(lessons.deletedAt),
+          ),
+        ),
+    );
+  }
 }
 
 export async function getCurriculumTreeById(treeId: string) {
@@ -342,6 +523,10 @@ export async function saveCurriculumNode(
     status: input.status,
     updatedAt: sql`CURRENT_TIMESTAMP`,
   };
+  await assertLinkedContentBelongsToCourse({
+    courseId: tree.courseId,
+    metadata: values.metadata,
+  });
 
   await getDb().batch(
     batchItems([

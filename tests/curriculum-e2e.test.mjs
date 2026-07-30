@@ -73,7 +73,7 @@ async function post(path, headers, body) {
   return { response, payload: await response.json() };
 }
 
-test("기존 Course 상세 URL은 신규 Tree가 없어도 정상 동작한다", async () => {
+test("기존 Course 상세 URL은 신규 Tree 없이도 정상 동작한다", async () => {
   const response = await fetch(`${baseUrl}/courses/isms-p`, { headers: user });
   const html = await response.text();
   assert.equal(response.status, 200, html.slice(0, 1000));
@@ -95,7 +95,7 @@ test("관리자만 CurriculumTree를 생성할 수 있고 course/version 중복�
     title: "ISMS-P 2027 커리큘럼",
     version,
     sourceType: "INTERNAL_REVIEW",
-    sourceDocument: "Sprint A integration test",
+    sourceDocument: "Sprint B integration test",
     effectiveFrom: "2027-01-01",
     effectiveTo: "",
     status: "DRAFT",
@@ -178,6 +178,63 @@ test("CurriculumNode CRUD, depth, path, 정렬, 트리 조회가 동작한다", 
   assert.equal(payload.nodes[0].children[0].children[0].id, grandchildId);
 });
 
+test("CurriculumNode는 같은 과정의 기존 콘텐츠만 metadata 연결로 저장한다", async () => {
+  const validMetadata = JSON.stringify({
+    linkedContent: [
+      { type: "SUBJECT", id: "course-isms-p-subject-foundation" },
+      { type: "TOPIC", id: "course-isms-p-subject-foundation-topic-core" },
+      {
+        type: "LEARNING_UNIT",
+        id: "course-isms-p-subject-foundation-topic-core-unit",
+      },
+      {
+        type: "LESSON",
+        id: "course-isms-p-subject-foundation-topic-core-lesson-01",
+      },
+    ],
+  });
+  const updated = await post("/api/admin/curriculum-nodes", admin, {
+    id: rootId,
+    curriculumTreeId: treeId,
+    nodeType: "SUBJECT",
+    title: "ISMS-P 인증기준",
+    sortOrder: 10,
+    isRequired: true,
+    isPractical: false,
+    metadata: validMetadata,
+    status: "ACTIVE",
+  });
+  assert.equal(updated.response.status, 200, JSON.stringify(updated.payload));
+
+  const listed = await fetch(
+    `${baseUrl}/api/admin/curriculum-nodes?treeId=${treeId}&tree=false`,
+    { headers: admin },
+  );
+  const payload = await listed.json();
+  assert.equal(listed.status, 200, JSON.stringify(payload));
+  const root = payload.nodes.find((node) => node.id === rootId);
+  assert.match(
+    root.metadata,
+    /course-isms-p-subject-foundation-topic-core-lesson-01/,
+  );
+
+  const crossCourse = await post("/api/admin/curriculum-nodes", admin, {
+    id: rootId,
+    curriculumTreeId: treeId,
+    nodeType: "SUBJECT",
+    title: "ISMS-P 인증기준",
+    sortOrder: 10,
+    isRequired: true,
+    isPractical: false,
+    metadata: JSON.stringify({
+      linkedContent: [{ type: "SUBJECT", id: "course-cppg-subject-foundation" }],
+    }),
+    status: "ACTIVE",
+  });
+  assert.equal(crossCourse.response.status, 400);
+  assert.equal(crossCourse.payload.code, "CURRICULUM_LINK_SCOPE_MISMATCH");
+});
+
 test("자기 자신, 하위 노드, 다른 Tree parent 지정은 차단된다", async () => {
   const selfParent = await post("/api/admin/curriculum-nodes", admin, {
     id: rootId,
@@ -207,15 +264,15 @@ test("자기 자신, 하위 노드, 다른 Tree parent 지정은 차단된다", 
 
   const otherTree = await post("/api/admin/curriculum-trees", admin, {
     courseId: "course-cppg",
-    title: "CPPG Sprint A 커리큘럼",
-    version: `sprint-a-${Date.now()}`,
+    title: "CPPG Sprint B 커리큘럼",
+    version: `sprint-b-${Date.now()}`,
     status: "DRAFT",
   });
   assert.equal(otherTree.response.status, 201, JSON.stringify(otherTree.payload));
   const otherRoot = await post("/api/admin/curriculum-nodes", admin, {
     curriculumTreeId: otherTree.payload.id,
     nodeType: "SUBJECT",
-    title: "개인정보보호의 이해",
+    title: "개인정보보호 이해",
     sortOrder: 10,
     isRequired: true,
     isPractical: false,
@@ -237,7 +294,7 @@ test("자기 자신, 하위 노드, 다른 Tree parent 지정은 차단된다", 
   assert.equal(crossTreeParent.response.status, 400);
 });
 
-test("Node 이동은 하위 depth/path를 함께 갱신하고 하위가 있는 노드 보관은 차단한다", async () => {
+test("Node 이동은 하위 depth/path를 함께 갱신하고 하위가 있는 노드 보관은 차단된다", async () => {
   const moved = await post("/api/admin/curriculum-nodes", admin, {
     id: childId,
     curriculumTreeId: treeId,
@@ -270,7 +327,7 @@ test("Node 이동은 하위 depth/path를 함께 갱신하고 하위가 있는 �
   assert.equal(archiveParent.status, 409);
 });
 
-test("관리자 커리큘럼 화면은 Tree와 Node 편집 UI를 제공한다", async () => {
+test("관리자 커리큘럼 화면은 Tree, Node, 기존 콘텐츠 연결 UI를 제공한다", async () => {
   const response = await fetch(`${baseUrl}/admin/curriculum?treeId=${treeId}`, {
     headers: admin,
   });
@@ -279,6 +336,7 @@ test("관리자 커리큘럼 화면은 Tree와 Node 편집 UI를 제공한다", 
   assert.match(html, /커리큘럼 트리 관리/);
   assert.match(html, /새 커리큘럼 트리 생성/);
   assert.match(html, /노드 편집/);
+  assert.match(html, /기존 콘텐츠 연결/);
   assert.match(html, /ISMS-P 2027/);
   assert.match(html, /CURRICULUM ARCHITECTURE/);
 });

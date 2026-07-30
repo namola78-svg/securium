@@ -2586,6 +2586,58 @@ textarea {
   padding: 0 20px 20px;
 }
 
+.curriculum-link-fieldset {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.curriculum-link-fieldset legend {
+  padding: 0 8px;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.curriculum-link-group {
+  display: grid;
+  gap: 8px;
+}
+
+.curriculum-link-group h3 {
+  margin: 0;
+  font-size: 13px;
+}
+
+.curriculum-link-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.curriculum-link-options .check-label {
+  align-items: flex-start;
+  min-height: 44px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #f9fbf7;
+}
+
+.curriculum-link-options .check-label span {
+  display: grid;
+  gap: 3px;
+}
+
+.curriculum-link-options .check-label small {
+  color: var(--muted);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
 .danger-button {
   border-color: rgba(192, 57, 43, 0.3);
   color: var(--danger);
@@ -3380,6 +3432,10 @@ textarea {
 
   .admin-form .wide {
     grid-column: auto;
+  }
+
+  .curriculum-link-options {
+    grid-template-columns: 1fr;
   }
 
   .admin-nav {
