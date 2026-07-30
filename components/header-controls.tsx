@@ -65,11 +65,14 @@ export function HeaderControls({ user }: HeaderControlsProps) {
   useEffect(() => {
     if (!mobileOpen) return;
     const body = document.body;
+    const root = document.documentElement;
+    const previousRootOverflow = root.style.overflow;
     const previousOverflow = body.style.overflow;
     const previousPosition = body.style.position;
     const previousTop = body.style.top;
     const previousWidth = body.style.width;
     lockedScrollY.current = window.scrollY;
+    root.style.overflow = "hidden";
     body.style.overflow = "hidden";
     body.style.position = "fixed";
     body.style.top = `-${lockedScrollY.current}px`;
@@ -83,21 +86,33 @@ export function HeaderControls({ user }: HeaderControlsProps) {
       }
     }
 
+    function handlePointerDown(event: PointerEvent) {
+      const target = event.target as Node;
+      if (navRef.current?.contains(target)) return;
+      if (menuButtonRef.current?.contains(target)) return;
+      setMobileOpen(false);
+      setProfileOpen(false);
+    }
+
     window.addEventListener("keydown", handleKeyDown);
-    window.requestAnimationFrame(() => {
+    window.addEventListener("pointerdown", handlePointerDown);
+    const focusTimer = window.setTimeout(() => {
       const focusTarget = navRef.current?.querySelector<HTMLElement>(
         'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
       );
       focusTarget?.focus();
-    });
+    }, 50);
 
     return () => {
+      window.clearTimeout(focusTimer);
+      root.style.overflow = previousRootOverflow;
       body.style.overflow = previousOverflow;
       body.style.position = previousPosition;
       body.style.top = previousTop;
       body.style.width = previousWidth;
       window.scrollTo(0, lockedScrollY.current);
       window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("pointerdown", handlePointerDown);
     };
   }, [mobileOpen]);
 
