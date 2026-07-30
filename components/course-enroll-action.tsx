@@ -37,6 +37,7 @@ const TEXT = {
   addToLearning:
     "\uB0B4 \uD559\uC2B5\uC5D0 \uCD94\uAC00",
 } as const;
+const ENROLLMENT_SYNC_EVENT = "securium:course-enrolled";
 
 export function CourseEnrollAction({
   courseId,
@@ -51,6 +52,17 @@ export function CourseEnrollAction({
       : "checking",
   );
   const [message, setMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    function handleEnrollmentSync(event: Event) {
+      const detail = (event as CustomEvent<{ courseId?: string }>).detail;
+      if (detail?.courseId !== courseId) return;
+      setStatus("enrolled");
+    }
+
+    window.addEventListener(ENROLLMENT_SYNC_EVENT, handleEnrollmentSync);
+    return () => window.removeEventListener(ENROLLMENT_SYNC_EVENT, handleEnrollmentSync);
+  }, [courseId]);
 
   useEffect(() => {
     if (initialSignedIn) return;
@@ -107,6 +119,7 @@ export function CourseEnrollAction({
         if (payload?.code === "DUPLICATE_ENROLLMENT") {
           setStatus("enrolled");
           setMessage(TEXT.duplicate);
+          syncEnrollmentState(courseId);
           router.refresh();
           return;
         }
@@ -115,6 +128,7 @@ export function CourseEnrollAction({
 
       setStatus("enrolled");
       setMessage(TEXT.enrolled);
+      syncEnrollmentState(courseId);
       router.refresh();
     } catch (error) {
       console.error("SECURIUM_ENROLLMENT_ERROR", {
@@ -198,4 +212,12 @@ function statusFromEnrollment(status: EnrollmentStatus | null): ActionStatus {
   if (status === "COMPLETED") return "completed";
   if (status === "ACTIVE" || status === "PAUSED") return "enrolled";
   return "ready";
+}
+
+function syncEnrollmentState(courseId: string) {
+  window.dispatchEvent(
+    new CustomEvent(ENROLLMENT_SYNC_EVENT, {
+      detail: { courseId },
+    }),
+  );
 }
