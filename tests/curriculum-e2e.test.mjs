@@ -266,10 +266,23 @@ test("ACTIVE 커리큘럼 트리는 수강자의 학습 화면에 읽기 전용 
     assert.equal(activated.response.status, 200, JSON.stringify(activated.payload));
   }
 
+  const completedLesson = await post("/api/lessons/progress", user, {
+    lessonId: "course-isms-p-subject-foundation-topic-core-lesson-01",
+    action: "COMPLETE",
+    lastPosition: 9999,
+  });
+  assert.equal(
+    completedLesson.response.status,
+    200,
+    JSON.stringify(completedLesson.payload),
+  );
+
   const response = await fetch(`${baseUrl}/learn/isms-p`, { headers: user });
   const html = await response.text();
   assert.equal(response.status, 200, html.slice(0, 1000));
   assert.match(html, /CURRICULUM PATH/);
+  assert.match(html, /커리큘럼 연결 레슨/);
+  assert.match(html, /1\/1 완료/);
   assert.match(html, /통합 커리큘럼 경로/);
   assert.match(html, /ISMS-P 2027 커리큘럼/);
   assert.match(html, /연결 레슨 보기/);

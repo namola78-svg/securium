@@ -54,7 +54,7 @@ export default async function LearnCoursePage({
       listCourseSpecializations(course.id),
       getCourseTheoryProgress(user.id, course.id),
       listSubjectTheoryProgress(user.id, course.id),
-      getPublishedCurriculumPathForCourse(course.id),
+      getPublishedCurriculumPathForCourse(course.id, user.id),
     ]);
   const courseReviews = reviews.byCourse.find(
     (item) => item.courseId === course.id,
@@ -296,6 +296,14 @@ function CurriculumPathSection({
 }) {
   return (
     <section className="curriculum-path-section section-block">
+      {path.linkedLessonCount ? (
+        <div className="curriculum-path-summary">
+          <ProgressBar
+            value={path.progressPercent}
+            label={`커리큘럼 연결 레슨 ${path.completedLinkedLessons}/${path.linkedLessonCount} 완료`}
+          />
+        </div>
+      ) : null}
       <div className="section-heading compact">
         <div>
           <p className="eyebrow">CURRICULUM PATH</p>
@@ -340,6 +348,12 @@ function CurriculumPathNodeCard({
           {node.title}
         </h3>
         {node.description ? <p>{node.description}</p> : null}
+        {node.linkedLessonCount ? (
+          <p className="curriculum-path-progress">
+            연결 레슨 {node.completedLinkedLessons}/{node.linkedLessonCount} 완료 ·{" "}
+            {node.linkedLessonProgressPercent}%
+          </p>
+        ) : null}
         <p className="curriculum-path-meta">
           연결 콘텐츠 {node.linkedContentCount}개
           {node.importance !== null ? ` · 중요도 ${node.importance}` : ""}

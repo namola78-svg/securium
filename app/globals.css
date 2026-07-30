@@ -2382,6 +2382,14 @@ textarea {
   color: var(--muted);
 }
 
+.curriculum-path-summary {
+  max-width: 560px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--white) 92%, var(--accent));
+}
+
 .curriculum-path-tree,
 .curriculum-path-children {
   display: grid;
@@ -2423,6 +2431,12 @@ textarea {
 .curriculum-path-meta {
   font-size: 13px;
   font-weight: 800;
+}
+
+.curriculum-path-progress {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ink);
 }
 
 .subject-row {

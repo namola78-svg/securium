@@ -9,6 +9,7 @@ import {
   lessons,
   subjects,
   topics,
+  userLessonProgress,
 } from "./schema";
 import { AppError } from "@/lib/errors";
 import type {
@@ -260,7 +261,10 @@ export async function getActiveCurriculumTreeForCourse(courseId: string) {
   return tree ?? null;
 }
 
-export async function getPublishedCurriculumPathForCourse(courseId: string) {
+export async function getPublishedCurriculumPathForCourse(
+  courseId: string,
+  userId?: string,
+) {
   const tree = await getActiveCurriculumTreeForCourse(courseId);
   if (!tree) return null;
 
@@ -324,21 +328,56 @@ export async function getPublishedCurriculumPathForCourse(courseId: string) {
           ),
         )
     : [];
+  const visibleLessonIds = lessonRows.map((lesson) => lesson.id);
+  const progressRows =
+    userId && visibleLessonIds.length
+      ? await getDb()
+          .select({
+            lessonId: userLessonProgress.lessonId,
+            status: userLessonProgress.status,
+            progressPercent: userLessonProgress.progressPercent,
+          })
+          .from(userLessonProgress)
+          .where(
+            and(
+              eq(userLessonProgress.userId, userId),
+              eq(userLessonProgress.courseId, courseId),
+              inArray(userLessonProgress.lessonId, visibleLessonIds),
+            ),
+          )
+      : [];
   const lessonById = new Map(lessonRows.map((lesson) => [lesson.id, lesson]));
+  const progressByLessonId = new Map(
+    progressRows.map((progress) => [progress.lessonId, progress]),
+  );
   const nodes = nodeRows.map((node) => {
     const linkedContent = parseLinkedContent(node.metadata);
-    const firstLesson = linkedContent
+    const linkedLessons = linkedContent
       .filter((link) => link.type === "LESSON")
       .map((link) => lessonById.get(link.id))
-      .find(Boolean);
+      .filter((lesson): lesson is { id: string; title: string } =>
+        Boolean(lesson),
+      );
+    const firstLesson = linkedLessons[0] ?? null;
+    const completedLinkedLessons = linkedLessons.filter(
+      (lesson) => progressByLessonId.get(lesson.id)?.status === "COMPLETED",
+    ).length;
     return {
       ...node,
       linkedContentCount: linkedContent.length,
+      linkedLessonCount: linkedLessons.length,
+      completedLinkedLessons,
+      linkedLessonProgressPercent: linkedLessons.length
+        ? Math.round((completedLinkedLessons / linkedLessons.length) * 100)
+        : 0,
       linkedLesson: firstLesson
         ? { id: firstLesson.id, title: firstLesson.title }
         : null,
     };
   });
+  const completedLinkedLessons = visibleLessonIds.filter(
+    (lessonId) => progressByLessonId.get(lessonId)?.status === "COMPLETED",
+  ).length;
 
   return {
     tree: {
@@ -352,6 +391,11 @@ export async function getPublishedCurriculumPathForCourse(courseId: string) {
     },
     nodes: buildCurriculumTree(nodes),
     nodeCount: nodes.length,
+    linkedLessonCount: visibleLessonIds.length,
+    completedLinkedLessons,
+    progressPercent: visibleLessonIds.length
+      ? Math.round((completedLinkedLessons / visibleLessonIds.length) * 100)
+      : 0,
   };
 }
 
