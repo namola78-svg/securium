@@ -384,6 +384,25 @@ export async function listDueReviews(userId: string, courseId?: string) {
     .orderBy(asc(reviewSchedules.nextReviewAt));
 }
 
+export async function countDueReviewsForCourse(
+  userId: string,
+  courseId: string,
+) {
+  const now = new Date().toISOString();
+  const [row] = await getDb()
+    .select({ count: sql<number>`count(*)` })
+    .from(reviewSchedules)
+    .where(
+      and(
+        eq(reviewSchedules.userId, userId),
+        eq(reviewSchedules.courseId, courseId),
+        lte(reviewSchedules.nextReviewAt, now),
+        inArray(reviewSchedules.status, ["DUE", "SCHEDULED"]),
+      ),
+    );
+  return Number(row?.count ?? 0);
+}
+
 export async function getReviewSummary(userId: string) {
   const due = await listDueReviews(userId);
   const now = Date.now();
@@ -543,6 +562,30 @@ export async function listPublicMockExams(userId: string, courseId?: string) {
       counts.find((count) => count.mockExamId === row.id)?.bestScore ?? 0,
     ),
   }));
+}
+
+export async function countPublicMockExamsForCourse(
+  userId: string,
+  courseId: string,
+) {
+  const conditions = [
+    eq(mockExams.courseId, courseId),
+    eq(mockExams.published, true),
+    eq(mockExams.status, "OPEN"),
+    inArray(userCourseEnrollments.status, ["ACTIVE", "PAUSED"]),
+  ];
+  const [row] = await getDb()
+    .select({ count: sql<number>`count(*)` })
+    .from(mockExams)
+    .innerJoin(
+      userCourseEnrollments,
+      and(
+        eq(mockExams.courseId, userCourseEnrollments.courseId),
+        eq(userCourseEnrollments.userId, userId),
+      ),
+    )
+    .where(and(...conditions));
+  return Number(row?.count ?? 0);
 }
 
 function examIsOpen(exam: {
