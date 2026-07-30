@@ -23,8 +23,15 @@ if (process.env.SECURIUM_CONFIRM_SHARED_CONTENT_SEED !== CONFIRM_ENV) {
   );
 }
 
+const databaseUrl = process.env.DATABASE_URL?.trim();
 const directUrl = process.env.DIRECT_URL?.trim();
-if (!directUrl) fail("DIRECT_URL_REQUIRED");
+const connectionUrl = databaseUrl || directUrl;
+if (!connectionUrl) {
+  fail(
+    "DATABASE_URL_OR_DIRECT_URL_REQUIRED",
+    "Set DATABASE_URL for pooled runtime access, or DIRECT_URL when direct database access is available.",
+  );
+}
 
 const contents = [
   {
@@ -241,7 +248,7 @@ const extensions = [
   ["course-lesson-extension-pia-privacy-flow", "course-lesson-pia-privacy-flow", ["처리 흐름도", "침해요인 식별", "개선방안 도출"], "영향평가에서는 처리 흐름을 기준으로 개인정보 유형, 처리 목적, 이전 방식, 보호 조치를 함께 확인합니다."],
 ];
 
-const sql = postgres(directUrl, {
+const sql = postgres(connectionUrl, {
   max: 1,
   idle_timeout: 1,
   connect_timeout: 15,
@@ -251,6 +258,37 @@ const sql = postgres(directUrl, {
 let failed = false;
 
 try {
+  const requiredTables = ["contents", "course_lessons", "course_lesson_extensions", "courses"];
+  const tableRows = await sql`
+    SELECT tablename
+    FROM pg_catalog.pg_tables
+    WHERE schemaname = 'public'
+      AND tablename IN ${sql(requiredTables)}
+  `;
+  const existingTables = new Set(tableRows.map((row) => row.tablename));
+  const missingTables = requiredTables.filter((table) => !existingTables.has(table));
+  if (missingTables.length) {
+    fail(
+      `SHARED_CONTENT_SCHEMA_MISSING:${missingTables.join(",")}`,
+      "Apply curriculum and shared content schema before running the seed.",
+    );
+  }
+
+  const requiredCourseIds = [...new Set(lessons.map((lesson) => lesson[1]))];
+  const courseRows = await sql`
+    SELECT id
+    FROM courses
+    WHERE id IN ${sql(requiredCourseIds)}
+  `;
+  const existingCourses = new Set(courseRows.map((row) => row.id));
+  const missingCourses = requiredCourseIds.filter((id) => !existingCourses.has(id));
+  if (missingCourses.length) {
+    fail(
+      `COURSE_SEED_MISSING:${missingCourses.join(",")}`,
+      "Apply or verify the base course seed before running shared content seed.",
+    );
+  }
+
   await sql.begin(async (tx) => {
     for (const content of contents) {
       await tx`
@@ -265,7 +303,7 @@ try {
           ${JSON.stringify(content.learningObjectives)},
           ${JSON.stringify(content.coreConcepts)},
           ${JSON.stringify(content.practicalExamples)},
-          '[]', '[]', '1.0.0', 'PUBLISHED', 'user-admin'
+          '[]', '[]', '1.0.0', 'PUBLISHED', NULL
         )
         ON CONFLICT (id) DO NOTHING
       `;
@@ -279,7 +317,7 @@ try {
         )
         VALUES (
           ${lesson[0]}, ${lesson[1]}, NULL, ${lesson[2]}, ${lesson[3]},
-          ${lesson[4]}, NULL, ${lesson[5]}, ${lesson[6]}, ${lesson[7]},
+          ${lesson[4]}, NULL, ${lesson[5]}, ${lesson[6]}, ${lesson[7] ? 1 : 0},
           'MANUAL', 'PUBLISHED'
         )
         ON CONFLICT (id) DO NOTHING
