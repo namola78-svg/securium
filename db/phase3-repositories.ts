@@ -66,6 +66,7 @@ import {
   recommendationService,
   type RecommendationCandidate,
 } from "@/lib/services/recommendation-service";
+import { getPublishedCurriculumPathForCourse } from "@/db/curriculum-repositories";
 
 function parseJson<T>(value: string, fallback: T): T {
   try {
@@ -1300,6 +1301,21 @@ export async function saveLearningSettings(input: {
     });
 }
 
+type PublishedCurriculumPath = NonNullable<
+  Awaited<ReturnType<typeof getPublishedCurriculumPathForCourse>>
+>;
+type PublishedCurriculumNode = PublishedCurriculumPath["nodes"][number];
+
+function flattenCurriculumPathNodes(nodes: PublishedCurriculumNode[]) {
+  const flattened: PublishedCurriculumNode[] = [];
+  const visit = (node: PublishedCurriculumNode) => {
+    flattened.push(node);
+    node.children.forEach(visit);
+  };
+  nodes.forEach(visit);
+  return flattened;
+}
+
 export async function getRecommendations(userId: string) {
   const [reviews, enrollments] = await Promise.all([
     listDueReviews(userId),
@@ -1406,6 +1422,29 @@ export async function getRecommendations(userId: string) {
         priority: "INCOMPLETE_LEVEL",
         estimatedMinutes: 15,
         href: `/learn/${enrollment.courseSlug}/levels/${nextLevel.id}`,
+      });
+    }
+    const curriculumPath = await getPublishedCurriculumPathForCourse(
+      enrollment.courseId,
+      userId,
+    );
+    const nextCurriculumNode = curriculumPath
+      ? flattenCurriculumPathNodes(curriculumPath.nodes).find(
+          (node) =>
+            node.linkedLessonCount > 0 &&
+            node.linkedLessonProgressPercent < 100 &&
+            Boolean(node.linkedLesson),
+        )
+      : null;
+    if (nextCurriculumNode?.linkedLesson) {
+      candidates.push({
+        id: `curriculum:${nextCurriculumNode.id}:${nextCurriculumNode.linkedLesson.id}`,
+        kind: "LESSON",
+        title: nextCurriculumNode.linkedLesson.title,
+        reason: `커리큘럼 '${nextCurriculumNode.title}'의 다음 연결 레슨`,
+        priority: "CURRICULUM_LESSON",
+        estimatedMinutes: 10,
+        href: `/learn/${enrollment.courseSlug}/lessons/${nextCurriculumNode.linkedLesson.id}`,
       });
     }
     const subjectActivity = await getDb()

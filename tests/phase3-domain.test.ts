@@ -20,6 +20,31 @@ test("첫 단계는 해제되고 선행 단계가 있으면 잠긴다", () => {
   assert.equal(initialLevelStatus("level-1"), "LOCKED");
 });
 
+test("curriculum lesson recommendations are prioritized before generic levels", () => {
+  const service = new RuleBasedRecommendationService();
+  const results = service.recommend([
+    {
+      id: "level",
+      kind: "LEVEL",
+      title: "level",
+      reason: "incomplete level",
+      priority: "INCOMPLETE_LEVEL",
+      estimatedMinutes: 15,
+      href: "/learn/course/levels/1",
+    },
+    {
+      id: "curriculum-lesson",
+      kind: "LESSON",
+      title: "linked lesson",
+      reason: "next curriculum lesson",
+      priority: "CURRICULUM_LESSON",
+      estimatedMinutes: 10,
+      href: "/learn/course/lessons/1",
+    },
+  ]);
+  assert.equal(results[0]?.id, "curriculum-lesson");
+});
+
 test("통과 시 다음 단계를 해제하고 미통과 시 잠금을 유지한다", () => {
   const base = {
     status: "AVAILABLE" as const,

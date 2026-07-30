@@ -358,7 +358,19 @@ export async function getPublishedCurriculumPathForCourse(
       .filter((lesson): lesson is { id: string; title: string } =>
         Boolean(lesson),
       );
-    const firstLesson = linkedLessons[0] ?? null;
+    const linkedLessonProgress = linkedLessons.map((lesson) => {
+      const progress = progressByLessonId.get(lesson.id);
+      return {
+        id: lesson.id,
+        title: lesson.title,
+        status: progress?.status ?? "NOT_STARTED",
+        progressPercent: progress?.progressPercent ?? 0,
+      };
+    });
+    const firstLesson =
+      linkedLessonProgress.find((lesson) => lesson.status !== "COMPLETED") ??
+      linkedLessonProgress[0] ??
+      null;
     const completedLinkedLessons = linkedLessons.filter(
       (lesson) => progressByLessonId.get(lesson.id)?.status === "COMPLETED",
     ).length;
@@ -370,6 +382,7 @@ export async function getPublishedCurriculumPathForCourse(
       linkedLessonProgressPercent: linkedLessons.length
         ? Math.round((completedLinkedLessons / linkedLessons.length) * 100)
         : 0,
+      linkedLessons: linkedLessonProgress,
       linkedLesson: firstLesson
         ? { id: firstLesson.id, title: firstLesson.title }
         : null,

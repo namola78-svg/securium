@@ -1,6 +1,6 @@
 export type RecommendationCandidate = {
   id: string;
-  kind: "REVIEW" | "QUESTION" | "LEVEL" | "SUBJECT" | "MOCK_EXAM";
+  kind: "REVIEW" | "QUESTION" | "LEVEL" | "SUBJECT" | "MOCK_EXAM" | "LESSON";
   title: string;
   reason: string;
   priority:
@@ -8,6 +8,7 @@ export type RecommendationCandidate = {
     | "REPEATED_WRONG"
     | "EXAM_WRONG"
     | "LOW_ACCURACY"
+    | "CURRICULUM_LESSON"
     | "INCOMPLETE_LEVEL"
     | "STALE_SUBJECT"
     | "UNSEEN_QUESTION";
@@ -20,6 +21,7 @@ const priorityScore: Record<RecommendationCandidate["priority"], number> = {
   REPEATED_WRONG: 600,
   EXAM_WRONG: 500,
   LOW_ACCURACY: 400,
+  CURRICULUM_LESSON: 350,
   INCOMPLETE_LEVEL: 300,
   STALE_SUBJECT: 200,
   UNSEEN_QUESTION: 100,
