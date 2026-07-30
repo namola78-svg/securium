@@ -1782,7 +1782,7 @@ export async function getRecommendations(userId: string) {
 export async function getTodayLearningPlan(userId: string) {
   const [settings, recommendations, reviewSummary] = await Promise.all([
     getLearningSettings(userId),
-    getRecommendations(userId),
+    getDashboardRecommendations(userId),
     getReviewSummary(userId),
   ]);
   const today = new Date().toISOString().slice(0, 10);
@@ -1807,6 +1807,180 @@ export async function getTodayLearningPlan(userId: string) {
       settings.dailyQuestionGoal,
     ),
   };
+}
+
+async function getDashboardRecommendations(userId: string) {
+  const [reviews, enrollments] = await Promise.all([
+    listDueReviews(userId),
+    getDb()
+      .select({
+        courseId: userCourseEnrollments.courseId,
+        courseSlug: courses.slug,
+        courseName: courses.shortName,
+      })
+      .from(userCourseEnrollments)
+      .innerJoin(courses, eq(userCourseEnrollments.courseId, courses.id))
+      .where(
+        and(
+          eq(userCourseEnrollments.userId, userId),
+          eq(userCourseEnrollments.status, "ACTIVE"),
+        ),
+      ),
+  ]);
+  const candidates: RecommendationCandidate[] = reviews.map((review) => {
+    const overdueDays = Math.max(
+      0,
+      Math.floor(
+        (Date.now() - new Date(review.nextReviewAt).getTime()) / 86_400_000,
+      ),
+    );
+    return {
+      id: review.id,
+      kind: "REVIEW",
+      title: review.questionTitle ?? "예정된 복습",
+      reason:
+        overdueDays > 0
+          ? `복습 예정일 ${overdueDays}일 경과`
+          : "오늘 복습 예정",
+      priority:
+        overdueDays === 0 && review.targetType === "MOCK_EXAM_QUESTION"
+          ? "EXAM_WRONG"
+          : "OVERDUE_REVIEW",
+      estimatedMinutes: 2,
+      href: `/reviews?courseId=${review.courseId}`,
+    };
+  });
+  const courseIds = enrollments.map((enrollment) => enrollment.courseId);
+  if (!courseIds.length) {
+    return recommendationService.recommend(candidates, 8);
+  }
+  const courseById = new Map(
+    enrollments.map((enrollment) => [enrollment.courseId, enrollment]),
+  );
+  const [repeatedRows, staleSubjectRows, unseenRows] = await Promise.all([
+    getDb()
+      .select({
+        id: wrongNotes.id,
+        courseId: wrongNotes.courseId,
+        questionId: wrongNotes.questionId,
+        wrongCount: wrongNotes.wrongCount,
+        title: questions.title,
+      })
+      .from(wrongNotes)
+      .innerJoin(questions, eq(wrongNotes.questionId, questions.id))
+      .where(
+        and(
+          eq(wrongNotes.userId, userId),
+          inArray(wrongNotes.courseId, courseIds),
+          gt(wrongNotes.wrongCount, 1),
+          sql`${wrongNotes.mastered} = 0`,
+        ),
+      )
+      .orderBy(desc(wrongNotes.wrongCount))
+      .limit(8),
+    getDb()
+      .select({
+        courseId: subjects.courseId,
+        subjectId: subjects.id,
+        subjectName: subjects.name,
+        lastStudiedAt: sql<string | null>`max(${questionAttempts.attemptedAt})`,
+      })
+      .from(subjects)
+      .leftJoin(questionSubjects, eq(subjects.id, questionSubjects.subjectId))
+      .leftJoin(
+        questionAttempts,
+        and(
+          eq(questionSubjects.questionId, questionAttempts.questionId),
+          eq(questionAttempts.userId, userId),
+          eq(questionAttempts.courseId, subjects.courseId),
+        ),
+      )
+      .where(inArray(subjects.courseId, courseIds))
+      .groupBy(subjects.courseId, subjects.id, subjects.name),
+    getDb()
+      .select({
+        id: questions.id,
+        title: questions.title,
+        courseId: questionCourses.courseId,
+      })
+      .from(questionCourses)
+      .innerJoin(questions, eq(questionCourses.questionId, questions.id))
+      .leftJoin(
+        questionAttempts,
+        and(
+          eq(questionAttempts.questionId, questions.id),
+          eq(questionAttempts.userId, userId),
+          eq(questionAttempts.courseId, questionCourses.courseId),
+        ),
+      )
+      .where(
+        and(
+          inArray(questionCourses.courseId, courseIds),
+          eq(questions.status, "PUBLISHED"),
+          sql`${questionAttempts.id} IS NULL`,
+        ),
+      )
+      .limit(12),
+  ]);
+  candidates.push(
+    ...repeatedRows.map((item) => {
+      const course = courseById.get(item.courseId);
+      return {
+        id: item.id,
+        kind: "QUESTION" as const,
+        title: item.title,
+        reason: `최근 ${item.wrongCount}회 반복 오답`,
+        priority: "REPEATED_WRONG" as const,
+        estimatedMinutes: 3,
+        href: `/practice/${course?.courseSlug ?? ""}?wrongOnly=1&count=10`,
+      };
+    }),
+  );
+  const staleByCourse = new Map<
+    string,
+    (typeof staleSubjectRows)[number]
+  >();
+  for (const subject of staleSubjectRows) {
+    const stale =
+      !subject.lastStudiedAt ||
+      Date.now() - new Date(subject.lastStudiedAt).getTime() >=
+        14 * 86_400_000;
+    if (stale && !staleByCourse.has(subject.courseId)) {
+      staleByCourse.set(subject.courseId, subject);
+    }
+  }
+  for (const subject of staleByCourse.values()) {
+    const course = courseById.get(subject.courseId);
+    if (!course) continue;
+    candidates.push({
+      id: subject.subjectId,
+      kind: "SUBJECT",
+      title: subject.subjectName,
+      reason: subject.lastStudiedAt
+        ? "최근 14일간 학습하지 않음"
+        : "아직 학습 기록이 없는 과목",
+      priority: "STALE_SUBJECT",
+      estimatedMinutes: 10,
+      href: `/practice/${course.courseSlug}?subjectId=${subject.subjectId}&count=10`,
+    });
+  }
+  const unseenCourseIds = new Set<string>();
+  for (const question of unseenRows) {
+    if (unseenCourseIds.has(question.courseId)) continue;
+    const course = courseById.get(question.courseId);
+    if (!course) continue;
+    unseenCourseIds.add(question.courseId);
+    candidates.push({
+      id: question.id,
+      kind: "QUESTION",
+      title: question.title,
+      reason: "아직 풀지 않은 공개 문제",
+      priority: "UNSEEN_QUESTION",
+      estimatedMinutes: 2,
+      href: `/practice/${course.courseSlug}?count=10`,
+    });
+  }
+  return recommendationService.recommend(candidates, 8);
 }
 
 export async function listAdminLevels(courseId?: string) {
