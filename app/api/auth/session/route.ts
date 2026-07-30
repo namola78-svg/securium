@@ -1,4 +1,4 @@
-import { getOptionalCurrentAppUser } from "@/lib/auth";
+import { getOptionalApiUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -9,7 +9,7 @@ export async function GET() {
   };
 
   try {
-    const user = await getOptionalCurrentAppUser();
+    const user = await getOptionalApiUser();
     return Response.json({ authenticated: Boolean(user) }, { headers });
   } catch {
     return Response.json({ authenticated: false }, { headers });

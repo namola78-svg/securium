@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { cache } from "react";
 import { getChatGPTUser, chatGPTSignInPath } from "@/app/chatgpt-auth";
 import { ensureUser, listRoleCodes } from "@/db/repositories";
 import { AppError } from "./errors";
@@ -29,7 +30,7 @@ async function getIdentity() {
   };
 }
 
-export async function getCurrentAppUser(): Promise<AppUser | null> {
+async function resolveCurrentAppUser(): Promise<AppUser | null> {
   const identity = await getIdentity();
   if (!identity) return null;
 
@@ -49,22 +50,36 @@ export async function getCurrentAppUser(): Promise<AppUser | null> {
   };
 }
 
+const getCachedCurrentAppUser = cache(resolveCurrentAppUser);
+
+export async function getCurrentAppUser(): Promise<AppUser | null> {
+  return getCachedCurrentAppUser();
+}
+
 export async function getOptionalCurrentAppUser(): Promise<AppUser | null> {
   try {
-    return await getCurrentAppUser();
+    return await getCachedCurrentAppUser();
+  } catch {
+    return null;
+  }
+}
+
+export async function getOptionalApiUser(): Promise<AppUser | null> {
+  try {
+    return await resolveCurrentAppUser();
   } catch {
     return null;
   }
 }
 
 export async function requireCurrentAppUser(returnTo: string) {
-  const user = await getCurrentAppUser();
+  const user = await getCachedCurrentAppUser();
   if (!user) redirect(chatGPTSignInPath(returnTo));
   return user;
 }
 
 export async function requireApiUser() {
-  const user = await getCurrentAppUser();
+  const user = await resolveCurrentAppUser();
   if (!user) {
     throw new AppError("로그인이 필요합니다.", 401, "UNAUTHENTICATED");
   }

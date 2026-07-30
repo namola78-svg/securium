@@ -88,6 +88,9 @@ export async function getSupabaseAuthenticatedIdentity(): Promise<AuthenticatedI
   const accessToken = cookieStore.get(SUPABASE_ACCESS_COOKIE)?.value;
   if (!accessToken) return getSupabaseIdentityFromSsrCookies();
 
+  const tokenIdentity = getSupabaseIdentityFromAccessToken(accessToken);
+  if (tokenIdentity) return tokenIdentity;
+
   const config = resolveSupabaseAuthConfig();
   let response: Response;
   try {
