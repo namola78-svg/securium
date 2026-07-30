@@ -3234,6 +3234,45 @@ textarea {
   background: #f7f8f4;
 }
 
+.analytics-course-list {
+  display: grid;
+  gap: 12px;
+}
+
+.analytics-course-row,
+.analytics-action-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) auto auto;
+  gap: 14px;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fbfcf7;
+}
+
+.analytics-course-row > a:first-child,
+.analytics-course-row > div:first-child,
+.analytics-action-row > div:first-child {
+  display: grid;
+  gap: 4px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.analytics-course-row small,
+.analytics-action-row span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.analytics-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
 .version-row {
   display: grid;
   grid-template-columns: 90px 1fr 1fr 2fr;
@@ -3406,6 +3445,15 @@ textarea {
 
   .dashboard-layout {
     grid-template-columns: 1fr;
+  }
+
+  .analytics-course-row,
+  .analytics-action-row {
+    grid-template-columns: 1fr;
+  }
+
+  .analytics-row-actions {
+    justify-content: flex-start;
   }
 
   .practice-layout {

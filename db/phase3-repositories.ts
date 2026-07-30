@@ -1232,6 +1232,7 @@ export async function getIntegratedStatistics(userId: string) {
     getDb()
       .select({
         courseId: userCourseEnrollments.courseId,
+        courseSlug: courses.slug,
         courseName: courses.shortName,
         progressPercent: userCourseEnrollments.progressPercent,
       })

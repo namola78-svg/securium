@@ -64,7 +64,13 @@ test("오늘 복습과 학습 분석을 사용자별 서버 데이터로 렌더�
     const html = await response.text();
     assert.equal(response.status, 200, `${path}: ${html.slice(0, 800)}`);
     if (path === "/reviews") assert.match(html, /ISMS-P/);
+    if (path === "/analytics") {
+      assert.match(html, /COURSE ACTIONS/);
+      assert.match(html, /\/practice\/isms-p\?count=10/);
+    }
     if (path === "/analytics/course-isms-p") {
+      assert.match(html, /우선 복습 권장|주제별 우선 복습 영역/);
+      assert.match(html, /\/practice\/isms-p\?/);
       assert.doesNotMatch(html, /course-cppg-subject/);
     }
   }

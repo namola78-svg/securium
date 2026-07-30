@@ -1,7 +1,7 @@
 import Link from "next/link";
+import { ProgressBar } from "@/components/progress-bar";
 import { getIntegratedStatistics } from "@/db/phase3-repositories";
 import { requireCurrentAppUser } from "@/lib/auth";
-import { ProgressBar } from "@/components/progress-bar";
 
 export const dynamic = "force-dynamic";
 
@@ -15,8 +15,14 @@ export default async function IntegratedAnalyticsPage() {
           <div>
             <p className="eyebrow">LEARNING ANALYTICS</p>
             <h1>통합 학습분석</h1>
-            <p>실제 풀이·복습·단계·모의고사 기록만 집계합니다.</p>
+            <p>
+              수강 중인 과정의 문제풀이, 단계, 복습 기록을 모아 다음 학습
+              행동으로 연결합니다.
+            </p>
           </div>
+          <Link className="button button-dark" href="/practice">
+            문제풀이 시작
+          </Link>
         </header>
         <section className="stats-grid">
           <Metric label="수강 과정" value={analytics.enrolledCourses} unit="개" />
@@ -25,24 +31,43 @@ export default async function IntegratedAnalyticsPage() {
           <Metric label="전체 정답률" value={analytics.overallAccuracy} unit="%" />
         </section>
         <section className="section-block admin-panel">
-          <h2>연속 학습일 {analytics.studyStreak}일</h2>
+          <div className="section-heading compact">
+            <div>
+              <p className="eyebrow">COURSE ACTIONS</p>
+              <h2>과정별 학습 상태</h2>
+              <p>
+                정답률과 단계 완료율을 확인하고, 바로 분석 또는 문제풀이로 이어갑니다.
+              </p>
+            </div>
+            <span className="count-label">연속 학습 {analytics.studyStreak}일</span>
+          </div>
           <div className="analytics-course-list">
             {analytics.courses.map((course) => (
-              <Link
-                className="analytics-course-row"
-                href={`/analytics/${course.courseId}`}
-                key={course.courseId}
-              >
-                <div>
+              <article className="analytics-course-row" key={course.courseId}>
+                <Link href={`/analytics/${course.courseId}`}>
                   <strong>{course.courseName}</strong>
                   <small>{course.stats.totalQuestions}문제 풀이</small>
-                </div>
+                </Link>
                 <ProgressBar
                   value={course.stats.overallAccuracy}
                   label="정답률"
                 />
                 <span>{course.stats.levelCompletionRate}% 단계 완료</span>
-              </Link>
+                <div className="analytics-row-actions">
+                  <Link
+                    className="button button-ghost"
+                    href={`/analytics/${course.courseId}`}
+                  >
+                    자세히 보기
+                  </Link>
+                  <Link
+                    className="button button-dark"
+                    href={`/practice/${course.courseSlug}?count=10`}
+                  >
+                    문제 풀기
+                  </Link>
+                </div>
+              </article>
             ))}
           </div>
         </section>
@@ -68,4 +93,3 @@ function Metric({
     </div>
   );
 }
-
