@@ -33,6 +33,8 @@ import { createAuditInsert } from "./audit-repositories";
 type CurriculumTreeInput = z.infer<typeof curriculumTreeSchema>;
 type CurriculumNodeInput = z.infer<typeof curriculumNodeSchema>;
 type CurriculumNodeArchiveInput = z.infer<typeof curriculumNodeArchiveSchema>;
+type LinkedContentType = "SUBJECT" | "TOPIC" | "LEARNING_UNIT" | "LESSON";
+type LinkedContent = { type: LinkedContentType; id: string };
 
 function batchItems(items: BatchItem<"sqlite">[]) {
   return items as unknown as Parameters<ReturnType<typeof getDb>["batch"]>[0];
@@ -123,7 +125,7 @@ export async function listCurriculumLinkableContent(courseId: string) {
   return [...subjectRows, ...topicRows, ...unitRows, ...lessonRows];
 }
 
-function parseLinkedContent(metadata: string | null | undefined) {
+function parseLinkedContent(metadata: string | null | undefined): LinkedContent[] {
   if (!metadata) return [];
   const parsed = JSON.parse(metadata) as {
     linkedContent?: Array<{ type?: unknown; id?: unknown }>;
@@ -131,8 +133,10 @@ function parseLinkedContent(metadata: string | null | undefined) {
   if (!Array.isArray(parsed.linkedContent)) return [];
   return parsed.linkedContent
     .filter(
-      (link): link is { type: string; id: string } =>
-        typeof link.type === "string" && typeof link.id === "string",
+      (link): link is LinkedContent =>
+        typeof link.type === "string" &&
+        typeof link.id === "string" &&
+        ["SUBJECT", "TOPIC", "LEARNING_UNIT", "LESSON"].includes(link.type),
     )
     .map((link) => ({ type: link.type, id: link.id }));
 }
@@ -254,6 +258,101 @@ export async function getActiveCurriculumTreeForCourse(courseId: string) {
     )
     .limit(1);
   return tree ?? null;
+}
+
+export async function getPublishedCurriculumPathForCourse(courseId: string) {
+  const tree = await getActiveCurriculumTreeForCourse(courseId);
+  if (!tree) return null;
+
+  const nodeRows = await getDb()
+    .select({
+      id: curriculumNodes.id,
+      curriculumTreeId: curriculumNodes.curriculumTreeId,
+      parentId: curriculumNodes.parentId,
+      nodeType: curriculumNodes.nodeType,
+      title: curriculumNodes.title,
+      description: curriculumNodes.description,
+      officialCode: curriculumNodes.officialCode,
+      officialTitle: curriculumNodes.officialTitle,
+      sortOrder: curriculumNodes.sortOrder,
+      depth: curriculumNodes.depth,
+      path: curriculumNodes.path,
+      isRequired: curriculumNodes.isRequired,
+      isPractical: curriculumNodes.isPractical,
+      difficulty: curriculumNodes.difficulty,
+      importance: curriculumNodes.importance,
+      metadata: curriculumNodes.metadata,
+      status: curriculumNodes.status,
+    })
+    .from(curriculumNodes)
+    .where(
+      and(
+        eq(curriculumNodes.curriculumTreeId, tree.id),
+        eq(curriculumNodes.status, "ACTIVE"),
+      ),
+    )
+    .orderBy(
+      asc(curriculumNodes.depth),
+      asc(curriculumNodes.sortOrder),
+      asc(curriculumNodes.title),
+      asc(curriculumNodes.id),
+    );
+
+  const lessonIds = [
+    ...new Set(
+      nodeRows.flatMap((node) =>
+        parseLinkedContent(node.metadata)
+          .filter((link) => link.type === "LESSON")
+          .map((link) => link.id),
+      ),
+    ),
+  ];
+  const lessonRows = lessonIds.length
+    ? await getDb()
+        .select({
+          id: lessons.id,
+          title: lessons.title,
+        })
+        .from(lessons)
+        .where(
+          and(
+            inArray(lessons.id, lessonIds),
+            eq(lessons.courseId, courseId),
+            eq(lessons.active, true),
+            eq(lessons.published, true),
+            isNull(lessons.deletedAt),
+          ),
+        )
+    : [];
+  const lessonById = new Map(lessonRows.map((lesson) => [lesson.id, lesson]));
+  const nodes = nodeRows.map((node) => {
+    const linkedContent = parseLinkedContent(node.metadata);
+    const firstLesson = linkedContent
+      .filter((link) => link.type === "LESSON")
+      .map((link) => lessonById.get(link.id))
+      .find(Boolean);
+    return {
+      ...node,
+      linkedContentCount: linkedContent.length,
+      linkedLesson: firstLesson
+        ? { id: firstLesson.id, title: firstLesson.title }
+        : null,
+    };
+  });
+
+  return {
+    tree: {
+      id: tree.id,
+      title: tree.title,
+      version: tree.version,
+      effectiveFrom: tree.effectiveFrom,
+      effectiveTo: tree.effectiveTo,
+      sourceType: tree.sourceType,
+      sourceDocument: tree.sourceDocument,
+    },
+    nodes: buildCurriculumTree(nodes),
+    nodeCount: nodes.length,
+  };
 }
 
 export async function saveCurriculumTree(

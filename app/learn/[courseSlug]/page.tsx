@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ProgressBar } from "@/components/progress-bar";
+import { getPublishedCurriculumPathForCourse } from "@/db/curriculum-repositories";
 import { requireCurrentAppUser } from "@/lib/auth";
 import {
   getEnrollmentForCourse,
@@ -42,6 +43,7 @@ export default async function LearnCoursePage({
     specializations,
     theoryProgress,
     subjectTheoryProgress,
+    curriculumPath,
   ] =
     await Promise.all([
       listCurriculum(course.id),
@@ -52,6 +54,7 @@ export default async function LearnCoursePage({
       listCourseSpecializations(course.id),
       getCourseTheoryProgress(user.id, course.id),
       listSubjectTheoryProgress(user.id, course.id),
+      getPublishedCurriculumPathForCourse(course.id),
     ]);
   const courseReviews = reviews.byCourse.find(
     (item) => item.courseId === course.id,
@@ -159,6 +162,13 @@ export default async function LearnCoursePage({
               </article>
             ))}
           </div>
+
+          {curriculumPath ? (
+            <CurriculumPathSection
+              courseSlug={course.slug}
+              path={curriculumPath}
+            />
+          ) : null}
 
           <div className="dashboard-layout section-block">
             <div>
@@ -269,5 +279,91 @@ export default async function LearnCoursePage({
         </div>
       </section>
     </main>
+  );
+}
+
+type CurriculumPath = NonNullable<
+  Awaited<ReturnType<typeof getPublishedCurriculumPathForCourse>>
+>;
+type CurriculumPathNode = CurriculumPath["nodes"][number];
+
+function CurriculumPathSection({
+  courseSlug,
+  path,
+}: {
+  courseSlug: string;
+  path: CurriculumPath;
+}) {
+  return (
+    <section className="curriculum-path-section section-block">
+      <div className="section-heading compact">
+        <div>
+          <p className="eyebrow">CURRICULUM PATH</p>
+          <h2>통합 커리큘럼 경로</h2>
+          <p>
+            {path.tree.title} · v{path.tree.version}
+            {path.tree.effectiveFrom ? ` · 기준일 ${path.tree.effectiveFrom}` : ""}
+          </p>
+        </div>
+        <span className="count-label">{path.nodeCount}개 노드</span>
+      </div>
+      <div className="curriculum-path-tree">
+        {path.nodes.map((node) => (
+          <CurriculumPathNodeCard
+            courseSlug={courseSlug}
+            key={node.id}
+            node={node}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function CurriculumPathNodeCard({
+  courseSlug,
+  node,
+}: {
+  courseSlug: string;
+  node: CurriculumPathNode;
+}) {
+  return (
+    <article className="curriculum-path-node">
+      <div className="curriculum-path-node-body">
+        <div className="course-card-top">
+          <span className="badge">{node.nodeType}</span>
+          {node.isRequired ? <span className="sample-label">필수</span> : null}
+          {node.isPractical ? <span className="sample-label">실무</span> : null}
+        </div>
+        <h3>
+          {node.officialCode ? `${node.officialCode} · ` : ""}
+          {node.title}
+        </h3>
+        {node.description ? <p>{node.description}</p> : null}
+        <p className="curriculum-path-meta">
+          연결 콘텐츠 {node.linkedContentCount}개
+          {node.importance !== null ? ` · 중요도 ${node.importance}` : ""}
+        </p>
+        {node.linkedLesson ? (
+          <Link
+            className="button button-ghost"
+            href={`/learn/${courseSlug}/lessons/${node.linkedLesson.id}`}
+          >
+            연결 레슨 보기 · {node.linkedLesson.title}
+          </Link>
+        ) : null}
+      </div>
+      {node.children.length ? (
+        <div className="curriculum-path-children">
+          {node.children.map((child) => (
+            <CurriculumPathNodeCard
+              courseSlug={courseSlug}
+              key={child.id}
+              node={child}
+            />
+          ))}
+        </div>
+      ) : null}
+    </article>
   );
 }

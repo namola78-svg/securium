@@ -2372,6 +2372,59 @@ textarea {
   background: var(--white);
 }
 
+.curriculum-path-section {
+  display: grid;
+  gap: 20px;
+}
+
+.curriculum-path-section .section-heading p {
+  margin: 6px 0 0;
+  color: var(--muted);
+}
+
+.curriculum-path-tree,
+.curriculum-path-children {
+  display: grid;
+  gap: 14px;
+}
+
+.curriculum-path-children {
+  margin-top: 14px;
+  padding-left: 20px;
+  border-left: 1px solid var(--line);
+}
+
+.curriculum-path-node {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--white);
+}
+
+.curriculum-path-node-body {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+}
+
+.curriculum-path-node h3,
+.curriculum-path-node p {
+  margin: 0;
+}
+
+.curriculum-path-node h3 {
+  font-size: clamp(18px, 2vw, 24px);
+}
+
+.curriculum-path-node p {
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.curriculum-path-meta {
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .subject-row {
   display: grid;
   grid-template-columns: 48px 1fr auto;
@@ -3382,6 +3435,10 @@ textarea {
 
   .curriculum-item {
     grid-template-columns: 42px 1fr;
+  }
+
+  .curriculum-path-children {
+    padding-left: 12px;
   }
 
   .my-course-row {

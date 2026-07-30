@@ -17,6 +17,7 @@ const user = {
 let server;
 let output = "";
 let treeId = "";
+let treeVersion = "";
 let rootId = "";
 let childId = "";
 let grandchildId = "";
@@ -90,6 +91,7 @@ test("관리자만 CurriculumTree를 생성할 수 있고 course/version 중복�
   assert.equal(blocked.response.status, 403);
 
   const version = `sprint-a-${Date.now()}`;
+  treeVersion = version;
   const created = await post("/api/admin/curriculum-trees", admin, {
     courseId: "course-isms-p",
     title: "ISMS-P 2027 커리큘럼",
@@ -233,6 +235,44 @@ test("CurriculumNode는 같은 과정의 기존 콘텐츠만 metadata 연결로 
   });
   assert.equal(crossCourse.response.status, 400);
   assert.equal(crossCourse.payload.code, "CURRICULUM_LINK_SCOPE_MISMATCH");
+});
+
+test("ACTIVE 커리큘럼 트리는 수강자의 학습 화면에 읽기 전용 경로로 표시된다", async () => {
+  const activated = await post("/api/admin/curriculum-trees", admin, {
+    id: treeId,
+    courseId: "course-isms-p",
+    title: "ISMS-P 2027 커리큘럼",
+    version: treeVersion,
+    sourceType: "INTERNAL_REVIEW",
+    sourceDocument: "Sprint B learner view test",
+    effectiveFrom: "2027-01-01",
+    effectiveTo: "",
+    status: "ACTIVE",
+  });
+  if (activated.response.status === 409) {
+    assert.equal(
+      activated.payload.code,
+      "CURRICULUM_TREE_ACTIVE_DUPLICATE",
+      JSON.stringify(activated.payload),
+    );
+    const active = await fetch(
+      `${baseUrl}/api/admin/curriculum-trees?courseId=course-isms-p&active=true`,
+      { headers: admin },
+    );
+    const activePayload = await active.json();
+    assert.equal(active.status, 200, JSON.stringify(activePayload));
+    assert.ok(activePayload.tree?.id);
+  } else {
+    assert.equal(activated.response.status, 200, JSON.stringify(activated.payload));
+  }
+
+  const response = await fetch(`${baseUrl}/learn/isms-p`, { headers: user });
+  const html = await response.text();
+  assert.equal(response.status, 200, html.slice(0, 1000));
+  assert.match(html, /CURRICULUM PATH/);
+  assert.match(html, /통합 커리큘럼 경로/);
+  assert.match(html, /ISMS-P 2027 커리큘럼/);
+  assert.match(html, /연결 레슨 보기/);
 });
 
 test("자기 자신, 하위 노드, 다른 Tree parent 지정은 차단된다", async () => {
