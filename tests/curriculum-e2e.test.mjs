@@ -3,7 +3,7 @@ import { spawn } from "node:child_process";
 import { after, before, test } from "node:test";
 
 const port = 33117;
-const baseUrl = `http://localhost:${port}`;
+const baseUrl = `http://127.0.0.1:${port}`;
 const admin = {
   "content-type": "application/json",
   origin: baseUrl,
@@ -380,7 +380,7 @@ test("Node 이동은 하위 depth/path를 함께 갱신하고 하위가 있는 �
   assert.equal(archiveParent.status, 409);
 });
 
-test("관리자 커리큘럼 화면은 Tree, Node, 기존 콘텐츠 연결 UI를 제공한다", async () => {
+test("관리자 커리큘럼 화면은 Tree, Node, 기존 콘텐츠 연결, 운영 통계 UI를 제공한다", async () => {
   const response = await fetch(`${baseUrl}/admin/curriculum?treeId=${treeId}`, {
     headers: admin,
   });
@@ -390,6 +390,8 @@ test("관리자 커리큘럼 화면은 Tree, Node, 기존 콘텐츠 연결 UI를
   assert.match(html, /새 커리큘럼 트리 생성/);
   assert.match(html, /노드 편집/);
   assert.match(html, /기존 콘텐츠 연결/);
+  assert.match(html, /운영 통계/);
+  assert.match(html, /curriculum-admin-node-stats/);
   assert.match(html, /ISMS-P 2027/);
   assert.match(html, /CURRICULUM ARCHITECTURE/);
 });

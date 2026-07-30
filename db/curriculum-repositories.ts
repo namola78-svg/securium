@@ -724,6 +724,208 @@ export async function listCurriculumNodes(treeId: string) {
     );
 }
 
+export async function listCurriculumNodeOperationalStats(treeId: string) {
+  const tree = await getCurriculumTreeById(treeId);
+  if (!tree) return [];
+
+  const nodes = await listCurriculumNodes(treeId);
+  const linkedContent = nodes.flatMap((node) =>
+    parseLinkedContent(node.metadata).map((link) => ({
+      nodeId: node.id,
+      ...link,
+    })),
+  );
+  const subjectIds = [
+    ...new Set(
+      linkedContent
+        .filter((link) => link.type === "SUBJECT")
+        .map((link) => link.id),
+    ),
+  ];
+  const topicIds = [
+    ...new Set(
+      linkedContent
+        .filter((link) => link.type === "TOPIC")
+        .map((link) => link.id),
+    ),
+  ];
+
+  const [subjectQuestionRows, topicQuestionRows] = await Promise.all([
+    subjectIds.length
+      ? getDb()
+          .select({
+            subjectId: questionSubjects.subjectId,
+            questionId: questionSubjects.questionId,
+          })
+          .from(questionSubjects)
+          .innerJoin(subjects, eq(questionSubjects.subjectId, subjects.id))
+          .where(
+            and(
+              eq(subjects.courseId, tree.courseId),
+              inArray(questionSubjects.subjectId, subjectIds),
+            ),
+          )
+      : [],
+    topicIds.length
+      ? getDb()
+          .select({
+            topicId: questionTopics.topicId,
+            questionId: questionTopics.questionId,
+          })
+          .from(questionTopics)
+          .innerJoin(topics, eq(questionTopics.topicId, topics.id))
+          .innerJoin(subjects, eq(topics.subjectId, subjects.id))
+          .where(
+            and(
+              eq(subjects.courseId, tree.courseId),
+              inArray(questionTopics.topicId, topicIds),
+            ),
+          )
+      : [],
+  ]);
+
+  const questionIdsBySubject = new Map<string, Set<string>>();
+  for (const row of subjectQuestionRows) {
+    const set = questionIdsBySubject.get(row.subjectId) ?? new Set<string>();
+    set.add(row.questionId);
+    questionIdsBySubject.set(row.subjectId, set);
+  }
+  const questionIdsByTopic = new Map<string, Set<string>>();
+  for (const row of topicQuestionRows) {
+    const set = questionIdsByTopic.get(row.topicId) ?? new Set<string>();
+    set.add(row.questionId);
+    questionIdsByTopic.set(row.topicId, set);
+  }
+
+  const mappedQuestionIds = [
+    ...new Set([
+      ...subjectQuestionRows.map((row) => row.questionId),
+      ...topicQuestionRows.map((row) => row.questionId),
+    ]),
+  ];
+  const nowIso = new Date().toISOString();
+  const [attemptRows, wrongRows, reviewRows] = mappedQuestionIds.length
+    ? await Promise.all([
+        Promise.all(
+          chunkValues(mappedQuestionIds).map((questionIdChunk) =>
+            getDb()
+              .select({
+                questionId: questionAttempts.questionId,
+                isCorrect: questionAttempts.isCorrect,
+              })
+              .from(questionAttempts)
+              .where(
+                and(
+                  eq(questionAttempts.courseId, tree.courseId),
+                  inArray(questionAttempts.questionId, questionIdChunk),
+                ),
+              ),
+          ),
+        ).then((chunks) => chunks.flat()),
+        Promise.all(
+          chunkValues(mappedQuestionIds).map((questionIdChunk) =>
+            getDb()
+              .select({
+                questionId: wrongNotes.questionId,
+                wrongCount: wrongNotes.wrongCount,
+              })
+              .from(wrongNotes)
+              .where(
+                and(
+                  eq(wrongNotes.courseId, tree.courseId),
+                  eq(wrongNotes.mastered, false),
+                  inArray(wrongNotes.questionId, questionIdChunk),
+                ),
+              ),
+          ),
+        ).then((chunks) => chunks.flat()),
+        Promise.all(
+          chunkValues(mappedQuestionIds).map((questionIdChunk) =>
+            getDb()
+              .select({
+                questionId: reviewSchedules.targetId,
+              })
+              .from(reviewSchedules)
+              .where(
+                and(
+                  eq(reviewSchedules.courseId, tree.courseId),
+                  eq(reviewSchedules.targetType, "QUESTION"),
+                  inArray(reviewSchedules.status, ["DUE", "SCHEDULED"]),
+                  sql`${reviewSchedules.nextReviewAt} <= ${nowIso}`,
+                  inArray(reviewSchedules.targetId, questionIdChunk),
+                ),
+              ),
+          ),
+        ).then((chunks) => chunks.flat()),
+      ])
+    : [[], [], []];
+
+  const attemptsByQuestionId = new Map<
+    string,
+    Array<{ isCorrect: boolean }>
+  >();
+  for (const attempt of attemptRows) {
+    const rows = attemptsByQuestionId.get(attempt.questionId) ?? [];
+    rows.push({ isCorrect: attempt.isCorrect });
+    attemptsByQuestionId.set(attempt.questionId, rows);
+  }
+  const wrongCountByQuestionId = new Map<string, number>();
+  for (const wrong of wrongRows) {
+    wrongCountByQuestionId.set(
+      wrong.questionId,
+      (wrongCountByQuestionId.get(wrong.questionId) ?? 0) + wrong.wrongCount,
+    );
+  }
+  const dueReviewCountByQuestionId = new Map<string, number>();
+  for (const review of reviewRows) {
+    dueReviewCountByQuestionId.set(
+      review.questionId,
+      (dueReviewCountByQuestionId.get(review.questionId) ?? 0) + 1,
+    );
+  }
+
+  return nodes.map((node) => {
+    const nodeQuestionIds = new Set<string>();
+    for (const link of parseLinkedContent(node.metadata)) {
+      if (link.type === "SUBJECT") {
+        for (const questionId of questionIdsBySubject.get(link.id) ?? []) {
+          nodeQuestionIds.add(questionId);
+        }
+      }
+      if (link.type === "TOPIC") {
+        for (const questionId of questionIdsByTopic.get(link.id) ?? []) {
+          nodeQuestionIds.add(questionId);
+        }
+      }
+    }
+    const nodeAttempts = [...nodeQuestionIds].flatMap(
+      (questionId) => attemptsByQuestionId.get(questionId) ?? [],
+    );
+    const correctAttempts = nodeAttempts.filter(
+      (attempt) => attempt.isCorrect,
+    ).length;
+    return {
+      nodeId: node.id,
+      questionCount: nodeQuestionIds.size,
+      attemptCount: nodeAttempts.length,
+      correctAttempts,
+      accuracy: safeRate(correctAttempts, nodeAttempts.length),
+      wrongQuestionCount: [...nodeQuestionIds].filter(
+        (questionId) => (wrongCountByQuestionId.get(questionId) ?? 0) > 0,
+      ).length,
+      wrongAttemptCount: [...nodeQuestionIds].reduce(
+        (sum, questionId) => sum + (wrongCountByQuestionId.get(questionId) ?? 0),
+        0,
+      ),
+      dueReviewCount: [...nodeQuestionIds].reduce(
+        (sum, questionId) =>
+          sum + (dueReviewCountByQuestionId.get(questionId) ?? 0),
+        0,
+      ),
+    };
+  });
+}
+
 export async function getCurriculumNodeTree(treeId: string) {
   const nodes = await listCurriculumNodes(treeId);
   return buildCurriculumTree(nodes);

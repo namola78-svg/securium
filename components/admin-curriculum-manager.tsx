@@ -56,6 +56,17 @@ type LinkableContent = {
 
 type LinkedContent = Pick<LinkableContent, "type" | "id">;
 
+type CurriculumNodeOperationalStat = {
+  nodeId: string;
+  questionCount: number;
+  attemptCount: number;
+  correctAttempts: number;
+  accuracy: number;
+  wrongQuestionCount: number;
+  wrongAttemptCount: number;
+  dueReviewCount: number;
+};
+
 const nodeTypes = [
   "TRACK",
   "SUBJECT",
@@ -83,12 +94,14 @@ export function AdminCurriculumManager({
   courses,
   trees,
   nodes,
+  nodeStats,
   linkableContent,
   selectedTreeId,
 }: {
   courses: CourseOption[];
   trees: CurriculumTree[];
   nodes: CurriculumNode[];
+  nodeStats: CurriculumNodeOperationalStat[];
   linkableContent: LinkableContent[];
   selectedTreeId: string;
 }) {
@@ -102,6 +115,10 @@ export function AdminCurriculumManager({
     }
     return map;
   }, [trees]);
+  const nodeStatsById = useMemo(
+    () => new Map(nodeStats.map((stat) => [stat.nodeId, stat])),
+    [nodeStats],
+  );
 
   async function submitJson(
     endpoint: string,
@@ -273,7 +290,9 @@ export function AdminCurriculumManager({
         <h2>노드 목록</h2>
         {selectedTree && nodes.length ? (
           <div className="admin-record-list">
-            {nodes.map((node) => (
+            {nodes.map((node) => {
+              const stat = nodeStatsById.get(node.id);
+              return (
               <article className="admin-record" key={node.id}>
                 <summary>
                   <span style={{ paddingLeft: `${node.depth * 18}px` }}>
@@ -286,6 +305,7 @@ export function AdminCurriculumManager({
                   </span>
                   <span className="status-on">{node.path}</span>
                 </summary>
+                {stat ? <NodeOperationalStats stat={stat} /> : null}
                 <NodeForm
                   nodes={nodes}
                   linkableContent={linkableContent}
@@ -306,7 +326,8 @@ export function AdminCurriculumManager({
                   </button>
                 </div>
               </article>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <p className="empty-copy">
@@ -316,6 +337,41 @@ export function AdminCurriculumManager({
         )}
       </section>
     </div>
+  );
+}
+
+function NodeOperationalStats({
+  stat,
+}: {
+  stat: CurriculumNodeOperationalStat;
+}) {
+  return (
+    <dl className="curriculum-admin-node-stats" aria-label="노드 운영 통계">
+      <div>
+        <dt>연결 문항</dt>
+        <dd>{stat.questionCount}</dd>
+      </div>
+      <div>
+        <dt>풀이</dt>
+        <dd>{stat.attemptCount}</dd>
+      </div>
+      <div>
+        <dt>정답률</dt>
+        <dd>{stat.accuracy}%</dd>
+      </div>
+      <div>
+        <dt>오답 기록</dt>
+        <dd>{stat.wrongAttemptCount}</dd>
+      </div>
+      <div>
+        <dt>오답 문항</dt>
+        <dd>{stat.wrongQuestionCount}</dd>
+      </div>
+      <div>
+        <dt>복습 예정</dt>
+        <dd>{stat.dueReviewCount}</dd>
+      </div>
+    </dl>
   );
 }
 

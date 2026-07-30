@@ -2817,6 +2817,37 @@ textarea {
   color: var(--muted);
 }
 
+.curriculum-admin-node-stats {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0 16px 16px;
+}
+
+.curriculum-admin-node-stats > div {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid rgba(89, 112, 101, 0.14);
+  border-radius: 10px;
+  background: #f8faf5;
+}
+
+.curriculum-admin-node-stats dt {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.curriculum-admin-node-stats dd {
+  margin: 0;
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 900;
+}
+
 .admin-record .admin-form {
   padding: 20px;
   border-top: 1px solid var(--line);
@@ -3332,12 +3363,20 @@ textarea {
     border-top: 0;
     border-left: 1px solid var(--line);
   }
+
+  .curriculum-admin-node-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 680px) {
   .shell,
   .narrow {
     width: min(100% - 32px, 1180px);
+  }
+
+  .curriculum-admin-node-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .site-header {

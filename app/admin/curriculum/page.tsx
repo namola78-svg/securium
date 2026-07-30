@@ -1,6 +1,7 @@
 import { AdminCurriculumManager } from "@/components/admin-curriculum-manager";
 import {
   listCurriculumLinkableContent,
+  listCurriculumNodeOperationalStats,
   listCurriculumNodes,
   listCurriculumTrees,
 } from "@/db/curriculum-repositories";
@@ -28,9 +29,26 @@ export default async function AdminCurriculumPage({
   const nodes = selectedTreeId
     ? await listCurriculumNodes(selectedTreeId)
     : [];
+  const nodeStats = selectedTreeId
+    ? await listCurriculumNodeOperationalStats(selectedTreeId)
+    : [];
   const linkableContent = selectedTree
     ? await listCurriculumLinkableContent(selectedTree.courseId)
     : [];
+  const operationalSummary = nodeStats.reduce(
+    (summary, stat) => ({
+      questionCount: summary.questionCount + stat.questionCount,
+      attemptCount: summary.attemptCount + stat.attemptCount,
+      wrongAttemptCount: summary.wrongAttemptCount + stat.wrongAttemptCount,
+      dueReviewCount: summary.dueReviewCount + stat.dueReviewCount,
+    }),
+    {
+      questionCount: 0,
+      attemptCount: 0,
+      wrongAttemptCount: 0,
+      dueReviewCount: 0,
+    },
+  );
 
   return (
     <>
@@ -38,9 +56,9 @@ export default async function AdminCurriculumPage({
         <p className="eyebrow">CURRICULUM ARCHITECTURE</p>
         <h1>커리큘럼 트리 관리</h1>
         <p>
-          과정별 커리큘럼 버전과 계층형 노드를 관리합니다. 기존
-          과목·주제·학습 단위·레슨 데이터는 유지하면서 노드와 연결해
-          다음 단계의 통합 커리큘럼 화면을 준비합니다.
+          과정별 커리큘럼 버전과 계층형 노드를 관리합니다. 기존 과목·주제·학습
+          단위·레슨 데이터는 유지하면서 노드와 연결하고, 운영 통계를 함께
+          확인합니다.
         </p>
       </header>
       <section className="stats-grid admin-stats">
@@ -66,6 +84,15 @@ export default async function AdminCurriculumPage({
           <strong>{linkableContent.length}</strong>
           <small>과목·주제·학습 단위·레슨</small>
         </div>
+        <div className="stat-card">
+          <span>운영 통계</span>
+          <strong>{operationalSummary.questionCount}</strong>
+          <small>
+            풀이 {operationalSummary.attemptCount} · 오답{" "}
+            {operationalSummary.wrongAttemptCount} · 복습{" "}
+            {operationalSummary.dueReviewCount}
+          </small>
+        </div>
       </section>
       <AdminCurriculumManager
         courses={courses.map((course) => ({
@@ -76,6 +103,7 @@ export default async function AdminCurriculumPage({
         }))}
         trees={trees}
         nodes={nodes}
+        nodeStats={nodeStats}
         linkableContent={linkableContent}
         selectedTreeId={selectedTreeId}
       />
