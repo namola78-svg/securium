@@ -7,7 +7,7 @@ import { requireCurrentAppUser } from "@/lib/auth";
 import {
   getEnrollmentForCourse,
   getPublicCourseBySlug,
-  listCurriculumWithSubjectTheoryProgress,
+  listCurriculumForLearnOverview,
 } from "@/db/repositories";
 import {
   getLearnCourseActivitySummary,
@@ -34,7 +34,7 @@ export default async function LearnCoursePage({
 
   const [curriculum, levelRows, specializations, sharedLessonSummary] =
     await Promise.all([
-      listCurriculumWithSubjectTheoryProgress(user.id, course.id),
+      listCurriculumForLearnOverview(course.id),
       listCourseLevelsForOverview(user.id, course.id),
       listCourseSpecializations(course.id),
       getPublishedCourseLessonProgressSummary(user.id, course.id),

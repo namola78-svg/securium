@@ -302,6 +302,54 @@ export async function listCurriculumWithSubjectTheoryProgress(
   }));
 }
 
+export async function listCurriculumForLearnOverview(courseId: string) {
+  const [subjectRows, topicRows] = await Promise.all([
+    getDb()
+      .select()
+      .from(subjects)
+      .where(
+        and(
+          eq(subjects.courseId, courseId),
+          eq(subjects.active, true),
+          isNull(subjects.deletedAt),
+        ),
+      )
+      .orderBy(asc(subjects.displayOrder)),
+    getDb()
+      .select({
+        id: topics.id,
+        subjectId: topics.subjectId,
+        parentTopicId: topics.parentTopicId,
+        code: topics.code,
+        name: topics.name,
+        description: topics.description,
+        displayOrder: topics.displayOrder,
+        active: topics.active,
+        isSample: topics.isSample,
+      })
+      .from(topics)
+      .innerJoin(subjects, eq(topics.subjectId, subjects.id))
+      .where(
+        and(
+          eq(subjects.courseId, courseId),
+          eq(topics.active, true),
+          isNull(topics.deletedAt),
+        ),
+      )
+      .orderBy(asc(topics.displayOrder)),
+  ]);
+
+  return subjectRows.map((subject) => ({
+    ...subject,
+    theoryProgress: {
+      totalLessons: 0,
+      completedLessons: 0,
+      progressPercent: 0,
+    },
+    topics: topicRows.filter((topic) => topic.subjectId === subject.id),
+  }));
+}
+
 export async function listAllCourseGroups() {
   return getDb()
     .select()
