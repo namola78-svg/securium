@@ -161,6 +161,7 @@ const officialLevelLabels: Record<string, string> = {
 };
 
 const officialSourceTypes = new Set(["OFFICIAL_EXAM_STANDARD"]);
+const emptySelectedLinkKeys: string[] = [];
 
 export function AdminCurriculumManager({
   courses,
@@ -459,6 +460,7 @@ export function AdminCurriculumManager({
               <aside className="curriculum-node-detail-panel" aria-label="선택 노드 상세">
                 {selectedNode ? (
                   <NodeDetailPanel
+                    key={selectedNode.id}
                     node={selectedNode}
                     stat={selectedNodeStat}
                     pendingAction={pendingAction}
@@ -681,10 +683,18 @@ function NodeDetailPanel({
 }) {
   const metadata = parseMetadata(node.metadata) as NodeMetadata;
   const stableKey = node.officialCode ?? node.id;
+  const [recommendedLinkKeys, setRecommendedLinkKeys] = useState<string[]>([]);
   const recommendations = recommendLinkableContent(node, linkableContent).slice(
     0,
     5,
   );
+
+  function selectRecommendedContent(item: LinkableContent) {
+    const key = linkKey(item);
+    setRecommendedLinkKeys((current) =>
+      current.includes(key) ? current : [...current, key],
+    );
+  }
 
   return (
     <div className="curriculum-node-detail">
@@ -737,14 +747,18 @@ function NodeDetailPanel({
       <RecommendedLinkableContent
         recommendations={recommendations}
         linkedContent={parseLinkedContent(node.metadata)}
+        selectedLinkKeys={recommendedLinkKeys}
+        onSelectRecommendation={selectRecommendedContent}
       />
 
       <details className="curriculum-node-edit-panel">
         <summary>선택 노드 수정</summary>
         <NodeForm
+          key={`${node.id}:${recommendedLinkKeys.join("|")}`}
           nodes={nodes}
           linkableContent={linkableContent}
           node={node}
+          selectedLinkKeys={recommendedLinkKeys}
           pending={pendingAction === `node-update-${node.id}`}
           onSubmit={onSave}
         />
@@ -802,10 +816,16 @@ function NodeOperationalStats({
 function RecommendedLinkableContent({
   recommendations,
   linkedContent,
+  selectedLinkKeys,
+  onSelectRecommendation,
 }: {
   recommendations: LinkableContentRecommendation[];
   linkedContent: LinkedContent[];
+  selectedLinkKeys: string[];
+  onSelectRecommendation: (item: LinkableContentRecommendation) => void;
 }) {
+  const selectedKeySet = new Set(selectedLinkKeys);
+
   return (
     <section
       className="curriculum-content-recommendations"
@@ -827,7 +847,13 @@ function RecommendedLinkableContent({
       {recommendations.length ? (
         <div className="curriculum-content-recommendation-list">
           {recommendations.map((item) => (
-            <article className="curriculum-content-recommendation" key={linkKey(item)}>
+            <button
+              className="curriculum-content-recommendation"
+              key={linkKey(item)}
+              type="button"
+              disabled={selectedKeySet.has(linkKey(item))}
+              onClick={() => onSelectRecommendation(item)}
+            >
               <div>
                 <strong>{item.title}</strong>
                 <small>
@@ -841,8 +867,11 @@ function RecommendedLinkableContent({
                     {recommendationReasonLabel(reason)}
                   </span>
                 ))}
+                {selectedKeySet.has(linkKey(item)) ? (
+                  <span className="status-badge compact">선택됨</span>
+                ) : null}
               </div>
-            </article>
+            </button>
           ))}
         </div>
       ) : (
@@ -962,20 +991,40 @@ function NodeForm({
   nodes,
   linkableContent,
   node,
+  selectedLinkKeys,
   pending,
   onSubmit,
 }: {
   nodes: CurriculumNode[];
   linkableContent: LinkableContent[];
   node?: CurriculumNode;
+  selectedLinkKeys?: string[];
   pending: boolean;
   onSubmit: (formData: FormData) => void;
 }) {
   const parentOptions = nodes.filter((candidate) => candidate.id !== node?.id);
-  const linkedKeys = new Set(
-    parseLinkedContent(node?.metadata).map((link) => linkKey(link)),
+  const effectiveSelectedLinkKeys = selectedLinkKeys ?? emptySelectedLinkKeys;
+  const initialLinkedKeys = useMemo(
+    () =>
+      new Set([
+        ...parseLinkedContent(node?.metadata).map((link) => linkKey(link)),
+        ...effectiveSelectedLinkKeys,
+      ]),
+    [node?.metadata, effectiveSelectedLinkKeys],
+  );
+  const [checkedLinkedKeys, setCheckedLinkedKeys] = useState<Set<string>>(
+    () => initialLinkedKeys,
   );
   const groupedContent = groupLinkableContent(linkableContent);
+
+  function toggleLinkedContent(key: string, checked: boolean) {
+    setCheckedLinkedKeys((current) => {
+      const next = new Set(current);
+      if (checked) next.add(key);
+      else next.delete(key);
+      return next;
+    });
+  }
 
   return (
     <form className="admin-form" action={onSubmit}>
@@ -1091,7 +1140,10 @@ function NodeForm({
                       name="linkedContent"
                       type="checkbox"
                       value={linkKey(item)}
-                      defaultChecked={linkedKeys.has(linkKey(item))}
+                      checked={checkedLinkedKeys.has(linkKey(item))}
+                      onChange={(event) =>
+                        toggleLinkedContent(linkKey(item), event.currentTarget.checked)
+                      }
                     />
                     <span>
                       {item.title}

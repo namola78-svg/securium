@@ -3405,9 +3405,27 @@ textarea {
   background: #fbfcf7;
   border: 1px solid rgba(89, 112, 101, 0.14);
   border-radius: 12px;
+  color: inherit;
+  cursor: pointer;
   display: grid;
+  font: inherit;
   gap: 0.55rem;
   padding: 0.75rem;
+  text-align: left;
+}
+
+.curriculum-content-recommendation:hover {
+  border-color: rgba(75, 104, 32, 0.42);
+}
+
+.curriculum-content-recommendation:focus-visible {
+  outline: 3px solid rgba(192, 255, 80, 0.65);
+  outline-offset: 2px;
+}
+
+.curriculum-content-recommendation:disabled {
+  cursor: default;
+  opacity: 0.72;
 }
 
 .curriculum-content-recommendation strong {
