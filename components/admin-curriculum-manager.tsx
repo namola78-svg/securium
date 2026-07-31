@@ -144,11 +144,14 @@ export function AdminCurriculumManager({
       };
       if (!response.ok) {
         setMessage(
-          payload.error ?? "요청을 처리하지 못했습니다. 입력값을 확인해주세요.",
+          payload.error ??
+            "요청을 처리하지 못했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.",
         );
         return;
       }
       window.location.reload();
+    } catch {
+      setMessage("네트워크 상태를 확인한 뒤 다시 시도해 주세요.");
     } finally {
       setPendingAction("");
     }
@@ -219,15 +222,15 @@ export function AdminCurriculumManager({
       <section className="admin-panel">
         <h2>커리큘럼 트리</h2>
         <p className="admin-helper">
-          과정별 공식 출제기준과 실무형 커리큘럼을 버전 단위로 관리합니다.
-          DRAFT 트리는 학습자에게 공개되지 않으며, 관리자 검토 후 ACTIVE로
+          과정별 공식·실무 커리큘럼 버전과 계층 노드를 관리합니다. DRAFT
+          트리는 학습자에게 공개되지 않으며, 검토가 끝난 트리만 ACTIVE로
           전환합니다.
         </p>
         <div className="admin-record-list">
           {trees.length ? (
             trees.map((tree) => (
               <article className="admin-record" key={tree.id}>
-                <summary>
+                <div className="admin-record-summary">
                   <span>
                     <strong>{tree.title}</strong>
                     <small>
@@ -241,7 +244,7 @@ export function AdminCurriculumManager({
                   >
                     선택
                   </a>
-                </summary>
+                </div>
                 {tree.id === selectedTreeId ? (
                   <TreeForm
                     courses={courses}
@@ -255,8 +258,8 @@ export function AdminCurriculumManager({
             ))
           ) : (
             <p className="empty-copy">
-              아직 등록된 커리큘럼 트리가 없습니다. 과정과 버전을 선택해 새
-              트리를 생성하세요.
+              아직 등록된 커리큘럼 트리가 없습니다. 과정과 버전을 선택해
+              트리를 생성해 주세요.
             </p>
           )}
         </div>
@@ -278,7 +281,7 @@ export function AdminCurriculumManager({
             <p className="admin-helper">
               선택 트리: <strong>{selectedTree.title}</strong> ·{" "}
               {selectedTree.courseName}. 노드의 depth와 path는 서버에서
-              계산됩니다.
+              계산합니다.
             </p>
             <dl className="curriculum-admin-node-stats">
               <div>
@@ -311,7 +314,7 @@ export function AdminCurriculumManager({
           </>
         ) : (
           <p className="empty-copy">
-            노드를 추가하려면 먼저 커리큘럼 트리를 선택하세요.
+            노드를 추가하려면 먼저 커리큘럼 트리를 선택해 주세요.
           </p>
         )}
       </section>
@@ -324,7 +327,7 @@ export function AdminCurriculumManager({
               const stat = nodeStatsById.get(node.id);
               return (
                 <article className="admin-record" key={node.id}>
-                  <summary>
+                  <div className="admin-record-summary">
                     <span style={{ paddingLeft: `${node.depth * 18}px` }}>
                       <strong>{node.title}</strong>
                       <small>
@@ -334,7 +337,7 @@ export function AdminCurriculumManager({
                       <small>{linkedContentSummary(node.metadata)}</small>
                     </span>
                     <span className="status-on">{node.path}</span>
-                  </summary>
+                  </div>
                   {stat ? <NodeOperationalStats stat={stat} /> : null}
                   <NodeForm
                     nodes={nodes}
@@ -351,7 +354,7 @@ export function AdminCurriculumManager({
                       onClick={() => archiveNode(node)}
                     >
                       {pendingAction === `node-archive-${node.id}`
-                        ? "보관 중..."
+                        ? "보관 중…"
                         : "노드 보관"}
                     </button>
                   </div>
@@ -362,7 +365,7 @@ export function AdminCurriculumManager({
         ) : (
           <p className="empty-copy">
             선택한 트리에 등록된 노드가 없습니다. 위에서 루트 노드를 먼저
-            추가하세요.
+            추가해 주세요.
           </p>
         )}
       </section>
@@ -503,7 +506,7 @@ function TreeForm({
         </p>
       ) : null}
       <button className="button button-dark" type="submit" disabled={pending}>
-        {pending ? "저장 중..." : tree ? "트리 수정" : "트리 생성"}
+        {pending ? "저장 중…" : tree ? "트리 수정" : "트리 생성"}
       </button>
     </form>
   );
@@ -628,8 +631,8 @@ function NodeForm({
       <fieldset className="wide curriculum-link-fieldset">
         <legend>기존 콘텐츠 연결</legend>
         <p className="admin-helper">
-          이 노드가 대표하는 기존 과목·주제·학습 단위·레슨을 선택합니다. 같은
-          과정의 콘텐츠만 저장됩니다.
+          이 노드가 대표하는 기존 과목·주제·학습 단위·레슨을 선택합니다.
+          같은 과정의 콘텐츠만 표시됩니다.
         </p>
         {linkableContent.length ? (
           Object.entries(groupedContent).map(([type, items]) => (
@@ -693,7 +696,7 @@ function NodeForm({
         실무형 노드
       </label>
       <button className="button button-dark" type="submit" disabled={pending}>
-        {pending ? "저장 중..." : node ? "노드 수정" : "노드 생성"}
+        {pending ? "저장 중…" : node ? "노드 수정" : "노드 생성"}
       </button>
     </form>
   );

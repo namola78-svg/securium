@@ -54,7 +54,7 @@ export default async function AdminCurriculumPage({
         <p className="eyebrow">CURRICULUM ARCHITECTURE</p>
         <h1>커리큘럼 트리 관리</h1>
         <p>
-          과정별 공식·실무 커리큘럼 버전과 계층형 노드를 관리합니다. 기존
+          과정별 공식·실무 커리큘럼 버전과 계층 노드를 관리합니다. 기존
           과목, 주제, 학습 단위, 레슨 데이터는 삭제하지 않고 필요한 노드에
           연결해 운영 통계를 함께 확인합니다.
         </p>
