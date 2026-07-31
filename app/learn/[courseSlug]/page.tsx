@@ -33,32 +33,19 @@ export default async function LearnCoursePage({
   if (!course) notFound();
   if (!enrollment) redirect(`/courses/${course.slug}`);
 
-  const [curriculum, specializations, sharedLessonSummary] =
-    await Promise.all([
-      listCurriculumForLearnOverview(course.id),
-      listCourseSpecializations(course.id),
-      getPublishedCourseLessonProgressSummary(user.id, course.id),
-    ]);
+  const curriculumPromise = listCurriculumForLearnOverview(course.id);
+  const specializationsPromise = listCourseSpecializations(course.id);
+  const sharedLessonSummaryPromise = getPublishedCourseLessonProgressSummary(
+    user.id,
+    course.id,
+  );
+  const theoryProgressViewPromise = getTheoryProgressView(
+    user.id,
+    course.id,
+    sharedLessonSummaryPromise,
+  );
   const activitySummaryPromise = getLearnCourseActivitySummary(user.id, course.id);
   const levelRowsPromise = listCourseLevelsForOverview(user.id, course.id);
-  const legacyTheoryProgress = sharedLessonSummary.totalLessons
-    ? null
-    : await getCourseTheoryProgress(user.id, course.id);
-  const displayedTheoryProgress = sharedLessonSummary.totalLessons
-    ? {
-        completedLessons: sharedLessonSummary.completedLessons,
-        totalLessons: sharedLessonSummary.totalLessons,
-        progressPercent: sharedLessonSummary.progressPercent,
-      }
-    : (legacyTheoryProgress ?? {
-        completedLessons: 0,
-        totalLessons: 0,
-        progressPercent: 0,
-        latestLesson: null,
-        nextLesson: null,
-      });
-  const nextSharedLesson = sharedLessonSummary.nextLesson;
-  const latestSharedLesson = sharedLessonSummary.latestLesson;
 
   return (
     <main className="page-main">
@@ -90,17 +77,11 @@ export default async function LearnCoursePage({
                 </Link>
               </div>
             </div>
-            <Suspense
-              fallback={
-                <LearnProgressPanelFallback
-                  displayedTheoryProgress={displayedTheoryProgress}
-                />
-              }
-            >
+            <Suspense fallback={<LearnProgressPanelFallback />}>
               <LearnProgressPanel
                 activitySummaryPromise={activitySummaryPromise}
-                displayedTheoryProgress={displayedTheoryProgress}
                 levelRowsPromise={levelRowsPromise}
+                theoryProgressViewPromise={theoryProgressViewPromise}
               />
             </Suspense>
           </div>
@@ -123,136 +104,33 @@ export default async function LearnCoursePage({
             />
           </Suspense>
 
-          {sharedLessonSummary.totalLessons ? (
-            <section className="section-block">
-              <div className="section-heading compact">
-                <div>
-                  <p className="eyebrow">SHARED THEORY</p>
-                  <h2>공통 이론 레슨</h2>
-                  <p>
-                    여러 과정에서 함께 사용하는 핵심 이론을 이 과정 맥락에
-                    맞춰 학습합니다.
-                  </p>
-                </div>
-                <span className="count-label">
-                  {sharedLessonSummary.completedLessons}/
-                  {sharedLessonSummary.totalLessons} 완료
-                </span>
-              </div>
-              <ProgressBar
-                value={sharedLessonSummary.progressPercent}
-                label="공통 이론 진도"
-              />
-              <div className="course-lesson-grid">
-                {sharedLessonSummary.lessons.map((lesson) => (
-                  <Link
-                    className="course-lesson-card"
-                    href={`/learn/${course.slug}/course-lessons/${lesson.id}`}
-                    key={lesson.id}
-                  >
-                    <div className="course-card-top">
-                      <span className="badge">
-                        {lesson.status === "COMPLETED"
-                          ? "완료"
-                          : lesson.status === "IN_PROGRESS"
-                            ? "학습 중"
-                            : "시작 전"}
-                      </span>
-                      <span>{lesson.estimatedMinutes}분</span>
-                    </div>
-                    <h3>{publicCopy(lesson.title)}</h3>
-                    <p>{publicCopy(lesson.summary)}</p>
-                    <div className="course-lesson-meta">
-                      {lesson.isRequired ? <span>필수</span> : <span>선택</span>}
-                      {lesson.difficulty ? <span>{lesson.difficulty}</span> : null}
-                      {lesson.importance !== null ? (
-                        <span>중요도 {lesson.importance}</span>
-                      ) : null}
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          ) : null}
+          <Suspense fallback={<SharedTheorySectionFallback />}>
+            <SharedTheorySectionLoader
+              courseSlug={course.slug}
+              sharedLessonSummaryPromise={sharedLessonSummaryPromise}
+            />
+          </Suspense>
 
           <div className="dashboard-layout section-block">
-            <div>
-              <div className="section-heading compact">
-                <div>
-                  <p className="eyebrow">SUBJECTS</p>
-                  <h2>과목 목록</h2>
-                </div>
-              </div>
-              <div className="subject-list">
-                {curriculum.map((subject, index) => (
-                  <Link
-                    className="subject-row"
-                    href={`/learn/${course.slug}/subjects/${subject.id}`}
-                    key={subject.id}
-                  >
-                    <span>{String(index + 1).padStart(2, "0")}</span>
-                    <div>
-                      <h3>{subject.name}</h3>
-                      <p>{publicCopy(subject.description)}</p>
-                    </div>
-                    <strong>
-                      {subject.theoryProgress.progressPercent}
-                      % · {subject.topics.length}개 주제 →
-                    </strong>
-                  </Link>
-                ))}
-              </div>
-            </div>
+            <Suspense fallback={<SubjectsSectionFallback />}>
+              <SubjectsSectionLoader
+                courseSlug={course.slug}
+                curriculumPromise={curriculumPromise}
+              />
+            </Suspense>
             <aside className="side-stack">
-              <div className="side-card">
-                <span className="eyebrow">THEORY</span>
-                <h3>이론 학습 {displayedTheoryProgress.progressPercent}%</h3>
-                <p>
-                  {latestSharedLesson
-                    ? `최근: ${publicCopy(latestSharedLesson.title)}`
-                    : legacyTheoryProgress?.latestLesson
-                      ? `최근: ${publicCopy(legacyTheoryProgress.latestLesson.title)}`
-                    : "아직 학습한 레슨이 없습니다."}
-                </p>
-                {nextSharedLesson ? (
-                  <Link
-                    className="button button-dark full-width"
-                    href={`/learn/${course.slug}/course-lessons/${nextSharedLesson.id}`}
-                  >
-                    다음 추천 · {publicCopy(nextSharedLesson.title)}
-                  </Link>
-                ) : legacyTheoryProgress?.nextLesson ? (
-                  <Link
-                    className="button button-dark full-width"
-                    href={`/learn/${course.slug}/lessons/${legacyTheoryProgress.nextLesson.id}`}
-                  >
-                    다음 추천 · {publicCopy(legacyTheoryProgress.nextLesson.title)}
-                  </Link>
-                ) : (
-                  <span className="sample-label">공개 레슨 학습 완료</span>
-                )}
-              </div>
-              {specializations.length ? (
-                <div className="side-card specialization-callout">
-                  <span className="eyebrow">SPECIALIZATION</span>
-                  <h3>과정 특화 학습</h3>
-                  <p>{specializations.map((item) => item.displayName).join(" · ")}</p>
-                  <Link
-                    className="button button-dark full-width"
-                    href={
-                      specializations.some((item) =>
-                        ["SECURE_CODE_ANALYSIS", "PRIVACY_IMPACT_ASSESSMENT"].includes(
-                          item.featureType,
-                        ),
-                      )
-                        ? `/practical/${course.slug}`
-                        : `/specialized/${course.slug}`
-                    }
-                  >
-                    특화 학습 열기
-                  </Link>
-                </div>
-              ) : null}
+              <Suspense fallback={<TheorySideCardFallback />}>
+                <TheorySideCardLoader
+                  courseSlug={course.slug}
+                  theoryProgressViewPromise={theoryProgressViewPromise}
+                />
+              </Suspense>
+              <Suspense fallback={null}>
+                <SpecializationSideCardLoader
+                  courseSlug={course.slug}
+                  specializationsPromise={specializationsPromise}
+                />
+              </Suspense>
               <Suspense fallback={<LearnActivitySideCardsFallback />}>
                 <LearnActivitySideCards
                   activitySummaryPromise={activitySummaryPromise}
@@ -273,23 +151,31 @@ type LearnCourseActivitySummary = Awaited<
 >;
 type CourseLevelRows = Awaited<ReturnType<typeof listCourseLevelsForOverview>>;
 type CourseLevelRow = CourseLevelRows[number];
-type DisplayedTheoryProgress = {
-  completedLessons: number;
-  totalLessons: number;
-  progressPercent: number;
-};
+type LearnCurriculum = Awaited<ReturnType<typeof listCurriculumForLearnOverview>>;
+type SharedLessonSummary = Awaited<
+  ReturnType<typeof getPublishedCourseLessonProgressSummary>
+>;
+type CourseSpecializations = Awaited<ReturnType<typeof listCourseSpecializations>>;
+type TheoryProgressView = Awaited<ReturnType<typeof getTheoryProgressView>>;
 
 async function LearnProgressPanel({
   activitySummaryPromise,
-  displayedTheoryProgress,
   levelRowsPromise,
+  theoryProgressViewPromise,
 }: {
   activitySummaryPromise: Promise<LearnCourseActivitySummary>;
-  displayedTheoryProgress: DisplayedTheoryProgress;
   levelRowsPromise: Promise<CourseLevelRows>;
+  theoryProgressViewPromise: Promise<TheoryProgressView>;
 }) {
-  const [{ dueReviewCount, mockExamCount, stats }, levelRows] =
-    await Promise.all([activitySummaryPromise, levelRowsPromise]);
+  const [
+    { dueReviewCount, mockExamCount, stats },
+    levelRows,
+    { displayedTheoryProgress },
+  ] = await Promise.all([
+    activitySummaryPromise,
+    levelRowsPromise,
+    theoryProgressViewPromise,
+  ]);
   const levelCompletion = getLevelCompletion(levelRows);
 
   return (
@@ -311,11 +197,7 @@ async function LearnProgressPanel({
   );
 }
 
-function LearnProgressPanelFallback({
-  displayedTheoryProgress,
-}: {
-  displayedTheoryProgress: DisplayedTheoryProgress;
-}) {
+function LearnProgressPanelFallback() {
   return (
     <div className="learn-progress-panel" aria-live="polite">
       <ProgressBar value={0} label="단계 완료율" />
@@ -325,10 +207,7 @@ function LearnProgressPanelFallback({
         <div><dt>모의고사</dt><dd>--</dd></div>
         <div>
           <dt>이론 진도</dt>
-          <dd>
-            {displayedTheoryProgress.completedLessons}/
-            {displayedTheoryProgress.totalLessons}
-          </dd>
+          <dd>--</dd>
         </div>
       </dl>
     </div>
@@ -344,6 +223,37 @@ function getLevelCompletion(levelRows: CourseLevelRows) {
       levelRows.length) *
       100,
   );
+}
+
+async function getTheoryProgressView(
+  userId: string,
+  courseId: string,
+  sharedLessonSummaryPromise: Promise<SharedLessonSummary>,
+) {
+  const sharedLessonSummary = await sharedLessonSummaryPromise;
+  const legacyTheoryProgress = sharedLessonSummary.totalLessons
+    ? null
+    : await getCourseTheoryProgress(userId, courseId);
+  const displayedTheoryProgress = sharedLessonSummary.totalLessons
+    ? {
+        completedLessons: sharedLessonSummary.completedLessons,
+        totalLessons: sharedLessonSummary.totalLessons,
+        progressPercent: sharedLessonSummary.progressPercent,
+      }
+    : (legacyTheoryProgress ?? {
+        completedLessons: 0,
+        totalLessons: 0,
+        progressPercent: 0,
+        latestLesson: null,
+        nextLesson: null,
+      });
+
+  return {
+    displayedTheoryProgress,
+    latestSharedLesson: sharedLessonSummary.latestLesson,
+    nextSharedLesson: sharedLessonSummary.nextLesson,
+    legacyTheoryProgress,
+  };
 }
 
 async function LearnLevelPathLoader({
@@ -445,6 +355,233 @@ function LearnLevelPathFallback() {
         ))}
       </div>
     </>
+  );
+}
+
+async function SharedTheorySectionLoader({
+  courseSlug,
+  sharedLessonSummaryPromise,
+}: {
+  courseSlug: string;
+  sharedLessonSummaryPromise: Promise<SharedLessonSummary>;
+}) {
+  const sharedLessonSummary = await sharedLessonSummaryPromise;
+  if (!sharedLessonSummary.totalLessons) return null;
+
+  return (
+    <section className="section-block">
+      <div className="section-heading compact">
+        <div>
+          <p className="eyebrow">SHARED THEORY</p>
+          <h2>공통 이론 레슨</h2>
+          <p>
+            여러 과정에서 함께 사용하는 핵심 이론을 이 과정 맥락에 맞춰
+            학습합니다.
+          </p>
+        </div>
+        <span className="count-label">
+          {sharedLessonSummary.completedLessons}/
+          {sharedLessonSummary.totalLessons} 완료
+        </span>
+      </div>
+      <ProgressBar
+        value={sharedLessonSummary.progressPercent}
+        label="공통 이론 진도"
+      />
+      <div className="course-lesson-grid">
+        {sharedLessonSummary.lessons.map((lesson) => (
+          <Link
+            className="course-lesson-card"
+            href={`/learn/${courseSlug}/course-lessons/${lesson.id}`}
+            key={lesson.id}
+          >
+            <div className="course-card-top">
+              <span className="badge">
+                {lesson.status === "COMPLETED"
+                  ? "완료"
+                  : lesson.status === "IN_PROGRESS"
+                    ? "학습 중"
+                    : "시작 전"}
+              </span>
+              <span>{lesson.estimatedMinutes}분</span>
+            </div>
+            <h3>{publicCopy(lesson.title)}</h3>
+            <p>{publicCopy(lesson.summary)}</p>
+            <div className="course-lesson-meta">
+              {lesson.isRequired ? <span>필수</span> : <span>선택</span>}
+              {lesson.difficulty ? <span>{lesson.difficulty}</span> : null}
+              {lesson.importance !== null ? (
+                <span>중요도 {lesson.importance}</span>
+              ) : null}
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function SharedTheorySectionFallback() {
+  return (
+    <section className="section-block" aria-live="polite">
+      <div className="section-heading compact">
+        <div>
+          <p className="eyebrow">SHARED THEORY</p>
+          <h2>공통 이론 레슨을 불러오고 있습니다</h2>
+        </div>
+      </div>
+      <div className="card-skeleton" aria-hidden="true" />
+    </section>
+  );
+}
+
+async function SubjectsSectionLoader({
+  courseSlug,
+  curriculumPromise,
+}: {
+  courseSlug: string;
+  curriculumPromise: Promise<LearnCurriculum>;
+}) {
+  const curriculum = await curriculumPromise;
+
+  return (
+    <div>
+      <div className="section-heading compact">
+        <div>
+          <p className="eyebrow">SUBJECTS</p>
+          <h2>과목 목록</h2>
+        </div>
+      </div>
+      <div className="subject-list">
+        {curriculum.map((subject, index) => (
+          <Link
+            className="subject-row"
+            href={`/learn/${courseSlug}/subjects/${subject.id}`}
+            key={subject.id}
+          >
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            <div>
+              <h3>{subject.name}</h3>
+              <p>{publicCopy(subject.description)}</p>
+            </div>
+            <strong>
+              {subject.theoryProgress.progressPercent}
+              % · {subject.topics.length}개 주제 →
+            </strong>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SubjectsSectionFallback() {
+  return (
+    <div aria-live="polite">
+      <div className="section-heading compact">
+        <div>
+          <p className="eyebrow">SUBJECTS</p>
+          <h2>과목 목록을 불러오고 있습니다</h2>
+        </div>
+      </div>
+      <div className="subject-list" aria-hidden="true">
+        {[0, 1, 2].map((item) => (
+          <div className="subject-row" key={item}>
+            <span>--</span>
+            <div className="card-skeleton" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+async function TheorySideCardLoader({
+  courseSlug,
+  theoryProgressViewPromise,
+}: {
+  courseSlug: string;
+  theoryProgressViewPromise: Promise<TheoryProgressView>;
+}) {
+  const {
+    displayedTheoryProgress,
+    latestSharedLesson,
+    nextSharedLesson,
+    legacyTheoryProgress,
+  } = await theoryProgressViewPromise;
+
+  return (
+    <div className="side-card">
+      <span className="eyebrow">THEORY</span>
+      <h3>이론 학습 {displayedTheoryProgress.progressPercent}%</h3>
+      <p>
+        {latestSharedLesson
+          ? `최근: ${publicCopy(latestSharedLesson.title)}`
+          : legacyTheoryProgress?.latestLesson
+            ? `최근: ${publicCopy(legacyTheoryProgress.latestLesson.title)}`
+            : "아직 학습한 레슨이 없습니다."}
+      </p>
+      {nextSharedLesson ? (
+        <Link
+          className="button button-dark full-width"
+          href={`/learn/${courseSlug}/course-lessons/${nextSharedLesson.id}`}
+        >
+          다음 추천 · {publicCopy(nextSharedLesson.title)}
+        </Link>
+      ) : legacyTheoryProgress?.nextLesson ? (
+        <Link
+          className="button button-dark full-width"
+          href={`/learn/${courseSlug}/lessons/${legacyTheoryProgress.nextLesson.id}`}
+        >
+          다음 추천 · {publicCopy(legacyTheoryProgress.nextLesson.title)}
+        </Link>
+      ) : (
+        <span className="sample-label">공개 레슨 학습 완료</span>
+      )}
+    </div>
+  );
+}
+
+function TheorySideCardFallback() {
+  return (
+    <div className="side-card" aria-live="polite">
+      <span className="eyebrow">THEORY</span>
+      <h3>이론 학습을 불러오고 있습니다</h3>
+      <div className="card-skeleton" aria-hidden="true" />
+    </div>
+  );
+}
+
+async function SpecializationSideCardLoader({
+  courseSlug,
+  specializationsPromise,
+}: {
+  courseSlug: string;
+  specializationsPromise: Promise<CourseSpecializations>;
+}) {
+  const specializations = await specializationsPromise;
+  if (!specializations.length) return null;
+
+  return (
+    <div className="side-card specialization-callout">
+      <span className="eyebrow">SPECIALIZATION</span>
+      <h3>과정 특화 학습</h3>
+      <p>{specializations.map((item) => item.displayName).join(" · ")}</p>
+      <Link
+        className="button button-dark full-width"
+        href={
+          specializations.some((item) =>
+            ["SECURE_CODE_ANALYSIS", "PRIVACY_IMPACT_ASSESSMENT"].includes(
+              item.featureType,
+            ),
+          )
+            ? `/practical/${courseSlug}`
+            : `/specialized/${courseSlug}`
+        }
+      >
+        특화 학습 열기
+      </Link>
+    </div>
   );
 }
 
