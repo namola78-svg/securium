@@ -21,9 +21,10 @@ if (command === "validate") {
   process.exit(0);
 }
 
-const directUrl = process.env.DIRECT_URL?.trim();
-if (!directUrl) fail("DIRECT_URL_REQUIRED");
-const runner = await createPostgresMigrationRunner(directUrl);
+const migrationUrl =
+  process.env.POSTGRES_MIGRATION_URL?.trim() || process.env.DIRECT_URL?.trim();
+if (!migrationUrl) fail("DIRECT_URL_REQUIRED");
+const runner = await createPostgresMigrationRunner(migrationUrl);
 
 if (command === "status") {
   const result = await runner.query(
@@ -38,7 +39,9 @@ if (command === "status") {
     );
     process.exit(0);
   }
-  if (result.code !== 0) fail("POSTGRES_MIGRATION_STATUS_FAILED");
+  if (result.code !== 0) {
+    failWithDetail("POSTGRES_MIGRATION_STATUS_FAILED", result.errorCode);
+  }
   const applied = new Set(result.stdout.split(/\r?\n/).filter(Boolean));
   const pending = migrations
     .map((migration) => migration.id)
@@ -62,11 +65,13 @@ for (const migration of migrations) {
     `SELECT id FROM app_schema_migrations WHERE id = '${migration.id.replaceAll("'", "''")}'`,
   );
   if (status.code !== 0 && status.errorCode !== "42P01") {
-    fail("POSTGRES_MIGRATION_STATUS_FAILED");
+    failWithDetail("POSTGRES_MIGRATION_STATUS_FAILED", status.errorCode);
   }
   if (status.stdout.trim() === migration.id) continue;
   const result = await runner.file(migration.path);
-  if (result.code !== 0) fail("POSTGRES_MIGRATION_DEPLOY_FAILED");
+  if (result.code !== 0) {
+    failWithDetail("POSTGRES_MIGRATION_DEPLOY_FAILED", result.errorCode);
+  }
 }
 await runner.close();
 console.log("POSTGRES_MIGRATIONS_DEPLOYED");
@@ -135,8 +140,11 @@ function escapeRegExp(value) {
 }
 
 async function createPostgresMigrationRunner(directUrl) {
-  const connectionEnvironment = createLibpqEnvironment(directUrl);
-  const psql = await maybeFindPsql();
+  const preferPsql = process.env.POSTGRES_MIGRATION_USE_PSQL === "1";
+  const connectionEnvironment = preferPsql
+    ? createLibpqEnvironment(directUrl)
+    : null;
+  const psql = preferPsql ? await maybeFindPsql() : null;
   if (psql) {
     return {
       close: async () => {},
@@ -155,6 +163,7 @@ async function createPostgresMigrationRunner(directUrl) {
   try {
     postgres = (await import("postgres")).default;
   } catch {
+    if (preferPsql) fail("PSQL_NOT_AVAILABLE");
     fail("POSTGRES_DRIVER_UNAVAILABLE");
   }
   const sql = postgres(directUrl, {
@@ -178,7 +187,7 @@ async function createPostgresMigrationRunner(directUrl) {
         await sql.unsafe(await readFile(path, "utf8"));
         return { code: 0, stdout: "" };
       } catch (error) {
-        return { code: 1, errorCode: error?.code, stdout: "" };
+        return { code: 1, errorCode: safeErrorCode(error), stdout: "" };
       }
     },
     query: async (statement) => {
@@ -191,7 +200,7 @@ async function createPostgresMigrationRunner(directUrl) {
             .join("\n"),
         };
       } catch (error) {
-        return { code: 1, errorCode: error?.code, stdout: "" };
+        return { code: 1, errorCode: safeErrorCode(error), stdout: "" };
       }
     },
   };
@@ -259,4 +268,18 @@ function runProcess(executable, args, environment) {
 function fail(code) {
   console.error(code);
   process.exit(1);
+}
+
+function failWithDetail(code, detail) {
+  console.error(detail ? `${code}:${detail}` : code);
+  process.exit(1);
+}
+
+function safeErrorCode(error) {
+  if (!error || typeof error !== "object") return "UNKNOWN";
+  const code = "code" in error ? error.code : undefined;
+  if (typeof code === "string" && /^[A-Z0-9_]+$/.test(code)) return code;
+  const name = "name" in error ? error.name : undefined;
+  if (typeof name === "string" && /^[A-Za-z0-9_]+$/.test(name)) return name;
+  return "UNKNOWN";
 }
