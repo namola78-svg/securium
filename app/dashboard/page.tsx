@@ -27,16 +27,13 @@ export default async function DashboardPage() {
   return (
     <main className="page-main dashboard-page">
       <div className="shell">
-        <section className="dashboard-intro">
-          <div>
-            <p className="eyebrow">LEARNING OVERVIEW</p>
-            <h1>{user.displayName}님의 통합 대시보드</h1>
-            <p>과정별 학습 기록은 서로 섞이지 않고 독립적으로 집계됩니다.</p>
-          </div>
-          <Link className="button button-dark" href="/courses">
-            새 과정 찾기
-          </Link>
-        </section>
+        <Suspense fallback={<DashboardHeroFallback displayName={user.displayName} />}>
+          <DashboardHero
+            displayName={user.displayName}
+            enrollmentsPromise={enrollmentsPromise}
+            todayPlanPromise={todayPlanPromise}
+          />
+        </Suspense>
 
         <section className="stats-grid">
           <Suspense fallback={<DashboardStatsFallback />}>
@@ -58,6 +55,100 @@ export default async function DashboardPage() {
         </Suspense>
       </div>
     </main>
+  );
+}
+
+async function DashboardHero({
+  displayName,
+  enrollmentsPromise,
+  todayPlanPromise,
+}: {
+  displayName: string;
+  enrollmentsPromise: Promise<Enrollment[]>;
+  todayPlanPromise: Promise<TodayPlan | null>;
+}) {
+  const [enrollments, todayPlan] = await Promise.all([
+    enrollmentsPromise,
+    todayPlanPromise,
+  ]);
+  const activeEnrollments = enrollments.filter(
+    (item) => item.status === "ACTIVE",
+  );
+  const currentCourse = activeEnrollments
+    .slice()
+    .sort((left, right) => {
+      const leftTime = left.lastStudiedAt
+        ? new Date(left.lastStudiedAt).getTime()
+        : 0;
+      const rightTime = right.lastStudiedAt
+        ? new Date(right.lastStudiedAt).getTime()
+        : 0;
+      return rightTime - leftTime;
+    })[0];
+  const plan = todayPlan ?? createEmptyTodayPlan();
+  const remainingQuestions = Math.max(
+    plan.settings.dailyQuestionGoal - plan.completedQuestions,
+    0,
+  );
+  const primaryHref = currentCourse
+    ? `/learn/${currentCourse.courseSlug}`
+    : "/courses";
+  const primaryLabel = currentCourse ? "계속 학습하기" : "과정 둘러보기";
+
+  return (
+    <section className="dashboard-intro dashboard-hero">
+      <div>
+        <p className="eyebrow">LEARNING OVERVIEW</p>
+        <h1>{displayName}님, 오늘 이어갈 학습을 확인하세요</h1>
+        <p>
+          {currentCourse
+            ? `${currentCourse.courseName} 과정을 중심으로 최근 학습과 복습 일정을 정리했습니다.`
+            : "아직 진행 중인 과정이 없습니다. 관심 있는 과정을 추가하면 진도와 복습이 이곳에 표시됩니다."}
+        </p>
+        <div className="dashboard-hero-actions">
+          <Link className="button button-dark" href={primaryHref}>
+            {primaryLabel}
+          </Link>
+          <Link className="button button-ghost" href="/reviews">
+            오늘의 복습 보기
+          </Link>
+        </div>
+      </div>
+      <aside className="dashboard-focus-card" aria-label="오늘의 학습 요약">
+        <span className="badge">오늘의 초점</span>
+        <strong>{currentCourse?.courseName ?? "학습 과정 선택"}</strong>
+        <dl className="dashboard-focus-list">
+          <div>
+            <dt>남은 목표</dt>
+            <dd>{remainingQuestions}문제</dd>
+          </div>
+          <div>
+            <dt>복습 예정</dt>
+            <dd>{plan.reviewSummary.dueCount}개</dd>
+          </div>
+          <div>
+            <dt>과정 진도</dt>
+            <dd>{currentCourse ? `${currentCourse.progressPercent}%` : "대기 중"}</dd>
+          </div>
+        </dl>
+      </aside>
+    </section>
+  );
+}
+
+function DashboardHeroFallback({ displayName }: { displayName: string }) {
+  return (
+    <section className="dashboard-intro dashboard-hero" aria-busy="true">
+      <div>
+        <p className="eyebrow">LEARNING OVERVIEW</p>
+        <h1>{displayName}님, 학습 정보를 불러오고 있습니다</h1>
+        <p>과정별 진도와 오늘의 복습 일정을 확인하는 중입니다.</p>
+      </div>
+      <aside className="dashboard-focus-card" aria-label="오늘의 학습 요약">
+        <span className="badge">확인 중</span>
+        <strong>학습 요약 준비 중</strong>
+      </aside>
+    </section>
   );
 }
 

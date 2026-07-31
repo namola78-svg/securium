@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { CourseCard } from "@/components/course-card";
 import type { CourseListItem } from "@/db/repositories";
 import { getOptionalCurrentAppUser } from "@/lib/auth";
@@ -7,6 +8,9 @@ import { listPublishedCoursesCached } from "@/lib/cached-catalog";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
+  const user = await getOptionalCurrentAppUser();
+  if (user) redirect("/dashboard");
+
   let courses: CourseListItem[] = [];
   let databaseReady = true;
   try {
@@ -14,8 +18,6 @@ export default async function Home() {
   } catch {
     databaseReady = false;
   }
-  const user = await getOptionalCurrentAppUser();
-  const primaryCtaHref = user ? "/dashboard" : "/signup";
 
   return (
     <main>
@@ -34,7 +36,7 @@ export default async function Home() {
               정보보호·개인정보보호 역량을 체계적으로 성장시키세요.
             </p>
             <div className="button-row">
-              <Link className="button button-lime" href={primaryCtaHref}>
+              <Link className="button button-lime" href="/signup">
                 무료로 학습 시작하기
               </Link>
               <Link className="button button-outline-light" href="/courses">
@@ -69,18 +71,55 @@ export default async function Home() {
             </div>
             <div className="signal-list">
               <div>
-                <span>오늘의 추천</span>
-                <strong>오답 5문제 복습</strong>
+                <span>학습 흐름</span>
+                <strong>이론 → 문제 → 복습</strong>
               </div>
               <div>
                 <span>AI 튜터</span>
-                <strong>취약 기준 설명</strong>
+                <strong>근거 기반 설명</strong>
               </div>
               <div>
                 <span>공개 과정</span>
                 <strong>{databaseReady ? `${courses.length}개` : "확인 중"}</strong>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="section landing-value-section">
+        <div className="shell">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">WHY SECURIUM</p>
+              <h2>시험 준비와 실무 역량을 같은 흐름으로 연결합니다</h2>
+            </div>
+          </div>
+          <div className="value-grid">
+            <article className="value-card">
+              <span>01</span>
+              <strong>과정별 진도 관리</strong>
+              <p>
+                여러 전문과정을 동시에 학습해도 수강, 문제풀이, 오답노트,
+                복습 기록을 과정별로 분리해 관리합니다.
+              </p>
+            </article>
+            <article className="value-card">
+              <span>02</span>
+              <strong>문제와 복습 중심 학습</strong>
+              <p>
+                풀이 기록과 오답을 기반으로 취약 영역을 확인하고, 오늘 다시
+                볼 내용을 놓치지 않도록 정리합니다.
+              </p>
+            </article>
+            <article className="value-card">
+              <span>03</span>
+              <strong>AI 학습 지원</strong>
+              <p>
+                공식 해설을 대체하지 않고, 검수된 근거 콘텐츠를 바탕으로
+                개념 이해를 돕는 참고 설명을 제공합니다.
+              </p>
+            </article>
           </div>
         </div>
       </section>
