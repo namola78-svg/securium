@@ -1999,24 +1999,14 @@ export async function getTodayLearningPlan(
   userId: string,
   enrollments?: DashboardPlanEnrollment[],
 ) {
-  const [settings, recommendations, reviewSummary] = await Promise.all([
+  const todayRange = utcDayRange();
+  const [settings, recommendations, reviewSummary, activity] =
+    await Promise.all([
     getLearningSettings(userId),
     getDashboardRecommendations(userId, enrollments),
     getDashboardReviewSummary(userId),
+    getTodayQuestionActivity(userId, todayRange),
   ]);
-  const todayRange = utcDayRange();
-  const [activity] = await getDb()
-    .select({
-      completed: sql<number>`count(*)`,
-    })
-    .from(questionAttempts)
-    .where(
-      and(
-        eq(questionAttempts.userId, userId),
-        gte(questionAttempts.attemptedAt, todayRange.start),
-        lt(questionAttempts.attemptedAt, todayRange.end),
-      ),
-    );
   return {
     settings,
     completedQuestions: Number(activity?.completed ?? 0),
@@ -2039,13 +2029,20 @@ export async function getTodayLearningPlanDiagnostics(
   userId: string,
   enrollments?: DashboardPlanEnrollment[],
 ) {
-  const [settingsStep, recommendationsStep, reviewSummaryStep] =
+  const todayRange = utcDayRange();
+  const [
+    settingsStep,
+    recommendationsStep,
+    reviewSummaryStep,
+    activityStep,
+  ] =
     await Promise.all([
       timeDashboardPlanStep(() => getLearningSettings(userId)),
       timeDashboardPlanStep(() =>
         getDashboardRecommendations(userId, enrollments),
       ),
       timeDashboardPlanStep(() => getDashboardReviewSummary(userId)),
+      timeDashboardPlanStep(() => getTodayQuestionActivity(userId, todayRange)),
     ]);
   if (
     !settingsStep.ok ||
@@ -2058,22 +2055,6 @@ export async function getTodayLearningPlanDiagnostics(
     throw new Error("DASHBOARD_TODAY_PLAN_DIAGNOSTICS_FAILED");
   }
 
-  const todayRange = utcDayRange();
-  const activityStep = await timeDashboardPlanStep(async () => {
-    const [activity] = await getDb()
-      .select({
-        completed: sql<number>`count(*)`,
-      })
-      .from(questionAttempts)
-      .where(
-        and(
-          eq(questionAttempts.userId, userId),
-          gte(questionAttempts.attemptedAt, todayRange.start),
-          lt(questionAttempts.attemptedAt, todayRange.end),
-        ),
-      );
-    return activity;
-  });
   if (!activityStep.ok) {
     throw new Error("DASHBOARD_TODAY_ACTIVITY_DIAGNOSTICS_FAILED");
   }
@@ -2098,6 +2079,25 @@ export async function getTodayLearningPlanDiagnostics(
       countTodayQuestionAttempts: toDashboardPlanPublicTiming(activityStep),
     },
   };
+}
+
+async function getTodayQuestionActivity(
+  userId: string,
+  todayRange: { start: string; end: string },
+) {
+  const [activity] = await getDb()
+    .select({
+      completed: sql<number>`count(*)`,
+    })
+    .from(questionAttempts)
+    .where(
+      and(
+        eq(questionAttempts.userId, userId),
+        gte(questionAttempts.attemptedAt, todayRange.start),
+        lt(questionAttempts.attemptedAt, todayRange.end),
+      ),
+    );
+  return activity;
 }
 
 async function timeDashboardPlanStep<T>(
