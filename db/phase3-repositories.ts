@@ -1657,6 +1657,22 @@ function writeDashboardPlanCache<T>(key: string, value: T) {
   }
 }
 
+async function readDashboardPlanSharedCache<T>(
+  key: string,
+  loader: () => Promise<T>,
+) {
+  try {
+    const { unstable_cache: unstableCache } = await import("next/cache");
+    return await unstableCache(
+      loader,
+      ["securium-dashboard-plan", key],
+      { revalidate: Math.floor(DASHBOARD_PLAN_CACHE_TTL_MS / 1000) },
+    )();
+  } catch {
+    return loader();
+  }
+}
+
 function flattenCurriculumPathNodes(nodes: PublishedCurriculumNode[]) {
   const flattened: PublishedCurriculumNode[] = [];
   const visit = (node: PublishedCurriculumNode) => {
@@ -2089,6 +2105,7 @@ async function getDashboardTodayPlanSummary(userId: string) {
   }>(cacheKey);
   if (cached) return cached;
 
+  const result = await readDashboardPlanSharedCache(cacheKey, async () => {
   const now = new Date().toISOString();
   const overdueCutoff = new Date(Date.now() - 86_400_000).toISOString();
   const todayRange = utcDayRange();
@@ -2108,7 +2125,7 @@ async function getDashboardTodayPlanSummary(userId: string) {
   const completedQuestions = Number(summary?.completedQuestions ?? 0);
   const dueCount = Number(summary?.dueCount ?? 0);
   const completedToday = Number(summary?.completedToday ?? 0);
-  const result = {
+  return {
     settings: {
       id: "dashboard-default-learning-settings",
       userId,
@@ -2128,6 +2145,7 @@ async function getDashboardTodayPlanSummary(userId: string) {
       items: [],
     },
   };
+  });
   writeDashboardPlanCache(cacheKey, result);
   return result;
 }
@@ -2170,6 +2188,7 @@ async function getDashboardRecommendations(
       readDashboardPlanCache<RecommendationCandidate[]>(cacheKey);
     if (cached) return cached;
 
+    const result = await readDashboardPlanSharedCache(cacheKey, async () => {
     const dashboardCandidates: RecommendationCandidate[] = [];
     const repeatedRows = await getDb()
       .select({
@@ -2199,9 +2218,7 @@ async function getDashboardRecommendations(
       .orderBy(desc(wrongNotes.wrongCount))
       .limit(8);
     if (!repeatedRows.length) {
-      const result = recommendationService.recommend(dashboardCandidates, 8);
-      writeDashboardPlanCache(cacheKey, result);
-      return result;
+      return recommendationService.recommend(dashboardCandidates, 8);
     }
     const questionRows = await getDb()
       .select({
@@ -2229,7 +2246,8 @@ async function getDashboardRecommendations(
         href: `/practice/${item.courseSlug}?wrongOnly=1&count=10`,
       })),
     );
-    const result = recommendationService.recommend(dashboardCandidates, 8);
+    return recommendationService.recommend(dashboardCandidates, 8);
+    });
     writeDashboardPlanCache(cacheKey, result);
     return result;
   }
