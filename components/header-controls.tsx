@@ -46,6 +46,7 @@ export function HeaderControls({ user }: HeaderControlsProps) {
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const navRef = useRef<HTMLElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+  const profileButtonRef = useRef<HTMLButtonElement>(null);
   const lockedScrollY = useRef(0);
   const activePath = resolveActivePath(pathname, searchParams);
   const currentUser = signedOutLocally ? null : user;
@@ -84,6 +85,26 @@ export function HeaderControls({ user }: HeaderControlsProps) {
         setMobileOpen(false);
         setProfileOpen(false);
         window.requestAnimationFrame(() => menuButtonRef.current?.focus());
+        return;
+      }
+
+      if (event.key === "Tab") {
+        const focusableElements = [
+          ...(navRef.current?.querySelectorAll<HTMLElement>(
+            'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+          ) ?? []),
+        ];
+        if (!focusableElements.length) return;
+
+        const first = focusableElements[0];
+        const last = focusableElements[focusableElements.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
       }
     }
 
@@ -130,15 +151,28 @@ export function HeaderControls({ user }: HeaderControlsProps) {
   }, []);
 
   useEffect(() => {
+    if (!profileOpen) return;
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setProfileOpen(false);
+        window.requestAnimationFrame(() => profileButtonRef.current?.focus());
+      }
+    }
+
     function handlePointerDown(event: PointerEvent) {
       if (!profileRef.current?.contains(event.target as Node)) {
         setProfileOpen(false);
       }
     }
 
+    window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("pointerdown", handlePointerDown);
-    return () => window.removeEventListener("pointerdown", handlePointerDown);
-  }, []);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("pointerdown", handlePointerDown);
+    };
+  }, [profileOpen]);
 
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
@@ -242,6 +276,34 @@ export function HeaderControls({ user }: HeaderControlsProps) {
         ref={navRef}
         aria-label="주요 메뉴"
       >
+        <div className="mobile-drawer-header">
+          <div>
+            <p className="eyebrow">SECURIUM MENU</p>
+            <strong>{isSignedIn ? "학습 메뉴" : "시작하기"}</strong>
+          </div>
+          <button
+            className="mobile-drawer-close"
+            type="button"
+            aria-label="메뉴 닫기"
+            onClick={() => {
+              closeMenus();
+              window.requestAnimationFrame(() => menuButtonRef.current?.focus());
+            }}
+          >
+            ×
+          </button>
+        </div>
+        {isSignedIn && currentUser ? (
+          <div className="mobile-account-summary" aria-label="로그인 계정">
+            <span className="mobile-account-avatar" aria-hidden="true">
+              {currentUser.displayName.slice(0, 1).toUpperCase()}
+            </span>
+            <div>
+              <strong>{currentUser.displayName}</strong>
+              <span>{isAdmin ? "관리자 권한" : "학습자"}</span>
+            </div>
+          </div>
+        ) : null}
         {navItems.map((item) => (
           <HeaderNavItem
             activePath={activePath}
@@ -250,15 +312,43 @@ export function HeaderControls({ user }: HeaderControlsProps) {
             onClick={closeMenus}
           />
         ))}
-        {!isSignedIn ? (
-          <div className="mobile-nav-actions" aria-label="계정 메뉴">
-            <Link className="button button-ghost full-width" href="/login" onClick={closeMenus}>
-              로그인
-            </Link>
-            <Link className="button button-lime full-width" href="/signup" onClick={closeMenus}>
-              무료로 시작하기
-            </Link>
-          </div>
+        <div className="mobile-nav-actions" aria-label="계정 메뉴">
+          {!isSignedIn ? (
+            <>
+              <Link className="button button-ghost full-width" href="/login" onClick={closeMenus}>
+                로그인
+              </Link>
+              <Link className="button button-lime full-width" href="/signup" onClick={closeMenus}>
+                무료로 시작하기
+              </Link>
+            </>
+          ) : (
+            <>
+              <div className="mobile-nav-section-title">계정</div>
+              {profileItems.map((item) => (
+                <HeaderNavItem
+                  activePath={activePath}
+                  item={item}
+                  key={item.label}
+                  onClick={closeMenus}
+                />
+              ))}
+              <button
+                className="profile-menu-item danger"
+                type="button"
+                disabled={signingOut}
+                aria-busy={signingOut}
+                onClick={handleLogout}
+              >
+                {signingOut ? "로그아웃 중" : "로그아웃"}
+              </button>
+            </>
+          )}
+        </div>
+        {!isSignedIn ? null : logoutError ? (
+          <p className="mobile-header-error" role="alert">
+            {logoutError}
+          </p>
         ) : null}
       </nav>
 
@@ -267,17 +357,23 @@ export function HeaderControls({ user }: HeaderControlsProps) {
           <div className="profile-menu" ref={profileRef}>
             <button
               className="profile-menu-trigger"
+              ref={profileButtonRef}
               type="button"
               aria-label={`${currentUser.displayName} 프로필 메뉴`}
               aria-expanded={profileOpen}
               aria-haspopup="menu"
+              aria-controls="profile-menu-panel"
               onClick={() => setProfileOpen((open) => !open)}
             >
               <span className="user-chip">{currentUser.displayName}</span>
               <span aria-hidden="true">⌄</span>
             </button>
             {profileOpen ? (
-              <div className="profile-menu-panel" role="menu">
+              <div className="profile-menu-panel" id="profile-menu-panel" role="menu">
+                <div className="profile-menu-summary" role="presentation">
+                  <strong>{currentUser.displayName}</strong>
+                  <span>{isAdmin ? "관리자 권한" : "학습자"}</span>
+                </div>
                 {profileItems.map((item) => (
                   <HeaderNavItem
                     activePath={activePath}

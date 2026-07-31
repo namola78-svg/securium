@@ -208,6 +208,13 @@ a {
   display: none;
 }
 
+.mobile-drawer-header,
+.mobile-account-summary,
+.mobile-nav-section-title,
+.mobile-header-error {
+  display: none;
+}
+
 .profile-menu {
   position: relative;
 }
@@ -245,6 +252,27 @@ a {
   border-radius: 14px;
   background: #152327;
   box-shadow: 0 20px 50px rgb(0 0 0 / 0.32);
+}
+
+.profile-menu-summary {
+  display: grid;
+  gap: 2px;
+  padding: 10px 11px 12px;
+  border-bottom: 1px solid rgb(255 255 255 / 0.1);
+  margin-bottom: 4px;
+}
+
+.profile-menu-summary strong,
+.profile-menu-summary span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-menu-summary span {
+  color: #9eaaad;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .profile-menu-panel a,
@@ -3926,7 +3954,7 @@ textarea {
 
 @media (max-width: 960px) {
   .header-inner {
-    grid-template-columns: 1fr auto auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 12px;
   }
 
@@ -3953,20 +3981,22 @@ textarea {
 
   .main-nav {
     position: fixed;
-    top: 76px;
-    right: 16px;
-    left: 16px;
+    top: 0;
+    right: 0;
+    bottom: 0;
     z-index: 50;
     display: none;
     align-items: stretch;
     justify-content: start;
     flex-direction: column;
-    gap: 4px;
-    max-height: calc(100vh - 96px);
+    width: min(92vw, 390px);
+    height: 100dvh;
+    gap: 6px;
+    max-height: none;
     overflow: auto;
-    padding: 12px;
-    border: 1px solid rgb(255 255 255 / 0.12);
-    border-radius: 16px;
+    padding: max(18px, env(safe-area-inset-top)) 16px max(18px, env(safe-area-inset-bottom));
+    border-left: 1px solid rgb(255 255 255 / 0.12);
+    border-radius: 0;
     background: #132126;
     box-shadow: 0 28px 80px rgb(0 0 0 / 0.35);
   }
@@ -3981,20 +4011,118 @@ textarea {
     padding: 13px 14px;
   }
 
+  .mobile-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 4px 0 14px;
+    border-bottom: 1px solid rgb(255 255 255 / 0.1);
+    margin-bottom: 8px;
+  }
+
+  .mobile-drawer-header .eyebrow {
+    margin: 0 0 3px;
+    color: var(--aqua);
+  }
+
+  .mobile-drawer-header strong {
+    color: var(--white);
+    font-size: 20px;
+  }
+
+  .mobile-drawer-close {
+    display: inline-grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    border: 1px solid rgb(255 255 255 / 0.18);
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.04);
+    color: var(--white);
+    cursor: pointer;
+    font-size: 26px;
+    line-height: 1;
+  }
+
+  .mobile-drawer-close:hover,
+  .mobile-drawer-close:focus-visible {
+    border-color: rgb(200 244 90 / 0.55);
+    color: var(--lime);
+  }
+
+  .mobile-account-summary {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid rgb(255 255 255 / 0.12);
+    border-radius: 16px;
+    margin-bottom: 8px;
+    background: rgb(255 255 255 / 0.05);
+  }
+
+  .mobile-account-avatar {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    border-radius: 14px;
+    background: var(--lime);
+    color: var(--ink);
+    font-weight: 900;
+  }
+
+  .mobile-account-summary strong,
+  .mobile-account-summary span {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-account-summary span {
+    color: #9eaaad;
+    font-size: 12px;
+    font-weight: 800;
+  }
+
   .mobile-nav-actions {
     display: grid;
     gap: 8px;
-    padding-top: 10px;
-    margin-top: 6px;
+    padding-top: 12px;
+    margin-top: 10px;
     border-top: 1px solid rgb(255 255 255 / 0.1);
+  }
+
+  .mobile-nav-section-title {
+    display: block;
+    padding: 0 4px 4px;
+    color: #9eaaad;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+  }
+
+  .mobile-header-error {
+    display: block;
+    margin: 8px 0 0;
+    padding: 10px 12px;
+    border: 1px solid rgb(248 113 113 / 0.35);
+    border-radius: 10px;
+    background: #fff1f2;
+    color: #9f1239;
+    font-size: 12px;
   }
 
   .mobile-menu-backdrop {
     position: fixed;
-    top: 76px;
+    top: 0;
     right: 0;
+    bottom: 0;
     left: 0;
-    height: calc(100vh - 76px);
+    height: 100dvh;
     z-index: 40;
     display: block;
     border: 0;
@@ -4003,20 +4131,7 @@ textarea {
   }
 
   .header-actions {
-    justify-content: flex-end;
-  }
-
-  .profile-menu {
-    width: 100%;
-  }
-
-  .profile-menu-trigger {
-    max-width: 100%;
-  }
-
-  .profile-menu-panel {
-    right: auto;
-    left: 0;
+    display: none;
   }
 
   .hero-grid,
