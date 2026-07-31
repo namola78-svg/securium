@@ -691,85 +691,43 @@ export function createEnrollmentRepository(): EnrollmentRepository {
 }
 
 export async function listUserEnrollments(userId: string) {
-  const [enrollmentRows, stats, theoryStats] = await Promise.all([
-    getDb()
-      .select({
-        id: userCourseEnrollments.id,
-        status: userCourseEnrollments.status,
-        enrolledAt: userCourseEnrollments.enrolledAt,
-        completedAt: userCourseEnrollments.completedAt,
-        currentLevel: userCourseEnrollments.currentLevel,
-        progressPercent: userCourseEnrollments.progressPercent,
-        totalXp: userCourseEnrollments.totalXp,
-        courseId: courses.id,
-        courseSlug: courses.slug,
-        courseName: courses.name,
-        shortName: courses.shortName,
-        totalLevels: courses.totalLevels,
-        groupName: courseGroups.name,
-      })
-      .from(userCourseEnrollments)
-      .innerJoin(courses, eq(userCourseEnrollments.courseId, courses.id))
-      .innerJoin(courseGroups, eq(courses.courseGroupId, courseGroups.id))
-      .where(eq(userCourseEnrollments.userId, userId))
-      .orderBy(desc(userCourseEnrollments.updatedAt)),
-    getDb()
-      .select({
-        courseId: userProgress.courseId,
-        correctAnswers: sql<number>`coalesce(sum(${userProgress.correctAnswers}), 0)`,
-        totalAnswers: sql<number>`coalesce(sum(${userProgress.totalAnswers}), 0)`,
-        lastStudiedAt: sql<string | null>`max(${userProgress.lastStudiedAt})`,
-      })
-      .from(userProgress)
-      .where(eq(userProgress.userId, userId))
-      .groupBy(userProgress.courseId),
-    getDb()
-      .select({
-        courseId: courseLessons.courseId,
-        totalLessons: sql<number>`count(${courseLessons.id})`,
-        completedLessons: sql<number>`coalesce(sum(case when ${userCourseLessonProgress.status} = 'COMPLETED' then 1 else 0 end), 0)`,
-      })
-      .from(courseLessons)
-      .innerJoin(contents, eq(courseLessons.contentId, contents.id))
-      .innerJoin(
-        userCourseEnrollments,
-        and(
-          eq(userCourseEnrollments.courseId, courseLessons.courseId),
-          eq(userCourseEnrollments.userId, userId),
-          eq(userCourseEnrollments.status, "ACTIVE"),
-        ),
-      )
-      .leftJoin(
-        userCourseLessonProgress,
-        and(
-          eq(userCourseLessonProgress.userId, userId),
-          eq(userCourseLessonProgress.courseId, courseLessons.courseId),
-          eq(userCourseLessonProgress.courseLessonId, courseLessons.id),
-        ),
-      )
-      .where(
-        and(
-          eq(courseLessons.status, "PUBLISHED"),
-          isNull(courseLessons.deletedAt),
-          eq(contents.status, "PUBLISHED"),
-          isNull(contents.deletedAt),
-        ),
-      )
-      .groupBy(courseLessons.courseId),
-  ]);
+  const enrollmentRows = await getDb()
+    .select({
+      id: userCourseEnrollments.id,
+      status: userCourseEnrollments.status,
+      enrolledAt: userCourseEnrollments.enrolledAt,
+      completedAt: userCourseEnrollments.completedAt,
+      currentLevel: userCourseEnrollments.currentLevel,
+      progressPercent: userCourseEnrollments.progressPercent,
+      totalXp: userCourseEnrollments.totalXp,
+      courseId: courses.id,
+      courseSlug: courses.slug,
+      courseName: courses.name,
+      shortName: courses.shortName,
+      totalLevels: courses.totalLevels,
+      groupName: courseGroups.name,
+      correctAnswers: sql<number>`coalesce((select sum(${userProgress.correctAnswers}) from ${userProgress} where ${userProgress.userId} = ${userId} and ${userProgress.courseId} = ${courses.id}), 0)`,
+      totalAnswers: sql<number>`coalesce((select sum(${userProgress.totalAnswers}) from ${userProgress} where ${userProgress.userId} = ${userId} and ${userProgress.courseId} = ${courses.id}), 0)`,
+      lastStudiedAt: sql<string | null>`(select max(${userProgress.lastStudiedAt}) from ${userProgress} where ${userProgress.userId} = ${userId} and ${userProgress.courseId} = ${courses.id})`,
+      theoryTotalLessons: sql<number>`coalesce((select count(${courseLessons.id}) from ${courseLessons} inner join ${contents} on ${courseLessons.contentId} = ${contents.id} where ${courseLessons.courseId} = ${courses.id} and ${courseLessons.status} = 'PUBLISHED' and ${courseLessons.deletedAt} is null and ${contents.status} = 'PUBLISHED' and ${contents.deletedAt} is null), 0)`,
+      theoryCompletedLessons: sql<number>`coalesce((select count(${userCourseLessonProgress.id}) from ${userCourseLessonProgress} inner join ${courseLessons} on ${userCourseLessonProgress.courseLessonId} = ${courseLessons.id} inner join ${contents} on ${courseLessons.contentId} = ${contents.id} where ${userCourseLessonProgress.userId} = ${userId} and ${userCourseLessonProgress.courseId} = ${courses.id} and ${userCourseLessonProgress.status} = 'COMPLETED' and ${courseLessons.courseId} = ${courses.id} and ${courseLessons.status} = 'PUBLISHED' and ${courseLessons.deletedAt} is null and ${contents.status} = 'PUBLISHED' and ${contents.deletedAt} is null), 0)`,
+    })
+    .from(userCourseEnrollments)
+    .innerJoin(courses, eq(userCourseEnrollments.courseId, courses.id))
+    .innerJoin(courseGroups, eq(courses.courseGroupId, courseGroups.id))
+    .where(eq(userCourseEnrollments.userId, userId))
+    .orderBy(desc(userCourseEnrollments.updatedAt));
 
   return enrollmentRows.map((row) => {
-    const courseStats = stats.find((stat) => stat.courseId === row.courseId);
-    const theory = theoryStats.find((item) => item.courseId === row.courseId);
-    const totalAnswers = Number(courseStats?.totalAnswers ?? 0);
-    const correctAnswers = Number(courseStats?.correctAnswers ?? 0);
-    const theoryTotalLessons = Number(theory?.totalLessons ?? 0);
-    const theoryCompletedLessons = Number(theory?.completedLessons ?? 0);
+    const totalAnswers = Number(row.totalAnswers ?? 0);
+    const correctAnswers = Number(row.correctAnswers ?? 0);
+    const theoryTotalLessons = Number(row.theoryTotalLessons ?? 0);
+    const theoryCompletedLessons = Number(row.theoryCompletedLessons ?? 0);
     return {
       ...row,
       accuracy:
         totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : null,
-      lastStudiedAt: courseStats?.lastStudiedAt ?? null,
+      lastStudiedAt: row.lastStudiedAt ?? null,
       theoryTotalLessons,
       theoryCompletedLessons,
       theoryProgressPercent: theoryTotalLessons
