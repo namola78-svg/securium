@@ -83,12 +83,15 @@ const nodeTypes = [
 
 const treeStatuses = ["DRAFT", "ACTIVE", "ARCHIVED"] as const;
 const nodeStatuses = ["ACTIVE", "INACTIVE", "ARCHIVED"] as const;
+
 const contentTypeLabels: Record<LinkableContent["type"], string> = {
   SUBJECT: "과목",
   TOPIC: "주제",
   LEARNING_UNIT: "학습 단위",
   LESSON: "레슨",
 };
+
+const officialSourceTypes = new Set(["OFFICIAL_EXAM_STANDARD"]);
 
 export function AdminCurriculumManager({
   courses,
@@ -119,6 +122,9 @@ export function AdminCurriculumManager({
     () => new Map(nodeStats.map((stat) => [stat.nodeId, stat])),
     [nodeStats],
   );
+  const selectedTreeSummary = selectedTree
+    ? summarizeSelectedTree(selectedTree, nodes)
+    : null;
 
   async function submitJson(
     endpoint: string,
@@ -213,8 +219,9 @@ export function AdminCurriculumManager({
       <section className="admin-panel">
         <h2>커리큘럼 트리</h2>
         <p className="admin-helper">
-          과정별 공식·실무 커리큘럼 버전을 별도로 관리합니다. 기존
-          과목·주제·레슨 데이터는 이 화면에서 삭제하지 않습니다.
+          과정별 공식 출제기준과 실무형 커리큘럼을 버전 단위로 관리합니다.
+          DRAFT 트리는 학습자에게 공개되지 않으며, 관리자 검토 후 ACTIVE로
+          전환합니다.
         </p>
         <div className="admin-record-list">
           {trees.length ? (
@@ -225,6 +232,7 @@ export function AdminCurriculumManager({
                     <strong>{tree.title}</strong>
                     <small>
                       {tree.courseName} · v{tree.version} · {tree.status}
+                      {isOfficialTree(tree) ? " · 공식 출제기준" : ""}
                     </small>
                   </span>
                   <a
@@ -247,8 +255,8 @@ export function AdminCurriculumManager({
             ))
           ) : (
             <p className="empty-copy">
-              아직 등록된 커리큘럼 트리가 없습니다. 먼저 과정과 버전을
-              선택해 트리를 생성하세요.
+              아직 등록된 커리큘럼 트리가 없습니다. 과정과 버전을 선택해 새
+              트리를 생성하세요.
             </p>
           )}
         </div>
@@ -264,14 +272,36 @@ export function AdminCurriculumManager({
       </section>
 
       <section className="admin-panel curriculum-node-panel">
-        <h2>노드 편집</h2>
-        {selectedTree ? (
+        <h2>선택 트리 검토</h2>
+        {selectedTree && selectedTreeSummary ? (
           <>
             <p className="admin-helper">
               선택 트리: <strong>{selectedTree.title}</strong> ·{" "}
-              {selectedTree.courseName}. 노드 이동 시 depth와 path는 서버에서
-              재계산됩니다.
+              {selectedTree.courseName}. 노드의 depth와 path는 서버에서
+              계산됩니다.
             </p>
+            <dl className="curriculum-admin-node-stats">
+              <div>
+                <dt>상태</dt>
+                <dd>{selectedTree.status}</dd>
+              </div>
+              <div>
+                <dt>전체 노드</dt>
+                <dd>{selectedTreeSummary.totalNodes}</dd>
+              </div>
+              <div>
+                <dt>필기 과목</dt>
+                <dd>{selectedTreeSummary.writtenSubjects}</dd>
+              </div>
+              <div>
+                <dt>실기 노드</dt>
+                <dd>{selectedTreeSummary.practicalNodes}</dd>
+              </div>
+              <div>
+                <dt>공식 기준</dt>
+                <dd>{isOfficialTree(selectedTree) ? "예" : "아니오"}</dd>
+              </div>
+            </dl>
             <NodeForm
               nodes={nodes}
               linkableContent={linkableContent}
@@ -281,7 +311,7 @@ export function AdminCurriculumManager({
           </>
         ) : (
           <p className="empty-copy">
-            노드를 추가하려면 먼저 트리를 선택하세요.
+            노드를 추가하려면 먼저 커리큘럼 트리를 선택하세요.
           </p>
         )}
       </section>
@@ -293,39 +323,39 @@ export function AdminCurriculumManager({
             {nodes.map((node) => {
               const stat = nodeStatsById.get(node.id);
               return (
-              <article className="admin-record" key={node.id}>
-                <summary>
-                  <span style={{ paddingLeft: `${node.depth * 18}px` }}>
-                    <strong>{node.title}</strong>
-                    <small>
-                      depth {node.depth} · order {node.sortOrder} ·{" "}
-                      {node.nodeType} · {node.status}
-                    </small>
-                    <small>{linkedContentSummary(node.metadata)}</small>
-                  </span>
-                  <span className="status-on">{node.path}</span>
-                </summary>
-                {stat ? <NodeOperationalStats stat={stat} /> : null}
-                <NodeForm
-                  nodes={nodes}
-                  linkableContent={linkableContent}
-                  node={node}
-                  pending={pendingAction === `node-update-${node.id}`}
-                  onSubmit={(formData) => saveNode(formData, node)}
-                />
-                <div className="curriculum-node-actions">
-                  <button
-                    className="button button-ghost danger-button"
-                    type="button"
-                    disabled={Boolean(pendingAction)}
-                    onClick={() => archiveNode(node)}
-                  >
-                    {pendingAction === `node-archive-${node.id}`
-                      ? "보관 중..."
-                      : "노드 보관"}
-                  </button>
-                </div>
-              </article>
+                <article className="admin-record" key={node.id}>
+                  <summary>
+                    <span style={{ paddingLeft: `${node.depth * 18}px` }}>
+                      <strong>{node.title}</strong>
+                      <small>
+                        depth {node.depth} · order {node.sortOrder} ·{" "}
+                        {node.nodeType} · {node.status}
+                      </small>
+                      <small>{linkedContentSummary(node.metadata)}</small>
+                    </span>
+                    <span className="status-on">{node.path}</span>
+                  </summary>
+                  {stat ? <NodeOperationalStats stat={stat} /> : null}
+                  <NodeForm
+                    nodes={nodes}
+                    linkableContent={linkableContent}
+                    node={node}
+                    pending={pendingAction === `node-update-${node.id}`}
+                    onSubmit={(formData) => saveNode(formData, node)}
+                  />
+                  <div className="curriculum-node-actions">
+                    <button
+                      className="button button-ghost danger-button"
+                      type="button"
+                      disabled={Boolean(pendingAction)}
+                      onClick={() => archiveNode(node)}
+                    >
+                      {pendingAction === `node-archive-${node.id}`
+                        ? "보관 중..."
+                        : "노드 보관"}
+                    </button>
+                  </div>
+                </article>
               );
             })}
           </div>
@@ -352,7 +382,7 @@ function NodeOperationalStats({
         <dd>{stat.questionCount}</dd>
       </div>
       <div>
-        <dt>풀이</dt>
+        <dt>응시</dt>
         <dd>{stat.attemptCount}</dd>
       </div>
       <div>
@@ -419,7 +449,7 @@ function TreeForm({
           minLength={2}
           maxLength={200}
           defaultValue={tree?.title}
-          placeholder="예: ISMS-P 2026 통합 커리큘럼"
+          placeholder="예: 정보보안기사 2027~2029 공식 출제기준"
         />
       </label>
       <label>
@@ -429,7 +459,7 @@ function TreeForm({
           required
           maxLength={60}
           defaultValue={tree?.version}
-          placeholder="2026.1"
+          placeholder="2027-2029"
         />
       </label>
       <label>
@@ -438,7 +468,7 @@ function TreeForm({
           name="sourceType"
           maxLength={80}
           defaultValue={tree?.sourceType ?? ""}
-          placeholder="INTERNAL_REVIEW"
+          placeholder="OFFICIAL_EXAM_STANDARD"
         />
       </label>
       <label className="wide">
@@ -447,7 +477,7 @@ function TreeForm({
           name="sourceDocument"
           maxLength={500}
           defaultValue={tree?.sourceDocument ?? ""}
-          placeholder="관리 기준, 내부 설계서, 검토 문서 등"
+          placeholder="예: 정보보안기사 필기·실기 출제기준"
         />
       </label>
       <label>
@@ -497,6 +527,7 @@ function NodeForm({
     parseLinkedContent(node?.metadata).map((link) => linkKey(link)),
   );
   const groupedContent = groupLinkableContent(linkableContent);
+
   return (
     <form className="admin-form" action={onSubmit}>
       <label>
@@ -597,8 +628,8 @@ function NodeForm({
       <fieldset className="wide curriculum-link-fieldset">
         <legend>기존 콘텐츠 연결</legend>
         <p className="admin-helper">
-          이 노드가 대표하는 기존 과목·주제·학습 단위·레슨을 선택합니다.
-          같은 과정의 콘텐츠만 저장됩니다.
+          이 노드가 대표하는 기존 과목·주제·학습 단위·레슨을 선택합니다. 같은
+          과정의 콘텐츠만 저장됩니다.
         </p>
         {linkableContent.length ? (
           Object.entries(groupedContent).map(([type, items]) => (
@@ -618,7 +649,9 @@ function NodeForm({
                       <small>
                         {item.subtitle}
                         {!item.active ? " · 비활성" : ""}
-                        {!item.published && item.type !== "SUBJECT" && item.type !== "TOPIC"
+                        {!item.published &&
+                        item.type !== "SUBJECT" &&
+                        item.type !== "TOPIC"
                           ? " · 비공개"
                           : ""}
                       </small>
@@ -629,7 +662,9 @@ function NodeForm({
             </div>
           ))
         ) : (
-          <p className="empty-copy">이 과정에 연결할 기존 콘텐츠가 없습니다.</p>
+          <p className="empty-copy">
+            이 과정에 연결할 기존 콘텐츠가 없습니다.
+          </p>
         )}
       </fieldset>
       <label className="wide">
@@ -662,6 +697,30 @@ function NodeForm({
       </button>
     </form>
   );
+}
+
+function summarizeSelectedTree(tree: CurriculumTree, nodes: CurriculumNode[]) {
+  const writtenTrack = nodes.find(
+    (node) =>
+      node.curriculumTreeId === tree.id &&
+      node.parentId === null &&
+      node.title === "필기",
+  );
+  const writtenSubjects = writtenTrack
+    ? nodes.filter(
+        (node) => node.parentId === writtenTrack.id && node.nodeType === "SUBJECT",
+      ).length
+    : 0;
+
+  return {
+    totalNodes: nodes.length,
+    writtenSubjects,
+    practicalNodes: nodes.filter((node) => node.isPractical).length,
+  };
+}
+
+function isOfficialTree(tree: CurriculumTree) {
+  return Boolean(tree.sourceType && officialSourceTypes.has(tree.sourceType));
 }
 
 function groupLinkableContent(items: LinkableContent[]) {

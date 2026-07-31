@@ -26,9 +26,7 @@ export default async function AdminCurriculumPage({
       ? treeId
       : trees[0]?.id ?? "";
   const selectedTree = trees.find((tree) => tree.id === selectedTreeId) ?? null;
-  const nodes = selectedTreeId
-    ? await listCurriculumNodes(selectedTreeId)
-    : [];
+  const nodes = selectedTreeId ? await listCurriculumNodes(selectedTreeId) : [];
   const nodeStats = selectedTreeId
     ? await listCurriculumNodeOperationalStats(selectedTreeId)
     : [];
@@ -56,9 +54,9 @@ export default async function AdminCurriculumPage({
         <p className="eyebrow">CURRICULUM ARCHITECTURE</p>
         <h1>커리큘럼 트리 관리</h1>
         <p>
-          과정별 커리큘럼 버전과 계층형 노드를 관리합니다. 기존 과목·주제·학습
-          단위·레슨 데이터는 유지하면서 노드와 연결하고, 운영 통계를 함께
-          확인합니다.
+          과정별 공식·실무 커리큘럼 버전과 계층형 노드를 관리합니다. 기존
+          과목, 주제, 학습 단위, 레슨 데이터는 삭제하지 않고 필요한 노드에
+          연결해 운영 통계를 함께 확인합니다.
         </p>
       </header>
       <section className="stats-grid admin-stats">
@@ -88,7 +86,7 @@ export default async function AdminCurriculumPage({
           <span>운영 통계</span>
           <strong>{operationalSummary.questionCount}</strong>
           <small>
-            풀이 {operationalSummary.attemptCount} · 오답{" "}
+            응시 {operationalSummary.attemptCount} · 오답{" "}
             {operationalSummary.wrongAttemptCount} · 복습{" "}
             {operationalSummary.dueReviewCount}
           </small>
