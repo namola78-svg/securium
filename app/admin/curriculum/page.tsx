@@ -121,6 +121,7 @@ export default async function AdminCurriculumPage({
         </section>
       ) : null}
       <AdminCurriculumManager
+        key={selectedTreeId}
         courses={courses.map((course) => ({
           id: course.id,
           name: course.name,

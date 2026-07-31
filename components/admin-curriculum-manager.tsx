@@ -67,6 +67,23 @@ type CurriculumNodeOperationalStat = {
   dueReviewCount: number;
 };
 
+type NodeMetadata = {
+  officialLevel?: string;
+  sourceDocument?: string;
+  sourcePage?: number | string;
+  sourcePages?: Array<number | string>;
+  pdfPage?: number | string;
+  pageNumber?: number | string;
+  pageNumbers?: Array<number | string>;
+  notes?: string | null;
+  needsPdfVerification?: boolean;
+};
+
+type VisibleNode = {
+  node: CurriculumNode;
+  hasChildren: boolean;
+};
+
 const nodeTypes = [
   "TRACK",
   "SUBJECT",
@@ -91,6 +108,30 @@ const contentTypeLabels: Record<LinkableContent["type"], string> = {
   LESSON: "레슨",
 };
 
+const nodeTypeLabels: Record<string, string> = {
+  TRACK: "트랙",
+  SUBJECT: "과목",
+  DOMAIN: "영역",
+  MAJOR_ITEM: "주요항목",
+  SUB_ITEM: "세부항목",
+  STANDARD: "세세항목",
+  LIFECYCLE: "생애주기",
+  PRACTICAL: "실기",
+  MODULE: "모듈",
+  CHAPTER: "장",
+  CUSTOM: "사용자 정의",
+};
+
+const officialLevelLabels: Record<string, string> = {
+  EXAM_TRACK: "필기/실기",
+  SUBJECT: "과목",
+  PRACTICAL_DOMAIN: "실기 영역",
+  MAJOR_ITEM: "주요항목",
+  SUB_ITEM: "세부항목",
+  DETAIL_ITEM: "세세항목",
+  PERFORMANCE_CRITERION: "수행준거",
+};
+
 const officialSourceTypes = new Set(["OFFICIAL_EXAM_STANDARD"]);
 
 export function AdminCurriculumManager({
@@ -110,6 +151,12 @@ export function AdminCurriculumManager({
 }) {
   const [message, setMessage] = useState("");
   const [pendingAction, setPendingAction] = useState("");
+  const [expandedNodeIds, setExpandedNodeIds] = useState<Set<string>>(
+    () => defaultExpandedNodeIds(nodes),
+  );
+  const [selectedNodeId, setSelectedNodeId] = useState<string>(
+    () => nodes[0]?.id ?? "",
+  );
   const selectedTree = trees.find((tree) => tree.id === selectedTreeId) ?? null;
   const activeTreeByCourse = useMemo(() => {
     const map = new Map<string, CurriculumTree>();
@@ -125,6 +172,14 @@ export function AdminCurriculumManager({
   const selectedTreeSummary = selectedTree
     ? summarizeSelectedTree(selectedTree, nodes)
     : null;
+  const treeModel = useMemo(() => buildTreeModel(nodes), [nodes]);
+  const visibleNodes = useMemo(
+    () => flattenVisibleNodes(treeModel.rootNodes, treeModel.childrenByParent, expandedNodeIds),
+    [expandedNodeIds, treeModel],
+  );
+  const selectedNode =
+    nodes.find((node) => node.id === selectedNodeId) ?? nodes[0] ?? null;
+  const selectedNodeStat = selectedNode ? nodeStatsById.get(selectedNode.id) : null;
 
   async function submitJson(
     endpoint: string,
@@ -211,6 +266,23 @@ export function AdminCurriculumManager({
     );
   }
 
+  function toggleNode(nodeId: string) {
+    setExpandedNodeIds((current) => {
+      const next = new Set(current);
+      if (next.has(nodeId)) next.delete(nodeId);
+      else next.add(nodeId);
+      return next;
+    });
+  }
+
+  function expandAll() {
+    setExpandedNodeIds(new Set(nodes.map((node) => node.id)));
+  }
+
+  function collapseToSubjects() {
+    setExpandedNodeIds(defaultExpandedNodeIds(nodes));
+  }
+
   return (
     <div className="curriculum-admin-grid">
       {message ? (
@@ -275,15 +347,37 @@ export function AdminCurriculumManager({
       </section>
 
       <section className="admin-panel curriculum-node-panel">
-        <h2>선택 트리 검토</h2>
+        <div className="curriculum-tree-header">
+          <div>
+            <h2>커리큘럼 노드 검토</h2>
+            {selectedTree && selectedTreeSummary ? (
+              <p className="admin-helper">
+                선택 트리: <strong>{selectedTree.title}</strong> ·{" "}
+                {selectedTree.courseName}
+              </p>
+            ) : (
+              <p className="admin-helper">
+                노드를 추가하거나 검토하려면 커리큘럼 트리를 선택해 주세요.
+              </p>
+            )}
+          </div>
+          <div className="curriculum-tree-actions">
+            <button className="button button-ghost" type="button" onClick={expandAll}>
+              전체 펼치기
+            </button>
+            <button
+              className="button button-ghost"
+              type="button"
+              onClick={collapseToSubjects}
+            >
+              과목까지만 보기
+            </button>
+          </div>
+        </div>
+
         {selectedTree && selectedTreeSummary ? (
           <>
-            <p className="admin-helper">
-              선택 트리: <strong>{selectedTree.title}</strong> ·{" "}
-              {selectedTree.courseName}. 노드의 depth와 path는 서버에서
-              계산합니다.
-            </p>
-            <dl className="curriculum-admin-node-stats">
+            <dl className="curriculum-admin-node-stats compact-summary">
               <div>
                 <dt>상태</dt>
                 <dd>{selectedTree.status}</dd>
@@ -305,12 +399,48 @@ export function AdminCurriculumManager({
                 <dd>{isOfficialTree(selectedTree) ? "예" : "아니오"}</dd>
               </div>
             </dl>
-            <NodeForm
-              nodes={nodes}
-              linkableContent={linkableContent}
-              pending={pendingAction === "node-create"}
-              onSubmit={(formData) => saveNode(formData)}
-            />
+
+            <div className="curriculum-tree-workspace">
+              <div className="curriculum-tree-list" role="tree" aria-label="커리큘럼 노드 목록">
+                {visibleNodes.map(({ node, hasChildren }) => (
+                  <CurriculumTreeRow
+                    key={node.id}
+                    node={node}
+                    hasChildren={hasChildren}
+                    expanded={expandedNodeIds.has(node.id)}
+                    selected={selectedNode?.id === node.id}
+                    onToggle={() => toggleNode(node.id)}
+                    onSelect={() => setSelectedNodeId(node.id)}
+                  />
+                ))}
+              </div>
+
+              <aside className="curriculum-node-detail-panel" aria-label="선택 노드 상세">
+                {selectedNode ? (
+                  <NodeDetailPanel
+                    node={selectedNode}
+                    stat={selectedNodeStat}
+                    pendingAction={pendingAction}
+                    onArchive={() => archiveNode(selectedNode)}
+                    onSave={(formData) => saveNode(formData, selectedNode)}
+                    nodes={nodes}
+                    linkableContent={linkableContent}
+                  />
+                ) : (
+                  <p className="empty-copy">선택된 노드가 없습니다.</p>
+                )}
+              </aside>
+            </div>
+
+            <details className="admin-panel curriculum-create-node-panel">
+              <summary>새 노드 추가</summary>
+              <NodeForm
+                nodes={nodes}
+                linkableContent={linkableContent}
+                pending={pendingAction === "node-create"}
+                onSubmit={(formData) => saveNode(formData)}
+              />
+            </details>
           </>
         ) : (
           <p className="empty-copy">
@@ -318,57 +448,166 @@ export function AdminCurriculumManager({
           </p>
         )}
       </section>
+    </div>
+  );
+}
 
-      <section className="admin-panel curriculum-node-panel">
-        <h2>노드 목록</h2>
-        {selectedTree && nodes.length ? (
-          <div className="admin-record-list">
-            {nodes.map((node) => {
-              const stat = nodeStatsById.get(node.id);
-              return (
-                <article className="admin-record" key={node.id}>
-                  <div className="admin-record-summary">
-                    <span style={{ paddingLeft: `${node.depth * 18}px` }}>
-                      <strong>{node.title}</strong>
-                      <small>
-                        depth {node.depth} · order {node.sortOrder} ·{" "}
-                        {node.nodeType} · {node.status}
-                      </small>
-                      <small>{linkedContentSummary(node.metadata)}</small>
-                    </span>
-                    <span className="status-on">{node.path}</span>
-                  </div>
-                  {stat ? <NodeOperationalStats stat={stat} /> : null}
-                  <NodeForm
-                    nodes={nodes}
-                    linkableContent={linkableContent}
-                    node={node}
-                    pending={pendingAction === `node-update-${node.id}`}
-                    onSubmit={(formData) => saveNode(formData, node)}
-                  />
-                  <div className="curriculum-node-actions">
-                    <button
-                      className="button button-ghost danger-button"
-                      type="button"
-                      disabled={Boolean(pendingAction)}
-                      onClick={() => archiveNode(node)}
-                    >
-                      {pendingAction === `node-archive-${node.id}`
-                        ? "보관 중..."
-                        : "노드 보관"}
-                    </button>
-                  </div>
-                </article>
-              );
-            })}
+function CurriculumTreeRow({
+  node,
+  hasChildren,
+  expanded,
+  selected,
+  onToggle,
+  onSelect,
+}: {
+  node: CurriculumNode;
+  hasChildren: boolean;
+  expanded: boolean;
+  selected: boolean;
+  onToggle: () => void;
+  onSelect: () => void;
+}) {
+  const metadata = parseMetadata(node.metadata) as NodeMetadata;
+  const stableKey = node.officialCode ?? node.id;
+
+  return (
+    <div
+      className={`curriculum-tree-row ${selected ? "selected" : ""}`}
+      role="treeitem"
+      aria-expanded={hasChildren ? expanded : undefined}
+      aria-selected={selected}
+      style={{ "--node-depth": node.depth } as React.CSSProperties}
+    >
+      <button
+        className="curriculum-tree-toggle"
+        type="button"
+        onClick={hasChildren ? onToggle : onSelect}
+        aria-label={
+          hasChildren
+            ? `${officialNodeTitle(node)} ${expanded ? "접기" : "펼치기"}`
+            : `${officialNodeTitle(node)} 선택`
+        }
+      >
+        {hasChildren ? (expanded ? "−" : "+") : "•"}
+      </button>
+      <button
+        className="curriculum-tree-main"
+        type="button"
+        onClick={onSelect}
+      >
+        <span className="curriculum-tree-title-line">
+          <span className="curriculum-node-sequence">{officialSequence(node)}</span>
+          <strong>{officialNodeTitle(node)}</strong>
+          <span className="status-badge compact">{nodeStatusLabel(node.status)}</span>
+        </span>
+        <span className="curriculum-tree-meta-line">
+          <span>{nodeDisplayType(node, metadata)}</span>
+          <span>{sourcePageLabel(metadata)}</span>
+          <span className="curriculum-stable-key">{stableKey}</span>
+        </span>
+      </button>
+      <button
+        className="curriculum-copy-button"
+        type="button"
+        onClick={() => copyStableKey(stableKey)}
+        title="Stable Key 복사"
+        aria-label={`${stableKey} 복사`}
+      >
+        복사
+      </button>
+    </div>
+  );
+}
+
+function NodeDetailPanel({
+  node,
+  stat,
+  pendingAction,
+  onArchive,
+  onSave,
+  nodes,
+  linkableContent,
+}: {
+  node: CurriculumNode;
+  stat: CurriculumNodeOperationalStat | undefined | null;
+  pendingAction: string;
+  onArchive: () => void;
+  onSave: (formData: FormData) => void;
+  nodes: CurriculumNode[];
+  linkableContent: LinkableContent[];
+}) {
+  const metadata = parseMetadata(node.metadata) as NodeMetadata;
+  const stableKey = node.officialCode ?? node.id;
+
+  return (
+    <div className="curriculum-node-detail">
+      <div className="curriculum-node-detail-heading">
+        <span className="eyebrow">{nodeDisplayType(node, metadata)}</span>
+        <h3>{officialNodeTitle(node)}</h3>
+        <span className="status-badge compact">{nodeStatusLabel(node.status)}</span>
+      </div>
+
+      <dl className="curriculum-node-detail-list">
+        <div>
+          <dt>공식 계층 순번</dt>
+          <dd>{officialSequence(node)}</dd>
+        </div>
+        <div>
+          <dt>Stable Key</dt>
+          <dd>
+            <code>{stableKey}</code>
+            <button
+              className="text-link copy-inline"
+              type="button"
+              onClick={() => copyStableKey(stableKey)}
+            >
+              복사
+            </button>
+          </dd>
+        </div>
+        <div>
+          <dt>PDF 출처</dt>
+          <dd>{sourcePageLabel(metadata)}</dd>
+        </div>
+        <div>
+          <dt>연결 콘텐츠</dt>
+          <dd>{linkedContentSummary(node.metadata)}</dd>
+        </div>
+        <div>
+          <dt>Path</dt>
+          <dd>{node.path ?? "경로 없음"}</dd>
+        </div>
+        {metadata.notes ? (
+          <div>
+            <dt>비고</dt>
+            <dd>{metadata.notes}</dd>
           </div>
-        ) : (
-          <p className="empty-copy">
-            선택한 트리에 등록된 노드가 없습니다. 위에서 루트 노드를 먼저
-            추가해 주세요.
-          </p>
-        )}
-      </section>
+        ) : null}
+      </dl>
+
+      {stat ? <NodeOperationalStats stat={stat} /> : null}
+
+      <details className="curriculum-node-edit-panel">
+        <summary>선택 노드 수정</summary>
+        <NodeForm
+          nodes={nodes}
+          linkableContent={linkableContent}
+          node={node}
+          pending={pendingAction === `node-update-${node.id}`}
+          onSubmit={onSave}
+        />
+      </details>
+
+      <div className="curriculum-node-actions">
+        <button
+          className="button button-ghost danger-button"
+          type="button"
+          disabled={Boolean(pendingAction)}
+          onClick={onArchive}
+        >
+          {pendingAction === `node-archive-${node.id}` ? "보관 중..." : "노드 보관"}
+        </button>
+      </div>
     </div>
   );
 }
@@ -550,7 +789,7 @@ function NodeForm({
         <select name="nodeType" defaultValue={node?.nodeType ?? "MODULE"}>
           {nodeTypes.map((type) => (
             <option key={type} value={type}>
-              {type}
+              {nodeTypeLabels[type] ?? type}
             </option>
           ))}
         </select>
@@ -722,6 +961,48 @@ function summarizeSelectedTree(tree: CurriculumTree, nodes: CurriculumNode[]) {
   };
 }
 
+function buildTreeModel(nodes: CurriculumNode[]) {
+  const childrenByParent = new Map<string | null, CurriculumNode[]>();
+  for (const node of nodes) {
+    const key = node.parentId ?? null;
+    const siblings = childrenByParent.get(key) ?? [];
+    siblings.push(node);
+    childrenByParent.set(key, siblings);
+  }
+  for (const siblings of childrenByParent.values()) {
+    siblings.sort((a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title));
+  }
+  return {
+    rootNodes: childrenByParent.get(null) ?? [],
+    childrenByParent,
+  };
+}
+
+function flattenVisibleNodes(
+  rootNodes: CurriculumNode[],
+  childrenByParent: Map<string | null, CurriculumNode[]>,
+  expandedNodeIds: Set<string>,
+) {
+  const visible: VisibleNode[] = [];
+  const visit = (node: CurriculumNode) => {
+    const children = childrenByParent.get(node.id) ?? [];
+    visible.push({ node, hasChildren: children.length > 0 });
+    if (expandedNodeIds.has(node.id)) {
+      children.forEach(visit);
+    }
+  };
+  rootNodes.forEach(visit);
+  return visible;
+}
+
+function defaultExpandedNodeIds(nodes: CurriculumNode[]) {
+  return new Set(
+    nodes
+      .filter((node) => node.depth <= 1)
+      .map((node) => node.id),
+  );
+}
+
 function isOfficialTree(tree: CurriculumTree) {
   return Boolean(tree.sourceType && officialSourceTypes.has(tree.sourceType));
 }
@@ -818,4 +1099,52 @@ function linkedContentSummary(metadata: string | null) {
         `${contentTypeLabels[type as LinkableContent["type"]] ?? type} ${count}`,
     )
     .join(" · ");
+}
+
+function officialNodeTitle(node: CurriculumNode) {
+  return node.officialTitle || node.title;
+}
+
+function officialSequence(node: CurriculumNode) {
+  const stableKey = node.officialCode ?? node.id;
+  const match = stableKey.match(/(?:ISE|ISIE)-\d{4}-\d{4}-(.+)$/i);
+  if (match?.[1]) return match[1].replaceAll("-", ".");
+  const path = node.path?.split("/").filter(Boolean).at(-1);
+  return path ?? String(node.sortOrder);
+}
+
+function nodeDisplayType(node: CurriculumNode, metadata: NodeMetadata) {
+  if (node.nodeType === "TRACK") return node.title;
+  if (metadata.officialLevel && officialLevelLabels[metadata.officialLevel]) {
+    return officialLevelLabels[metadata.officialLevel];
+  }
+  return nodeTypeLabels[node.nodeType] ?? node.nodeType;
+}
+
+function sourcePageLabel(metadata: NodeMetadata) {
+  const pages =
+    metadata.sourcePages ??
+    metadata.pageNumbers ??
+    [metadata.sourcePage ?? metadata.pdfPage ?? metadata.pageNumber].filter(
+      Boolean,
+    );
+  if (Array.isArray(pages) && pages.length) {
+    return `PDF p.${pages.join(", ")}`;
+  }
+  return metadata.needsPdfVerification ? "PDF 페이지 확인 필요" : "PDF 페이지 미지정";
+}
+
+function nodeStatusLabel(status: string) {
+  if (status === "ACTIVE") return "활성";
+  if (status === "INACTIVE") return "비활성";
+  if (status === "ARCHIVED") return "보관";
+  return status;
+}
+
+async function copyStableKey(value: string) {
+  try {
+    await navigator.clipboard?.writeText(value);
+  } catch {
+    // Clipboard API가 제한된 환경에서는 조용히 무시한다.
+  }
 }
