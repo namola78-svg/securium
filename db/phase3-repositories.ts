@@ -2134,52 +2134,26 @@ async function getDashboardRecommendations(userId: string) {
   const courseById = new Map(
     enrollments.map((enrollment) => [enrollment.courseId, enrollment]),
   );
-  const [repeatedRows, unseenRows] = await Promise.all([
-    getDb()
-      .select({
-        id: wrongNotes.id,
-        courseId: wrongNotes.courseId,
-        questionId: wrongNotes.questionId,
-        wrongCount: wrongNotes.wrongCount,
-        title: questions.title,
-      })
-      .from(wrongNotes)
-      .innerJoin(questions, eq(wrongNotes.questionId, questions.id))
-      .where(
-        and(
-          eq(wrongNotes.userId, userId),
-          inArray(wrongNotes.courseId, courseIds),
-          gt(wrongNotes.wrongCount, 1),
-          sql`${wrongNotes.mastered} = 0`,
-        ),
-      )
-      .orderBy(desc(wrongNotes.wrongCount))
-      .limit(8),
-    getDb()
-      .select({
-        id: questions.id,
-        title: questions.title,
-        courseId: questionCourses.courseId,
-      })
-      .from(questionCourses)
-      .innerJoin(questions, eq(questionCourses.questionId, questions.id))
-      .leftJoin(
-        questionAttempts,
-        and(
-          eq(questionAttempts.questionId, questions.id),
-          eq(questionAttempts.userId, userId),
-          eq(questionAttempts.courseId, questionCourses.courseId),
-        ),
-      )
-      .where(
-        and(
-          inArray(questionCourses.courseId, courseIds),
-          eq(questions.status, "PUBLISHED"),
-          sql`${questionAttempts.id} IS NULL`,
-        ),
-      )
-      .limit(12),
-  ]);
+  const repeatedRows = await getDb()
+    .select({
+      id: wrongNotes.id,
+      courseId: wrongNotes.courseId,
+      questionId: wrongNotes.questionId,
+      wrongCount: wrongNotes.wrongCount,
+      title: questions.title,
+    })
+    .from(wrongNotes)
+    .innerJoin(questions, eq(wrongNotes.questionId, questions.id))
+    .where(
+      and(
+        eq(wrongNotes.userId, userId),
+        inArray(wrongNotes.courseId, courseIds),
+        gt(wrongNotes.wrongCount, 1),
+        sql`${wrongNotes.mastered} = 0`,
+      ),
+    )
+    .orderBy(desc(wrongNotes.wrongCount))
+    .limit(8);
   candidates.push(
     ...repeatedRows.map((item) => {
       const course = courseById.get(item.courseId);
@@ -2226,22 +2200,6 @@ async function getDashboardRecommendations(userId: string) {
       priority: "STALE_SUBJECT",
       estimatedMinutes: 10,
       href: `/practice/${course.courseSlug}?subjectId=${subject.subjectId}&count=10`,
-    });
-  }
-  const unseenCourseIds = new Set<string>();
-  for (const question of unseenRows) {
-    if (unseenCourseIds.has(question.courseId)) continue;
-    const course = courseById.get(question.courseId);
-    if (!course) continue;
-    unseenCourseIds.add(question.courseId);
-    candidates.push({
-      id: question.id,
-      kind: "QUESTION",
-      title: question.title,
-      reason: "아직 풀지 않은 공개 문제",
-      priority: "UNSEEN_QUESTION",
-      estimatedMinutes: 2,
-      href: `/practice/${course.courseSlug}?count=10`,
     });
   }
   return recommendationService.recommend(candidates, 8);

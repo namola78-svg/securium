@@ -2,12 +2,15 @@ import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
 import { getDb } from ".";
 import {
+  contents,
+  courseLessons,
   courses,
   learningActivities,
   learningUnits,
   lessons,
   subjects,
   topics,
+  userCourseLessonProgress,
   userCourseEnrollments,
   userLessonProgress,
   userProgress,
@@ -708,34 +711,33 @@ export async function listCourseTheoryProgress(
   if (!courseIds.length) return [];
   const rows = await getDb()
     .select({
-      courseId: lessons.courseId,
-      totalLessons: sql<number>`count(${lessons.id})`,
-      completedLessons: sql<number>`coalesce(sum(case when ${userLessonProgress.status} = 'COMPLETED' then 1 else 0 end), 0)`,
+      courseId: courseLessons.courseId,
+      totalLessons: sql<number>`count(${courseLessons.id})`,
+      completedLessons: sql<number>`coalesce(sum(case when ${userCourseLessonProgress.status} = 'COMPLETED' then 1 else 0 end), 0)`,
     })
-    .from(lessons)
+    .from(courseLessons)
     .innerJoin(
-      learningUnits,
-      eq(lessons.learningUnitId, learningUnits.id),
+      contents,
+      eq(courseLessons.contentId, contents.id),
     )
     .leftJoin(
-      userLessonProgress,
+      userCourseLessonProgress,
       and(
-        eq(userLessonProgress.lessonId, lessons.id),
-        eq(userLessonProgress.userId, userId),
+        eq(userCourseLessonProgress.userId, userId),
+        eq(userCourseLessonProgress.courseId, courseLessons.courseId),
+        eq(userCourseLessonProgress.courseLessonId, courseLessons.id),
       ),
     )
     .where(
       and(
-        inArray(lessons.courseId, courseIds),
-        eq(lessons.active, true),
-        eq(lessons.published, true),
-        isNull(lessons.deletedAt),
-        eq(learningUnits.active, true),
-        eq(learningUnits.published, true),
-        isNull(learningUnits.deletedAt),
+        inArray(courseLessons.courseId, courseIds),
+        eq(courseLessons.status, "PUBLISHED"),
+        isNull(courseLessons.deletedAt),
+        eq(contents.status, "PUBLISHED"),
+        isNull(contents.deletedAt),
       ),
     )
-    .groupBy(lessons.courseId);
+    .groupBy(courseLessons.courseId);
   return rows.map((row) => {
     const totalLessons = Number(row.totalLessons);
     const completedLessons = Number(row.completedLessons);
