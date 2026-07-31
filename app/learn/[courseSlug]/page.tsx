@@ -10,9 +10,7 @@ import {
   listCurriculumWithSubjectTheoryProgress,
 } from "@/db/repositories";
 import {
-  countDueReviewsForCourse,
-  countPublicMockExamsForCourse,
-  getCourseLearningSummary,
+  getLearnCourseActivitySummary,
   listCourseLevelsForOverview,
 } from "@/db/phase3-repositories";
 import { listCourseSpecializations } from "@/db/specialized-repositories";
@@ -34,24 +32,14 @@ export default async function LearnCoursePage({
   const enrollment = await getEnrollmentForCourse(user.id, course.id);
   if (!enrollment) redirect(`/courses/${course.slug}`);
 
-  const [
-    curriculum,
-    levelRows,
-    dueReviewCount,
-    mockExamCount,
-    stats,
-    specializations,
-    sharedLessonSummary,
-  ] =
+  const [curriculum, levelRows, specializations, sharedLessonSummary] =
     await Promise.all([
       listCurriculumWithSubjectTheoryProgress(user.id, course.id),
       listCourseLevelsForOverview(user.id, course.id),
-      countDueReviewsForCourse(user.id, course.id),
-      countPublicMockExamsForCourse(user.id, course.id),
-      getCourseLearningSummary(user.id, course.id),
       listCourseSpecializations(course.id),
       getPublishedCourseLessonProgressSummary(user.id, course.id),
     ]);
+  const activitySummaryPromise = getLearnCourseActivitySummary(user.id, course.id);
   const legacyTheoryProgress = sharedLessonSummary.totalLessons
     ? null
     : await getCourseTheoryProgress(user.id, course.id);
@@ -110,21 +98,20 @@ export default async function LearnCoursePage({
                 </Link>
               </div>
             </div>
-            <div className="learn-progress-panel">
-              <ProgressBar value={levelCompletion} label="단계 완료율" />
-              <dl className="metric-list">
-                <div><dt>전체 정답률</dt><dd>{stats.overallAccuracy}%</dd></div>
-                <div><dt>복습 예정</dt><dd>{dueReviewCount}개</dd></div>
-                <div><dt>모의고사</dt><dd>{mockExamCount}개</dd></div>
-                <div>
-                  <dt>이론 진도</dt>
-                  <dd>
-                    {displayedTheoryProgress.completedLessons}/
-                    {displayedTheoryProgress.totalLessons}
-                  </dd>
-                </div>
-              </dl>
-            </div>
+            <Suspense
+              fallback={
+                <LearnProgressPanelFallback
+                  displayedTheoryProgress={displayedTheoryProgress}
+                  levelCompletion={levelCompletion}
+                />
+              }
+            >
+              <LearnProgressPanel
+                activitySummaryPromise={activitySummaryPromise}
+                displayedTheoryProgress={displayedTheoryProgress}
+                levelCompletion={levelCompletion}
+              />
+            </Suspense>
           </div>
         </div>
       </section>
@@ -313,44 +300,160 @@ export default async function LearnCoursePage({
                   </Link>
                 </div>
               ) : null}
-              <div className="side-card">
-                <span className="eyebrow">REVIEW</span>
-                <h3>오늘의 복습</h3>
-                <p>{dueReviewCount}개 문제가 예정되어 있습니다.</p>
-                <Link
-                  className="button button-dark full-width"
-                  href={`/practice/${course.slug}?reviewOnly=1&count=50`}
-                >
-                  복습 시작
-                </Link>
-              </div>
-              <div className="side-card">
-                <span className="eyebrow">모의고사</span>
-                <h3>실력 점검</h3>
-                <p>{mockExamCount}개 시험에 응시할 수 있습니다.</p>
-                <Link className="button button-ghost full-width" href="/mock-exams">
-                  모의고사 보기
-                </Link>
-              </div>
-              <div className="side-card">
-                <span className="eyebrow">ANALYTICS</span>
-                <h3>과정 분석</h3>
-                <p>
-                  최근 7일 {stats.recent7Days}문제 · 반복 오답{" "}
-                  {stats.repeatedWrongCount}개
-                </p>
-                <Link
-                  className="button button-ghost full-width"
-                  href={`/analytics/${course.id}`}
-                >
-                  상세 분석
-                </Link>
-              </div>
+              <Suspense fallback={<LearnActivitySideCardsFallback />}>
+                <LearnActivitySideCards
+                  activitySummaryPromise={activitySummaryPromise}
+                  courseId={course.id}
+                  courseSlug={course.slug}
+                />
+              </Suspense>
             </aside>
           </div>
         </div>
       </section>
     </main>
+  );
+}
+
+type LearnCourseActivitySummary = Awaited<
+  ReturnType<typeof getLearnCourseActivitySummary>
+>;
+type DisplayedTheoryProgress = {
+  completedLessons: number;
+  totalLessons: number;
+  progressPercent: number;
+};
+
+async function LearnProgressPanel({
+  activitySummaryPromise,
+  displayedTheoryProgress,
+  levelCompletion,
+}: {
+  activitySummaryPromise: Promise<LearnCourseActivitySummary>;
+  displayedTheoryProgress: DisplayedTheoryProgress;
+  levelCompletion: number;
+}) {
+  const { dueReviewCount, mockExamCount, stats } =
+    await activitySummaryPromise;
+
+  return (
+    <div className="learn-progress-panel">
+      <ProgressBar value={levelCompletion} label="단계 완료율" />
+      <dl className="metric-list">
+        <div><dt>전체 정답률</dt><dd>{stats.overallAccuracy}%</dd></div>
+        <div><dt>복습 예정</dt><dd>{dueReviewCount}개</dd></div>
+        <div><dt>모의고사</dt><dd>{mockExamCount}개</dd></div>
+        <div>
+          <dt>이론 진도</dt>
+          <dd>
+            {displayedTheoryProgress.completedLessons}/
+            {displayedTheoryProgress.totalLessons}
+          </dd>
+        </div>
+      </dl>
+    </div>
+  );
+}
+
+function LearnProgressPanelFallback({
+  displayedTheoryProgress,
+  levelCompletion,
+}: {
+  displayedTheoryProgress: DisplayedTheoryProgress;
+  levelCompletion: number;
+}) {
+  return (
+    <div className="learn-progress-panel" aria-live="polite">
+      <ProgressBar value={levelCompletion} label="단계 완료율" />
+      <dl className="metric-list">
+        <div><dt>전체 정답률</dt><dd>--</dd></div>
+        <div><dt>복습 예정</dt><dd>--</dd></div>
+        <div><dt>모의고사</dt><dd>--</dd></div>
+        <div>
+          <dt>이론 진도</dt>
+          <dd>
+            {displayedTheoryProgress.completedLessons}/
+            {displayedTheoryProgress.totalLessons}
+          </dd>
+        </div>
+      </dl>
+    </div>
+  );
+}
+
+async function LearnActivitySideCards({
+  activitySummaryPromise,
+  courseId,
+  courseSlug,
+}: {
+  activitySummaryPromise: Promise<LearnCourseActivitySummary>;
+  courseId: string;
+  courseSlug: string;
+}) {
+  const { dueReviewCount, mockExamCount, stats } =
+    await activitySummaryPromise;
+
+  return (
+    <>
+      <div className="side-card">
+        <span className="eyebrow">REVIEW</span>
+        <h3>오늘의 복습</h3>
+        <p>{dueReviewCount}개 문제가 예정되어 있습니다.</p>
+        <Link
+          className="button button-dark full-width"
+          href={`/practice/${courseSlug}?reviewOnly=1&count=50`}
+        >
+          복습 시작
+        </Link>
+      </div>
+      <div className="side-card">
+        <span className="eyebrow">모의고사</span>
+        <h3>실력 점검</h3>
+        <p>{mockExamCount}개 시험에 응시할 수 있습니다.</p>
+        <Link className="button button-ghost full-width" href="/mock-exams">
+          모의고사 보기
+        </Link>
+      </div>
+      <div className="side-card">
+        <span className="eyebrow">ANALYTICS</span>
+        <h3>과정 분석</h3>
+        <p>
+          최근 7일 {stats.recent7Days}문제 · 반복 오답{" "}
+          {stats.repeatedWrongCount}개
+        </p>
+        <Link
+          className="button button-ghost full-width"
+          href={`/analytics/${courseId}`}
+        >
+          상세 분석
+        </Link>
+      </div>
+    </>
+  );
+}
+
+function LearnActivitySideCardsFallback() {
+  return (
+    <>
+      <div className="side-card" aria-live="polite">
+        <span className="eyebrow">REVIEW</span>
+        <h3>오늘의 복습</h3>
+        <p>복습 정보를 불러오고 있습니다.</p>
+        <div className="card-skeleton" aria-hidden="true" />
+      </div>
+      <div className="side-card" aria-live="polite">
+        <span className="eyebrow">모의고사</span>
+        <h3>실력 점검</h3>
+        <p>모의고사 정보를 불러오고 있습니다.</p>
+        <div className="card-skeleton" aria-hidden="true" />
+      </div>
+      <div className="side-card" aria-live="polite">
+        <span className="eyebrow">ANALYTICS</span>
+        <h3>과정 분석</h3>
+        <p>분석 정보를 불러오고 있습니다.</p>
+        <div className="card-skeleton" aria-hidden="true" />
+      </div>
+    </>
   );
 }
 

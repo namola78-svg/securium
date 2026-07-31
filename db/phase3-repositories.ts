@@ -1443,6 +1443,23 @@ export async function getCourseLearningSummary(
   };
 }
 
+export async function getLearnCourseActivitySummary(
+  userId: string,
+  courseId: string,
+) {
+  const [dueReviewCount, mockExamCount, stats] = await Promise.all([
+    countDueReviewsForCourse(userId, courseId),
+    countPublicMockExamsForCourse(userId, courseId),
+    getCourseLearningSummary(userId, courseId),
+  ]);
+
+  return {
+    dueReviewCount,
+    mockExamCount,
+    stats,
+  };
+}
+
 export async function getIntegratedStatistics(userId: string) {
   const [enrollments, activityDays] = await Promise.all([
     getDb()
