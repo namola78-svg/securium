@@ -163,9 +163,15 @@ test("개발 사용자의 여러 수강 과정과 분리된 진도를 표시한�
   });
   const html = await response.text();
   assert.equal(response.status, 200, html.slice(0, 1200));
+  assert.match(html, /\/learn\/isms-p/);
+  assert.match(html, /\/learn\/cppg/);
+  assert.match(html, /\/practice\/isms-p/);
+  assert.match(html, /\/practice\/cppg/);
+  assert.match(html, /과정 진도/);
+  assert.match(html, /동시 수강 가능/);
   assert.match(html, /ISMS-P/);
   assert.match(html, /CPPG 개인정보관리사/);
-  assert.match(html, /과정별 학습 기록은 서로 섞이지 않고/);
+  assert.match(html, /전체 등록/);
 });
 
 test("관리자가 학습단위와 레슨을 생성·수정하고 학습자는 공개 범위에서 완료한다", async () => {
