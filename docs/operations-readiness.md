@@ -1,65 +1,118 @@
-# 통합 운영 준비 검수
+# 통합 운영 준비 점검
 
-## 판정 기준
+마지막 갱신일: 2026-07-31
 
-이 문서는 코드에 존재하는 기능, Mock/샘플 기능, 외부 연결이 필요한 기능을 구분한다. 실제 Production DB, Storage, OpenAI, GitHub, Vercel 또는 Sites 배포 변경은 이 검수에서 수행하지 않았다.
+이 문서는 SECURIUM 운영 전 점검 상태를 정리한다. 코드로 준비된 기능, 운영 환경에서 확인된 기능, 외부 서비스 또는 네트워크 제약으로 아직 확인이 필요한 항목을 분리한다.
 
-## 코드 구현 범위
+## 점검 원칙
 
-- App Router와 `app/api`, `db` Repository 기반의 과정·수강·학습 플랫폼
-- SIWC 사용자 식별, 서버 RBAC, 소유권 및 과정별 격리
-- LearningUnit/Lesson과 사용자 진도
-- 문제은행, 채점, 오답노트, 복습, 모의고사, 통계
-- 오디오, 강의, 콘텐츠 revision, AI Provider/Retrieval, 관리자 AI 검수
-- ISMS-P, CPPG, 정보보안기사·산업기사, ISRM, SW 보안약점, 개인정보 영향평가 특화 데이터와 화면
-- 중앙 감사로그, 운영 보안 헤더·CSRF·rate limit·업로드 검증
-- Supabase 준비용 provider와 정책 예시, GitHub CI 및 Vercel 문서
+- Secret, 토큰, 비밀번호, 연결 문자열 원문은 문서와 로그에 기록하지 않는다.
+- Production DB migration, seed, RLS, Storage 변경은 명시적 승인 후 수행한다.
+- Mock/샘플 콘텐츠는 실제 운영 연동 완료로 표시하지 않는다.
+- `.openai/hosting.json`은 기존 Sites/D1 호스팅 설정이므로 삭제하거나 Vercel 설정으로 대체하지 않는다.
+- Vercel 배포와 Supabase 운영 연결은 코드 작성 완료와 실제 운영 반영 여부를 구분한다.
 
-## Mock 및 외부 연결 구분
+## 구현 및 운영 확인 상태
 
-- Seed의 과정·문제·강의·오디오·특화 콘텐츠는 개발용 샘플이다.
-- `AI_PROVIDER=mock`은 Mock AI이며 실제 OpenAI 연동 완료가 아니다.
-- 브라우저 Speech Synthesis는 실제 강사 음성이 아니다.
-- `STORAGE_PROVIDER=local`은 개발용이다. Production Storage 연결 완료가 아니다.
-- Supabase SQL과 Storage provider는 준비 상태이며 실제 프로젝트·버킷·RLS 적용을 검증하지 않았다.
-- GitHub Actions 파일은 준비되어 있으나 저장소 push와 원격 실행을 수행하지 않았다.
-- Vercel 호환 문서는 준비되어 있으나 프로젝트 연결과 배포를 수행하지 않았다.
-- `.openai/hosting.json`은 기존 Sites 프로젝트와 D1 binding 식별자다. 삭제하거나 Vercel 설정으로 대체하지 않는다.
+| 영역 | 상태 | 비고 |
+|---|---|---|
+| App Router 기반 화면 | 완료 | `app`/`app/api` 구조 유지 |
+| DB Repository 패턴 | 완료 | API Route에 직접 DB 접근을 늘리지 않는 방향 유지 |
+| 브랜드 SECURIUM 통일 | 완료 | 공개 화면과 metadata 기준 반영 |
+| 공개 랜딩/대시보드 분리 | 완료 | 로그인 사용자의 `/` 접근은 `/dashboard`로 이동 |
+| Vercel 최신 Production 배포 | 확인 완료 | 2026-07-31 기준 커밋 `858f5d7` Production Ready 및 `securium.vercel.app` 연결 확인 |
+| Supabase Auth | 부분 운영 확인 | Google OAuth 및 쿠키 기반 세션 흐름 확인 이력 있음. 브라우저별 최종 수동 회귀는 계속 필요 |
+| PostgreSQL Runtime Provider | 코드 준비 완료 | `postgres@3.4.7`, `db:postgres:*` 스크립트 존재 |
+| Production PostgreSQL migration | 적용 이력 있음 | 상태 확인 성공 이력 있음. 현재 Codex 터미널에서는 원격 검증 제한 발생 |
+| 정보보안기사/산업기사 커리큘럼 | 적용·활성화 진행 이력 있음 | 운영 DB 최종 읽기 검증은 Supabase SQL Editor 또는 네트워크 허용 환경에서 필요 |
+| Storage Provider | 코드 준비 중심 | 실제 bucket/정책/권한 검증 필요 |
+| RLS | 정책 준비 중심 | 실제 Production 적용 여부 별도 확인 필요 |
+| AI Provider/Retrieval | 코드 준비 | 외부 OpenAI 연동과 Mock 구분 필요 |
+| 감사로그 | 코드 구현 | 운영 중요 작업별 실제 로그 생성 회귀 필요 |
 
-## 운영 전 차단 조건
-
-- Production 대상 DB/Storage 백업과 복구 시험
-- 운영 SIWC와 최초 최고 관리자 부트스트랩 검증
-- Production 환경변수와 secret 검증
-- 분산 환경용 외부 rate limit provider 연결
-- 실제 Storage signed URL, 정책과 객체 접근 검증
-- Mock/샘플 콘텐츠의 운영 노출 여부 결정
-- 운영 E2E, 접근성, 브라우저/모바일 수동 검수
-- 의존성 취약점 조회가 가능한 CI 환경에서 audit 통과
-- 외부 Supabase/OpenAI/GitHub/Vercel/Sites 연결은 각각 별도 승인
-
-## 2026-07-27 검증 결과
+## 최근 검증 결과
 
 | 항목 | 결과 |
 |---|---|
-| Drizzle schema validation | 통과 (`npm run db:check`) |
-| Schema format | 전용 script 없음. 성공으로 간주하지 않음 |
-| ORM generation | Drizzle migration generation 실행, 68 tables, 변경 없음 |
-| Local migration 상태 | 적용 대기 migration 없음 |
-| TypeScript | 통과 |
-| Lint | 통과 |
-| Unit | 91/91 통과 |
-| Integration | 14/14 통과 |
-| E2E | 63/63 통과 |
-| Production Build | 통과 |
-| 문서 내부 링크 | 12개 확인, 누락 0 |
-| 미사용 TypeScript symbol | 강제 검사 통과 |
-| 완전 동일 소스 파일 | 186개 대상, 중복 0 |
-| 설치 의존성 | `npm ls --depth=0` 정상 |
-| Dependency Audit | npm advisory endpoint 연결 실패로 미완료 |
+| Git 상태 | `main...origin/main`, working tree clean |
+| 최신 로컬 커밋 | `858f5d7 Separate public landing and learner dashboard UX` |
+| Vercel 최신 배포 | Ready / Production / `securium.vercel.app` 연결 확인 |
+| 최신 배포 고유 URL 공개 랜딩 | 새 문구 반영 확인 |
+| 운영 도메인 로그인 세션 `/` 접근 | `/dashboard` 이동 확인 |
+| 원격 Postgres 커리큘럼 seed 검증 | 현재 Codex 터미널에서 `ENOTFOUND`로 실패 |
+| 원격 Postgres 커리큘럼 coverage 검증 | 현재 Codex 터미널에서 `EACCES`로 실패 |
 
-E2E에는 비로그인 보호, CSRF 동일 출처 검사, 사용자·과정별 데이터 격리, 레슨·문제·오답·모의고사, 오디오·강의, AI, 콘텐츠 버전과 감사로그 흐름이 포함된다. Production SIWC, 원격 D1, 실제 Storage, 실제 OpenAI 및 실제 배포 도메인에 대한 수동 검증은 수행하지 않았다.
+원격 PostgreSQL 검증 실패는 현재 실행 환경의 DNS/네트워크/소켓 접근 제한 가능성이 있으며, 운영 DB에 데이터가 없다는 의미로 해석하지 않는다.
 
-## 현재 결론
+## 운영 전 남은 확인사항
 
-**CONDITIONAL GO**. 코드 검증은 통과했으나 Production 전에는 의존성 audit 재실행, 백업/복구 시험, 운영 SIWC·최초 관리자 검증, 실제 외부 서비스 연결과 운영 도메인 보안 확인이 필요하다.
+1. Supabase Auth 수동 회귀
+   - 비로그인 보호 경로 접근 시 `/login?return_to=...`
+   - 로그인 성공 후 `return_to` 복귀
+   - 로그인 상태에서 `/login` 접근 시 `/dashboard`
+   - 로그아웃 후 보호 콘텐츠 미노출
+   - Google OAuth 취소/오류 처리
+
+2. 운영 PostgreSQL 검증
+   - migration status
+   - 정보보안기사/산업기사 커리큘럼 tree `ACTIVE`
+   - `curriculum_nodes` 노드 수
+   - `course_lessons` 연결 수
+   - `question_courses` 연결 수
+
+3. Supabase Storage
+   - bucket 생성 여부
+   - 공개/비공개 분리
+   - signed URL 권한
+   - MIME/크기 제한
+
+4. RLS/권한
+   - 서버 ORM 전용 접근 범위
+   - 클라이언트 직접 접근이 있는 경우 RLS 정책
+   - service role key 클라이언트 노출 없음
+
+5. 보안 및 의존성
+   - 네트워크 가능한 환경에서 `npm audit`
+   - Production 보안 헤더
+   - rate limit 운영 Provider
+   - 에러 응답 stack trace 미노출
+
+6. 백업/복구
+   - DB 백업
+   - Storage 백업
+   - migration 전 백업
+   - 복구 후 학습 기록/권한/감사로그 정합성 확인
+
+## 권장 검증 명령
+
+로컬 코드 검증:
+
+```bash
+npm run typecheck
+npm run lint
+npm run test:unit
+npm run build
+```
+
+PostgreSQL 상태 검증:
+
+```bash
+npm run db:postgres:validate
+npm run db:postgres:status
+npm run db:postgres:runtime-status
+```
+
+정보보안기사/산업기사 커리큘럼 검증:
+
+```bash
+node --env-file=.env.local scripts/verify-security-certification-curriculum-seed.mjs postgres --expect-active
+node --env-file=.env.local scripts/verify-security-certification-curriculum-coverage.mjs postgres
+```
+
+현재 Codex 터미널에서 위 원격 PostgreSQL 검증은 네트워크 제한으로 실패할 수 있다. 이 경우 Supabase Dashboard SQL Editor에서 `docs/supabase.md`의 읽기 전용 SQL을 실행한다.
+
+## 운영 판정
+
+**CONDITIONAL GO**
+
+코드와 Vercel 최신 배포는 진행 가능 상태다. 다만 Production 운영 전에는 Supabase PostgreSQL 커리큘럼 데이터, Storage/RLS, Dependency Audit, 인증/로그아웃 브라우저 회귀 검증을 완료해야 한다.
