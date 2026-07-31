@@ -1,5 +1,5 @@
 import { listCourseTheoryProgress } from "@/db/lesson-repositories";
-import { getTodayLearningPlan } from "@/db/phase3-repositories";
+import { getTodayLearningPlanDiagnostics } from "@/db/phase3-repositories";
 import { listUserEnrollments } from "@/db/repositories";
 
 type TimingResult<T> = {
@@ -21,7 +21,7 @@ export async function getDashboardPerformanceSnapshot(userId: string) {
       ?.filter((enrollment) => enrollment.status === "ACTIVE")
       .map((enrollment) => enrollment.courseId) ?? [];
   const [todayPlan, theoryProgress] = await Promise.all([
-    timeStep(() => getTodayLearningPlan(userId)),
+    timeStep(() => getTodayLearningPlanDiagnostics(userId)),
     timeStep(() => listCourseTheoryProgress(userId, activeCourseIds)),
   ]);
 
@@ -34,13 +34,16 @@ export async function getDashboardPerformanceSnapshot(userId: string) {
     counts: {
       enrollments: enrollments.value?.length ?? null,
       activeCourses: activeCourseIds.length,
-      todayRecommendations: todayPlan.value?.recommendations.length ?? null,
+      todayRecommendations: todayPlan.value?.plan.recommendations.length ?? null,
       theoryProgressRows: theoryProgress.value?.length ?? null,
     },
     timings: {
       listUserEnrollments: toPublicTiming(enrollments),
       getTodayLearningPlan: toPublicTiming(todayPlan),
       listCourseTheoryProgress: toPublicTiming(theoryProgress),
+    },
+    details: {
+      getTodayLearningPlan: todayPlan.value?.timings ?? null,
     },
   };
 }

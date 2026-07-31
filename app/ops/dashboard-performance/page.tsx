@@ -79,6 +79,39 @@ export default async function DashboardPerformancePage() {
           </div>
         </section>
 
+        {snapshot.details.getTodayLearningPlan ? (
+          <section className="section-block admin-panel">
+            <div className="section-heading compact">
+              <div>
+                <p className="eyebrow">TODAY PLAN BREAKDOWN</p>
+                <h2>오늘 학습 계획 내부 측정값</h2>
+              </div>
+            </div>
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">구간</th>
+                    <th scope="col">상태</th>
+                    <th scope="col">소요시간</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(snapshot.details.getTodayLearningPlan).map(
+                    ([name, timing]) => (
+                      <tr key={name}>
+                        <td>{name}</td>
+                        <td>{timing.ok ? "정상" : "실패"}</td>
+                        <td>{timing.durationMs}ms</td>
+                      </tr>
+                    ),
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        ) : null}
+
         <section className="section-block admin-panel">
           <div className="section-heading compact">
             <div>

@@ -2061,6 +2061,99 @@ export async function getTodayLearningPlan(userId: string) {
   };
 }
 
+type DashboardTimingResult<T> = {
+  durationMs: number;
+  ok: boolean;
+  value: T | null;
+};
+
+export async function getTodayLearningPlanDiagnostics(userId: string) {
+  const [settingsStep, recommendationsStep, reviewSummaryStep] =
+    await Promise.all([
+      timeDashboardPlanStep(() => getLearningSettings(userId)),
+      timeDashboardPlanStep(() => getDashboardRecommendations(userId)),
+      timeDashboardPlanStep(() => getDashboardReviewSummary(userId)),
+    ]);
+  if (
+    !settingsStep.ok ||
+    !settingsStep.value ||
+    !recommendationsStep.ok ||
+    !recommendationsStep.value ||
+    !reviewSummaryStep.ok ||
+    !reviewSummaryStep.value
+  ) {
+    throw new Error("DASHBOARD_TODAY_PLAN_DIAGNOSTICS_FAILED");
+  }
+
+  const todayRange = utcDayRange();
+  const activityStep = await timeDashboardPlanStep(async () => {
+    const [activity] = await getDb()
+      .select({
+        completed: sql<number>`count(*)`,
+      })
+      .from(questionAttempts)
+      .where(
+        and(
+          eq(questionAttempts.userId, userId),
+          gte(questionAttempts.attemptedAt, todayRange.start),
+          lt(questionAttempts.attemptedAt, todayRange.end),
+        ),
+      );
+    return activity;
+  });
+  if (!activityStep.ok) {
+    throw new Error("DASHBOARD_TODAY_ACTIVITY_DIAGNOSTICS_FAILED");
+  }
+
+  const completedQuestions = Number(activityStep.value?.completed ?? 0);
+  return {
+    plan: {
+      settings: settingsStep.value,
+      completedQuestions,
+      reviewSummary: reviewSummaryStep.value,
+      recommendations: recommendationsStep.value,
+      completionPercent: safeRate(
+        completedQuestions,
+        settingsStep.value.dailyQuestionGoal,
+      ),
+    },
+    timings: {
+      getLearningSettings: toDashboardPlanPublicTiming(settingsStep),
+      getDashboardRecommendations:
+        toDashboardPlanPublicTiming(recommendationsStep),
+      getDashboardReviewSummary: toDashboardPlanPublicTiming(reviewSummaryStep),
+      countTodayQuestionAttempts: toDashboardPlanPublicTiming(activityStep),
+    },
+  };
+}
+
+async function timeDashboardPlanStep<T>(
+  loader: () => Promise<T>,
+): Promise<DashboardTimingResult<T>> {
+  const startedAt = Date.now();
+  try {
+    const value = await loader();
+    return {
+      durationMs: Date.now() - startedAt,
+      ok: true,
+      value,
+    };
+  } catch {
+    return {
+      durationMs: Date.now() - startedAt,
+      ok: false,
+      value: null,
+    };
+  }
+}
+
+function toDashboardPlanPublicTiming<T>(result: DashboardTimingResult<T>) {
+  return {
+    durationMs: result.durationMs,
+    ok: result.ok,
+  };
+}
+
 async function getDashboardRecommendations(userId: string) {
   const now = new Date().toISOString();
   const [reviews, enrollments] = await Promise.all([
