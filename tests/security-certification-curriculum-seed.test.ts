@@ -82,3 +82,23 @@ test("security certification curriculum verification script checks D1 and Postgr
   assert.match(script, /nodeCount: 79/);
   assert.match(script, /nodeCount: 64/);
 });
+
+test("security certification curriculum coverage script is read-only and reports content links", () => {
+  const script = readFileSync(
+    "scripts/verify-security-certification-curriculum-coverage.mjs",
+    "utf8",
+  );
+
+  assert.match(script, /SECURITY_CERTIFICATION_CURRICULUM_COVERAGE_POSTGRES_OK/);
+  assert.match(script, /published_course_lesson_count/);
+  assert.match(script, /metadata_linked_node_count/);
+  assert.match(script, /published_question_count/);
+  assert.match(
+    script,
+    /POSTGRES_VERIFY_URL[\s\S]*DATABASE_URL[\s\S]*POSTGRES_SEED_URL/,
+  );
+  assert.doesNotMatch(script, /\bINSERT\b/i);
+  assert.doesNotMatch(script, /\bUPDATE\b/i);
+  assert.doesNotMatch(script, /\bDELETE\b/i);
+  assert.doesNotMatch(script, /\bDROP\b/i);
+});

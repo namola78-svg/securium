@@ -37,6 +37,8 @@
     "curriculum:security-certification:seed:postgres": "node scripts/apply-security-certification-curriculum-seed.mjs postgres",
     "curriculum:security-certification:verify:d1-local": "node scripts/verify-security-certification-curriculum-seed.mjs d1-local",
     "curriculum:security-certification:verify:postgres": "node scripts/verify-security-certification-curriculum-seed.mjs postgres",
+    "curriculum:security-certification:coverage:d1-local": "node scripts/verify-security-certification-curriculum-coverage.mjs d1-local",
+    "curriculum:security-certification:coverage:postgres": "node scripts/verify-security-certification-curriculum-coverage.mjs postgres",
     "curriculum:security-certification:activate:postgres": "node scripts/activate-security-certification-curriculum.mjs",
     "db:postgres:security:generate": "node scripts/generate-postgres-rls.mjs",
     "db:postgres:security:validate": "node scripts/generate-postgres-rls.mjs --check",
