@@ -10,8 +10,10 @@ import {
   learningUnits,
   lessons,
   questionAttempts,
+  questionCourses,
   questionSubjects,
   questionTopics,
+  questions,
   reviewSchedules,
   subjects,
   topics,
@@ -1139,6 +1141,71 @@ export async function listCurriculumNodeOperationalStats(treeId: string) {
       ),
     };
   });
+}
+
+export async function getCurriculumTreeCoverage(treeId: string) {
+  const tree = await getCurriculumTreeById(treeId);
+  if (!tree) return null;
+
+  const nodes = await listCurriculumNodes(treeId);
+  const linkedNodeCount = nodes.filter(
+    (node) => parseLinkedContent(node.metadata).length > 0,
+  ).length;
+
+  const [courseLessonRows, publishedQuestionRows] = await Promise.all([
+    getDb()
+      .select({
+        id: courseLessons.id,
+        curriculumNodeId: courseLessons.curriculumNodeId,
+      })
+      .from(courseLessons)
+      .innerJoin(contents, eq(courseLessons.contentId, contents.id))
+      .where(
+        and(
+          eq(courseLessons.courseId, tree.courseId),
+          eq(courseLessons.status, "PUBLISHED"),
+          isNull(courseLessons.deletedAt),
+          eq(contents.status, "PUBLISHED"),
+          isNull(contents.deletedAt),
+        ),
+      ),
+    getDb()
+      .select({
+        questionId: questionCourses.questionId,
+      })
+      .from(questionCourses)
+      .innerJoin(questions, eq(questionCourses.questionId, questions.id))
+      .where(
+        and(
+          eq(questionCourses.courseId, tree.courseId),
+          eq(questions.status, "PUBLISHED"),
+        ),
+      ),
+  ]);
+
+  const courseLessonNodeIds = new Set(
+    courseLessonRows
+      .map((lesson) => lesson.curriculumNodeId)
+      .filter((id): id is string => Boolean(id)),
+  );
+
+  return {
+    treeId,
+    courseId: tree.courseId,
+    status: tree.status,
+    nodeCount: nodes.length,
+    linkedNodeCount,
+    linkedNodePercent: safeRate(linkedNodeCount, nodes.length),
+    publishedCourseLessonCount: courseLessonRows.length,
+    courseLessonNodeCount: courseLessonNodeIds.size,
+    courseLessonNodePercent: safeRate(courseLessonNodeIds.size, nodes.length),
+    unlinkedCourseLessonCount: courseLessonRows.filter(
+      (lesson) => !lesson.curriculumNodeId,
+    ).length,
+    publishedQuestionCount: new Set(
+      publishedQuestionRows.map((row) => row.questionId),
+    ).size,
+  };
 }
 
 export async function getCurriculumNodeTree(treeId: string) {

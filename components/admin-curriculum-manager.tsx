@@ -145,7 +145,7 @@ export function AdminCurriculumManager({
       if (!response.ok) {
         setMessage(
           payload.error ??
-            "요청을 처리하지 못했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.",
+            "요청을 처리하지 못했습니다. 입력값을 확인하고 다시 시도해 주세요.",
         );
         return;
       }
@@ -223,7 +223,7 @@ export function AdminCurriculumManager({
         <h2>커리큘럼 트리</h2>
         <p className="admin-helper">
           과정별 공식·실무 커리큘럼 버전과 계층 노드를 관리합니다. DRAFT
-          트리는 학습자에게 공개되지 않으며, 검토가 끝난 트리만 ACTIVE로
+          트리는 학습자에게 공개되지 않으며, 검증이 끝난 트리만 ACTIVE로
           전환합니다.
         </p>
         <div className="admin-record-list">
@@ -354,7 +354,7 @@ export function AdminCurriculumManager({
                       onClick={() => archiveNode(node)}
                     >
                       {pendingAction === `node-archive-${node.id}`
-                        ? "보관 중…"
+                        ? "보관 중..."
                         : "노드 보관"}
                     </button>
                   </div>
@@ -506,7 +506,7 @@ function TreeForm({
         </p>
       ) : null}
       <button className="button button-dark" type="submit" disabled={pending}>
-        {pending ? "저장 중…" : tree ? "트리 수정" : "트리 생성"}
+        {pending ? "저장 중..." : tree ? "트리 수정" : "트리 생성"}
       </button>
     </form>
   );
@@ -632,7 +632,7 @@ function NodeForm({
         <legend>기존 콘텐츠 연결</legend>
         <p className="admin-helper">
           이 노드가 대표하는 기존 과목·주제·학습 단위·레슨을 선택합니다.
-          같은 과정의 콘텐츠만 표시됩니다.
+          같은 과정의 콘텐츠만 표시합니다.
         </p>
         {linkableContent.length ? (
           Object.entries(groupedContent).map(([type, items]) => (
@@ -696,7 +696,7 @@ function NodeForm({
         실무형 노드
       </label>
       <button className="button button-dark" type="submit" disabled={pending}>
-        {pending ? "저장 중…" : node ? "노드 수정" : "노드 생성"}
+        {pending ? "저장 중..." : node ? "노드 수정" : "노드 생성"}
       </button>
     </form>
   );
