@@ -16,12 +16,8 @@ import {
   listCourseLevels,
 } from "@/db/phase3-repositories";
 import { listCourseSpecializations } from "@/db/specialized-repositories";
-import {
-  getCourseTheoryProgress,
-} from "@/db/lesson-repositories";
-import {
-  getPublishedCourseLessonProgressSummary,
-} from "@/db/shared-content-repositories";
+import { getCourseTheoryProgress } from "@/db/lesson-repositories";
+import { getPublishedCourseLessonProgressSummary } from "@/db/shared-content-repositories";
 import { publicCopy } from "@/lib/public-copy";
 
 export const dynamic = "force-dynamic";
@@ -45,7 +41,6 @@ export default async function LearnCoursePage({
     mockExamCount,
     stats,
     specializations,
-    theoryProgress,
     sharedLessonSummary,
   ] =
     await Promise.all([
@@ -55,9 +50,11 @@ export default async function LearnCoursePage({
       countPublicMockExamsForCourse(user.id, course.id),
       getCourseLearningSummary(user.id, course.id),
       listCourseSpecializations(course.id),
-      getCourseTheoryProgress(user.id, course.id),
       getPublishedCourseLessonProgressSummary(user.id, course.id),
     ]);
+  const legacyTheoryProgress = sharedLessonSummary.totalLessons
+    ? null
+    : await getCourseTheoryProgress(user.id, course.id);
   const levelCompletion = levelRows.length
     ? Math.round(
         (levelRows.filter((level) =>
@@ -73,7 +70,13 @@ export default async function LearnCoursePage({
         totalLessons: sharedLessonSummary.totalLessons,
         progressPercent: sharedLessonSummary.progressPercent,
       }
-    : theoryProgress;
+    : (legacyTheoryProgress ?? {
+        completedLessons: 0,
+        totalLessons: 0,
+        progressPercent: 0,
+        latestLesson: null,
+        nextLesson: null,
+      });
   const nextSharedLesson = sharedLessonSummary.nextLesson;
   const latestSharedLesson = sharedLessonSummary.latestLesson;
 
@@ -267,8 +270,8 @@ export default async function LearnCoursePage({
                 <p>
                   {latestSharedLesson
                     ? `최근: ${publicCopy(latestSharedLesson.title)}`
-                    : theoryProgress.latestLesson
-                      ? `최근: ${publicCopy(theoryProgress.latestLesson.title)}`
+                    : legacyTheoryProgress?.latestLesson
+                      ? `최근: ${publicCopy(legacyTheoryProgress.latestLesson.title)}`
                     : "아직 학습한 레슨이 없습니다."}
                 </p>
                 {nextSharedLesson ? (
@@ -278,12 +281,12 @@ export default async function LearnCoursePage({
                   >
                     다음 추천 · {publicCopy(nextSharedLesson.title)}
                   </Link>
-                ) : theoryProgress.nextLesson ? (
+                ) : legacyTheoryProgress?.nextLesson ? (
                   <Link
                     className="button button-dark full-width"
-                    href={`/learn/${course.slug}/lessons/${theoryProgress.nextLesson.id}`}
+                    href={`/learn/${course.slug}/lessons/${legacyTheoryProgress.nextLesson.id}`}
                   >
-                    다음 추천 · {publicCopy(theoryProgress.nextLesson.title)}
+                    다음 추천 · {publicCopy(legacyTheoryProgress.nextLesson.title)}
                   </Link>
                 ) : (
                   <span className="sample-label">공개 레슨 학습 완료</span>
