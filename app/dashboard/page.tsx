@@ -21,7 +21,7 @@ export default async function DashboardPage() {
     [],
   );
   const todayPlanPromise = safeDashboardData(
-    () => getTodayLearningPlan(user.id),
+    async () => getTodayLearningPlan(user.id, await enrollmentsPromise),
     null,
   );
 

@@ -20,8 +20,11 @@ export async function getDashboardPerformanceSnapshot(userId: string) {
     enrollments.value
       ?.filter((enrollment) => enrollment.status === "ACTIVE")
       .map((enrollment) => enrollment.courseId) ?? [];
+  const activeEnrollments =
+    enrollments.value?.filter((enrollment) => enrollment.status === "ACTIVE") ??
+    [];
   const [todayPlan, theoryProgress] = await Promise.all([
-    timeStep(() => getTodayLearningPlanDiagnostics(userId)),
+    timeStep(() => getTodayLearningPlanDiagnostics(userId, activeEnrollments)),
     timeStep(() => listCourseTheoryProgress(userId, activeCourseIds)),
   ]);
 

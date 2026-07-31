@@ -1686,6 +1686,13 @@ type PublishedCurriculumPath = NonNullable<
 >;
 type PublishedCurriculumNode = PublishedCurriculumPath["nodes"][number];
 
+type DashboardPlanEnrollment = {
+  courseId: string;
+  courseSlug: string;
+  courseName: string;
+  status?: string;
+};
+
 function flattenCurriculumPathNodes(nodes: PublishedCurriculumNode[]) {
   const flattened: PublishedCurriculumNode[] = [];
   const visit = (node: PublishedCurriculumNode) => {
@@ -2030,10 +2037,13 @@ export async function getRecommendations(userId: string) {
   return recommendationService.recommend(candidates);
 }
 
-export async function getTodayLearningPlan(userId: string) {
+export async function getTodayLearningPlan(
+  userId: string,
+  enrollments?: DashboardPlanEnrollment[],
+) {
   const [settings, recommendations, reviewSummary] = await Promise.all([
     getLearningSettings(userId),
-    getDashboardRecommendations(userId),
+    getDashboardRecommendations(userId, enrollments),
     getDashboardReviewSummary(userId),
   ]);
   const todayRange = utcDayRange();
@@ -2067,11 +2077,16 @@ type DashboardTimingResult<T> = {
   value: T | null;
 };
 
-export async function getTodayLearningPlanDiagnostics(userId: string) {
+export async function getTodayLearningPlanDiagnostics(
+  userId: string,
+  enrollments?: DashboardPlanEnrollment[],
+) {
   const [settingsStep, recommendationsStep, reviewSummaryStep] =
     await Promise.all([
       timeDashboardPlanStep(() => getLearningSettings(userId)),
-      timeDashboardPlanStep(() => getDashboardRecommendations(userId)),
+      timeDashboardPlanStep(() =>
+        getDashboardRecommendations(userId, enrollments),
+      ),
       timeDashboardPlanStep(() => getDashboardReviewSummary(userId)),
     ]);
   if (
@@ -2154,8 +2169,32 @@ function toDashboardPlanPublicTiming<T>(result: DashboardTimingResult<T>) {
   };
 }
 
-async function getDashboardRecommendations(userId: string) {
+async function getDashboardRecommendations(
+  userId: string,
+  providedEnrollments?: DashboardPlanEnrollment[],
+) {
   const now = new Date().toISOString();
+  const enrollmentsPromise = providedEnrollments
+    ? Promise.resolve(
+        providedEnrollments.filter(
+          (enrollment) => !enrollment.status || enrollment.status === "ACTIVE",
+        ),
+      )
+    : getDb()
+        .select({
+          courseId: userCourseEnrollments.courseId,
+          courseSlug: courses.slug,
+          courseName: courses.shortName,
+          status: userCourseEnrollments.status,
+        })
+        .from(userCourseEnrollments)
+        .innerJoin(courses, eq(userCourseEnrollments.courseId, courses.id))
+        .where(
+          and(
+            eq(userCourseEnrollments.userId, userId),
+            eq(userCourseEnrollments.status, "ACTIVE"),
+          ),
+        );
   const [reviews, enrollments] = await Promise.all([
     getDb()
       .select({
@@ -2182,20 +2221,7 @@ async function getDashboardRecommendations(userId: string) {
       )
       .orderBy(asc(reviewSchedules.nextReviewAt))
       .limit(8),
-    getDb()
-      .select({
-        courseId: userCourseEnrollments.courseId,
-        courseSlug: courses.slug,
-        courseName: courses.shortName,
-      })
-      .from(userCourseEnrollments)
-      .innerJoin(courses, eq(userCourseEnrollments.courseId, courses.id))
-      .where(
-        and(
-          eq(userCourseEnrollments.userId, userId),
-          eq(userCourseEnrollments.status, "ACTIVE"),
-        ),
-      ),
+    enrollmentsPromise,
   ]);
   const candidates: RecommendationCandidate[] = reviews.map((review) => {
     const overdueDays = Math.max(
