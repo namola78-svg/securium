@@ -5,8 +5,7 @@ import { ProgressBar } from "@/components/progress-bar";
 import { getPublishedCurriculumPathOverviewForCourse } from "@/db/curriculum-repositories";
 import { requireCurrentAppUser } from "@/lib/auth";
 import {
-  getEnrollmentForCourse,
-  getPublicCourseBySlug,
+  getLearnCourseAccessBySlug,
   listCurriculumForLearnOverview,
 } from "@/db/repositories";
 import {
@@ -27,9 +26,11 @@ export default async function LearnCoursePage({
 }) {
   const { courseSlug } = await params;
   const user = await requireCurrentAppUser(`/learn/${courseSlug}`);
-  const course = await getPublicCourseBySlug(courseSlug);
+  const { course, enrollment } = await getLearnCourseAccessBySlug(
+    user.id,
+    courseSlug,
+  );
   if (!course) notFound();
-  const enrollment = await getEnrollmentForCourse(user.id, course.id);
   if (!enrollment) redirect(`/courses/${course.slug}`);
 
   const [curriculum, levelRows, specializations, sharedLessonSummary] =

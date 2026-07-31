@@ -164,6 +164,74 @@ export async function getPublicCourseBySlug(slug: string) {
   return course ?? null;
 }
 
+export async function getLearnCourseAccessBySlug(
+  userId: string,
+  slug: string,
+) {
+  const [row] = await getDb()
+    .select({
+      id: courses.id,
+      groupName: courseGroups.name,
+      code: courses.code,
+      slug: courses.slug,
+      name: courses.name,
+      shortName: courses.shortName,
+      description: courses.description,
+      thumbnailUrl: courses.thumbnailUrl,
+      totalLevels: courses.totalLevels,
+      passingScore: courses.passingScore,
+      difficulty: courses.difficulty,
+      active: courses.active,
+      published: courses.published,
+      displayOrder: courses.displayOrder,
+      isSample: courses.isSample,
+      updatedAt: courses.updatedAt,
+      enrollmentId: userCourseEnrollments.id,
+      enrollmentUserId: userCourseEnrollments.userId,
+      enrollmentCourseId: userCourseEnrollments.courseId,
+      enrollmentStatus: userCourseEnrollments.status,
+    })
+    .from(courses)
+    .innerJoin(courseGroups, eq(courses.courseGroupId, courseGroups.id))
+    .leftJoin(
+      userCourseEnrollments,
+      and(
+        eq(userCourseEnrollments.userId, userId),
+        eq(userCourseEnrollments.courseId, courses.id),
+      ),
+    )
+    .where(
+      and(
+        eq(courses.slug, slug),
+        eq(courses.active, true),
+        eq(courses.published, true),
+        isNull(courses.deletedAt),
+      ),
+    )
+    .limit(1);
+
+  if (!row) return { course: null, enrollment: null };
+  const {
+    enrollmentId,
+    enrollmentUserId,
+    enrollmentCourseId,
+    enrollmentStatus,
+    ...course
+  } = row;
+
+  return {
+    course,
+    enrollment: enrollmentId
+      ? ({
+          id: enrollmentId,
+          userId: enrollmentUserId,
+          courseId: enrollmentCourseId,
+          status: enrollmentStatus,
+        } as EnrollmentRecord)
+      : null,
+  };
+}
+
 export async function listCurriculum(courseId: string) {
   const [subjectRows, topicRows] = await Promise.all([
     getDb()
