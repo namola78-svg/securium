@@ -33,26 +33,17 @@ export default async function LearnCoursePage({
   if (!course) notFound();
   if (!enrollment) redirect(`/courses/${course.slug}`);
 
-  const [curriculum, levelRows, specializations, sharedLessonSummary] =
+  const [curriculum, specializations, sharedLessonSummary] =
     await Promise.all([
       listCurriculumForLearnOverview(course.id),
-      listCourseLevelsForOverview(user.id, course.id),
       listCourseSpecializations(course.id),
       getPublishedCourseLessonProgressSummary(user.id, course.id),
     ]);
   const activitySummaryPromise = getLearnCourseActivitySummary(user.id, course.id);
+  const levelRowsPromise = listCourseLevelsForOverview(user.id, course.id);
   const legacyTheoryProgress = sharedLessonSummary.totalLessons
     ? null
     : await getCourseTheoryProgress(user.id, course.id);
-  const levelCompletion = levelRows.length
-    ? Math.round(
-        (levelRows.filter((level) =>
-          ["COMPLETED", "MASTERED"].includes(level.status),
-        ).length /
-          levelRows.length) *
-          100,
-      )
-    : 0;
   const displayedTheoryProgress = sharedLessonSummary.totalLessons
     ? {
         completedLessons: sharedLessonSummary.completedLessons,
@@ -103,14 +94,13 @@ export default async function LearnCoursePage({
               fallback={
                 <LearnProgressPanelFallback
                   displayedTheoryProgress={displayedTheoryProgress}
-                  levelCompletion={levelCompletion}
                 />
               }
             >
               <LearnProgressPanel
                 activitySummaryPromise={activitySummaryPromise}
                 displayedTheoryProgress={displayedTheoryProgress}
-                levelCompletion={levelCompletion}
+                levelRowsPromise={levelRowsPromise}
               />
             </Suspense>
           </div>
@@ -118,50 +108,12 @@ export default async function LearnCoursePage({
       </section>
       <section className="section">
         <div className="shell">
-          <div className="section-heading compact">
-            <div>
-              <p className="eyebrow">LEVEL PATH</p>
-              <h2>단계 학습</h2>
-            </div>
-            <span className="count-label">학습 단계 {levelRows.length}개</span>
-          </div>
-          <div className="level-path">
-            {levelRows.map((level) => (
-              <article
-                className={`level-card level-${level.status.toLowerCase()}`}
-                key={level.id}
-              >
-                <span className="level-number">
-                  {String(level.number).padStart(2, "0")}
-                </span>
-                <div>
-                  <div className="course-card-top">
-                    <span className="badge">{level.status}</span>
-                    <span>통과 {level.passingScore}점</span>
-                  </div>
-                  <h3>{level.title}</h3>
-                  <p>{level.description}</p>
-                  <p>
-                    최고 {level.bestScore}점 · {level.attemptCount}회 시도
-                  </p>
-                </div>
-                {level.status === "LOCKED" ? (
-                  <button className="button button-disabled" disabled>
-                    선행 단계 필요
-                  </button>
-                ) : (
-                  <Link
-                    className="button button-dark"
-                    href={`/learn/${course.slug}/levels/${level.id}`}
-                  >
-                    {["COMPLETED", "MASTERED"].includes(level.status)
-                      ? "다시 학습"
-                      : "단계 학습"}
-                  </Link>
-                )}
-              </article>
-            ))}
-          </div>
+          <Suspense fallback={<LearnLevelPathFallback />}>
+            <LearnLevelPathLoader
+              courseSlug={course.slug}
+              levelRowsPromise={levelRowsPromise}
+            />
+          </Suspense>
 
           <Suspense fallback={<CurriculumPathFallback />}>
             <CurriculumPathLoader
@@ -319,6 +271,8 @@ export default async function LearnCoursePage({
 type LearnCourseActivitySummary = Awaited<
   ReturnType<typeof getLearnCourseActivitySummary>
 >;
+type CourseLevelRows = Awaited<ReturnType<typeof listCourseLevelsForOverview>>;
+type CourseLevelRow = CourseLevelRows[number];
 type DisplayedTheoryProgress = {
   completedLessons: number;
   totalLessons: number;
@@ -328,14 +282,15 @@ type DisplayedTheoryProgress = {
 async function LearnProgressPanel({
   activitySummaryPromise,
   displayedTheoryProgress,
-  levelCompletion,
+  levelRowsPromise,
 }: {
   activitySummaryPromise: Promise<LearnCourseActivitySummary>;
   displayedTheoryProgress: DisplayedTheoryProgress;
-  levelCompletion: number;
+  levelRowsPromise: Promise<CourseLevelRows>;
 }) {
-  const { dueReviewCount, mockExamCount, stats } =
-    await activitySummaryPromise;
+  const [{ dueReviewCount, mockExamCount, stats }, levelRows] =
+    await Promise.all([activitySummaryPromise, levelRowsPromise]);
+  const levelCompletion = getLevelCompletion(levelRows);
 
   return (
     <div className="learn-progress-panel">
@@ -358,14 +313,12 @@ async function LearnProgressPanel({
 
 function LearnProgressPanelFallback({
   displayedTheoryProgress,
-  levelCompletion,
 }: {
   displayedTheoryProgress: DisplayedTheoryProgress;
-  levelCompletion: number;
 }) {
   return (
     <div className="learn-progress-panel" aria-live="polite">
-      <ProgressBar value={levelCompletion} label="단계 완료율" />
+      <ProgressBar value={0} label="단계 완료율" />
       <dl className="metric-list">
         <div><dt>전체 정답률</dt><dd>--</dd></div>
         <div><dt>복습 예정</dt><dd>--</dd></div>
@@ -379,6 +332,119 @@ function LearnProgressPanelFallback({
         </div>
       </dl>
     </div>
+  );
+}
+
+function getLevelCompletion(levelRows: CourseLevelRows) {
+  if (!levelRows.length) return 0;
+  return Math.round(
+    (levelRows.filter((level) =>
+      ["COMPLETED", "MASTERED"].includes(level.status),
+    ).length /
+      levelRows.length) *
+      100,
+  );
+}
+
+async function LearnLevelPathLoader({
+  courseSlug,
+  levelRowsPromise,
+}: {
+  courseSlug: string;
+  levelRowsPromise: Promise<CourseLevelRows>;
+}) {
+  const levelRows = await levelRowsPromise;
+  return <LearnLevelPath courseSlug={courseSlug} levelRows={levelRows} />;
+}
+
+function LearnLevelPath({
+  courseSlug,
+  levelRows,
+}: {
+  courseSlug: string;
+  levelRows: CourseLevelRows;
+}) {
+  return (
+    <>
+      <div className="section-heading compact">
+        <div>
+          <p className="eyebrow">LEVEL PATH</p>
+          <h2>단계 학습</h2>
+        </div>
+        <span className="count-label">학습 단계 {levelRows.length}개</span>
+      </div>
+      <div className="level-path">
+        {levelRows.map((level) => (
+          <LearnLevelCard
+            courseSlug={courseSlug}
+            key={level.id}
+            level={level}
+          />
+        ))}
+      </div>
+    </>
+  );
+}
+
+function LearnLevelCard({
+  courseSlug,
+  level,
+}: {
+  courseSlug: string;
+  level: CourseLevelRow;
+}) {
+  return (
+    <article className={`level-card level-${level.status.toLowerCase()}`}>
+      <span className="level-number">
+        {String(level.number).padStart(2, "0")}
+      </span>
+      <div>
+        <div className="course-card-top">
+          <span className="badge">{level.status}</span>
+          <span>통과 {level.passingScore}점</span>
+        </div>
+        <h3>{level.title}</h3>
+        <p>{level.description}</p>
+        <p>
+          최고 {level.bestScore}점 · {level.attemptCount}회 시도
+        </p>
+      </div>
+      {level.status === "LOCKED" ? (
+        <button className="button button-disabled" disabled>
+          선행 단계 필요
+        </button>
+      ) : (
+        <Link
+          className="button button-dark"
+          href={`/learn/${courseSlug}/levels/${level.id}`}
+        >
+          {["COMPLETED", "MASTERED"].includes(level.status)
+            ? "다시 학습"
+            : "단계 학습"}
+        </Link>
+      )}
+    </article>
+  );
+}
+
+function LearnLevelPathFallback() {
+  return (
+    <>
+      <div className="section-heading compact" aria-live="polite">
+        <div>
+          <p className="eyebrow">LEVEL PATH</p>
+          <h2>단계 학습을 불러오고 있습니다</h2>
+        </div>
+      </div>
+      <div className="level-path" aria-hidden="true">
+        {[0, 1, 2].map((item) => (
+          <article className="level-card" key={item}>
+            <span className="level-number">--</span>
+            <div className="card-skeleton" />
+          </article>
+        ))}
+      </div>
+    </>
   );
 }
 
