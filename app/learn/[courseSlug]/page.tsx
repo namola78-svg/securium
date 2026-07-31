@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import { ProgressBar } from "@/components/progress-bar";
 import { getPublishedCurriculumPathOverviewForCourse } from "@/db/curriculum-repositories";
@@ -47,7 +48,6 @@ export default async function LearnCoursePage({
     specializations,
     theoryProgress,
     subjectTheoryProgress,
-    curriculumPath,
     sharedLessonSummary,
   ] =
     await Promise.all([
@@ -59,7 +59,6 @@ export default async function LearnCoursePage({
       listCourseSpecializations(course.id),
       getCourseTheoryProgress(user.id, course.id),
       listSubjectTheoryProgress(user.id, course.id),
-      getPublishedCurriculumPathOverviewForCourse(course.id, user.id),
       getPublishedCourseLessonProgressSummary(user.id, course.id),
     ]);
   const levelCompletion = levelRows.length
@@ -176,12 +175,13 @@ export default async function LearnCoursePage({
             ))}
           </div>
 
-          {curriculumPath ? (
-            <CurriculumPathSection
+          <Suspense fallback={<CurriculumPathFallback />}>
+            <CurriculumPathLoader
+              courseId={course.id}
               courseSlug={course.slug}
-              path={curriculumPath}
+              userId={user.id}
             />
-          ) : null}
+          </Suspense>
 
           {sharedLessonSummary.totalLessons ? (
             <section className="section-block">
@@ -360,6 +360,36 @@ type CurriculumPath = NonNullable<
   Awaited<ReturnType<typeof getPublishedCurriculumPathOverviewForCourse>>
 >;
 type CurriculumPathNode = CurriculumPath["nodes"][number];
+
+async function CurriculumPathLoader({
+  courseId,
+  courseSlug,
+  userId,
+}: {
+  courseId: string;
+  courseSlug: string;
+  userId: string;
+}) {
+  const path = await getPublishedCurriculumPathOverviewForCourse(
+    courseId,
+    userId,
+  );
+  return path ? <CurriculumPathSection courseSlug={courseSlug} path={path} /> : null;
+}
+
+function CurriculumPathFallback() {
+  return (
+    <section className="curriculum-path-section section-block" aria-live="polite">
+      <div className="section-heading compact">
+        <div>
+          <p className="eyebrow">CURRICULUM PATH</p>
+          <h2>커리큘럼 경로를 불러오고 있습니다</h2>
+        </div>
+      </div>
+      <div className="card-skeleton" aria-hidden="true" />
+    </section>
+  );
+}
 
 function CurriculumPathSection({
   courseSlug,
