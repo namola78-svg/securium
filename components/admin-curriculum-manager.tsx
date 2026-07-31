@@ -67,6 +67,29 @@ type CurriculumNodeOperationalStat = {
   dueReviewCount: number;
 };
 
+type OntologyCoverageSummary = {
+  treeId: string;
+  courseId: string;
+  totalNodeCount: number;
+  requiredNodeCount: number;
+  linkedCurriculumNodeCount: number;
+  courseLessonEdgeCount: number;
+  conceptEdgeCount: number;
+  gapCount: number;
+  topGapIds: string[];
+};
+
+type OntologyCoverageGap = {
+  id: string;
+  courseId: string;
+  title: string;
+  nodeType: string;
+  depth?: number;
+  required?: boolean;
+  score: number;
+  reasons: string[];
+};
+
 type NodeMetadata = {
   officialLevel?: string;
   sourceDocument?: string;
@@ -140,6 +163,8 @@ export function AdminCurriculumManager({
   nodes,
   nodeStats,
   linkableContent,
+  ontologyCoverageSummaries,
+  ontologyGaps,
   selectedTreeId,
 }: {
   courses: CourseOption[];
@@ -147,6 +172,8 @@ export function AdminCurriculumManager({
   nodes: CurriculumNode[];
   nodeStats: CurriculumNodeOperationalStat[];
   linkableContent: LinkableContent[];
+  ontologyCoverageSummaries: OntologyCoverageSummary[];
+  ontologyGaps: OntologyCoverageGap[];
   selectedTreeId: string;
 }) {
   const [message, setMessage] = useState("");
@@ -172,6 +199,9 @@ export function AdminCurriculumManager({
   const selectedTreeSummary = selectedTree
     ? summarizeSelectedTree(selectedTree, nodes)
     : null;
+  const selectedOntologySummary =
+    ontologyCoverageSummaries.find((summary) => summary.treeId === selectedTreeId) ??
+    null;
   const treeModel = useMemo(() => buildTreeModel(nodes), [nodes]);
   const visibleNodes = useMemo(
     () => flattenVisibleNodes(treeModel.rootNodes, treeModel.childrenByParent, expandedNodeIds),
@@ -400,6 +430,12 @@ export function AdminCurriculumManager({
               </div>
             </dl>
 
+            <OntologyCoveragePanel
+              summary={selectedOntologySummary}
+              gaps={ontologyGaps}
+              onSelectNode={setSelectedNodeId}
+            />
+
             <div className="curriculum-tree-workspace">
               <div className="curriculum-tree-list" role="tree" aria-label="커리큘럼 노드 목록">
                 {visibleNodes.map(({ node, hasChildren }) => (
@@ -449,6 +485,108 @@ export function AdminCurriculumManager({
         )}
       </section>
     </div>
+  );
+}
+
+function OntologyCoveragePanel({
+  summary,
+  gaps,
+  onSelectNode,
+}: {
+  summary: OntologyCoverageSummary | null;
+  gaps: OntologyCoverageGap[];
+  onSelectNode: (nodeId: string) => void;
+}) {
+  if (!summary) {
+    return (
+      <section className="curriculum-ontology-panel" aria-label="온톨로지 연결 검수">
+        <div>
+          <p className="eyebrow">ONTOLOGY COVERAGE</p>
+          <h3>온톨로지 연결 검수</h3>
+          <p className="admin-helper">
+            현재 선택한 트리는 공식 정보보안기사·정보보안산업기사 온톨로지
+            어댑터 대상이 아닙니다.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  const linkedPercent = safePercent(
+    summary.linkedCurriculumNodeCount,
+    summary.totalNodeCount,
+  );
+  const topGaps = gaps.slice(0, 8);
+
+  return (
+    <section className="curriculum-ontology-panel" aria-label="온톨로지 연결 검수">
+      <div className="curriculum-ontology-heading">
+        <div>
+          <p className="eyebrow">ONTOLOGY COVERAGE</p>
+          <h3>온톨로지 연결 검수</h3>
+          <p className="admin-helper">
+            공식 커리큘럼 노드가 CourseLesson, 공통 콘텐츠, 핵심 개념까지
+            이어지는지 확인합니다. DB 변경 없이 현재 코드 기반 어댑터의
+            연결 상태만 표시합니다.
+          </p>
+        </div>
+        <span className="status-badge compact">
+          {summary.gapCount ? `Gap ${summary.gapCount}` : "연결 완료"}
+        </span>
+      </div>
+
+      <dl className="curriculum-admin-node-stats ontology-summary">
+        <div>
+          <dt>노드 연결률</dt>
+          <dd>{linkedPercent}%</dd>
+        </div>
+        <div>
+          <dt>연결 노드</dt>
+          <dd>
+            {summary.linkedCurriculumNodeCount}/{summary.totalNodeCount}
+          </dd>
+        </div>
+        <div>
+          <dt>CourseLesson Edge</dt>
+          <dd>{summary.courseLessonEdgeCount}</dd>
+        </div>
+        <div>
+          <dt>Concept Edge</dt>
+          <dd>{summary.conceptEdgeCount}</dd>
+        </div>
+      </dl>
+
+      {topGaps.length ? (
+        <div className="ontology-gap-list">
+          <div className="ontology-gap-list-header">
+            <strong>우선 연결 후보</strong>
+            <small>점수가 높을수록 먼저 연결할 공식 노드입니다.</small>
+          </div>
+          {topGaps.map((gap) => (
+            <button
+              className="ontology-gap-item"
+              key={gap.id}
+              type="button"
+              onClick={() => onSelectNode(gap.id)}
+            >
+              <span>
+                <strong>{gap.title}</strong>
+                <small>
+                  {nodeTypeLabels[gap.nodeType] ?? gap.nodeType}
+                  {gap.required ? " · 필수" : ""}
+                  {gap.depth !== undefined ? ` · depth ${gap.depth}` : ""}
+                </small>
+              </span>
+              <span className="status-badge compact">score {gap.score}</span>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <p className="empty-copy">
+          현재 어댑터 기준으로 우선 연결이 필요한 공식 노드가 없습니다.
+        </p>
+      )}
+    </section>
   );
 }
 
@@ -1139,6 +1277,11 @@ function nodeStatusLabel(status: string) {
   if (status === "INACTIVE") return "비활성";
   if (status === "ARCHIVED") return "보관";
   return status;
+}
+
+function safePercent(value: number, total: number) {
+  if (!total) return 0;
+  return Math.round((value / total) * 100);
 }
 
 async function copyStableKey(value: string) {

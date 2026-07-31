@@ -3103,6 +3103,87 @@ textarea {
   padding: 0;
 }
 
+.curriculum-ontology-panel {
+  background: #fbfcf7;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 1rem;
+}
+
+.curriculum-ontology-heading {
+  align-items: start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.curriculum-ontology-heading h3,
+.curriculum-ontology-heading p {
+  margin: 0;
+}
+
+.ontology-summary {
+  padding: 0;
+}
+
+.ontology-gap-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.ontology-gap-list-header {
+  align-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.75rem;
+  justify-content: space-between;
+}
+
+.ontology-gap-list-header small {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.ontology-gap-item {
+  align-items: center;
+  background: var(--white);
+  border: 1px solid rgba(89, 112, 101, 0.16);
+  border-radius: 12px;
+  color: var(--ink);
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  gap: 0.75rem;
+  justify-content: space-between;
+  min-height: 3.25rem;
+  padding: 0.7rem 0.85rem;
+  text-align: left;
+}
+
+.ontology-gap-item:hover {
+  border-color: rgba(75, 104, 32, 0.42);
+}
+
+.ontology-gap-item:focus-visible {
+  outline: 3px solid rgba(192, 255, 80, 0.65);
+  outline-offset: 2px;
+}
+
+.ontology-gap-item span:first-child {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.ontology-gap-item small {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
 .curriculum-tree-workspace {
   align-items: start;
   display: grid;

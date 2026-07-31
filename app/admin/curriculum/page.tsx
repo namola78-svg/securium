@@ -8,6 +8,10 @@ import {
 } from "@/db/curriculum-repositories";
 import { listAllCourses } from "@/db/repositories";
 import { requireCatalogManager } from "@/lib/auth";
+import {
+  getSecurityCertificationOntologyCoverageSummaries,
+  getSecurityCertificationOntologyGaps,
+} from "@/lib/curriculum/security-certification-ontology";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +40,11 @@ export default async function AdminCurriculumPage({
     : [[], [], null];
   const linkableContent = selectedTree
     ? await listCurriculumLinkableContent(selectedTree.courseId)
+    : [];
+  const ontologyCoverageSummaries =
+    getSecurityCertificationOntologyCoverageSummaries();
+  const selectedOntologyGaps = selectedTreeId
+    ? getSecurityCertificationOntologyGaps(selectedTreeId)
     : [];
   const operationalSummary = nodeStats.reduce(
     (summary, stat) => ({
@@ -132,6 +141,8 @@ export default async function AdminCurriculumPage({
         nodes={nodes}
         nodeStats={nodeStats}
         linkableContent={linkableContent}
+        ontologyCoverageSummaries={ontologyCoverageSummaries}
+        ontologyGaps={selectedOntologyGaps}
         selectedTreeId={selectedTreeId}
       />
     </>
