@@ -1,5 +1,5 @@
 import { getTodayLearningPlanDiagnostics } from "@/db/phase3-repositories";
-import { listUserEnrollments } from "@/db/repositories";
+import { listDashboardUserEnrollments } from "@/lib/dashboard-enrollments";
 
 type TimingResult<T> = {
   durationMs: number;
@@ -15,7 +15,7 @@ export async function getDashboardPerformanceSnapshot(userId: string) {
   const requestId = crypto.randomUUID();
   const startedAt = Date.now();
   const [enrollments, todayPlan] = await Promise.all([
-    timeStep(() => listUserEnrollments(userId)),
+    timeStep(() => listDashboardUserEnrollments(userId)),
     timeStep(() => getTodayLearningPlanDiagnostics(userId)),
   ]);
   const activeCourseIds =
@@ -41,7 +41,7 @@ export async function getDashboardPerformanceSnapshot(userId: string) {
         ).length ?? null,
     },
     timings: {
-      listUserEnrollments: toPublicTiming(enrollments),
+      listDashboardUserEnrollments: toPublicTiming(enrollments),
       getTodayLearningPlan: toPublicTiming(todayPlan),
     },
     details: {

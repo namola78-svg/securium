@@ -4,19 +4,19 @@ import { Suspense } from "react";
 import { ProgressBar } from "@/components/progress-bar";
 import { LearningSettingsForm } from "@/components/learning-settings-form";
 import { requireCurrentAppUser } from "@/lib/auth";
-import { listUserEnrollments } from "@/db/repositories";
+import { listDashboardUserEnrollments } from "@/lib/dashboard-enrollments";
 import { getTodayLearningPlan } from "@/db/phase3-repositories";
 
 export const metadata: Metadata = { title: "통합 대시보드" };
 export const dynamic = "force-dynamic";
 
-type Enrollment = Awaited<ReturnType<typeof listUserEnrollments>>[number];
+type Enrollment = Awaited<ReturnType<typeof listDashboardUserEnrollments>>[number];
 type TodayPlan = NonNullable<Awaited<ReturnType<typeof getTodayLearningPlan>>>;
 
 export default async function DashboardPage() {
   const user = await requireCurrentAppUser("/dashboard");
   const enrollmentsPromise = safeDashboardData(
-    () => listUserEnrollments(user.id),
+    () => listDashboardUserEnrollments(user.id),
     [],
   );
   const todayPlanPromise = safeDashboardData(
