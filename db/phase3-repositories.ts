@@ -3,9 +3,11 @@ import {
   asc,
   desc,
   eq,
+  gte,
   gt,
   inArray,
   isNull,
+  lt,
   lte,
   sql,
 } from "drizzle-orm";
@@ -453,14 +455,15 @@ export async function countDueReviewsForCourse(
 export async function getReviewSummary(userId: string) {
   const due = await listDueReviews(userId);
   const now = Date.now();
-  const today = new Date().toISOString().slice(0, 10);
+  const todayRange = utcDayRange();
   const [completedRow] = await getDb()
     .select({ count: sql<number>`count(*)` })
     .from(reviewSchedules)
     .where(
       and(
         eq(reviewSchedules.userId, userId),
-        sql`substr(${reviewSchedules.lastReviewedAt}, 1, 10) = ${today}`,
+        gte(reviewSchedules.lastReviewedAt, todayRange.start),
+        lt(reviewSchedules.lastReviewedAt, todayRange.end),
         gt(reviewSchedules.intervalDays, 0),
       ),
     );
@@ -499,7 +502,7 @@ export async function getReviewSummary(userId: string) {
 async function getDashboardReviewSummary(userId: string) {
   const now = new Date().toISOString();
   const overdueCutoff = new Date(Date.now() - 86_400_000).toISOString();
-  const today = new Date().toISOString().slice(0, 10);
+  const todayRange = utcDayRange();
   const [summaryRows, completedRows, byCourseRows] = await Promise.all([
     getDb()
       .select({
@@ -520,7 +523,8 @@ async function getDashboardReviewSummary(userId: string) {
       .where(
         and(
           eq(reviewSchedules.userId, userId),
-          sql`substr(${reviewSchedules.lastReviewedAt}, 1, 10) = ${today}`,
+          gte(reviewSchedules.lastReviewedAt, todayRange.start),
+          lt(reviewSchedules.lastReviewedAt, todayRange.end),
           gt(reviewSchedules.intervalDays, 0),
         ),
       ),
@@ -1689,6 +1693,17 @@ function uniqueValues(values: Array<string | null | undefined>) {
   return [...new Set(values.filter((value): value is string => Boolean(value)))];
 }
 
+function utcDayRange(date = new Date()) {
+  const start = new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
+  );
+  const end = new Date(start.getTime() + 86_400_000);
+  return {
+    start: start.toISOString(),
+    end: end.toISOString(),
+  };
+}
+
 export async function getRecommendations(userId: string) {
   const [reviews, enrollments] = await Promise.all([
     listDueReviews(userId),
@@ -2014,7 +2029,7 @@ export async function getTodayLearningPlan(userId: string) {
     getDashboardRecommendations(userId),
     getDashboardReviewSummary(userId),
   ]);
-  const today = new Date().toISOString().slice(0, 10);
+  const todayRange = utcDayRange();
   const [activity] = await getDb()
     .select({
       completed: sql<number>`count(*)`,
@@ -2023,7 +2038,8 @@ export async function getTodayLearningPlan(userId: string) {
     .where(
       and(
         eq(questionAttempts.userId, userId),
-        sql`substr(${questionAttempts.attemptedAt}, 1, 10) = ${today}`,
+        gte(questionAttempts.attemptedAt, todayRange.start),
+        lt(questionAttempts.attemptedAt, todayRange.end),
       ),
     );
   return {
