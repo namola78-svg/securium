@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { ProgressBar } from "@/components/progress-bar";
 import { LearningSettingsForm } from "@/components/learning-settings-form";
 import { requireCurrentAppUser } from "@/lib/auth";
@@ -10,12 +11,18 @@ import { listCourseTheoryProgress } from "@/db/lesson-repositories";
 export const metadata: Metadata = { title: "통합 대시보드" };
 export const dynamic = "force-dynamic";
 
+type TodayPlan = NonNullable<Awaited<ReturnType<typeof getTodayLearningPlan>>>;
+
 export default async function DashboardPage() {
   const user = await requireCurrentAppUser("/dashboard");
-  const [enrollments, todayPlan] = await Promise.all([
-    safeDashboardData(() => listUserEnrollments(user.id), []),
-    safeDashboardData(() => getTodayLearningPlan(user.id), null),
-  ]);
+  const todayPlanPromise = safeDashboardData(
+    () => getTodayLearningPlan(user.id),
+    null,
+  );
+  const enrollments = await safeDashboardData(
+    () => listUserEnrollments(user.id),
+    [],
+  );
   const activeEnrollments = enrollments.filter((item) => item.status === "ACTIVE");
   const theoryProgress = await safeDashboardData(
     () =>
@@ -25,7 +32,6 @@ export default async function DashboardPage() {
       ),
     [],
   );
-  const plan = todayPlan ?? createEmptyTodayPlan();
 
   return (
     <main className="page-main dashboard-page">
@@ -52,64 +58,14 @@ export default async function DashboardPage() {
             <strong>{enrollments.length}</strong>
             <small>동시 수강 가능</small>
           </div>
-          <div className="stat-card">
-            <span>오늘의 학습</span>
-            <strong>{plan.completedQuestions}</strong>
-            <small>
-              목표 {plan.settings.dailyQuestionGoal}문제 ·{" "}
-              {plan.completionPercent}%
-            </small>
-          </div>
-          <div className="stat-card">
-            <span>오늘의 복습</span>
-            <strong>{plan.reviewSummary.dueCount}</strong>
-            <small>
-              <Link href="/reviews">예정된 복습 시작</Link>
-            </small>
-          </div>
+          <Suspense fallback={<TodayStatsFallback />}>
+            <TodayStats planPromise={todayPlanPromise} />
+          </Suspense>
         </section>
 
-        <section className="section-block today-plan">
-          <div className="section-heading compact">
-            <div>
-              <p className="eyebrow">TODAY PLAN</p>
-              <h2>오늘의 추천 학습</h2>
-            </div>
-            <Link className="text-link" href="/analytics">
-              통합 학습분석 →
-            </Link>
-          </div>
-          <div className="today-plan-grid">
-            <div className="admin-panel">
-              <ProgressBar
-                value={plan.completionPercent}
-                label="오늘 문제 목표"
-              />
-              <LearningSettingsForm
-                dailyQuestionGoal={plan.settings.dailyQuestionGoal}
-                dailyStudyMinutes={plan.settings.dailyStudyMinutes}
-              />
-            </div>
-            <div className="recommendation-list">
-              {plan.recommendations.slice(0, 5).map((item) => (
-                <Link className="recommendation-card" href={item.href} key={`${item.kind}-${item.id}`}>
-                  <span className="badge">{item.kind}</span>
-                  <div>
-                    <strong>{item.title}</strong>
-                    <p>{item.reason}</p>
-                  </div>
-                  <small>약 {item.estimatedMinutes}분 →</small>
-                </Link>
-              ))}
-              {!plan.recommendations.length ? (
-                <div className="empty-state">
-                  <strong>추천을 만들 학습 기록이 없습니다.</strong>
-                  <p>과정의 첫 단계를 시작하면 실제 기록을 기반으로 추천합니다.</p>
-                </div>
-              ) : null}
-            </div>
-          </div>
-        </section>
+        <Suspense fallback={<TodayPlanFallback />}>
+          <TodayPlanSection planPromise={todayPlanPromise} />
+        </Suspense>
 
         <section className="section-block">
           <div className="section-heading compact">
@@ -198,6 +154,123 @@ export default async function DashboardPage() {
         </section>
       </div>
     </main>
+  );
+}
+
+async function TodayStats({
+  planPromise,
+}: {
+  planPromise: Promise<TodayPlan | null>;
+}) {
+  const plan = (await planPromise) ?? createEmptyTodayPlan();
+
+  return (
+    <>
+      <div className="stat-card">
+        <span>오늘의 학습</span>
+        <strong>{plan.completedQuestions}</strong>
+        <small>
+          목표 {plan.settings.dailyQuestionGoal}문제 · {plan.completionPercent}%
+        </small>
+      </div>
+      <div className="stat-card">
+        <span>오늘의 복습</span>
+        <strong>{plan.reviewSummary.dueCount}</strong>
+        <small>
+          <Link href="/reviews">예정된 복습 시작</Link>
+        </small>
+      </div>
+    </>
+  );
+}
+
+function TodayStatsFallback() {
+  return (
+    <>
+      <div className="stat-card" aria-busy="true">
+        <span>오늘의 학습</span>
+        <strong>--</strong>
+        <small>학습 정보를 불러오고 있습니다</small>
+      </div>
+      <div className="stat-card" aria-busy="true">
+        <span>오늘의 복습</span>
+        <strong>--</strong>
+        <small>복습 일정을 확인하고 있습니다</small>
+      </div>
+    </>
+  );
+}
+
+async function TodayPlanSection({
+  planPromise,
+}: {
+  planPromise: Promise<TodayPlan | null>;
+}) {
+  const plan = (await planPromise) ?? createEmptyTodayPlan();
+
+  return (
+    <section className="section-block today-plan">
+      <div className="section-heading compact">
+        <div>
+          <p className="eyebrow">TODAY PLAN</p>
+          <h2>오늘의 추천 학습</h2>
+        </div>
+        <Link className="text-link" href="/analytics">
+          통합 학습분석 →
+        </Link>
+      </div>
+      <div className="today-plan-grid">
+        <div className="admin-panel">
+          <ProgressBar value={plan.completionPercent} label="오늘 문제 목표" />
+          <LearningSettingsForm
+            dailyQuestionGoal={plan.settings.dailyQuestionGoal}
+            dailyStudyMinutes={plan.settings.dailyStudyMinutes}
+          />
+        </div>
+        <div className="recommendation-list">
+          {plan.recommendations.slice(0, 5).map((item) => (
+            <Link
+              className="recommendation-card"
+              href={item.href}
+              key={`${item.kind}-${item.id}`}
+            >
+              <span className="badge">{item.kind}</span>
+              <div>
+                <strong>{item.title}</strong>
+                <p>{item.reason}</p>
+              </div>
+              <small>약 {item.estimatedMinutes}분 →</small>
+            </Link>
+          ))}
+          {!plan.recommendations.length ? (
+            <div className="empty-state">
+              <strong>추천을 만들 학습 기록이 없습니다.</strong>
+              <p>과정의 첫 단계를 시작하면 실제 기록을 기반으로 추천합니다.</p>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function TodayPlanFallback() {
+  return (
+    <section className="section-block today-plan" aria-busy="true">
+      <div className="section-heading compact">
+        <div>
+          <p className="eyebrow">TODAY PLAN</p>
+          <h2>오늘의 추천 학습</h2>
+        </div>
+        <Link className="text-link" href="/analytics">
+          통합 학습분석 →
+        </Link>
+      </div>
+      <div className="empty-state">
+        <strong>학습 정보를 불러오고 있습니다</strong>
+        <p>추천 학습과 복습 일정을 확인하는 중입니다.</p>
+      </div>
+    </section>
   );
 }
 
