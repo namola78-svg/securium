@@ -503,36 +503,17 @@ async function getDashboardReviewSummary(userId: string) {
   const now = new Date().toISOString();
   const overdueCutoff = new Date(Date.now() - 86_400_000).toISOString();
   const todayRange = utcDayRange();
-  const [summaryRows, completedRows] = await Promise.all([
-    getDb()
-      .select({
-        dueCount: sql<number>`count(*)`,
-        overdueCount: sql<number>`coalesce(sum(case when ${reviewSchedules.nextReviewAt} < ${overdueCutoff} then 1 else 0 end), 0)`,
-      })
-      .from(reviewSchedules)
-      .where(
-        and(
-          eq(reviewSchedules.userId, userId),
-          lte(reviewSchedules.nextReviewAt, now),
-          inArray(reviewSchedules.status, ["DUE", "SCHEDULED"]),
-        ),
-      ),
-    getDb()
-      .select({ count: sql<number>`count(*)` })
-      .from(reviewSchedules)
-      .where(
-        and(
-          eq(reviewSchedules.userId, userId),
-          gte(reviewSchedules.lastReviewedAt, todayRange.start),
-          lt(reviewSchedules.lastReviewedAt, todayRange.end),
-          gt(reviewSchedules.intervalDays, 0),
-        ),
-      ),
-  ]);
+  const summaryRows = await getDb()
+    .select({
+      dueCount: sql<number>`coalesce(sum(case when ${reviewSchedules.nextReviewAt} <= ${now} and ${reviewSchedules.status} in ('DUE', 'SCHEDULED') then 1 else 0 end), 0)`,
+      overdueCount: sql<number>`coalesce(sum(case when ${reviewSchedules.nextReviewAt} < ${overdueCutoff} and ${reviewSchedules.status} in ('DUE', 'SCHEDULED') then 1 else 0 end), 0)`,
+      completedToday: sql<number>`coalesce(sum(case when ${reviewSchedules.lastReviewedAt} >= ${todayRange.start} and ${reviewSchedules.lastReviewedAt} < ${todayRange.end} and ${reviewSchedules.intervalDays} > 0 then 1 else 0 end), 0)`,
+    })
+    .from(reviewSchedules)
+    .where(eq(reviewSchedules.userId, userId));
   const summaryRow = summaryRows[0];
-  const completedRow = completedRows[0];
   const dueCount = Number(summaryRow?.dueCount ?? 0);
-  const completedToday = Number(completedRow?.count ?? 0);
+  const completedToday = Number(summaryRow?.completedToday ?? 0);
   return {
     dueCount,
     overdueCount: Number(summaryRow?.overdueCount ?? 0),
