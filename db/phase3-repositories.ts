@@ -1626,6 +1626,37 @@ type DashboardPlanEnrollment = {
   status?: string;
 };
 
+const DASHBOARD_PLAN_CACHE_TTL_MS = 30_000;
+const dashboardPlanCache = new Map<
+  string,
+  { expiresAt: number; value: unknown }
+>();
+
+function readDashboardPlanCache<T>(key: string): T | null {
+  const cached = dashboardPlanCache.get(key);
+  if (!cached) return null;
+  if (cached.expiresAt <= Date.now()) {
+    dashboardPlanCache.delete(key);
+    return null;
+  }
+  return cached.value as T;
+}
+
+function writeDashboardPlanCache<T>(key: string, value: T) {
+  dashboardPlanCache.set(key, {
+    expiresAt: Date.now() + DASHBOARD_PLAN_CACHE_TTL_MS,
+    value,
+  });
+  if (dashboardPlanCache.size > 1_000) {
+    const now = Date.now();
+    for (const [cacheKey, cached] of dashboardPlanCache) {
+      if (cached.expiresAt <= now) {
+        dashboardPlanCache.delete(cacheKey);
+      }
+    }
+  }
+}
+
 function flattenCurriculumPathNodes(nodes: PublishedCurriculumNode[]) {
   const flattened: PublishedCurriculumNode[] = [];
   const visit = (node: PublishedCurriculumNode) => {
@@ -2035,6 +2066,29 @@ export async function getTodayLearningPlanDiagnostics(
 }
 
 async function getDashboardTodayPlanSummary(userId: string) {
+  const cacheKey = `summary:${userId}`;
+  const cached = readDashboardPlanCache<{
+    settings: {
+      id: string;
+      userId: string;
+      dailyQuestionGoal: number;
+      dailyStudyMinutes: number;
+      createdAt: null;
+      updatedAt: null;
+    };
+    completedQuestions: number;
+    reviewSummary: {
+      dueCount: number;
+      overdueCount: number;
+      estimatedMinutes: number;
+      completedToday: number;
+      completionRate: number;
+      byCourse: never[];
+      items: never[];
+    };
+  }>(cacheKey);
+  if (cached) return cached;
+
   const now = new Date().toISOString();
   const overdueCutoff = new Date(Date.now() - 86_400_000).toISOString();
   const todayRange = utcDayRange();
@@ -2054,7 +2108,7 @@ async function getDashboardTodayPlanSummary(userId: string) {
   const completedQuestions = Number(summary?.completedQuestions ?? 0);
   const dueCount = Number(summary?.dueCount ?? 0);
   const completedToday = Number(summary?.completedToday ?? 0);
-  return {
+  const result = {
     settings: {
       id: "dashboard-default-learning-settings",
       userId,
@@ -2074,6 +2128,8 @@ async function getDashboardTodayPlanSummary(userId: string) {
       items: [],
     },
   };
+  writeDashboardPlanCache(cacheKey, result);
+  return result;
 }
 
 async function timeDashboardPlanStep<T>(
@@ -2109,6 +2165,11 @@ async function getDashboardRecommendations(
 ) {
   const now = new Date().toISOString();
   if (!providedEnrollments) {
+    const cacheKey = `recommendations:${userId}`;
+    const cached =
+      readDashboardPlanCache<RecommendationCandidate[]>(cacheKey);
+    if (cached) return cached;
+
     const dashboardCandidates: RecommendationCandidate[] = [];
     const repeatedRows = await getDb()
       .select({
@@ -2138,7 +2199,9 @@ async function getDashboardRecommendations(
       .orderBy(desc(wrongNotes.wrongCount))
       .limit(8);
     if (!repeatedRows.length) {
-      return recommendationService.recommend(dashboardCandidates, 8);
+      const result = recommendationService.recommend(dashboardCandidates, 8);
+      writeDashboardPlanCache(cacheKey, result);
+      return result;
     }
     const questionRows = await getDb()
       .select({
@@ -2166,7 +2229,9 @@ async function getDashboardRecommendations(
         href: `/practice/${item.courseSlug}?wrongOnly=1&count=10`,
       })),
     );
-    return recommendationService.recommend(dashboardCandidates, 8);
+    const result = recommendationService.recommend(dashboardCandidates, 8);
+    writeDashboardPlanCache(cacheKey, result);
+    return result;
   }
   const enrollmentsPromise = providedEnrollments
     ? Promise.resolve(
