@@ -6,7 +6,6 @@ import { LearningSettingsForm } from "@/components/learning-settings-form";
 import { requireCurrentAppUser } from "@/lib/auth";
 import { listUserEnrollments } from "@/db/repositories";
 import { getTodayLearningPlan } from "@/db/phase3-repositories";
-import { listCourseTheoryProgress } from "@/db/lesson-repositories";
 
 export const metadata: Metadata = { title: "통합 대시보드" };
 export const dynamic = "force-dynamic";
@@ -55,7 +54,6 @@ export default async function DashboardPage() {
         <Suspense fallback={<ActiveCoursesFallback />}>
           <ActiveCoursesSection
             enrollmentsPromise={enrollmentsPromise}
-            userId={user.id}
           />
         </Suspense>
       </div>
@@ -211,22 +209,12 @@ function TodayPlanFallback() {
 
 async function ActiveCoursesSection({
   enrollmentsPromise,
-  userId,
 }: {
   enrollmentsPromise: Promise<Enrollment[]>;
-  userId: string;
 }) {
   const enrollments = await enrollmentsPromise;
   const activeEnrollments = enrollments.filter(
     (item) => item.status === "ACTIVE",
-  );
-  const theoryProgress = await safeDashboardData(
-    () =>
-      listCourseTheoryProgress(
-        userId,
-        activeEnrollments.map((enrollment) => enrollment.courseId),
-      ),
-    [],
   );
 
   return (
@@ -281,10 +269,7 @@ async function ActiveCoursesSection({
                 <div>
                   <dt>이론 진도</dt>
                   <dd>
-                    {theoryProgress.find(
-                      (item) => item.courseId === enrollment.courseId,
-                    )?.progressPercent ?? 0}
-                    %
+                    {enrollment.theoryProgressPercent ?? 0}%
                   </dd>
                 </div>
               </dl>

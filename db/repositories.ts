@@ -1,7 +1,9 @@
 import { and, asc, desc, eq, isNull, sql } from "drizzle-orm";
 import { getDb } from ".";
 import {
+  contents,
   courseGroups,
+  courseLessons,
   questionCourses,
   courses,
   learningUnits,
@@ -10,6 +12,7 @@ import {
   subjects,
   topics,
   userCourseEnrollments,
+  userCourseLessonProgress,
   userLessonProgress,
   userProgress,
   userRoles,
@@ -688,7 +691,7 @@ export function createEnrollmentRepository(): EnrollmentRepository {
 }
 
 export async function listUserEnrollments(userId: string) {
-  const [enrollmentRows, stats] = await Promise.all([
+  const [enrollmentRows, stats, theoryStats] = await Promise.all([
     getDb()
       .select({
         id: userCourseEnrollments.id,
@@ -720,17 +723,58 @@ export async function listUserEnrollments(userId: string) {
       .from(userProgress)
       .where(eq(userProgress.userId, userId))
       .groupBy(userProgress.courseId),
+    getDb()
+      .select({
+        courseId: courseLessons.courseId,
+        totalLessons: sql<number>`count(${courseLessons.id})`,
+        completedLessons: sql<number>`coalesce(sum(case when ${userCourseLessonProgress.status} = 'COMPLETED' then 1 else 0 end), 0)`,
+      })
+      .from(courseLessons)
+      .innerJoin(contents, eq(courseLessons.contentId, contents.id))
+      .innerJoin(
+        userCourseEnrollments,
+        and(
+          eq(userCourseEnrollments.courseId, courseLessons.courseId),
+          eq(userCourseEnrollments.userId, userId),
+          eq(userCourseEnrollments.status, "ACTIVE"),
+        ),
+      )
+      .leftJoin(
+        userCourseLessonProgress,
+        and(
+          eq(userCourseLessonProgress.userId, userId),
+          eq(userCourseLessonProgress.courseId, courseLessons.courseId),
+          eq(userCourseLessonProgress.courseLessonId, courseLessons.id),
+        ),
+      )
+      .where(
+        and(
+          eq(courseLessons.status, "PUBLISHED"),
+          isNull(courseLessons.deletedAt),
+          eq(contents.status, "PUBLISHED"),
+          isNull(contents.deletedAt),
+        ),
+      )
+      .groupBy(courseLessons.courseId),
   ]);
 
   return enrollmentRows.map((row) => {
     const courseStats = stats.find((stat) => stat.courseId === row.courseId);
+    const theory = theoryStats.find((item) => item.courseId === row.courseId);
     const totalAnswers = Number(courseStats?.totalAnswers ?? 0);
     const correctAnswers = Number(courseStats?.correctAnswers ?? 0);
+    const theoryTotalLessons = Number(theory?.totalLessons ?? 0);
+    const theoryCompletedLessons = Number(theory?.completedLessons ?? 0);
     return {
       ...row,
       accuracy:
         totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : null,
       lastStudiedAt: courseStats?.lastStudiedAt ?? null,
+      theoryTotalLessons,
+      theoryCompletedLessons,
+      theoryProgressPercent: theoryTotalLessons
+        ? Math.round((theoryCompletedLessons / theoryTotalLessons) * 100)
+        : 0,
     };
   });
 }
