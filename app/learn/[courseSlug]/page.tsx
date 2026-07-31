@@ -13,7 +13,7 @@ import {
   countDueReviewsForCourse,
   countPublicMockExamsForCourse,
   getCourseLearningSummary,
-  listCourseLevels,
+  listCourseLevelsForOverview,
 } from "@/db/phase3-repositories";
 import { listCourseSpecializations } from "@/db/specialized-repositories";
 import { getCourseTheoryProgress } from "@/db/lesson-repositories";
@@ -45,7 +45,7 @@ export default async function LearnCoursePage({
   ] =
     await Promise.all([
       listCurriculumWithSubjectTheoryProgress(user.id, course.id),
-      listCourseLevels(user.id, course.id),
+      listCourseLevelsForOverview(user.id, course.id),
       countDueReviewsForCourse(user.id, course.id),
       countPublicMockExamsForCourse(user.id, course.id),
       getCourseLearningSummary(user.id, course.id),

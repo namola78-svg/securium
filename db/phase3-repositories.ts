@@ -154,6 +154,53 @@ export async function listCourseLevels(userId: string, courseId: string) {
     .orderBy(asc(levels.displayOrder));
 }
 
+export async function listCourseLevelsForOverview(
+  userId: string,
+  courseId: string,
+) {
+  const rows = await getDb()
+    .select({
+      id: levels.id,
+      courseId: levels.courseId,
+      code: levels.code,
+      number: levels.number,
+      title: levels.title,
+      description: levels.description,
+      passingScore: levels.passingScore,
+      requiredLevelId: levels.requiredLevelId,
+      displayOrder: levels.displayOrder,
+      status: userLevelProgress.status,
+      bestScore: userLevelProgress.bestScore,
+      attemptCount: userLevelProgress.attemptCount,
+      completedAt: userLevelProgress.completedAt,
+      masteredAt: userLevelProgress.masteredAt,
+    })
+    .from(levels)
+    .leftJoin(
+      userLevelProgress,
+      and(
+        eq(levels.id, userLevelProgress.levelId),
+        eq(userLevelProgress.userId, userId),
+        eq(userLevelProgress.courseId, courseId),
+      ),
+    )
+    .where(
+      and(
+        eq(levels.courseId, courseId),
+        eq(levels.active, true),
+        eq(levels.published, true),
+      ),
+    )
+    .orderBy(asc(levels.displayOrder));
+
+  return rows.map((row) => ({
+    ...row,
+    status: (row.status ?? initialLevelStatus(row.requiredLevelId)) as LevelStatus,
+    bestScore: row.bestScore ?? 0,
+    attemptCount: row.attemptCount ?? 0,
+  }));
+}
+
 export async function getAccessibleLevel(userId: string, levelId: string) {
   const [row] = await getDb()
     .select({
