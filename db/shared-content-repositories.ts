@@ -486,88 +486,91 @@ export async function getPublishedCourseLessonProgressSummary(
   userId: string,
   courseId: string,
 ) {
-  const [summary] = await getDb()
-    .select({
-      totalLessons: sql<number>`count(${courseLessons.id})`,
-      completedLessons: sql<number>`coalesce(sum(case when ${userCourseLessonProgress.status} = 'COMPLETED' then 1 else 0 end), 0)`,
-    })
-    .from(courseLessons)
-    .innerJoin(contents, eq(courseLessons.contentId, contents.id))
-    .leftJoin(
-      userCourseLessonProgress,
-      and(
-        eq(userCourseLessonProgress.userId, userId),
-        eq(userCourseLessonProgress.courseId, courseLessons.courseId),
+  const [summaryRows, nextLessonRows, latestLessonRows] = await Promise.all([
+    getDb()
+      .select({
+        totalLessons: sql<number>`count(${courseLessons.id})`,
+        completedLessons: sql<number>`coalesce(sum(case when ${userCourseLessonProgress.status} = 'COMPLETED' then 1 else 0 end), 0)`,
+      })
+      .from(courseLessons)
+      .innerJoin(contents, eq(courseLessons.contentId, contents.id))
+      .leftJoin(
+        userCourseLessonProgress,
+        and(
+          eq(userCourseLessonProgress.userId, userId),
+          eq(userCourseLessonProgress.courseId, courseLessons.courseId),
+          eq(userCourseLessonProgress.courseLessonId, courseLessons.id),
+        ),
+      )
+      .where(
+        and(
+          eq(courseLessons.courseId, courseId),
+          eq(courseLessons.status, "PUBLISHED"),
+          isNull(courseLessons.deletedAt),
+          eq(contents.status, "PUBLISHED"),
+          isNull(contents.deletedAt),
+        ),
+      ),
+    getDb()
+      .select({
+        id: courseLessons.id,
+        title: courseLessons.displayTitle,
+        contentTitle: contents.title,
+        status: sql<string>`coalesce(${userCourseLessonProgress.status}, 'NOT_STARTED')`,
+      })
+      .from(courseLessons)
+      .innerJoin(contents, eq(courseLessons.contentId, contents.id))
+      .leftJoin(
+        userCourseLessonProgress,
+        and(
+          eq(userCourseLessonProgress.userId, userId),
+          eq(userCourseLessonProgress.courseId, courseLessons.courseId),
+          eq(userCourseLessonProgress.courseLessonId, courseLessons.id),
+        ),
+      )
+      .where(
+        and(
+          eq(courseLessons.courseId, courseId),
+          eq(courseLessons.status, "PUBLISHED"),
+          isNull(courseLessons.deletedAt),
+          eq(contents.status, "PUBLISHED"),
+          isNull(contents.deletedAt),
+          sql`coalesce(${userCourseLessonProgress.status}, 'NOT_STARTED') <> 'COMPLETED'`,
+        ),
+      )
+      .orderBy(asc(courseLessons.sortOrder), asc(courseLessons.displayTitle))
+      .limit(1),
+    getDb()
+      .select({
+        id: courseLessons.id,
+        title: courseLessons.displayTitle,
+        contentTitle: contents.title,
+        status: userCourseLessonProgress.status,
+        lastViewedAt: userCourseLessonProgress.lastViewedAt,
+      })
+      .from(userCourseLessonProgress)
+      .innerJoin(
+        courseLessons,
         eq(userCourseLessonProgress.courseLessonId, courseLessons.id),
-      ),
-    )
-    .where(
-      and(
-        eq(courseLessons.courseId, courseId),
-        eq(courseLessons.status, "PUBLISHED"),
-        isNull(courseLessons.deletedAt),
-        eq(contents.status, "PUBLISHED"),
-        isNull(contents.deletedAt),
-      ),
-    );
-
-  const [nextLesson] = await getDb()
-    .select({
-      id: courseLessons.id,
-      title: courseLessons.displayTitle,
-      contentTitle: contents.title,
-      status: sql<string>`coalesce(${userCourseLessonProgress.status}, 'NOT_STARTED')`,
-    })
-    .from(courseLessons)
-    .innerJoin(contents, eq(courseLessons.contentId, contents.id))
-    .leftJoin(
-      userCourseLessonProgress,
-      and(
-        eq(userCourseLessonProgress.userId, userId),
-        eq(userCourseLessonProgress.courseId, courseLessons.courseId),
-        eq(userCourseLessonProgress.courseLessonId, courseLessons.id),
-      ),
-    )
-    .where(
-      and(
-        eq(courseLessons.courseId, courseId),
-        eq(courseLessons.status, "PUBLISHED"),
-        isNull(courseLessons.deletedAt),
-        eq(contents.status, "PUBLISHED"),
-        isNull(contents.deletedAt),
-        sql`coalesce(${userCourseLessonProgress.status}, 'NOT_STARTED') <> 'COMPLETED'`,
-      ),
-    )
-    .orderBy(asc(courseLessons.sortOrder), asc(courseLessons.displayTitle))
-    .limit(1);
-
-  const [latestLesson] = await getDb()
-    .select({
-      id: courseLessons.id,
-      title: courseLessons.displayTitle,
-      contentTitle: contents.title,
-      status: userCourseLessonProgress.status,
-      lastViewedAt: userCourseLessonProgress.lastViewedAt,
-    })
-    .from(userCourseLessonProgress)
-    .innerJoin(
-      courseLessons,
-      eq(userCourseLessonProgress.courseLessonId, courseLessons.id),
-    )
-    .innerJoin(contents, eq(courseLessons.contentId, contents.id))
-    .where(
-      and(
-        eq(userCourseLessonProgress.userId, userId),
-        eq(userCourseLessonProgress.courseId, courseId),
-        eq(courseLessons.courseId, courseId),
-        eq(courseLessons.status, "PUBLISHED"),
-        isNull(courseLessons.deletedAt),
-        eq(contents.status, "PUBLISHED"),
-        isNull(contents.deletedAt),
-      ),
-    )
-    .orderBy(desc(userCourseLessonProgress.lastViewedAt))
-    .limit(1);
+      )
+      .innerJoin(contents, eq(courseLessons.contentId, contents.id))
+      .where(
+        and(
+          eq(userCourseLessonProgress.userId, userId),
+          eq(userCourseLessonProgress.courseId, courseId),
+          eq(courseLessons.courseId, courseId),
+          eq(courseLessons.status, "PUBLISHED"),
+          isNull(courseLessons.deletedAt),
+          eq(contents.status, "PUBLISHED"),
+          isNull(contents.deletedAt),
+        ),
+      )
+      .orderBy(desc(userCourseLessonProgress.lastViewedAt))
+      .limit(1),
+  ]);
+  const summary = summaryRows[0];
+  const nextLesson = nextLessonRows[0];
+  const latestLesson = latestLessonRows[0];
 
   const totalLessons = Number(summary?.totalLessons ?? 0);
   const completedLessons = Number(summary?.completedLessons ?? 0);
