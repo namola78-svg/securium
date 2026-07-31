@@ -503,7 +503,7 @@ async function getDashboardReviewSummary(userId: string) {
   const now = new Date().toISOString();
   const overdueCutoff = new Date(Date.now() - 86_400_000).toISOString();
   const todayRange = utcDayRange();
-  const [summaryRows, completedRows, byCourseRows] = await Promise.all([
+  const [summaryRows, completedRows] = await Promise.all([
     getDb()
       .select({
         dueCount: sql<number>`count(*)`,
@@ -528,24 +528,6 @@ async function getDashboardReviewSummary(userId: string) {
           gt(reviewSchedules.intervalDays, 0),
         ),
       ),
-    getDb()
-      .select({
-        courseId: reviewSchedules.courseId,
-        name: courses.shortName,
-        slug: courses.slug,
-        count: sql<number>`count(*)`,
-      })
-      .from(reviewSchedules)
-      .innerJoin(courses, eq(reviewSchedules.courseId, courses.id))
-      .where(
-        and(
-          eq(reviewSchedules.userId, userId),
-          lte(reviewSchedules.nextReviewAt, now),
-          inArray(reviewSchedules.status, ["DUE", "SCHEDULED"]),
-        ),
-      )
-      .groupBy(reviewSchedules.courseId, courses.shortName, courses.slug)
-      .limit(5),
   ]);
   const summaryRow = summaryRows[0];
   const completedRow = completedRows[0];
@@ -557,12 +539,7 @@ async function getDashboardReviewSummary(userId: string) {
     estimatedMinutes: dueCount * 2,
     completedToday,
     completionRate: safeRate(completedToday, completedToday + dueCount),
-    byCourse: byCourseRows.map((row) => ({
-      courseId: row.courseId,
-      name: row.name,
-      slug: row.slug,
-      count: Number(row.count),
-    })),
+    byCourse: [],
     items: [],
   };
 }
@@ -2195,6 +2172,57 @@ async function getDashboardRecommendations(
             eq(userCourseEnrollments.status, "ACTIVE"),
           ),
         );
+  {
+    const dashboardEnrollments = await enrollmentsPromise;
+    const dashboardCandidates: RecommendationCandidate[] = [];
+    const dashboardCourseIds = dashboardEnrollments.map(
+      (enrollment) => enrollment.courseId,
+    );
+    if (!dashboardCourseIds.length) {
+      return recommendationService.recommend(dashboardCandidates, 8);
+    }
+    const dashboardCourseById = new Map(
+      dashboardEnrollments.map((enrollment) => [
+        enrollment.courseId,
+        enrollment,
+      ]),
+    );
+    const repeatedRows = await getDb()
+      .select({
+        id: wrongNotes.id,
+        courseId: wrongNotes.courseId,
+        questionId: wrongNotes.questionId,
+        wrongCount: wrongNotes.wrongCount,
+        title: questions.title,
+      })
+      .from(wrongNotes)
+      .innerJoin(questions, eq(wrongNotes.questionId, questions.id))
+      .where(
+        and(
+          eq(wrongNotes.userId, userId),
+          inArray(wrongNotes.courseId, dashboardCourseIds),
+          gt(wrongNotes.wrongCount, 1),
+          sql`${wrongNotes.mastered} = 0`,
+        ),
+      )
+      .orderBy(desc(wrongNotes.wrongCount))
+      .limit(8);
+    dashboardCandidates.push(
+      ...repeatedRows.map((item) => {
+        const course = dashboardCourseById.get(item.courseId);
+        return {
+          id: item.id,
+          kind: "QUESTION" as const,
+          title: item.title,
+          reason: `최근 ${item.wrongCount}회 반복 오답`,
+          priority: "REPEATED_WRONG" as const,
+          estimatedMinutes: 3,
+          href: `/practice/${course?.courseSlug ?? ""}?wrongOnly=1&count=10`,
+        };
+      }),
+    );
+    return recommendationService.recommend(dashboardCandidates, 8);
+  }
   const [reviews, enrollments] = await Promise.all([
     getDb()
       .select({
@@ -2298,10 +2326,11 @@ async function getDashboardRecommendations(
     (typeof staleSubjectRows)[number]
   >();
   for (const subject of staleSubjectRows) {
-    const stale =
-      !subject.lastStudiedAt ||
-      Date.now() - new Date(subject.lastStudiedAt).getTime() >=
-        14 * 86_400_000;
+    const lastStudiedAt = subject.lastStudiedAt;
+    const stale = lastStudiedAt
+      ? Date.now() - new Date(lastStudiedAt as string).getTime() >=
+        14 * 86_400_000
+      : true;
     if (stale && !staleByCourse.has(subject.courseId)) {
       staleByCourse.set(subject.courseId, subject);
     }
@@ -2318,7 +2347,7 @@ async function getDashboardRecommendations(
         : "아직 학습 기록이 없는 과목",
       priority: "STALE_SUBJECT",
       estimatedMinutes: 10,
-      href: `/practice/${course.courseSlug}?subjectId=${subject.subjectId}&count=10`,
+      href: `/practice/${course?.courseSlug ?? ""}?subjectId=${subject.subjectId}&count=10`,
     });
   }
   return recommendationService.recommend(candidates, 8);
