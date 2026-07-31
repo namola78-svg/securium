@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, isNull, sql } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
 import { getDb } from ".";
 import {
@@ -479,6 +479,128 @@ export async function listPublishedCourseLessonsForUser(
       progressPercent: Number(row.progressPercent ?? 0),
       completedAt: row.completedAt,
     })),
+  };
+}
+
+export async function getPublishedCourseLessonProgressSummary(
+  userId: string,
+  courseId: string,
+) {
+  const [summary] = await getDb()
+    .select({
+      totalLessons: sql<number>`count(${courseLessons.id})`,
+      completedLessons: sql<number>`coalesce(sum(case when ${userCourseLessonProgress.status} = 'COMPLETED' then 1 else 0 end), 0)`,
+    })
+    .from(courseLessons)
+    .innerJoin(contents, eq(courseLessons.contentId, contents.id))
+    .leftJoin(
+      userCourseLessonProgress,
+      and(
+        eq(userCourseLessonProgress.userId, userId),
+        eq(userCourseLessonProgress.courseId, courseLessons.courseId),
+        eq(userCourseLessonProgress.courseLessonId, courseLessons.id),
+      ),
+    )
+    .where(
+      and(
+        eq(courseLessons.courseId, courseId),
+        eq(courseLessons.status, "PUBLISHED"),
+        isNull(courseLessons.deletedAt),
+        eq(contents.status, "PUBLISHED"),
+        isNull(contents.deletedAt),
+      ),
+    );
+
+  const [nextLesson] = await getDb()
+    .select({
+      id: courseLessons.id,
+      title: courseLessons.displayTitle,
+      contentTitle: contents.title,
+      status: sql<string>`coalesce(${userCourseLessonProgress.status}, 'NOT_STARTED')`,
+    })
+    .from(courseLessons)
+    .innerJoin(contents, eq(courseLessons.contentId, contents.id))
+    .leftJoin(
+      userCourseLessonProgress,
+      and(
+        eq(userCourseLessonProgress.userId, userId),
+        eq(userCourseLessonProgress.courseId, courseLessons.courseId),
+        eq(userCourseLessonProgress.courseLessonId, courseLessons.id),
+      ),
+    )
+    .where(
+      and(
+        eq(courseLessons.courseId, courseId),
+        eq(courseLessons.status, "PUBLISHED"),
+        isNull(courseLessons.deletedAt),
+        eq(contents.status, "PUBLISHED"),
+        isNull(contents.deletedAt),
+        sql`coalesce(${userCourseLessonProgress.status}, 'NOT_STARTED') <> 'COMPLETED'`,
+      ),
+    )
+    .orderBy(asc(courseLessons.sortOrder), asc(courseLessons.displayTitle))
+    .limit(1);
+
+  const [latestLesson] = await getDb()
+    .select({
+      id: courseLessons.id,
+      title: courseLessons.displayTitle,
+      contentTitle: contents.title,
+      status: userCourseLessonProgress.status,
+      lastViewedAt: userCourseLessonProgress.lastViewedAt,
+    })
+    .from(userCourseLessonProgress)
+    .innerJoin(
+      courseLessons,
+      eq(userCourseLessonProgress.courseLessonId, courseLessons.id),
+    )
+    .innerJoin(contents, eq(courseLessons.contentId, contents.id))
+    .where(
+      and(
+        eq(userCourseLessonProgress.userId, userId),
+        eq(userCourseLessonProgress.courseId, courseId),
+        eq(courseLessons.courseId, courseId),
+        eq(courseLessons.status, "PUBLISHED"),
+        isNull(courseLessons.deletedAt),
+        eq(contents.status, "PUBLISHED"),
+        isNull(contents.deletedAt),
+      ),
+    )
+    .orderBy(desc(userCourseLessonProgress.lastViewedAt))
+    .limit(1);
+
+  const totalLessons = Number(summary?.totalLessons ?? 0);
+  const completedLessons = Number(summary?.completedLessons ?? 0);
+  return {
+    totalLessons,
+    completedLessons,
+    progressPercent: totalLessons
+      ? Math.round((completedLessons / totalLessons) * 100)
+      : 0,
+    nextLesson: nextLesson
+      ? {
+          id: nextLesson.id,
+          title: nextLesson.title || nextLesson.contentTitle,
+          status: nextLesson.status ?? "NOT_STARTED",
+        }
+      : null,
+    latestLesson: latestLesson
+      ? {
+          id: latestLesson.id,
+          title: latestLesson.title || latestLesson.contentTitle,
+          status: latestLesson.status ?? "NOT_STARTED",
+        }
+      : null,
+    lessons: [] as Array<{
+      id: string;
+      title: string;
+      summary: string | null;
+      estimatedMinutes: number;
+      status: string;
+      isRequired: boolean;
+      difficulty: string | null;
+      importance: number | null;
+    }>,
   };
 }
 

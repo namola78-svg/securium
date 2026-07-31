@@ -19,7 +19,9 @@ import {
   getCourseTheoryProgress,
   listSubjectTheoryProgress,
 } from "@/db/lesson-repositories";
-import { listPublishedCourseLessonsForUser } from "@/db/shared-content-repositories";
+import {
+  getPublishedCourseLessonProgressSummary,
+} from "@/db/shared-content-repositories";
 import { publicCopy } from "@/lib/public-copy";
 
 export const dynamic = "force-dynamic";
@@ -46,7 +48,7 @@ export default async function LearnCoursePage({
     theoryProgress,
     subjectTheoryProgress,
     curriculumPath,
-    sharedLessonProgress,
+    sharedLessonSummary,
   ] =
     await Promise.all([
       listCurriculum(course.id),
@@ -58,7 +60,7 @@ export default async function LearnCoursePage({
       getCourseTheoryProgress(user.id, course.id),
       listSubjectTheoryProgress(user.id, course.id),
       getPublishedCurriculumPathOverviewForCourse(course.id, user.id),
-      listPublishedCourseLessonsForUser(user.id, course.id),
+      getPublishedCourseLessonProgressSummary(user.id, course.id),
     ]);
   const levelCompletion = levelRows.length
     ? Math.round(
@@ -69,19 +71,15 @@ export default async function LearnCoursePage({
           100,
       )
     : 0;
-  const displayedTheoryProgress = sharedLessonProgress.totalLessons
+  const displayedTheoryProgress = sharedLessonSummary.totalLessons
     ? {
-        completedLessons: sharedLessonProgress.completedLessons,
-        totalLessons: sharedLessonProgress.totalLessons,
-        progressPercent: sharedLessonProgress.progressPercent,
+        completedLessons: sharedLessonSummary.completedLessons,
+        totalLessons: sharedLessonSummary.totalLessons,
+        progressPercent: sharedLessonSummary.progressPercent,
       }
     : theoryProgress;
-  const nextSharedLesson =
-    sharedLessonProgress.lessons.find((lesson) => lesson.status !== "COMPLETED") ??
-    null;
-  const latestSharedLesson =
-    sharedLessonProgress.lessons.find((lesson) => lesson.status === "COMPLETED") ??
-    null;
+  const nextSharedLesson = sharedLessonSummary.nextLesson;
+  const latestSharedLesson = sharedLessonSummary.latestLesson;
 
   return (
     <main className="page-main">
@@ -185,7 +183,7 @@ export default async function LearnCoursePage({
             />
           ) : null}
 
-          {sharedLessonProgress.totalLessons ? (
+          {sharedLessonSummary.totalLessons ? (
             <section className="section-block">
               <div className="section-heading compact">
                 <div>
@@ -197,16 +195,16 @@ export default async function LearnCoursePage({
                   </p>
                 </div>
                 <span className="count-label">
-                  {sharedLessonProgress.completedLessons}/
-                  {sharedLessonProgress.totalLessons} 완료
+                  {sharedLessonSummary.completedLessons}/
+                  {sharedLessonSummary.totalLessons} 완료
                 </span>
               </div>
               <ProgressBar
-                value={sharedLessonProgress.progressPercent}
+                value={sharedLessonSummary.progressPercent}
                 label="공통 이론 진도"
               />
               <div className="course-lesson-grid">
-                {sharedLessonProgress.lessons.map((lesson) => (
+                {sharedLessonSummary.lessons.map((lesson) => (
                   <Link
                     className="course-lesson-card"
                     href={`/learn/${course.slug}/course-lessons/${lesson.id}`}
