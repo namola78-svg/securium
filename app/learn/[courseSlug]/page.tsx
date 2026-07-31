@@ -16,6 +16,10 @@ import { listCourseSpecializations } from "@/db/specialized-repositories";
 import { getCourseTheoryProgress } from "@/db/lesson-repositories";
 import { getPublishedCourseLessonProgressSummary } from "@/db/shared-content-repositories";
 import { publicCopy } from "@/lib/public-copy";
+import {
+  getCurriculumNodeLabel,
+  hasPrimaryCurriculumPath,
+} from "@/lib/services/learn-overview-service";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +39,10 @@ export default async function LearnCoursePage({
 
   const curriculumPromise = listCurriculumForLearnOverview(course.id);
   const specializationsPromise = listCourseSpecializations(course.id);
+  const curriculumPathPromise = getPublishedCurriculumPathOverviewForCourse(
+    course.id,
+    user.id,
+  );
   const sharedLessonSummaryPromise = getPublishedCourseLessonProgressSummary(
     user.id,
     course.id,
@@ -98,15 +106,15 @@ export default async function LearnCoursePage({
 
           <Suspense fallback={<CurriculumPathFallback />}>
             <CurriculumPathLoader
-              courseId={course.id}
               courseSlug={course.slug}
-              userId={user.id}
+              curriculumPathPromise={curriculumPathPromise}
             />
           </Suspense>
 
           <Suspense fallback={<SharedTheorySectionFallback />}>
             <SharedTheorySectionLoader
               courseSlug={course.slug}
+              curriculumPathPromise={curriculumPathPromise}
               sharedLessonSummaryPromise={sharedLessonSummaryPromise}
             />
           </Suspense>
@@ -115,6 +123,7 @@ export default async function LearnCoursePage({
             <Suspense fallback={<SubjectsSectionFallback />}>
               <SubjectsSectionLoader
                 courseSlug={course.slug}
+                curriculumPathPromise={curriculumPathPromise}
                 curriculumPromise={curriculumPromise}
               />
             </Suspense>
@@ -360,23 +369,29 @@ function LearnLevelPathFallback() {
 
 async function SharedTheorySectionLoader({
   courseSlug,
+  curriculumPathPromise,
   sharedLessonSummaryPromise,
 }: {
   courseSlug: string;
+  curriculumPathPromise: Promise<CurriculumPathOverview>;
   sharedLessonSummaryPromise: Promise<SharedLessonSummary>;
 }) {
-  const sharedLessonSummary = await sharedLessonSummaryPromise;
+  const [curriculumPath, sharedLessonSummary] = await Promise.all([
+    curriculumPathPromise,
+    sharedLessonSummaryPromise,
+  ]);
+  if (hasPrimaryCurriculumPath(curriculumPath)) return null;
   if (!sharedLessonSummary.totalLessons) return null;
 
   return (
     <section className="section-block">
       <div className="section-heading compact">
         <div>
-          <p className="eyebrow">SHARED THEORY</p>
-          <h2>공통 이론 레슨</h2>
+          <p className="eyebrow">THEORY FALLBACK</p>
+          <h2>보조 이론 학습</h2>
           <p>
-            여러 과정에서 함께 사용하는 핵심 이론을 이 과정 맥락에 맞춰
-            학습합니다.
+            공식 커리큘럼 연결이 충분하지 않은 과정에서는 기존 이론 레슨으로
+            학습을 이어갑니다.
           </p>
         </div>
         <span className="count-label">
@@ -386,7 +401,7 @@ async function SharedTheorySectionLoader({
       </div>
       <ProgressBar
         value={sharedLessonSummary.progressPercent}
-        label="공통 이론 진도"
+        label="보조 이론 진도"
       />
       <div className="course-lesson-grid">
         {sharedLessonSummary.lessons.map((lesson) => (
@@ -437,19 +452,35 @@ function SharedTheorySectionFallback() {
 
 async function SubjectsSectionLoader({
   courseSlug,
+  curriculumPathPromise,
   curriculumPromise,
 }: {
   courseSlug: string;
+  curriculumPathPromise: Promise<CurriculumPathOverview>;
   curriculumPromise: Promise<LearnCurriculum>;
 }) {
-  const curriculum = await curriculumPromise;
+  const [curriculumPath, curriculum] = await Promise.all([
+    curriculumPathPromise,
+    curriculumPromise,
+  ]);
+  if (hasPrimaryCurriculumPath(curriculumPath)) return null;
+  const hasOfficialTreeWithoutLessons = Boolean(curriculumPath);
+  const heading = hasOfficialTreeWithoutLessons
+    ? "기존 학습 자료"
+    : "과목별 학습";
+  const description = hasOfficialTreeWithoutLessons
+    ? "공식 커리큘럼은 준비되어 있지만 연결된 레슨이 아직 부족해 기존 과목 구조로 학습을 제공합니다."
+    : "공식 커리큘럼이 없는 과정은 기존 과목과 주제 구조로 학습을 제공합니다.";
 
   return (
     <div>
       <div className="section-heading compact">
         <div>
-          <p className="eyebrow">SUBJECTS</p>
-          <h2>과목 목록</h2>
+          <p className="eyebrow">
+            {hasOfficialTreeWithoutLessons ? "LEGACY FALLBACK" : "SUBJECTS"}
+          </p>
+          <h2>{heading}</h2>
+          <p>{description}</p>
         </div>
       </div>
       <div className="subject-list">
@@ -664,21 +695,19 @@ function LearnActivitySideCardsFallback() {
 type CurriculumPath = NonNullable<
   Awaited<ReturnType<typeof getPublishedCurriculumPathOverviewForCourse>>
 >;
+type CurriculumPathOverview = Awaited<
+  ReturnType<typeof getPublishedCurriculumPathOverviewForCourse>
+>;
 type CurriculumPathNode = CurriculumPath["nodes"][number];
 
 async function CurriculumPathLoader({
-  courseId,
   courseSlug,
-  userId,
+  curriculumPathPromise,
 }: {
-  courseId: string;
   courseSlug: string;
-  userId: string;
+  curriculumPathPromise: Promise<CurriculumPathOverview>;
 }) {
-  const path = await getPublishedCurriculumPathOverviewForCourse(
-    courseId,
-    userId,
-  );
+  const path = await curriculumPathPromise;
   return path ? <CurriculumPathSection courseSlug={courseSlug} path={path} /> : null;
 }
 
@@ -703,9 +732,10 @@ function CurriculumPathSection({
   courseSlug: string;
   path: CurriculumPath;
 }) {
+  const hasLinkedLessons = hasPrimaryCurriculumPath(path);
   return (
     <section className="curriculum-path-section section-block">
-      {path.linkedLessonCount ? (
+      {hasLinkedLessons ? (
         <div className="curriculum-path-summary">
           <ProgressBar
             value={path.progressPercent}
@@ -715,12 +745,18 @@ function CurriculumPathSection({
       ) : null}
       <div className="section-heading compact">
         <div>
-          <p className="eyebrow">CURRICULUM PATH</p>
-          <h2>통합 커리큘럼 경로</h2>
+          <p className="eyebrow">OFFICIAL CURRICULUM</p>
+          <h2>공식 커리큘럼</h2>
           <p>
             {path.tree.title} · v{path.tree.version}
             {path.tree.effectiveFrom ? ` · 기준일 ${path.tree.effectiveFrom}` : ""}
           </p>
+          {!hasLinkedLessons ? (
+            <p>
+              공식 분류는 준비되어 있지만 연결된 학습 레슨이 아직 부족합니다.
+              아래 기존 학습 자료로 먼저 학습을 이어갈 수 있습니다.
+            </p>
+          ) : null}
         </div>
         <span className="count-label">{path.nodeCount}개 노드</span>
       </div>
@@ -745,18 +781,19 @@ function CurriculumPathNodeCard({
   node: CurriculumPathNode;
 }) {
   const practiceHref = getCurriculumPracticeHref(courseSlug, node);
+  const nodeTitle = node.officialTitle || node.title;
 
   return (
     <article className="curriculum-path-node">
       <div className="curriculum-path-node-body">
         <div className="course-card-top">
-          <span className="badge">{node.nodeType}</span>
+          <span className="badge">{getCurriculumNodeLabel(node.nodeType)}</span>
           {node.isRequired ? <span className="sample-label">필수</span> : null}
           {node.isPractical ? <span className="sample-label">실무</span> : null}
         </div>
         <h3>
           {node.officialCode ? `${node.officialCode} · ` : ""}
-          {node.title}
+          {nodeTitle}
         </h3>
         {node.description ? <p>{node.description}</p> : null}
         {node.linkedLessonCount ? (
@@ -766,7 +803,7 @@ function CurriculumPathNodeCard({
           </p>
         ) : null}
         {node.questionStats.questionCount ? (
-          <dl className="curriculum-path-stats" aria-label={`${node.title} 문제 통계`}>
+          <dl className="curriculum-path-stats" aria-label={`${nodeTitle} 문제 통계`}>
             <div>
               <dt>문제</dt>
               <dd>{node.questionStats.questionCount}개</dd>
