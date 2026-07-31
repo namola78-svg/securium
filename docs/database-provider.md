@@ -47,7 +47,7 @@ npm install postgres@3.4.7 --save-exact
 
 ## Pool과 timeout
 
-- 기본 최대 연결 수: 인스턴스당 1
+- 기본 최대 연결 수: 인스턴스당 3
 - 기본 idle timeout: 20초
 - 기본 connect timeout: 3초
 - 기본 query timeout: 10초

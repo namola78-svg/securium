@@ -9,7 +9,7 @@
 | `DB_PROVIDER` | `d1` 또는 `supabase` 선택 | Preview/Production |
 | `DATABASE_URL` | 런타임 transaction pooler 연결 | `DB_PROVIDER=supabase` |
 | `DIRECT_URL` | migration·상태 확인용 직접 연결 | migration 명령 |
-| `POSTGRES_MAX_CONNECTIONS` | 인스턴스별 pool 상한(1~20) | 선택, 기본 1 |
+| `POSTGRES_MAX_CONNECTIONS` | 인스턴스별 pool 상한(1~20) | 선택, 기본 3 |
 | `POSTGRES_IDLE_TIMEOUT_SECONDS` | idle 종료(1~600초) | 선택, 기본 20 |
 | `POSTGRES_CONNECT_TIMEOUT_SECONDS` | 연결 제한(1~60초) | 선택, 기본 3 |
 | `POSTGRES_QUERY_TIMEOUT_MS` | query 제한(100~120000ms) | 선택, 기본 10000 |

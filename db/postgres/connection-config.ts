@@ -57,7 +57,7 @@ export function createPostgreSqlConnectionPlan(
             "POSTGRES_MAX_CONNECTIONS",
             1,
             20,
-            1,
+            3,
           )
         : 1,
     preparedStatements: false,
@@ -101,7 +101,7 @@ export function validatePostgreSqlEnvironment(
     "POSTGRES_MAX_CONNECTIONS",
     1,
     20,
-    1,
+    3,
   );
   parseInteger(
     environment.POSTGRES_IDLE_TIMEOUT_SECONDS,
