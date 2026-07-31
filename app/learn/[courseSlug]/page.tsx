@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
+import { LearnCurriculumPathTree } from "@/components/learn-curriculum-path-tree";
 import { ProgressBar } from "@/components/progress-bar";
 import { getPublishedCurriculumPathOverviewForCourse } from "@/db/curriculum-repositories";
 import { requireCurrentAppUser } from "@/lib/auth";
@@ -16,10 +17,7 @@ import { listCourseSpecializations } from "@/db/specialized-repositories";
 import { getCourseTheoryProgress } from "@/db/lesson-repositories";
 import { getPublishedCourseLessonProgressSummary } from "@/db/shared-content-repositories";
 import { publicCopy } from "@/lib/public-copy";
-import {
-  getCurriculumNodeLabel,
-  hasPrimaryCurriculumPath,
-} from "@/lib/services/learn-overview-service";
+import { hasPrimaryCurriculumPath } from "@/lib/services/learn-overview-service";
 
 export const dynamic = "force-dynamic";
 
@@ -698,7 +696,6 @@ type CurriculumPath = NonNullable<
 type CurriculumPathOverview = Awaited<
   ReturnType<typeof getPublishedCurriculumPathOverviewForCourse>
 >;
-type CurriculumPathNode = CurriculumPath["nodes"][number];
 
 async function CurriculumPathLoader({
   courseSlug,
@@ -760,118 +757,7 @@ function CurriculumPathSection({
         </div>
         <span className="count-label">{path.nodeCount}개 노드</span>
       </div>
-      <div className="curriculum-path-tree">
-        {path.nodes.map((node) => (
-          <CurriculumPathNodeCard
-            courseSlug={courseSlug}
-            key={node.id}
-            node={node}
-          />
-        ))}
-      </div>
+      <LearnCurriculumPathTree courseSlug={courseSlug} nodes={path.nodes} />
     </section>
   );
-}
-
-function CurriculumPathNodeCard({
-  courseSlug,
-  node,
-}: {
-  courseSlug: string;
-  node: CurriculumPathNode;
-}) {
-  const practiceHref = getCurriculumPracticeHref(courseSlug, node);
-  const nodeTitle = node.officialTitle || node.title;
-
-  return (
-    <article className="curriculum-path-node">
-      <div className="curriculum-path-node-body">
-        <div className="course-card-top">
-          <span className="badge">{getCurriculumNodeLabel(node.nodeType)}</span>
-          {node.isRequired ? <span className="sample-label">필수</span> : null}
-          {node.isPractical ? <span className="sample-label">실무</span> : null}
-        </div>
-        <h3>
-          {node.officialCode ? `${node.officialCode} · ` : ""}
-          {nodeTitle}
-        </h3>
-        {node.description ? <p>{node.description}</p> : null}
-        {node.linkedLessonCount ? (
-          <p className="curriculum-path-progress">
-            연결 레슨 {node.completedLinkedLessons}/{node.linkedLessonCount} 완료 ·{" "}
-            {node.linkedLessonProgressPercent}%
-          </p>
-        ) : null}
-        {node.questionStats.questionCount ? (
-          <dl className="curriculum-path-stats" aria-label={`${nodeTitle} 문제 통계`}>
-            <div>
-              <dt>문제</dt>
-              <dd>{node.questionStats.questionCount}개</dd>
-            </div>
-            <div>
-              <dt>정답률</dt>
-              <dd>
-                {node.questionStats.attemptCount
-                  ? `${node.questionStats.accuracy}%`
-                  : "기록 없음"}
-              </dd>
-            </div>
-            <div>
-              <dt>오답</dt>
-              <dd>{node.questionStats.wrongQuestionCount}개</dd>
-            </div>
-            <div>
-              <dt>복습</dt>
-              <dd>{node.questionStats.dueReviewCount}개</dd>
-            </div>
-          </dl>
-        ) : null}
-        <p className="curriculum-path-meta">
-          연결 콘텐츠 {node.linkedContentCount}개
-          {node.importance !== null ? ` · 중요도 ${node.importance}` : ""}
-        </p>
-        {node.linkedLesson ? (
-          <Link
-            className="button button-ghost"
-            href={`/learn/${courseSlug}/course-lessons/${node.linkedLesson.id}`}
-          >
-            연결 레슨 보기 · {node.linkedLesson.title}
-          </Link>
-        ) : null}
-        {practiceHref ? (
-          <Link className="button button-dark" href={practiceHref}>
-            커리큘럼 문제 풀기
-          </Link>
-        ) : null}
-      </div>
-      {node.children.length ? (
-        <div className="curriculum-path-children">
-          {node.children.map((child) => (
-            <CurriculumPathNodeCard
-              courseSlug={courseSlug}
-              key={child.id}
-              node={child}
-            />
-          ))}
-        </div>
-      ) : null}
-    </article>
-  );
-}
-
-function getCurriculumPracticeHref(
-  courseSlug: string,
-  node: CurriculumPathNode,
-) {
-  if (!node.questionStats.questionCount) return null;
-  const topicLink = node.linkedContent.find((link) => link.type === "TOPIC");
-  const subjectLink = node.linkedContent.find(
-    (link) => link.type === "SUBJECT",
-  );
-  if (!subjectLink && !topicLink) return null;
-
-  const params = new URLSearchParams({ count: "10" });
-  if (subjectLink) params.set("subjectId", subjectLink.id);
-  if (topicLink) params.set("topicId", topicLink.id);
-  return `/practice/${courseSlug}?${params.toString()}`;
 }

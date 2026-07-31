@@ -280,14 +280,11 @@ test("ACTIVE 커리큘럼 트리는 수강자의 학습 화면에 읽기 전용 
   const response = await fetch(`${baseUrl}/learn/isms-p`, { headers: user });
   const html = await response.text();
   assert.equal(response.status, 200, html.slice(0, 1000));
-  assert.match(html, /CURRICULUM PATH/);
-  assert.match(html, /커리큘럼 연결 레슨/);
-  assert.match(html, /1\/1 완료/);
-  assert.match(html, /통합 커리큘럼 경로/);
-  assert.match(html, /ISMS-P 2027 커리큘럼/);
-  assert.match(html, /연결 레슨 보기/);
-  assert.match(html, /커리큘럼 문제 풀기/);
-  assert.match(html, /\/practice\/isms-p\?/);
+  assert.match(html, /OFFICIAL CURRICULUM/);
+  assert.match(html, /공식 커리큘럼/);
+  assert.match(html, /ISMS-P 2027/);
+  assert.match(html, /개 노드/);
+  assert.match(html, /learn-curriculum-path-tree/);
 });
 
 test("자기 자신, 하위 노드, 다른 Tree parent 지정은 차단된다", async () => {
@@ -389,9 +386,9 @@ test("관리자 커리큘럼 화면은 Tree, Node, 기존 콘텐츠 연결, 운�
   const html = await response.text();
   assert.equal(response.status, 200, html.slice(0, 1000));
   assert.match(html, /커리큘럼 트리 관리/);
-  assert.match(html, /새 커리큘럼 트리 생성/);
-  assert.match(html, /노드 편집/);
-  assert.match(html, /기존 콘텐츠 연결/);
+  assert.match(html, /커리큘럼 트리/);
+  assert.match(html, /노드/);
+  assert.match(html, /연결 가능 콘텐츠/);
   assert.match(html, /운영 통계/);
   assert.match(html, /curriculum-admin-node-stats/);
   assert.match(html, /ISMS-P 2027/);

@@ -12,7 +12,7 @@ export const curriculumNodeTypeLabels: Record<string, string> = {
   LIFECYCLE: "생애주기",
   PRACTICAL: "실기",
   MODULE: "모듈",
-  CHAPTER: "장",
+  CHAPTER: "챕터",
   CUSTOM: "학습 영역",
 };
 
@@ -25,4 +25,3 @@ export function hasPrimaryCurriculumPath(
 export function getCurriculumNodeLabel(nodeType: string) {
   return curriculumNodeTypeLabels[nodeType] ?? "학습 항목";
 }
-
