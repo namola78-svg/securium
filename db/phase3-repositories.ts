@@ -1644,16 +1644,23 @@ export async function getIntegratedStatistics(userId: string) {
 }
 
 export async function getLearningSettings(userId: string) {
-  await getDb()
-    .insert(userLearningSettings)
-    .values({ id: crypto.randomUUID(), userId })
-    .onConflictDoNothing();
   const [settings] = await getDb()
     .select()
     .from(userLearningSettings)
     .where(eq(userLearningSettings.userId, userId))
     .limit(1);
-  return settings;
+  if (settings) return settings;
+
+  await getDb()
+    .insert(userLearningSettings)
+    .values({ id: crypto.randomUUID(), userId })
+    .onConflictDoNothing();
+  const [createdSettings] = await getDb()
+    .select()
+    .from(userLearningSettings)
+    .where(eq(userLearningSettings.userId, userId))
+    .limit(1);
+  return createdSettings;
 }
 
 export async function saveLearningSettings(input: {
