@@ -2174,10 +2174,8 @@ async function getDashboardRecommendations(
         courseId: wrongNotes.courseId,
         questionId: wrongNotes.questionId,
         wrongCount: wrongNotes.wrongCount,
-        title: questions.title,
       })
       .from(wrongNotes)
-      .innerJoin(questions, eq(wrongNotes.questionId, questions.id))
       .where(
         and(
           eq(wrongNotes.userId, userId),
@@ -2188,13 +2186,31 @@ async function getDashboardRecommendations(
       )
       .orderBy(desc(wrongNotes.wrongCount))
       .limit(8);
+    if (!repeatedRows.length) {
+      return recommendationService.recommend(dashboardCandidates, 8);
+    }
+    const questionRows = await getDb()
+      .select({
+        id: questions.id,
+        title: questions.title,
+      })
+      .from(questions)
+      .where(
+        inArray(
+          questions.id,
+          repeatedRows.map((item) => item.questionId),
+        ),
+      );
+    const questionTitleById = new Map(
+      questionRows.map((question) => [question.id, question.title]),
+    );
     dashboardCandidates.push(
       ...repeatedRows.map((item) => {
         const course = dashboardCourseById.get(item.courseId);
         return {
           id: item.id,
           kind: "QUESTION" as const,
-          title: item.title,
+          title: questionTitleById.get(item.questionId) ?? "추천 문제",
           reason: `최근 ${item.wrongCount}회 반복 오답`,
           priority: "REPEATED_WRONG" as const,
           estimatedMinutes: 3,
