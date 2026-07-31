@@ -7,7 +7,7 @@ import { requireCurrentAppUser } from "@/lib/auth";
 import {
   getEnrollmentForCourse,
   getPublicCourseBySlug,
-  listCurriculum,
+  listCurriculumWithSubjectTheoryProgress,
 } from "@/db/repositories";
 import {
   countDueReviewsForCourse,
@@ -18,7 +18,6 @@ import {
 import { listCourseSpecializations } from "@/db/specialized-repositories";
 import {
   getCourseTheoryProgress,
-  listSubjectTheoryProgress,
 } from "@/db/lesson-repositories";
 import {
   getPublishedCourseLessonProgressSummary,
@@ -47,18 +46,16 @@ export default async function LearnCoursePage({
     stats,
     specializations,
     theoryProgress,
-    subjectTheoryProgress,
     sharedLessonSummary,
   ] =
     await Promise.all([
-      listCurriculum(course.id),
+      listCurriculumWithSubjectTheoryProgress(user.id, course.id),
       listCourseLevels(user.id, course.id),
       countDueReviewsForCourse(user.id, course.id),
       countPublicMockExamsForCourse(user.id, course.id),
       getCourseLearningSummary(user.id, course.id),
       listCourseSpecializations(course.id),
       getCourseTheoryProgress(user.id, course.id),
-      listSubjectTheoryProgress(user.id, course.id),
       getPublishedCourseLessonProgressSummary(user.id, course.id),
     ]);
   const levelCompletion = levelRows.length
@@ -256,9 +253,7 @@ export default async function LearnCoursePage({
                       <p>{publicCopy(subject.description)}</p>
                     </div>
                     <strong>
-                      {subjectTheoryProgress.find(
-                        (item) => item.subjectId === subject.id,
-                      )?.progressPercent ?? 0}
+                      {subject.theoryProgress.progressPercent}
                       % · {subject.topics.length}개 주제 →
                     </strong>
                   </Link>

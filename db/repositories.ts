@@ -4,10 +4,13 @@ import {
   courseGroups,
   questionCourses,
   courses,
+  learningUnits,
+  lessons,
   roles,
   subjects,
   topics,
   userCourseEnrollments,
+  userLessonProgress,
   userProgress,
   userRoles,
   users,
@@ -200,6 +203,101 @@ export async function listCurriculum(courseId: string) {
 
   return subjectRows.map((subject) => ({
     ...subject,
+    topics: topicRows.filter((topic) => topic.subjectId === subject.id),
+  }));
+}
+
+export async function listCurriculumWithSubjectTheoryProgress(
+  userId: string,
+  courseId: string,
+) {
+  const [subjectRows, topicRows, progressRows] = await Promise.all([
+    getDb()
+      .select()
+      .from(subjects)
+      .where(
+        and(
+          eq(subjects.courseId, courseId),
+          eq(subjects.active, true),
+          isNull(subjects.deletedAt),
+        ),
+      )
+      .orderBy(asc(subjects.displayOrder)),
+    getDb()
+      .select({
+        id: topics.id,
+        subjectId: topics.subjectId,
+        parentTopicId: topics.parentTopicId,
+        code: topics.code,
+        name: topics.name,
+        description: topics.description,
+        displayOrder: topics.displayOrder,
+        active: topics.active,
+        isSample: topics.isSample,
+      })
+      .from(topics)
+      .innerJoin(subjects, eq(topics.subjectId, subjects.id))
+      .where(
+        and(
+          eq(subjects.courseId, courseId),
+          eq(topics.active, true),
+          isNull(topics.deletedAt),
+        ),
+      )
+      .orderBy(asc(topics.displayOrder)),
+    getDb()
+      .select({
+        subjectId: lessons.subjectId,
+        totalLessons: sql<number>`count(${lessons.id})`,
+        completedLessons: sql<number>`coalesce(sum(case when ${userLessonProgress.status} = 'COMPLETED' then 1 else 0 end), 0)`,
+      })
+      .from(lessons)
+      .innerJoin(learningUnits, eq(lessons.learningUnitId, learningUnits.id))
+      .leftJoin(
+        userLessonProgress,
+        and(
+          eq(userLessonProgress.lessonId, lessons.id),
+          eq(userLessonProgress.userId, userId),
+        ),
+      )
+      .where(
+        and(
+          eq(lessons.courseId, courseId),
+          eq(lessons.active, true),
+          eq(lessons.published, true),
+          isNull(lessons.deletedAt),
+          eq(learningUnits.active, true),
+          eq(learningUnits.published, true),
+          isNull(learningUnits.deletedAt),
+        ),
+      )
+      .groupBy(lessons.subjectId),
+  ]);
+
+  const progressBySubjectId = new Map(
+    progressRows.map((row) => {
+      const totalLessons = Number(row.totalLessons);
+      const completedLessons = Number(row.completedLessons);
+      return [
+        row.subjectId,
+        {
+          totalLessons,
+          completedLessons,
+          progressPercent: totalLessons
+            ? Math.round((completedLessons / totalLessons) * 100)
+            : 0,
+        },
+      ];
+    }),
+  );
+
+  return subjectRows.map((subject) => ({
+    ...subject,
+    theoryProgress: progressBySubjectId.get(subject.id) ?? {
+      totalLessons: 0,
+      completedLessons: 0,
+      progressPercent: 0,
+    },
     topics: topicRows.filter((topic) => topic.subjectId === subject.id),
   }));
 }
