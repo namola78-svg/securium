@@ -414,7 +414,6 @@ export async function listPublishedCourseLessonsForUser(
       lessonId: courseLessons.lessonId,
       contentTitle: contents.title,
       contentSummary: contents.summary,
-      contentBody: contents.body,
       displayTitle: courseLessons.displayTitle,
       sortOrder: courseLessons.sortOrder,
       difficulty: courseLessons.difficulty,

@@ -2,6 +2,8 @@ import { and, asc, eq, inArray, isNull, ne, sql } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
 import { getDb } from ".";
 import {
+  contents,
+  courseLessons,
   courses,
   curriculumNodes,
   curriculumTrees,
@@ -13,6 +15,7 @@ import {
   reviewSchedules,
   subjects,
   topics,
+  userCourseLessonProgress,
   userLessonProgress,
   wrongNotes,
 } from "./schema";
@@ -276,6 +279,218 @@ export async function getActiveCurriculumTreeForCourse(courseId: string) {
     )
     .limit(1);
   return tree ?? null;
+}
+
+export async function getPublishedCurriculumPathOverviewForCourse(
+  courseId: string,
+  userId?: string,
+) {
+  const tree = await getActiveCurriculumTreeForCourse(courseId);
+  if (!tree) return null;
+
+  const nodeRows = await getDb()
+    .select({
+      id: curriculumNodes.id,
+      curriculumTreeId: curriculumNodes.curriculumTreeId,
+      parentId: curriculumNodes.parentId,
+      nodeType: curriculumNodes.nodeType,
+      title: curriculumNodes.title,
+      description: curriculumNodes.description,
+      officialCode: curriculumNodes.officialCode,
+      officialTitle: curriculumNodes.officialTitle,
+      sortOrder: curriculumNodes.sortOrder,
+      depth: curriculumNodes.depth,
+      path: curriculumNodes.path,
+      isRequired: curriculumNodes.isRequired,
+      isPractical: curriculumNodes.isPractical,
+      difficulty: curriculumNodes.difficulty,
+      importance: curriculumNodes.importance,
+      metadata: curriculumNodes.metadata,
+      status: curriculumNodes.status,
+    })
+    .from(curriculumNodes)
+    .where(
+      and(
+        eq(curriculumNodes.curriculumTreeId, tree.id),
+        eq(curriculumNodes.status, "ACTIVE"),
+      ),
+    )
+    .orderBy(
+      asc(curriculumNodes.depth),
+      asc(curriculumNodes.sortOrder),
+      asc(curriculumNodes.title),
+      asc(curriculumNodes.id),
+    );
+
+  const nodeIds = nodeRows.map((node) => node.id);
+  const linkedContentByNodeId = new Map(
+    nodeRows.map((node) => [node.id, parseLinkedContent(node.metadata)]),
+  );
+  const allLinkedContent = [...linkedContentByNodeId.values()].flat();
+  const subjectIds = [
+    ...new Set(
+      allLinkedContent
+        .filter((link) => link.type === "SUBJECT")
+        .map((link) => link.id),
+    ),
+  ];
+  const topicIds = [
+    ...new Set(
+      allLinkedContent
+        .filter((link) => link.type === "TOPIC")
+        .map((link) => link.id),
+    ),
+  ];
+  const [courseLessonRows, subjectQuestionRows, topicQuestionRows] =
+    await Promise.all([
+      nodeIds.length
+        ? getDb()
+            .select({
+              id: courseLessons.id,
+              curriculumNodeId: courseLessons.curriculumNodeId,
+              displayTitle: courseLessons.displayTitle,
+              contentTitle: contents.title,
+              progressStatus: sql<string>`coalesce(${userCourseLessonProgress.status}, 'NOT_STARTED')`,
+            })
+            .from(courseLessons)
+            .innerJoin(contents, eq(courseLessons.contentId, contents.id))
+            .leftJoin(
+              userCourseLessonProgress,
+              and(
+                eq(userCourseLessonProgress.userId, userId ?? ""),
+                eq(userCourseLessonProgress.courseId, courseLessons.courseId),
+                eq(userCourseLessonProgress.courseLessonId, courseLessons.id),
+              ),
+            )
+            .where(
+              and(
+                eq(courseLessons.courseId, courseId),
+                eq(courseLessons.status, "PUBLISHED"),
+                isNull(courseLessons.deletedAt),
+                eq(contents.status, "PUBLISHED"),
+                isNull(contents.deletedAt),
+                inArray(courseLessons.curriculumNodeId, nodeIds),
+              ),
+            )
+            .orderBy(asc(courseLessons.sortOrder), asc(courseLessons.displayTitle))
+        : [],
+      subjectIds.length
+        ? getDb()
+            .select({
+              subjectId: questionSubjects.subjectId,
+              questionId: questionSubjects.questionId,
+            })
+            .from(questionSubjects)
+            .where(inArray(questionSubjects.subjectId, subjectIds))
+        : [],
+      topicIds.length
+        ? getDb()
+            .select({
+              topicId: questionTopics.topicId,
+              questionId: questionTopics.questionId,
+            })
+            .from(questionTopics)
+            .where(inArray(questionTopics.topicId, topicIds))
+        : [],
+    ]);
+
+  const lessonsByNodeId = new Map<
+    string,
+    Array<{ id: string; title: string; status: string }>
+  >();
+  for (const lesson of courseLessonRows) {
+    if (!lesson.curriculumNodeId) continue;
+    const rows = lessonsByNodeId.get(lesson.curriculumNodeId) ?? [];
+    rows.push({
+      id: lesson.id,
+      title: lesson.displayTitle || lesson.contentTitle,
+      status: lesson.progressStatus ?? "NOT_STARTED",
+    });
+    lessonsByNodeId.set(lesson.curriculumNodeId, rows);
+  }
+  const questionIdsBySubject = new Map<string, Set<string>>();
+  for (const row of subjectQuestionRows) {
+    const set = questionIdsBySubject.get(row.subjectId) ?? new Set<string>();
+    set.add(row.questionId);
+    questionIdsBySubject.set(row.subjectId, set);
+  }
+  const questionIdsByTopic = new Map<string, Set<string>>();
+  for (const row of topicQuestionRows) {
+    const set = questionIdsByTopic.get(row.topicId) ?? new Set<string>();
+    set.add(row.questionId);
+    questionIdsByTopic.set(row.topicId, set);
+  }
+
+  const nodes = nodeRows.map((node) => {
+    const linkedContent = linkedContentByNodeId.get(node.id) ?? [];
+    const linkedLessons = lessonsByNodeId.get(node.id) ?? [];
+    const completedLinkedLessons = linkedLessons.filter(
+      (lesson) => lesson.status === "COMPLETED",
+    ).length;
+    const firstLesson =
+      linkedLessons.find((lesson) => lesson.status !== "COMPLETED") ??
+      linkedLessons[0] ??
+      null;
+    const nodeQuestionIds = new Set<string>();
+    for (const link of linkedContent) {
+      if (link.type === "SUBJECT") {
+        for (const questionId of questionIdsBySubject.get(link.id) ?? []) {
+          nodeQuestionIds.add(questionId);
+        }
+      }
+      if (link.type === "TOPIC") {
+        for (const questionId of questionIdsByTopic.get(link.id) ?? []) {
+          nodeQuestionIds.add(questionId);
+        }
+      }
+    }
+
+    return {
+      ...node,
+      linkedContent,
+      linkedContentCount: linkedContent.length,
+      linkedLessonCount: linkedLessons.length,
+      completedLinkedLessons,
+      linkedLessonProgressPercent: linkedLessons.length
+        ? Math.round((completedLinkedLessons / linkedLessons.length) * 100)
+        : 0,
+      linkedLessons,
+      linkedLesson: firstLesson
+        ? { id: firstLesson.id, title: firstLesson.title }
+        : null,
+      questionStats: {
+        questionCount: nodeQuestionIds.size,
+        attemptCount: 0,
+        correctAttempts: 0,
+        accuracy: 0,
+        wrongQuestionCount: 0,
+        wrongAttemptCount: 0,
+        dueReviewCount: 0,
+      },
+    };
+  });
+  const completedLinkedLessons = courseLessonRows.filter(
+    (lesson) => lesson.progressStatus === "COMPLETED",
+  ).length;
+
+  return {
+    tree: {
+      id: tree.id,
+      title: tree.title,
+      version: tree.version,
+      effectiveFrom: tree.effectiveFrom,
+      effectiveTo: tree.effectiveTo,
+      sourceType: tree.sourceType,
+      sourceDocument: tree.sourceDocument,
+    },
+    nodes: buildCurriculumTree(nodes),
+    nodeCount: nodes.length,
+    linkedLessonCount: courseLessonRows.length,
+    completedLinkedLessons,
+    progressPercent: courseLessonRows.length
+      ? Math.round((completedLinkedLessons / courseLessonRows.length) * 100)
+      : 0,
+  };
 }
 
 export async function getPublishedCurriculumPathForCourse(

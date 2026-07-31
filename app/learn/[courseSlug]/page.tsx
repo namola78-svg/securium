@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ProgressBar } from "@/components/progress-bar";
-import { getPublishedCurriculumPathForCourse } from "@/db/curriculum-repositories";
+import { getPublishedCurriculumPathOverviewForCourse } from "@/db/curriculum-repositories";
 import { requireCurrentAppUser } from "@/lib/auth";
 import {
   getEnrollmentForCourse,
@@ -57,7 +57,7 @@ export default async function LearnCoursePage({
       listCourseSpecializations(course.id),
       getCourseTheoryProgress(user.id, course.id),
       listSubjectTheoryProgress(user.id, course.id),
-      getPublishedCurriculumPathForCourse(course.id, user.id),
+      getPublishedCurriculumPathOverviewForCourse(course.id, user.id),
       listPublishedCourseLessonsForUser(user.id, course.id),
     ]);
   const levelCompletion = levelRows.length
@@ -359,7 +359,7 @@ export default async function LearnCoursePage({
 }
 
 type CurriculumPath = NonNullable<
-  Awaited<ReturnType<typeof getPublishedCurriculumPathForCourse>>
+  Awaited<ReturnType<typeof getPublishedCurriculumPathOverviewForCourse>>
 >;
 type CurriculumPathNode = CurriculumPath["nodes"][number];
 
@@ -463,7 +463,7 @@ function CurriculumPathNodeCard({
         {node.linkedLesson ? (
           <Link
             className="button button-ghost"
-            href={`/learn/${courseSlug}/lessons/${node.linkedLesson.id}`}
+            href={`/learn/${courseSlug}/course-lessons/${node.linkedLesson.id}`}
           >
             연결 레슨 보기 · {node.linkedLesson.title}
           </Link>
