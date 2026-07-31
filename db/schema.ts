@@ -1294,6 +1294,11 @@ export const questionAttempts = sqliteTable(
       table.courseId,
       table.attemptedAt,
     ),
+    index("question_attempts_user_course_question_idx").on(
+      table.userId,
+      table.courseId,
+      table.questionId,
+    ),
     index("question_attempts_question_idx").on(
       table.questionId,
       table.attemptedAt,
