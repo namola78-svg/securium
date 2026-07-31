@@ -91,6 +91,13 @@ test("security certification curriculum coverage script is read-only and reports
 
   assert.match(script, /SECURITY_CERTIFICATION_CURRICULUM_COVERAGE_POSTGRES_OK/);
   assert.match(script, /published_course_lesson_count/);
+  assert.match(script, /official_seed_course_lesson_count/);
+  assert.match(script, /--require-course-lessons/);
+  assert.match(script, /--allow-inactive/);
+  assert.match(
+    script,
+    /SECURITY_CERTIFICATION_CURRICULUM_COVERAGE_OFFICIAL_COURSE_LESSONS_LOW/,
+  );
   assert.match(script, /metadata_linked_node_count/);
   assert.match(script, /published_question_count/);
   assert.match(

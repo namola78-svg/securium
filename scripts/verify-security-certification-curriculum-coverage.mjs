@@ -1,8 +1,11 @@
 import postgres from "postgres";
 import { spawn } from "node:child_process";
+import { officialSecurityCertificationCourseLessons } from "../lib/data/security-certification-course-lessons.mjs";
 
 const VALID_TARGETS = new Set(["d1-local", "postgres"]);
 const target = process.argv[2] ?? "d1-local";
+const requireCourseLessons = process.argv.includes("--require-course-lessons");
+const allowInactive = process.argv.includes("--allow-inactive");
 
 const expectedTrees = [
   {
@@ -10,12 +13,20 @@ const expectedTrees = [
     courseId: "course-ise",
     label: "information-security-engineer",
     minNodes: 79,
+    expectedOfficialCourseLessonCount:
+      officialSecurityCertificationCourseLessons.filter(
+        (lesson) => lesson.courseId === "course-ise",
+      ).length,
   },
   {
     id: "curriculum-isie-2027-2029-official",
     courseId: "course-isie",
     label: "information-security-industrial-engineer",
     minNodes: 64,
+    expectedOfficialCourseLessonCount:
+      officialSecurityCertificationCourseLessons.filter(
+        (lesson) => lesson.courseId === "course-isie",
+      ).length,
   },
 ];
 
@@ -72,6 +83,9 @@ function buildCoverageSql(dialect) {
   const countCast = dialect === "postgres" ? "::int" : "";
   const treeIds = expectedTrees.map((tree) => sqlString(tree.id)).join(",");
   const courseIds = expectedTrees.map((tree) => sqlString(tree.courseId)).join(",");
+  const officialCourseLessonIds = officialSecurityCertificationCourseLessons
+    .map((lesson) => sqlString(lesson.id))
+    .join(",");
 
   return `
 WITH official_trees AS (
@@ -94,6 +108,8 @@ published_course_lessons AS (
     course_id,
     COUNT(*)${countCast} AS published_course_lesson_count,
     COUNT(DISTINCT curriculum_node_id)${countCast} AS course_lesson_node_count,
+    SUM(CASE WHEN id IN (${officialCourseLessonIds}) THEN 1 ELSE 0 END)${countCast} AS official_seed_course_lesson_count,
+    COUNT(DISTINCT CASE WHEN id IN (${officialCourseLessonIds}) THEN curriculum_node_id ELSE NULL END)${countCast} AS official_seed_node_count,
     SUM(CASE WHEN curriculum_node_id IS NULL OR curriculum_node_id = '' THEN 1 ELSE 0 END)${countCast} AS unlinked_course_lesson_count
   FROM course_lessons
   WHERE course_id IN (${courseIds})
@@ -120,6 +136,8 @@ SELECT
   COALESCE(n.metadata_linked_node_count, 0) AS metadata_linked_node_count,
   COALESCE(cl.published_course_lesson_count, 0) AS published_course_lesson_count,
   COALESCE(cl.course_lesson_node_count, 0) AS course_lesson_node_count,
+  COALESCE(cl.official_seed_course_lesson_count, 0) AS official_seed_course_lesson_count,
+  COALESCE(cl.official_seed_node_count, 0) AS official_seed_node_count,
   COALESCE(cl.unlinked_course_lesson_count, 0) AS unlinked_course_lesson_count,
   COALESCE(pq.published_question_count, 0) AS published_question_count
 FROM official_trees t
@@ -138,11 +156,21 @@ function verifyCoverageRows(rows) {
     if (row.course_id !== expected.courseId && row.courseId !== expected.courseId) {
       fail("SECURITY_CERTIFICATION_CURRICULUM_COVERAGE_COURSE_MISMATCH", expected.id);
     }
-    if (row.status !== "ACTIVE") {
+    if (!allowInactive && row.status !== "ACTIVE") {
       fail("SECURITY_CERTIFICATION_CURRICULUM_COVERAGE_TREE_NOT_ACTIVE", expected.id);
     }
     if (Number(row.node_count ?? row.nodeCount) < expected.minNodes) {
       fail("SECURITY_CERTIFICATION_CURRICULUM_COVERAGE_NODE_COUNT_LOW", expected.id);
+    }
+    if (
+      requireCourseLessons &&
+      Number(row.official_seed_course_lesson_count ?? row.officialSeedCourseLessonCount) <
+        expected.expectedOfficialCourseLessonCount
+    ) {
+      fail(
+        "SECURITY_CERTIFICATION_CURRICULUM_COVERAGE_OFFICIAL_COURSE_LESSONS_LOW",
+        expected.id,
+      );
     }
   }
 }
@@ -161,6 +189,12 @@ function printCoverage(rows) {
     ),
     courseLessonNodeCount: Number(
       row.course_lesson_node_count ?? row.courseLessonNodeCount,
+    ),
+    officialSeedCourseLessonCount: Number(
+      row.official_seed_course_lesson_count ?? row.officialSeedCourseLessonCount,
+    ),
+    officialSeedNodeCount: Number(
+      row.official_seed_node_count ?? row.officialSeedNodeCount,
     ),
     unlinkedCourseLessonCount: Number(
       row.unlinked_course_lesson_count ?? row.unlinkedCourseLessonCount,
