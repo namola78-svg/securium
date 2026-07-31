@@ -688,38 +688,39 @@ export function createEnrollmentRepository(): EnrollmentRepository {
 }
 
 export async function listUserEnrollments(userId: string) {
-  const enrollmentRows = await getDb()
-    .select({
-      id: userCourseEnrollments.id,
-      status: userCourseEnrollments.status,
-      enrolledAt: userCourseEnrollments.enrolledAt,
-      completedAt: userCourseEnrollments.completedAt,
-      currentLevel: userCourseEnrollments.currentLevel,
-      progressPercent: userCourseEnrollments.progressPercent,
-      totalXp: userCourseEnrollments.totalXp,
-      courseId: courses.id,
-      courseSlug: courses.slug,
-      courseName: courses.name,
-      shortName: courses.shortName,
-      totalLevels: courses.totalLevels,
-      groupName: courseGroups.name,
-    })
-    .from(userCourseEnrollments)
-    .innerJoin(courses, eq(userCourseEnrollments.courseId, courses.id))
-    .innerJoin(courseGroups, eq(courses.courseGroupId, courseGroups.id))
-    .where(eq(userCourseEnrollments.userId, userId))
-    .orderBy(desc(userCourseEnrollments.updatedAt));
-
-  const stats = await getDb()
-    .select({
-      courseId: userProgress.courseId,
-      correctAnswers: sql<number>`coalesce(sum(${userProgress.correctAnswers}), 0)`,
-      totalAnswers: sql<number>`coalesce(sum(${userProgress.totalAnswers}), 0)`,
-      lastStudiedAt: sql<string | null>`max(${userProgress.lastStudiedAt})`,
-    })
-    .from(userProgress)
-    .where(eq(userProgress.userId, userId))
-    .groupBy(userProgress.courseId);
+  const [enrollmentRows, stats] = await Promise.all([
+    getDb()
+      .select({
+        id: userCourseEnrollments.id,
+        status: userCourseEnrollments.status,
+        enrolledAt: userCourseEnrollments.enrolledAt,
+        completedAt: userCourseEnrollments.completedAt,
+        currentLevel: userCourseEnrollments.currentLevel,
+        progressPercent: userCourseEnrollments.progressPercent,
+        totalXp: userCourseEnrollments.totalXp,
+        courseId: courses.id,
+        courseSlug: courses.slug,
+        courseName: courses.name,
+        shortName: courses.shortName,
+        totalLevels: courses.totalLevels,
+        groupName: courseGroups.name,
+      })
+      .from(userCourseEnrollments)
+      .innerJoin(courses, eq(userCourseEnrollments.courseId, courses.id))
+      .innerJoin(courseGroups, eq(courses.courseGroupId, courseGroups.id))
+      .where(eq(userCourseEnrollments.userId, userId))
+      .orderBy(desc(userCourseEnrollments.updatedAt)),
+    getDb()
+      .select({
+        courseId: userProgress.courseId,
+        correctAnswers: sql<number>`coalesce(sum(${userProgress.correctAnswers}), 0)`,
+        totalAnswers: sql<number>`coalesce(sum(${userProgress.totalAnswers}), 0)`,
+        lastStudiedAt: sql<string | null>`max(${userProgress.lastStudiedAt})`,
+      })
+      .from(userProgress)
+      .where(eq(userProgress.userId, userId))
+      .groupBy(userProgress.courseId),
+  ]);
 
   return enrollmentRows.map((row) => {
     const courseStats = stats.find((stat) => stat.courseId === row.courseId);
