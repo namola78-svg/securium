@@ -23,15 +23,21 @@ if (command === "validate") {
 
 const directUrl = process.env.DIRECT_URL?.trim();
 if (!directUrl) fail("DIRECT_URL_REQUIRED");
-const psql = await findPsql();
-const connectionEnvironment = createLibpqEnvironment(directUrl);
+const runner = await createPostgresMigrationRunner(directUrl);
 
 if (command === "status") {
-  const result = await runPsql(psql, connectionEnvironment, [
-    "-At",
-    "-c",
+  const result = await runner.query(
     "SELECT id FROM app_schema_migrations ORDER BY applied_at",
-  ]);
+  );
+  await runner.close();
+  if (result.errorCode === "42P01") {
+    console.log(
+      `POSTGRES_MIGRATIONS_PENDING ${migrations
+        .map((migration) => migration.id)
+        .join(",")}`,
+    );
+    process.exit(0);
+  }
   if (result.code !== 0) fail("POSTGRES_MIGRATION_STATUS_FAILED");
   const applied = new Set(result.stdout.split(/\r?\n/).filter(Boolean));
   const pending = migrations
@@ -52,21 +58,17 @@ if (
   fail("POSTGRES_MIGRATION_APPROVAL_REQUIRED");
 }
 for (const migration of migrations) {
-  const status = await runPsql(psql, connectionEnvironment, [
-    "-At",
-    "-c",
+  const status = await runner.query(
     `SELECT id FROM app_schema_migrations WHERE id = '${migration.id.replaceAll("'", "''")}'`,
-  ]);
-  if (status.code !== 0) fail("POSTGRES_MIGRATION_STATUS_FAILED");
+  );
+  if (status.code !== 0 && status.errorCode !== "42P01") {
+    fail("POSTGRES_MIGRATION_STATUS_FAILED");
+  }
   if (status.stdout.trim() === migration.id) continue;
-  const result = await runPsql(psql, connectionEnvironment, [
-    "-v",
-    "ON_ERROR_STOP=1",
-    "-f",
-    migration.path,
-  ]);
+  const result = await runner.file(migration.path);
   if (result.code !== 0) fail("POSTGRES_MIGRATION_DEPLOY_FAILED");
 }
+await runner.close();
 console.log("POSTGRES_MIGRATIONS_DEPLOYED");
 
 async function loadMigrations() {
@@ -132,7 +134,70 @@ function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-async function findPsql() {
+async function createPostgresMigrationRunner(directUrl) {
+  const connectionEnvironment = createLibpqEnvironment(directUrl);
+  const psql = await maybeFindPsql();
+  if (psql) {
+    return {
+      close: async () => {},
+      file: (path) =>
+        runProcess(
+          psql,
+          ["-v", "ON_ERROR_STOP=1", "-f", path],
+          connectionEnvironment,
+        ),
+      query: (sql) =>
+        runProcess(psql, ["-At", "-c", sql], connectionEnvironment),
+    };
+  }
+
+  let postgres;
+  try {
+    postgres = (await import("postgres")).default;
+  } catch {
+    fail("POSTGRES_DRIVER_UNAVAILABLE");
+  }
+  const sql = postgres(directUrl, {
+    max: 1,
+    idle_timeout: 5,
+    connect_timeout: 10,
+    prepare: false,
+    ssl: "require",
+    onnotice: false,
+    debug: false,
+    connection: {
+      application_name: "securium-postgres-migrations",
+    },
+  });
+  return {
+    close: async () => {
+      await sql.end({ timeout: 5 });
+    },
+    file: async (path) => {
+      try {
+        await sql.unsafe(await readFile(path, "utf8"));
+        return { code: 0, stdout: "" };
+      } catch (error) {
+        return { code: 1, errorCode: error?.code, stdout: "" };
+      }
+    },
+    query: async (statement) => {
+      try {
+        const rows = await sql.unsafe(statement);
+        return {
+          code: 0,
+          stdout: rows
+            .map((row) => Object.values(row).join("|"))
+            .join("\n"),
+        };
+      } catch (error) {
+        return { code: 1, errorCode: error?.code, stdout: "" };
+      }
+    },
+  };
+}
+
+async function maybeFindPsql() {
   const candidates =
     process.platform === "win32"
       ? ["psql.exe", "C:\\Program Files\\PostgreSQL\\17\\bin\\psql.exe"]
@@ -148,7 +213,7 @@ async function findPsql() {
       // Try the next approved local executable.
     }
   }
-  fail("PSQL_NOT_AVAILABLE");
+  return null;
 }
 
 function createLibpqEnvironment(value) {
@@ -170,10 +235,6 @@ function createLibpqEnvironment(value) {
     PGDATABASE: decodeURIComponent(url.pathname.slice(1)),
     PGSSLMODE: url.searchParams.get("sslmode") ?? "require",
   };
-}
-
-function runPsql(executable, environment, args) {
-  return runProcess(executable, args, environment);
 }
 
 function runProcess(executable, args, environment) {
