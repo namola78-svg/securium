@@ -38,6 +38,7 @@ import {
   userCourseLessonProgress,
   userLearningSettings,
   userLevelProgress,
+  users,
   wrongNotes,
 } from "./schema";
 import { AppError } from "@/lib/errors";
@@ -496,32 +497,6 @@ export async function getReviewSummary(userId: string) {
       ...value,
     })),
     items: due,
-  };
-}
-
-async function getDashboardReviewSummary(userId: string) {
-  const now = new Date().toISOString();
-  const overdueCutoff = new Date(Date.now() - 86_400_000).toISOString();
-  const todayRange = utcDayRange();
-  const summaryRows = await getDb()
-    .select({
-      dueCount: sql<number>`coalesce(sum(case when ${reviewSchedules.nextReviewAt} <= ${now} and ${reviewSchedules.status} in ('DUE', 'SCHEDULED') then 1 else 0 end), 0)`,
-      overdueCount: sql<number>`coalesce(sum(case when ${reviewSchedules.nextReviewAt} < ${overdueCutoff} and ${reviewSchedules.status} in ('DUE', 'SCHEDULED') then 1 else 0 end), 0)`,
-      completedToday: sql<number>`coalesce(sum(case when ${reviewSchedules.lastReviewedAt} >= ${todayRange.start} and ${reviewSchedules.lastReviewedAt} < ${todayRange.end} and ${reviewSchedules.intervalDays} > 0 then 1 else 0 end), 0)`,
-    })
-    .from(reviewSchedules)
-    .where(eq(reviewSchedules.userId, userId));
-  const summaryRow = summaryRows[0];
-  const dueCount = Number(summaryRow?.dueCount ?? 0);
-  const completedToday = Number(summaryRow?.completedToday ?? 0);
-  return {
-    dueCount,
-    overdueCount: Number(summaryRow?.overdueCount ?? 0),
-    estimatedMinutes: dueCount * 2,
-    completedToday,
-    completionRate: safeRate(completedToday, completedToday + dueCount),
-    byCourse: [],
-    items: [],
   };
 }
 
@@ -1999,22 +1974,18 @@ export async function getTodayLearningPlan(
   userId: string,
   enrollments?: DashboardPlanEnrollment[],
 ) {
-  const todayRange = utcDayRange();
-  const [settings, recommendations, reviewSummary, activity] =
-    await Promise.all([
-    getLearningSettings(userId),
+  const [summary, recommendations] = await Promise.all([
+    getDashboardTodayPlanSummary(userId),
     getDashboardRecommendations(userId, enrollments),
-    getDashboardReviewSummary(userId),
-    getTodayQuestionActivity(userId, todayRange),
   ]);
   return {
-    settings,
-    completedQuestions: Number(activity?.completed ?? 0),
-    reviewSummary,
+    settings: summary.settings,
+    completedQuestions: summary.completedQuestions,
+    reviewSummary: summary.reviewSummary,
     recommendations,
     completionPercent: safeRate(
-      Number(activity?.completed ?? 0),
-      settings.dailyQuestionGoal,
+      summary.completedQuestions,
+      summary.settings.dailyQuestionGoal,
     ),
   };
 }
@@ -2029,75 +2000,80 @@ export async function getTodayLearningPlanDiagnostics(
   userId: string,
   enrollments?: DashboardPlanEnrollment[],
 ) {
-  const todayRange = utcDayRange();
-  const [
-    settingsStep,
-    recommendationsStep,
-    reviewSummaryStep,
-    activityStep,
-  ] =
-    await Promise.all([
-      timeDashboardPlanStep(() => getLearningSettings(userId)),
-      timeDashboardPlanStep(() =>
-        getDashboardRecommendations(userId, enrollments),
-      ),
-      timeDashboardPlanStep(() => getDashboardReviewSummary(userId)),
-      timeDashboardPlanStep(() => getTodayQuestionActivity(userId, todayRange)),
-    ]);
+  const [summaryStep, recommendationsStep] = await Promise.all([
+    timeDashboardPlanStep(() => getDashboardTodayPlanSummary(userId)),
+    timeDashboardPlanStep(() =>
+      getDashboardRecommendations(userId, enrollments),
+    ),
+  ]);
   if (
-    !settingsStep.ok ||
-    !settingsStep.value ||
+    !summaryStep.ok ||
+    !summaryStep.value ||
     !recommendationsStep.ok ||
-    !recommendationsStep.value ||
-    !reviewSummaryStep.ok ||
-    !reviewSummaryStep.value
+    !recommendationsStep.value
   ) {
     throw new Error("DASHBOARD_TODAY_PLAN_DIAGNOSTICS_FAILED");
   }
 
-  if (!activityStep.ok) {
-    throw new Error("DASHBOARD_TODAY_ACTIVITY_DIAGNOSTICS_FAILED");
-  }
-
-  const completedQuestions = Number(activityStep.value?.completed ?? 0);
   return {
     plan: {
-      settings: settingsStep.value,
-      completedQuestions,
-      reviewSummary: reviewSummaryStep.value,
+      settings: summaryStep.value.settings,
+      completedQuestions: summaryStep.value.completedQuestions,
+      reviewSummary: summaryStep.value.reviewSummary,
       recommendations: recommendationsStep.value,
       completionPercent: safeRate(
-        completedQuestions,
-        settingsStep.value.dailyQuestionGoal,
+        summaryStep.value.completedQuestions,
+        summaryStep.value.settings.dailyQuestionGoal,
       ),
     },
     timings: {
-      getLearningSettings: toDashboardPlanPublicTiming(settingsStep),
+      getDashboardTodayPlanSummary: toDashboardPlanPublicTiming(summaryStep),
       getDashboardRecommendations:
         toDashboardPlanPublicTiming(recommendationsStep),
-      getDashboardReviewSummary: toDashboardPlanPublicTiming(reviewSummaryStep),
-      countTodayQuestionAttempts: toDashboardPlanPublicTiming(activityStep),
     },
   };
 }
 
-async function getTodayQuestionActivity(
-  userId: string,
-  todayRange: { start: string; end: string },
-) {
-  const [activity] = await getDb()
+async function getDashboardTodayPlanSummary(userId: string) {
+  const now = new Date().toISOString();
+  const overdueCutoff = new Date(Date.now() - 86_400_000).toISOString();
+  const todayRange = utcDayRange();
+  const [summary] = await getDb()
     .select({
-      completed: sql<number>`count(*)`,
+      dailyQuestionGoal: sql<number>`coalesce((select ${userLearningSettings.dailyQuestionGoal} from ${userLearningSettings} where ${userLearningSettings.userId} = ${userId} limit 1), 20)`,
+      dailyStudyMinutes: sql<number>`coalesce((select ${userLearningSettings.dailyStudyMinutes} from ${userLearningSettings} where ${userLearningSettings.userId} = ${userId} limit 1), 30)`,
+      dueCount: sql<number>`coalesce((select count(*) from ${reviewSchedules} where ${reviewSchedules.userId} = ${userId} and ${reviewSchedules.nextReviewAt} <= ${now} and ${reviewSchedules.status} in ('DUE', 'SCHEDULED')), 0)`,
+      overdueCount: sql<number>`coalesce((select count(*) from ${reviewSchedules} where ${reviewSchedules.userId} = ${userId} and ${reviewSchedules.nextReviewAt} < ${overdueCutoff} and ${reviewSchedules.status} in ('DUE', 'SCHEDULED')), 0)`,
+      completedToday: sql<number>`coalesce((select count(*) from ${reviewSchedules} where ${reviewSchedules.userId} = ${userId} and ${reviewSchedules.lastReviewedAt} >= ${todayRange.start} and ${reviewSchedules.lastReviewedAt} < ${todayRange.end} and ${reviewSchedules.intervalDays} > 0), 0)`,
+      completedQuestions: sql<number>`coalesce((select count(*) from ${questionAttempts} where ${questionAttempts.userId} = ${userId} and ${questionAttempts.attemptedAt} >= ${todayRange.start} and ${questionAttempts.attemptedAt} < ${todayRange.end}), 0)`,
     })
-    .from(questionAttempts)
-    .where(
-      and(
-        eq(questionAttempts.userId, userId),
-        gte(questionAttempts.attemptedAt, todayRange.start),
-        lt(questionAttempts.attemptedAt, todayRange.end),
-      ),
-    );
-  return activity;
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+  const dailyQuestionGoal = Number(summary?.dailyQuestionGoal ?? 20);
+  const completedQuestions = Number(summary?.completedQuestions ?? 0);
+  const dueCount = Number(summary?.dueCount ?? 0);
+  const completedToday = Number(summary?.completedToday ?? 0);
+  return {
+    settings: {
+      id: "dashboard-default-learning-settings",
+      userId,
+      dailyQuestionGoal,
+      dailyStudyMinutes: Number(summary?.dailyStudyMinutes ?? 30),
+      createdAt: null,
+      updatedAt: null,
+    },
+    completedQuestions,
+    reviewSummary: {
+      dueCount,
+      overdueCount: Number(summary?.overdueCount ?? 0),
+      estimatedMinutes: dueCount * 2,
+      completedToday,
+      completionRate: safeRate(completedToday, completedToday + dueCount),
+      byCourse: [],
+      items: [],
+    },
+  };
 }
 
 async function timeDashboardPlanStep<T>(
