@@ -14,17 +14,14 @@ export type DashboardPerformanceSnapshot = Awaited<
 export async function getDashboardPerformanceSnapshot(userId: string) {
   const requestId = crypto.randomUUID();
   const startedAt = Date.now();
-  const enrollments = await timeStep(() => listUserEnrollments(userId));
+  const [enrollments, todayPlan] = await Promise.all([
+    timeStep(() => listUserEnrollments(userId)),
+    timeStep(() => getTodayLearningPlanDiagnostics(userId)),
+  ]);
   const activeCourseIds =
     enrollments.value
       ?.filter((enrollment) => enrollment.status === "ACTIVE")
       .map((enrollment) => enrollment.courseId) ?? [];
-  const activeEnrollments =
-    enrollments.value?.filter((enrollment) => enrollment.status === "ACTIVE") ??
-    [];
-  const todayPlan = await timeStep(() =>
-    getTodayLearningPlanDiagnostics(userId, activeEnrollments),
-  );
 
   return {
     requestId,

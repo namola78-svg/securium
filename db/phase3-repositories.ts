@@ -2108,6 +2108,66 @@ async function getDashboardRecommendations(
   providedEnrollments?: DashboardPlanEnrollment[],
 ) {
   const now = new Date().toISOString();
+  if (!providedEnrollments) {
+    const dashboardCandidates: RecommendationCandidate[] = [];
+    const repeatedRows = await getDb()
+      .select({
+        id: wrongNotes.id,
+        courseId: wrongNotes.courseId,
+        courseSlug: courses.slug,
+        questionId: wrongNotes.questionId,
+        wrongCount: wrongNotes.wrongCount,
+      })
+      .from(wrongNotes)
+      .innerJoin(
+        userCourseEnrollments,
+        and(
+          eq(userCourseEnrollments.userId, userId),
+          eq(userCourseEnrollments.courseId, wrongNotes.courseId),
+          eq(userCourseEnrollments.status, "ACTIVE"),
+        ),
+      )
+      .innerJoin(courses, eq(courses.id, wrongNotes.courseId))
+      .where(
+        and(
+          eq(wrongNotes.userId, userId),
+          gt(wrongNotes.wrongCount, 1),
+          sql`${wrongNotes.mastered} = 0`,
+        ),
+      )
+      .orderBy(desc(wrongNotes.wrongCount))
+      .limit(8);
+    if (!repeatedRows.length) {
+      return recommendationService.recommend(dashboardCandidates, 8);
+    }
+    const questionRows = await getDb()
+      .select({
+        id: questions.id,
+        title: questions.title,
+      })
+      .from(questions)
+      .where(
+        inArray(
+          questions.id,
+          repeatedRows.map((item) => item.questionId),
+        ),
+      );
+    const questionTitleById = new Map(
+      questionRows.map((question) => [question.id, question.title]),
+    );
+    dashboardCandidates.push(
+      ...repeatedRows.map((item) => ({
+        id: item.id,
+        kind: "QUESTION" as const,
+        title: questionTitleById.get(item.questionId) ?? "추천 문제",
+        reason: `최근 ${item.wrongCount}회 반복 오답`,
+        priority: "REPEATED_WRONG" as const,
+        estimatedMinutes: 3,
+        href: `/practice/${item.courseSlug}?wrongOnly=1&count=10`,
+      })),
+    );
+    return recommendationService.recommend(dashboardCandidates, 8);
+  }
   const enrollmentsPromise = providedEnrollments
     ? Promise.resolve(
         providedEnrollments.filter(
