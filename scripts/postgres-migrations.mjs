@@ -21,13 +21,13 @@ if (command === "validate") {
   process.exit(0);
 }
 
-const migrationUrl =
-  process.env.POSTGRES_MIGRATION_URL?.trim() || process.env.DIRECT_URL?.trim();
-if (!migrationUrl) fail("DIRECT_URL_REQUIRED");
-const runner = await createPostgresMigrationRunner(migrationUrl);
+const migrationUrls = resolveMigrationUrls();
+if (!migrationUrls.length) fail("DIRECT_URL_REQUIRED");
+let runnerIndex = 0;
+let runner = await createPostgresMigrationRunner(migrationUrls[runnerIndex]);
 
 if (command === "status") {
-  const result = await runner.query(
+  const result = await queryWithConnectionFallback(
     "SELECT id FROM app_schema_migrations ORDER BY applied_at",
   );
   await runner.close();
@@ -61,20 +61,52 @@ if (
   fail("POSTGRES_MIGRATION_APPROVAL_REQUIRED");
 }
 for (const migration of migrations) {
-  const status = await runner.query(
+  const status = await queryWithConnectionFallback(
     `SELECT id FROM app_schema_migrations WHERE id = '${migration.id.replaceAll("'", "''")}'`,
   );
   if (status.code !== 0 && status.errorCode !== "42P01") {
     failWithDetail("POSTGRES_MIGRATION_STATUS_FAILED", status.errorCode);
   }
   if (status.stdout.trim() === migration.id) continue;
-  const result = await runner.file(migration.path);
+  const result = await fileWithConnectionFallback(migration.path);
   if (result.code !== 0) {
     failWithDetail("POSTGRES_MIGRATION_DEPLOY_FAILED", result.errorCode);
   }
 }
 await runner.close();
 console.log("POSTGRES_MIGRATIONS_DEPLOYED");
+
+async function queryWithConnectionFallback(statement) {
+  while (true) {
+    const result = await runner.query(statement);
+    if (
+      result.code === 0 ||
+      !isConnectionFallbackError(result.errorCode) ||
+      runnerIndex >= migrationUrls.length - 1
+    ) {
+      return result;
+    }
+    await runner.close();
+    runnerIndex += 1;
+    runner = await createPostgresMigrationRunner(migrationUrls[runnerIndex]);
+  }
+}
+
+async function fileWithConnectionFallback(path) {
+  while (true) {
+    const result = await runner.file(path);
+    if (
+      result.code === 0 ||
+      !isConnectionFallbackError(result.errorCode) ||
+      runnerIndex >= migrationUrls.length - 1
+    ) {
+      return result;
+    }
+    await runner.close();
+    runnerIndex += 1;
+    runner = await createPostgresMigrationRunner(migrationUrls[runnerIndex]);
+  }
+}
 
 async function loadMigrations() {
   const entries = (await readdir(migrationsDirectory))
@@ -137,6 +169,37 @@ function validateMigrations(migrations) {
 
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function resolveMigrationUrls() {
+  const explicitUrl = process.env.POSTGRES_MIGRATION_URL?.trim();
+  if (explicitUrl) return [explicitUrl];
+  return uniqueValues([
+    process.env.DIRECT_URL?.trim(),
+    process.env.DATABASE_URL?.trim(),
+  ]);
+}
+
+function uniqueValues(values) {
+  const seen = new Set();
+  const result = [];
+  for (const value of values) {
+    if (!value || seen.has(value)) continue;
+    seen.add(value);
+    result.push(value);
+  }
+  return result;
+}
+
+function isConnectionFallbackError(code) {
+  return [
+    "EACCES",
+    "ECONNREFUSED",
+    "ENETUNREACH",
+    "ENOTFOUND",
+    "EHOSTUNREACH",
+    "ETIMEDOUT",
+  ].includes(code);
 }
 
 async function createPostgresMigrationRunner(directUrl) {
