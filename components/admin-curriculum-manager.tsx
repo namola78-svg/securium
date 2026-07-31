@@ -56,6 +56,11 @@ type LinkableContent = {
 
 type LinkedContent = Pick<LinkableContent, "type" | "id">;
 
+type LinkableContentRecommendation = LinkableContent & {
+  score: number;
+  reasons: string[];
+};
+
 type CurriculumNodeOperationalStat = {
   nodeId: string;
   questionCount: number;
@@ -676,6 +681,10 @@ function NodeDetailPanel({
 }) {
   const metadata = parseMetadata(node.metadata) as NodeMetadata;
   const stableKey = node.officialCode ?? node.id;
+  const recommendations = recommendLinkableContent(node, linkableContent).slice(
+    0,
+    5,
+  );
 
   return (
     <div className="curriculum-node-detail">
@@ -724,6 +733,11 @@ function NodeDetailPanel({
       </dl>
 
       {stat ? <NodeOperationalStats stat={stat} /> : null}
+
+      <RecommendedLinkableContent
+        recommendations={recommendations}
+        linkedContent={parseLinkedContent(node.metadata)}
+      />
 
       <details className="curriculum-node-edit-panel">
         <summary>선택 노드 수정</summary>
@@ -782,6 +796,61 @@ function NodeOperationalStats({
         <dd>{stat.dueReviewCount}</dd>
       </div>
     </dl>
+  );
+}
+
+function RecommendedLinkableContent({
+  recommendations,
+  linkedContent,
+}: {
+  recommendations: LinkableContentRecommendation[];
+  linkedContent: LinkedContent[];
+}) {
+  return (
+    <section
+      className="curriculum-content-recommendations"
+      aria-label="연결 가능한 콘텐츠 추천"
+    >
+      <div className="curriculum-content-recommendations-heading">
+        <div>
+          <h4>연결 가능한 콘텐츠 후보</h4>
+          <p className="admin-helper">
+            노드명, 공식명, 설명, 경로를 기준으로 계산한 규칙 기반 후보입니다.
+            저장은 아래 “선택 노드 수정”에서 확인 후 적용하세요.
+          </p>
+        </div>
+        <span className="status-badge compact">
+          연결 {linkedContent.length}
+        </span>
+      </div>
+
+      {recommendations.length ? (
+        <div className="curriculum-content-recommendation-list">
+          {recommendations.map((item) => (
+            <article className="curriculum-content-recommendation" key={linkKey(item)}>
+              <div>
+                <strong>{item.title}</strong>
+                <small>
+                  {contentTypeLabels[item.type]} · {item.subtitle}
+                </small>
+              </div>
+              <div className="curriculum-content-recommendation-meta">
+                <span className="status-badge compact">score {item.score}</span>
+                {item.reasons.slice(0, 2).map((reason) => (
+                  <span className="curriculum-reason-chip" key={reason}>
+                    {recommendationReasonLabel(reason)}
+                  </span>
+                ))}
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <p className="empty-copy">
+          현재 노드에 자동으로 추천할 수 있는 미연결 콘텐츠가 없습니다.
+        </p>
+      )}
+    </section>
   );
 }
 
@@ -1237,6 +1306,115 @@ function linkedContentSummary(metadata: string | null) {
         `${contentTypeLabels[type as LinkableContent["type"]] ?? type} ${count}`,
     )
     .join(" · ");
+}
+
+function recommendLinkableContent(
+  node: CurriculumNode,
+  linkableContent: LinkableContent[],
+): LinkableContentRecommendation[] {
+  const linkedKeys = new Set(parseLinkedContent(node.metadata).map(linkKey));
+  const nodeTokens = tokenizeRecommendationText(
+    [
+      node.title,
+      node.officialTitle,
+      node.description,
+      node.officialCode,
+      node.path,
+      stripLinkedContent(node.metadata),
+    ]
+      .filter(Boolean)
+      .join(" "),
+  );
+
+  if (!nodeTokens.size) return [];
+
+  return linkableContent
+    .filter((item) => !linkedKeys.has(linkKey(item)))
+    .map((item) => {
+      const itemTokens = tokenizeRecommendationText(
+        `${item.title} ${item.subtitle} ${item.type}`,
+      );
+      const matched = [...itemTokens].filter((token) => nodeTokens.has(token));
+      const reasons: string[] = [];
+      let score = matched.length * 12;
+
+      if (matched.length) reasons.push("KEYWORD_MATCH");
+      if (item.active) {
+        score += 4;
+        reasons.push("ACTIVE_CONTENT");
+      }
+      if (item.published || item.type === "SUBJECT" || item.type === "TOPIC") {
+        score += 4;
+        reasons.push("PUBLISHED_OR_STRUCTURE");
+      }
+      if (node.nodeType === item.type) {
+        score += 10;
+        reasons.push("TYPE_MATCH");
+      }
+      if (
+        node.officialTitle &&
+        normalizeRecommendationText(item.title).includes(
+          normalizeRecommendationText(node.officialTitle),
+        )
+      ) {
+        score += 20;
+        reasons.push("TITLE_CONTAINS_OFFICIAL_TITLE");
+      }
+
+      return {
+        ...item,
+        score,
+        reasons,
+      };
+    })
+    .filter((item) => item.score >= 16)
+    .sort(
+      (a, b) =>
+        b.score - a.score ||
+        contentTypeRank(a.type) - contentTypeRank(b.type) ||
+        a.displayOrder - b.displayOrder ||
+        a.title.localeCompare(b.title),
+    );
+}
+
+function tokenizeRecommendationText(value: string) {
+  return new Set(
+    normalizeRecommendationText(value)
+      .split(" ")
+      .map((token) => token.trim())
+      .filter((token) => token.length >= 2),
+  );
+}
+
+function normalizeRecommendationText(value: string) {
+  return value
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[^a-z0-9가-힣/.\- ]+/g, " ")
+    .replace(/[-/.]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function contentTypeRank(type: LinkableContent["type"]) {
+  const ranks: Record<LinkableContent["type"], number> = {
+    SUBJECT: 0,
+    TOPIC: 1,
+    LEARNING_UNIT: 2,
+    LESSON: 3,
+  };
+  return ranks[type];
+}
+
+function recommendationReasonLabel(reason: string) {
+  const labels: Record<string, string> = {
+    KEYWORD_MATCH: "키워드 일치",
+    ACTIVE_CONTENT: "활성 콘텐츠",
+    PUBLISHED_OR_STRUCTURE: "공개/구조 콘텐츠",
+    TYPE_MATCH: "유형 일치",
+    TITLE_CONTAINS_OFFICIAL_TITLE: "공식명 포함",
+  };
+  return labels[reason] ?? reason;
 }
 
 function officialNodeTitle(node: CurriculumNode) {
