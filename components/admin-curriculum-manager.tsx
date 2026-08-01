@@ -615,6 +615,14 @@ function CurriculumTreeRow({
 }) {
   const metadata = parseMetadata(node.metadata) as NodeMetadata;
   const stableKey = node.officialCode ?? node.id;
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopyStableKey() {
+    const ok = await copyStableKey(stableKey);
+    if (!ok) return;
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1800);
+  }
 
   return (
     <div
@@ -655,11 +663,11 @@ function CurriculumTreeRow({
       <button
         className="curriculum-copy-button"
         type="button"
-        onClick={() => copyStableKey(stableKey)}
-        title="Stable Key 복사"
-        aria-label={`${stableKey} 복사`}
+        onClick={handleCopyStableKey}
+        title={copied ? "Stable Key 복사됨" : "Stable Key 복사"}
+        aria-label={`${stableKey} ${copied ? "복사됨" : "복사"}`}
       >
-        복사
+        {copied ? "복사됨" : "복사"}
       </button>
     </div>
   );
@@ -685,6 +693,7 @@ function NodeDetailPanel({
   const metadata = parseMetadata(node.metadata) as NodeMetadata;
   const stableKey = node.officialCode ?? node.id;
   const [recommendedLinkKeys, setRecommendedLinkKeys] = useState<string[]>([]);
+  const [stableKeyCopied, setStableKeyCopied] = useState(false);
   const recommendations = recommendLinkableContentForNode({
     node,
     linkableContent,
@@ -700,6 +709,13 @@ function NodeDetailPanel({
     setRecommendedLinkKeys((current) =>
       current.includes(key) ? current : [...current, key],
     );
+  }
+
+  async function handleCopyStableKey() {
+    const ok = await copyStableKey(stableKey);
+    if (!ok) return;
+    setStableKeyCopied(true);
+    window.setTimeout(() => setStableKeyCopied(false), 1800);
   }
 
   return (
@@ -722,9 +738,10 @@ function NodeDetailPanel({
             <button
               className="text-link copy-inline"
               type="button"
-              onClick={() => copyStableKey(stableKey)}
+              onClick={handleCopyStableKey}
+              aria-label={`${stableKey} ${stableKeyCopied ? "복사됨" : "복사"}`}
             >
-              복사
+              {stableKeyCopied ? "복사됨" : "복사"}
             </button>
           </dd>
         </div>
@@ -1516,8 +1533,11 @@ function safePercent(value: number, total: number) {
 
 async function copyStableKey(value: string) {
   try {
-    await navigator.clipboard?.writeText(value);
+    if (!navigator.clipboard) return false;
+    await navigator.clipboard.writeText(value);
+    return true;
   } catch {
     // Clipboard API가 제한된 환경에서는 조용히 무시한다.
+    return false;
   }
 }
