@@ -99,6 +99,40 @@ test("실기 공통 항목과 기사 전용 항목은 분리된 taxonomy로 관�
   );
 });
 
+test("공식 PDF 대조 메타데이터는 필기·실기 문항수와 시간을 보존한다", () => {
+  const engineer = getOfficialCurriculumTree("curriculum-ise-2027-2029-official");
+  const industrial = getOfficialCurriculumTree("curriculum-isie-2027-2029-official");
+  assert.ok(engineer);
+  assert.ok(industrial);
+
+  assert.deepEqual(
+    engineer.examTracks.map((track) => ({
+      title: track.title,
+      examMethod: track.examMethod,
+      questionCount: track.questionCount,
+      timeLimitMinutes: track.timeLimitMinutes,
+    })),
+    [
+      { title: "필기", examMethod: "객관식", questionCount: 100, timeLimitMinutes: 150 },
+      { title: "실기", examMethod: "필답형", questionCount: null, timeLimitMinutes: 180 },
+    ],
+  );
+  assert.deepEqual(
+    industrial.examTracks.map((track) => ({
+      title: track.title,
+      examMethod: track.examMethod,
+      questionCount: track.questionCount,
+      timeLimitMinutes: track.timeLimitMinutes,
+    })),
+    [
+      { title: "필기", examMethod: "객관식", questionCount: 80, timeLimitMinutes: 120 },
+      { title: "실기", examMethod: "필답형", questionCount: null, timeLimitMinutes: 150 },
+    ],
+  );
+  assert.equal(engineer.examTracks.every((track) => track.sourcePages.length > 0), true);
+  assert.equal(industrial.examTracks.every((track) => track.sourcePages.length > 0), true);
+});
+
 test("공식 커리큘럼 flatten 결과는 stableKey와 path가 중복되지 않는다", () => {
   for (const tree of SECURITY_CERTIFICATION_CURRICULUM_TREES) {
     const nodes = flattenOfficialCurriculumTree(tree);
@@ -108,6 +142,13 @@ test("공식 커리큘럼 flatten 결과는 stableKey와 path가 중복되지 �
     assert.equal(new Set(stableKeys).size, stableKeys.length);
     assert.equal(new Set(paths).size, paths.length);
     assert.equal(nodes.every((node) => node.metadata.confirmedFromImage), true);
-    assert.equal(nodes.every((node) => node.metadata.needsPdfVerification), true);
+    assert.equal(nodes.every((node) => node.metadata.confirmedFromPdf), true);
+    assert.equal(nodes.every((node) => node.metadata.needsPdfVerification === false), true);
+    assert.equal(
+      nodes
+        .filter((node) => node.nodeType === "TRACK")
+        .every((node) => node.metadata.examTrack?.sourcePages),
+      true,
+    );
   }
 });

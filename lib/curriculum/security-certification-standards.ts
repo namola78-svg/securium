@@ -26,6 +26,15 @@ export type OfficialCurriculumNodeDefinition = {
   children?: OfficialCurriculumNodeDefinition[];
 };
 
+export type OfficialCurriculumExamTrackDefinition = {
+  title: "필기" | "실기";
+  examMethod: "객관식" | "필답형";
+  questionCount: number | null;
+  timeLimitMinutes: number;
+  sourcePages: string;
+  notes?: string;
+};
+
 export type OfficialCurriculumTreeDefinition = {
   treeId: string;
   courseId: string;
@@ -37,6 +46,7 @@ export type OfficialCurriculumTreeDefinition = {
   effectiveFrom: string;
   effectiveTo: string;
   status: "DRAFT";
+  examTracks: OfficialCurriculumExamTrackDefinition[];
   nodes: OfficialCurriculumNodeDefinition[];
 };
 
@@ -54,12 +64,15 @@ export type FlattenedOfficialCurriculumNode = {
   importance: number | null;
   notes: string | null;
   metadata: {
-    source: "USER_PROVIDED_OFFICIAL_STANDARD_IMAGE";
+    source: "USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES";
     courseCode: SecurityCertificationCourseCode;
     version: "2027-2029";
     officialLevel: OfficialCurriculumNodeDefinition["officialLevel"];
     confirmedFromImage: true;
-    needsPdfVerification: true;
+    confirmedFromPdf: true;
+    needsPdfVerification: false;
+    pdfCrossCheckedAt: "2026-08-01";
+    examTrack?: OfficialCurriculumExamTrackDefinition;
   };
 };
 
@@ -344,6 +357,22 @@ export const SECURITY_CERTIFICATION_CURRICULUM_TREES: OfficialCurriculumTreeDefi
     effectiveFrom: "2027-01-01",
     effectiveTo: "2029-12-31",
     status: "DRAFT",
+    examTracks: [
+      {
+        title: "필기",
+        examMethod: "객관식",
+        questionCount: 100,
+        timeLimitMinutes: 150,
+        sourcePages: "정보보안기사 필기 출제기준 PDF p.1-5 / 사용자 제공 이미지 1-5",
+      },
+      {
+        title: "실기",
+        examMethod: "필답형",
+        questionCount: null,
+        timeLimitMinutes: 180,
+        sourcePages: "정보보안기사 실기 출제기준 PDF p.1-6 / 사용자 제공 이미지 1-6",
+      },
+    ],
     nodes: [
       {
         title: "필기",
@@ -374,6 +403,22 @@ export const SECURITY_CERTIFICATION_CURRICULUM_TREES: OfficialCurriculumTreeDefi
     effectiveFrom: "2027-01-01",
     effectiveTo: "2029-12-31",
     status: "DRAFT",
+    examTracks: [
+      {
+        title: "필기",
+        examMethod: "객관식",
+        questionCount: 80,
+        timeLimitMinutes: 120,
+        sourcePages: "정보보안산업기사 필기 출제기준 PDF p.1-3 / 사용자 제공 이미지 1-3",
+      },
+      {
+        title: "실기",
+        examMethod: "필답형",
+        questionCount: null,
+        timeLimitMinutes: 150,
+        sourcePages: "정보보안산업기사 실기 출제기준 PDF p.1-5 / 사용자 제공 이미지 1-5",
+      },
+    ],
     nodes: [
       {
         title: "필기",
@@ -407,6 +452,11 @@ export function flattenOfficialCurriculumTree(
     const suffix = indexes.map((index) => String(index).padStart(2, "0")).join("-");
     const stableKey = `${tree.courseCode}-${tree.version}-${suffix}`;
     const path = `${parentPath}/${stableKey}`;
+    const examTrack =
+      depth === 0
+        ? tree.examTracks.find((track) => track.title === definition.title)
+        : undefined;
+
     nodes.push({
       stableKey,
       title: definition.title,
@@ -421,12 +471,15 @@ export function flattenOfficialCurriculumTree(
       importance: definition.importance ?? null,
       notes: definition.notes ?? null,
       metadata: {
-        source: "USER_PROVIDED_OFFICIAL_STANDARD_IMAGE",
+        source: "USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES",
         courseCode: tree.courseCode,
         version: tree.version,
         officialLevel: definition.officialLevel,
         confirmedFromImage: true,
-        needsPdfVerification: true,
+        confirmedFromPdf: true,
+        needsPdfVerification: false,
+        pdfCrossCheckedAt: "2026-08-01",
+        ...(examTrack ? { examTrack } : {}),
       },
     });
 

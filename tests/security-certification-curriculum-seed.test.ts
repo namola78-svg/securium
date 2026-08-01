@@ -39,6 +39,16 @@ test("security certification curriculum seed includes both official course trees
   assert.equal(stats.every((stat) => stat.nodeCount > 0), true);
 });
 
+test("security certification curriculum seed marks PDF cross-check metadata as complete", () => {
+  const sql = generateSecurityCertificationCurriculumSeedSql({ dialect: "postgres" });
+
+  assert.match(sql, /\"confirmedFromPdf\":true/);
+  assert.match(sql, /\"needsPdfVerification\":false/);
+  assert.match(sql, /\"pdfCrossCheckedAt\":\"2026-08-01\"/);
+  assert.match(sql, /\"examTrack\":/);
+  assert.doesNotMatch(sql, /\"needsPdfVerification\":true/);
+});
+
 test("security certification curriculum seed is additive only", () => {
   const sql = generateSecurityCertificationCurriculumSeedSql({ dialect: "postgres" });
 

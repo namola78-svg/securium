@@ -705,13 +705,14 @@ ISIE-2023-2026-P-01
   "examType": "WRITTEN",
   "officialLevel": "SUBJECT",
   "officialPage": null,
-  "confirmedFromPdf": false,
-  "needsPdfVerification": true,
+  "confirmedFromPdf": true,
+  "needsPdfVerification": false,
+  "pdfCrossCheckedAt": "2026-08-01",
   "sampleOnly": false
 }
 ```
 
-원문 확인 전에는 `confirmedFromPdf: false`, `needsPdfVerification: true`를 유지해야 한다.
+초기 분석 단계에서는 원문 확인 전 상태로 `confirmedFromPdf: false`, `needsPdfVerification: true`를 유지했다. 2026-08-01 PDF 최종 대조 후에는 `docs/curriculum/security-certification-pdf-crosscheck.md` 기준으로 `confirmedFromPdf: true`, `needsPdfVerification: false`를 사용한다.
 
 ## 11. Subject/Topic 호환성 정책
 

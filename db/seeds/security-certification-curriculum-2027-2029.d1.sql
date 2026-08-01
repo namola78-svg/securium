@@ -70,7 +70,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"EXAM_TRACK","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"EXAM_TRACK","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","examTrack":{"title":"필기","examMethod":"객관식","questionCount":100,"timeLimitMinutes":150,"sourcePages":"정보보안기사 필기 출제기준 PDF p.1-5 / 사용자 제공 이미지 1-5"},"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -112,7 +112,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUBJECT","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUBJECT","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -154,7 +154,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -196,7 +196,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -238,7 +238,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -280,7 +280,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -322,7 +322,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -364,7 +364,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -406,7 +406,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -448,7 +448,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -490,7 +490,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -532,7 +532,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -574,7 +574,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -616,7 +616,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUBJECT","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUBJECT","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -658,7 +658,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -700,7 +700,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -742,7 +742,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -784,7 +784,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -826,7 +826,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -868,7 +868,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -910,7 +910,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -952,7 +952,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -994,7 +994,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -1036,7 +1036,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -1078,7 +1078,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -1120,7 +1120,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -1162,7 +1162,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUBJECT","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUBJECT","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -1204,7 +1204,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -1246,7 +1246,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -1288,7 +1288,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -1330,7 +1330,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -1372,7 +1372,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -1414,7 +1414,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -1456,7 +1456,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -1498,7 +1498,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -1540,7 +1540,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -1582,7 +1582,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUBJECT","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUBJECT","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -1624,7 +1624,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -1666,7 +1666,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -1708,7 +1708,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -1750,7 +1750,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -1792,7 +1792,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -1834,7 +1834,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -1876,7 +1876,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -1918,7 +1918,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -1960,7 +1960,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -2002,7 +2002,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -2044,7 +2044,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUBJECT","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUBJECT","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -2086,7 +2086,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -2128,7 +2128,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -2170,7 +2170,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -2212,7 +2212,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -2254,7 +2254,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -2296,7 +2296,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -2338,7 +2338,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -2380,7 +2380,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -2422,7 +2422,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -2464,7 +2464,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"EXAM_TRACK","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"EXAM_TRACK","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","examTrack":{"title":"실기","examMethod":"필답형","questionCount":null,"timeLimitMinutes":180,"sourcePages":"정보보안기사 실기 출제기준 PDF p.1-6 / 사용자 제공 이미지 1-6"},"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -2506,7 +2506,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"PRACTICAL_DOMAIN","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"PRACTICAL_DOMAIN","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -2548,7 +2548,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -2590,7 +2590,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -2632,7 +2632,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -2674,7 +2674,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -2716,7 +2716,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -2758,7 +2758,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -2800,7 +2800,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -2842,7 +2842,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -2884,7 +2884,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -2926,7 +2926,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -2968,7 +2968,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -3010,7 +3010,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -3052,7 +3052,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -3094,7 +3094,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -3136,7 +3136,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -3178,7 +3178,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -3220,7 +3220,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -3262,7 +3262,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -3304,7 +3304,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -3346,7 +3346,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-ise-2027-2029-official","sourceDocument":"정보보안기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -3414,7 +3414,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"EXAM_TRACK","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"EXAM_TRACK","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","examTrack":{"title":"필기","examMethod":"객관식","questionCount":80,"timeLimitMinutes":120,"sourcePages":"정보보안산업기사 필기 출제기준 PDF p.1-3 / 사용자 제공 이미지 1-3"},"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -3456,7 +3456,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUBJECT","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUBJECT","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -3498,7 +3498,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -3540,7 +3540,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -3582,7 +3582,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -3624,7 +3624,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -3666,7 +3666,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -3708,7 +3708,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -3750,7 +3750,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -3792,7 +3792,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -3834,7 +3834,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -3876,7 +3876,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -3918,7 +3918,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -3960,7 +3960,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUBJECT","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUBJECT","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -4002,7 +4002,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -4044,7 +4044,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -4086,7 +4086,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -4128,7 +4128,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -4170,7 +4170,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -4212,7 +4212,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -4254,7 +4254,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -4296,7 +4296,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -4338,7 +4338,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -4380,7 +4380,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -4422,7 +4422,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -4464,7 +4464,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -4506,7 +4506,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUBJECT","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUBJECT","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -4548,7 +4548,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -4590,7 +4590,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -4632,7 +4632,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -4674,7 +4674,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -4716,7 +4716,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -4758,7 +4758,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -4800,7 +4800,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -4842,7 +4842,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -4884,7 +4884,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -4926,7 +4926,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUBJECT","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUBJECT","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -4968,7 +4968,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -5010,7 +5010,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -5052,7 +5052,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -5094,7 +5094,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -5136,7 +5136,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -5178,7 +5178,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -5220,7 +5220,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -5262,7 +5262,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -5304,7 +5304,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -5346,7 +5346,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   0,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -5388,7 +5388,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"EXAM_TRACK","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"EXAM_TRACK","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","examTrack":{"title":"실기","examMethod":"필답형","questionCount":null,"timeLimitMinutes":150,"sourcePages":"정보보안산업기사 실기 출제기준 PDF p.1-5 / 사용자 제공 이미지 1-5"},"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -5430,7 +5430,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"PRACTICAL_DOMAIN","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"PRACTICAL_DOMAIN","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -5472,7 +5472,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -5514,7 +5514,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -5556,7 +5556,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -5598,7 +5598,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -5640,7 +5640,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -5682,7 +5682,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -5724,7 +5724,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -5766,7 +5766,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -5808,7 +5808,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -5850,7 +5850,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -5892,7 +5892,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -5934,7 +5934,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -5976,7 +5976,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -6018,7 +6018,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"MAJOR_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
@@ -6060,7 +6060,7 @@ INSERT OR IGNORE INTO "curriculum_nodes" (
   1,
   NULL,
   NULL,
-  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_IMAGE","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"needsPdfVerification":true,"treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
+  '{"source":"USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES","courseCode":"ISIE","version":"2027-2029","officialLevel":"SUB_ITEM","confirmedFromImage":true,"confirmedFromPdf":true,"needsPdfVerification":false,"pdfCrossCheckedAt":"2026-08-01","treeId":"curriculum-isie-2027-2029-official","sourceDocument":"정보보안산업기사 필기·실기 출제기준","notes":null}',
   'ACTIVE',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
