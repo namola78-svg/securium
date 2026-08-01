@@ -3401,6 +3401,46 @@ textarea {
   gap: 0.5rem;
 }
 
+.curriculum-recommendation-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.curriculum-recommendation-filter {
+  align-items: center;
+  background: #fbfcf7;
+  border: 1px solid rgba(89, 112, 101, 0.18);
+  border-radius: 999px;
+  color: #41525a;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 900;
+  gap: 0.35rem;
+  min-height: 2rem;
+  padding: 0.25rem 0.6rem;
+}
+
+.curriculum-recommendation-filter[aria-pressed="true"] {
+  background: #e8ffd0;
+  border-color: rgba(75, 104, 32, 0.42);
+  color: #22330f;
+}
+
+.curriculum-recommendation-filter:focus-visible {
+  outline: 3px solid rgba(192, 255, 80, 0.65);
+  outline-offset: 2px;
+}
+
+.curriculum-recommendation-filter small {
+  color: inherit;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
 .curriculum-content-recommendation {
   background: #fbfcf7;
   border: 1px solid rgba(89, 112, 101, 0.14);

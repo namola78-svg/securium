@@ -829,7 +829,15 @@ function RecommendedLinkableContent({
     item: LinkableContentRecommendation<LinkableContent>,
   ) => void;
 }) {
+  const [selectedType, setSelectedType] = useState<LinkableContent["type"] | "ALL">(
+    "ALL",
+  );
   const selectedKeySet = new Set(selectedLinkKeys);
+  const recommendationTypes = recommendationFilterOptions(recommendations);
+  const visibleRecommendations =
+    selectedType === "ALL"
+      ? recommendations
+      : recommendations.filter((item) => item.type === selectedType);
 
   return (
     <section
@@ -850,8 +858,28 @@ function RecommendedLinkableContent({
       </div>
 
       {recommendations.length ? (
+        <div
+          className="curriculum-recommendation-filters"
+          aria-label="추천 콘텐츠 유형 필터"
+        >
+          {recommendationTypes.map((option) => (
+            <button
+              className="curriculum-recommendation-filter"
+              key={option.type}
+              type="button"
+              aria-pressed={selectedType === option.type}
+              onClick={() => setSelectedType(option.type)}
+            >
+              <span>{option.label}</span>
+              <small>{option.count}</small>
+            </button>
+          ))}
+        </div>
+      ) : null}
+
+      {recommendations.length ? (
         <div className="curriculum-content-recommendation-list">
-          {recommendations.map((item) => (
+          {visibleRecommendations.map((item) => (
             <button
               className="curriculum-content-recommendation"
               key={linkKey(item)}
@@ -886,6 +914,36 @@ function RecommendedLinkableContent({
       )}
     </section>
   );
+}
+
+function recommendationFilterOptions(
+  recommendations: Array<LinkableContentRecommendation<LinkableContent>>,
+): Array<{ type: LinkableContent["type"] | "ALL"; label: string; count: number }> {
+  const counts = recommendations.reduce<
+    Record<LinkableContent["type"], number>
+  >(
+    (summary, recommendation) => {
+      summary[recommendation.type] += 1;
+      return summary;
+    },
+    {
+      SUBJECT: 0,
+      TOPIC: 0,
+      LEARNING_UNIT: 0,
+      LESSON: 0,
+    },
+  );
+
+  return [
+    { type: "ALL" as const, label: "전체", count: recommendations.length },
+    ...Object.entries(counts)
+      .filter(([, count]) => count > 0)
+      .map(([type, count]) => ({
+        type: type as LinkableContent["type"],
+        label: contentTypeLabels[type as LinkableContent["type"]],
+        count,
+      })),
+  ];
 }
 
 function TreeForm({
