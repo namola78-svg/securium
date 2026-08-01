@@ -23,6 +23,14 @@ export function sourcePageLabel(metadata: SourcePageMetadata) {
   return metadata.needsPdfVerification ? "PDF 페이지 확인 필요" : "PDF 페이지 미지정";
 }
 
+export function curriculumStatusLabel(status: string) {
+  if (status === "DRAFT") return "초안";
+  if (status === "ACTIVE") return "활성";
+  if (status === "INACTIVE") return "비활성";
+  if (status === "ARCHIVED") return "보관";
+  return status;
+}
+
 function isPresentPage(value: number | string | null | undefined): value is number | string {
   if (typeof value === "number") return Number.isFinite(value);
   return typeof value === "string" && value.trim().length > 0;

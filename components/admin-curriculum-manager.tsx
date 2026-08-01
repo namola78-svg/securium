@@ -7,7 +7,10 @@ import {
   recommendableContentKey,
   type LinkableContentRecommendation,
 } from "@/lib/curriculum/content-recommendations";
-import { sourcePageLabel } from "@/lib/curriculum/display-labels";
+import {
+  curriculumStatusLabel,
+  sourcePageLabel,
+} from "@/lib/curriculum/display-labels";
 
 type CourseOption = {
   id: string;
@@ -1515,14 +1518,6 @@ function nodeDisplayType(node: CurriculumNode, metadata: NodeMetadata) {
 
 function nodeStatusLabel(status: string) {
   return curriculumStatusLabel(status);
-}
-
-function curriculumStatusLabel(status: string) {
-  if (status === "DRAFT") return "초안";
-  if (status === "ACTIVE") return "활성";
-  if (status === "INACTIVE") return "비활성";
-  if (status === "ARCHIVED") return "보관";
-  return status;
 }
 
 function safePercent(value: number, total: number) {

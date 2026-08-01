@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { sourcePageLabel } from "../lib/curriculum/display-labels.ts";
+import {
+  curriculumStatusLabel,
+  sourcePageLabel,
+} from "../lib/curriculum/display-labels.ts";
 
 test("source page label displays a single PDF page in Korean", () => {
   assert.equal(sourcePageLabel({ sourcePage: 3 }), "PDF 3쪽");
@@ -20,4 +23,12 @@ test("source page label falls back to verification states", () => {
     sourcePageLabel({ needsPdfVerification: true }),
     "PDF 페이지 확인 필요",
   );
+});
+
+test("curriculum status label localizes known workflow states", () => {
+  assert.equal(curriculumStatusLabel("DRAFT"), "초안");
+  assert.equal(curriculumStatusLabel("ACTIVE"), "활성");
+  assert.equal(curriculumStatusLabel("INACTIVE"), "비활성");
+  assert.equal(curriculumStatusLabel("ARCHIVED"), "보관");
+  assert.equal(curriculumStatusLabel("CUSTOM"), "CUSTOM");
 });
