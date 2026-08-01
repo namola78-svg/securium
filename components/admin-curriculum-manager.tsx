@@ -735,7 +735,7 @@ function NodeDetailPanel({
           <dd>{officialSequence(node)}</dd>
         </div>
         <div>
-          <dt>Stable Key</dt>
+          <dt>Stable Key · 고유키</dt>
           <dd>
             <code>{stableKey}</code>
             <button
@@ -760,7 +760,7 @@ function NodeDetailPanel({
           <dd>{linkedContentSummary(node.metadata)}</dd>
         </div>
         <div>
-          <dt>Path</dt>
+          <dt>계층 경로</dt>
           <dd>{node.path ?? "경로 없음"}</dd>
         </div>
         {metadata.notes ? (

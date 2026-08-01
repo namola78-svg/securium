@@ -64,7 +64,7 @@ export default async function AdminCurriculumPage({
   return (
     <>
       <header className="admin-page-header">
-        <p className="eyebrow">CURRICULUM ARCHITECTURE</p>
+        <p className="eyebrow">공식 커리큘럼 아키텍처</p>
         <h1>커리큘럼 트리 관리</h1>
         <p>
           과정별 공식·실무 커리큘럼 버전과 계층 노드를 관리합니다. 기존
