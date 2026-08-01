@@ -138,12 +138,36 @@ export function normalizeRecommendationText(value: string) {
     .trim();
 }
 
+const recommendationStopWords = new Set([
+  "개념",
+  "관리",
+  "기술",
+  "기준",
+  "내용",
+  "대응",
+  "보안",
+  "분석",
+  "서비스",
+  "시스템",
+  "운영",
+  "원리",
+  "위험",
+  "이해",
+  "일반",
+  "적용",
+  "점검",
+  "정보",
+  "통제",
+]);
+
 function tokenizeRecommendationText(value: string) {
   return new Set(
     normalizeRecommendationText(value)
       .split(" ")
       .map((token) => token.trim())
-      .filter((token) => token.length >= 2),
+      .filter(
+        (token) => token.length >= 2 && !recommendationStopWords.has(token),
+      ),
   );
 }
 

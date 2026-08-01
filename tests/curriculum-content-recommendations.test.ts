@@ -116,3 +116,29 @@ test("curriculum content recommendations preserve multilingual official terms", 
     "c c web was 보안 認証 pki",
   );
 });
+
+test("curriculum content recommendations ignore overly broad security terms", () => {
+  const recommendations = recommendLinkableContentForNode({
+    node: {
+      nodeType: "LESSON",
+      title: "보안 시스템 관리",
+      description: "보안 시스템의 일반 관리 개념을 이해한다.",
+    },
+    linkableContent: [
+      {
+        type: "LESSON",
+        id: "generic-security",
+        title: "보안 시스템 관리",
+        subtitle: "보안 일반 개념",
+        active: true,
+        published: true,
+        displayOrder: 1,
+      },
+    ],
+    minScore: 0,
+  });
+
+  assert.equal(recommendations.length, 1);
+  assert.deepEqual(recommendations[0].matchedKeywords, []);
+  assert.equal(recommendations[0].reasons.includes("KEYWORD_MATCH"), false);
+});
