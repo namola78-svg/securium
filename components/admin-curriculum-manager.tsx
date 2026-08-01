@@ -691,6 +691,9 @@ function NodeDetailPanel({
     linkedKeys: parseLinkedContent(node.metadata).map((link) => linkKey(link)),
     limit: 5,
   });
+  const selectedRecommendedContent = linkableContent.filter((item) =>
+    recommendedLinkKeys.includes(linkKey(item)),
+  );
 
   function selectRecommendedContent(item: LinkableContent) {
     const key = linkKey(item);
@@ -754,6 +757,8 @@ function NodeDetailPanel({
         onSelectRecommendation={selectRecommendedContent}
       />
 
+      <PendingLinkedContentPreview selectedContent={selectedRecommendedContent} />
+
       <details className="curriculum-node-edit-panel">
         <summary>선택 노드 수정</summary>
         <NodeForm
@@ -813,6 +818,42 @@ function NodeOperationalStats({
         <dd>{stat.dueReviewCount}</dd>
       </div>
     </dl>
+  );
+}
+
+function PendingLinkedContentPreview({
+  selectedContent,
+}: {
+  selectedContent: LinkableContent[];
+}) {
+  if (!selectedContent.length) return null;
+
+  return (
+    <section
+      className="curriculum-pending-link-preview"
+      aria-label="저장 예정 콘텐츠 연결 미리보기"
+    >
+      <div>
+        <h4>저장 예정 추가 연결</h4>
+        <p className="admin-helper">
+          아래 항목은 추천 후보에서 선택되어 수정 폼에 임시 반영된 콘텐츠입니다.
+          저장 버튼을 누르기 전까지 실제 노드에는 반영되지 않습니다.
+        </p>
+      </div>
+      <ul>
+        {selectedContent.map((item) => (
+          <li key={linkKey(item)}>
+            <span>
+              <strong>{item.title}</strong>
+              <small>
+                {contentTypeLabels[item.type]} · {item.subtitle}
+              </small>
+            </span>
+            <span className="status-badge compact">추가 예정</span>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 

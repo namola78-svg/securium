@@ -3486,6 +3486,46 @@ textarea {
   gap: 0.35rem;
 }
 
+.curriculum-pending-link-preview {
+  background: #f7f1dc;
+  border: 1px solid rgba(135, 102, 31, 0.2);
+  border-radius: 14px;
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.9rem;
+}
+
+.curriculum-pending-link-preview h4,
+.curriculum-pending-link-preview p {
+  margin: 0;
+}
+
+.curriculum-pending-link-preview ul {
+  display: grid;
+  gap: 0.45rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.curriculum-pending-link-preview li {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(135, 102, 31, 0.12);
+  border-radius: 12px;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  padding: 0.65rem 0.75rem;
+}
+
+.curriculum-pending-link-preview small {
+  color: var(--muted);
+  display: block;
+  font-weight: 700;
+  margin-top: 0.15rem;
+}
+
 .curriculum-reason-chip {
   background: #eef3e8;
   border: 1px solid rgba(89, 112, 101, 0.16);
