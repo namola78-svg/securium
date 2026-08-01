@@ -669,6 +669,9 @@ function CurriculumTreeRow({
       >
         {copied ? "복사됨" : "복사"}
       </button>
+      <span className="sr-only" aria-live="polite">
+        {copied ? `${stableKey}가 클립보드에 복사되었습니다.` : ""}
+      </span>
     </div>
   );
 }
@@ -743,6 +746,9 @@ function NodeDetailPanel({
             >
               {stableKeyCopied ? "복사됨" : "복사"}
             </button>
+            <span className="sr-only" aria-live="polite">
+              {stableKeyCopied ? `${stableKey}가 클립보드에 복사되었습니다.` : ""}
+            </span>
           </dd>
         </div>
         <div>
