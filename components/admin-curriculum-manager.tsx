@@ -1520,7 +1520,7 @@ function sourcePageLabel(metadata: NodeMetadata) {
       Boolean,
     );
   if (Array.isArray(pages) && pages.length) {
-    return `PDF p.${pages.join(", ")}`;
+    return `PDF ${pages.join(", ")}쪽`;
   }
   return metadata.needsPdfVerification ? "PDF 페이지 확인 필요" : "PDF 페이지 미지정";
 }
