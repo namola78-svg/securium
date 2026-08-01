@@ -7,6 +7,7 @@ import {
   recommendableContentKey,
   type LinkableContentRecommendation,
 } from "@/lib/curriculum/content-recommendations";
+import { sourcePageLabel } from "@/lib/curriculum/display-labels";
 
 type CourseOption = {
   id: string;
@@ -1510,19 +1511,6 @@ function nodeDisplayType(node: CurriculumNode, metadata: NodeMetadata) {
     return officialLevelLabels[metadata.officialLevel];
   }
   return nodeTypeLabels[node.nodeType] ?? node.nodeType;
-}
-
-function sourcePageLabel(metadata: NodeMetadata) {
-  const pages =
-    metadata.sourcePages ??
-    metadata.pageNumbers ??
-    [metadata.sourcePage ?? metadata.pdfPage ?? metadata.pageNumber].filter(
-      Boolean,
-    );
-  if (Array.isArray(pages) && pages.length) {
-    return `PDF ${pages.join(", ")}쪽`;
-  }
-  return metadata.needsPdfVerification ? "PDF 페이지 확인 필요" : "PDF 페이지 미지정";
 }
 
 function nodeStatusLabel(status: string) {
