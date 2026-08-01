@@ -131,7 +131,8 @@ export function normalizeRecommendationText(value: string) {
   return value
     .normalize("NFKC")
     .toLowerCase()
-    .replace(/[^a-z0-9가-힣/.\- ]+/g, " ")
+    .replace(/[^\p{Letter}\p{Number}/.\-+# ]+/gu, " ")
+    .replace(/[+#]/g, " ")
     .replace(/[-/.]/g, " ")
     .replace(/\s+/g, " ")
     .trim();

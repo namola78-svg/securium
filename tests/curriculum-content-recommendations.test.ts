@@ -109,3 +109,10 @@ test("curriculum content recommendations normalize Korean security terms safely"
     "ids ips 방화벽 vpn 보안",
   );
 });
+
+test("curriculum content recommendations preserve multilingual official terms", () => {
+  assert.equal(
+    normalizeRecommendationText("C/C++ Web/WAS 보안・認証 PKI"),
+    "c c web was 보안 認証 pki",
+  );
+});
