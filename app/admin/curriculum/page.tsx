@@ -82,13 +82,13 @@ export default async function AdminCurriculumPage({
           <span>커리큘럼 트리</span>
           <strong>{trees.length}</strong>
           <small>
-            ACTIVE {trees.filter((tree) => tree.status === "ACTIVE").length}
+            활성 트리 {trees.filter((tree) => tree.status === "ACTIVE").length}
           </small>
         </div>
         <div className="stat-card">
           <span>선택 트리 노드</span>
           <strong>{nodes.length}</strong>
-          <small>soft delete: ARCHIVED</small>
+          <small>보관 처리로 삭제 이력 보호</small>
         </div>
         <div className="stat-card">
           <span>연결 가능 콘텐츠</span>

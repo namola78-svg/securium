@@ -331,8 +331,8 @@ export function AdminCurriculumManager({
       <section className="admin-panel">
         <h2>커리큘럼 트리</h2>
         <p className="admin-helper">
-          과정별 공식·실무 커리큘럼 버전과 계층 노드를 관리합니다. DRAFT
-          트리는 학습자에게 공개되지 않으며, 검증이 끝난 트리만 ACTIVE로
+          과정별 공식·실무 커리큘럼 버전과 계층 노드를 관리합니다. 초안
+          트리는 학습자에게 공개되지 않으며, 검증이 끝난 트리만 활성 상태로
           전환합니다.
         </p>
         <div className="admin-record-list">
@@ -1046,7 +1046,7 @@ function TreeForm({
         <select name="status" defaultValue={tree?.status ?? "DRAFT"}>
           {treeStatuses.map((status) => (
             <option key={status} value={status}>
-              {status}
+              {curriculumStatusLabel(status)}
             </option>
           ))}
         </select>
@@ -1108,7 +1108,7 @@ function TreeForm({
       </label>
       {tree && activeTreeForCourse && activeTreeForCourse.id !== tree.id ? (
         <p className="inline-error wide" role="alert">
-          이 과정에는 이미 ACTIVE 트리가 있습니다. ACTIVE 전환 시 서버에서
+          이 과정에는 이미 활성 트리가 있습니다. 활성 전환 시 서버에서
           중복을 차단합니다.
         </p>
       ) : null}
@@ -1250,7 +1250,7 @@ function NodeForm({
         <select name="status" defaultValue={node?.status ?? "ACTIVE"}>
           {nodeStatuses.map((status) => (
             <option key={status} value={status}>
-              {status}
+              {curriculumStatusLabel(status)}
             </option>
           ))}
         </select>
@@ -1526,6 +1526,11 @@ function sourcePageLabel(metadata: NodeMetadata) {
 }
 
 function nodeStatusLabel(status: string) {
+  return curriculumStatusLabel(status);
+}
+
+function curriculumStatusLabel(status: string) {
+  if (status === "DRAFT") return "초안";
   if (status === "ACTIVE") return "활성";
   if (status === "INACTIVE") return "비활성";
   if (status === "ARCHIVED") return "보관";
