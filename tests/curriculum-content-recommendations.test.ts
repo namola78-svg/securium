@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
+  normalizeRecommendationText,
   recommendLinkableContentForNode,
   recommendableContentKey,
   recommendationReasonLabel,
@@ -69,6 +70,7 @@ test("curriculum content recommendations rank official title and keyword matches
   assert.equal(recommendations[0]?.id, "ids-ips");
   assert.ok(recommendations[0]?.reasons.includes("TITLE_CONTAINS_OFFICIAL_TITLE"));
   assert.ok(recommendations[0]?.reasons.includes("TYPE_MATCH"));
+  assert.ok(recommendations[0]?.matchedKeywords.includes("방화벽"));
   assert.ok(
     recommendations.some((recommendation) => recommendation.id === "network-log"),
   );
@@ -99,4 +101,11 @@ test("curriculum content recommendations support stable keys, labels and limits"
   assert.equal(recommendableContentKey(recommendations[0]), "TOPIC:ids-ips");
   assert.equal(recommendationReasonLabel("KEYWORD_MATCH"), "키워드 일치");
   assert.equal(recommendationReasonLabel("UNKNOWN_REASON"), "UNKNOWN_REASON");
+});
+
+test("curriculum content recommendations normalize Korean security terms safely", () => {
+  assert.equal(
+    normalizeRecommendationText("IDS/IPS, 방화벽·VPN 보안"),
+    "ids ips 방화벽 vpn 보안",
+  );
 });

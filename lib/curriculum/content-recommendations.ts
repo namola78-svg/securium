@@ -22,6 +22,7 @@ export type LinkableContentRecommendation<T extends RecommendableLinkableContent
   T & {
     score: number;
     reasons: string[];
+    matchedKeywords: string[];
   };
 
 export function recommendLinkableContentForNode<
@@ -61,11 +62,13 @@ export function recommendLinkableContentForNode<
       const itemTokens = tokenizeRecommendationText(
         `${item.title} ${item.subtitle} ${item.type}`,
       );
-      const matched = [...itemTokens].filter((token) => nodeTokens.has(token));
+      const matchedKeywords = [...itemTokens].filter((token) =>
+        nodeTokens.has(token),
+      );
       const reasons: string[] = [];
-      let score = matched.length * 12;
+      let score = matchedKeywords.length * 12;
 
-      if (matched.length) reasons.push("KEYWORD_MATCH");
+      if (matchedKeywords.length) reasons.push("KEYWORD_MATCH");
       if (item.active) {
         score += 4;
         reasons.push("ACTIVE_CONTENT");
@@ -92,6 +95,7 @@ export function recommendLinkableContentForNode<
         ...item,
         score,
         reasons,
+        matchedKeywords,
       };
     })
     .filter((item) => item.score >= minScore)
@@ -106,7 +110,9 @@ export function recommendLinkableContentForNode<
   return typeof limit === "number" ? recommendations.slice(0, limit) : recommendations;
 }
 
-export function recommendableContentKey(item: Pick<RecommendableLinkableContent, "type" | "id">) {
+export function recommendableContentKey(
+  item: Pick<RecommendableLinkableContent, "type" | "id">,
+) {
   return `${item.type}:${item.id}`;
 }
 

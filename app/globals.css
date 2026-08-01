@@ -3496,6 +3496,16 @@ textarea {
   padding: 0.12rem 0.45rem;
 }
 
+.curriculum-keyword-chip {
+  background: #f7f1dc;
+  border: 1px solid rgba(135, 102, 31, 0.18);
+  border-radius: 999px;
+  color: #654b12;
+  font-size: 0.72rem;
+  font-weight: 900;
+  padding: 0.12rem 0.45rem;
+}
+
 .curriculum-node-edit-panel {
   border-top: 1px solid var(--line);
   padding-top: 0.75rem;

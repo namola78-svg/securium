@@ -895,14 +895,19 @@ function RecommendedLinkableContent({
               </div>
               <div className="curriculum-content-recommendation-meta">
                 <span className="status-badge compact">score {item.score}</span>
-                {item.reasons.slice(0, 2).map((reason) => (
-                  <span className="curriculum-reason-chip" key={reason}>
-                    {recommendationReasonLabel(reason)}
-                  </span>
-                ))}
-                {selectedKeySet.has(linkKey(item)) ? (
-                  <span className="status-badge compact">선택됨</span>
-                ) : null}
+                  {item.reasons.slice(0, 2).map((reason) => (
+                    <span className="curriculum-reason-chip" key={reason}>
+                      {recommendationReasonLabel(reason)}
+                    </span>
+                  ))}
+                  {item.matchedKeywords.slice(0, 3).map((keyword) => (
+                    <span className="curriculum-keyword-chip" key={keyword}>
+                      {keyword}
+                    </span>
+                  ))}
+                  {selectedKeySet.has(linkKey(item)) ? (
+                    <span className="status-badge compact">선택됨</span>
+                  ) : null}
               </div>
             </button>
           ))}
