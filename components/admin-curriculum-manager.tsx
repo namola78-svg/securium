@@ -585,7 +585,7 @@ function OntologyCoveragePanel({
                   {gap.depth !== undefined ? ` · depth ${gap.depth}` : ""}
                 </small>
               </span>
-              <span className="status-badge compact">score {gap.score}</span>
+              <span className="status-badge compact">우선순위 {gap.score}</span>
             </button>
           ))}
         </div>
@@ -958,7 +958,7 @@ function RecommendedLinkableContent({
                 </small>
               </div>
               <div className="curriculum-content-recommendation-meta">
-                <span className="status-badge compact">score {item.score}</span>
+                <span className="status-badge compact">우선순위 {item.score}</span>
                   {item.reasons.slice(0, 2).map((reason) => (
                     <span className="curriculum-reason-chip" key={reason}>
                       {recommendationReasonLabel(reason)}
