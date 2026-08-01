@@ -49,6 +49,21 @@
 - [ ] Monitoring owner and observation window are assigned
 - [ ] Rollback trigger and decision owner are named
 
+## Curriculum and ontology admin review
+
+- [ ] `/admin/curriculum` loads for an authorized catalog manager only
+- [ ] Curriculum tree list, selected tree summary, and compact node tree render without broken text
+- [ ] Official node title, stable key, source PDF page, and status badge are visible
+- [ ] Stable key copy button works without changing node data
+- [ ] Ontology coverage panel shows linked-node rate, CourseLesson edge count, Concept edge count, and gap count
+- [ ] Gap item click selects the corresponding curriculum node
+- [ ] Linkable content recommendation cards show score, reason chips, and matched keyword chips
+- [ ] Recommendation type filters show only available content types and preserve keyboard focus styles
+- [ ] Recommendation click selects the matching linked-content checkbox but does not auto-save
+- [ ] Node save updates only the selected node metadata and does not modify unrelated course trees
+- [ ] Information Security Engineer and Industrial Engineer curriculum links remain course-scoped
+- [ ] No Production seed, migration, or destructive data operation is run as part of UI deployment
+
 ## Post-release
 
 - [ ] Login, enrollment, lesson, question, mock-exam, and admin smoke tests pass
