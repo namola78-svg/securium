@@ -156,7 +156,44 @@ test("network security practice flow stays scoped to engineer and industrial eng
   assert.equal(leakedCoursePayload.code, "QUESTION_NOT_FOUND");
 });
 
+test("network security course lesson extensions render different course contexts", async () => {
+  await ensureCourseLessonSeed();
+  await ensureEnrollment("dev-user-1@example.invalid", "course-ise");
+  await ensureEnrollment("dev-user-2@example.invalid", "course-isie");
+
+  const engineerResponse = await fetch(
+    `${baseUrl}/learn/information-security-engineer/course-lessons/course-lesson-ise-official-network-security-overview`,
+    {
+      headers: {
+        "oai-authenticated-user-email": "dev-user-1@example.invalid",
+      },
+    },
+  );
+  const engineerHtml = await engineerResponse.text();
+  assert.equal(engineerResponse.status, 200, engineerHtml.slice(0, 1200));
+  assert.match(engineerHtml, /COURSE CONTEXT/);
+  assert.match(engineerHtml, /로그 이벤트/);
+  assert.match(engineerHtml, /차단 정책/);
+  assert.doesNotMatch(engineerHtml, /기본 대응 방법/);
+
+  const industrialResponse = await fetch(
+    `${baseUrl}/learn/information-security-industrial-engineer/course-lessons/course-lesson-isie-official-network-security-overview`,
+    {
+      headers: {
+        "oai-authenticated-user-email": "dev-user-2@example.invalid",
+      },
+    },
+  );
+  const industrialHtml = await industrialResponse.text();
+  assert.equal(industrialResponse.status, 200, industrialHtml.slice(0, 1200));
+  assert.match(industrialHtml, /COURSE CONTEXT/);
+  assert.match(industrialHtml, /기본 대응 방법/);
+  assert.match(industrialHtml, /보안장비 역할/);
+  assert.doesNotMatch(industrialHtml, /로그 이벤트/);
+});
+
 let networkQuestionSeedApplied = false;
+let courseLessonSeedApplied = false;
 
 async function ensureNetworkQuestionSeed() {
   if (networkQuestionSeedApplied) return;
@@ -167,6 +204,20 @@ async function ensureNetworkQuestionSeed() {
   assert.equal(result.code, 0, result.output);
   assert.match(result.output, /NETWORK_SECURITY_QUESTION_SEED_D1_LOCAL_APPLIED/);
   networkQuestionSeedApplied = true;
+}
+
+async function ensureCourseLessonSeed() {
+  if (courseLessonSeedApplied) return;
+  const result = await runCommand(process.execPath, [
+    "scripts/apply-security-certification-course-lessons-seed.mjs",
+    "d1-local",
+  ]);
+  assert.equal(result.code, 0, result.output);
+  assert.match(
+    result.output,
+    /SECURITY_CERTIFICATION_COURSE_LESSON_SEED_D1_LOCAL_APPLIED/,
+  );
+  courseLessonSeedApplied = true;
 }
 
 async function ensureEnrollment(email, courseId) {
