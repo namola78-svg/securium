@@ -389,3 +389,34 @@ test("application security shared content is expanded into a formal lesson body"
   );
   assert.equal(applicationContent.practicalExamples.length >= 4, true);
 });
+
+test("information security general shared content is expanded into a formal lesson body", () => {
+  const generalContent = officialSecurityCertificationContents.find(
+    (content) =>
+      content.id ===
+      "content-official-security-cert-information-security-general-overview",
+  );
+  assert.ok(generalContent);
+
+  assert.equal(generalContent.title, "정보보안일반 정식 학습 개요");
+  assert.match(generalContent.summary, /인증, 접근통제, 키 분배/);
+  assert.match(generalContent.body, /## 2\. 인증과 접근통제/);
+  assert.match(generalContent.body, /## 3\. 키 분배와 전자서명/);
+  assert.match(generalContent.body, /## 4\. 암호 알고리즘과 해시함수/);
+  assert.match(generalContent.body, /양자내성암호/);
+  assert.match(generalContent.body, /제로트러스트/);
+  assert.match(generalContent.body, /SECURIUM 자체 작성 자료/);
+  assert.equal(
+    [
+      "인증",
+      "접근통제",
+      "RBAC",
+      "공개키",
+      "전자서명",
+      "해시함수",
+      "제로트러스트",
+    ].every((concept) => generalContent.coreConcepts.includes(concept)),
+    true,
+  );
+  assert.equal(generalContent.practicalExamples.length >= 4, true);
+});
