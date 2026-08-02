@@ -360,3 +360,32 @@ test("security certification course lesson apply script gates Postgres data chan
   assert.match(script, /target === "d1-local"/);
   assert.match(script, /assertProductionSeedApproval\(\)/);
 });
+
+test("application security shared content is expanded into a formal lesson body", () => {
+  const applicationContent = officialSecurityCertificationContents.find(
+    (content) =>
+      content.id === "content-official-security-cert-application-security-overview",
+  );
+  assert.ok(applicationContent);
+
+  assert.equal(applicationContent.title, "애플리케이션보안 정식 학습 개요");
+  assert.match(applicationContent.summary, /웹, DB, DNS, 메일/);
+  assert.match(applicationContent.body, /## 2\. 서비스별 보안 점검/);
+  assert.match(applicationContent.body, /## 3\. Web\/App 취약점/);
+  assert.match(applicationContent.body, /## 4\. DB 보안/);
+  assert.match(applicationContent.body, /SQL 삽입/);
+  assert.match(applicationContent.body, /XSS/);
+  assert.match(applicationContent.body, /SECURIUM 자체 작성 자료/);
+  assert.equal(
+    [
+      "Web/App 보안",
+      "DB 보안",
+      "DNS 보안",
+      "SQL 삽입",
+      "XSS",
+      "보안약점 진단",
+    ].every((concept) => applicationContent.coreConcepts.includes(concept)),
+    true,
+  );
+  assert.equal(applicationContent.practicalExamples.length >= 4, true);
+});
