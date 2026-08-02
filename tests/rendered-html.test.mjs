@@ -51,6 +51,180 @@ before(async () => {
   throw new Error(`E2E server did not become ready.\n${output}`);
 });
 
+test("network security practice flow stays scoped to engineer and industrial engineer courses", async () => {
+  await ensureNetworkQuestionSeed();
+  await ensureEnrollment("dev-user-1@example.invalid", "course-ise");
+  await ensureEnrollment("dev-user-2@example.invalid", "course-isie");
+
+  const engineerResponse = await fetch(
+    `${baseUrl}/practice/information-security-engineer?count=10&type=TRUE_FALSE`,
+    {
+      headers: {
+        "oai-authenticated-user-email": "dev-user-1@example.invalid",
+      },
+    },
+  );
+  const engineerHtml = await engineerResponse.text();
+  assert.equal(engineerResponse.status, 200, engineerHtml.slice(0, 1200));
+  assert.match(engineerHtml, /CURRENT PRACTICE/);
+  assert.match(engineerHtml, /TRUE FALSE/);
+  assert.doesNotMatch(engineerHtml, /"isCorrect":true/);
+  assert.doesNotMatch(engineerHtml, /answerConfigJson/);
+
+  const industrialResponse = await fetch(
+    `${baseUrl}/practice/information-security-industrial-engineer?count=10&type=MULTIPLE_CHOICE`,
+    {
+      headers: {
+        "oai-authenticated-user-email": "dev-user-2@example.invalid",
+      },
+    },
+  );
+  const industrialHtml = await industrialResponse.text();
+  assert.equal(industrialResponse.status, 200, industrialHtml.slice(0, 1200));
+  assert.match(industrialHtml, /CURRENT PRACTICE/);
+  assert.match(industrialHtml, /MULTIPLE CHOICE/);
+  assert.doesNotMatch(industrialHtml, /"isCorrect":true/);
+  assert.doesNotMatch(industrialHtml, /answerConfigJson/);
+
+  const engineerAttempt = await fetch(`${baseUrl}/api/question-attempts`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: baseUrl,
+      "oai-authenticated-user-email": "dev-user-1@example.invalid",
+    },
+    body: JSON.stringify({
+      questionId: "network-security-official-sample-q01",
+      courseId: "course-ise",
+      answer: "network-security-official-sample-q01-true",
+      responseTime: 1200,
+      idempotencyKey: `network-ise-${runId}`,
+    }),
+  });
+  const engineerAttemptPayload = await readJsonResponse(engineerAttempt);
+  assert.equal(
+    engineerAttempt.status,
+    201,
+    JSON.stringify(engineerAttemptPayload),
+  );
+  assert.equal(engineerAttemptPayload.result.isCorrect, true);
+
+  const industrialAttempt = await fetch(`${baseUrl}/api/question-attempts`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: baseUrl,
+      "oai-authenticated-user-email": "dev-user-2@example.invalid",
+    },
+    body: JSON.stringify({
+      questionId: "network-security-official-sample-q03",
+      courseId: "course-isie",
+      answer: [
+        "network-security-official-sample-q03-choice-01",
+        "network-security-official-sample-q03-choice-02",
+        "network-security-official-sample-q03-choice-04",
+      ],
+      responseTime: 1500,
+      idempotencyKey: `network-isie-${runId}`,
+    }),
+  });
+  const industrialAttemptPayload = await readJsonResponse(industrialAttempt);
+  assert.equal(
+    industrialAttempt.status,
+    201,
+    JSON.stringify(industrialAttemptPayload),
+  );
+  assert.equal(industrialAttemptPayload.result.isCorrect, true);
+
+  const leakedCourseAttempt = await fetch(`${baseUrl}/api/question-attempts`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: baseUrl,
+      "oai-authenticated-user-email": "dev-user-1@example.invalid",
+    },
+    body: JSON.stringify({
+      questionId: "network-security-official-sample-q01",
+      courseId: "course-isms-p",
+      answer: "network-security-official-sample-q01-true",
+      responseTime: 1200,
+      idempotencyKey: `network-cross-course-${runId}`,
+    }),
+  });
+  const leakedCoursePayload = await readJsonResponse(leakedCourseAttempt);
+  assert.notEqual(leakedCourseAttempt.status, 201);
+  assert.equal(leakedCoursePayload.code, "QUESTION_NOT_FOUND");
+});
+
+let networkQuestionSeedApplied = false;
+
+async function ensureNetworkQuestionSeed() {
+  if (networkQuestionSeedApplied) return;
+  const result = await runCommand(process.execPath, [
+    "scripts/apply-network-security-question-seed.mjs",
+    "d1-local",
+  ]);
+  assert.equal(result.code, 0, result.output);
+  assert.match(result.output, /NETWORK_SECURITY_QUESTION_SEED_D1_LOCAL_APPLIED/);
+  networkQuestionSeedApplied = true;
+}
+
+async function ensureEnrollment(email, courseId) {
+  const response = await fetch(`${baseUrl}/api/enrollments`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: baseUrl,
+      "oai-authenticated-user-email": email,
+    },
+    body: JSON.stringify({
+      courseId,
+      returnTo: "/my-courses",
+    }),
+  });
+  const payload = await readJsonResponse(response);
+  assert.ok(
+    response.status === 201 ||
+      (response.status === 409 && payload.code === "DUPLICATE_ENROLLMENT"),
+    JSON.stringify(payload),
+  );
+}
+
+function runCommand(executable, args) {
+  return new Promise((resolve) => {
+    const child = spawn(executable, args, {
+      cwd: process.cwd(),
+      env: process.env,
+      stdio: ["ignore", "pipe", "pipe"],
+      windowsHide: true,
+    });
+    let outputText = "";
+    child.stdout.on("data", (chunk) => {
+      outputText += chunk.toString();
+    });
+    child.stderr.on("data", (chunk) => {
+      outputText += chunk.toString();
+    });
+    child.on("error", (error) =>
+      resolve({ code: 1, output: error.message }),
+    );
+    child.on("close", (code) =>
+      resolve({ code: code ?? 1, output: outputText }),
+    );
+  });
+}
+
+async function readJsonResponse(response) {
+  const text = await response.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    assert.fail(
+      `Expected JSON but received status ${response.status}: ${text.slice(0, 1200)}`,
+    );
+  }
+}
+
 after(() => {
   if (server?.exitCode === null) server.kill();
 });
