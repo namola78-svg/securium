@@ -192,8 +192,61 @@ test("network security course lesson extensions render different course contexts
   assert.doesNotMatch(industrialHtml, /로그 이벤트/);
 });
 
+test("admin curriculum and shared content pages expose network security coverage", async () => {
+  await ensureSecurityCertificationCurriculumSeed();
+  await ensureCourseLessonSeed();
+  await ensureNetworkQuestionSeed();
+
+  const adminHeaders = {
+    "oai-authenticated-user-email": "dev-admin@example.invalid",
+  };
+  const curriculumResponse = await fetch(
+    `${baseUrl}/admin/curriculum?treeId=curriculum-ise-2027-2029-official`,
+    { headers: adminHeaders },
+  );
+  const curriculumHtml = await curriculumResponse.text();
+  assert.equal(curriculumResponse.status, 200, curriculumHtml.slice(0, 1200));
+  assert.match(curriculumHtml, /curriculum-ise-2027-2029-official/);
+  assert.match(curriculumHtml, /정보보안기사/);
+  assert.match(curriculumHtml, /네트워크 보안/);
+  assert.match(curriculumHtml, /공개 문제/);
+
+  const sharedContentResponse = await fetch(
+    `${baseUrl}/admin/shared-content?courseId=course-ise&contentId=content-official-security-cert-network-security-overview`,
+    { headers: adminHeaders },
+  );
+  const sharedContentHtml = await sharedContentResponse.text();
+  assert.equal(
+    sharedContentResponse.status,
+    200,
+    sharedContentHtml.slice(0, 1200),
+  );
+  assert.match(
+    sharedContentHtml,
+    /official.security-certification.network-security.overview/,
+  );
+  assert.match(sharedContentHtml, /네트워크 보안/);
+  assert.match(sharedContentHtml, /정보보안기사/);
+  assert.match(sharedContentHtml, /PUBLISHED/);
+});
+
 let networkQuestionSeedApplied = false;
 let courseLessonSeedApplied = false;
+let securityCertificationCurriculumSeedApplied = false;
+
+async function ensureSecurityCertificationCurriculumSeed() {
+  if (securityCertificationCurriculumSeedApplied) return;
+  const result = await runCommand(process.execPath, [
+    "scripts/apply-security-certification-curriculum-seed.mjs",
+    "d1-local",
+  ]);
+  assert.equal(result.code, 0, result.output);
+  assert.match(
+    result.output,
+    /SECURITY_CERTIFICATION_CURRICULUM_SEED_D1_LOCAL_APPLIED/,
+  );
+  securityCertificationCurriculumSeedApplied = true;
+}
 
 async function ensureNetworkQuestionSeed() {
   if (networkQuestionSeedApplied) return;
