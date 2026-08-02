@@ -7,6 +7,7 @@ import {
   officialSecurityCertificationCourseLessons,
   generateSecurityCertificationCourseLessonSeedSql,
   getSecurityCertificationCourseLessonCoveragePlan,
+  getSecurityCertificationNetworkSecurityFlowReadiness,
   getSecurityCertificationCourseLessonSeedStats,
 } from "../lib/data/security-certification-course-lessons.mjs";
 
@@ -154,6 +155,47 @@ test("network security shared content is expanded into a formal lesson body", ()
   assert.equal(networkContent.learningObjectives.length >= 4, true);
   assert.equal(networkContent.coreConcepts.includes("SIEM"), true);
   assert.equal(networkContent.practicalExamples.length >= 4, true);
+});
+
+test("network security flow is ready for course-specific progress and practice routing", () => {
+  const readiness = getSecurityCertificationNetworkSecurityFlowReadiness();
+
+  assert.equal(readiness.contentExists, true);
+  assert.equal(
+    readiness.canonicalKey,
+    "official.security-certification.network-security.overview",
+  );
+  assert.equal(readiness.linkedCourseLessonCount, 2);
+  assert.equal(readiness.sharedContentReused, true);
+  assert.equal(readiness.progressIsolatedByCourseLesson, true);
+  assert.equal(readiness.practiceRoutePattern, "/practice/[courseSlug]");
+  assert.equal(readiness.allPracticeSearchTokensPresent, true);
+
+  assert.deepEqual(
+    readiness.linkedCourseLessons.map((lesson) => ({
+      id: lesson.id,
+      courseId: lesson.courseId,
+      curriculumNodeId: lesson.curriculumNodeId,
+    })),
+    [
+      {
+        id: "course-lesson-ise-official-network-security-overview",
+        courseId: "course-ise",
+        curriculumNodeId: "curriculum-node-ise-2027-2029-01-02",
+      },
+      {
+        id: "course-lesson-isie-official-network-security-overview",
+        courseId: "course-isie",
+        curriculumNodeId: "curriculum-node-isie-2027-2029-01-02",
+      },
+    ],
+  );
+
+  assert.deepEqual(
+    readiness.tokenCoverage.filter((item) => !item.present),
+    [],
+    "network security lesson should expose search tokens for practice recommendation",
+  );
 });
 
 test("security certification course lesson apply script gates Postgres data changes", () => {
