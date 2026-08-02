@@ -420,3 +420,40 @@ test("information security general shared content is expanded into a formal less
   );
   assert.equal(generalContent.practicalExamples.length >= 4, true);
 });
+
+test("management law content is expanded as an engineer-only formal lesson body", () => {
+  const managementContent = officialSecurityCertificationContents.find(
+    (content) =>
+      content.id === "content-official-security-cert-management-law-overview",
+  );
+  assert.ok(managementContent);
+
+  assert.equal(managementContent.title, "정보보호관리 및 법규 정식 학습 개요");
+  assert.match(managementContent.summary, /정보보안기사 전용 범위/);
+  assert.match(managementContent.body, /## 2\. 정보보호 관리체계/);
+  assert.match(managementContent.body, /## 3\. 위험관리와 보호대책/);
+  assert.match(managementContent.body, /## 4\. 사고대응과 증거보존/);
+  assert.match(managementContent.body, /## 5\. 인증제도와 관련 법규/);
+  assert.match(managementContent.body, /SECURIUM 자체 작성 자료/);
+  assert.equal(
+    [
+      "정보보호관리",
+      "위험관리",
+      "보호대책",
+      "사고대응",
+      "ISMS-P",
+      "개인정보 보호",
+    ].every((concept) => managementContent.coreConcepts.includes(concept)),
+    true,
+  );
+
+  const linkedLessons = officialSecurityCertificationCourseLessons.filter(
+    (lesson) =>
+      lesson.contentId === "content-official-security-cert-management-law-overview",
+  );
+  assert.deepEqual(
+    linkedLessons.map((lesson) => lesson.courseId),
+    ["course-ise"],
+    "management and law must stay engineer-only and never leak into industrial engineer progress",
+  );
+});
