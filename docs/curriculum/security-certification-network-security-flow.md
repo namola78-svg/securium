@@ -57,8 +57,24 @@ CourseLessonExtension으로 다르게 제공한다.
 이 구조는 공통 Content를 수정하지 않고도 과정별 학습 목표, 시험 포인트,
 실무 메모, 오답 주의사항을 조정할 수 있게 한다.
 
+## 문제은행 최소 세트 검증
+
+네트워크보안 문제은행의 초기 계약은
+`lib/data/security-certification-network-security-questions.mjs`에서 관리한다.
+이 데이터는 운영 DB에 자동 적용되지 않는 로컬 검증용 독립 작성 샘플이다.
+
+현재 최소 세트는 다음을 확인한다.
+
+- TRUE/FALSE, 단일선택, 복수선택, 단답형 자동채점 유형 포함
+- 모든 문제를 정보보안기사와 정보보안산업기사에 함께 연결
+- 모든 문제를 네트워크보안 공유 Content에 연결
+- 복수선택형은 정답 집합이 정확히 일치해야 정답 처리
+- 단답형은 대소문자, 공백 정규화, 동의어, 부분점수 확장 구조 확인
+- 공식 기출문제 또는 유료 교재 문항을 복제하지 않은 독립 작성 샘플 표시
+
 ## 실행
 
 ```powershell
 node --test tests/security-certification-course-lessons-seed.test.ts
+node --test tests/security-certification-network-security-questions.test.ts
 ```
