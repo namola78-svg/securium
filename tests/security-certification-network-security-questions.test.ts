@@ -1,9 +1,12 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import { gradeQuestion } from "../lib/services/grading-service.ts";
 import {
   NETWORK_SECURITY_CONTENT_ID,
   NETWORK_SECURITY_COURSE_IDS,
+  SECURITY_CERTIFICATION_NETWORK_QUESTION_CONFIRM_ENV_VALUE,
+  generateNetworkSecurityQuestionSeedSql,
   getNetworkSecurityQuestionBankReadiness,
   networkSecurityQuestionSamples,
   toNetworkSecurityGradingQuestion,
@@ -108,3 +111,44 @@ test("network security sample answers are graded by the shared grading engine", 
   );
 });
 
+test("network security question seed generates additive SQL for D1 and Postgres", () => {
+  const d1Sql = generateNetworkSecurityQuestionSeedSql({ dialect: "d1" });
+  const postgresSql = generateNetworkSecurityQuestionSeedSql({ dialect: "postgres" });
+
+  assert.match(d1Sql, /INSERT OR IGNORE INTO "questions"/);
+  assert.match(d1Sql, /INSERT OR IGNORE INTO "question_choices"/);
+  assert.match(d1Sql, /INSERT OR IGNORE INTO "question_courses"/);
+  assert.match(d1Sql, /INSERT OR IGNORE INTO "content_question_links"/);
+  assert.doesNotMatch(d1Sql, /\bBEGIN;/);
+  assert.doesNotMatch(d1Sql, /\bCOMMIT;/);
+
+  assert.match(postgresSql, /\bBEGIN;/);
+  assert.match(postgresSql, /\bCOMMIT;/);
+  assert.match(postgresSql, /INSERT INTO "questions"/);
+  assert.match(postgresSql, /ON CONFLICT \("id"\) DO UPDATE SET/);
+  assert.match(
+    postgresSql,
+    /seed_network_security_questions_2027_2029/,
+  );
+
+  for (const forbidden of [/\bDROP\b/i, /\bDELETE\b/i, /\bTRUNCATE\b/i]) {
+    assert.doesNotMatch(postgresSql, forbidden);
+  }
+});
+
+test("network security question apply script gates remote data changes", () => {
+  const script = readFileSync(
+    "scripts/apply-network-security-question-seed.mjs",
+    "utf8",
+  );
+
+  assert.match(script, /--confirm-production-seed/);
+  assert.match(script, /SECURITY_CERTIFICATION_NETWORK_QUESTION_CONFIRM_ENV_NAME/);
+  assert.equal(
+    SECURITY_CERTIFICATION_NETWORK_QUESTION_CONFIRM_ENV_VALUE,
+    "APPLY_NETWORK_SECURITY_QUESTION_SEED",
+  );
+  assert.match(script, /target === "d1-local"/);
+  assert.match(script, /assertProductionSeedApproval\(\)/);
+  assert.match(script, /NETWORK_SECURITY_CONTENT_ID/);
+});

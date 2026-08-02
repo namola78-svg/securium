@@ -72,6 +72,25 @@ CourseLessonExtension으로 다르게 제공한다.
 - 단답형은 대소문자, 공백 정규화, 동의어, 부분점수 확장 구조 확인
 - 공식 기출문제 또는 유료 교재 문항을 복제하지 않은 독립 작성 샘플 표시
 
+## 문제은행 seed 스크립트
+
+문제은행 seed 스크립트는 기본적으로 통계만 출력한다.
+
+```powershell
+npm run curriculum:security-certification:network-questions:stats
+```
+
+로컬 D1에만 적용할 때는 다음 명령을 사용한다.
+
+```powershell
+npm run curriculum:security-certification:network-questions:seed:d1-local
+```
+
+PostgreSQL 적용은 운영 데이터 변경이므로 명시적 승인 전에는 실행하지 않는다.
+스크립트는 `--confirm-production-seed` 플래그와
+`SECURIUM_CONFIRM_NETWORK_SECURITY_QUESTION_SEED=APPLY_NETWORK_SECURITY_QUESTION_SEED`
+환경변수가 모두 있어야만 postgres 적용을 진행한다.
+
 ## 실행
 
 ```powershell
