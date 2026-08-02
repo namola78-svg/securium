@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   SECURITY_CERTIFICATION_COURSE_LESSON_CONFIRM_ENV_VALUE,
   officialSecurityCertificationContents,
+  officialSecurityCertificationCourseLessonExtensions,
   officialSecurityCertificationCourseLessons,
   generateSecurityCertificationCourseLessonSeedSql,
   getSecurityCertificationCourseLessonCoveragePlan,
@@ -16,6 +17,7 @@ test("security certification course lesson seed reuses shared contents across en
 
   assert.equal(stats.contentCount, 6);
   assert.equal(stats.courseLessonCount, 11);
+  assert.equal(stats.courseLessonExtensionCount, 2);
   assert.equal(stats.linkedContentCount, 6);
   assert.equal(stats.reusedContentCount >= 5, true);
   assert.equal(stats.allLessonsHaveKnownContent, true);
@@ -122,7 +124,9 @@ test("security certification course lesson seed generates additive SQL", () => {
 
   assert.match(d1Sql, /INSERT OR IGNORE INTO "contents"/);
   assert.match(d1Sql, /INSERT OR IGNORE INTO "course_lessons"/);
+  assert.match(d1Sql, /INSERT OR IGNORE INTO "course_lesson_extensions"/);
   assert.match(postgresSql, /INSERT INTO "contents"/);
+  assert.match(postgresSql, /INSERT INTO "course_lesson_extensions"/);
   assert.match(postgresSql, /ON CONFLICT \("id"\) DO UPDATE SET/);
   assert.match(postgresSql, /\bBEGIN;/);
   assert.match(postgresSql, /\bCOMMIT;/);
@@ -166,6 +170,7 @@ test("network security flow is ready for course-specific progress and practice r
     "official.security-certification.network-security.overview",
   );
   assert.equal(readiness.linkedCourseLessonCount, 2);
+  assert.equal(readiness.courseSpecificExtensionCount, 2);
   assert.equal(readiness.sharedContentReused, true);
   assert.equal(readiness.progressIsolatedByCourseLesson, true);
   assert.equal(readiness.practiceRoutePattern, "/practice/[courseSlug]");
@@ -176,17 +181,25 @@ test("network security flow is ready for course-specific progress and practice r
       id: lesson.id,
       courseId: lesson.courseId,
       curriculumNodeId: lesson.curriculumNodeId,
+      extensionId: lesson.extensionId,
+      examPoints: lesson.examPoints,
     })),
     [
       {
         id: "course-lesson-ise-official-network-security-overview",
         courseId: "course-ise",
         curriculumNodeId: "curriculum-node-ise-2027-2029-01-02",
+        extensionId:
+          "course-lesson-extension-ise-official-network-security-overview",
+        examPoints: 3,
       },
       {
         id: "course-lesson-isie-official-network-security-overview",
         courseId: "course-isie",
         curriculumNodeId: "curriculum-node-isie-2027-2029-01-02",
+        extensionId:
+          "course-lesson-extension-isie-official-network-security-overview",
+        examPoints: 3,
       },
     ],
   );
@@ -196,6 +209,49 @@ test("network security flow is ready for course-specific progress and practice r
     [],
     "network security lesson should expose search tokens for practice recommendation",
   );
+});
+
+test("network security course lesson extensions differentiate engineer and industrial tracks", () => {
+  assert.equal(officialSecurityCertificationCourseLessonExtensions.length, 2);
+
+  const engineerExtension = officialSecurityCertificationCourseLessonExtensions.find(
+    (extension) =>
+      extension.courseLessonId ===
+      "course-lesson-ise-official-network-security-overview",
+  );
+  const industrialExtension =
+    officialSecurityCertificationCourseLessonExtensions.find(
+      (extension) =>
+        extension.courseLessonId ===
+        "course-lesson-isie-official-network-security-overview",
+    );
+
+  assert.ok(engineerExtension);
+  assert.ok(industrialExtension);
+  assert.notEqual(engineerExtension.id, industrialExtension.id);
+  assert.notEqual(engineerExtension.additionalBody, industrialExtension.additionalBody);
+  assert.notDeepEqual(engineerExtension.examPoints, industrialExtension.examPoints);
+  assert.equal(engineerExtension.status, "PUBLISHED");
+  assert.equal(industrialExtension.status, "PUBLISHED");
+
+  assert.match(engineerExtension.additionalBody, /실기형 분석/);
+  assert.match(engineerExtension.practicalNotes, /로그 이벤트/);
+  assert.match(industrialExtension.additionalBody, /기본 개념/);
+  assert.match(industrialExtension.practicalNotes, /기본 대응 방법/);
+
+  const contentIds = new Set(
+    officialSecurityCertificationCourseLessons
+      .filter((lesson) =>
+        [
+          engineerExtension.courseLessonId,
+          industrialExtension.courseLessonId,
+        ].includes(lesson.id),
+      )
+      .map((lesson) => lesson.contentId),
+  );
+  assert.deepEqual([...contentIds], [
+    "content-official-security-cert-network-security-overview",
+  ]);
 });
 
 test("security certification course lesson apply script gates Postgres data changes", () => {

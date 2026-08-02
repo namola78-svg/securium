@@ -24,6 +24,7 @@
 3. 사용자 진도는 Lesson이나 Content가 아니라 CourseLesson 기준으로 분리한다.
 4. 문제풀이 진입은 course slug를 통해 과정 범위를 유지한다.
 5. 문제은행·추천 검색에 필요한 핵심 토큰이 본문 또는 메타데이터에 포함되어야 한다.
+6. 과정별 시험 포인트와 실무 메모는 CourseLessonExtension에서 분리한다.
 
 ## 문제은행 연결 준비 토큰
 
@@ -43,9 +44,21 @@
 로컬 도메인 테스트로 공유 콘텐츠, CourseLesson 연결, 진도 분리, 문제풀이
 연결 준비 상태를 고정하는 것이 목적이다.
 
+## 과정별 Extension 차등 적용
+
+공유 본문은 동일하지만, 정보보안기사와 정보보안산업기사는 다음 항목을
+CourseLessonExtension으로 다르게 제공한다.
+
+| 과정 | Extension | 강조점 |
+| --- | --- | --- |
+| 정보보안기사 | `course-lesson-extension-ise-official-network-security-overview` | 실기형 로그·구성도·보안장비 설정 분석, 서술형 대응 방안 작성 |
+| 정보보안산업기사 | `course-lesson-extension-isie-official-network-security-overview` | 네트워크 계층·프로토콜·대표 공격·기본 대응 구분 |
+
+이 구조는 공통 Content를 수정하지 않고도 과정별 학습 목표, 시험 포인트,
+실무 메모, 오답 주의사항을 조정할 수 있게 한다.
+
 ## 실행
 
 ```powershell
 node --test tests/security-certification-course-lessons-seed.test.ts
 ```
-
