@@ -116,6 +116,70 @@ test("security certification course lesson coverage plan maps every subject and 
   }
 });
 
+test("security certification course lesson coverage keeps shared and engineer-only content boundaries", () => {
+  const coveragePlan = getSecurityCertificationCourseLessonCoveragePlan();
+  const mappedNodes = coveragePlan.flatMap((tree) =>
+    tree.mappedNodes.map((node) => ({
+      ...node,
+      courseId: tree.courseId,
+      treeId: tree.treeId,
+    })),
+  );
+
+  const nodesByContentId = new Map<string, typeof mappedNodes>();
+  for (const node of mappedNodes) {
+    for (const contentId of node.contentIds) {
+      nodesByContentId.set(contentId, [
+        ...(nodesByContentId.get(contentId) ?? []),
+        node,
+      ]);
+    }
+  }
+
+  for (const sharedContentId of [
+    "content-official-security-cert-system-security-overview",
+    "content-official-security-cert-network-security-overview",
+    "content-official-security-cert-application-security-overview",
+    "content-official-security-cert-information-security-general-overview",
+    "content-official-security-cert-practical-overview",
+  ]) {
+    const linkedNodes = nodesByContentId.get(sharedContentId) ?? [];
+    assert.deepEqual(
+      linkedNodes.map((node) => node.courseId).sort(),
+      ["course-ise", "course-isie"],
+      `${sharedContentId} should be reused by both security certification tracks`,
+    );
+    assert.equal(
+      new Set(linkedNodes.map((node) => node.nodeId)).size,
+      linkedNodes.length,
+      `${sharedContentId} should remain attached through course-specific curriculum nodes`,
+    );
+  }
+
+  assert.deepEqual(
+    (nodesByContentId.get(
+      "content-official-security-cert-management-law-overview",
+    ) ?? []).map((node) => ({
+      courseId: node.courseId,
+      title: node.title,
+      officialLevel: node.officialLevel,
+    })),
+    [
+      {
+        courseId: "course-ise",
+        title: "정보보안관리 및 법규",
+        officialLevel: "SUBJECT",
+      },
+    ],
+    "management and law must stay engineer-only because it is not an industrial engineer subject",
+  );
+
+  assert.equal(
+    mappedNodes.every((node) => node.courseLessonIds.length === 1),
+    true,
+  );
+});
+
 test("security certification course lesson seed generates additive SQL", () => {
   const d1Sql = generateSecurityCertificationCourseLessonSeedSql({ dialect: "d1" });
   const postgresSql = generateSecurityCertificationCourseLessonSeedSql({
