@@ -97,3 +97,28 @@ PostgreSQL 적용은 운영 데이터 변경이므로 명시적 승인 전에는
 node --test tests/security-certification-course-lessons-seed.test.ts
 node --test tests/security-certification-network-security-questions.test.ts
 ```
+
+## 로컬 적용 후 읽기 전용 검증
+
+네트워크 보안 문제은행 seed를 로컬 D1에 적용한 뒤에는 다음 명령으로 실제 DB 연결 상태를
+반복 검증한다.
+
+```powershell
+npm run curriculum:security-certification:network-questions:verify:d1-local
+```
+
+검증 항목은 다음과 같다.
+
+- 네트워크 보안 샘플 문제 6개 존재
+- 모든 문제가 `PUBLISHED` 상태
+- 모든 문제가 개발·검증용 샘플로 표시
+- 정보보안기사와 정보보안산업기사에 각각 6개씩 연결
+- 공통 네트워크 보안 Content에 6개 모두 연결
+- TRUE_FALSE, SINGLE_CHOICE, MULTIPLE_CHOICE, SHORT_ANSWER 분포 일치
+
+PostgreSQL 운영 또는 Preview DB에서는 읽기 전용 검증만 다음 명령으로 수행할 수 있다.
+이 명령은 seed나 migration을 실행하지 않는다.
+
+```powershell
+npm run curriculum:security-certification:network-questions:verify:postgres
+```

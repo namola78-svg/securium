@@ -152,3 +152,28 @@ test("network security question apply script gates remote data changes", () => {
   assert.match(script, /assertProductionSeedApproval\(\)/);
   assert.match(script, /NETWORK_SECURITY_CONTENT_ID/);
 });
+
+test("network security question verifier is read-only and supports D1 and Postgres", () => {
+  const script = readFileSync(
+    "scripts/verify-network-security-question-flow.mjs",
+    "utf8",
+  );
+
+  assert.match(script, /NETWORK_SECURITY_QUESTION_FLOW_D1_LOCAL_OK/);
+  assert.match(script, /NETWORK_SECURITY_QUESTION_FLOW_POSTGRES_OK/);
+  assert.match(script, /NETWORK_SECURITY_CONTENT_ID/);
+  assert.match(script, /NETWORK_SECURITY_COURSE_IDS/);
+  assert.match(script, /content_question_links/);
+  assert.match(script, /question_courses/);
+
+  for (const forbidden of [
+    /\bINSERT\b/i,
+    /\bUPDATE\b/i,
+    /\bDELETE\b/i,
+    /\bDROP\b/i,
+    /\bTRUNCATE\b/i,
+    /\bALTER\b/i,
+  ]) {
+    assert.doesNotMatch(script, forbidden);
+  }
+});

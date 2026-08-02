@@ -46,6 +46,8 @@
     "curriculum:security-certification:network-questions:stats": "node scripts/apply-network-security-question-seed.mjs stats",
     "curriculum:security-certification:network-questions:seed:d1-local": "node scripts/apply-network-security-question-seed.mjs d1-local",
     "curriculum:security-certification:network-questions:seed:postgres": "node scripts/apply-network-security-question-seed.mjs postgres",
+    "curriculum:security-certification:network-questions:verify:d1-local": "node scripts/verify-network-security-question-flow.mjs d1-local",
+    "curriculum:security-certification:network-questions:verify:postgres": "node scripts/verify-network-security-question-flow.mjs postgres",
     "db:postgres:security:generate": "node scripts/generate-postgres-rls.mjs",
     "db:postgres:security:validate": "node scripts/generate-postgres-rls.mjs --check",
     "migration:d1:export": "node scripts/d1-postgres-migration.mjs export-d1",
