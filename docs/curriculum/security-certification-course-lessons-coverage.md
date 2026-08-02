@@ -36,6 +36,26 @@ node --env-file=.env.local scripts/verify-security-certification-curriculum-cove
 
 - 정보보안기사: 공식 CourseLesson 6개
 - 정보보안산업기사: 공식 CourseLesson 5개
+- 과목/실기 최상위 노드 기준 정적 매핑:
+  - 정보보안기사: 6개 중 6개 연결
+  - 정보보안산업기사: 5개 중 5개 연결
+
+## DB 적용 전 정적 매핑 확인
+
+DB 적용 전에는 seed 데이터 자체가 어떤 공식 CurriculumNode를 덮는지 먼저 확인한다.
+
+```powershell
+npm run curriculum:security-certification:course-lessons:stats
+```
+
+현재 정적 기준:
+
+| 과정 | 대상 노드 | 연결 노드 | 미연결 노드 |
+| --- | ---: | ---: | ---: |
+| 정보보안기사 | 6 | 6 | 0 |
+| 정보보안산업기사 | 5 | 5 | 0 |
+
+이 값은 `SUBJECT`와 `PRACTICAL` 최상위 학습 개요 노드를 기준으로 한다. `MAJOR_ITEM`, `SUB_ITEM` 단위의 본문 콘텐츠 매핑은 이후 과목별 정식 본문 구축 단계에서 확장한다.
 
 ## 실패 시 확인 순서
 

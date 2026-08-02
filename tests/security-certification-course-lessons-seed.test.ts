@@ -6,6 +6,7 @@ import {
   officialSecurityCertificationContents,
   officialSecurityCertificationCourseLessons,
   generateSecurityCertificationCourseLessonSeedSql,
+  getSecurityCertificationCourseLessonCoveragePlan,
   getSecurityCertificationCourseLessonSeedStats,
 } from "../lib/data/security-certification-course-lessons.mjs";
 
@@ -17,6 +18,9 @@ test("security certification course lesson seed reuses shared contents across en
   assert.equal(stats.linkedContentCount, 6);
   assert.equal(stats.reusedContentCount >= 5, true);
   assert.equal(stats.allLessonsHaveKnownContent, true);
+  assert.equal(stats.expectedTopLevelNodeCount, 11);
+  assert.equal(stats.mappedTopLevelNodeCount, 11);
+  assert.equal(stats.unmappedTopLevelNodeCount, 0);
 });
 
 test("security certification course lesson seed keeps course progress separated", () => {
@@ -71,6 +75,42 @@ test("security certification course lessons link to official curriculum nodes", 
     false,
     "industrial engineer should not receive the engineer-only management and law subject",
   );
+});
+
+test("security certification course lesson coverage plan maps every subject and practical top-level node", () => {
+  const coveragePlan = getSecurityCertificationCourseLessonCoveragePlan();
+
+  assert.deepEqual(
+    coveragePlan.map((tree) => ({
+      treeId: tree.treeId,
+      expectedNodeCount: tree.expectedNodeCount,
+      mappedNodeCount: tree.mappedNodeCount,
+      unmappedNodeCount: tree.unmappedNodeCount,
+    })),
+    [
+      {
+        treeId: "curriculum-ise-2027-2029-official",
+        expectedNodeCount: 6,
+        mappedNodeCount: 6,
+        unmappedNodeCount: 0,
+      },
+      {
+        treeId: "curriculum-isie-2027-2029-official",
+        expectedNodeCount: 5,
+        mappedNodeCount: 5,
+        unmappedNodeCount: 0,
+      },
+    ],
+  );
+
+  for (const tree of coveragePlan) {
+    assert.equal(tree.unmappedNodes.length, 0);
+    assert.equal(
+      tree.mappedNodes.every((node) => node.courseLessonIds.length === 1),
+      true,
+    );
+    assert.equal(tree.mappedNodes.every((node) => node.contentIds.length === 1), true);
+  }
 });
 
 test("security certification course lesson seed generates additive SQL", () => {
