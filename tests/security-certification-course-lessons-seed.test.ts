@@ -225,6 +225,30 @@ test("network security shared content is expanded into a formal lesson body", ()
   assert.equal(networkContent.practicalExamples.length >= 4, true);
 });
 
+test("system security shared content is expanded into a formal lesson body", () => {
+  const systemContent = officialSecurityCertificationContents.find(
+    (content) =>
+      content.id === "content-official-security-cert-system-security-overview",
+  );
+  assert.ok(systemContent);
+
+  assert.equal(systemContent.title, "시스템보안 정식 학습 개요");
+  assert.match(systemContent.body, /# 시스템보안 정식 학습 본문/);
+  assert.match(systemContent.body, /## 1\. 학습 범위/);
+  assert.match(systemContent.body, /## 2\. 운영체제와 서버 보안/);
+  assert.match(systemContent.body, /## 3\. 시스템 보안위협과 공격기법/);
+  assert.match(systemContent.body, /## 4\. 클라우드와 가상화 보안/);
+  assert.match(systemContent.body, /## 7\. 연습 체크리스트/);
+  assert.match(systemContent.body, /계정 탈취/);
+  assert.match(systemContent.body, /권한 상승/);
+  assert.match(systemContent.body, /악성코드/);
+  assert.match(systemContent.body, /클라우드 공유책임/);
+  assert.equal(systemContent.learningObjectives.length >= 4, true);
+  assert.equal(systemContent.coreConcepts.includes("로그분석"), true);
+  assert.equal(systemContent.coreConcepts.includes("클라우드 보안"), true);
+  assert.equal(systemContent.practicalExamples.length >= 4, true);
+});
+
 test("network security flow is ready for course-specific progress and practice routing", () => {
   const readiness = getSecurityCertificationNetworkSecurityFlowReadiness();
 
