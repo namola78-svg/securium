@@ -133,9 +133,27 @@ test("security certification course lesson seed generates additive SQL", () => {
 
 test("security certification course lesson content is marked as learning overview, not copied questions", () => {
   for (const content of officialSecurityCertificationContents) {
-    assert.match(content.title, /학습 개요/);
     assert.match(content.body, /공식 문제나 유료 교재 내용을 복제하지 않습니다/);
   }
+});
+
+test("network security shared content is expanded into a formal lesson body", () => {
+  const networkContent = officialSecurityCertificationContents.find(
+    (content) =>
+      content.id === "content-official-security-cert-network-security-overview",
+  );
+  assert.ok(networkContent);
+
+  assert.match(networkContent.body, /# 네트워크보안 정식 학습 본문/);
+  assert.match(networkContent.body, /## 1\. 학습 범위/);
+  assert.match(networkContent.body, /## 3\. 주요 공격 유형/);
+  assert.match(networkContent.body, /## 4\. 보안 프로토콜과 보안장비/);
+  assert.match(networkContent.body, /## 7\. 연습 체크리스트/);
+  assert.match(networkContent.body, /DoS\/DDoS/);
+  assert.match(networkContent.body, /스푸핑은 속임, 스니핑은 관찰/);
+  assert.equal(networkContent.learningObjectives.length >= 4, true);
+  assert.equal(networkContent.coreConcepts.includes("SIEM"), true);
+  assert.equal(networkContent.practicalExamples.length >= 4, true);
 });
 
 test("security certification course lesson apply script gates Postgres data changes", () => {
