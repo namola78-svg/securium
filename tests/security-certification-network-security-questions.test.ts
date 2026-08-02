@@ -51,6 +51,48 @@ test("network security questions remain course scoped and content linked", () =>
   }
 });
 
+test("network security questions are shared while course weighting stays separated", () => {
+  const questionIds = new Set(
+    networkSecurityQuestionSamples.map((question) => question.id),
+  );
+  assert.equal(
+    questionIds.size,
+    networkSecurityQuestionSamples.length,
+    "shared network security questions should not be duplicated per course",
+  );
+
+  for (const question of networkSecurityQuestionSamples) {
+    const courseWeights = Object.fromEntries(
+      question.courseLinks.map((link) => [link.courseId, link.weight]),
+    );
+    assert.equal(
+      Object.keys(courseWeights).length,
+      NETWORK_SECURITY_COURSE_IDS.length,
+      `${question.id} should keep one course link per target course`,
+    );
+    assert.equal(
+      courseWeights["course-ise"] >= courseWeights["course-isie"],
+      true,
+      `${question.id} should allow engineer depth without weakening industrial scope`,
+    );
+  }
+
+  const spoofingAndSniffingQuestion = networkSecurityQuestionSamples.find(
+    (question) => question.id === "network-security-official-sample-q03",
+  );
+  assert.ok(spoofingAndSniffingQuestion);
+  assert.deepEqual(
+    spoofingAndSniffingQuestion.courseLinks
+      .map((link) => ({ courseId: link.courseId, weight: link.weight }))
+      .sort((a, b) => a.courseId.localeCompare(b.courseId)),
+    [
+      { courseId: "course-ise", weight: 110 },
+      { courseId: "course-isie", weight: 100 },
+    ],
+    "course-specific weight must stay on the join table, not duplicate the question",
+  );
+});
+
 test("network security sample answers are graded by the shared grading engine", () => {
   const byId = new Map(
     networkSecurityQuestionSamples.map((question) => [question.id, question]),
