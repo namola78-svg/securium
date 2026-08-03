@@ -86,23 +86,23 @@ test("security certification deep node coverage exposes remaining major and sub 
   const summary = getSecurityCertificationDeepNodeCoverageSummary();
 
   assert.equal(summary.nodeCount, 139);
-  assert.equal(summary.contentLinkedCount, 75);
+  assert.equal(summary.contentLinkedCount, 89);
   assert.equal(summary.questionLinkedCount, 57);
-  assert.equal(summary.contentCoveragePercent, 54);
+  assert.equal(summary.contentCoveragePercent, 64);
   assert.equal(summary.questionCoveragePercent, 41);
   assert.deepEqual(summary.byCourse, {
     "course-ise": {
       nodeCount: 77,
-      contentLinkedCount: 38,
+      contentLinkedCount: 45,
       questionLinkedCount: 29,
-      contentCoveragePercent: 49.4,
+      contentCoveragePercent: 58.4,
       questionCoveragePercent: 37.7,
     },
     "course-isie": {
       nodeCount: 62,
-      contentLinkedCount: 37,
+      contentLinkedCount: 44,
       questionLinkedCount: 28,
-      contentCoveragePercent: 59.7,
+      contentCoveragePercent: 71,
       questionCoveragePercent: 45.2,
     },
   });
@@ -111,10 +111,10 @@ test("security certification deep node coverage exposes remaining major and sub 
   assert.equal(summary.byNodeType.MAJOR_ITEM.nodeCount, 33);
   assert.equal(summary.byNodeType.SUB_ITEM.nodeCount, 95);
   assert.equal(summary.byNodeType.MAJOR_ITEM.contentLinkedCount, 16);
-  assert.equal(summary.byNodeType.SUB_ITEM.contentLinkedCount, 48);
+  assert.equal(summary.byNodeType.SUB_ITEM.contentLinkedCount, 62);
   assert.equal(summary.byNodeType.SUB_ITEM.questionLinkedCount, 48);
-  assert.equal(summary.uncoveredRows.length, 64);
-  assert.equal(summary.questionGapRows.length, 18);
+  assert.equal(summary.uncoveredRows.length, 50);
+  assert.equal(summary.questionGapRows.length, 32);
   assert.equal(
     summary.questionGapRows.every(
       (row) =>
@@ -122,10 +122,12 @@ test("security certification deep node coverage exposes remaining major and sub 
         row.stableKey === "ISE-2027-2029-01-02" ||
         row.stableKey.startsWith("ISE-2027-2029-01-02-") ||
         row.stableKey.startsWith("ISE-2027-2029-01-03-") ||
+        row.stableKey.startsWith("ISE-2027-2029-01-04-") ||
         row.stableKey.startsWith("ISIE-2027-2029-01-01-") ||
         row.stableKey === "ISIE-2027-2029-01-02" ||
         row.stableKey.startsWith("ISIE-2027-2029-01-02-") ||
-        row.stableKey.startsWith("ISIE-2027-2029-01-03-"),
+        row.stableKey.startsWith("ISIE-2027-2029-01-03-") ||
+        row.stableKey.startsWith("ISIE-2027-2029-01-04-"),
     ),
     true,
   );
