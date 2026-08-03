@@ -1,11 +1,26 @@
 import { listAdminAIExplainabilityTraces } from "@/db/ai-explainability-repositories";
+import type { AIExplainabilityTraceSource } from "@/lib/ai/explainability";
 import { requireAuditViewer } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminAIExplainabilityPage() {
+type PageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function AdminAIExplainabilityPage({
+  searchParams,
+}: PageProps) {
   await requireAuditViewer("/admin/ai-explainability");
-  const { traces, summary } = await listAdminAIExplainabilityTraces(50);
+  const rawParams = (await searchParams) ?? {};
+  const filters = {
+    source: parseSource(readParam(rawParams.source)),
+    courseId: readParam(rawParams.courseId),
+    provider: readParam(rawParams.provider),
+    status: readParam(rawParams.status),
+    requestId: readParam(rawParams.requestId),
+  };
+  const { traces, summary } = await listAdminAIExplainabilityTraces(50, filters);
 
   return (
     <>
@@ -49,6 +64,56 @@ export default async function AdminAIExplainabilityPage() {
           지표만 표시합니다.
         </p>
       </section>
+
+      <form className="admin-panel ai-trace-filter-form" action="/admin/ai-explainability">
+        <label>
+          Source
+          <select name="source" defaultValue={filters.source ?? ""}>
+            <option value="">All</option>
+            <option value="QUESTION_EXPLANATION">Question explanation</option>
+            <option value="SPECIALIZED_REVIEW">Specialized review</option>
+          </select>
+        </label>
+        <label>
+          Course ID
+          <input
+            name="courseId"
+            defaultValue={filters.courseId ?? ""}
+            placeholder="course-ise"
+            maxLength={120}
+          />
+        </label>
+        <label>
+          Provider
+          <select name="provider" defaultValue={filters.provider ?? ""}>
+            <option value="">All</option>
+            <option value="mock">Mock</option>
+            <option value="openai">OpenAI</option>
+          </select>
+        </label>
+        <label>
+          Status
+          <input
+            name="status"
+            defaultValue={filters.status ?? ""}
+            placeholder="generated, failed, PENDING..."
+            maxLength={80}
+          />
+        </label>
+        <label>
+          Request ID
+          <input
+            name="requestId"
+            defaultValue={filters.requestId ?? ""}
+            placeholder="partial request id"
+            maxLength={200}
+          />
+        </label>
+        <div className="ai-trace-filter-actions">
+          <button className="button button-dark" type="submit">Filter</button>
+          <a className="button button-ghost" href="/admin/ai-explainability">Reset</a>
+        </div>
+      </form>
 
       <section className="ai-trace-list" aria-label="AI explainability traces">
         {traces.length ? (
@@ -180,4 +245,18 @@ export default async function AdminAIExplainabilityPage() {
       </section>
     </>
   );
+}
+
+function readParam(value: string | string[] | undefined) {
+  const raw = Array.isArray(value) ? value[0] : value;
+  const normalized = raw?.trim();
+  return normalized ? normalized.slice(0, 200) : undefined;
+}
+
+function parseSource(
+  value: string | undefined,
+): AIExplainabilityTraceSource | undefined {
+  return value === "QUESTION_EXPLANATION" || value === "SPECIALIZED_REVIEW"
+    ? value
+    : undefined;
 }

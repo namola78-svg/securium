@@ -10,8 +10,10 @@ import {
 import { DatabaseRetrievalProvider } from "./ai-repositories";
 import {
   buildAIExplainabilityTrace,
+  matchesAIExplainabilityTraceFilters,
   summarizeAITraceMetrics,
   type AIExplainabilityTrace,
+  type AIExplainabilityTraceFilters,
   type AIExplainabilityTraceSource,
 } from "@/lib/ai/explainability";
 import { getSecurityCertificationRetrievalConceptAliases } from "@/lib/curriculum/security-certification-ontology";
@@ -49,8 +51,10 @@ type RawTraceRecord = {
 
 export async function listAdminAIExplainabilityTraces(
   limit = 50,
+  filters: AIExplainabilityTraceFilters = {},
 ): Promise<AIExplainabilityTraceList> {
   const safeLimit = Math.max(1, Math.min(limit, 100));
+  const fetchLimit = Math.max(safeLimit, Math.min(safeLimit * 3, 300));
   const [questionRows, specializedRows] = await Promise.all([
     getDb()
       .select({
@@ -80,7 +84,7 @@ export async function listAdminAIExplainabilityTraces(
       .innerJoin(users, eq(aiGenerationRecords.userId, users.id))
       .innerJoin(questions, eq(aiGenerationRecords.questionId, questions.id))
       .orderBy(desc(aiGenerationRecords.generatedAt))
-      .limit(safeLimit),
+      .limit(fetchLimit),
     getDb()
       .select({
         id: aiSpecializedGenerationRecords.id,
@@ -114,7 +118,7 @@ export async function listAdminAIExplainabilityTraces(
       )
       .innerJoin(users, eq(aiSpecializedGenerationRecords.userId, users.id))
       .orderBy(desc(aiSpecializedGenerationRecords.generatedAt))
-      .limit(safeLimit),
+      .limit(fetchLimit),
   ]);
   const rawRecords: RawTraceRecord[] = [
     ...questionRows.map((row) => ({
@@ -168,6 +172,7 @@ export async function listAdminAIExplainabilityTraces(
     })),
   ]
     .sort((a, b) => b.generatedAt.localeCompare(a.generatedAt))
+    .filter((record) => matchesRawTraceRecord(record, filters))
     .slice(0, safeLimit);
   const retrieval = new DatabaseRetrievalProvider();
   const conceptCandidates = getSecurityCertificationRetrievalConceptAliases();
@@ -186,6 +191,38 @@ export async function listAdminAIExplainabilityTraces(
     traces,
     summary: summarizeAITraceMetrics(traces),
   };
+}
+
+function matchesRawTraceRecord(
+  record: RawTraceRecord,
+  filters: AIExplainabilityTraceFilters,
+) {
+  const traceLike = {
+    ...record,
+    contexts: [],
+    detectedConcepts: [],
+    aliasExpansion: {
+      originalQuery: record.query,
+      expandedQueries: [record.query],
+      addedQueries: [],
+      matchedConceptLabels: [],
+      courseId: record.courseId,
+      candidateCount: 0,
+      scopedCandidateCount: 0,
+    },
+    citations: [],
+    metrics: {
+      totalTokens: record.inputTokens + record.outputTokens,
+      latencyMs: record.latencyMs,
+      estimatedCostMicros: record.estimatedCostMicros,
+    },
+    promptViewer: {
+      fingerprint: record.promptFingerprint,
+      fullPromptStored: false as const,
+      note: "",
+    },
+  };
+  return matchesAIExplainabilityTraceFilters(traceLike, filters);
 }
 
 function parseJson<T>(value: string, fallback: T): T {

@@ -57,6 +57,14 @@ export type AIExplainabilityTrace = AIExplainabilityRecordInput & {
   };
 };
 
+export type AIExplainabilityTraceFilters = {
+  source?: AIExplainabilityTraceSource;
+  courseId?: string;
+  provider?: string;
+  status?: string;
+  requestId?: string;
+};
+
 export function buildAIExplainabilityTrace(
   input: AIExplainabilityRecordInput,
   conceptCandidates: readonly ConceptAwareRetrievalCandidate[],
@@ -119,5 +127,21 @@ export function summarizeAITraceMetrics(
       totalCostMicros: 0,
       averageLatencyMs: 0,
     },
+  );
+}
+
+export function matchesAIExplainabilityTraceFilters(
+  trace: AIExplainabilityTrace,
+  filters: AIExplainabilityTraceFilters,
+) {
+  const requestId = filters.requestId?.trim().toLowerCase();
+  return (
+    (!filters.source || trace.source === filters.source) &&
+    (!filters.courseId || trace.courseId === filters.courseId) &&
+    (!filters.provider || trace.provider === filters.provider) &&
+    (!filters.status ||
+      trace.generationStatus === filters.status ||
+      trace.reviewStatus === filters.status) &&
+    (!requestId || trace.requestId.toLowerCase().includes(requestId))
   );
 }

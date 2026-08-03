@@ -18,6 +18,7 @@ import {
 } from "../lib/ai/retrieval-provider.ts";
 import {
   buildAIExplainabilityTrace,
+  matchesAIExplainabilityTraceFilters,
   summarizeAITraceMetrics,
 } from "../lib/ai/explainability.ts";
 
@@ -372,4 +373,52 @@ test("AI explainability metric summary handles empty and populated traces", () =
     totalCostMicros: 40,
     averageLatencyMs: 150,
   });
+});
+
+test("AI explainability trace filters support source, course, provider, status and request id", () => {
+  const trace = buildAIExplainabilityTrace(
+    {
+      id: "ai-record-1",
+      requestId: "request-filter-1",
+      source: "SPECIALIZED_REVIEW",
+      courseId: "course-ise",
+      courseName: "정보보안기사",
+      userEmail: "learner@example.invalid",
+      targetType: "SECURE_CODE",
+      targetId: "sample-1",
+      query: "DDoS",
+      provider: "mock",
+      model: "mock-ai-v1",
+      generationStatus: "generated",
+      reviewStatus: "PENDING",
+      generatedAt: "2026-08-04T00:00:00.000Z",
+      sourceContextIds: [],
+      contexts: [],
+      result: {},
+      promptFingerprint: "sha256:filter",
+      inputTokens: 0,
+      outputTokens: 0,
+      estimatedCostMicros: 0,
+      latencyMs: 0,
+      disclaimer: "AI generated reference.",
+    },
+    [],
+  );
+
+  assert.equal(
+    matchesAIExplainabilityTraceFilters(trace, {
+      source: "SPECIALIZED_REVIEW",
+      courseId: "course-ise",
+      provider: "mock",
+      status: "PENDING",
+      requestId: "filter",
+    }),
+    true,
+  );
+  assert.equal(
+    matchesAIExplainabilityTraceFilters(trace, {
+      source: "QUESTION_EXPLANATION",
+    }),
+    false,
+  );
 });

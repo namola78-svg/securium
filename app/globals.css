@@ -5478,6 +5478,24 @@ a.specialized-card:hover {
     var(--white);
 }
 
+.ai-trace-filter-form {
+  align-items: end;
+  display: grid;
+  gap: .85rem;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) auto;
+}
+
+.ai-trace-filter-form label {
+  display: grid;
+  gap: .35rem;
+  font-weight: 800;
+}
+
+.ai-trace-filter-actions {
+  display: flex;
+  gap: .5rem;
+}
+
 .ai-trace-list {
   display: grid;
   gap: 1.25rem;
@@ -5558,6 +5576,8 @@ a.specialized-card:hover {
   .scenario-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .admin-summary-grid,
   .ai-trace-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ai-trace-filter-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ai-trace-filter-actions { align-self: stretch; }
 }
 @media (max-width: 640px) {
   .practical-card-grid, .analysis-form-grid, .explanation-panels, .code-diff,
@@ -5573,8 +5593,11 @@ a.specialized-card:hover {
   .admin-ai-actions .button { width: 100%; }
   .admin-summary-grid,
   .ai-trace-grid,
-  .ai-trace-facts { grid-template-columns: 1fr; }
+  .ai-trace-facts,
+  .ai-trace-filter-form { grid-template-columns: 1fr; }
   .ai-trace-header { flex-direction: column; }
+  .ai-trace-filter-actions { flex-direction: column; }
+  .ai-trace-filter-actions .button { width: 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
