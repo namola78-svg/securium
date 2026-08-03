@@ -86,23 +86,23 @@ test("security certification deep node coverage aggregates subitem questions int
   const summary = getSecurityCertificationDeepNodeCoverageSummary();
 
   assert.equal(summary.nodeCount, 139);
-  assert.equal(summary.contentLinkedCount, 131);
+  assert.equal(summary.contentLinkedCount, 137);
   assert.equal(summary.questionLinkedCount, 137);
-  assert.equal(summary.contentCoveragePercent, 94.2);
+  assert.equal(summary.contentCoveragePercent, 98.6);
   assert.equal(summary.questionCoveragePercent, 98.6);
   assert.deepEqual(summary.byCourse, {
     "course-ise": {
       nodeCount: 77,
-      contentLinkedCount: 72,
+      contentLinkedCount: 75,
       questionLinkedCount: 76,
-      contentCoveragePercent: 93.5,
+      contentCoveragePercent: 97.4,
       questionCoveragePercent: 98.7,
     },
     "course-isie": {
       nodeCount: 62,
-      contentLinkedCount: 59,
+      contentLinkedCount: 62,
       questionLinkedCount: 61,
-      contentCoveragePercent: 95.2,
+      contentCoveragePercent: 100,
       questionCoveragePercent: 98.4,
     },
   });
@@ -110,12 +110,13 @@ test("security certification deep node coverage aggregates subitem questions int
   assert.equal(summary.byNodeType.PRACTICAL.nodeCount, 2);
   assert.equal(summary.byNodeType.MAJOR_ITEM.nodeCount, 33);
   assert.equal(summary.byNodeType.SUB_ITEM.nodeCount, 95);
-  assert.equal(summary.byNodeType.MAJOR_ITEM.contentLinkedCount, 25);
+  assert.equal(summary.byNodeType.MAJOR_ITEM.contentLinkedCount, 31);
   assert.equal(summary.byNodeType.MAJOR_ITEM.questionLinkedCount, 33);
+  assert.equal(summary.byNodeType.MAJOR_ITEM.contentCoveragePercent, 93.9);
   assert.equal(summary.byNodeType.MAJOR_ITEM.questionCoveragePercent, 100);
   assert.equal(summary.byNodeType.SUB_ITEM.contentLinkedCount, 95);
   assert.equal(summary.byNodeType.SUB_ITEM.questionLinkedCount, 95);
-  assert.equal(summary.uncoveredRows.length, 8);
+  assert.equal(summary.uncoveredRows.length, 2);
   assert.deepEqual(
     summary.questionGapRows.map((row) => row.stableKey).sort(),
     ["ISE-2027-2029-01-02", "ISIE-2027-2029-01-02"],
