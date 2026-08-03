@@ -34,8 +34,8 @@ test("security certification ontology edges link CourseLesson, Content and Conce
     (edge) => edge.fromType === "CONTENT" && edge.toType === "CONCEPT",
   );
 
-  assert.equal(courseLessonEdges.length, 17);
-  assert.equal(contentReuseEdges.length, 17);
+  assert.equal(courseLessonEdges.length, 35);
+  assert.equal(contentReuseEdges.length, 35);
   assert.ok(conceptEdges.length > 20);
   assert.ok(edges.every((edge) => edge.courseId === "course-ise" || edge.courseId === "course-isie"));
   assert.ok(edges.every((edge) => edge.evidence.length > 0));
@@ -83,12 +83,12 @@ test("ontology coverage summaries expose linked nodes and remaining gaps per cou
   assert.equal(
     summaries.find((summary) => summary.courseId === "course-ise")
       ?.linkedCurriculumNodeCount,
-    9,
+    18,
   );
   assert.equal(
     summaries.find((summary) => summary.courseId === "course-isie")
       ?.linkedCurriculumNodeCount,
-    8,
+    17,
   );
   assert.ok(summaries.every((summary) => summary.gapCount > 0));
   assert.ok(summaries.every((summary) => summary.topGapIds.length > 0));
