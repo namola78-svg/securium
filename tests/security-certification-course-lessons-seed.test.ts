@@ -15,10 +15,10 @@ import {
 test("security certification course lesson seed reuses shared contents across engineer tracks", () => {
   const stats = getSecurityCertificationCourseLessonSeedStats();
 
-  assert.equal(stats.contentCount, 75);
-  assert.equal(stats.courseLessonCount, 137);
+  assert.equal(stats.contentCount, 77);
+  assert.equal(stats.courseLessonCount, 139);
   assert.equal(stats.courseLessonExtensionCount, 2);
-  assert.equal(stats.linkedContentCount, 75);
+  assert.equal(stats.linkedContentCount, 77);
   assert.equal(stats.reusedContentCount, 62);
   assert.equal(stats.allLessonsHaveKnownContent, true);
   assert.equal(stats.expectedTopLevelNodeCount, 11);
@@ -34,7 +34,7 @@ test("security certification course lesson seed keeps course progress separated"
     (lesson) => lesson.courseId === "course-isie",
   );
 
-  assert.equal(engineerLessons.length, 75);
+  assert.equal(engineerLessons.length, 77);
   assert.equal(industrialLessons.length, 62);
 
   const courseLessonIds = new Set(
@@ -546,7 +546,9 @@ test("management law sub items are split into engineer-only CourseLessons", () =
         lesson.id === "course-lesson-ise-official-management-law-overview",
     );
   const managementSubItemsOnly = managementSubItemLessons.filter(
-    (lesson) => !managementOverviewLessons.includes(lesson),
+    (lesson) =>
+      !managementOverviewLessons.includes(lesson) &&
+      !lesson.id.startsWith("course-lesson-ise-official-management-law-major-"),
   );
 
   assert.equal(managementSubItemsOnly.length, 7);
@@ -572,6 +574,49 @@ test("management law sub items are split into engineer-only CourseLessons", () =
       "curriculum-node-ise-2027-2029-01-05-02-02",
       "curriculum-node-ise-2027-2029-01-05-02-03",
     ],
+  );
+});
+
+test("management law major items are split into engineer-only CourseLessons", () => {
+  const majorItemContentIds = [
+    "content-official-security-cert-management-law-information-protection-management",
+    "content-official-security-cert-management-law-ethics-and-laws",
+  ];
+  const majorItemContents = officialSecurityCertificationContents.filter((content) =>
+    majorItemContentIds.includes(content.id),
+  );
+
+  assert.equal(majorItemContents.length, 2);
+  for (const content of majorItemContents) {
+    assert.match(content.body, /SECURIUM 자체 작성 자료/);
+    assert.equal(content.learningObjectives.length, 3);
+    assert.equal(content.practicalExamples.length, 3);
+  }
+
+  const linkedLessons = officialSecurityCertificationCourseLessons
+    .filter((lesson) =>
+      lesson.id.startsWith("course-lesson-ise-official-management-law-major-"),
+    )
+    .sort((a, b) => a.curriculumNodeId.localeCompare(b.curriculumNodeId));
+
+  assert.equal(linkedLessons.length, 2);
+  assert.equal(
+    linkedLessons.every((lesson) => lesson.courseId === "course-ise"),
+    true,
+  );
+  assert.deepEqual(
+    linkedLessons.map((lesson) => lesson.curriculumNodeId),
+    [
+      "curriculum-node-ise-2027-2029-01-05-01",
+      "curriculum-node-ise-2027-2029-01-05-02",
+    ],
+  );
+  assert.equal(
+    officialSecurityCertificationCourseLessons.some((lesson) =>
+      lesson.id.startsWith("course-lesson-isie-official-management-law-major-"),
+    ),
+    false,
+    "management law major items must not leak into the industrial engineer course",
   );
 });
 

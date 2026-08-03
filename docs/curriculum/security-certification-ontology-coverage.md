@@ -6,7 +6,7 @@
 
 - 공식 커리큘럼은 `CurriculumTree`와 `CurriculumNode`로 관리한다.
 - 공통 이론 콘텐츠는 `Content`로 관리하고, 과정별 제공 맥락은 `CourseLesson`으로 분리한다.
-- 현재 공식 과목·실기 개요와 네트워크·시스템보안·애플리케이션보안·정보보안일반·정보보호관리 및 법규·실기 주요/세부항목 CourseLesson seed는 137개 연결을 제공한다.
+- 현재 공식 과목·실기 개요와 네트워크·시스템보안·애플리케이션보안·정보보안일반·정보보호관리 및 법규·실기 주요/세부항목 CourseLesson seed는 139개 연결을 제공한다.
 - 온톨로지 전용 DB 테이블은 아직 생성하지 않았다.
 - 운영 DB seed 적용은 별도 승인 뒤에만 수행한다.
 
@@ -22,7 +22,7 @@
 - 과정별 linked node count
 - 과정별 ontology coverage gap
 
-현재 로컬 계산 기준 linked curriculum node는 정보보안기사 75개, 정보보안산업기사 62개다. 운영 DB 상태가 아니라 seed 코드 기준이며, Production 반영은 별도 승인 절차가 필요하다.
+현재 로컬 계산 기준 linked curriculum node는 정보보안기사 77개, 정보보안산업기사 62개다. 운영 DB 상태가 아니라 seed 코드 기준이며, Production 반영은 별도 승인 절차가 필요하다.
 
 ## 관리자 화면 연동
 

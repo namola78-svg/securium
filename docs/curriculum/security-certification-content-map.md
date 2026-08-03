@@ -18,9 +18,9 @@
 
 | 범위 | 학습 노드 | Content 연결 | 문항 연결 | 커버리지 |
 | --- | ---: | ---: | ---: | ---: |
-| 정보보안기사 | 77 | 75 | 76 | Content 97.4% / 문항 98.7% |
+| 정보보안기사 | 77 | 77 | 76 | Content 100.0% / 문항 98.7% |
 | 정보보안산업기사 | 62 | 62 | 61 | Content 100.0% / 문항 98.4% |
-| 합계 | 139 | 137 | 137 | Content 98.6% / 문항 98.6% |
+| 합계 | 139 | 139 | 137 | Content 100.0% / 문항 98.6% |
 
 노드 유형별 현황:
 
@@ -28,12 +28,12 @@
 | --- | ---: | ---: | ---: |
 | 과목 / SUBJECT | 9 | 9 | 7 |
 | 실기 / PRACTICAL | 2 | 2 | 2 |
-| 주요항목 / MAJOR_ITEM | 33 | 31 | 33 |
+| 주요항목 / MAJOR_ITEM | 33 | 33 | 33 |
 | 세부항목 / SUB_ITEM | 95 | 95 | 95 |
 
 이 수치는 운영 DB 상태가 아니라 로컬 seed 코드 기준이다. 네트워크 보안은 주요항목 3개와 세부항목 9개, 시스템 보안은 주요항목 3개와 세부항목 8개, 애플리케이션 보안은 주요항목 2개와 세부항목 7개, 정보보안일반은 주요항목 3개와 세부항목 7개가 기사·산업기사 양쪽 CourseLesson으로 분할되어 있다.
 
-정보보호관리 및 법규는 기사 전용 Content로 관리하며, 세부항목 7개는 Content와 문항이 연결되어 있다. 남은 Content gap은 기사 전용 정보보호관리 및 법규 주요항목 2개이며, 남은 문항 gap은 네트워크 보안 과목 개요 2개다.
+정보보호관리 및 법규는 기사 전용 Content로 관리하며, 주요항목 2개와 세부항목 7개는 Content와 문항 집계 흐름에 연결되어 있다. 남은 Content gap은 없으며, 남은 문항 gap은 네트워크 보안 과목 개요 2개다.
 
 주요항목의 문항 커버리지는 중복 문항을 만들지 않고 하위 세부항목 문항을 집계하는 정책을 적용한다. 산업기사 CourseLesson에는 기사 전용 관리·법규와 위험관리 실기 항목이 노출되지 않는다. CourseLesson과 진도는 기사·산업기사별로 분리된다.
 
@@ -62,6 +62,8 @@
 - CurriculumNode: `ISE-2027-2029-01-05`
 - Content: `content-official-security-cert-management-law-overview`
 - Question course scope: `course-ise`
+- Major item Content: `content-official-security-cert-management-law-information-protection-management`, `content-official-security-cert-management-law-ethics-and-laws`
+- Major item CourseLesson: `course-lesson-ise-official-management-law-major-*`
 - Sub item Content: `content-official-security-cert-management-law-*`
 - Sub item CourseLesson: `course-lesson-ise-official-management-law-*`
 
@@ -101,8 +103,8 @@
 
 ## 다음 확장 후보
 
-1. 기사 전용 정보보호관리 및 법규 주요항목 Content 분할
-2. 네트워크 보안 과목 개요 문항 집계 정책 검토
-3. 실기 서술형·로그분석·설정분석 고급 문항 확대
-4. 관리자 화면에서 미연결 노드와 문항 미연결 노드를 별도 표시
-5. 온톨로지 PoC에서 노드·Content·문항 간 개념 연결 자동 추천
+1. 네트워크 보안 과목 개요 문항 집계 정책 검토
+2. 실기 서술형·로그분석·설정분석 고급 문항 확대
+3. 관리자 화면에서 미연결 문항 노드를 별도 표시
+4. 온톨로지 PoC에서 노드·Content·문항 간 개념 연결 자동 추천
+5. 운영 DB 반영 전 공식 PDF 최종 대조와 관리자 승인 절차 수행
