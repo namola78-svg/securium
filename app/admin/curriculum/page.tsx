@@ -1,4 +1,5 @@
 import { AdminCurriculumManager } from "@/components/admin-curriculum-manager";
+import Link from "next/link";
 import {
   getCurriculumTreeCoverage,
   listCurriculumLinkableContent,
@@ -62,6 +63,9 @@ export default async function AdminCurriculumPage({
     securityCertificationDeepCoverage.uncoveredRows.slice(0, 8);
   const questionGapCertificationRows =
     securityCertificationDeepCoverage.questionGapRows.slice(0, 8);
+  const selectedSharedContentHref = selectedTree?.courseId
+    ? `/admin/shared-content?courseId=${selectedTree.courseId}`
+    : "/admin/shared-content";
   const operationalSummary = nodeStats.reduce(
     (summary, stat) => ({
       questionCount: summary.questionCount + stat.questionCount,
@@ -293,11 +297,22 @@ export default async function AdminCurriculumPage({
                     <small>
                       {row.courseCode} · {row.nodeType} · {row.stableKey}
                     </small>
+                    <Link
+                      className="text-link"
+                      href={`/admin/shared-content?courseId=${row.courseId}`}
+                    >
+                      공통 콘텐츠 관리로 이동
+                    </Link>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="admin-helper">미연결 Content 노드가 없습니다.</p>
+              <p className="admin-helper">
+                미연결 Content 노드가 없습니다.{" "}
+                <Link className="text-link" href={selectedSharedContentHref}>
+                  공통 콘텐츠 관리로 이동
+                </Link>
+              </p>
             )}
           </details>
           <details className="admin-record">
@@ -322,11 +337,26 @@ export default async function AdminCurriculumPage({
                     <small>
                       {row.courseCode} · {row.nodeType} · {row.stableKey}
                     </small>
+                    <Link
+                      className="text-link"
+                      href={
+                        row.contentIds[0]
+                          ? `/admin/shared-content?courseId=${row.courseId}&contentId=${row.contentIds[0]}`
+                          : `/admin/shared-content?courseId=${row.courseId}`
+                      }
+                    >
+                      연결 Content 확인
+                    </Link>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="admin-helper">문항 공백 노드가 없습니다.</p>
+              <p className="admin-helper">
+                문항 공백 노드가 없습니다.{" "}
+                <Link className="text-link" href={selectedSharedContentHref}>
+                  공통 콘텐츠 관리로 이동
+                </Link>
+              </p>
             )}
           </details>
         </div>
