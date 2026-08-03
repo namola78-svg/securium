@@ -1,6 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import {
+  recommendLinkableContentForNode,
+  recommendationReasonLabel,
+  recommendableContentKey,
+} from "@/lib/curriculum/content-recommendations";
 
 type Course = {
   id: string;
@@ -79,6 +84,16 @@ type ContentUsage = {
   status: string;
 };
 
+type SharedContentRecommendationSource = {
+  type: "CONTENT";
+  id: string;
+  title: string;
+  subtitle: string;
+  active: boolean;
+  published: boolean;
+  displayOrder: number;
+};
+
 const statuses = ["DRAFT", "PUBLISHED", "ARCHIVED"] as const;
 const bodyFormats = ["MARKDOWN", "STRUCTURED_JSON", "PLAIN_TEXT"] as const;
 const completionRules = ["MANUAL", "SCROLL_END", "MINIMUM_REQUIREMENTS"] as const;
@@ -154,6 +169,33 @@ export function AdminSharedContentManager({
     selectedCurriculumNodeId && showSelectedNodeOnly
       ? selectedNodeCourseLessons
       : courseLessons;
+  const linkedContentKeysForSelectedNode = new Set(
+    selectedNodeCourseLessons.map((lesson) =>
+      recommendableContentKey({ type: "CONTENT", id: lesson.contentId }),
+    ),
+  );
+  const selectedNodeContentRecommendations = selectedCurriculumNode
+    ? recommendLinkableContentForNode<SharedContentRecommendationSource>({
+        node: {
+          nodeType: selectedCurriculumNode.nodeType,
+          title: selectedCurriculumNode.title,
+          path: selectedCurriculumNode.path,
+        },
+        linkableContent: contents.map((content, index) => ({
+          type: "CONTENT",
+          id: content.id,
+          title: content.title,
+          subtitle: [content.summary, content.canonicalKey, content.version]
+            .filter(Boolean)
+            .join(" · "),
+          active: content.status !== "ARCHIVED",
+          published: content.status === "PUBLISHED",
+          displayOrder: index,
+        })),
+        linkedKeys: linkedContentKeysForSelectedNode,
+        limit: 5,
+      })
+    : [];
   const selectedTreeLabel = useMemo(() => {
     const active = curriculumTrees.find((tree) => tree.status === "ACTIVE");
     const fallback = curriculumTrees[0];
@@ -536,12 +578,71 @@ export function AdminSharedContentManager({
                 이 노드에 새 CourseLesson 연결
               </button>
             </div>
+            {selectedNodeContentRecommendations.length ? (
+              <div
+                className="curriculum-content-recommendations"
+                aria-label="선택 노드에 연결할 수 있는 공통 Content 추천"
+              >
+                <div className="curriculum-content-recommendations-heading">
+                  <div>
+                    <h4>추천 Content 후보</h4>
+                    <p className="admin-helper">
+                      노드명과 경로를 기준으로 아직 이 노드에 연결되지 않은
+                      공통 Content를 우선순위로 제안합니다.
+                    </p>
+                  </div>
+                  <span className="status-badge compact">
+                    후보 {selectedNodeContentRecommendations.length}
+                  </span>
+                </div>
+                <div className="curriculum-content-recommendation-list">
+                  {selectedNodeContentRecommendations.map((item) => (
+                    <button
+                      className="curriculum-content-recommendation"
+                      key={recommendableContentKey(item)}
+                      type="button"
+                      onClick={() => {
+                        setEditingContentId(item.id);
+                        setEditingCourseLessonId("");
+                      }}
+                    >
+                      <div>
+                        <strong>{item.title}</strong>
+                        <small>{item.subtitle}</small>
+                      </div>
+                      <div className="curriculum-content-recommendation-meta">
+                        <span className="status-badge compact">
+                          우선순위 {item.score}
+                        </span>
+                        {item.reasons.slice(0, 2).map((reason) => (
+                          <span className="curriculum-reason-chip" key={reason}>
+                            {recommendationReasonLabel(reason)}
+                          </span>
+                        ))}
+                        {item.matchedKeywords.slice(0, 3).map((keyword) => (
+                          <span className="curriculum-keyword-chip" key={keyword}>
+                            {keyword}
+                          </span>
+                        ))}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="empty-copy">
+                이 노드에 자동으로 추천할 미연결 Content가 없습니다.
+              </p>
+            )}
           </div>
         ) : null}
         <form
           className="admin-form"
           action={saveCourseLesson}
-          key={editingCourseLesson?.id ?? "new-course-lesson"}
+          key={
+            editingCourseLesson?.id ??
+            `new-course-lesson-${editingContentId}-${selectedCurriculumNodeId}`
+          }
         >
           <input name="id" type="hidden" value={editingCourseLesson?.id ?? ""} />
           <label>
@@ -549,7 +650,9 @@ export function AdminSharedContentManager({
             <select
               name="contentId"
               required
-              defaultValue={editingCourseLesson?.contentId ?? contents[0]?.id ?? ""}
+              defaultValue={
+                editingCourseLesson?.contentId ?? editingContentId ?? contents[0]?.id ?? ""
+              }
             >
               {contents.map((content) => (
                 <option key={content.id} value={content.id}>

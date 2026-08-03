@@ -249,6 +249,10 @@ test("admin curriculum and shared content pages expose network security coverage
   assert.match(sharedContentHtml, /커버리지 화면에서 넘어온 노드입니다/);
   assert.match(sharedContentHtml, /전체 CourseLesson 보기/);
   assert.match(sharedContentHtml, /이 노드에 새 CourseLesson 연결/);
+  assert.match(
+    sharedContentHtml,
+    /(추천 Content 후보|자동으로 추천할 미연결 Content)/,
+  );
 });
 
 let networkQuestionSeedApplied = false;
