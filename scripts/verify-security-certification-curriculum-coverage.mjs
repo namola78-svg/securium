@@ -3,6 +3,11 @@ import { spawn } from "node:child_process";
 import { officialSecurityCertificationCourseLessons } from "../lib/data/security-certification-course-lessons.mjs";
 
 const VALID_TARGETS = new Set(["d1-local", "postgres"]);
+if (process.argv.includes("--help") || process.argv.includes("-h")) {
+  printHelp();
+  process.exit(0);
+}
+
 const target = process.argv[2] ?? "d1-local";
 const requireCourseLessons = process.argv.includes("--require-course-lessons");
 const allowInactive = process.argv.includes("--allow-inactive");
@@ -362,6 +367,30 @@ function safeErrorCode(error) {
   const name = "name" in error ? error.name : undefined;
   if (typeof name === "string" && /^[A-Za-z0-9_]+$/.test(name)) return name;
   return "UNKNOWN";
+}
+
+function printHelp() {
+  console.log(`SECURIUM security certification curriculum coverage verifier
+
+Usage:
+  node scripts/verify-security-certification-curriculum-coverage.mjs d1-local [options]
+  node scripts/verify-security-certification-curriculum-coverage.mjs postgres [options]
+
+Targets:
+  d1-local   Read local Cloudflare D1 state through wrangler
+  postgres   Read PostgreSQL/Supabase state using POSTGRES_VERIFY_URL or DATABASE_URL
+
+Options:
+  --allow-inactive          Allow official CurriculumTree rows that are not ACTIVE
+  --require-course-lessons  Fail when official CourseLesson seed coverage is incomplete
+  --action-queue           Include prioritized read-only gap actions in the JSON output
+  --config=<path>          D1 wrangler config path, default: wrangler.local.jsonc
+
+NPM shortcuts:
+  npm run curriculum:security-certification:coverage:d1-local
+  npm run curriculum:security-certification:coverage:postgres
+  npm run curriculum:security-certification:coverage-actions:d1-local
+  npm run curriculum:security-certification:coverage-actions:postgres`);
 }
 
 function fail(code, message) {

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import {
@@ -136,4 +137,17 @@ test("security certification coverage action queue has npm entrypoints", () => {
     packageJson.scripts["curriculum:security-certification:coverage-actions:postgres"],
     "node scripts/verify-security-certification-curriculum-coverage.mjs postgres --require-course-lessons --action-queue",
   );
+});
+
+test("security certification coverage verifier exposes safe help without DB access", () => {
+  const result = spawnSync(
+    process.execPath,
+    ["scripts/verify-security-certification-curriculum-coverage.mjs", "--help"],
+    { encoding: "utf8" },
+  );
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /coverage verifier/);
+  assert.match(result.stdout, /--action-queue/);
+  assert.match(result.stdout, /coverage-actions:postgres/);
 });
