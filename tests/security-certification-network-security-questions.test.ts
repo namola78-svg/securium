@@ -15,19 +15,19 @@ import {
 test("network security question bank covers current auto-graded types", () => {
   const readiness = getNetworkSecurityQuestionBankReadiness();
 
-  assert.equal(readiness.questionCount, 9);
+  assert.equal(readiness.questionCount, 11);
   assert.equal(readiness.allPublished, true);
   assert.equal(readiness.allSampleOnly, true);
   assert.equal(readiness.allIndependentlyAuthored, true);
   assert.equal(readiness.allLinkedToBothCourses, true);
   assert.equal(readiness.allLinkedToNetworkContent, true);
   assert.deepEqual(readiness.courseCounts, {
-    "course-ise": 9,
-    "course-isie": 9,
+    "course-ise": 11,
+    "course-isie": 11,
   });
   assert.deepEqual(readiness.typeCounts, {
     TRUE_FALSE: 2,
-    SINGLE_CHOICE: 3,
+    SINGLE_CHOICE: 5,
     MULTIPLE_CHOICE: 2,
     SHORT_ANSWER: 2,
   });
@@ -35,6 +35,14 @@ test("network security question bank covers current auto-graded types", () => {
 
 test("network security questions remain course scoped and content linked", () => {
   const expectedContentIdsByQuestionId = new Map([
+    [
+      "network-security-official-sample-q10",
+      [NETWORK_SECURITY_CONTENT_IDS.overview],
+    ],
+    [
+      "network-security-official-sample-q11",
+      [NETWORK_SECURITY_CONTENT_IDS.overview],
+    ],
     [
       "network-security-official-sample-q01",
       [NETWORK_SECURITY_CONTENT_IDS.dosDdos],

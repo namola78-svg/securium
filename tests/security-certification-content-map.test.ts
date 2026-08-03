@@ -12,18 +12,18 @@ test("security certification content map covers every top-level official curricu
   assert.equal(summary.rowCount, 11);
   assert.equal(summary.mappedRowCount, 11);
   assert.equal(summary.unmappedRowCount, 0);
-  assert.equal(summary.rowsWithQuestionsCount, 9);
-  assert.equal(summary.mappedRowsMissingQuestionsCount, 2);
+  assert.equal(summary.rowsWithQuestionsCount, 11);
+  assert.equal(summary.mappedRowsMissingQuestionsCount, 0);
   assert.deepEqual(summary.byCourse, {
     "course-ise": {
       rowCount: 6,
       mappedRowCount: 6,
-      rowsWithQuestionsCount: 5,
+      rowsWithQuestionsCount: 6,
     },
     "course-isie": {
       rowCount: 5,
       mappedRowCount: 5,
-      rowsWithQuestionsCount: 4,
+      rowsWithQuestionsCount: 5,
     },
   });
 });
@@ -46,9 +46,7 @@ test("security certification content map preserves shared content and isolated p
     assert.ok(industrial);
     assert.deepEqual(engineer.contentIds, industrial.contentIds);
     assert.notDeepEqual(engineer.courseLessonIds, industrial.courseLessonIds);
-    const expectedQuestionCourseIds = engineerKey.endsWith("-01-02")
-      ? []
-      : ["course-ise", "course-isie"];
+    const expectedQuestionCourseIds = ["course-ise", "course-isie"];
     assert.deepEqual(engineer.questionCourseIds, expectedQuestionCourseIds);
     assert.deepEqual(industrial.questionCourseIds, expectedQuestionCourseIds);
   }
@@ -87,26 +85,27 @@ test("security certification deep node coverage aggregates subitem questions int
 
   assert.equal(summary.nodeCount, 139);
   assert.equal(summary.contentLinkedCount, 139);
-  assert.equal(summary.questionLinkedCount, 137);
+  assert.equal(summary.questionLinkedCount, 139);
   assert.equal(summary.contentCoveragePercent, 100);
-  assert.equal(summary.questionCoveragePercent, 98.6);
+  assert.equal(summary.questionCoveragePercent, 100);
   assert.deepEqual(summary.byCourse, {
     "course-ise": {
       nodeCount: 77,
       contentLinkedCount: 77,
-      questionLinkedCount: 76,
+      questionLinkedCount: 77,
       contentCoveragePercent: 100,
-      questionCoveragePercent: 98.7,
+      questionCoveragePercent: 100,
     },
     "course-isie": {
       nodeCount: 62,
       contentLinkedCount: 62,
-      questionLinkedCount: 61,
+      questionLinkedCount: 62,
       contentCoveragePercent: 100,
-      questionCoveragePercent: 98.4,
+      questionCoveragePercent: 100,
     },
   });
   assert.equal(summary.byNodeType.SUBJECT.nodeCount, 9);
+  assert.equal(summary.byNodeType.SUBJECT.questionLinkedCount, 9);
   assert.equal(summary.byNodeType.PRACTICAL.nodeCount, 2);
   assert.equal(summary.byNodeType.MAJOR_ITEM.nodeCount, 33);
   assert.equal(summary.byNodeType.SUB_ITEM.nodeCount, 95);
@@ -117,8 +116,5 @@ test("security certification deep node coverage aggregates subitem questions int
   assert.equal(summary.byNodeType.SUB_ITEM.contentLinkedCount, 95);
   assert.equal(summary.byNodeType.SUB_ITEM.questionLinkedCount, 95);
   assert.equal(summary.uncoveredRows.length, 0);
-  assert.deepEqual(
-    summary.questionGapRows.map((row) => row.stableKey).sort(),
-    ["ISE-2027-2029-01-02", "ISIE-2027-2029-01-02"],
-  );
+  assert.equal(summary.questionGapRows.length, 0);
 });
