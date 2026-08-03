@@ -29,6 +29,18 @@ node --env-file=.env.local scripts/verify-security-certification-curriculum-cove
 운영 DB를 변경하지 않고 다음 커버리지 작업을 JSON으로 확인하려면 `--action-queue`를 함께 사용한다.
 
 ```powershell
+npm run curriculum:security-certification:coverage-actions:d1-local
+```
+
+Production PostgreSQL 상태를 읽기 전용으로 확인할 때는 다음 스크립트를 사용한다.
+
+```powershell
+npm run curriculum:security-certification:coverage-actions:postgres
+```
+
+동일한 동작을 직접 실행하면 다음과 같다.
+
+```powershell
 node --env-file=.env.local scripts/verify-security-certification-curriculum-coverage.mjs postgres --require-course-lessons --action-queue
 ```
 

@@ -124,3 +124,16 @@ test("security certification curriculum coverage script is read-only and reports
   assert.doesNotMatch(script, /\bDELETE\b/i);
   assert.doesNotMatch(script, /\bDROP\b/i);
 });
+
+test("security certification coverage action queue has npm entrypoints", () => {
+  const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
+
+  assert.equal(
+    packageJson.scripts["curriculum:security-certification:coverage-actions:d1-local"],
+    "node scripts/verify-security-certification-curriculum-coverage.mjs d1-local --allow-inactive --action-queue",
+  );
+  assert.equal(
+    packageJson.scripts["curriculum:security-certification:coverage-actions:postgres"],
+    "node scripts/verify-security-certification-curriculum-coverage.mjs postgres --require-course-lessons --action-queue",
+  );
+});
