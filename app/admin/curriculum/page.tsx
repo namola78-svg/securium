@@ -138,6 +138,43 @@ export default async function AdminCurriculumPage({
     });
     return `/admin/shared-content?${params.toString()}`;
   }
+  const coverageActionItems = [
+    ...unlinkedCourseLessons.slice(0, 3).map((lesson) => {
+      const params = new URLSearchParams({
+        courseId: lesson.courseId,
+        contentId: lesson.contentId,
+        courseLessonId: lesson.id,
+      });
+      return {
+        id: `course-lesson:${lesson.id}`,
+        badge: "CourseLesson gap",
+        title: lesson.displayTitle,
+        detail: `공개 레슨이지만 공식 CurriculumNode가 비어 있습니다. Content: ${lesson.contentTitle}`,
+        href: `/admin/shared-content?${params.toString()}`,
+        action: "노드 연결",
+      };
+    }),
+    ...uncoveredCertificationRows.slice(0, 3).map((row) => ({
+      id: `content:${row.curriculumNodeId}`,
+      badge: "Content gap",
+      title: row.title,
+      detail: `${row.courseCode} · ${row.nodeType} · 추천 후보 ${row.contentRecommendations.length}개`,
+      href: row.contentRecommendations.length
+        ? sharedContentRecommendationHref(row)
+        : sharedContentNodeHref(row),
+      action: row.contentRecommendations.length ? "추천 후보 연결" : "Content 연결",
+    })),
+    ...questionGapCertificationRows.slice(0, 3).map((row) => ({
+      id: `question:${row.curriculumNodeId}`,
+      badge: "Question gap",
+      title: row.title,
+      detail: `${row.courseCode} · 연결 Content ${row.contentIds.length}개 · 추천 후보 ${row.contentRecommendations.length}개`,
+      href: row.contentRecommendations.length
+        ? sharedContentRecommendationHref(row)
+        : sharedContentNodeHref(row),
+      action: row.contentRecommendations.length ? "추가 후보 연결" : "문항 연결 확인",
+    })),
+  ].slice(0, 6);
   const operationalSummary = nodeStats.reduce(
     (summary, stat) => ({
       questionCount: summary.questionCount + stat.questionCount,
@@ -401,6 +438,43 @@ export default async function AdminCurriculumPage({
           </article>
         </div>
         <div className="admin-record-list" aria-label="공식 커리큘럼 커버리지 상세">
+          <section
+            className="admin-panel nested-panel"
+            aria-labelledby="coverage-action-queue-heading"
+          >
+            <div className="admin-panel-header">
+              <div>
+                <p className="eyebrow">COVERAGE ACTION QUEUE</p>
+                <h3 id="coverage-action-queue-heading">다음 커버리지 작업</h3>
+                <p>
+                  운영 반영 전에 먼저 처리하면 좋은 CourseLesson, Content, Question
+                  연결 작업을 한곳에 모았습니다.
+                </p>
+              </div>
+              <span className="status-badge compact">
+                {coverageActionItems.length}개
+              </span>
+            </div>
+            {coverageActionItems.length ? (
+              <ol className="compact-list">
+                {coverageActionItems.map((item) => (
+                  <li key={item.id}>
+                    <span className="status-badge compact">{item.badge}</span>
+                    <strong>{item.title}</strong>
+                    <small>{item.detail}</small>
+                    <Link className="text-link" href={item.href}>
+                      {item.action}
+                    </Link>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="admin-helper">
+                현재 우선 처리할 커버리지 액션이 없습니다. 세부 목록에서 신규 gap이
+                생기면 자동으로 표시됩니다.
+              </p>
+            )}
+          </section>
           <details className="admin-record">
             <summary>
               <span>
