@@ -123,6 +123,7 @@ export function AdminSharedContentManager({
   usage,
   selectedCourseId,
   selectedContentId,
+  selectedCourseLessonId,
   selectedCurriculumNodeId,
 }: {
   courses: Course[];
@@ -133,6 +134,7 @@ export function AdminSharedContentManager({
   usage: ContentUsage[];
   selectedCourseId: string;
   selectedContentId: string;
+  selectedCourseLessonId: string;
   selectedCurriculumNodeId: string;
 }) {
   const [message, setMessage] = useState("");
@@ -141,7 +143,10 @@ export function AdminSharedContentManager({
     selectedContentId || contents[0]?.id || "",
   );
   const initialCourseLessonId =
-    selectedCurriculumNodeId
+    selectedCourseLessonId &&
+    courseLessons.some((lesson) => lesson.id === selectedCourseLessonId)
+      ? selectedCourseLessonId
+      : selectedCurriculumNodeId
       ? courseLessons.find(
           (lesson) => lesson.curriculumNodeId === selectedCurriculumNodeId,
         )?.id

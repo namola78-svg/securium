@@ -248,6 +248,7 @@ export default async function AdminCurriculumPage({
                 const params = new URLSearchParams({
                   courseId: lesson.courseId,
                   contentId: lesson.contentId,
+                  courseLessonId: lesson.id,
                 });
                 return (
                   <li key={lesson.id}>

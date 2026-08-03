@@ -19,6 +19,7 @@ export default async function AdminSharedContentPage({
   searchParams: Promise<{
     courseId?: string;
     contentId?: string;
+    courseLessonId?: string;
     curriculumNodeId?: string;
   }>;
 }) {
@@ -32,17 +33,26 @@ export default async function AdminSharedContentPage({
     query.courseId && courses.some((course) => course.id === query.courseId)
       ? query.courseId
       : courses[0]?.id ?? "";
-  const selectedContentId =
+  const requestedContentId =
     query.contentId &&
     contents.some((content) => content.id === query.contentId)
       ? query.contentId
       : contents[0]?.id ?? "";
 
-  const [courseLessons, curriculumTrees, usage] = await Promise.all([
+  const [courseLessons, curriculumTrees] = await Promise.all([
     selectedCourseId ? listCourseLessons(selectedCourseId) : [],
     selectedCourseId ? listCurriculumTrees(selectedCourseId) : [],
-    selectedContentId ? listSharedContentUsage(selectedContentId) : [],
   ]);
+  const selectedCourseLesson =
+    query.courseLessonId &&
+    courseLessons.find((lesson) => lesson.id === query.courseLessonId)
+      ? courseLessons.find((lesson) => lesson.id === query.courseLessonId)!
+      : null;
+  const selectedCourseLessonId = selectedCourseLesson?.id ?? "";
+  const selectedContentId = selectedCourseLesson?.contentId ?? requestedContentId;
+  const usage = selectedContentId
+    ? await listSharedContentUsage(selectedContentId)
+    : [];
   const activeTree =
     curriculumTrees.find((tree) => tree.status === "ACTIVE") ??
     curriculumTrees[0] ??
@@ -106,6 +116,7 @@ export default async function AdminSharedContentPage({
         usage={usage}
         selectedCourseId={selectedCourseId}
         selectedContentId={selectedContentId}
+        selectedCourseLessonId={selectedCourseLessonId}
         selectedCurriculumNodeId={selectedCurriculumNodeId}
       />
     </>

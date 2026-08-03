@@ -228,6 +228,7 @@ test("admin curriculum and shared content pages expose network security coverage
     curriculumHtml,
     /(\/admin\/shared-content\?courseId=course-ise&amp;contentId=|CourseLesson)/,
   );
+  assert.match(curriculumHtml, /courseLessonId=course-lesson-/);
   assert.match(curriculumHtml, /운영 DB 선택 트리/);
   assert.match(curriculumHtml, /정식 seed 기준/);
   assert.match(curriculumHtml, /운영 반영 확인 포인트/);
@@ -236,7 +237,7 @@ test("admin curriculum and shared content pages expose network security coverage
   assert.match(curriculumHtml, /연결 준비/);
 
   const sharedContentResponse = await fetch(
-    `${baseUrl}/admin/shared-content?courseId=course-ise&contentId=content-official-security-cert-network-security-overview&curriculumNodeId=curriculum-node-ise-2027-2029-02`,
+    `${baseUrl}/admin/shared-content?courseId=course-ise&contentId=content-official-security-cert-network-security-overview&courseLessonId=course-lesson-ise-official-network-security-overview&curriculumNodeId=curriculum-node-ise-2027-2029-02`,
     { headers: adminHeaders },
   );
   const sharedContentHtml = await sharedContentResponse.text();
