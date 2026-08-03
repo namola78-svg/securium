@@ -1,4 +1,5 @@
 import postgres from "postgres";
+import { spawn } from "node:child_process";
 import { officialSecurityCertificationCourseLessons } from "../lib/data/security-certification-course-lessons.mjs";
 
 const CONFIRM_FLAG = "--confirm-production-activation";
@@ -34,12 +35,38 @@ const expectedTrees = [
 ];
 
 const checkOnly = process.argv.includes(CHECK_ONLY_FLAG);
+const target = process.argv.includes("d1-local") ? "d1-local" : "postgres";
 
 if (checkOnly) {
-  await checkActivationReadinessWithPostgres();
+  if (target === "d1-local") {
+    await checkActivationReadinessWithD1Local();
+  } else {
+    await checkActivationReadinessWithPostgres();
+  }
 } else {
+  if (target !== "postgres") {
+    fail("SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION_TARGET_UNSUPPORTED", target);
+  }
   assertProductionActivationApproval();
   await activateWithPostgres();
+}
+
+async function checkActivationReadinessWithD1Local() {
+  const configPath = argValue("--config=") ?? "wrangler.local.jsonc";
+  const readiness = await d1Query(configPath, buildPreActivationSql("d1"));
+  const activationPlan = await d1Query(configPath, buildActivationPlanSql());
+  assertPreActivationCoverage(readiness);
+  console.log("SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION_CHECK_D1_LOCAL_OK");
+  console.log(
+    JSON.stringify(
+      {
+        readiness,
+        activationPlan,
+      },
+      null,
+      2,
+    ),
+  );
 }
 
 async function checkActivationReadinessWithPostgres() {
@@ -59,7 +86,7 @@ async function checkActivationReadinessWithPostgres() {
   });
 
   try {
-    const rows = await sql.unsafe(buildPreActivationSql());
+    const rows = await sql.unsafe(buildPreActivationSql("postgres"));
     const activationPlan = await sql.unsafe(buildActivationPlanSql());
     assertPreActivationCoverage(rows);
     console.log("SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION_CHECK_POSTGRES_OK");
@@ -101,7 +128,7 @@ async function activateWithPostgres() {
 
   try {
     await sql.begin(async (tx) => {
-      const preActivationRows = await tx.unsafe(buildPreActivationSql());
+      const preActivationRows = await tx.unsafe(buildPreActivationSql("postgres"));
       assertPreActivationCoverage(preActivationRows);
 
       await tx.unsafe(
@@ -167,7 +194,8 @@ WHERE id IN (${treeIds})
 ORDER BY course_id, id;`;
 }
 
-function buildPreActivationSql() {
+function buildPreActivationSql(dialect = "postgres") {
+  const countCast = dialect === "postgres" ? "::int" : "";
   const treeIds = targetTreeIds.map(sqlString).join(",");
   const courseIds = targetCourseIds.map(sqlString).join(",");
   const officialCourseLessonIds = officialSecurityCertificationCourseLessons
@@ -183,9 +211,9 @@ WITH official_trees AS (
 tree_nodes AS (
   SELECT
     curriculum_tree_id,
-    COUNT(*)::int AS node_count,
-    SUM(CASE WHEN node_type <> 'TRACK' THEN 1 ELSE 0 END)::int AS metadata_target_node_count,
-    SUM(CASE WHEN metadata LIKE '%"linkedContent"%' THEN 1 ELSE 0 END)::int AS metadata_linked_node_count
+    COUNT(*)${countCast} AS node_count,
+    SUM(CASE WHEN node_type <> 'TRACK' THEN 1 ELSE 0 END)${countCast} AS metadata_target_node_count,
+    SUM(CASE WHEN metadata LIKE '%"linkedContent"%' THEN 1 ELSE 0 END)${countCast} AS metadata_linked_node_count
   FROM curriculum_nodes
   WHERE curriculum_tree_id IN (${treeIds})
     AND status <> 'ARCHIVED'
@@ -194,8 +222,8 @@ tree_nodes AS (
 published_course_lessons AS (
   SELECT
     course_id,
-    SUM(CASE WHEN id IN (${officialCourseLessonIds}) THEN 1 ELSE 0 END)::int AS official_seed_course_lesson_count,
-    SUM(CASE WHEN id IN (${officialCourseLessonIds}) AND (curriculum_node_id IS NULL OR curriculum_node_id = '') THEN 1 ELSE 0 END)::int AS official_unlinked_course_lesson_count
+    SUM(CASE WHEN id IN (${officialCourseLessonIds}) THEN 1 ELSE 0 END)${countCast} AS official_seed_course_lesson_count,
+    SUM(CASE WHEN id IN (${officialCourseLessonIds}) AND (curriculum_node_id IS NULL OR curriculum_node_id = '') THEN 1 ELSE 0 END)${countCast} AS official_unlinked_course_lesson_count
   FROM course_lessons
   WHERE course_id IN (${courseIds})
     AND status = 'PUBLISHED'
@@ -205,7 +233,7 @@ published_course_lessons AS (
 published_course_questions AS (
   SELECT
     qc.course_id,
-    COUNT(DISTINCT qc.question_id)::int AS published_question_count
+    COUNT(DISTINCT qc.question_id)${countCast} AS published_question_count
   FROM question_courses qc
   INNER JOIN questions q ON q.id = qc.question_id
   WHERE qc.course_id IN (${courseIds})
@@ -292,6 +320,66 @@ function resolvePostgresUrl() {
 
 function sqlString(value) {
   return `'${String(value).replaceAll("'", "''")}'`;
+}
+
+function argValue(prefix) {
+  const arg = process.argv.find((value) => value.startsWith(prefix));
+  return arg?.slice(prefix.length);
+}
+
+async function d1Query(configPath, statement) {
+  const result = await runProcess(process.execPath, [
+    "scripts/run-wrangler.mjs",
+    "d1",
+    "execute",
+    "DB",
+    "--local",
+    "--config",
+    configPath,
+    "--command",
+    statement,
+  ]);
+
+  if (result.code !== 0) {
+    fail("SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION_CHECK_D1_FAILED");
+  }
+
+  return parseWranglerResults(result.stdout);
+}
+
+function parseWranglerResults(stdout) {
+  const clean = stdout.replace(/\u001b\[[0-9;]*m/g, "");
+  const start = clean.indexOf("[\n");
+  const end = clean.lastIndexOf("]");
+  if (start < 0 || end < start) {
+    fail("SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION_CHECK_D1_JSON_MISSING");
+  }
+
+  try {
+    const payload = JSON.parse(clean.slice(start, end + 1));
+    return payload[0]?.results ?? [];
+  } catch {
+    fail("SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION_CHECK_D1_JSON_INVALID");
+  }
+}
+
+function runProcess(executable, args) {
+  return new Promise((resolvePromise) => {
+    const child = spawn(executable, args, {
+      stdio: ["ignore", "pipe", "pipe"],
+      env: process.env,
+      windowsHide: true,
+    });
+    let stdout = "";
+    child.stdout.on("data", (chunk) => {
+      stdout += chunk.toString();
+    });
+    child.stderr.on("data", (chunk) => {
+      stdout += chunk.toString();
+    });
+    child.on("error", () => resolvePromise({ code: 1, stdout: "" }));
+    child.on("close", (code) => resolvePromise({ code: code ?? 1, stdout }));
+  });
 }
 
 function safeErrorCode(error) {

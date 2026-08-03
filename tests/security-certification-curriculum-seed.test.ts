@@ -92,13 +92,23 @@ test("security certification curriculum activation requires clean precheck", () 
     packageJson.scripts["curriculum:security-certification:activate:check:postgres"],
     "node scripts/activate-security-certification-curriculum.mjs --check-only",
   );
+  assert.equal(
+    packageJson.scripts["curriculum:security-certification:activate:check:d1-local"],
+    "node scripts/activate-security-certification-curriculum.mjs d1-local --check-only",
+  );
   assert.match(script, /--confirm-production-activation/);
   assert.match(script, /--check-only/);
+  assert.match(script, /target === "d1-local"/);
+  assert.match(script, /SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION_TARGET_UNSUPPORTED/);
   assert.match(script, /SECURIUM_CONFIRM_SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION/);
   assert.match(script, /SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION_CHECK_POSTGRES_OK/);
-  assert.match(script, /buildPreActivationSql/);
+  assert.match(script, /SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION_CHECK_D1_LOCAL_OK/);
+  assert.match(script, /buildPreActivationSql\("d1"\)/);
+  assert.match(script, /buildPreActivationSql\("postgres"\)/);
   assert.match(script, /buildActivationPlanSql/);
   assert.match(script, /assertPreActivationCoverage/);
+  assert.match(script, /run-wrangler\.mjs/);
+  assert.match(script, /SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION_CHECK_D1_JSON_INVALID/);
   assert.match(script, /activationPlan/);
   assert.match(script, /plannedAction/);
   assert.match(script, /ACTIVATE/);

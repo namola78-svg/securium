@@ -113,13 +113,20 @@ coverage check before updating `curriculum_trees`. It refuses to activate the
 official trees when metadata links, official CourseLesson links, minimum node
 counts, or published question coverage are not clean.
 
-Before requesting activation, run the read-only check command:
+Before requesting activation, run the read-only check commands:
 
 ```powershell
+npm run curriculum:security-certification:activate:check:d1-local
 npm run curriculum:security-certification:activate:check:postgres
 ```
 
-This command only reads PostgreSQL/Supabase and prints
+The D1 command only reads the local Wrangler D1 database configured by
+`wrangler.local.jsonc` and prints
+`SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION_CHECK_D1_LOCAL_OK` when the local
+mirror is ready. It is intended for local rehearsal only and cannot activate
+curriculum trees.
+
+The PostgreSQL command only reads PostgreSQL/Supabase and prints
 `SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION_CHECK_POSTGRES_OK` when the
 official trees are ready. Its JSON output includes `readiness` rows and an
 `activationPlan` with planned `ACTIVATE`, `ARCHIVE`, or `UNCHANGED` actions so
