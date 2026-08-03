@@ -87,23 +87,23 @@ test("security certification deep node coverage exposes remaining major and sub 
 
   assert.equal(summary.nodeCount, 139);
   assert.equal(summary.contentLinkedCount, 131);
-  assert.equal(summary.questionLinkedCount, 78);
+  assert.equal(summary.questionLinkedCount, 104);
   assert.equal(summary.contentCoveragePercent, 94.2);
-  assert.equal(summary.questionCoveragePercent, 56.1);
+  assert.equal(summary.questionCoveragePercent, 74.8);
   assert.deepEqual(summary.byCourse, {
     "course-ise": {
       nodeCount: 77,
       contentLinkedCount: 72,
-      questionLinkedCount: 43,
+      questionLinkedCount: 58,
       contentCoveragePercent: 93.5,
-      questionCoveragePercent: 55.8,
+      questionCoveragePercent: 75.3,
     },
     "course-isie": {
       nodeCount: 62,
       contentLinkedCount: 59,
-      questionLinkedCount: 35,
+      questionLinkedCount: 46,
       contentCoveragePercent: 95.2,
-      questionCoveragePercent: 56.5,
+      questionCoveragePercent: 74.2,
     },
   });
   assert.equal(summary.byNodeType.SUBJECT.nodeCount, 9);
@@ -112,9 +112,9 @@ test("security certification deep node coverage exposes remaining major and sub 
   assert.equal(summary.byNodeType.SUB_ITEM.nodeCount, 95);
   assert.equal(summary.byNodeType.MAJOR_ITEM.contentLinkedCount, 25);
   assert.equal(summary.byNodeType.SUB_ITEM.contentLinkedCount, 95);
-  assert.equal(summary.byNodeType.SUB_ITEM.questionLinkedCount, 69);
+  assert.equal(summary.byNodeType.SUB_ITEM.questionLinkedCount, 95);
   assert.equal(summary.uncoveredRows.length, 8);
-  assert.equal(summary.questionGapRows.length, 53);
+  assert.equal(summary.questionGapRows.length, 27);
   assert.equal(
     summary.questionGapRows.every(
       (row) =>
