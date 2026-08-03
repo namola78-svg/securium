@@ -187,9 +187,14 @@ export function getSecurityCertificationContentMapSummary() {
 }
 
 export function getSecurityCertificationDeepNodeCoverageSummary() {
-  const topLevelRowsByStableKey = new Map(
-    getSecurityCertificationContentMap().map((row) => [row.stableKey, row]),
-  );
+  const courseLessonsByNodeId = new Map<string, CourseLessonSeedRecord[]>();
+  for (const lesson of courseLessonSeedRecords) {
+    courseLessonsByNodeId.set(lesson.curriculumNodeId, [
+      ...(courseLessonsByNodeId.get(lesson.curriculumNodeId) ?? []),
+      lesson,
+    ]);
+  }
+
   const learningNodeTypes: OfficialCurriculumNodeType[] = [
     "SUBJECT",
     "PRACTICAL",
@@ -200,18 +205,27 @@ export function getSecurityCertificationDeepNodeCoverageSummary() {
     flattenOfficialCurriculumTree(tree)
       .filter((node) => learningNodeTypes.includes(node.nodeType))
       .map((node) => {
-        const topLevelRow = topLevelRowsByStableKey.get(node.stableKey);
+        const curriculumNodeId = curriculumNodeIdFromStableKey(node.stableKey);
+        const courseLessons = courseLessonsByNodeId.get(curriculumNodeId) ?? [];
+        const contentIds = unique(courseLessons.map((lesson) => lesson.contentId));
+        const questionSamples = contentIds.flatMap(
+          (contentId) => questionSamplesByContentId.get(contentId) ?? [],
+        );
         return {
           treeId: tree.treeId,
           courseId: tree.courseId,
           courseCode: tree.courseCode,
           stableKey: node.stableKey,
+          curriculumNodeId,
           title: node.title,
           nodeType: node.nodeType,
           officialLevel: node.officialLevel,
           depth: node.depth,
-          hasContent: Boolean(topLevelRow?.isMapped),
-          hasQuestions: Boolean(topLevelRow && topLevelRow.questionCount > 0),
+          contentIds,
+          courseLessonIds: courseLessons.map((lesson) => lesson.id),
+          questionCount: questionSamples.length,
+          hasContent: contentIds.length > 0,
+          hasQuestions: questionSamples.length > 0,
         };
       }),
   );

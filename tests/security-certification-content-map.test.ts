@@ -83,23 +83,23 @@ test("security certification deep node coverage exposes remaining major and sub 
   const summary = getSecurityCertificationDeepNodeCoverageSummary();
 
   assert.equal(summary.nodeCount, 139);
-  assert.equal(summary.contentLinkedCount, 11);
+  assert.equal(summary.contentLinkedCount, 17);
   assert.equal(summary.questionLinkedCount, 11);
-  assert.equal(summary.contentCoveragePercent, 7.9);
+  assert.equal(summary.contentCoveragePercent, 12.2);
   assert.equal(summary.questionCoveragePercent, 7.9);
   assert.deepEqual(summary.byCourse, {
     "course-ise": {
       nodeCount: 77,
-      contentLinkedCount: 6,
+      contentLinkedCount: 9,
       questionLinkedCount: 6,
-      contentCoveragePercent: 7.8,
+      contentCoveragePercent: 11.7,
       questionCoveragePercent: 7.8,
     },
     "course-isie": {
       nodeCount: 62,
-      contentLinkedCount: 5,
+      contentLinkedCount: 8,
       questionLinkedCount: 5,
-      contentCoveragePercent: 8.1,
+      contentCoveragePercent: 12.9,
       questionCoveragePercent: 8.1,
     },
   });
@@ -107,8 +107,19 @@ test("security certification deep node coverage exposes remaining major and sub 
   assert.equal(summary.byNodeType.PRACTICAL.nodeCount, 2);
   assert.equal(summary.byNodeType.MAJOR_ITEM.nodeCount, 33);
   assert.equal(summary.byNodeType.SUB_ITEM.nodeCount, 95);
-  assert.equal(summary.byNodeType.MAJOR_ITEM.contentLinkedCount, 0);
+  assert.equal(summary.byNodeType.MAJOR_ITEM.contentLinkedCount, 6);
   assert.equal(summary.byNodeType.SUB_ITEM.questionLinkedCount, 0);
-  assert.equal(summary.uncoveredRows.length, 128);
-  assert.equal(summary.questionGapRows.length, 0);
+  assert.equal(summary.uncoveredRows.length, 122);
+  assert.equal(summary.questionGapRows.length, 6);
+  assert.deepEqual(
+    summary.questionGapRows.map((row) => row.stableKey).sort(),
+    [
+      "ISE-2027-2029-01-02-01",
+      "ISE-2027-2029-01-02-02",
+      "ISE-2027-2029-01-02-03",
+      "ISIE-2027-2029-01-02-01",
+      "ISIE-2027-2029-01-02-02",
+      "ISIE-2027-2029-01-02-03",
+    ].sort(),
+  );
 });

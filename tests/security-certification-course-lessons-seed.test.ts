@@ -15,11 +15,11 @@ import {
 test("security certification course lesson seed reuses shared contents across engineer tracks", () => {
   const stats = getSecurityCertificationCourseLessonSeedStats();
 
-  assert.equal(stats.contentCount, 6);
-  assert.equal(stats.courseLessonCount, 11);
+  assert.equal(stats.contentCount, 9);
+  assert.equal(stats.courseLessonCount, 17);
   assert.equal(stats.courseLessonExtensionCount, 2);
-  assert.equal(stats.linkedContentCount, 6);
-  assert.equal(stats.reusedContentCount >= 5, true);
+  assert.equal(stats.linkedContentCount, 9);
+  assert.equal(stats.reusedContentCount, 8);
   assert.equal(stats.allLessonsHaveKnownContent, true);
   assert.equal(stats.expectedTopLevelNodeCount, 11);
   assert.equal(stats.mappedTopLevelNodeCount, 11);
@@ -34,8 +34,8 @@ test("security certification course lesson seed keeps course progress separated"
     (lesson) => lesson.courseId === "course-isie",
   );
 
-  assert.equal(engineerLessons.length, 6);
-  assert.equal(industrialLessons.length, 5);
+  assert.equal(engineerLessons.length, 9);
+  assert.equal(industrialLessons.length, 8);
 
   const courseLessonIds = new Set(
     officialSecurityCertificationCourseLessons.map((lesson) => lesson.id),
@@ -57,7 +57,7 @@ test("security certification course lesson seed keeps course progress separated"
 test("security certification course lessons link to official curriculum nodes", () => {
   for (const lesson of officialSecurityCertificationCourseLessons) {
     assert.match(lesson.curriculumNodeId, /^curriculum-node-isi?e-2027-2029-/);
-    assert.equal(lesson.sortOrder, 1);
+    assert.equal(lesson.sortOrder >= 1, true);
     assert.equal(lesson.isRequired, true);
   }
 
@@ -223,6 +223,41 @@ test("network security shared content is expanded into a formal lesson body", ()
   assert.equal(networkContent.learningObjectives.length >= 4, true);
   assert.equal(networkContent.coreConcepts.includes("SIEM"), true);
   assert.equal(networkContent.practicalExamples.length >= 4, true);
+});
+
+test("network security major items are split into shared CourseLessons", () => {
+  const majorItemContentIds = [
+    "content-official-security-cert-network-general",
+    "content-official-security-cert-network-attack-techniques",
+    "content-official-security-cert-network-security-technology",
+  ];
+  const majorItemContents = officialSecurityCertificationContents.filter((content) =>
+    majorItemContentIds.includes(content.id),
+  );
+
+  assert.equal(majorItemContents.length, 3);
+  for (const content of majorItemContents) {
+    assert.match(content.body, /SECURIUM 자체 작성 자료/);
+    assert.equal(content.learningObjectives.length >= 3, true);
+    assert.equal(content.coreConcepts.length >= 8, true);
+  }
+
+  for (const contentId of majorItemContentIds) {
+    const linkedLessons = officialSecurityCertificationCourseLessons
+      .filter((lesson) => lesson.contentId === contentId)
+      .sort((a, b) => a.courseId.localeCompare(b.courseId));
+
+    assert.deepEqual(
+      linkedLessons.map((lesson) => lesson.courseId),
+      ["course-ise", "course-isie"],
+      `${contentId} should be shared by both security certification tracks`,
+    );
+    assert.equal(
+      new Set(linkedLessons.map((lesson) => lesson.curriculumNodeId)).size,
+      2,
+      `${contentId} should keep course-specific curriculum node progress`,
+    );
+  }
 });
 
 test("system security shared content is expanded into a formal lesson body", () => {
