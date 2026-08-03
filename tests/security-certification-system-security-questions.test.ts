@@ -7,6 +7,7 @@ import {
   SECURITY_CERTIFICATION_SYSTEM_QUESTION_CONFIRM_ENV_VALUE,
   SYSTEM_SECURITY_CONTENT_ID,
   SYSTEM_SECURITY_COURSE_IDS,
+  SYSTEM_SECURITY_SUBITEM_CONTENT_IDS,
   generateSystemSecurityQuestionSeedSql,
   getSystemSecurityQuestionBankReadiness,
   systemSecurityQuestionSamples,
@@ -16,19 +17,21 @@ import {
 test("system security question bank covers current auto-graded types", () => {
   const readiness = getSystemSecurityQuestionBankReadiness();
 
-  assert.equal(readiness.questionCount, 6);
+  assert.equal(readiness.questionCount, 8);
   assert.equal(readiness.allPublished, true);
   assert.equal(readiness.allSampleOnly, true);
   assert.equal(readiness.allIndependentlyAuthored, true);
   assert.equal(readiness.allLinkedToBothCourses, true);
   assert.equal(readiness.allLinkedToSystemContent, true);
+  assert.equal(readiness.linkedSubItemContentCount, 8);
+  assert.equal(readiness.allSubItemContentsLinked, true);
   assert.deepEqual(readiness.courseCounts, {
-    "course-ise": 6,
-    "course-isie": 6,
+    "course-ise": 8,
+    "course-isie": 8,
   });
   assert.deepEqual(readiness.typeCounts, {
-    TRUE_FALSE: 1,
-    SINGLE_CHOICE: 2,
+    TRUE_FALSE: 2,
+    SINGLE_CHOICE: 3,
     MULTIPLE_CHOICE: 2,
     SHORT_ANSWER: 1,
   });
@@ -39,7 +42,7 @@ test("system security questions remain course scoped and content linked", () => 
     assert.equal(question.status, "PUBLISHED");
     assert.equal(question.sampleOnly, true);
     assert.match(question.source, /SECURIUM independently authored/);
-    assert.equal(question.contentLinks.length, 1);
+    assert.equal(question.contentLinks.length >= 2, true);
     assert.deepEqual(question.contentLinks[0], {
       contentType: "CONTENT",
       contentId: SYSTEM_SECURITY_CONTENT_ID,
@@ -50,6 +53,22 @@ test("system security questions remain course scoped and content linked", () => 
       [...SYSTEM_SECURITY_COURSE_IDS].sort(),
     );
   }
+
+  const linkedSubItemContentIds = new Set(
+    systemSecurityQuestionSamples.flatMap((question) =>
+      question.contentLinks
+        .filter((link) =>
+          Object.values(SYSTEM_SECURITY_SUBITEM_CONTENT_IDS).includes(
+            link.contentId,
+          ),
+        )
+        .map((link) => link.contentId),
+    ),
+  );
+  assert.deepEqual(
+    [...linkedSubItemContentIds].sort(),
+    Object.values(SYSTEM_SECURITY_SUBITEM_CONTENT_IDS).sort(),
+  );
 });
 
 test("system security questions are shared while course weighting stays separated", () => {
@@ -177,6 +196,24 @@ test("system security sample answers are graded by the shared grading engine", (
     50,
     "short-answer partial credit should remain advisory and below full score",
   );
+  assert.equal(
+    gradeQuestion(
+      toSystemSecurityGradingQuestion(
+        byId.get("system-security-official-sample-q07"),
+      ),
+      "system-security-official-sample-q07-choice-01",
+    ).isCorrect,
+    true,
+  );
+  assert.equal(
+    gradeQuestion(
+      toSystemSecurityGradingQuestion(
+        byId.get("system-security-official-sample-q08"),
+      ),
+      "system-security-official-sample-q08-false",
+    ).isCorrect,
+    true,
+  );
 });
 
 test("system security question seed generates additive SQL for D1 and Postgres", () => {
@@ -195,6 +232,10 @@ test("system security question seed generates additive SQL for D1 and Postgres",
   assert.match(postgresSql, /INSERT INTO "questions"/);
   assert.match(postgresSql, /ON CONFLICT \("id"\) DO UPDATE SET/);
   assert.match(postgresSql, /seed_system_security_questions_2027_2029/);
+  assert.match(
+    postgresSql,
+    /system-security-content-link-system-security-official-sample-q07-system-analysis-tools/,
+  );
 
   for (const forbidden of [/\bDROP\b/i, /\bDELETE\b/i, /\bTRUNCATE\b/i]) {
     assert.doesNotMatch(postgresSql, forbidden);
