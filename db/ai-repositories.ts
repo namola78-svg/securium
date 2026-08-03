@@ -38,9 +38,11 @@ import {
 import type { AIProvider } from "@/lib/ai/ai-provider";
 import {
   clampRetrievalLimit,
+  expandRetrievalQueriesWithConceptAliases,
   type RetrievalProvider,
   type RetrievalSearchOptions,
 } from "@/lib/ai/retrieval-provider";
+import { getSecurityCertificationRetrievalConceptAliases } from "@/lib/curriculum/security-certification-ontology";
 import { assertDailyAILimit } from "@/lib/ai/safety";
 import type {
   AIResult,
@@ -89,8 +91,21 @@ export class DatabaseRetrievalProvider implements RetrievalProvider {
     // D1/SQLite may enforce a small byte limit for LIKE patterns. Bound the
     // UTF-8 payload rather than JavaScript code units so Korean titles cannot
     // make an otherwise valid retrieval request fail.
-    const query = truncateUtf8(options.query.trim(), 48);
-    const pattern = `%${query.replaceAll("%", "").replaceAll("_", "")}%`;
+    const queryPatterns = expandRetrievalQueriesWithConceptAliases(
+      { ...options, courseId: scope.courseId },
+      getSecurityCertificationRetrievalConceptAliases(),
+    )
+      .map((query) => truncateUtf8(query.trim(), 48))
+      .filter(Boolean)
+      .map((query) => `%${query.replaceAll("%", "").replaceAll("_", "")}%`);
+    const likeAny = (...columns: Parameters<typeof like>[0][]) =>
+      queryPatterns.length
+        ? or(
+            ...columns.flatMap((column) =>
+              queryPatterns.map((pattern) => like(column, pattern)),
+            ),
+          )
+        : undefined;
     const courseCondition = scope.courseId
       ? eq(courses.id, scope.courseId)
       : undefined;
@@ -132,14 +147,7 @@ export class DatabaseRetrievalProvider implements RetrievalProvider {
             isNull(courses.deletedAt),
             courseCondition,
             topicCondition,
-            query
-              ? or(
-                  like(lessons.id, pattern),
-                  like(lessons.title, pattern),
-                  like(lessons.summary, pattern),
-                  like(lessons.content, pattern),
-                )
-              : undefined,
+            likeAny(lessons.id, lessons.title, lessons.summary, lessons.content),
           ),
         )
         .orderBy(desc(lessons.updatedAt))
@@ -167,13 +175,11 @@ export class DatabaseRetrievalProvider implements RetrievalProvider {
             scope.topicId
               ? eq(learningUnits.topicId, scope.topicId)
               : undefined,
-            query
-              ? or(
-                  like(learningUnits.id, pattern),
-                  like(learningUnits.title, pattern),
-                  like(learningUnits.description, pattern),
-                )
-              : undefined,
+            likeAny(
+              learningUnits.id,
+              learningUnits.title,
+              learningUnits.description,
+            ),
           ),
         )
         .orderBy(desc(learningUnits.updatedAt))
@@ -203,14 +209,12 @@ export class DatabaseRetrievalProvider implements RetrievalProvider {
             scope.topicId
               ? eq(questionTopics.topicId, scope.topicId)
               : undefined,
-            query
-              ? or(
-                  like(questions.id, pattern),
-                  like(questions.title, pattern),
-                  like(questions.content, pattern),
-                  like(questions.explanation, pattern),
-                )
-              : undefined,
+            likeAny(
+              questions.id,
+              questions.title,
+              questions.content,
+              questions.explanation,
+            ),
           ),
         )
         .orderBy(desc(questions.publishedAt))
@@ -242,14 +246,12 @@ export class DatabaseRetrievalProvider implements RetrievalProvider {
             scope.courseId
               ? eq(contentCourseLinks.courseId, scope.courseId)
               : undefined,
-            query
-              ? or(
-                  like(legalArticles.id, pattern),
-                  like(legalArticles.lawName, pattern),
-                  like(legalArticles.articleTitle, pattern),
-                  like(legalArticles.content, pattern),
-                )
-              : undefined,
+            likeAny(
+              legalArticles.id,
+              legalArticles.lawName,
+              legalArticles.articleTitle,
+              legalArticles.content,
+            ),
           ),
         )
         .orderBy(desc(legalArticles.revisionDate))
@@ -281,14 +283,12 @@ export class DatabaseRetrievalProvider implements RetrievalProvider {
             scope.courseId
               ? eq(contentCourseLinks.courseId, scope.courseId)
               : undefined,
-            query
-              ? or(
-                  like(ismsStandards.id, pattern),
-                  like(ismsStandards.code, pattern),
-                  like(ismsStandards.title, pattern),
-                  like(ismsStandards.description, pattern),
-                )
-              : undefined,
+            likeAny(
+              ismsStandards.id,
+              ismsStandards.code,
+              ismsStandards.title,
+              ismsStandards.description,
+            ),
           ),
         )
         .orderBy(desc(ismsStandards.effectiveDate))
@@ -319,14 +319,12 @@ export class DatabaseRetrievalProvider implements RetrievalProvider {
             scope.courseId
               ? eq(contentCourseLinks.courseId, scope.courseId)
               : undefined,
-            query
-              ? or(
-                  like(ismsDefectCases.id, pattern),
-                  like(ismsDefectCases.title, pattern),
-                  like(ismsDefectCases.situation, pattern),
-                  like(ismsDefectCases.defectDescription, pattern),
-                )
-              : undefined,
+            likeAny(
+              ismsDefectCases.id,
+              ismsDefectCases.title,
+              ismsDefectCases.situation,
+              ismsDefectCases.defectDescription,
+            ),
           ),
         )
         .orderBy(desc(ismsDefectCases.sourceDate))
@@ -347,14 +345,12 @@ export class DatabaseRetrievalProvider implements RetrievalProvider {
             eq(courses.published, true),
             isNull(courses.deletedAt),
             courseCondition,
-            query
-              ? or(
-                  like(riskScenarios.id, pattern),
-                  like(riskScenarios.title, pattern),
-                  like(riskScenarios.description, pattern),
-                  like(riskScenarios.asset, pattern),
-                )
-              : undefined,
+            likeAny(
+              riskScenarios.id,
+              riskScenarios.title,
+              riskScenarios.description,
+              riskScenarios.asset,
+            ),
           ),
         )
         .orderBy(desc(riskScenarios.updatedAt))
@@ -389,15 +385,13 @@ export class DatabaseRetrievalProvider implements RetrievalProvider {
             eq(courses.published, true),
             isNull(courses.deletedAt),
             courseCondition,
-            query
-              ? or(
-                  like(secureCodingWeaknesses.id, pattern),
-                  like(secureCodingWeaknesses.code, pattern),
-                  like(secureCodingWeaknesses.name, pattern),
-                  like(secureCodingWeaknesses.description, pattern),
-                  like(secureCodingWeaknesses.cweCode, pattern),
-                )
-              : undefined,
+            likeAny(
+              secureCodingWeaknesses.id,
+              secureCodingWeaknesses.code,
+              secureCodingWeaknesses.name,
+              secureCodingWeaknesses.description,
+              secureCodingWeaknesses.cweCode,
+            ),
           ),
         )
         .orderBy(desc(secureCodingWeaknesses.updatedAt))
@@ -425,14 +419,12 @@ export class DatabaseRetrievalProvider implements RetrievalProvider {
             eq(courses.published, true),
             isNull(courses.deletedAt),
             courseCondition,
-            query
-              ? or(
-                  like(privacyImpactAssessmentItems.id, pattern),
-                  like(privacyImpactAssessmentItems.code, pattern),
-                  like(privacyImpactAssessmentItems.title, pattern),
-                  like(privacyImpactAssessmentItems.description, pattern),
-                )
-              : undefined,
+            likeAny(
+              privacyImpactAssessmentItems.id,
+              privacyImpactAssessmentItems.code,
+              privacyImpactAssessmentItems.title,
+              privacyImpactAssessmentItems.description,
+            ),
           ),
         )
         .orderBy(desc(privacyImpactAssessmentItems.effectiveDate))
@@ -454,13 +446,11 @@ export class DatabaseRetrievalProvider implements RetrievalProvider {
             eq(courses.published, true),
             isNull(courses.deletedAt),
             courseCondition,
-            query
-              ? or(
-                  like(aiReviewedContents.id, pattern),
-                  like(aiReviewedContents.title, pattern),
-                  like(aiReviewedContents.contentJson, pattern),
-                )
-              : undefined,
+            likeAny(
+              aiReviewedContents.id,
+              aiReviewedContents.title,
+              aiReviewedContents.contentJson,
+            ),
           ),
         )
         .orderBy(desc(aiReviewedContents.updatedAt))
