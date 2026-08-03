@@ -103,6 +103,7 @@ test("security certification curriculum coverage script is read-only and reports
   assert.match(script, /SECURITY_CERTIFICATION_CURRICULUM_COVERAGE_POSTGRES_OK/);
   assert.match(script, /published_course_lesson_count/);
   assert.match(script, /official_seed_course_lesson_count/);
+  assert.match(script, /official_unlinked_course_lesson_count/);
   assert.match(script, /--require-course-lessons/);
   assert.match(script, /--allow-inactive/);
   assert.match(script, /--action-queue/);
@@ -120,6 +121,8 @@ test("security certification curriculum coverage script is read-only and reports
   assert.match(script, /nextStep: actionNextStep/);
   assert.match(script, /Request explicit production activation/);
   assert.match(script, /COURSELESSON_LINK_GAP/);
+  assert.match(script, /officialUnlinkedCourseLessonCount/);
+  assert.match(script, /official CourseLesson items need CurriculumNode links/);
   assert.match(script, /CONTENT_METADATA_GAP/);
   assert.match(script, /curriculum_nodes\.metadata\.linkedContent/);
   assert.match(script, /metadata_target_node_count/);

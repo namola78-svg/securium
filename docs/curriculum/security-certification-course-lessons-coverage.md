@@ -103,6 +103,11 @@ nodes such as `필기` and `실기` are structural grouping nodes, so they are
 excluded from `CONTENT_METADATA_GAP`. If the only remaining unlinked nodes are
 `TRACK` nodes, the learning content metadata coverage is considered clean.
 
+`COURSELESSON_LINK_GAP` is based on official seed CourseLessons only. Legacy or
+sample CourseLessons may still appear in `unlinkedCourseLessonCount`, but they
+do not block official curriculum readiness unless
+`officialUnlinkedCourseLessonCount` is greater than zero.
+
 ```powershell
 npm run curriculum:security-certification:linked-content:stats
 npm run curriculum:security-certification:linked-content:d1-local

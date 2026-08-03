@@ -126,6 +126,7 @@ published_course_lessons AS (
     COUNT(DISTINCT curriculum_node_id)${countCast} AS course_lesson_node_count,
     SUM(CASE WHEN id IN (${officialCourseLessonIds}) THEN 1 ELSE 0 END)${countCast} AS official_seed_course_lesson_count,
     COUNT(DISTINCT CASE WHEN id IN (${officialCourseLessonIds}) THEN curriculum_node_id ELSE NULL END)${countCast} AS official_seed_node_count,
+    SUM(CASE WHEN id IN (${officialCourseLessonIds}) AND (curriculum_node_id IS NULL OR curriculum_node_id = '') THEN 1 ELSE 0 END)${countCast} AS official_unlinked_course_lesson_count,
     SUM(CASE WHEN curriculum_node_id IS NULL OR curriculum_node_id = '' THEN 1 ELSE 0 END)${countCast} AS unlinked_course_lesson_count
   FROM course_lessons
   WHERE course_id IN (${courseIds})
@@ -155,6 +156,7 @@ SELECT
   COALESCE(cl.course_lesson_node_count, 0) AS course_lesson_node_count,
   COALESCE(cl.official_seed_course_lesson_count, 0) AS official_seed_course_lesson_count,
   COALESCE(cl.official_seed_node_count, 0) AS official_seed_node_count,
+  COALESCE(cl.official_unlinked_course_lesson_count, 0) AS official_unlinked_course_lesson_count,
   COALESCE(cl.unlinked_course_lesson_count, 0) AS unlinked_course_lesson_count,
   COALESCE(pq.published_question_count, 0) AS published_question_count
 FROM official_trees t
@@ -230,6 +232,9 @@ function normalizeCoverageRows(rows) {
     officialSeedNodeCount: Number(
       row.official_seed_node_count ?? row.officialSeedNodeCount,
     ),
+    officialUnlinkedCourseLessonCount: Number(
+      row.official_unlinked_course_lesson_count ?? row.officialUnlinkedCourseLessonCount,
+    ),
     unlinkedCourseLessonCount: Number(
       row.unlinked_course_lesson_count ?? row.unlinkedCourseLessonCount,
     ),
@@ -260,7 +265,7 @@ function buildCoverageActionQueue(
     if (row.status !== "ACTIVE") {
       items.push(buildActionItem(row, "TREE_STATUS", "공식 커리큘럼 트리를 ACTIVE로 전환"));
     }
-    if (row.unlinkedCourseLessonCount > 0) {
+    if (row.officialUnlinkedCourseLessonCount > 0) {
       items.push(
         buildActionItem(
           row,
@@ -300,12 +305,16 @@ function buildCoverageActionQueue(
 }
 
 function buildActionItem(row, type, message) {
+  const normalizedMessage =
+    type === "COURSELESSON_LINK_GAP"
+      ? `${row.officialUnlinkedCourseLessonCount} official CourseLesson items need CurriculumNode links`
+      : message;
   const item = {
     type,
     severity: actionSeverity(type),
     courseId: row.courseId,
     curriculumTreeId: row.id,
-    message,
+    message: normalizedMessage,
     nextStep: actionNextStep(type),
   };
   if (type === "CONTENT_METADATA_GAP") {
@@ -332,7 +341,7 @@ function actionNextStep(type) {
     return "Request explicit production activation only after read-only checks are clean.";
   }
   if (type === "COURSELESSON_LINK_GAP") {
-    return "Open admin shared content and connect the CourseLesson to the matching CurriculumNode.";
+    return "Open admin shared content and connect the official CourseLesson to the matching CurriculumNode.";
   }
   if (type === "OFFICIAL_COURSELESSON_GAP") {
     return "Review the official CourseLesson seed coverage before production seed approval.";
