@@ -107,9 +107,15 @@ test("security certification curriculum coverage script is read-only and reports
   assert.match(script, /--allow-inactive/);
   assert.match(script, /--action-queue/);
   assert.match(script, /--action-queue-limit=<n>/);
+  assert.match(script, /--action-type=<type>/);
   assert.match(script, /buildCoverageActionQueue/);
   assert.match(script, /parsePositiveIntArg/);
+  assert.match(script, /parseActionTypeArg/);
   assert.match(script, /SECURITY_CERTIFICATION_CURRICULUM_COVERAGE_LIMIT_INVALID/);
+  assert.match(
+    script,
+    /SECURITY_CERTIFICATION_CURRICULUM_COVERAGE_ACTION_TYPE_INVALID/,
+  );
   assert.match(script, /severity: actionSeverity/);
   assert.match(script, /nextStep: actionNextStep/);
   assert.match(script, /Request explicit production activation/);
@@ -142,6 +148,8 @@ test("security certification coverage action queue documents triage fields", () 
 
   assert.match(docs, /Action queue triage fields/);
   assert.match(docs, /--action-queue-limit=<n>/);
+  assert.match(docs, /--action-type=<type>/);
+  assert.match(docs, /CONTENT_METADATA_GAP --action-queue-limit=20/);
   assert.match(docs, /severity/);
   assert.match(docs, /nextStep/);
   assert.match(docs, /read-only coverage results/);
@@ -171,6 +179,7 @@ test("security certification coverage verifier exposes safe help without DB acce
   assert.match(result.stdout, /coverage verifier/);
   assert.match(result.stdout, /--action-queue/);
   assert.match(result.stdout, /--action-queue-limit=<n>/);
+  assert.match(result.stdout, /--action-type=<type>/);
   assert.match(result.stdout, /coverage-actions:postgres/);
 });
 
@@ -190,6 +199,25 @@ test("security certification coverage verifier rejects invalid action queue limi
   assert.match(
     result.stderr,
     /SECURITY_CERTIFICATION_CURRICULUM_COVERAGE_LIMIT_INVALID:0/,
+  );
+});
+
+test("security certification coverage verifier rejects invalid action queue types before DB access", () => {
+  const result = spawnSync(
+    process.execPath,
+    [
+      "scripts/verify-security-certification-curriculum-coverage.mjs",
+      "d1-local",
+      "--action-queue",
+      "--action-type=UNKNOWN_GAP",
+    ],
+    { encoding: "utf8" },
+  );
+
+  assert.notEqual(result.status, 0);
+  assert.match(
+    result.stderr,
+    /SECURITY_CERTIFICATION_CURRICULUM_COVERAGE_ACTION_TYPE_INVALID:UNKNOWN_GAP/,
   );
 });
 

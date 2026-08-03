@@ -50,6 +50,12 @@ node --env-file=.env.local scripts/verify-security-certification-curriculum-cove
 node --env-file=.env.local scripts/verify-security-certification-curriculum-coverage.mjs postgres --require-course-lessons --action-queue --action-queue-limit=20
 ```
 
+특정 gap만 보고 싶다면 `--action-type=<type>`을 사용한다. 예:
+
+```powershell
+node --env-file=.env.local scripts/verify-security-certification-curriculum-coverage.mjs postgres --require-course-lessons --action-queue --action-type=CONTENT_METADATA_GAP --action-queue-limit=20
+```
+
 `actionQueue`에는 다음 유형이 포함될 수 있다.
 
 | 유형 | 의미 |
