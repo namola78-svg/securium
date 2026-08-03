@@ -67,6 +67,11 @@ export default async function AdminCurriculumPage({
     selectedTree?.courseId && selectedTree.courseId in securityCertificationDeepCoverage.byCourse
       ? securityCertificationDeepCoverage.byCourse[selectedTree.courseId]
       : null;
+  const staticCertificationCoverageReady =
+    securityCertificationDeepCoverage.uncoveredRows.length === 0 &&
+    securityCertificationDeepCoverage.questionGapRows.length === 0;
+  const operationalCoverageReady =
+    Boolean(coverage) && Number(coverage?.unlinkedCourseLessonCount ?? 0) === 0;
   const sharedContentRecommendationSources = sharedContents.map((content, index) => ({
     type: "CONTENT" as const,
     id: content.id,
@@ -373,6 +378,14 @@ export default async function AdminCurriculumPage({
             </strong>
             <small>
               상위 과목·실기 항목 샘플 문항 연결 상태
+            </small>
+          </div>
+          <div className="stat-card">
+            <span>Operational readiness</span>
+            <strong>{operationalCoverageReady ? "OK" : "Check"}</strong>
+            <small>
+              Static map {staticCertificationCoverageReady ? "OK" : "Check"} ·
+              CourseLesson gaps {coverage?.unlinkedCourseLessonCount ?? 0}
             </small>
           </div>
           {selectedCertificationCoverage ? (

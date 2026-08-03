@@ -225,6 +225,8 @@ test("admin curriculum and shared content pages expose network security coverage
   assert.match(curriculumHtml, /\/admin\/shared-content\?courseId=course-ise/);
   assert.match(curriculumHtml, /OPERATIONAL COURSELESSON GAPS/);
   assert.match(curriculumHtml, /COVERAGE ACTION QUEUE/);
+  assert.match(curriculumHtml, /Operational readiness/);
+  assert.match(curriculumHtml, /CourseLesson gaps/);
   assert.match(curriculumHtml, /(CourseLesson gap|Content gap|Question gap)/);
   assert.match(
     curriculumHtml,
