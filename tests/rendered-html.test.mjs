@@ -236,6 +236,47 @@ test("admin curriculum and shared content pages expose network security coverage
   assert.match(curriculumHtml, /추천 후보/);
   assert.match(curriculumHtml, /연결 준비/);
 
+  const createTemporaryContentResponse = await fetch(
+    `${baseUrl}/api/admin/shared-content`,
+    {
+      method: "POST",
+      headers: {
+        ...adminHeaders,
+        "content-type": "application/json",
+        origin: baseUrl,
+      },
+      body: JSON.stringify({
+        operation: "saveContent",
+        content: {
+          slug: `rendered-admin-link-${runId}`,
+          canonicalKey: `test.rendered-admin-link.${runId}`,
+          title: "Rendered HTML temporary content",
+          summary: "Temporary content for admin linking flow test.",
+          body: "Temporary content body for admin linking flow test.",
+          bodyFormat: "MARKDOWN",
+          learningObjectivesJson: "[]",
+          coreConceptsJson: "[]",
+          practicalExamplesJson: "[]",
+          diagramsJson: "[]",
+          mediaJson: "[]",
+          version: "test",
+          status: "PUBLISHED",
+        },
+      }),
+    },
+  );
+  const createTemporaryContentPayload = await readJsonResponse(
+    createTemporaryContentResponse,
+  );
+  assert.equal(
+    createTemporaryContentResponse.status,
+    201,
+    JSON.stringify(createTemporaryContentPayload),
+  );
+  const temporaryContentId = createTemporaryContentPayload.id;
+  assert.match(temporaryContentId, /^[0-9a-f-]{36}$/);
+  const temporaryCourseLessonSortOrder = 80000 + (Date.now() % 10000);
+
   const createUnlinkedCourseLessonResponse = await fetch(
     `${baseUrl}/api/admin/shared-content`,
     {
@@ -251,9 +292,9 @@ test("admin curriculum and shared content pages expose network security coverage
           courseId: "course-ise",
           curriculumNodeId: "",
           lessonId: "",
-          contentId: "content-official-security-cert-network-security-overview",
+          contentId: temporaryContentId,
           displayTitle: "Rendered HTML temporary unlinked CourseLesson",
-          sortOrder: 99990,
+          sortOrder: temporaryCourseLessonSortOrder,
           difficulty: "",
           importance: 50,
           estimatedMinutes: 7,
@@ -311,9 +352,9 @@ test("admin curriculum and shared content pages expose network security coverage
           courseId: "course-ise",
           curriculumNodeId: "curriculum-node-ise-2027-2029-02",
           lessonId: "",
-          contentId: "content-official-security-cert-network-security-overview",
+          contentId: temporaryContentId,
           displayTitle: "Rendered HTML temporary unlinked CourseLesson",
-          sortOrder: 99990,
+          sortOrder: temporaryCourseLessonSortOrder,
           difficulty: "",
           importance: 50,
           estimatedMinutes: 7,
@@ -362,6 +403,10 @@ test("admin curriculum and shared content pages expose network security coverage
   assert.match(sharedContentHtml, /네트워크 보안/);
   assert.match(sharedContentHtml, /정보보안기사/);
   assert.match(sharedContentHtml, /PUBLISHED/);
+  assert.match(
+    sharedContentHtml,
+    /\/admin\/curriculum\?treeId=curriculum-ise-2027-2029-official/,
+  );
   assert.match(sharedContentHtml, /선택된 커리큘럼 노드/);
   assert.match(sharedContentHtml, /커버리지 화면에서 넘어온 노드입니다/);
   assert.match(sharedContentHtml, /전체 CourseLesson 보기/);

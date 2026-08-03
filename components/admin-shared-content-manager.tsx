@@ -224,6 +224,13 @@ export function AdminSharedContentManager({
     const tree = active ?? fallback;
     return tree ? `${tree.title} · ${tree.version}` : "연결 가능한 커리큘럼 없음";
   }, [curriculumTrees]);
+  const coverageReturnTree =
+    curriculumTrees.find((tree) => tree.status === "ACTIVE") ??
+    curriculumTrees[0] ??
+    null;
+  const coverageReturnHref = coverageReturnTree
+    ? `/admin/curriculum?treeId=${encodeURIComponent(coverageReturnTree.id)}`
+    : "/admin/curriculum";
 
   const filteredContents = useMemo(() => {
     const query = contentQuery.trim().toLowerCase();
@@ -575,6 +582,13 @@ export function AdminSharedContentManager({
             <p className="admin-helper">
               커버리지 화면에서 넘어온 노드입니다. 새 CourseLesson을 만들 때
               아래 커리큘럼 노드 필드에 기본 선택됩니다.
+            </p>
+            <p className="admin-helper">
+              연결 저장 후{" "}
+              <a className="text-link" href={coverageReturnHref}>
+                커버리지 화면으로 돌아가 미연결 수치 확인
+              </a>
+              을 진행하세요.
             </p>
             <div className="admin-inline-actions">
               <button
