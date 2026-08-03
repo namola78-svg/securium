@@ -82,13 +82,20 @@ test("security certification curriculum seed apply script gates remote data chan
 });
 
 test("security certification curriculum activation requires clean precheck", () => {
+  const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
   const script = readFileSync(
     "scripts/activate-security-certification-curriculum.mjs",
     "utf8",
   );
 
+  assert.equal(
+    packageJson.scripts["curriculum:security-certification:activate:check:postgres"],
+    "node scripts/activate-security-certification-curriculum.mjs --check-only",
+  );
   assert.match(script, /--confirm-production-activation/);
+  assert.match(script, /--check-only/);
   assert.match(script, /SECURIUM_CONFIRM_SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION/);
+  assert.match(script, /SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION_CHECK_POSTGRES_OK/);
   assert.match(script, /buildPreActivationSql/);
   assert.match(script, /assertPreActivationCoverage/);
   assert.match(script, /metadata_target_node_count/);

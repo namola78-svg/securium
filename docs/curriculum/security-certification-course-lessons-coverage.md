@@ -113,6 +113,18 @@ coverage check before updating `curriculum_trees`. It refuses to activate the
 official trees when metadata links, official CourseLesson links, minimum node
 counts, or published question coverage are not clean.
 
+Before requesting activation, run the read-only check command:
+
+```powershell
+npm run curriculum:security-certification:activate:check:postgres
+```
+
+This command only reads PostgreSQL/Supabase and prints
+`SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION_CHECK_POSTGRES_OK` when the
+official trees are ready. The actual activation command remains gated by both
+`--confirm-production-activation` and
+`SECURIUM_CONFIRM_SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION`.
+
 ```powershell
 npm run curriculum:security-certification:linked-content:stats
 npm run curriculum:security-certification:linked-content:d1-local

@@ -5,6 +5,7 @@ const CONFIRM_FLAG = "--confirm-production-activation";
 const CONFIRM_ENV_NAME =
   "SECURIUM_CONFIRM_SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION";
 const CONFIRM_ENV_VALUE = "ACTIVATE_SECURITY_CERTIFICATION_CURRICULUM";
+const CHECK_ONLY_FLAG = "--check-only";
 
 const targetTreeIds = [
   "curriculum-ise-2027-2029-official",
@@ -32,8 +33,45 @@ const expectedTrees = [
   },
 ];
 
-assertProductionActivationApproval();
-await activateWithPostgres();
+const checkOnly = process.argv.includes(CHECK_ONLY_FLAG);
+
+if (checkOnly) {
+  await checkActivationReadinessWithPostgres();
+} else {
+  assertProductionActivationApproval();
+  await activateWithPostgres();
+}
+
+async function checkActivationReadinessWithPostgres() {
+  const connectionUrl = resolvePostgresUrl();
+  const sql = postgres(connectionUrl, {
+    max: 1,
+    idle_timeout: 5,
+    connect_timeout: 10,
+    prepare: false,
+    ssl: "require",
+    onnotice: false,
+    debug: false,
+    connection: {
+      application_name:
+        "securium-security-certification-curriculum-activation-check",
+    },
+  });
+
+  try {
+    const rows = await sql.unsafe(buildPreActivationSql());
+    assertPreActivationCoverage(rows);
+    console.log("SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION_CHECK_POSTGRES_OK");
+    console.log(JSON.stringify(rows, null, 2));
+  } catch (error) {
+    fail(
+      "SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION_CHECK_POSTGRES_FAILED",
+      safeErrorCode(error),
+    );
+  } finally {
+    await sql.end({ timeout: 5 });
+  }
+}
 
 async function activateWithPostgres() {
   const connectionUrl = resolvePostgresUrl();
