@@ -11,16 +11,18 @@ test("security certification content map covers every top-level official curricu
   assert.equal(summary.rowCount, 11);
   assert.equal(summary.mappedRowCount, 11);
   assert.equal(summary.unmappedRowCount, 0);
+  assert.equal(summary.rowsWithQuestionsCount, 11);
+  assert.equal(summary.mappedRowsMissingQuestionsCount, 0);
   assert.deepEqual(summary.byCourse, {
     "course-ise": {
       rowCount: 6,
       mappedRowCount: 6,
-      rowsWithQuestionsCount: 5,
+      rowsWithQuestionsCount: 6,
     },
     "course-isie": {
       rowCount: 5,
       mappedRowCount: 5,
-      rowsWithQuestionsCount: 4,
+      rowsWithQuestionsCount: 5,
     },
   });
 });
@@ -60,7 +62,7 @@ test("security certification content map preserves shared content and isolated p
   );
 });
 
-test("security certification content map marks practical nodes as content-ready but question-pending", () => {
+test("security certification content map marks practical nodes as shared content and question-ready", () => {
   const practicalRows = getSecurityCertificationContentMap().filter(
     (row) => row.nodeType === "PRACTICAL",
   );
@@ -71,7 +73,7 @@ test("security certification content map marks practical nodes as content-ready 
     assert.deepEqual(row.contentIds, [
       "content-official-security-cert-practical-overview",
     ]);
-    assert.equal(row.questionCount, 0);
-    assert.deepEqual(row.questionCourseIds, []);
+    assert.equal(row.questionCount, 6);
+    assert.deepEqual(row.questionCourseIds, ["course-ise", "course-isie"]);
   }
 });

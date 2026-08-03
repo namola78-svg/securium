@@ -28,6 +28,10 @@ import {
   managementLawQuestionSamples,
   MANAGEMENT_LAW_CONTENT_ID,
 } from "../data/security-certification-management-law-questions.mjs";
+import {
+  practicalSecurityQuestionSamples,
+  PRACTICAL_SECURITY_CONTENT_ID,
+} from "../data/security-certification-practical-questions.mjs";
 
 export type SecurityCertificationContentMapRow = {
   treeId: string;
@@ -88,6 +92,7 @@ const questionSamplesByContentId = new Map<string, QuestionSeedRecord[]>([
     securityCertificationInformationSecurityGeneralQuestionSamples as QuestionSeedRecord[],
   ],
   [MANAGEMENT_LAW_CONTENT_ID, managementLawQuestionSamples as QuestionSeedRecord[]],
+  [PRACTICAL_SECURITY_CONTENT_ID, practicalSecurityQuestionSamples as QuestionSeedRecord[]],
 ]);
 
 export function getSecurityCertificationContentMap() {
