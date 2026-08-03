@@ -213,6 +213,17 @@ test("security certification coverage action queue documents triage fields", () 
   assert.match(docs, /read-only coverage results/);
 });
 
+test("admin curriculum page treats tree status as activation readiness", () => {
+  const page = readFileSync("app/admin/curriculum/page.tsx", "utf8");
+
+  assert.match(page, /const selectedTreeActive = selectedTree\?\.status === "ACTIVE"/);
+  assert.match(page, /TREE_STATUS/);
+  assert.match(page, /ready: selectedTreeActive/);
+  assert.match(page, /tree-status:\$\{selectedTree\.id\}/);
+  assert.match(page, /explicit production activation/);
+  assert.match(page, /activationReadinessReady/);
+});
+
 test("security certification coverage action queue has npm entrypoints", () => {
   const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
 

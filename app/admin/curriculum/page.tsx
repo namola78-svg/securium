@@ -70,8 +70,11 @@ export default async function AdminCurriculumPage({
   const staticCertificationCoverageReady =
     securityCertificationDeepCoverage.uncoveredRows.length === 0 &&
     securityCertificationDeepCoverage.questionGapRows.length === 0;
+  const selectedTreeActive = selectedTree?.status === "ACTIVE";
   const operationalCoverageReady =
     Boolean(coverage) && Number(coverage?.unlinkedCourseLessonCount ?? 0) === 0;
+  const activationReadinessReady =
+    selectedTreeActive && operationalCoverageReady && staticCertificationCoverageReady;
   const sharedContentRecommendationSources = sharedContents.map((content, index) => ({
     type: "CONTENT" as const,
     id: content.id,
@@ -144,6 +147,19 @@ export default async function AdminCurriculumPage({
     return `/admin/shared-content?${params.toString()}`;
   }
   const coverageActionItems = [
+    ...(!selectedTreeActive && selectedTree
+      ? [
+          {
+            id: `tree-status:${selectedTree.id}`,
+            badge: "TREE_STATUS",
+            title: selectedTree.title,
+            detail:
+              "공식 커리큘럼 트리가 아직 ACTIVE가 아닙니다. 읽기 전용 체크가 clean이면 별도 승인 후 운영 전환을 요청하세요.",
+            href: `/admin/curriculum?treeId=${selectedTree.id}`,
+            action: "선택 트리 확인",
+          },
+        ]
+      : []),
     ...unlinkedCourseLessons.slice(0, 3).map((lesson) => {
       const params = new URLSearchParams({
         courseId: lesson.courseId,
@@ -197,9 +213,11 @@ export default async function AdminCurriculumPage({
   const coverageReadinessChecklist = [
     {
       label: "TREE_STATUS",
-      ready: Boolean(coverage),
-      detail: coverage
-        ? "Selected tree can be compared against operational DB coverage."
+      ready: selectedTreeActive,
+      detail: selectedTree
+        ? selectedTreeActive
+          ? "Selected official curriculum tree is ACTIVE."
+          : `Selected official curriculum tree is ${selectedTree.status}. Run read-only checks and request explicit production activation before learner rollout.`
         : "Select an operational curriculum tree before activation review.",
     },
     {
@@ -404,9 +422,10 @@ export default async function AdminCurriculumPage({
           </div>
           <div className="stat-card">
             <span>Operational readiness</span>
-            <strong>{operationalCoverageReady ? "OK" : "Check"}</strong>
+            <strong>{activationReadinessReady ? "OK" : "Check"}</strong>
             <small>
-              Static map {staticCertificationCoverageReady ? "OK" : "Check"} ·
+              Tree {selectedTreeActive ? "ACTIVE" : "Check"} · Static map{" "}
+              {staticCertificationCoverageReady ? "OK" : "Check"} ·
               CourseLesson gaps {coverage?.unlinkedCourseLessonCount ?? 0}
             </small>
           </div>
