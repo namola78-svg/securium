@@ -12,6 +12,7 @@ const target = process.argv[2] ?? "d1-local";
 const requireCourseLessons = process.argv.includes("--require-course-lessons");
 const allowInactive = process.argv.includes("--allow-inactive");
 const includeActionQueue = process.argv.includes("--action-queue");
+const actionQueueLimit = parsePositiveIntArg("--action-queue-limit=", 8);
 
 const expectedTrees = [
   {
@@ -186,7 +187,7 @@ function printCoverage(rows) {
   const payload = { coverage: normalizedRows };
 
   if (includeActionQueue) {
-    payload.actionQueue = buildCoverageActionQueue(normalizedRows);
+    payload.actionQueue = buildCoverageActionQueue(normalizedRows, actionQueueLimit);
   }
 
   console.log(JSON.stringify(payload, null, 2));
@@ -222,7 +223,7 @@ function normalizeCoverageRows(rows) {
   }));
 }
 
-function buildCoverageActionQueue(rows) {
+function buildCoverageActionQueue(rows, limit = 8) {
   const items = [];
 
   for (const row of rows) {
@@ -269,7 +270,7 @@ function buildCoverageActionQueue(rows) {
     }
   }
 
-  return items.slice(0, 8);
+  return items.slice(0, limit);
 }
 
 function buildActionItem(row, type, message) {
@@ -375,6 +376,16 @@ function argValue(prefix) {
   return arg?.slice(prefix.length);
 }
 
+function parsePositiveIntArg(prefix, fallback) {
+  const rawValue = argValue(prefix);
+  if (!rawValue) return fallback;
+  const parsed = Number.parseInt(rawValue, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    fail("SECURITY_CERTIFICATION_CURRICULUM_COVERAGE_LIMIT_INVALID", rawValue);
+  }
+  return parsed;
+}
+
 function sqlString(value) {
   return `'${String(value).replaceAll("'", "''")}'`;
 }
@@ -422,6 +433,7 @@ Options:
   --allow-inactive          Allow official CurriculumTree rows that are not ACTIVE
   --require-course-lessons  Fail when official CourseLesson seed coverage is incomplete
   --action-queue           Include prioritized read-only gap actions in the JSON output
+  --action-queue-limit=<n>  Limit actionQueue item count, default: 8
   --config=<path>          D1 wrangler config path, default: wrangler.local.jsonc
 
 NPM shortcuts:

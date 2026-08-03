@@ -44,6 +44,12 @@ npm run curriculum:security-certification:coverage-actions:postgres
 node --env-file=.env.local scripts/verify-security-certification-curriculum-coverage.mjs postgres --require-course-lessons --action-queue
 ```
 
+출력 개수를 제한하려면 `--action-queue-limit=<n>`을 함께 사용한다. 예:
+
+```powershell
+node --env-file=.env.local scripts/verify-security-certification-curriculum-coverage.mjs postgres --require-course-lessons --action-queue --action-queue-limit=20
+```
+
 `actionQueue`에는 다음 유형이 포함될 수 있다.
 
 | 유형 | 의미 |
