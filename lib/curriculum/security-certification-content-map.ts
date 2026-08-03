@@ -216,7 +216,7 @@ export function getSecurityCertificationDeepNodeCoverageSummary() {
     "MAJOR_ITEM",
     "SUB_ITEM",
   ];
-  const rows = SECURITY_CERTIFICATION_CURRICULUM_TREES.flatMap((tree) =>
+  const directRows = SECURITY_CERTIFICATION_CURRICULUM_TREES.flatMap((tree) =>
     flattenOfficialCurriculumTree(tree)
       .filter((node) => learningNodeTypes.includes(node.nodeType))
       .map((node) => {
@@ -238,12 +238,37 @@ export function getSecurityCertificationDeepNodeCoverageSummary() {
           depth: node.depth,
           contentIds,
           courseLessonIds: courseLessons.map((lesson) => lesson.id),
+          directQuestionCount: questionSamples.length,
           questionCount: questionSamples.length,
           hasContent: contentIds.length > 0,
           hasQuestions: questionSamples.length > 0,
         };
       }),
   );
+  const rows = directRows.map((row) => {
+    if (row.nodeType !== "MAJOR_ITEM") {
+      return row;
+    }
+
+    const descendantQuestionCount = directRows
+      .filter(
+        (candidate) =>
+          candidate.courseId === row.courseId &&
+          candidate.stableKey.startsWith(`${row.stableKey}-`) &&
+          candidate.directQuestionCount > 0,
+      )
+      .reduce((sum, candidate) => sum + candidate.directQuestionCount, 0);
+
+    if (descendantQuestionCount === 0) {
+      return row;
+    }
+
+    return {
+      ...row,
+      questionCount: row.directQuestionCount + descendantQuestionCount,
+      hasQuestions: true,
+    };
+  });
 
   const byCourse = Object.fromEntries(
     unique(rows.map((row) => row.courseId)).map((courseId) => {
