@@ -307,9 +307,9 @@ function resolvePostgresUrl() {
   const connectionUrl =
     process.env.POSTGRES_ACTIVATION_URL?.trim() ||
     process.env.POSTGRES_SEED_URL?.trim() ||
+    process.env.DATABASE_URL?.trim() ||
     process.env.POSTGRES_MIGRATION_URL?.trim() ||
-    process.env.DIRECT_URL?.trim() ||
-    process.env.DATABASE_URL?.trim();
+    process.env.DIRECT_URL?.trim();
 
   if (!connectionUrl) {
     fail("POSTGRES_ACTIVATION_URL_REQUIRED");

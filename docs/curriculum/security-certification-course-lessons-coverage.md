@@ -135,6 +135,11 @@ activation command remains gated by both
 `--confirm-production-activation` and
 `SECURIUM_CONFIRM_SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION`.
 
+For PostgreSQL/Supabase activation checks, the script prefers
+`POSTGRES_ACTIVATION_URL`, then `POSTGRES_SEED_URL`, then pooled `DATABASE_URL`.
+`POSTGRES_MIGRATION_URL` and `DIRECT_URL` remain fallbacks because Supabase
+direct connections can be IPv6-only in some environments.
+
 ```powershell
 npm run curriculum:security-certification:linked-content:stats
 npm run curriculum:security-certification:linked-content:d1-local

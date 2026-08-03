@@ -105,6 +105,10 @@ test("security certification curriculum activation requires clean precheck", () 
   assert.match(script, /SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION_CHECK_D1_LOCAL_OK/);
   assert.match(script, /buildPreActivationSql\("d1"\)/);
   assert.match(script, /buildPreActivationSql\("postgres"\)/);
+  assert.match(
+    script,
+    /POSTGRES_ACTIVATION_URL[\s\S]*POSTGRES_SEED_URL[\s\S]*DATABASE_URL[\s\S]*POSTGRES_MIGRATION_URL[\s\S]*DIRECT_URL/,
+  );
   assert.match(script, /buildActivationPlanSql/);
   assert.match(script, /assertPreActivationCoverage/);
   assert.match(script, /run-wrangler\.mjs/);
