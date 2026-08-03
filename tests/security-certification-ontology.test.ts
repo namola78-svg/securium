@@ -191,6 +191,18 @@ test("security certification retrieval alias inspector is exposed as a read-only
   );
 });
 
+test("security certification ontology docs describe read-only retrieval alias diagnostics", async () => {
+  const docs = await readFile(
+    "docs/curriculum/security-certification-ontology-coverage.md",
+    "utf8",
+  );
+
+  assert.match(docs, /Retrieval alias diagnostics/);
+  assert.match(docs, /curriculum:security-certification:retrieval-aliases/);
+  assert.match(docs, /read-only/);
+  assert.match(docs, /does not run DB migrations, seeds, network calls, or AI calls/);
+});
+
 test("security certification retrieval alias inspector reports JSON diagnostics without DB access", async () => {
   const { stdout } = await execFileAsync(process.execPath, [
     "scripts/inspect-security-certification-retrieval-aliases.mjs",

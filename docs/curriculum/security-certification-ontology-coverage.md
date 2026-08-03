@@ -65,3 +65,25 @@
 3. RetrievalProvider에서 Concept alias 기반 검색 우선순위 적용
 4. 관리자 화면에서 추천 후보 필터와 연결 이력 표시 고도화
 5. 운영 DB용 additive ontology migration 설계
+
+## Retrieval alias diagnostics
+
+Use the read-only inspector before changing production retrieval behavior:
+
+```powershell
+npm.cmd run curriculum:security-certification:retrieval-aliases -- --query=RBAC --course-id=course-ise --format=json
+```
+
+Purpose:
+
+- Verify that user search terms expand through the official security certification ontology.
+- Confirm English aliases such as `RBAC`, `Access Control`, `ACL`, `DDoS`, and `SQL Injection` map to Korean official concepts.
+- Confirm course scoping keeps unrelated course concepts out of the expanded query set.
+- Diagnose AI/Retrieval context misses without connecting to Supabase, D1, OpenAI, or any production service.
+
+Safety notes:
+
+- The script is read-only.
+- It uses in-repository ontology constants only.
+- It does not run DB migrations, seeds, network calls, or AI calls.
+- Passing this diagnostic does not prove production ranking quality; it only verifies local alias expansion and scoped query generation.
