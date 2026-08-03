@@ -15,21 +15,21 @@ import {
 test("network security question bank covers current auto-graded types", () => {
   const readiness = getNetworkSecurityQuestionBankReadiness();
 
-  assert.equal(readiness.questionCount, 6);
+  assert.equal(readiness.questionCount, 9);
   assert.equal(readiness.allPublished, true);
   assert.equal(readiness.allSampleOnly, true);
   assert.equal(readiness.allIndependentlyAuthored, true);
   assert.equal(readiness.allLinkedToBothCourses, true);
   assert.equal(readiness.allLinkedToNetworkContent, true);
   assert.deepEqual(readiness.courseCounts, {
-    "course-ise": 6,
-    "course-isie": 6,
+    "course-ise": 9,
+    "course-isie": 9,
   });
   assert.deepEqual(readiness.typeCounts, {
-    TRUE_FALSE: 1,
-    SINGLE_CHOICE: 2,
+    TRUE_FALSE: 2,
+    SINGLE_CHOICE: 3,
     MULTIPLE_CHOICE: 2,
-    SHORT_ANSWER: 1,
+    SHORT_ANSWER: 2,
   });
 });
 
@@ -61,6 +61,18 @@ test("network security questions remain course scoped and content linked", () =>
     [
       "network-security-official-sample-q06",
       [NETWORK_SECURITY_CONTENT_IDS.networkSecuritySolutions],
+    ],
+    [
+      "network-security-official-sample-q07",
+      [NETWORK_SECURITY_CONTENT_IDS.networkConcepts],
+    ],
+    [
+      "network-security-official-sample-q08",
+      [NETWORK_SECURITY_CONTENT_IDS.networkUsage],
+    ],
+    [
+      "network-security-official-sample-q09",
+      [NETWORK_SECURITY_CONTENT_IDS.securityProtocols],
     ],
   ]);
 
@@ -185,6 +197,33 @@ test("network security sample answers are graded by the shared grading engine", 
     ).score,
     0,
     "multiple-choice grading should require the exact correct set",
+  );
+  assert.equal(
+    gradeQuestion(
+      toNetworkSecurityGradingQuestion(
+        byId.get("network-security-official-sample-q07"),
+      ),
+      "network-security-official-sample-q07-choice-01",
+    ).isCorrect,
+    true,
+  );
+  assert.equal(
+    gradeQuestion(
+      toNetworkSecurityGradingQuestion(
+        byId.get("network-security-official-sample-q08"),
+      ),
+      "network-security-official-sample-q08-true",
+    ).score,
+    100,
+  );
+  assert.equal(
+    gradeQuestion(
+      toNetworkSecurityGradingQuestion(
+        byId.get("network-security-official-sample-q09"),
+      ),
+      "tls",
+    ).isCorrect,
+    true,
   );
 });
 

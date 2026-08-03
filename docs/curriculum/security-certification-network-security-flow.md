@@ -14,6 +14,9 @@
   `content-official-security-cert-network-spoofing`,
   `content-official-security-cert-network-sniffing`,
   `content-official-security-cert-network-remote-access-attacks`,
+  `content-official-security-cert-network-network-concepts`,
+  `content-official-security-cert-network-network-usage`,
+  `content-official-security-cert-network-security-protocols`,
   `content-official-security-cert-network-network-security-solutions`
 - 공유 canonical key:
   `official.security-certification.network-security.overview`
@@ -116,11 +119,11 @@ npm run curriculum:security-certification:network-questions:verify:d1-local
 
 검증 항목은 다음과 같다.
 
-- 네트워크 보안 샘플 문제 6개 존재
+- 네트워크 보안 샘플 문제 9개 존재
 - 모든 문제가 `PUBLISHED` 상태
 - 모든 문제가 개발·검증용 샘플로 표시
-- 정보보안기사와 정보보안산업기사에 각각 6개씩 연결
-- 네트워크 보안 세부항목 Content에 6개 문제, 7개 Practice 링크 연결
+- 정보보안기사와 정보보안산업기사에 각각 9개씩 연결
+- 네트워크 보안 세부항목 Content에 9개 문제, 10개 Practice 링크 연결
 - TRUE_FALSE, SINGLE_CHOICE, MULTIPLE_CHOICE, SHORT_ANSWER 분포 일치
 
 PostgreSQL 운영 또는 Preview DB에서는 읽기 전용 검증만 다음 명령으로 수행할 수 있다.
