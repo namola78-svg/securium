@@ -86,23 +86,23 @@ test("security certification deep node coverage exposes remaining major and sub 
   const summary = getSecurityCertificationDeepNodeCoverageSummary();
 
   assert.equal(summary.nodeCount, 139);
-  assert.equal(summary.contentLinkedCount, 96);
+  assert.equal(summary.contentLinkedCount, 131);
   assert.equal(summary.questionLinkedCount, 78);
-  assert.equal(summary.contentCoveragePercent, 69.1);
+  assert.equal(summary.contentCoveragePercent, 94.2);
   assert.equal(summary.questionCoveragePercent, 56.1);
   assert.deepEqual(summary.byCourse, {
     "course-ise": {
       nodeCount: 77,
-      contentLinkedCount: 52,
+      contentLinkedCount: 72,
       questionLinkedCount: 43,
-      contentCoveragePercent: 67.5,
+      contentCoveragePercent: 93.5,
       questionCoveragePercent: 55.8,
     },
     "course-isie": {
       nodeCount: 62,
-      contentLinkedCount: 44,
+      contentLinkedCount: 59,
       questionLinkedCount: 35,
-      contentCoveragePercent: 71,
+      contentCoveragePercent: 95.2,
       questionCoveragePercent: 56.5,
     },
   });
@@ -110,11 +110,11 @@ test("security certification deep node coverage exposes remaining major and sub 
   assert.equal(summary.byNodeType.PRACTICAL.nodeCount, 2);
   assert.equal(summary.byNodeType.MAJOR_ITEM.nodeCount, 33);
   assert.equal(summary.byNodeType.SUB_ITEM.nodeCount, 95);
-  assert.equal(summary.byNodeType.MAJOR_ITEM.contentLinkedCount, 16);
-  assert.equal(summary.byNodeType.SUB_ITEM.contentLinkedCount, 69);
+  assert.equal(summary.byNodeType.MAJOR_ITEM.contentLinkedCount, 25);
+  assert.equal(summary.byNodeType.SUB_ITEM.contentLinkedCount, 95);
   assert.equal(summary.byNodeType.SUB_ITEM.questionLinkedCount, 69);
-  assert.equal(summary.uncoveredRows.length, 43);
-  assert.equal(summary.questionGapRows.length, 18);
+  assert.equal(summary.uncoveredRows.length, 8);
+  assert.equal(summary.questionGapRows.length, 53);
   assert.equal(
     summary.questionGapRows.every(
       (row) =>
@@ -124,11 +124,13 @@ test("security certification deep node coverage exposes remaining major and sub 
         row.stableKey.startsWith("ISE-2027-2029-01-03-") ||
         row.stableKey.startsWith("ISE-2027-2029-01-04-") ||
         row.stableKey.startsWith("ISE-2027-2029-01-05-") ||
+        row.stableKey.startsWith("ISE-2027-2029-02-01-") ||
         row.stableKey.startsWith("ISIE-2027-2029-01-01-") ||
         row.stableKey === "ISIE-2027-2029-01-02" ||
         row.stableKey.startsWith("ISIE-2027-2029-01-02-") ||
         row.stableKey.startsWith("ISIE-2027-2029-01-03-") ||
-        row.stableKey.startsWith("ISIE-2027-2029-01-04-"),
+        row.stableKey.startsWith("ISIE-2027-2029-01-04-") ||
+        row.stableKey.startsWith("ISIE-2027-2029-02-01-"),
     ),
     true,
   );

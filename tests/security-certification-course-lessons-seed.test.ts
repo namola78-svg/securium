@@ -15,11 +15,11 @@ import {
 test("security certification course lesson seed reuses shared contents across engineer tracks", () => {
   const stats = getSecurityCertificationCourseLessonSeedStats();
 
-  assert.equal(stats.contentCount, 52);
-  assert.equal(stats.courseLessonCount, 96);
+  assert.equal(stats.contentCount, 72);
+  assert.equal(stats.courseLessonCount, 131);
   assert.equal(stats.courseLessonExtensionCount, 2);
-  assert.equal(stats.linkedContentCount, 52);
-  assert.equal(stats.reusedContentCount, 44);
+  assert.equal(stats.linkedContentCount, 72);
+  assert.equal(stats.reusedContentCount, 59);
   assert.equal(stats.allLessonsHaveKnownContent, true);
   assert.equal(stats.expectedTopLevelNodeCount, 11);
   assert.equal(stats.mappedTopLevelNodeCount, 11);
@@ -34,8 +34,8 @@ test("security certification course lesson seed keeps course progress separated"
     (lesson) => lesson.courseId === "course-isie",
   );
 
-  assert.equal(engineerLessons.length, 52);
-  assert.equal(industrialLessons.length, 44);
+  assert.equal(engineerLessons.length, 72);
+  assert.equal(industrialLessons.length, 59);
 
   const courseLessonIds = new Set(
     officialSecurityCertificationCourseLessons.map((lesson) => lesson.id),
@@ -51,6 +51,49 @@ test("security certification course lesson seed keeps course progress separated"
   assert.deepEqual(
     reusedSystemContentLessons.map((lesson) => lesson.courseId).sort(),
     ["course-ise", "course-isie"],
+  );
+});
+
+test("practical official items are split into shared and engineer-only CourseLessons", () => {
+  const sharedPracticalContentIds = [
+    "content-official-security-cert-practical-security-characteristics",
+    "content-official-security-cert-practical-vulnerability-check-remediation",
+    "content-official-security-cert-practical-security-log-incident-response",
+    "content-official-security-cert-practical-practical-security-trends",
+    "content-official-security-cert-practical-practical-security-trends-general",
+  ];
+
+  for (const contentId of sharedPracticalContentIds) {
+    const lessons = officialSecurityCertificationCourseLessons.filter(
+      (lesson) => lesson.contentId === contentId,
+    );
+    assert.deepEqual(
+      lessons.map((lesson) => lesson.courseId).sort(),
+      ["course-ise", "course-isie"],
+      `${contentId} should be shared but course-scoped`,
+    );
+    assert.equal(new Set(lessons.map((lesson) => lesson.curriculumNodeId)).size, 2);
+  }
+
+  const engineerOnlyRiskLessons = officialSecurityCertificationCourseLessons.filter(
+    (lesson) =>
+      lesson.contentId.startsWith(
+        "content-official-security-cert-practical-risk",
+      ) ||
+      lesson.contentId ===
+        "content-official-security-cert-practical-it-asset-risk-analysis" ||
+      lesson.contentId ===
+        "content-official-security-cert-practical-organizational-risk-weakness-analysis" ||
+      lesson.contentId ===
+        "content-official-security-cert-practical-risk-evaluation" ||
+      lesson.contentId ===
+        "content-official-security-cert-practical-control-selection-implementation-plan",
+  );
+
+  assert.equal(engineerOnlyRiskLessons.length, 5);
+  assert.equal(
+    engineerOnlyRiskLessons.every((lesson) => lesson.courseId === "course-ise"),
+    true,
   );
 });
 
