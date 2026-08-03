@@ -6,6 +6,7 @@ const VALID_TARGETS = new Set(["d1-local", "postgres"]);
 const target = process.argv[2] ?? "d1-local";
 const requireCourseLessons = process.argv.includes("--require-course-lessons");
 const allowInactive = process.argv.includes("--allow-inactive");
+const includeActionQueue = process.argv.includes("--action-queue");
 
 const expectedTrees = [
   {
@@ -176,7 +177,18 @@ function verifyCoverageRows(rows) {
 }
 
 function printCoverage(rows) {
-  const normalizedRows = rows.map((row) => ({
+  const normalizedRows = normalizeCoverageRows(rows);
+  const payload = { coverage: normalizedRows };
+
+  if (includeActionQueue) {
+    payload.actionQueue = buildCoverageActionQueue(normalizedRows);
+  }
+
+  console.log(JSON.stringify(payload, null, 2));
+}
+
+function normalizeCoverageRows(rows) {
+  return rows.map((row) => ({
     id: row.id,
     courseId: row.course_id ?? row.courseId,
     status: row.status,
@@ -203,7 +215,65 @@ function printCoverage(rows) {
       row.published_question_count ?? row.publishedQuestionCount,
     ),
   }));
-  console.log(JSON.stringify({ coverage: normalizedRows }, null, 2));
+}
+
+function buildCoverageActionQueue(rows) {
+  const items = [];
+
+  for (const row of rows) {
+    const expected = expectedTrees.find((tree) => tree.id === row.id);
+    const officialLessonGap = Math.max(
+      0,
+      Number(expected?.expectedOfficialCourseLessonCount ?? 0) -
+        row.officialSeedCourseLessonCount,
+    );
+    const contentMetadataGap = Math.max(0, row.nodeCount - row.metadataLinkedNodeCount);
+
+    if (row.status !== "ACTIVE") {
+      items.push(buildActionItem(row, "TREE_STATUS", "공식 커리큘럼 트리를 ACTIVE로 전환"));
+    }
+    if (row.unlinkedCourseLessonCount > 0) {
+      items.push(
+        buildActionItem(
+          row,
+          "COURSELESSON_LINK_GAP",
+          `${row.unlinkedCourseLessonCount}개 CourseLesson을 CurriculumNode에 연결`,
+        ),
+      );
+    }
+    if (officialLessonGap > 0) {
+      items.push(
+        buildActionItem(
+          row,
+          "OFFICIAL_COURSELESSON_GAP",
+          `${officialLessonGap}개 공식 CourseLesson 보강`,
+        ),
+      );
+    }
+    if (contentMetadataGap > 0) {
+      items.push(
+        buildActionItem(
+          row,
+          "CONTENT_METADATA_GAP",
+          `${contentMetadataGap}개 CurriculumNode의 본문 Content 연결 확인`,
+        ),
+      );
+    }
+    if (row.publishedQuestionCount <= 0) {
+      items.push(buildActionItem(row, "QUESTION_GAP", "공개 문제 연결 확인"));
+    }
+  }
+
+  return items.slice(0, 8);
+}
+
+function buildActionItem(row, type, message) {
+  return {
+    type,
+    courseId: row.courseId,
+    curriculumTreeId: row.id,
+    message,
+  };
 }
 
 async function d1Query(configPath, statement) {
