@@ -44,6 +44,7 @@
     "curriculum:security-certification:activate:postgres": "node scripts/activate-security-certification-curriculum.mjs",
     "curriculum:security-certification:activate:check:postgres": "node scripts/activate-security-certification-curriculum.mjs --check-only",
     "curriculum:security-certification:activate:check:d1-local": "node scripts/activate-security-certification-curriculum.mjs d1-local --check-only",
+    "curriculum:security-certification:activate:help": "node scripts/activate-security-certification-curriculum.mjs --help",
     "curriculum:security-certification:linked-content:stats": "node scripts/apply-security-certification-curriculum-linked-content.mjs stats",
     "curriculum:security-certification:linked-content:d1-local": "node scripts/apply-security-certification-curriculum-linked-content.mjs d1-local",
     "curriculum:security-certification:linked-content:postgres": "node scripts/apply-security-certification-curriculum-linked-content.mjs postgres",

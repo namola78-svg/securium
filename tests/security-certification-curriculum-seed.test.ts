@@ -96,8 +96,15 @@ test("security certification curriculum activation requires clean precheck", () 
     packageJson.scripts["curriculum:security-certification:activate:check:d1-local"],
     "node scripts/activate-security-certification-curriculum.mjs d1-local --check-only",
   );
+  assert.equal(
+    packageJson.scripts["curriculum:security-certification:activate:help"],
+    "node scripts/activate-security-certification-curriculum.mjs --help",
+  );
   assert.match(script, /--confirm-production-activation/);
   assert.match(script, /--check-only/);
+  assert.match(script, /--help/);
+  assert.match(script, /function printHelp/);
+  assert.match(script, /Do not run production activation without explicit approval/);
   assert.match(script, /target === "d1-local"/);
   assert.match(script, /SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION_TARGET_UNSUPPORTED/);
   assert.match(script, /SECURIUM_CONFIRM_SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION/);

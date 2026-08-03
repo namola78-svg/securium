@@ -116,9 +116,13 @@ counts, or published question coverage are not clean.
 Before requesting activation, run the read-only check commands:
 
 ```powershell
+npm run curriculum:security-certification:activate:help
 npm run curriculum:security-certification:activate:check:d1-local
 npm run curriculum:security-certification:activate:check:postgres
 ```
+
+The help command prints the approval flag, confirmation environment variable,
+connection URL priority, and safety notes without reading or writing any DB.
 
 The D1 command only reads the local Wrangler D1 database configured by
 `wrangler.local.jsonc` and prints

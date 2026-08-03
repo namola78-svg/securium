@@ -7,6 +7,7 @@ const CONFIRM_ENV_NAME =
   "SECURIUM_CONFIRM_SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION";
 const CONFIRM_ENV_VALUE = "ACTIVATE_SECURITY_CERTIFICATION_CURRICULUM";
 const CHECK_ONLY_FLAG = "--check-only";
+const HELP_FLAG = "--help";
 
 const targetTreeIds = [
   "curriculum-ise-2027-2029-official",
@@ -37,7 +38,9 @@ const expectedTrees = [
 const checkOnly = process.argv.includes(CHECK_ONLY_FLAG);
 const target = process.argv.includes("d1-local") ? "d1-local" : "postgres";
 
-if (checkOnly) {
+if (process.argv.includes(HELP_FLAG)) {
+  printHelp();
+} else if (checkOnly) {
   if (target === "d1-local") {
     await checkActivationReadinessWithD1Local();
   } else {
@@ -316,6 +319,32 @@ function resolvePostgresUrl() {
   }
 
   return connectionUrl;
+}
+
+function printHelp() {
+  console.log(`SECURIUM security certification curriculum activation
+
+Read-only checks:
+  npm run curriculum:security-certification:activate:check:d1-local
+  npm run curriculum:security-certification:activate:check:postgres
+
+Production activation:
+  $env:${CONFIRM_ENV_NAME} = "${CONFIRM_ENV_VALUE}"
+  npm run curriculum:security-certification:activate:postgres -- ${CONFIRM_FLAG}
+  Remove-Item Env:${CONFIRM_ENV_NAME}
+
+Connection URL priority:
+  POSTGRES_ACTIVATION_URL
+  POSTGRES_SEED_URL
+  DATABASE_URL
+  POSTGRES_MIGRATION_URL
+  DIRECT_URL
+
+Safety:
+  - d1-local is check-only and never activates curriculum trees.
+  - PostgreSQL activation runs a clean precheck inside the same transaction.
+  - Do not run production activation without explicit approval and backup readiness.
+`);
 }
 
 function sqlString(value) {
