@@ -92,6 +92,28 @@ Each `actionQueue` item includes `severity` and `nextStep` so operators can
 triage read-only coverage results before requesting production activation or seed
 approval.
 
+## linkedContent metadata backfill
+
+`CONTENT_METADATA_GAP` is resolved by adding `linkedContent` entries to
+`curriculum_nodes.metadata`. The backfill preserves existing metadata fields and
+merges reusable `CONTENT` links from the official CourseLesson seed.
+
+```powershell
+npm run curriculum:security-certification:linked-content:stats
+npm run curriculum:security-certification:linked-content:d1-local
+```
+
+PostgreSQL/Supabase is gated as a production data change:
+
+```powershell
+$env:SECURIUM_CONFIRM_SECURITY_CERTIFICATION_LINKED_CONTENT_BACKFILL = "APPLY_SECURITY_CERTIFICATION_LINKED_CONTENT_BACKFILL"
+npm run curriculum:security-certification:linked-content:postgres -- --confirm-production-seed
+Remove-Item Env:SECURIUM_CONFIRM_SECURITY_CERTIFICATION_LINKED_CONTENT_BACKFILL
+```
+
+Do not run the PostgreSQL command until the production data change is explicitly
+approved.
+
 ## 실패 시 확인 순서
 
 1. PostgreSQL migration 상태가 최신인지 확인한다.

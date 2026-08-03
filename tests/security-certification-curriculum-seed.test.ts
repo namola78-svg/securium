@@ -168,6 +168,35 @@ test("security certification coverage action queue has npm entrypoints", () => {
   );
 });
 
+test("security certification linked content backfill has gated npm entrypoints", () => {
+  const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
+  const script = readFileSync(
+    "scripts/apply-security-certification-curriculum-linked-content.mjs",
+    "utf8",
+  );
+
+  assert.equal(
+    packageJson.scripts["curriculum:security-certification:linked-content:stats"],
+    "node scripts/apply-security-certification-curriculum-linked-content.mjs stats",
+  );
+  assert.equal(
+    packageJson.scripts["curriculum:security-certification:linked-content:d1-local"],
+    "node scripts/apply-security-certification-curriculum-linked-content.mjs d1-local",
+  );
+  assert.equal(
+    packageJson.scripts["curriculum:security-certification:linked-content:postgres"],
+    "node scripts/apply-security-certification-curriculum-linked-content.mjs postgres",
+  );
+  assert.match(
+    script,
+    /SECURIUM_CONFIRM_SECURITY_CERTIFICATION_LINKED_CONTENT_BACKFILL/,
+  );
+  assert.match(script, /APPLY_SECURITY_CERTIFICATION_LINKED_CONTENT_BACKFILL/);
+  assert.match(script, /--confirm-production-seed/);
+  assert.match(script, /mergeMetadata/);
+  assert.match(script, /linkedContent/);
+});
+
 test("security certification coverage verifier exposes safe help without DB access", () => {
   const result = spawnSync(
     process.execPath,
@@ -228,4 +257,20 @@ test("operations readiness documents curriculum coverage action queue", () => {
   assert.match(docs, /coverage-actions:postgres/);
   assert.match(docs, /CONTENT_METADATA_GAP/);
   assert.match(docs, /Operational readiness/);
+});
+
+test("course lesson coverage docs explain linked content backfill gate", () => {
+  const docs = readFileSync(
+    "docs/curriculum/security-certification-course-lessons-coverage.md",
+    "utf8",
+  );
+
+  assert.match(docs, /linkedContent metadata backfill/);
+  assert.match(docs, /linked-content:d1-local/);
+  assert.match(docs, /linked-content:postgres/);
+  assert.match(
+    docs,
+    /SECURIUM_CONFIRM_SECURITY_CERTIFICATION_LINKED_CONTENT_BACKFILL/,
+  );
+  assert.match(docs, /explicitly\s+approved/);
 });
