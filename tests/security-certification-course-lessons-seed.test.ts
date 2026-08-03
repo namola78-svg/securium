@@ -15,11 +15,11 @@ import {
 test("security certification course lesson seed reuses shared contents across engineer tracks", () => {
   const stats = getSecurityCertificationCourseLessonSeedStats();
 
-  assert.equal(stats.contentCount, 31);
-  assert.equal(stats.courseLessonCount, 61);
+  assert.equal(stats.contentCount, 38);
+  assert.equal(stats.courseLessonCount, 75);
   assert.equal(stats.courseLessonExtensionCount, 2);
-  assert.equal(stats.linkedContentCount, 31);
-  assert.equal(stats.reusedContentCount, 30);
+  assert.equal(stats.linkedContentCount, 38);
+  assert.equal(stats.reusedContentCount, 37);
   assert.equal(stats.allLessonsHaveKnownContent, true);
   assert.equal(stats.expectedTopLevelNodeCount, 11);
   assert.equal(stats.mappedTopLevelNodeCount, 11);
@@ -34,8 +34,8 @@ test("security certification course lesson seed keeps course progress separated"
     (lesson) => lesson.courseId === "course-isie",
   );
 
-  assert.equal(engineerLessons.length, 31);
-  assert.equal(industrialLessons.length, 30);
+  assert.equal(engineerLessons.length, 38);
+  assert.equal(industrialLessons.length, 37);
 
   const courseLessonIds = new Set(
     officialSecurityCertificationCourseLessons.map((lesson) => lesson.id),
@@ -373,6 +373,46 @@ test("application security major items are split into shared CourseLessons", () 
       new Set(linkedLessons.map((lesson) => lesson.curriculumNodeId)).size,
       2,
       `${contentId} should keep course-specific curriculum node progress`,
+    );
+  }
+});
+
+test("application security sub items are split into shared CourseLessons", () => {
+  const subItemContentIds = [
+    "content-official-security-cert-application-ftp-security",
+    "content-official-security-cert-application-mail-security",
+    "content-official-security-cert-application-web-app-security",
+    "content-official-security-cert-application-dns-security",
+    "content-official-security-cert-application-db-security",
+    "content-official-security-cert-application-application-weakness-response",
+    "content-official-security-cert-application-secure-development-overview",
+  ];
+  const subItemContents = officialSecurityCertificationContents.filter((content) =>
+    subItemContentIds.includes(content.id),
+  );
+
+  assert.equal(subItemContents.length, 7);
+  for (const content of subItemContents) {
+    assert.match(content.body, /공식 출제기준의 세부항목/);
+    assert.match(content.body, /SECURIUM 자체 작성 자료/);
+    assert.equal(content.learningObjectives.length, 3);
+    assert.equal(content.practicalExamples.length, 3);
+  }
+
+  for (const contentId of subItemContentIds) {
+    const linkedLessons = officialSecurityCertificationCourseLessons
+      .filter((lesson) => lesson.contentId === contentId)
+      .sort((a, b) => a.courseId.localeCompare(b.courseId));
+
+    assert.deepEqual(
+      linkedLessons.map((lesson) => lesson.courseId),
+      ["course-ise", "course-isie"],
+      `${contentId} should be shared by both security certification tracks`,
+    );
+    assert.equal(
+      new Set(linkedLessons.map((lesson) => lesson.curriculumNodeId)).size,
+      2,
+      `${contentId} should preserve course-specific application security progress`,
     );
   }
 });
