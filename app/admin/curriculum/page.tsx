@@ -122,6 +122,20 @@ export default async function AdminCurriculumPage({
     params.set("curriculumNodeId", row.curriculumNodeId);
     return `/admin/shared-content?${params.toString()}`;
   }
+  function sharedContentRecommendationHref(row: {
+    courseId: string;
+    curriculumNodeId: string;
+    contentRecommendations: Array<{ id: string }>;
+  }) {
+    const recommendedContentId = row.contentRecommendations[0]?.id;
+    if (!recommendedContentId) return sharedContentNodeHref({ ...row, contentIds: [] });
+    const params = new URLSearchParams({
+      courseId: row.courseId,
+      contentId: recommendedContentId,
+      curriculumNodeId: row.curriculumNodeId,
+    });
+    return `/admin/shared-content?${params.toString()}`;
+  }
   const operationalSummary = nodeStats.reduce(
     (summary, stat) => ({
       questionCount: summary.questionCount + stat.questionCount,
@@ -361,9 +375,15 @@ export default async function AdminCurriculumPage({
                     </small>
                     <Link
                       className="text-link"
-                      href={sharedContentNodeHref(row)}
+                      href={
+                        row.contentRecommendations.length
+                          ? sharedContentRecommendationHref(row)
+                          : sharedContentNodeHref(row)
+                      }
                     >
-                      공통 콘텐츠 관리로 이동
+                      {row.contentRecommendations.length
+                        ? "최우선 후보로 연결 준비"
+                        : "공통 콘텐츠 관리로 이동"}
                     </Link>
                   </li>
                 ))}
@@ -374,7 +394,8 @@ export default async function AdminCurriculumPage({
                 <Link className="text-link" href={selectedSharedContentHref}>
                   공통 콘텐츠 관리로 이동
                 </Link>
-                . gap이 생기면 추천 후보 수와 최우선 후보가 함께 표시됩니다.
+                . gap이 생기면 추천 후보 수와 최우선 후보가 함께 표시되고,
+                최우선 후보로 연결 준비 링크를 제공합니다.
               </p>
             )}
           </details>
@@ -409,9 +430,15 @@ export default async function AdminCurriculumPage({
                     </small>
                     <Link
                       className="text-link"
-                      href={sharedContentNodeHref(row)}
+                      href={
+                        row.contentRecommendations.length
+                          ? sharedContentRecommendationHref(row)
+                          : sharedContentNodeHref(row)
+                      }
                     >
-                      연결 Content 확인
+                      {row.contentRecommendations.length
+                        ? "추가 후보로 연결 준비"
+                        : "연결 Content 확인"}
                     </Link>
                   </li>
                 ))}
@@ -422,7 +449,8 @@ export default async function AdminCurriculumPage({
                 <Link className="text-link" href={selectedSharedContentHref}>
                   공통 콘텐츠 관리로 이동
                 </Link>
-                . gap이 생기면 연결 Content와 추가 추천 후보가 함께 표시됩니다.
+                . gap이 생기면 연결 Content와 추가 추천 후보가 함께 표시되고,
+                추가 후보로 연결 준비 링크를 제공합니다.
               </p>
             )}
           </details>
