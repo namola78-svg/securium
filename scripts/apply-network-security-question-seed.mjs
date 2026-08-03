@@ -4,7 +4,7 @@ import { spawn } from "node:child_process";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import {
-  NETWORK_SECURITY_CONTENT_ID,
+  NETWORK_SECURITY_CONTENT_IDS,
   SECURITY_CERTIFICATION_NETWORK_QUESTION_CONFIRM_ENV_NAME,
   SECURITY_CERTIFICATION_NETWORK_QUESTION_CONFIRM_ENV_VALUE,
   generateNetworkSecurityQuestionSeedSql,
@@ -130,12 +130,17 @@ async function assertPostgresPrerequisites(sql) {
     );
   }
 
+  const requiredContentIds = Object.values(NETWORK_SECURITY_CONTENT_IDS);
   const contentRows = await sql`
-    SELECT id FROM contents WHERE id = ${NETWORK_SECURITY_CONTENT_ID}
+    SELECT id FROM contents WHERE id IN ${sql(requiredContentIds)}
   `;
-  if (contentRows.length !== 1) {
+  const existingContentIds = new Set(contentRows.map((row) => row.id));
+  const missingContentIds = requiredContentIds.filter(
+    (id) => !existingContentIds.has(id),
+  );
+  if (missingContentIds.length) {
     fail(
-      `NETWORK_SECURITY_CONTENT_MISSING:${NETWORK_SECURITY_CONTENT_ID}`,
+      `NETWORK_SECURITY_CONTENT_MISSING:${missingContentIds.join(",")}`,
       "Apply the official network security CourseLesson content seed first.",
     );
   }

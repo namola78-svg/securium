@@ -10,7 +10,6 @@ import {
 } from "../data/security-certification-course-lessons.mjs";
 import {
   networkSecurityQuestionSamples,
-  NETWORK_SECURITY_CONTENT_ID,
 } from "../data/security-certification-network-security-questions.mjs";
 import {
   systemSecurityQuestionSamples,
@@ -71,6 +70,10 @@ type QuestionSeedRecord = {
   courseLinks: Array<{
     courseId: string;
   }>;
+  contentLinks?: Array<{
+    contentType: string;
+    contentId: string;
+  }>;
 };
 
 const contentSeedRecords =
@@ -80,19 +83,31 @@ const courseLessonSeedRecords =
 const courseLessonExtensionSeedRecords =
   officialSecurityCertificationCourseLessonExtensions as CourseLessonExtensionSeedRecord[];
 
-const questionSamplesByContentId = new Map<string, QuestionSeedRecord[]>([
-  [NETWORK_SECURITY_CONTENT_ID, networkSecurityQuestionSamples as QuestionSeedRecord[]],
-  [SYSTEM_SECURITY_CONTENT_ID, systemSecurityQuestionSamples as QuestionSeedRecord[]],
-  [
-    APPLICATION_SECURITY_CONTENT_ID,
-    applicationSecurityQuestionSamples as QuestionSeedRecord[],
-  ],
-  [
-    INFORMATION_SECURITY_GENERAL_CONTENT_ID,
-    securityCertificationInformationSecurityGeneralQuestionSamples as QuestionSeedRecord[],
-  ],
-  [MANAGEMENT_LAW_CONTENT_ID, managementLawQuestionSamples as QuestionSeedRecord[]],
-  [PRACTICAL_SECURITY_CONTENT_ID, practicalSecurityQuestionSamples as QuestionSeedRecord[]],
+const questionSamplesByContentId = buildQuestionSamplesByContentId([
+  {
+    fallbackContentId: SYSTEM_SECURITY_CONTENT_ID,
+    questions: systemSecurityQuestionSamples as QuestionSeedRecord[],
+  },
+  {
+    fallbackContentId: APPLICATION_SECURITY_CONTENT_ID,
+    questions: applicationSecurityQuestionSamples as QuestionSeedRecord[],
+  },
+  {
+    fallbackContentId: INFORMATION_SECURITY_GENERAL_CONTENT_ID,
+    questions:
+      securityCertificationInformationSecurityGeneralQuestionSamples as QuestionSeedRecord[],
+  },
+  {
+    fallbackContentId: MANAGEMENT_LAW_CONTENT_ID,
+    questions: managementLawQuestionSamples as QuestionSeedRecord[],
+  },
+  {
+    fallbackContentId: PRACTICAL_SECURITY_CONTENT_ID,
+    questions: practicalSecurityQuestionSamples as QuestionSeedRecord[],
+  },
+  {
+    questions: networkSecurityQuestionSamples as QuestionSeedRecord[],
+  },
 ]);
 
 export function getSecurityCertificationContentMap() {
@@ -256,6 +271,36 @@ export function getSecurityCertificationDeepNodeCoverageSummary() {
 
 function curriculumNodeIdFromStableKey(stableKey: string) {
   return `curriculum-node-${stableKey.toLowerCase()}`;
+}
+
+function buildQuestionSamplesByContentId(
+  groups: Array<{
+    fallbackContentId?: string;
+    questions: QuestionSeedRecord[];
+  }>,
+) {
+  const byContentId = new Map<string, QuestionSeedRecord[]>();
+
+  for (const group of groups) {
+    for (const question of group.questions) {
+      const contentIds = question.contentLinks?.length
+        ? question.contentLinks
+            .filter((link) => link.contentType === "CONTENT")
+            .map((link) => link.contentId)
+        : group.fallbackContentId
+          ? [group.fallbackContentId]
+          : [];
+
+      for (const contentId of unique(contentIds)) {
+        byContentId.set(contentId, [
+          ...(byContentId.get(contentId) ?? []),
+          question,
+        ]);
+      }
+    }
+  }
+
+  return byContentId;
 }
 
 function unique<T>(values: T[]) {

@@ -8,6 +8,13 @@
 
 - 공유 본문 콘텐츠:
   `content-official-security-cert-network-security-overview`
+- 문제 연결 대상 세부 콘텐츠:
+  `content-official-security-cert-network-dos-ddos`,
+  `content-official-security-cert-network-scanning`,
+  `content-official-security-cert-network-spoofing`,
+  `content-official-security-cert-network-sniffing`,
+  `content-official-security-cert-network-remote-access-attacks`,
+  `content-official-security-cert-network-network-security-solutions`
 - 공유 canonical key:
   `official.security-certification.network-security.overview`
 - 정보보안기사 CourseLesson:
@@ -67,7 +74,7 @@ CourseLessonExtension으로 다르게 제공한다.
 
 - TRUE/FALSE, 단일선택, 복수선택, 단답형 자동채점 유형 포함
 - 모든 문제를 정보보안기사와 정보보안산업기사에 함께 연결
-- 모든 문제를 네트워크보안 공유 Content에 연결
+- 모든 문제를 네트워크보안 공식 세부항목 Content에 연결
 - 복수선택형은 정답 집합이 정확히 일치해야 정답 처리
 - 단답형은 대소문자, 공백 정규화, 동의어, 부분점수 확장 구조 확인
 - 공식 기출문제 또는 유료 교재 문항을 복제하지 않은 독립 작성 샘플 표시
@@ -113,7 +120,7 @@ npm run curriculum:security-certification:network-questions:verify:d1-local
 - 모든 문제가 `PUBLISHED` 상태
 - 모든 문제가 개발·검증용 샘플로 표시
 - 정보보안기사와 정보보안산업기사에 각각 6개씩 연결
-- 공통 네트워크 보안 Content에 6개 모두 연결
+- 네트워크 보안 세부항목 Content에 6개 문제, 7개 Practice 링크 연결
 - TRUE_FALSE, SINGLE_CHOICE, MULTIPLE_CHOICE, SHORT_ANSWER 분포 일치
 
 PostgreSQL 운영 또는 Preview DB에서는 읽기 전용 검증만 다음 명령으로 수행할 수 있다.

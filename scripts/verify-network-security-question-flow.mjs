@@ -1,7 +1,7 @@
 import postgres from "postgres";
 import { spawn } from "node:child_process";
 import {
-  NETWORK_SECURITY_CONTENT_ID,
+  NETWORK_SECURITY_CONTENT_IDS,
   NETWORK_SECURITY_COURSE_IDS,
   getNetworkSecurityQuestionBankReadiness,
 } from "../lib/data/security-certification-network-security-questions.mjs";
@@ -61,7 +61,9 @@ function buildVerificationSql(dialect) {
   const courseIds = NETWORK_SECURITY_COURSE_IDS.map((courseId) =>
     sqlString(courseId),
   ).join(",");
-  const contentId = sqlString(NETWORK_SECURITY_CONTENT_ID);
+  const contentIds = Object.values(NETWORK_SECURITY_CONTENT_IDS)
+    .map((contentId) => sqlString(contentId))
+    .join(",");
 
   return `
 WITH network_questions AS (
@@ -114,7 +116,7 @@ content_links AS (
   FROM content_question_links cql
   INNER JOIN network_questions q ON q.id = cql.question_id
   WHERE cql.content_type = 'CONTENT'
-    AND cql.content_id = ${contentId}
+    AND cql.content_id IN (${contentIds})
     AND cql.relation_type = 'PRACTICE'
   GROUP BY cql.content_id
 )
@@ -137,11 +139,9 @@ function verifyRows(rows) {
   assertCount(rowMap, "summary:all", readiness.questionCount);
   assertCount(rowMap, "published:all", readiness.questionCount);
   assertCount(rowMap, "sample:all", readiness.questionCount);
-  assertCount(
-    rowMap,
-    `content:${NETWORK_SECURITY_CONTENT_ID}`,
-    readiness.contentLinkedCount,
-  );
+  for (const [contentId, count] of Object.entries(readiness.contentLinkCounts)) {
+    assertCount(rowMap, `content:${contentId}`, count);
+  }
 
   for (const [type, count] of Object.entries(readiness.typeCounts)) {
     assertCount(rowMap, `type:${type}`, count);
@@ -162,7 +162,7 @@ function printResult(targetName, rows) {
     JSON.stringify(
       {
         target: targetName,
-        contentId: NETWORK_SECURITY_CONTENT_ID,
+        contentIds: Object.values(NETWORK_SECURITY_CONTENT_IDS),
         courseIds: NETWORK_SECURITY_COURSE_IDS,
         rows: normalizedRows,
       },

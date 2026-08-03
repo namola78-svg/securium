@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import { gradeQuestion } from "../lib/services/grading-service.ts";
 import {
-  NETWORK_SECURITY_CONTENT_ID,
+  NETWORK_SECURITY_CONTENT_IDS,
   NETWORK_SECURITY_COURSE_IDS,
   SECURITY_CERTIFICATION_NETWORK_QUESTION_CONFIRM_ENV_VALUE,
   generateNetworkSecurityQuestionSeedSql,
@@ -34,16 +34,51 @@ test("network security question bank covers current auto-graded types", () => {
 });
 
 test("network security questions remain course scoped and content linked", () => {
+  const expectedContentIdsByQuestionId = new Map([
+    [
+      "network-security-official-sample-q01",
+      [NETWORK_SECURITY_CONTENT_IDS.dosDdos],
+    ],
+    [
+      "network-security-official-sample-q02",
+      [NETWORK_SECURITY_CONTENT_IDS.scanning],
+    ],
+    [
+      "network-security-official-sample-q03",
+      [
+        NETWORK_SECURITY_CONTENT_IDS.spoofing,
+        NETWORK_SECURITY_CONTENT_IDS.sniffing,
+      ],
+    ],
+    [
+      "network-security-official-sample-q04",
+      [NETWORK_SECURITY_CONTENT_IDS.remoteAccessAttacks],
+    ],
+    [
+      "network-security-official-sample-q05",
+      [NETWORK_SECURITY_CONTENT_IDS.networkSecuritySolutions],
+    ],
+    [
+      "network-security-official-sample-q06",
+      [NETWORK_SECURITY_CONTENT_IDS.networkSecuritySolutions],
+    ],
+  ]);
+
   for (const question of networkSecurityQuestionSamples) {
     assert.equal(question.status, "PUBLISHED");
     assert.equal(question.sampleOnly, true);
     assert.match(question.source, /SECURIUM independently authored/);
-    assert.equal(question.contentLinks.length, 1);
-    assert.deepEqual(question.contentLinks[0], {
-      contentType: "CONTENT",
-      contentId: NETWORK_SECURITY_CONTENT_ID,
-      relationType: "PRACTICE",
-    });
+    assert.deepEqual(
+      question.contentLinks.map((link) => link.contentId).sort(),
+      expectedContentIdsByQuestionId.get(question.id)?.sort(),
+    );
+    assert.equal(
+      question.contentLinks.every(
+        (link) =>
+          link.contentType === "CONTENT" && link.relationType === "PRACTICE",
+      ),
+      true,
+    );
     assert.deepEqual(
       question.courseLinks.map((link) => link.courseId).sort(),
       [...NETWORK_SECURITY_COURSE_IDS].sort(),
@@ -192,7 +227,7 @@ test("network security question apply script gates remote data changes", () => {
   );
   assert.match(script, /target === "d1-local"/);
   assert.match(script, /assertProductionSeedApproval\(\)/);
-  assert.match(script, /NETWORK_SECURITY_CONTENT_ID/);
+  assert.match(script, /NETWORK_SECURITY_CONTENT_IDS/);
 });
 
 test("network security question verifier is read-only and supports D1 and Postgres", () => {
@@ -203,7 +238,7 @@ test("network security question verifier is read-only and supports D1 and Postgr
 
   assert.match(script, /NETWORK_SECURITY_QUESTION_FLOW_D1_LOCAL_OK/);
   assert.match(script, /NETWORK_SECURITY_QUESTION_FLOW_POSTGRES_OK/);
-  assert.match(script, /NETWORK_SECURITY_CONTENT_ID/);
+  assert.match(script, /NETWORK_SECURITY_CONTENT_IDS/);
   assert.match(script, /NETWORK_SECURITY_COURSE_IDS/);
   assert.match(script, /content_question_links/);
   assert.match(script, /question_courses/);

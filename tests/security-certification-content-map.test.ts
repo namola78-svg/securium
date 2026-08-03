@@ -12,18 +12,18 @@ test("security certification content map covers every top-level official curricu
   assert.equal(summary.rowCount, 11);
   assert.equal(summary.mappedRowCount, 11);
   assert.equal(summary.unmappedRowCount, 0);
-  assert.equal(summary.rowsWithQuestionsCount, 11);
-  assert.equal(summary.mappedRowsMissingQuestionsCount, 0);
+  assert.equal(summary.rowsWithQuestionsCount, 9);
+  assert.equal(summary.mappedRowsMissingQuestionsCount, 2);
   assert.deepEqual(summary.byCourse, {
     "course-ise": {
       rowCount: 6,
       mappedRowCount: 6,
-      rowsWithQuestionsCount: 6,
+      rowsWithQuestionsCount: 5,
     },
     "course-isie": {
       rowCount: 5,
       mappedRowCount: 5,
-      rowsWithQuestionsCount: 5,
+      rowsWithQuestionsCount: 4,
     },
   });
 });
@@ -46,8 +46,11 @@ test("security certification content map preserves shared content and isolated p
     assert.ok(industrial);
     assert.deepEqual(engineer.contentIds, industrial.contentIds);
     assert.notDeepEqual(engineer.courseLessonIds, industrial.courseLessonIds);
-    assert.deepEqual(engineer.questionCourseIds, ["course-ise", "course-isie"]);
-    assert.deepEqual(industrial.questionCourseIds, ["course-ise", "course-isie"]);
+    const expectedQuestionCourseIds = engineerKey.endsWith("-01-02")
+      ? []
+      : ["course-ise", "course-isie"];
+    assert.deepEqual(engineer.questionCourseIds, expectedQuestionCourseIds);
+    assert.deepEqual(industrial.questionCourseIds, expectedQuestionCourseIds);
   }
 
   const managementLaw = rowByStableKey.get("ISE-2027-2029-01-05");
@@ -84,23 +87,23 @@ test("security certification deep node coverage exposes remaining major and sub 
 
   assert.equal(summary.nodeCount, 139);
   assert.equal(summary.contentLinkedCount, 35);
-  assert.equal(summary.questionLinkedCount, 11);
+  assert.equal(summary.questionLinkedCount, 21);
   assert.equal(summary.contentCoveragePercent, 25.2);
-  assert.equal(summary.questionCoveragePercent, 7.9);
+  assert.equal(summary.questionCoveragePercent, 15.1);
   assert.deepEqual(summary.byCourse, {
     "course-ise": {
       nodeCount: 77,
       contentLinkedCount: 18,
-      questionLinkedCount: 6,
+      questionLinkedCount: 11,
       contentCoveragePercent: 23.4,
-      questionCoveragePercent: 7.8,
+      questionCoveragePercent: 14.3,
     },
     "course-isie": {
       nodeCount: 62,
       contentLinkedCount: 17,
-      questionLinkedCount: 5,
+      questionLinkedCount: 10,
       contentCoveragePercent: 27.4,
-      questionCoveragePercent: 8.1,
+      questionCoveragePercent: 16.1,
     },
   });
   assert.equal(summary.byNodeType.SUBJECT.nodeCount, 9);
@@ -109,13 +112,15 @@ test("security certification deep node coverage exposes remaining major and sub 
   assert.equal(summary.byNodeType.SUB_ITEM.nodeCount, 95);
   assert.equal(summary.byNodeType.MAJOR_ITEM.contentLinkedCount, 6);
   assert.equal(summary.byNodeType.SUB_ITEM.contentLinkedCount, 18);
-  assert.equal(summary.byNodeType.SUB_ITEM.questionLinkedCount, 0);
+  assert.equal(summary.byNodeType.SUB_ITEM.questionLinkedCount, 12);
   assert.equal(summary.uncoveredRows.length, 104);
-  assert.equal(summary.questionGapRows.length, 24);
+  assert.equal(summary.questionGapRows.length, 14);
   assert.equal(
     summary.questionGapRows.every(
       (row) =>
+        row.stableKey === "ISE-2027-2029-01-02" ||
         row.stableKey.startsWith("ISE-2027-2029-01-02-") ||
+        row.stableKey === "ISIE-2027-2029-01-02" ||
         row.stableKey.startsWith("ISIE-2027-2029-01-02-"),
     ),
     true,
