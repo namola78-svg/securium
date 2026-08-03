@@ -1208,6 +1208,40 @@ export async function getCurriculumTreeCoverage(treeId: string) {
   };
 }
 
+export async function listUnlinkedCourseLessonsForCurriculumTree(
+  treeId: string,
+  limit = 8,
+) {
+  const tree = await getCurriculumTreeById(treeId);
+  if (!tree) return [];
+
+  return getDb()
+    .select({
+      id: courseLessons.id,
+      courseId: courseLessons.courseId,
+      contentId: courseLessons.contentId,
+      contentTitle: contents.title,
+      displayTitle: courseLessons.displayTitle,
+      sortOrder: courseLessons.sortOrder,
+      status: courseLessons.status,
+      updatedAt: courseLessons.updatedAt,
+    })
+    .from(courseLessons)
+    .innerJoin(contents, eq(courseLessons.contentId, contents.id))
+    .where(
+      and(
+        eq(courseLessons.courseId, tree.courseId),
+        eq(courseLessons.status, "PUBLISHED"),
+        isNull(courseLessons.curriculumNodeId),
+        isNull(courseLessons.deletedAt),
+        eq(contents.status, "PUBLISHED"),
+        isNull(contents.deletedAt),
+      ),
+    )
+    .orderBy(asc(courseLessons.sortOrder), asc(courseLessons.displayTitle))
+    .limit(limit);
+}
+
 export async function getCurriculumNodeTree(treeId: string) {
   const nodes = await listCurriculumNodes(treeId);
   return buildCurriculumTree(nodes);

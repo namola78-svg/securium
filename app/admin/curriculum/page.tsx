@@ -6,6 +6,7 @@ import {
   listCurriculumNodeOperationalStats,
   listCurriculumNodes,
   listCurriculumTrees,
+  listUnlinkedCourseLessonsForCurriculumTree,
 } from "@/db/curriculum-repositories";
 import { listAllCourses } from "@/db/repositories";
 import { listSharedContents } from "@/db/shared-content-repositories";
@@ -42,13 +43,14 @@ export default async function AdminCurriculumPage({
       ? treeId
       : trees[0]?.id ?? "";
   const selectedTree = trees.find((tree) => tree.id === selectedTreeId) ?? null;
-  const [nodes, nodeStats, coverage] = selectedTreeId
+  const [nodes, nodeStats, coverage, unlinkedCourseLessons] = selectedTreeId
     ? await Promise.all([
         listCurriculumNodes(selectedTreeId),
         listCurriculumNodeOperationalStats(selectedTreeId),
         getCurriculumTreeCoverage(selectedTreeId),
+        listUnlinkedCourseLessonsForCurriculumTree(selectedTreeId, 8),
       ])
-    : [[], [], null];
+    : [[], [], null, []];
   const linkableContent = selectedTree
     ? await listCurriculumLinkableContent(selectedTree.courseId)
     : [];
@@ -217,6 +219,59 @@ export default async function AdminCurriculumPage({
             <strong>{coverage.publishedQuestionCount}</strong>
             <small>선택 과정에 연결된 공개 문제 수</small>
           </div>
+        </section>
+      ) : null}
+      {coverage ? (
+        <section
+          className="admin-panel"
+          aria-labelledby="operational-unlinked-course-lessons-heading"
+        >
+          <div className="admin-panel-header">
+            <div>
+              <p className="eyebrow">OPERATIONAL COURSELESSON GAPS</p>
+              <h2 id="operational-unlinked-course-lessons-heading">
+                운영 미연결 CourseLesson
+              </h2>
+              <p>
+                운영 DB에서 공개 상태지만 커리큘럼 노드에 아직 연결되지 않은
+                CourseLesson입니다. 학습자 노출 데이터는 유지하면서 관리자에서
+                적절한 공식 노드에 연결하세요.
+              </p>
+            </div>
+            <span className="status-badge compact">
+              {coverage.unlinkedCourseLessonCount}개
+            </span>
+          </div>
+          {unlinkedCourseLessons.length ? (
+            <ul className="compact-list">
+              {unlinkedCourseLessons.map((lesson) => {
+                const params = new URLSearchParams({
+                  courseId: lesson.courseId,
+                  contentId: lesson.contentId,
+                });
+                return (
+                  <li key={lesson.id}>
+                    <strong>{lesson.displayTitle}</strong>
+                    <small>
+                      Content: {lesson.contentTitle} · 정렬 {lesson.sortOrder} ·{" "}
+                      {lesson.status}
+                    </small>
+                    <Link
+                      className="text-link"
+                      href={`/admin/shared-content?${params.toString()}`}
+                    >
+                      커리큘럼 노드 연결하기
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="admin-helper">
+              운영 DB 기준으로 커리큘럼 노드가 비어 있는 공개 CourseLesson이
+              없습니다.
+            </p>
+          )}
         </section>
       ) : null}
       <section

@@ -223,6 +223,11 @@ test("admin curriculum and shared content pages expose network security coverage
   assert.match(curriculumHtml, /문항 공백 노드가 없습니다/);
   assert.match(curriculumHtml, /공통 콘텐츠 관리로 이동/);
   assert.match(curriculumHtml, /\/admin\/shared-content\?courseId=course-ise/);
+  assert.match(curriculumHtml, /OPERATIONAL COURSELESSON GAPS/);
+  assert.match(
+    curriculumHtml,
+    /(\/admin\/shared-content\?courseId=course-ise&amp;contentId=|CourseLesson)/,
+  );
   assert.match(curriculumHtml, /운영 DB 선택 트리/);
   assert.match(curriculumHtml, /정식 seed 기준/);
   assert.match(curriculumHtml, /운영 반영 확인 포인트/);
