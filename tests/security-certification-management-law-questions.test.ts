@@ -15,7 +15,7 @@ import {
 test("management law question bank is engineer-only", () => {
   const readiness = getManagementLawQuestionBankReadiness();
 
-  assert.equal(readiness.questionCount, 6);
+  assert.equal(readiness.questionCount, 9);
   assert.deepEqual(MANAGEMENT_LAW_COURSE_IDS, ["course-ise"]);
   assert.deepEqual(MANAGEMENT_LAW_EXCLUDED_COURSE_IDS, ["course-isie"]);
   assert.equal(readiness.allPublished, true);
@@ -24,15 +24,15 @@ test("management law question bank is engineer-only", () => {
   assert.equal(readiness.allLinkedToEngineerCourseOnly, true);
   assert.equal(readiness.leaksToIndustrialEngineer, false);
   assert.equal(readiness.allLinkedToManagementContent, true);
-  assert.equal(readiness.subItemContentLinkedCount, 6);
+  assert.equal(readiness.subItemContentLinkedCount, 9);
   assert.deepEqual(readiness.courseCounts, {
-    "course-ise": 6,
+    "course-ise": 9,
     "course-isie": 0,
   });
   assert.deepEqual(readiness.typeCounts, {
-    TRUE_FALSE: 2,
-    SINGLE_CHOICE: 1,
-    MULTIPLE_CHOICE: 2,
+    TRUE_FALSE: 3,
+    SINGLE_CHOICE: 2,
+    MULTIPLE_CHOICE: 3,
     SHORT_ANSWER: 1,
   });
 });
