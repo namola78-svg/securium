@@ -273,12 +273,20 @@ function buildCoverageActionQueue(rows) {
 }
 
 function buildActionItem(row, type, message) {
-  return {
+  const item = {
     type,
     courseId: row.courseId,
     curriculumTreeId: row.id,
     message,
   };
+  if (type === "CONTENT_METADATA_GAP") {
+    return {
+      ...item,
+      basis: "curriculum_nodes.metadata.linkedContent",
+      note: "This checks DB metadata links, not the static security-certification content map.",
+    };
+  }
+  return item;
 }
 
 async function d1Query(configPath, statement) {

@@ -51,7 +51,7 @@ node --env-file=.env.local scripts/verify-security-certification-curriculum-cove
 | `TREE_STATUS` | 공식 CurriculumTree가 `ACTIVE`가 아님 |
 | `COURSELESSON_LINK_GAP` | 공개 CourseLesson 중 CurriculumNode 연결이 없는 항목이 있음 |
 | `OFFICIAL_COURSELESSON_GAP` | 공식 CourseLesson seed 기준 수량이 부족함 |
-| `CONTENT_METADATA_GAP` | CurriculumNode의 본문 Content 연결 확인이 필요함 |
+| `CONTENT_METADATA_GAP` | `curriculum_nodes.metadata.linkedContent` 기준 본문 Content 연결 확인이 필요함 |
 | `QUESTION_GAP` | 공개 문제 연결 확인이 필요함 |
 
 ## 주요 출력 필드
@@ -71,6 +71,8 @@ node --env-file=.env.local scripts/verify-security-certification-curriculum-cove
 | 정보보안산업기사 | 5 | 5 | 0 |
 
 위 값은 `SUBJECT`와 `PRACTICAL` 최상위 학습 개요 노드를 기준으로 한다. `MAJOR_ITEM`, `SUB_ITEM` 단위의 본문 Content 매핑은 과목별 정식 본문 구축 단계에서 확장한다.
+
+`CONTENT_METADATA_GAP`은 DB metadata의 직접 연결 여부를 확인한다. `lib/curriculum/security-certification-content-map.ts`의 정적 content map coverage와 기준이 다르므로, 운영 확인 시 두 값을 분리해서 해석한다.
 
 ## 실패 시 확인 순서
 

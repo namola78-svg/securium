@@ -109,6 +109,8 @@ test("security certification curriculum coverage script is read-only and reports
   assert.match(script, /buildCoverageActionQueue/);
   assert.match(script, /COURSELESSON_LINK_GAP/);
   assert.match(script, /CONTENT_METADATA_GAP/);
+  assert.match(script, /curriculum_nodes\.metadata\.linkedContent/);
+  assert.match(script, /static security-certification content map/);
   assert.match(script, /QUESTION_GAP/);
   assert.match(
     script,
