@@ -8,7 +8,12 @@ import {
   listCurriculumTrees,
 } from "@/db/curriculum-repositories";
 import { listAllCourses } from "@/db/repositories";
+import { listSharedContents } from "@/db/shared-content-repositories";
 import { requireCatalogManager } from "@/lib/auth";
+import {
+  recommendLinkableContentForNode,
+  recommendableContentKey,
+} from "@/lib/curriculum/content-recommendations";
 import {
   getSecurityCertificationOntologyCoverageSummaries,
   getSecurityCertificationOntologyGaps,
@@ -31,6 +36,7 @@ export default async function AdminCurriculumPage({
     listAllCourses(),
     listCurriculumTrees(),
   ]);
+  const sharedContents = await listSharedContents("PUBLISHED");
   const selectedTreeId =
     treeId && trees.some((tree) => tree.id === treeId)
       ? treeId
@@ -59,10 +65,48 @@ export default async function AdminCurriculumPage({
     selectedTree?.courseId && selectedTree.courseId in securityCertificationDeepCoverage.byCourse
       ? securityCertificationDeepCoverage.byCourse[selectedTree.courseId]
       : null;
+  const sharedContentRecommendationSources = sharedContents.map((content, index) => ({
+    type: "CONTENT" as const,
+    id: content.id,
+    title: content.title,
+    subtitle: [content.summary, content.canonicalKey, content.version]
+      .filter(Boolean)
+      .join(" · "),
+    active: content.status !== "ARCHIVED",
+    published: content.status === "PUBLISHED",
+    displayOrder: index,
+  }));
+  function contentRecommendationsForCoverageRow(row: {
+    title: string;
+    nodeType: string;
+    stableKey: string;
+    contentIds: string[];
+  }) {
+    return recommendLinkableContentForNode({
+      node: {
+        nodeType: row.nodeType,
+        title: row.title,
+        officialCode: row.stableKey,
+        path: row.stableKey,
+      },
+      linkableContent: sharedContentRecommendationSources,
+      linkedKeys: row.contentIds.map((contentId) =>
+        recommendableContentKey({ type: "CONTENT", id: contentId }),
+      ),
+      limit: 3,
+      minScore: 8,
+    });
+  }
   const uncoveredCertificationRows =
-    securityCertificationDeepCoverage.uncoveredRows.slice(0, 8);
+    securityCertificationDeepCoverage.uncoveredRows.slice(0, 8).map((row) => ({
+      ...row,
+      contentRecommendations: contentRecommendationsForCoverageRow(row),
+    }));
   const questionGapCertificationRows =
-    securityCertificationDeepCoverage.questionGapRows.slice(0, 8);
+    securityCertificationDeepCoverage.questionGapRows.slice(0, 8).map((row) => ({
+      ...row,
+      contentRecommendations: contentRecommendationsForCoverageRow(row),
+    }));
   const selectedSharedContentHref = selectedTree?.courseId
     ? `/admin/shared-content?courseId=${selectedTree.courseId}`
     : "/admin/shared-content";
@@ -309,6 +353,12 @@ export default async function AdminCurriculumPage({
                     <small>
                       {row.courseCode} · {row.nodeType} · {row.stableKey}
                     </small>
+                    <small>
+                      추천 후보 {row.contentRecommendations.length}개
+                      {row.contentRecommendations[0]
+                        ? ` · 최우선: ${row.contentRecommendations[0].title}`
+                        : " · 자동 추천 없음"}
+                    </small>
                     <Link
                       className="text-link"
                       href={sharedContentNodeHref(row)}
@@ -324,6 +374,7 @@ export default async function AdminCurriculumPage({
                 <Link className="text-link" href={selectedSharedContentHref}>
                   공통 콘텐츠 관리로 이동
                 </Link>
+                . gap이 생기면 추천 후보 수와 최우선 후보가 함께 표시됩니다.
               </p>
             )}
           </details>
@@ -349,6 +400,13 @@ export default async function AdminCurriculumPage({
                     <small>
                       {row.courseCode} · {row.nodeType} · {row.stableKey}
                     </small>
+                    <small>
+                      연결 Content {row.contentIds.length}개 · 추가 추천{" "}
+                      {row.contentRecommendations.length}개
+                      {row.contentRecommendations[0]
+                        ? ` · 최우선: ${row.contentRecommendations[0].title}`
+                        : ""}
+                    </small>
                     <Link
                       className="text-link"
                       href={sharedContentNodeHref(row)}
@@ -364,6 +422,7 @@ export default async function AdminCurriculumPage({
                 <Link className="text-link" href={selectedSharedContentHref}>
                   공통 콘텐츠 관리로 이동
                 </Link>
+                . gap이 생기면 연결 Content와 추가 추천 후보가 함께 표시됩니다.
               </p>
             )}
           </details>
