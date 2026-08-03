@@ -253,6 +253,10 @@ test("admin curriculum and shared content pages expose network security coverage
     sharedContentHtml,
     /(추천 Content 후보|자동으로 추천할 미연결 Content)/,
   );
+  assert.match(
+    sharedContentHtml,
+    /(임시 입력됩니다|자동으로 추천할 미연결 Content)/,
+  );
 });
 
 let networkQuestionSeedApplied = false;

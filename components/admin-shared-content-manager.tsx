@@ -94,6 +94,13 @@ type SharedContentRecommendationSource = {
   displayOrder: number;
 };
 
+type CourseLessonDraft = {
+  contentId: string;
+  displayTitle: string;
+  sortOrder: number;
+  estimatedMinutes: number;
+};
+
 const statuses = ["DRAFT", "PUBLISHED", "ARCHIVED"] as const;
 const bodyFormats = ["MARKDOWN", "STRUCTURED_JSON", "PLAIN_TEXT"] as const;
 const completionRules = ["MANUAL", "SCROLL_END", "MINIMUM_REQUIREMENTS"] as const;
@@ -142,6 +149,8 @@ export function AdminSharedContentManager({
   const [editingCourseLessonId, setEditingCourseLessonId] = useState(
     initialCourseLessonId || courseLessons[0]?.id || "",
   );
+  const [courseLessonDraft, setCourseLessonDraft] =
+    useState<CourseLessonDraft | null>(null);
   const [showSelectedNodeOnly, setShowSelectedNodeOnly] = useState(
     Boolean(selectedCurriculumNodeId),
   );
@@ -169,6 +178,14 @@ export function AdminSharedContentManager({
     selectedCurriculumNodeId && showSelectedNodeOnly
       ? selectedNodeCourseLessons
       : courseLessons;
+  const nextCourseLessonSortOrder =
+    Math.max(
+      0,
+      ...(selectedNodeCourseLessons.length
+        ? selectedNodeCourseLessons
+        : courseLessons
+      ).map((lesson) => lesson.sortOrder),
+    ) + 10;
   const linkedContentKeysForSelectedNode = new Set(
     selectedNodeCourseLessons.map((lesson) =>
       recommendableContentKey({ type: "CONTENT", id: lesson.contentId }),
@@ -511,7 +528,10 @@ export function AdminSharedContentManager({
               aria-label="수정할 CourseLesson 선택"
               className="admin-inline-select"
               value={editingCourseLessonId}
-              onChange={(event) => setEditingCourseLessonId(event.target.value)}
+              onChange={(event) => {
+                setCourseLessonDraft(null);
+                setEditingCourseLessonId(event.target.value);
+              }}
             >
               <option value="">새 CourseLesson</option>
               {displayedCourseLessons.map((lesson) => (
@@ -523,7 +543,10 @@ export function AdminSharedContentManager({
             <button
               className="button button-ghost"
               type="button"
-              onClick={() => setEditingCourseLessonId("")}
+              onClick={() => {
+                setCourseLessonDraft(null);
+                setEditingCourseLessonId("");
+              }}
             >
               새 연결
             </button>
@@ -573,7 +596,20 @@ export function AdminSharedContentManager({
               <button
                 className="button button-dark"
                 type="button"
-                onClick={() => setEditingCourseLessonId("")}
+                onClick={() => {
+                  const content = editingContent ?? contents[0] ?? null;
+                  setCourseLessonDraft(
+                    content
+                      ? {
+                          contentId: content.id,
+                          displayTitle: selectedCurriculumNode.title,
+                          sortOrder: nextCourseLessonSortOrder,
+                          estimatedMinutes: 10,
+                        }
+                      : null,
+                  );
+                  setEditingCourseLessonId("");
+                }}
               >
                 이 노드에 새 CourseLesson 연결
               </button>
@@ -588,7 +624,9 @@ export function AdminSharedContentManager({
                     <h4>추천 Content 후보</h4>
                     <p className="admin-helper">
                       노드명과 경로를 기준으로 아직 이 노드에 연결되지 않은
-                      공통 Content를 우선순위로 제안합니다.
+                      공통 Content를 우선순위로 제안합니다. 후보를 선택하면
+                      아래 CourseLesson 연결 폼의 Content, 제목, 정렬 순서가
+                      임시 입력됩니다.
                     </p>
                   </div>
                   <span className="status-badge compact">
@@ -603,6 +641,12 @@ export function AdminSharedContentManager({
                       type="button"
                       onClick={() => {
                         setEditingContentId(item.id);
+                        setCourseLessonDraft({
+                          contentId: item.id,
+                          displayTitle: item.title,
+                          sortOrder: nextCourseLessonSortOrder,
+                          estimatedMinutes: 10,
+                        });
                         setEditingCourseLessonId("");
                       }}
                     >
@@ -641,7 +685,7 @@ export function AdminSharedContentManager({
           action={saveCourseLesson}
           key={
             editingCourseLesson?.id ??
-            `new-course-lesson-${editingContentId}-${selectedCurriculumNodeId}`
+            `new-course-lesson-${courseLessonDraft?.contentId ?? editingContentId}-${selectedCurriculumNodeId}-${courseLessonDraft?.displayTitle ?? ""}`
           }
         >
           <input name="id" type="hidden" value={editingCourseLesson?.id ?? ""} />
@@ -651,7 +695,11 @@ export function AdminSharedContentManager({
               name="contentId"
               required
               defaultValue={
-                editingCourseLesson?.contentId ?? editingContentId ?? contents[0]?.id ?? ""
+                editingCourseLesson?.contentId ??
+                courseLessonDraft?.contentId ??
+                editingContentId ??
+                contents[0]?.id ??
+                ""
               }
             >
               {contents.map((content) => (
@@ -685,7 +733,11 @@ export function AdminSharedContentManager({
             <input
               name="displayTitle"
               required
-              defaultValue={editingCourseLesson?.displayTitle ?? ""}
+              defaultValue={
+                editingCourseLesson?.displayTitle ??
+                courseLessonDraft?.displayTitle ??
+                ""
+              }
             />
           </label>
           <label>
@@ -694,7 +746,11 @@ export function AdminSharedContentManager({
               name="sortOrder"
               type="number"
               min={0}
-              defaultValue={editingCourseLesson?.sortOrder ?? 10}
+              defaultValue={
+                editingCourseLesson?.sortOrder ??
+                courseLessonDraft?.sortOrder ??
+                nextCourseLessonSortOrder
+              }
             />
           </label>
           <label>
@@ -722,7 +778,11 @@ export function AdminSharedContentManager({
               type="number"
               min={1}
               max={1440}
-              defaultValue={editingCourseLesson?.estimatedMinutes ?? 10}
+              defaultValue={
+                editingCourseLesson?.estimatedMinutes ??
+                courseLessonDraft?.estimatedMinutes ??
+                10
+              }
             />
           </label>
           <label>
