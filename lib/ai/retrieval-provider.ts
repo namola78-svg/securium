@@ -5,6 +5,12 @@ export type RetrievalSearchOptions = {
   limit?: number;
 };
 
+export type ConceptAwareRetrievalCandidate = {
+  label: string;
+  aliases?: readonly string[];
+  courseIds?: readonly string[];
+};
+
 export interface RetrievalProvider {
   search(options: RetrievalSearchOptions): Promise<RetrievalContext[]>;
   searchByCourse(
@@ -57,4 +63,50 @@ export function validateEmbeddingVector(
 
 export function clampRetrievalLimit(limit = 8) {
   return Math.max(1, Math.min(limit, 12));
+}
+
+export function expandRetrievalQueriesWithConceptAliases(
+  options: RetrievalSearchOptions & { courseId?: string },
+  candidates: readonly ConceptAwareRetrievalCandidate[],
+  aliasLimit = 4,
+) {
+  const query = normalizeRetrievalQuery(options.query);
+  if (!query) return [""];
+
+  const expanded = [options.query.trim()];
+  for (const candidate of candidates) {
+    if (
+      options.courseId &&
+      candidate.courseIds?.length &&
+      !candidate.courseIds.includes(options.courseId)
+    ) {
+      continue;
+    }
+
+    const labels = [candidate.label, ...(candidate.aliases ?? [])]
+      .map((value) => value.trim())
+      .filter(Boolean);
+    const matched = labels.some((label) => {
+      const normalized = normalizeRetrievalQuery(label);
+      return normalized.includes(query) || query.includes(normalized);
+    });
+    if (!matched) continue;
+
+    for (const label of labels) {
+      if (normalizeRetrievalQuery(label) === query) continue;
+      expanded.push(label);
+      if (expanded.length > aliasLimit) break;
+    }
+    if (expanded.length > aliasLimit) break;
+  }
+
+  return [...new Set(expanded)].slice(0, Math.max(1, aliasLimit + 1));
+}
+
+function normalizeRetrievalQuery(value: string) {
+  return value
+    .normalize("NFKC")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
 }

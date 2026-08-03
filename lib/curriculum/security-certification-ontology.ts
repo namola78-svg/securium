@@ -5,6 +5,7 @@ import { managementLawQuestionSamples } from "../data/security-certification-man
 import { networkSecurityQuestionSamples } from "../data/security-certification-network-security-questions.mjs";
 import { practicalSecurityQuestionSamples } from "../data/security-certification-practical-questions.mjs";
 import { systemSecurityQuestionSamples } from "../data/security-certification-system-security-questions.mjs";
+import type { ConceptAwareRetrievalCandidate } from "../ai/retrieval-provider.ts";
 import {
   createOntologyEdge,
   createCurriculumContentOntologyEdges,
@@ -271,6 +272,22 @@ export function getSecurityCertificationOntologyGaps(
     ),
     edges: buildSecurityCertificationOntologyEdges(),
   });
+}
+
+export function getSecurityCertificationRetrievalConceptAliases(): ConceptAwareRetrievalCandidate[] {
+  const courseIdsByConceptKey = new Map<string, Set<string>>();
+  for (const edge of buildSecurityCertificationOntologyEdges()) {
+    if (edge.toType !== "CONCEPT") continue;
+    const courseIds = courseIdsByConceptKey.get(edge.toId) ?? new Set<string>();
+    if (edge.courseId) courseIds.add(edge.courseId);
+    courseIdsByConceptKey.set(edge.toId, courseIds);
+  }
+
+  return buildSecurityCertificationOntologyConcepts().map((concept) => ({
+    label: concept.label,
+    aliases: concept.aliases,
+    courseIds: [...(courseIdsByConceptKey.get(concept.key) ?? new Set<string>())],
+  }));
 }
 
 function uniqueOntologyEdges(edges: OntologyEdge[]) {

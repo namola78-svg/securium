@@ -12,6 +12,7 @@ import {
   INSUFFICIENT_CONTEXT_MESSAGE,
   type QuestionExplanationInput,
 } from "../lib/ai/types.ts";
+import { expandRetrievalQueriesWithConceptAliases } from "../lib/ai/retrieval-provider.ts";
 
 function explanationInput(
   contexts: QuestionExplanationInput["contexts"] = [
@@ -201,4 +202,28 @@ test("보안약점 AI 설명은 코드를 실행하지 않는다", async () => {
   });
   assert.equal(result.content.codeExecuted, false);
   assert.equal(result.content.weaknessClassification, "SQL 삽입");
+});
+
+test("RetrievalProvider query expansion adds course-scoped concept aliases", () => {
+  const expanded = expandRetrievalQueriesWithConceptAliases(
+    { query: "access control", courseId: "course-ise", limit: 8 },
+    [
+      {
+        label: "access control",
+        aliases: ["Access Control", "RBAC", "permission management"],
+        courseIds: ["course-ise"],
+      },
+      {
+        label: "privacy impact assessment",
+        aliases: ["PIA"],
+        courseIds: ["course-pia"],
+      },
+    ],
+  );
+
+  assert.deepEqual(expanded, [
+    "access control",
+    "RBAC",
+    "permission management",
+  ]);
 });

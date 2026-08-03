@@ -6,6 +6,7 @@ import {
   buildSecurityCertificationQuestionOntologyEdges,
   getSecurityCertificationOntologyCoverageSummaries,
   getSecurityCertificationOntologyGaps,
+  getSecurityCertificationRetrievalConceptAliases,
   officialCurriculumNodeId,
 } from "../lib/curriculum/security-certification-ontology.ts";
 import {
@@ -137,4 +138,16 @@ test("ontology gap ranking can be requested for a single official tree", () => {
   assert.ok(gaps.length > 0);
   assert.ok(gaps.every((gap) => gap.courseId === "course-ise"));
   assert.ok(gaps[0].reasons.includes("NO_CURRICULUM_EDGE"));
+});
+
+test("security certification ontology exposes course-scoped concept aliases for retrieval", () => {
+  const aliases = getSecurityCertificationRetrievalConceptAliases();
+  const accessControl = aliases.find(
+    (candidate) => candidate.label === "계정 관리",
+  );
+
+  assert.ok(aliases.length > 20);
+  assert.ok(accessControl);
+  assert.ok(accessControl.courseIds?.includes("course-ise"));
+  assert.ok(accessControl.courseIds?.includes("course-isie"));
 });
