@@ -153,3 +153,12 @@ test("security certification coverage verifier exposes safe help without DB acce
   assert.match(result.stdout, /--action-queue/);
   assert.match(result.stdout, /coverage-actions:postgres/);
 });
+
+test("operations readiness documents curriculum coverage action queue", () => {
+  const docs = readFileSync("docs/operations-readiness.md", "utf8");
+
+  assert.match(docs, /coverage-actions:d1-local/);
+  assert.match(docs, /coverage-actions:postgres/);
+  assert.match(docs, /CONTENT_METADATA_GAP/);
+  assert.match(docs, /Operational readiness/);
+});

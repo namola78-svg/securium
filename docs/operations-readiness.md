@@ -115,4 +115,30 @@ node --env-file=.env.local scripts/verify-security-certification-curriculum-cove
 
 **CONDITIONAL GO**
 
+## 정보보안 자격 커리큘럼 최신 운영 점검 절차
+
+다음 명령은 읽기 전용 점검이다. Production DB migration, seed 적용, CurriculumTree `ACTIVE` 전환은 별도 승인 후 수행한다.
+
+로컬 D1 기준 action queue 확인:
+
+```bash
+npm run curriculum:security-certification:coverage-actions:d1-local
+```
+
+운영 PostgreSQL/Supabase 기준 action queue 확인:
+
+```bash
+npm run curriculum:security-certification:coverage-actions:postgres
+```
+
+운영 점검 시 `actionQueue`는 다음 순서로 해석한다.
+
+1. `TREE_STATUS`: 공식 트리가 `ACTIVE`인지 확인한다.
+2. `COURSELESSON_LINK_GAP`: 공개 CourseLesson 중 CurriculumNode가 비어 있는 항목을 먼저 연결한다.
+3. `OFFICIAL_COURSELESSON_GAP`: 공식 CourseLesson seed 기준 수량이 부족한지 확인한다.
+4. `CONTENT_METADATA_GAP`: `curriculum_nodes.metadata.linkedContent` 기준 직접 연결 상태를 확인한다.
+5. `QUESTION_GAP`: 공개 문제 연결 상태를 확인한다.
+
+`CONTENT_METADATA_GAP`은 정적 content map coverage와 다른 기준이다. 관리자 화면의 `Operational readiness`와 CLI의 `basis` 필드를 함께 확인한다.
+
 코드와 Vercel 최신 배포는 진행 가능 상태다. 다만 Production 운영 전에는 Supabase PostgreSQL 커리큘럼 데이터, Storage/RLS, Dependency Audit, 인증/로그아웃 브라우저 회귀 검증을 완료해야 한다.
