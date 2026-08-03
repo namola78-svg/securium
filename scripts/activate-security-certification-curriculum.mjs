@@ -60,9 +60,19 @@ async function checkActivationReadinessWithPostgres() {
 
   try {
     const rows = await sql.unsafe(buildPreActivationSql());
+    const activationPlan = await sql.unsafe(buildActivationPlanSql());
     assertPreActivationCoverage(rows);
     console.log("SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION_CHECK_POSTGRES_OK");
-    console.log(JSON.stringify(rows, null, 2));
+    console.log(
+      JSON.stringify(
+        {
+          readiness: rows,
+          activationPlan,
+        },
+        null,
+        2,
+      ),
+    );
   } catch (error) {
     fail(
       "SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION_CHECK_POSTGRES_FAILED",
@@ -134,6 +144,27 @@ async function activateWithPostgres() {
   } finally {
     await sql.end({ timeout: 5 });
   }
+}
+
+function buildActivationPlanSql() {
+  const treeIds = targetTreeIds.map(sqlString).join(",");
+  const courseIds = targetCourseIds.map(sqlString).join(",");
+
+  return `
+SELECT
+  id,
+  course_id AS "courseId",
+  title,
+  status AS "currentStatus",
+  CASE
+    WHEN id IN (${treeIds}) THEN 'ACTIVATE'
+    WHEN course_id IN (${courseIds}) AND status = 'ACTIVE' THEN 'ARCHIVE'
+    ELSE 'UNCHANGED'
+  END AS "plannedAction"
+FROM curriculum_trees
+WHERE id IN (${treeIds})
+   OR (course_id IN (${courseIds}) AND status = 'ACTIVE')
+ORDER BY course_id, id;`;
 }
 
 function buildPreActivationSql() {

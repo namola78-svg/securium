@@ -121,7 +121,10 @@ npm run curriculum:security-certification:activate:check:postgres
 
 This command only reads PostgreSQL/Supabase and prints
 `SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION_CHECK_POSTGRES_OK` when the
-official trees are ready. The actual activation command remains gated by both
+official trees are ready. Its JSON output includes `readiness` rows and an
+`activationPlan` with planned `ACTIVATE`, `ARCHIVE`, or `UNCHANGED` actions so
+operators can review the exact status changes before approval. The actual
+activation command remains gated by both
 `--confirm-production-activation` and
 `SECURIUM_CONFIRM_SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION`.
 

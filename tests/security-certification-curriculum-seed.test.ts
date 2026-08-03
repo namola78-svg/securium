@@ -97,7 +97,12 @@ test("security certification curriculum activation requires clean precheck", () 
   assert.match(script, /SECURIUM_CONFIRM_SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION/);
   assert.match(script, /SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION_CHECK_POSTGRES_OK/);
   assert.match(script, /buildPreActivationSql/);
+  assert.match(script, /buildActivationPlanSql/);
   assert.match(script, /assertPreActivationCoverage/);
+  assert.match(script, /activationPlan/);
+  assert.match(script, /plannedAction/);
+  assert.match(script, /ACTIVATE/);
+  assert.match(script, /ARCHIVE/);
   assert.match(script, /metadata_target_node_count/);
   assert.match(script, /metadata_linked_node_count/);
   assert.match(script, /official_unlinked_course_lesson_count/);
