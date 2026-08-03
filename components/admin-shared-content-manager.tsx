@@ -127,6 +127,9 @@ export function AdminSharedContentManager({
   const [editingCourseLessonId, setEditingCourseLessonId] = useState(
     initialCourseLessonId || courseLessons[0]?.id || "",
   );
+  const [showSelectedNodeOnly, setShowSelectedNodeOnly] = useState(
+    Boolean(selectedCurriculumNodeId),
+  );
   const [contentQuery, setContentQuery] = useState("");
   const [contentStatusFilter, setContentStatusFilter] = useState("ALL");
   const [contentPage, setContentPage] = useState(1);
@@ -147,6 +150,10 @@ export function AdminSharedContentManager({
         (lesson) => lesson.curriculumNodeId === selectedCurriculumNodeId,
       )
     : [];
+  const displayedCourseLessons =
+    selectedCurriculumNodeId && showSelectedNodeOnly
+      ? selectedNodeCourseLessons
+      : courseLessons;
   const selectedTreeLabel = useMemo(() => {
     const active = curriculumTrees.find((tree) => tree.status === "ACTIVE");
     const fallback = curriculumTrees[0];
@@ -465,7 +472,7 @@ export function AdminSharedContentManager({
               onChange={(event) => setEditingCourseLessonId(event.target.value)}
             >
               <option value="">새 CourseLesson</option>
-              {courseLessons.map((lesson) => (
+              {displayedCourseLessons.map((lesson) => (
                 <option key={lesson.id} value={lesson.id}>
                   {lesson.displayTitle} · {lesson.status}
                 </option>
@@ -499,6 +506,36 @@ export function AdminSharedContentManager({
               커버리지 화면에서 넘어온 노드입니다. 새 CourseLesson을 만들 때
               아래 커리큘럼 노드 필드에 기본 선택됩니다.
             </p>
+            <div className="admin-inline-actions">
+              <button
+                className="button button-ghost"
+                type="button"
+                onClick={() => {
+                  const nextValue = !showSelectedNodeOnly;
+                  setShowSelectedNodeOnly(nextValue);
+                  if (
+                    nextValue &&
+                    editingCourseLessonId &&
+                    !selectedNodeCourseLessons.some(
+                      (lesson) => lesson.id === editingCourseLessonId,
+                    )
+                  ) {
+                    setEditingCourseLessonId("");
+                  }
+                }}
+              >
+                {showSelectedNodeOnly
+                  ? "전체 CourseLesson 보기"
+                  : "선택 노드 연결만 보기"}
+              </button>
+              <button
+                className="button button-dark"
+                type="button"
+                onClick={() => setEditingCourseLessonId("")}
+              >
+                이 노드에 새 CourseLesson 연결
+              </button>
+            </div>
           </div>
         ) : null}
         <form

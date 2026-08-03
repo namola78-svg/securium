@@ -247,6 +247,8 @@ test("admin curriculum and shared content pages expose network security coverage
   assert.match(sharedContentHtml, /PUBLISHED/);
   assert.match(sharedContentHtml, /선택된 커리큘럼 노드/);
   assert.match(sharedContentHtml, /커버리지 화면에서 넘어온 노드입니다/);
+  assert.match(sharedContentHtml, /전체 CourseLesson 보기/);
+  assert.match(sharedContentHtml, /이 노드에 새 CourseLesson 연결/);
 });
 
 let networkQuestionSeedApplied = false;
