@@ -15,11 +15,11 @@ import {
 test("security certification course lesson seed reuses shared contents across engineer tracks", () => {
   const stats = getSecurityCertificationCourseLessonSeedStats();
 
-  assert.equal(stats.contentCount, 18);
-  assert.equal(stats.courseLessonCount, 35);
+  assert.equal(stats.contentCount, 21);
+  assert.equal(stats.courseLessonCount, 41);
   assert.equal(stats.courseLessonExtensionCount, 2);
-  assert.equal(stats.linkedContentCount, 18);
-  assert.equal(stats.reusedContentCount, 17);
+  assert.equal(stats.linkedContentCount, 21);
+  assert.equal(stats.reusedContentCount, 20);
   assert.equal(stats.allLessonsHaveKnownContent, true);
   assert.equal(stats.expectedTopLevelNodeCount, 11);
   assert.equal(stats.mappedTopLevelNodeCount, 11);
@@ -34,8 +34,8 @@ test("security certification course lesson seed keeps course progress separated"
     (lesson) => lesson.courseId === "course-isie",
   );
 
-  assert.equal(engineerLessons.length, 18);
-  assert.equal(industrialLessons.length, 17);
+  assert.equal(engineerLessons.length, 21);
+  assert.equal(industrialLessons.length, 20);
 
   const courseLessonIds = new Set(
     officialSecurityCertificationCourseLessons.map((lesson) => lesson.id),
@@ -256,6 +256,48 @@ test("network security major items are split into shared CourseLessons", () => {
       new Set(linkedLessons.map((lesson) => lesson.curriculumNodeId)).size,
       2,
       `${contentId} should keep course-specific curriculum node progress`,
+    );
+  }
+});
+
+test("system security major items are split into shared CourseLessons", () => {
+  const majorItemContentIds = [
+    "content-official-security-cert-system-scope-understanding",
+    "content-official-security-cert-system-threats-attacks",
+    "content-official-security-cert-system-prevention-response",
+  ];
+  const majorItemContents = officialSecurityCertificationContents.filter((content) =>
+    majorItemContentIds.includes(content.id),
+  );
+
+  assert.equal(majorItemContents.length, 3);
+  for (const content of majorItemContents) {
+    assert.match(content.body, /공식 출제기준의 주요항목/);
+    assert.match(content.body, /SECURIUM 자체 작성 자료/);
+    assert.equal(content.learningObjectives.length, 3);
+    assert.equal(content.coreConcepts.length >= 8, true);
+    assert.equal(content.practicalExamples.length, 3);
+  }
+
+  for (const contentId of majorItemContentIds) {
+    const linkedLessons = officialSecurityCertificationCourseLessons
+      .filter((lesson) => lesson.contentId === contentId)
+      .sort((a, b) => a.courseId.localeCompare(b.courseId));
+
+    assert.deepEqual(
+      linkedLessons.map((lesson) => lesson.courseId),
+      ["course-ise", "course-isie"],
+      `${contentId} should be shared by both security certification tracks`,
+    );
+    assert.equal(
+      new Set(linkedLessons.map((lesson) => lesson.curriculumNodeId)).size,
+      2,
+      `${contentId} should keep course-specific curriculum node progress`,
+    );
+    assert.equal(
+      linkedLessons.every((lesson) => lesson.sortOrder >= 2),
+      true,
+      `${contentId} should be ordered after the system security subject overview`,
     );
   }
 });
