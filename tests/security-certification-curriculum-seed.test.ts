@@ -107,6 +107,9 @@ test("security certification curriculum coverage script is read-only and reports
   assert.match(script, /--allow-inactive/);
   assert.match(script, /--action-queue/);
   assert.match(script, /buildCoverageActionQueue/);
+  assert.match(script, /severity: actionSeverity/);
+  assert.match(script, /nextStep: actionNextStep/);
+  assert.match(script, /Request explicit production activation/);
   assert.match(script, /COURSELESSON_LINK_GAP/);
   assert.match(script, /CONTENT_METADATA_GAP/);
   assert.match(script, /curriculum_nodes\.metadata\.linkedContent/);
@@ -126,6 +129,18 @@ test("security certification curriculum coverage script is read-only and reports
   assert.doesNotMatch(script, /\bUPDATE\b/i);
   assert.doesNotMatch(script, /\bDELETE\b/i);
   assert.doesNotMatch(script, /\bDROP\b/i);
+});
+
+test("security certification coverage action queue documents triage fields", () => {
+  const docs = readFileSync(
+    "docs/curriculum/security-certification-course-lessons-coverage.md",
+    "utf8",
+  );
+
+  assert.match(docs, /Action queue triage fields/);
+  assert.match(docs, /severity/);
+  assert.match(docs, /nextStep/);
+  assert.match(docs, /read-only coverage results/);
 });
 
 test("security certification coverage action queue has npm entrypoints", () => {

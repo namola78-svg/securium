@@ -74,6 +74,12 @@ node --env-file=.env.local scripts/verify-security-certification-curriculum-cove
 
 `CONTENT_METADATA_GAP`은 DB metadata의 직접 연결 여부를 확인한다. `lib/curriculum/security-certification-content-map.ts`의 정적 content map coverage와 기준이 다르므로, 운영 확인 시 두 값을 분리해서 해석한다.
 
+## Action queue triage fields
+
+Each `actionQueue` item includes `severity` and `nextStep` so operators can
+triage read-only coverage results before requesting production activation or seed
+approval.
+
 ## 실패 시 확인 순서
 
 1. PostgreSQL migration 상태가 최신인지 확인한다.

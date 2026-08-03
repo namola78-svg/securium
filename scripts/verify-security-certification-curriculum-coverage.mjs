@@ -275,9 +275,11 @@ function buildCoverageActionQueue(rows) {
 function buildActionItem(row, type, message) {
   const item = {
     type,
+    severity: actionSeverity(type),
     courseId: row.courseId,
     curriculumTreeId: row.id,
     message,
+    nextStep: actionNextStep(type),
   };
   if (type === "CONTENT_METADATA_GAP") {
     return {
@@ -287,6 +289,34 @@ function buildActionItem(row, type, message) {
     };
   }
   return item;
+}
+
+function actionSeverity(type) {
+  if (type === "TREE_STATUS") return "high";
+  if (type === "COURSELESSON_LINK_GAP") return "high";
+  if (type === "OFFICIAL_COURSELESSON_GAP") return "medium";
+  if (type === "CONTENT_METADATA_GAP") return "medium";
+  if (type === "QUESTION_GAP") return "medium";
+  return "low";
+}
+
+function actionNextStep(type) {
+  if (type === "TREE_STATUS") {
+    return "Request explicit production activation only after read-only checks are clean.";
+  }
+  if (type === "COURSELESSON_LINK_GAP") {
+    return "Open admin shared content and connect the CourseLesson to the matching CurriculumNode.";
+  }
+  if (type === "OFFICIAL_COURSELESSON_GAP") {
+    return "Review the official CourseLesson seed coverage before production seed approval.";
+  }
+  if (type === "CONTENT_METADATA_GAP") {
+    return "Confirm linkedContent metadata or connect reusable Content through the admin UI.";
+  }
+  if (type === "QUESTION_GAP") {
+    return "Confirm published question coverage for the selected official curriculum tree.";
+  }
+  return "Review the reported gap before requesting production changes.";
 }
 
 async function d1Query(configPath, statement) {
