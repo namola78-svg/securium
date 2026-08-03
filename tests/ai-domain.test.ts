@@ -16,6 +16,10 @@ import {
   describeRetrievalQueryExpansion,
   expandRetrievalQueriesWithConceptAliases,
 } from "../lib/ai/retrieval-provider.ts";
+import {
+  buildAIExplainabilityTrace,
+  summarizeAITraceMetrics,
+} from "../lib/ai/explainability.ts";
 
 function explanationInput(
   contexts: QuestionExplanationInput["contexts"] = [
@@ -265,4 +269,107 @@ test("RetrievalProvider query expansion diagnostics explain matched aliases", ()
   assert.deepEqual(diagnostics.matchedConceptLabels, ["access control"]);
   assert.equal(diagnostics.candidateCount, 2);
   assert.equal(diagnostics.scopedCandidateCount, 1);
+});
+
+test("AI explainability trace exposes concepts, citations, metrics and prompt fingerprint", () => {
+  const trace = buildAIExplainabilityTrace(
+    {
+      id: "ai-record-1",
+      requestId: "request-1",
+      source: "QUESTION_EXPLANATION",
+      courseId: "course-ise",
+      courseName: "정보보안기사",
+      userEmail: "learner@example.invalid",
+      targetType: "QUESTION",
+      targetId: "question-1",
+      query: "RBAC",
+      provider: "mock",
+      model: "mock-ai-v1",
+      generationStatus: "generated",
+      generatedAt: "2026-08-04T00:00:00.000Z",
+      sourceContextIds: ["LESSON:lesson-1"],
+      contexts: [
+        {
+          id: "LESSON:lesson-1",
+          kind: "LESSON",
+          title: "접근통제 개요",
+          excerpt: "역할 기반 접근통제 설명",
+          courseId: "course-ise",
+          topicId: null,
+          version: "1",
+          reviewedAt: "2026-08-04T00:00:00.000Z",
+        },
+      ],
+      result: { intent: "접근통제 이해" },
+      promptFingerprint: "sha256:prompt",
+      inputTokens: 10,
+      outputTokens: 20,
+      estimatedCostMicros: 30,
+      latencyMs: 40,
+      disclaimer: "AI generated reference.",
+    },
+    [
+      {
+        label: "접근통제",
+        aliases: ["RBAC", "Access Control"],
+        courseIds: ["course-ise"],
+      },
+    ],
+  );
+
+  assert.deepEqual(trace.detectedConcepts, ["접근통제"]);
+  assert.ok(trace.aliasExpansion.expandedQueries.includes("Access Control"));
+  assert.equal(trace.citations[0]?.title, "접근통제 개요");
+  assert.equal(trace.metrics.totalTokens, 30);
+  assert.equal(trace.metrics.estimatedCostMicros, 30);
+  assert.equal(trace.promptViewer.fullPromptStored, false);
+  assert.equal(trace.promptViewer.fingerprint, "sha256:prompt");
+});
+
+test("AI explainability metric summary handles empty and populated traces", () => {
+  assert.deepEqual(summarizeAITraceMetrics([]), {
+    count: 0,
+    totalTokens: 0,
+    totalCostMicros: 0,
+    averageLatencyMs: 0,
+  });
+
+  const makeTrace = (latencyMs: number, inputTokens: number, outputTokens: number) =>
+    buildAIExplainabilityTrace(
+      {
+        id: crypto.randomUUID(),
+        requestId: crypto.randomUUID(),
+        source: "SPECIALIZED_REVIEW",
+        courseId: "course-ise",
+        courseName: "정보보안기사",
+        userEmail: "learner@example.invalid",
+        targetType: "SECURE_CODE",
+        targetId: "sample-1",
+        query: "SQL Injection",
+        provider: "mock",
+        model: "mock-ai-v1",
+        generationStatus: "generated",
+        generatedAt: "2026-08-04T00:00:00.000Z",
+        sourceContextIds: [],
+        contexts: [],
+        result: {},
+        promptFingerprint: "sha256:test",
+        inputTokens,
+        outputTokens,
+        estimatedCostMicros: inputTokens + outputTokens,
+        latencyMs,
+        disclaimer: "AI generated reference.",
+      },
+      [],
+    );
+
+  assert.deepEqual(summarizeAITraceMetrics([
+    makeTrace(100, 5, 7),
+    makeTrace(200, 11, 17),
+  ]), {
+    count: 2,
+    totalTokens: 40,
+    totalCostMicros: 40,
+    averageLatencyMs: 150,
+  });
 });

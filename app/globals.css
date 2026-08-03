@@ -5450,9 +5450,114 @@ a.specialized-card:hover {
   font-weight: 700;
 }
 
+.admin-summary-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 1rem;
+}
+
+.admin-summary-grid .admin-panel {
+  margin-bottom: 0;
+}
+
+.admin-summary-grid strong {
+  display: block;
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  line-height: 1;
+  margin: .35rem 0;
+}
+
+.admin-summary-grid span {
+  color: var(--muted);
+}
+
+.ai-explainability-policy {
+  background:
+    linear-gradient(135deg, rgb(202 255 81 / 12%), transparent 48%),
+    var(--white);
+}
+
+.ai-trace-list {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.ai-trace-card {
+  display: grid;
+  gap: 1rem;
+}
+
+.ai-trace-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.ai-trace-header h2,
+.ai-trace-header p {
+  margin-block: 0 .35rem;
+}
+
+.ai-trace-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .75rem;
+}
+
+.ai-trace-facts div,
+.ai-trace-grid details {
+  min-width: 0;
+  padding: .9rem;
+  border: 1px solid var(--line);
+  border-radius: .85rem;
+  background: #f8faf6;
+}
+
+.ai-trace-facts dt {
+  color: var(--muted);
+  font-size: .8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.ai-trace-facts dd {
+  margin: .25rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.ai-trace-grid {
+  display: grid;
+  gap: .85rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ai-trace-grid summary {
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.ai-trace-grid small {
+  display: block;
+  color: var(--muted);
+  margin-top: .2rem;
+  overflow-wrap: anywhere;
+}
+
+.ai-trace-grid pre {
+  max-height: 24rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 900px) {
   .practical-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .scenario-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-summary-grid,
+  .ai-trace-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 640px) {
   .practical-card-grid, .analysis-form-grid, .explanation-panels, .code-diff,
@@ -5466,6 +5571,10 @@ a.specialized-card:hover {
   .specialized-ai-review > .button { width: 100%; }
   .admin-ai-review-card > header { flex-direction: column; }
   .admin-ai-actions .button { width: 100%; }
+  .admin-summary-grid,
+  .ai-trace-grid,
+  .ai-trace-facts { grid-template-columns: 1fr; }
+  .ai-trace-header { flex-direction: column; }
 }
 
 @media (prefers-reduced-motion: reduce) {

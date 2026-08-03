@@ -14,6 +14,7 @@ export function AdminNav() {
       <Link href="/admin/questions">문제은행</Link>
       <Link href="/admin/reviews">문제 검수</Link>
       <Link href="/admin/ai-reviews">AI 검수</Link>
+      <Link href="/admin/ai-explainability">AI Trace</Link>
       <Link href="/admin/mock-exams">모의고사</Link>
       <Link href="/admin/analytics">학습 통계</Link>
       <Link href="/admin/specialized">특화 콘텐츠</Link>
