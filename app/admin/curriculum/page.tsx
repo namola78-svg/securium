@@ -58,6 +58,10 @@ export default async function AdminCurriculumPage({
     selectedTree?.courseId && selectedTree.courseId in securityCertificationDeepCoverage.byCourse
       ? securityCertificationDeepCoverage.byCourse[selectedTree.courseId]
       : null;
+  const uncoveredCertificationRows =
+    securityCertificationDeepCoverage.uncoveredRows.slice(0, 8);
+  const questionGapCertificationRows =
+    securityCertificationDeepCoverage.questionGapRows.slice(0, 8);
   const operationalSummary = nodeStats.reduce(
     (summary, stat) => ({
       questionCount: summary.questionCount + stat.questionCount,
@@ -214,6 +218,66 @@ export default async function AdminCurriculumPage({
               </small>
             </div>
           ) : null}
+        </div>
+        <div className="admin-record-list" aria-label="공식 커리큘럼 커버리지 상세">
+          <details className="admin-record">
+            <summary>
+              <span>
+                <strong>Content 미연결 노드</strong>
+                <small>
+                  {securityCertificationDeepCoverage.uncoveredRows.length === 0
+                    ? "공식 커리큘럼 학습 노드에 Content가 모두 연결되었습니다."
+                    : `${securityCertificationDeepCoverage.uncoveredRows.length}개 노드 확인 필요`}
+                </small>
+              </span>
+              <span className="status-badge compact">
+                {securityCertificationDeepCoverage.uncoveredRows.length}개
+              </span>
+            </summary>
+            {uncoveredCertificationRows.length > 0 ? (
+              <ul className="compact-list">
+                {uncoveredCertificationRows.map((row) => (
+                  <li key={row.curriculumNodeId}>
+                    <strong>{row.title}</strong>
+                    <small>
+                      {row.courseCode} · {row.nodeType} · {row.stableKey}
+                    </small>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="admin-helper">미연결 Content 노드가 없습니다.</p>
+            )}
+          </details>
+          <details className="admin-record">
+            <summary>
+              <span>
+                <strong>문항 공백 노드</strong>
+                <small>
+                  {securityCertificationDeepCoverage.questionGapRows.length === 0
+                    ? "Content가 연결된 노드에 샘플 문항이 모두 연결되었습니다."
+                    : `${securityCertificationDeepCoverage.questionGapRows.length}개 노드 확인 필요`}
+                </small>
+              </span>
+              <span className="status-badge compact">
+                {securityCertificationDeepCoverage.questionGapRows.length}개
+              </span>
+            </summary>
+            {questionGapCertificationRows.length > 0 ? (
+              <ul className="compact-list">
+                {questionGapCertificationRows.map((row) => (
+                  <li key={row.curriculumNodeId}>
+                    <strong>{row.title}</strong>
+                    <small>
+                      {row.courseCode} · {row.nodeType} · {row.stableKey}
+                    </small>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="admin-helper">문항 공백 노드가 없습니다.</p>
+            )}
+          </details>
         </div>
       </section>
       <AdminCurriculumManager

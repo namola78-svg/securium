@@ -217,6 +217,10 @@ test("admin curriculum and shared content pages expose network security coverage
   assert.match(curriculumHtml, /전체 학습 노드/);
   assert.match(curriculumHtml, /문항 연결률/);
   assert.match(curriculumHtml, /100% 준비/);
+  assert.match(curriculumHtml, /Content 미연결 노드/);
+  assert.match(curriculumHtml, /문항 공백 노드/);
+  assert.match(curriculumHtml, /미연결 Content 노드가 없습니다/);
+  assert.match(curriculumHtml, /문항 공백 노드가 없습니다/);
 
   const sharedContentResponse = await fetch(
     `${baseUrl}/admin/shared-content?courseId=course-ise&contentId=content-official-security-cert-network-security-overview`,
