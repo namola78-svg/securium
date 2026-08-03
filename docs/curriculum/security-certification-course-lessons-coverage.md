@@ -98,6 +98,11 @@ approval.
 `curriculum_nodes.metadata`. The backfill preserves existing metadata fields and
 merges reusable `CONTENT` links from the official CourseLesson seed.
 
+Coverage uses learning-target nodes as the denominator for this gap. `TRACK`
+nodes such as `필기` and `실기` are structural grouping nodes, so they are
+excluded from `CONTENT_METADATA_GAP`. If the only remaining unlinked nodes are
+`TRACK` nodes, the learning content metadata coverage is considered clean.
+
 ```powershell
 npm run curriculum:security-certification:linked-content:stats
 npm run curriculum:security-certification:linked-content:d1-local

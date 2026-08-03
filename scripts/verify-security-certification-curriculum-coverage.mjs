@@ -112,6 +112,7 @@ tree_nodes AS (
   SELECT
     curriculum_tree_id,
     COUNT(*)${countCast} AS node_count,
+    SUM(CASE WHEN node_type <> 'TRACK' THEN 1 ELSE 0 END)${countCast} AS metadata_target_node_count,
     SUM(CASE WHEN metadata LIKE '%"linkedContent"%' THEN 1 ELSE 0 END)${countCast} AS metadata_linked_node_count
   FROM curriculum_nodes
   WHERE curriculum_tree_id IN (${treeIds})
@@ -148,6 +149,7 @@ SELECT
   t.title,
   t.status,
   COALESCE(n.node_count, 0) AS node_count,
+  COALESCE(n.metadata_target_node_count, 0) AS metadata_target_node_count,
   COALESCE(n.metadata_linked_node_count, 0) AS metadata_linked_node_count,
   COALESCE(cl.published_course_lesson_count, 0) AS published_course_lesson_count,
   COALESCE(cl.course_lesson_node_count, 0) AS course_lesson_node_count,
@@ -210,6 +212,9 @@ function normalizeCoverageRows(rows) {
     courseId: row.course_id ?? row.courseId,
     status: row.status,
     nodeCount: Number(row.node_count ?? row.nodeCount),
+    metadataTargetNodeCount: Number(
+      row.metadata_target_node_count ?? row.metadataTargetNodeCount ?? row.node_count ?? row.nodeCount,
+    ),
     metadataLinkedNodeCount: Number(
       row.metadata_linked_node_count ?? row.metadataLinkedNodeCount,
     ),
@@ -247,7 +252,10 @@ function buildCoverageActionQueue(
       Number(expected?.expectedOfficialCourseLessonCount ?? 0) -
         row.officialSeedCourseLessonCount,
     );
-    const contentMetadataGap = Math.max(0, row.nodeCount - row.metadataLinkedNodeCount);
+    const contentMetadataGap = Math.max(
+      0,
+      row.metadataTargetNodeCount - row.metadataLinkedNodeCount,
+    );
 
     if (row.status !== "ACTIVE") {
       items.push(buildActionItem(row, "TREE_STATUS", "공식 커리큘럼 트리를 ACTIVE로 전환"));
@@ -304,7 +312,7 @@ function buildActionItem(row, type, message) {
     return {
       ...item,
       basis: "curriculum_nodes.metadata.linkedContent",
-      note: "This checks DB metadata links, not the static security-certification content map.",
+      note: "This checks DB metadata links on learning-target nodes, excluding TRACK structure nodes.",
     };
   }
   return item;

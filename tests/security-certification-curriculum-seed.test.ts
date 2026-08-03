@@ -122,13 +122,16 @@ test("security certification curriculum coverage script is read-only and reports
   assert.match(script, /COURSELESSON_LINK_GAP/);
   assert.match(script, /CONTENT_METADATA_GAP/);
   assert.match(script, /curriculum_nodes\.metadata\.linkedContent/);
-  assert.match(script, /static security-certification content map/);
+  assert.match(script, /metadata_target_node_count/);
+  assert.match(script, /node_type <> 'TRACK'/);
+  assert.match(script, /excluding TRACK structure nodes/);
   assert.match(script, /QUESTION_GAP/);
   assert.match(
     script,
     /SECURITY_CERTIFICATION_CURRICULUM_COVERAGE_OFFICIAL_COURSE_LESSONS_LOW/,
   );
   assert.match(script, /metadata_linked_node_count/);
+  assert.match(script, /metadataTargetNodeCount/);
   assert.match(script, /published_question_count/);
   assert.match(
     script,
