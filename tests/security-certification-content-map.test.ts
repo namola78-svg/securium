@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   getSecurityCertificationContentMap,
+  getSecurityCertificationDeepNodeCoverageSummary,
   getSecurityCertificationContentMapSummary,
 } from "../lib/curriculum/security-certification-content-map.ts";
 
@@ -76,4 +77,38 @@ test("security certification content map marks practical nodes as shared content
     assert.equal(row.questionCount, 6);
     assert.deepEqual(row.questionCourseIds, ["course-ise", "course-isie"]);
   }
+});
+
+test("security certification deep node coverage exposes remaining major and sub item gaps", () => {
+  const summary = getSecurityCertificationDeepNodeCoverageSummary();
+
+  assert.equal(summary.nodeCount, 139);
+  assert.equal(summary.contentLinkedCount, 11);
+  assert.equal(summary.questionLinkedCount, 11);
+  assert.equal(summary.contentCoveragePercent, 7.9);
+  assert.equal(summary.questionCoveragePercent, 7.9);
+  assert.deepEqual(summary.byCourse, {
+    "course-ise": {
+      nodeCount: 77,
+      contentLinkedCount: 6,
+      questionLinkedCount: 6,
+      contentCoveragePercent: 7.8,
+      questionCoveragePercent: 7.8,
+    },
+    "course-isie": {
+      nodeCount: 62,
+      contentLinkedCount: 5,
+      questionLinkedCount: 5,
+      contentCoveragePercent: 8.1,
+      questionCoveragePercent: 8.1,
+    },
+  });
+  assert.equal(summary.byNodeType.SUBJECT.nodeCount, 9);
+  assert.equal(summary.byNodeType.PRACTICAL.nodeCount, 2);
+  assert.equal(summary.byNodeType.MAJOR_ITEM.nodeCount, 33);
+  assert.equal(summary.byNodeType.SUB_ITEM.nodeCount, 95);
+  assert.equal(summary.byNodeType.MAJOR_ITEM.contentLinkedCount, 0);
+  assert.equal(summary.byNodeType.SUB_ITEM.questionLinkedCount, 0);
+  assert.equal(summary.uncoveredRows.length, 128);
+  assert.equal(summary.questionGapRows.length, 0);
 });

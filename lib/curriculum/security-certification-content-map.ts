@@ -186,10 +186,90 @@ export function getSecurityCertificationContentMapSummary() {
   };
 }
 
+export function getSecurityCertificationDeepNodeCoverageSummary() {
+  const topLevelRowsByStableKey = new Map(
+    getSecurityCertificationContentMap().map((row) => [row.stableKey, row]),
+  );
+  const learningNodeTypes: OfficialCurriculumNodeType[] = [
+    "SUBJECT",
+    "PRACTICAL",
+    "MAJOR_ITEM",
+    "SUB_ITEM",
+  ];
+  const rows = SECURITY_CERTIFICATION_CURRICULUM_TREES.flatMap((tree) =>
+    flattenOfficialCurriculumTree(tree)
+      .filter((node) => learningNodeTypes.includes(node.nodeType))
+      .map((node) => {
+        const topLevelRow = topLevelRowsByStableKey.get(node.stableKey);
+        return {
+          treeId: tree.treeId,
+          courseId: tree.courseId,
+          courseCode: tree.courseCode,
+          stableKey: node.stableKey,
+          title: node.title,
+          nodeType: node.nodeType,
+          officialLevel: node.officialLevel,
+          depth: node.depth,
+          hasContent: Boolean(topLevelRow?.isMapped),
+          hasQuestions: Boolean(topLevelRow && topLevelRow.questionCount > 0),
+        };
+      }),
+  );
+
+  const byCourse = Object.fromEntries(
+    unique(rows.map((row) => row.courseId)).map((courseId) => {
+      const courseRows = rows.filter((row) => row.courseId === courseId);
+      return [
+        courseId,
+        summarizeDeepCoverageRows(courseRows),
+      ];
+    }),
+  );
+
+  return {
+    ...summarizeDeepCoverageRows(rows),
+    byCourse,
+    byNodeType: Object.fromEntries(
+      learningNodeTypes.map((nodeType) => {
+        const nodeRows = rows.filter((row) => row.nodeType === nodeType);
+        return [nodeType, summarizeDeepCoverageRows(nodeRows)];
+      }),
+    ),
+    uncoveredRows: rows.filter((row) => !row.hasContent),
+    questionGapRows: rows.filter((row) => row.hasContent && !row.hasQuestions),
+  };
+}
+
 function curriculumNodeIdFromStableKey(stableKey: string) {
   return `curriculum-node-${stableKey.toLowerCase()}`;
 }
 
 function unique<T>(values: T[]) {
   return [...new Set(values)];
+}
+
+function summarizeDeepCoverageRows(
+  rows: Array<{
+    hasContent: boolean;
+    hasQuestions: boolean;
+  }>,
+) {
+  const contentLinkedCount = rows.filter((row) => row.hasContent).length;
+  const questionLinkedCount = rows.filter((row) => row.hasQuestions).length;
+
+  return {
+    nodeCount: rows.length,
+    contentLinkedCount,
+    questionLinkedCount,
+    contentCoveragePercent: percent(contentLinkedCount, rows.length),
+    questionCoveragePercent: percent(questionLinkedCount, rows.length),
+  };
+}
+
+function percent(numerator: number, denominator: number) {
+  if (denominator === 0) {
+    return 0;
+  }
+
+  return Math.round((numerator / denominator) * 1000) / 10;
 }
