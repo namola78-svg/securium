@@ -81,6 +81,25 @@ test("security certification curriculum seed apply script gates remote data chan
   assert.match(script, /assertProductionSeedApproval\(\)/);
 });
 
+test("security certification curriculum activation requires clean precheck", () => {
+  const script = readFileSync(
+    "scripts/activate-security-certification-curriculum.mjs",
+    "utf8",
+  );
+
+  assert.match(script, /--confirm-production-activation/);
+  assert.match(script, /SECURIUM_CONFIRM_SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION/);
+  assert.match(script, /buildPreActivationSql/);
+  assert.match(script, /assertPreActivationCoverage/);
+  assert.match(script, /metadata_target_node_count/);
+  assert.match(script, /metadata_linked_node_count/);
+  assert.match(script, /official_unlinked_course_lesson_count/);
+  assert.match(script, /published_question_count/);
+  assert.match(script, /SECURITY_CERTIFICATION_CURRICULUM_PRECHECK_CONTENT_METADATA_GAP/);
+  assert.match(script, /SECURITY_CERTIFICATION_CURRICULUM_PRECHECK_COURSELESSON_LINK_GAP/);
+  assert.match(script, /SECURITY_CERTIFICATION_CURRICULUM_PRECHECK_QUESTION_GAP/);
+});
+
 test("security certification curriculum verification script checks D1 and Postgres targets", () => {
   const script = readFileSync(
     "scripts/verify-security-certification-curriculum-seed.mjs",

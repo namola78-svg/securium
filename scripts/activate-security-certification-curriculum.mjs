@@ -1,4 +1,5 @@
 import postgres from "postgres";
+import { officialSecurityCertificationCourseLessons } from "../lib/data/security-certification-course-lessons.mjs";
 
 const CONFIRM_FLAG = "--confirm-production-activation";
 const CONFIRM_ENV_NAME =
@@ -10,6 +11,26 @@ const targetTreeIds = [
   "curriculum-isie-2027-2029-official",
 ];
 const targetCourseIds = ["course-ise", "course-isie"];
+const expectedTrees = [
+  {
+    id: "curriculum-ise-2027-2029-official",
+    courseId: "course-ise",
+    minNodes: 79,
+    expectedOfficialCourseLessonCount:
+      officialSecurityCertificationCourseLessons.filter(
+        (lesson) => lesson.courseId === "course-ise",
+      ).length,
+  },
+  {
+    id: "curriculum-isie-2027-2029-official",
+    courseId: "course-isie",
+    minNodes: 64,
+    expectedOfficialCourseLessonCount:
+      officialSecurityCertificationCourseLessons.filter(
+        (lesson) => lesson.courseId === "course-isie",
+      ).length,
+  },
+];
 
 assertProductionActivationApproval();
 await activateWithPostgres();
@@ -32,6 +53,9 @@ async function activateWithPostgres() {
 
   try {
     await sql.begin(async (tx) => {
+      const preActivationRows = await tx.unsafe(buildPreActivationSql());
+      assertPreActivationCoverage(preActivationRows);
+
       await tx.unsafe(
         `UPDATE curriculum_trees
          SET status = 'ARCHIVED', updated_at = CURRENT_TIMESTAMP
@@ -71,6 +95,98 @@ async function activateWithPostgres() {
     );
   } finally {
     await sql.end({ timeout: 5 });
+  }
+}
+
+function buildPreActivationSql() {
+  const treeIds = targetTreeIds.map(sqlString).join(",");
+  const courseIds = targetCourseIds.map(sqlString).join(",");
+  const officialCourseLessonIds = officialSecurityCertificationCourseLessons
+    .map((lesson) => sqlString(lesson.id))
+    .join(",");
+
+  return `
+WITH official_trees AS (
+  SELECT id, course_id, status
+  FROM curriculum_trees
+  WHERE id IN (${treeIds})
+),
+tree_nodes AS (
+  SELECT
+    curriculum_tree_id,
+    COUNT(*)::int AS node_count,
+    SUM(CASE WHEN node_type <> 'TRACK' THEN 1 ELSE 0 END)::int AS metadata_target_node_count,
+    SUM(CASE WHEN metadata LIKE '%"linkedContent"%' THEN 1 ELSE 0 END)::int AS metadata_linked_node_count
+  FROM curriculum_nodes
+  WHERE curriculum_tree_id IN (${treeIds})
+    AND status <> 'ARCHIVED'
+  GROUP BY curriculum_tree_id
+),
+published_course_lessons AS (
+  SELECT
+    course_id,
+    SUM(CASE WHEN id IN (${officialCourseLessonIds}) THEN 1 ELSE 0 END)::int AS official_seed_course_lesson_count,
+    SUM(CASE WHEN id IN (${officialCourseLessonIds}) AND (curriculum_node_id IS NULL OR curriculum_node_id = '') THEN 1 ELSE 0 END)::int AS official_unlinked_course_lesson_count
+  FROM course_lessons
+  WHERE course_id IN (${courseIds})
+    AND status = 'PUBLISHED'
+    AND deleted_at IS NULL
+  GROUP BY course_id
+),
+published_course_questions AS (
+  SELECT
+    qc.course_id,
+    COUNT(DISTINCT qc.question_id)::int AS published_question_count
+  FROM question_courses qc
+  INNER JOIN questions q ON q.id = qc.question_id
+  WHERE qc.course_id IN (${courseIds})
+    AND q.status = 'PUBLISHED'
+  GROUP BY qc.course_id
+)
+SELECT
+  t.id,
+  t.course_id AS "courseId",
+  t.status,
+  COALESCE(n.node_count, 0) AS "nodeCount",
+  COALESCE(n.metadata_target_node_count, 0) AS "metadataTargetNodeCount",
+  COALESCE(n.metadata_linked_node_count, 0) AS "metadataLinkedNodeCount",
+  COALESCE(cl.official_seed_course_lesson_count, 0) AS "officialSeedCourseLessonCount",
+  COALESCE(cl.official_unlinked_course_lesson_count, 0) AS "officialUnlinkedCourseLessonCount",
+  COALESCE(pq.published_question_count, 0) AS "publishedQuestionCount"
+FROM official_trees t
+LEFT JOIN tree_nodes n ON n.curriculum_tree_id = t.id
+LEFT JOIN published_course_lessons cl ON cl.course_id = t.course_id
+LEFT JOIN published_course_questions pq ON pq.course_id = t.course_id
+ORDER BY t.id;`;
+}
+
+function assertPreActivationCoverage(rows) {
+  for (const expected of expectedTrees) {
+    const row = rows.find((item) => item.id === expected.id);
+    if (!row) fail("SECURITY_CERTIFICATION_CURRICULUM_PRECHECK_TREE_MISSING", expected.id);
+    if (row.courseId !== expected.courseId) {
+      fail("SECURITY_CERTIFICATION_CURRICULUM_PRECHECK_COURSE_MISMATCH", expected.id);
+    }
+    if (Number(row.nodeCount) < expected.minNodes) {
+      fail("SECURITY_CERTIFICATION_CURRICULUM_PRECHECK_NODE_COUNT_LOW", expected.id);
+    }
+    if (
+      Number(row.metadataTargetNodeCount) !== Number(row.metadataLinkedNodeCount)
+    ) {
+      fail("SECURITY_CERTIFICATION_CURRICULUM_PRECHECK_CONTENT_METADATA_GAP", expected.id);
+    }
+    if (
+      Number(row.officialSeedCourseLessonCount) <
+      expected.expectedOfficialCourseLessonCount
+    ) {
+      fail("SECURITY_CERTIFICATION_CURRICULUM_PRECHECK_COURSELESSON_COUNT_LOW", expected.id);
+    }
+    if (Number(row.officialUnlinkedCourseLessonCount) > 0) {
+      fail("SECURITY_CERTIFICATION_CURRICULUM_PRECHECK_COURSELESSON_LINK_GAP", expected.id);
+    }
+    if (Number(row.publishedQuestionCount) <= 0) {
+      fail("SECURITY_CERTIFICATION_CURRICULUM_PRECHECK_QUESTION_GAP", expected.id);
+    }
   }
 }
 

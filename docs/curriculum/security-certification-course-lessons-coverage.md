@@ -108,6 +108,11 @@ sample CourseLessons may still appear in `unlinkedCourseLessonCount`, but they
 do not block official curriculum readiness unless
 `officialUnlinkedCourseLessonCount` is greater than zero.
 
+The production activation command also performs an internal pre-activation
+coverage check before updating `curriculum_trees`. It refuses to activate the
+official trees when metadata links, official CourseLesson links, minimum node
+counts, or published question coverage are not clean.
+
 ```powershell
 npm run curriculum:security-certification:linked-content:stats
 npm run curriculum:security-certification:linked-content:d1-local
