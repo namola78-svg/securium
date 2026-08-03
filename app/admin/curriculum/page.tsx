@@ -219,6 +219,57 @@ export default async function AdminCurriculumPage({
             </div>
           ) : null}
         </div>
+        <div
+          className="admin-record-list"
+          aria-label="운영 DB와 정식 seed 커버리지 비교"
+        >
+          <article className="admin-record">
+            <div className="admin-record-summary">
+              <span>
+                <strong>운영 DB 선택 트리</strong>
+                <small>
+                  {coverage
+                    ? `노드 ${coverage.linkedNodeCount}/${coverage.nodeCount} · 레슨 ${coverage.courseLessonNodePercent}% · 공개 문제 ${coverage.publishedQuestionCount}개`
+                    : "선택된 운영 트리 커버리지 없음"}
+                </small>
+              </span>
+              <span className="status-badge compact">
+                {coverage ? `${coverage.linkedNodePercent}%` : "미선택"}
+              </span>
+            </div>
+          </article>
+          <article className="admin-record">
+            <div className="admin-record-summary">
+              <span>
+                <strong>정식 seed 기준</strong>
+                <small>
+                  노드 {securityCertificationDeepCoverage.contentLinkedCount}/
+                  {securityCertificationDeepCoverage.nodeCount} · 문항{" "}
+                  {securityCertificationDeepCoverage.questionCoveragePercent}% ·
+                  과목 개요 {securityCertificationContentSummary.rowsWithQuestionsCount}/
+                  {securityCertificationContentSummary.rowCount}
+                </small>
+              </span>
+              <span className="status-badge compact">
+                {securityCertificationDeepCoverage.contentCoveragePercent}%
+              </span>
+            </div>
+          </article>
+          <article className="admin-record">
+            <div className="admin-record-summary">
+              <span>
+                <strong>운영 반영 확인 포인트</strong>
+                <small>
+                  운영 DB는 실제 활성 트리와 공개 레슨 기준이며, seed 기준은
+                  정식 커리큘럼 매핑 완성도를 검증합니다.
+                </small>
+              </span>
+              <span className="status-badge compact">
+                비교 기준 분리
+              </span>
+            </div>
+          </article>
+        </div>
         <div className="admin-record-list" aria-label="공식 커리큘럼 커버리지 상세">
           <details className="admin-record">
             <summary>
