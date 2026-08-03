@@ -1,5 +1,12 @@
 import { officialSecurityCertificationContents, officialSecurityCertificationCourseLessons } from "../data/security-certification-course-lessons.mjs";
+import { applicationSecurityQuestionSamples } from "../data/security-certification-application-security-questions.mjs";
+import { securityCertificationInformationSecurityGeneralQuestionSamples } from "../data/security-certification-information-security-general-questions.mjs";
+import { managementLawQuestionSamples } from "../data/security-certification-management-law-questions.mjs";
+import { networkSecurityQuestionSamples } from "../data/security-certification-network-security-questions.mjs";
+import { practicalSecurityQuestionSamples } from "../data/security-certification-practical-questions.mjs";
+import { systemSecurityQuestionSamples } from "../data/security-certification-system-security-questions.mjs";
 import {
+  createOntologyEdge,
   createCurriculumContentOntologyEdges,
   createOntologyConceptKey,
   dedupeOntologyConcepts,
@@ -30,6 +37,17 @@ type OfficialSecurityCertificationCourseLesson = {
   isRequired?: boolean;
 };
 
+type SecurityCertificationQuestionSeed = {
+  id: string;
+  courseLinks: Array<{
+    courseId: string;
+  }>;
+  contentLinks?: Array<{
+    contentType: string;
+    contentId: string;
+  }>;
+};
+
 export type SecurityCertificationOntologyCoverageSummary = {
   treeId: string;
   courseId: string;
@@ -47,6 +65,14 @@ const officialContents =
   officialSecurityCertificationContents as OfficialSecurityCertificationContent[];
 const officialCourseLessons =
   officialSecurityCertificationCourseLessons as OfficialSecurityCertificationCourseLesson[];
+const officialQuestionSamples = [
+  ...networkSecurityQuestionSamples,
+  ...systemSecurityQuestionSamples,
+  ...applicationSecurityQuestionSamples,
+  ...securityCertificationInformationSecurityGeneralQuestionSamples,
+  ...managementLawQuestionSamples,
+  ...practicalSecurityQuestionSamples,
+] as SecurityCertificationQuestionSeed[];
 
 export function officialCurriculumNodeId(stableKey: string) {
   return `curriculum-node-${stableKey.toLowerCase()}`;
@@ -79,6 +105,13 @@ export function buildSecurityCertificationOntologyConcepts(): OntologyConcept[] 
 }
 
 export function buildSecurityCertificationOntologyEdges(): OntologyEdge[] {
+  return uniqueOntologyEdges([
+    ...buildSecurityCertificationCurriculumContentOntologyEdges(),
+    ...buildSecurityCertificationQuestionOntologyEdges(),
+  ]);
+}
+
+function buildSecurityCertificationCurriculumContentOntologyEdges(): OntologyEdge[] {
   const contentById = new Map(officialContents.map((content) => [content.id, content]));
   const flattenedNodeIds = new Set(
     SECURITY_CERTIFICATION_CURRICULUM_TREES.flatMap((tree) =>
@@ -107,6 +140,57 @@ export function buildSecurityCertificationOntologyEdges(): OntologyEdge[] {
       evidence: [content.canonicalKey],
     });
   });
+}
+
+export function buildSecurityCertificationQuestionOntologyEdges(): OntologyEdge[] {
+  const contentById = new Map(officialContents.map((content) => [content.id, content]));
+  const edges: OntologyEdge[] = [];
+
+  for (const question of officialQuestionSamples) {
+    const linkedContentIds = uniqueStrings(
+      (question.contentLinks ?? [])
+        .filter((link) => link.contentType === "CONTENT")
+        .map((link) => link.contentId)
+        .filter((contentId) => contentById.has(contentId)),
+    );
+
+    for (const courseLink of question.courseLinks) {
+      for (const contentId of linkedContentIds) {
+        const content = contentById.get(contentId);
+        if (!content) continue;
+
+        edges.push(
+          createOntologyEdge({
+            courseId: courseLink.courseId,
+            fromType: "QUESTION",
+            fromId: question.id,
+            toType: "CONTENT",
+            toId: contentId,
+            relation: "DERIVED_FROM",
+            confidence: 0.8,
+            evidence: [content.canonicalKey],
+          }),
+        );
+
+        for (const concept of content.coreConcepts ?? []) {
+          edges.push(
+            createOntologyEdge({
+              courseId: courseLink.courseId,
+              fromType: "QUESTION",
+              fromId: question.id,
+              toType: "CONCEPT",
+              toId: createOntologyConceptKey(concept, NAMESPACE),
+              relation: "TESTS",
+              confidence: 0.75,
+              evidence: [content.canonicalKey],
+            }),
+          );
+        }
+      }
+    }
+  }
+
+  return uniqueOntologyEdges(edges);
 }
 
 export function getSecurityCertificationOntologyCoverageSummaries(): SecurityCertificationOntologyCoverageSummary[] {
@@ -171,6 +255,14 @@ export function getSecurityCertificationOntologyGaps(
     ),
     edges: buildSecurityCertificationOntologyEdges(),
   });
+}
+
+function uniqueOntologyEdges(edges: OntologyEdge[]) {
+  return [...new Map(edges.map((edge) => [edge.key, edge])).values()];
+}
+
+function uniqueStrings(values: string[]) {
+  return [...new Set(values)];
 }
 
 function toCoverageNode(

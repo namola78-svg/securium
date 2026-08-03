@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   buildSecurityCertificationOntologyConcepts,
   buildSecurityCertificationOntologyEdges,
+  buildSecurityCertificationQuestionOntologyEdges,
   getSecurityCertificationOntologyCoverageSummaries,
   getSecurityCertificationOntologyGaps,
   officialCurriculumNodeId,
@@ -55,6 +56,28 @@ test("ontology CourseLesson edges point only to official curriculum nodes", () =
 
   assert.ok(nodeEdges.length > 0);
   assert.ok(nodeEdges.every((edge) => knownNodeIds.has(edge.fromId)));
+});
+
+test("security certification question ontology edges connect practice items to content and concepts", () => {
+  const edges = buildSecurityCertificationQuestionOntologyEdges();
+  const questionContentEdges = edges.filter(
+    (edge) =>
+      edge.fromType === "QUESTION" &&
+      edge.toType === "CONTENT" &&
+      edge.relation === "DERIVED_FROM",
+  );
+  const questionConceptEdges = edges.filter(
+    (edge) =>
+      edge.fromType === "QUESTION" &&
+      edge.toType === "CONCEPT" &&
+      edge.relation === "TESTS",
+  );
+
+  assert.ok(questionContentEdges.length > 100);
+  assert.ok(questionConceptEdges.length > questionContentEdges.length);
+  assert.ok(edges.every((edge) => edge.courseId === "course-ise" || edge.courseId === "course-isie"));
+  assert.ok(edges.every((edge) => edge.evidence.length > 0));
+  assert.equal(new Set(edges.map((edge) => edge.key)).size, edges.length);
 });
 
 test("shared content is reused while ontology edges keep engineer and industrial courses separate", () => {

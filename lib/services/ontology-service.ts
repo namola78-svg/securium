@@ -16,6 +16,7 @@ export type OntologyEntityType =
 export type OntologyRelationType =
   | "COVERS"
   | "EXPLAINS"
+  | "TESTS"
   | "REUSES_CONTENT"
   | "ASSESSED_BY"
   | "PREREQUISITE_OF"
