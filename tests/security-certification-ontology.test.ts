@@ -13,6 +13,7 @@ import {
   flattenOfficialCurriculumTree,
   SECURITY_CERTIFICATION_CURRICULUM_TREES,
 } from "../lib/curriculum/security-certification-standards.ts";
+import { expandRetrievalQueriesWithConceptAliases } from "../lib/ai/retrieval-provider.ts";
 
 test("security certification ontology concepts are derived without duplicating shared terms", () => {
   const concepts = buildSecurityCertificationOntologyConcepts();
@@ -152,4 +153,26 @@ test("security certification ontology exposes course-scoped concept aliases for 
   assert.ok(accessControl.aliases?.includes("RBAC"));
   assert.ok(accessControl.courseIds?.includes("course-ise"));
   assert.ok(accessControl.courseIds?.includes("course-isie"));
+});
+
+test("security certification retrieval expansion matches English aliases to official concepts", () => {
+  const candidates = getSecurityCertificationRetrievalConceptAliases();
+  const expanded = expandRetrievalQueriesWithConceptAliases(
+    { query: "RBAC", courseId: "course-ise", limit: 8 },
+    candidates,
+  );
+
+  assert.ok(expanded.includes("RBAC"));
+  assert.ok(expanded.includes("Access Control"));
+  assert.ok(expanded.some((query) => query !== "RBAC" && query !== "Access Control"));
+});
+
+test("security certification retrieval expansion keeps unrelated course aliases out", () => {
+  const candidates = getSecurityCertificationRetrievalConceptAliases();
+  const expanded = expandRetrievalQueriesWithConceptAliases(
+    { query: "RBAC", courseId: "course-pia", limit: 8 },
+    candidates,
+  );
+
+  assert.deepEqual(expanded, ["RBAC"]);
 });
