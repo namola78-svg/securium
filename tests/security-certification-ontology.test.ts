@@ -143,11 +143,13 @@ test("ontology gap ranking can be requested for a single official tree", () => {
 test("security certification ontology exposes course-scoped concept aliases for retrieval", () => {
   const aliases = getSecurityCertificationRetrievalConceptAliases();
   const accessControl = aliases.find(
-    (candidate) => candidate.label === "계정 관리",
+    (candidate) => candidate.label === "접근통제",
   );
 
   assert.ok(aliases.length > 20);
   assert.ok(accessControl);
+  assert.ok(accessControl.aliases?.includes("Access Control"));
+  assert.ok(accessControl.aliases?.includes("RBAC"));
   assert.ok(accessControl.courseIds?.includes("course-ise"));
   assert.ok(accessControl.courseIds?.includes("course-isie"));
 });

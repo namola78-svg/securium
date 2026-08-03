@@ -77,6 +77,24 @@ const officialQuestionSamples = [
   ...practicalSecurityQuestionSamples,
 ] as SecurityCertificationQuestionSeed[];
 
+const SECURITY_CERTIFICATION_CONCEPT_ALIASES: Record<string, string[]> = {
+  "접근통제": ["Access Control", "ACL", "RBAC", "권한 관리", "인가"],
+  "암호 알고리즘": ["Cryptographic Algorithm", "Encryption Algorithm", "암호화 알고리즘"],
+  "해시함수": ["Hash Function", "Message Digest", "해시 알고리즘"],
+  "디지털서명": ["Digital Signature", "전자서명"],
+  "서비스 거부": ["DoS", "DDoS", "Denial of Service"],
+  "SQL Injection": ["SQL 삽입", "SQL 인젝션"],
+  "XSS": ["Cross-Site Scripting", "크로스 사이트 스크립팅"],
+  "DNS": ["Domain Name System", "도메인 네임 시스템"],
+  "VPN": ["Virtual Private Network", "가상사설망"],
+  "IDS": ["Intrusion Detection System", "침입탐지시스템"],
+  "IPS": ["Intrusion Prevention System", "침입방지시스템"],
+  "WAF": ["Web Application Firewall", "웹 방화벽"],
+  "방화벽": ["Firewall"],
+  "로그 분석": ["Log Analysis", "감사 로그 분석"],
+  "취약점 점검": ["Vulnerability Assessment", "보안 취약점 진단"],
+};
+
 export function officialCurriculumNodeId(stableKey: string) {
   return `curriculum-node-${stableKey.toLowerCase()}`;
 }
@@ -87,6 +105,7 @@ export function buildSecurityCertificationOntologyConcepts(): OntologyConcept[] 
       label: node.title,
       namespace: NAMESPACE,
       category: node.officialLevel.toLowerCase(),
+      aliases: getSecurityCertificationConceptAliases(node.title),
       sourceType: "CURRICULUM_NODE" as const,
       sourceId: officialCurriculumNodeId(node.stableKey),
       weight: node.importance ?? (node.isRequired ? 10 : 1),
@@ -98,6 +117,7 @@ export function buildSecurityCertificationOntologyConcepts(): OntologyConcept[] 
       label,
       namespace: NAMESPACE,
       category: "content-core-concept",
+      aliases: getSecurityCertificationConceptAliases(label),
       sourceType: "CONTENT" as const,
       sourceId: content.id,
       weight: 20,
@@ -288,6 +308,10 @@ export function getSecurityCertificationRetrievalConceptAliases(): ConceptAwareR
     aliases: concept.aliases,
     courseIds: [...(courseIdsByConceptKey.get(concept.key) ?? new Set<string>())],
   }));
+}
+
+function getSecurityCertificationConceptAliases(label: string) {
+  return SECURITY_CERTIFICATION_CONCEPT_ALIASES[label] ?? [];
 }
 
 function uniqueOntologyEdges(edges: OntologyEdge[]) {
