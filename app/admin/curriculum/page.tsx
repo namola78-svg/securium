@@ -194,6 +194,28 @@ export default async function AdminCurriculumPage({
       dueReviewCount: 0,
     },
   );
+  const coverageReadinessChecklist = [
+    {
+      label: "TREE_STATUS",
+      ready: Boolean(coverage),
+      detail: coverage
+        ? "Selected tree can be compared against operational DB coverage."
+        : "Select an operational curriculum tree before activation review.",
+    },
+    {
+      label: "COURSELESSON_LINK_GAP",
+      ready: operationalCoverageReady,
+      detail: operationalCoverageReady
+        ? "Published CourseLessons are linked to CurriculumNodes."
+        : `${coverage?.unlinkedCourseLessonCount ?? 0} published CourseLesson links still need review.`,
+    },
+    {
+      label: "CONTENT_METADATA_GAP",
+      ready: staticCertificationCoverageReady,
+      detail:
+        "Check curriculum_nodes.metadata.linkedContent separately from the static content map.",
+    },
+  ];
 
   return (
     <>
@@ -448,6 +470,37 @@ export default async function AdminCurriculumPage({
                 비교 기준 분리
               </span>
             </div>
+          </article>
+          <article className="admin-record">
+            <div className="admin-record-summary">
+              <span>
+                <strong>Operational coverage checklist</strong>
+                <small>
+                  Review these read-only signals before requesting production activation.
+                </small>
+              </span>
+              <span className="status-badge compact">
+                {coverageReadinessChecklist.filter((item) => item.ready).length}/
+                {coverageReadinessChecklist.length} ready
+              </span>
+            </div>
+            <ul className="compact-list">
+              {coverageReadinessChecklist.map((item) => (
+                <li key={item.label}>
+                  <span
+                    className={
+                      item.ready
+                        ? "status-badge status-badge-success compact"
+                        : "status-badge compact"
+                    }
+                  >
+                    {item.ready ? "Ready" : "Review"}
+                  </span>
+                  <strong>{item.label}</strong>
+                  <small>{item.detail}</small>
+                </li>
+              ))}
+            </ul>
           </article>
         </div>
         <div className="admin-record-list" aria-label="공식 커리큘럼 커버리지 상세">
