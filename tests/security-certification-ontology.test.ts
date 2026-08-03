@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
+import { execFile } from "node:child_process";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { promisify } from "node:util";
 import {
   buildSecurityCertificationOntologyConcepts,
   buildSecurityCertificationOntologyEdges,
@@ -14,6 +17,8 @@ import {
   SECURITY_CERTIFICATION_CURRICULUM_TREES,
 } from "../lib/curriculum/security-certification-standards.ts";
 import { expandRetrievalQueriesWithConceptAliases } from "../lib/ai/retrieval-provider.ts";
+
+const execFileAsync = promisify(execFile);
 
 test("security certification ontology concepts are derived without duplicating shared terms", () => {
   const concepts = buildSecurityCertificationOntologyConcepts();
@@ -175,4 +180,30 @@ test("security certification retrieval expansion keeps unrelated course aliases 
   );
 
   assert.deepEqual(expanded, ["RBAC"]);
+});
+
+test("security certification retrieval alias inspector is exposed as a read-only npm script", async () => {
+  const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+
+  assert.equal(
+    packageJson.scripts["curriculum:security-certification:retrieval-aliases"],
+    "node scripts/inspect-security-certification-retrieval-aliases.mjs",
+  );
+});
+
+test("security certification retrieval alias inspector reports JSON diagnostics without DB access", async () => {
+  const { stdout } = await execFileAsync(process.execPath, [
+    "scripts/inspect-security-certification-retrieval-aliases.mjs",
+    "--query=RBAC",
+    "--course-id=course-ise",
+    "--format=json",
+  ]);
+  const diagnostics = JSON.parse(stdout);
+
+  assert.equal(diagnostics.originalQuery, "RBAC");
+  assert.equal(diagnostics.courseId, "course-ise");
+  assert.ok(diagnostics.expandedQueries.includes("Access Control"));
+  assert.ok(diagnostics.matchedConceptLabels.length > 0);
+  assert.ok(diagnostics.scopedCandidateCount > 0);
+  assert.ok(diagnostics.scopedCandidateCount <= diagnostics.candidateCount);
 });
