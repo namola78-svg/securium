@@ -392,5 +392,6 @@ test("관리자 커리큘럼 화면은 Tree, Node, 기존 콘텐츠 연결, 운�
   assert.match(html, /운영 통계/);
   assert.match(html, /curriculum-admin-node-stats/);
   assert.match(html, /ISMS-P 2027/);
-  assert.match(html, /CURRICULUM ARCHITECTURE/);
+  assert.match(html, /공식 커리큘럼 아키텍처/);
+  assert.match(html, /기사·산업기사 공식 커리큘럼 커버리지/);
 });

@@ -12,6 +12,10 @@ import {
   getSecurityCertificationOntologyCoverageSummaries,
   getSecurityCertificationOntologyGaps,
 } from "@/lib/curriculum/security-certification-ontology";
+import {
+  getSecurityCertificationContentMapSummary,
+  getSecurityCertificationDeepNodeCoverageSummary,
+} from "@/lib/curriculum/security-certification-content-map";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +50,14 @@ export default async function AdminCurriculumPage({
   const selectedOntologyGaps = selectedTreeId
     ? getSecurityCertificationOntologyGaps(selectedTreeId)
     : [];
+  const securityCertificationContentSummary =
+    getSecurityCertificationContentMapSummary();
+  const securityCertificationDeepCoverage =
+    getSecurityCertificationDeepNodeCoverageSummary();
+  const selectedCertificationCoverage =
+    selectedTree?.courseId && selectedTree.courseId in securityCertificationDeepCoverage.byCourse
+      ? securityCertificationDeepCoverage.byCourse[selectedTree.courseId]
+      : null;
   const operationalSummary = nodeStats.reduce(
     (summary, stat) => ({
       questionCount: summary.questionCount + stat.questionCount,
@@ -129,6 +141,81 @@ export default async function AdminCurriculumPage({
           </div>
         </section>
       ) : null}
+      <section
+        className="admin-panel"
+        aria-labelledby="security-certification-coverage-heading"
+      >
+        <div className="admin-panel-header">
+          <div>
+            <p className="eyebrow">SECURITY CERTIFICATION COVERAGE</p>
+            <h2 id="security-certification-coverage-heading">
+              기사·산업기사 공식 커리큘럼 커버리지
+            </h2>
+            <p>
+              로컬 seed와 정식 커리큘럼 매핑 기준으로 Content와 샘플 문항의
+              연결 상태를 요약합니다. 운영 DB 활성화 여부는 위 선택 트리
+              커버리지와 함께 확인하세요.
+            </p>
+          </div>
+          <span className="status-badge status-badge-success">
+            {securityCertificationDeepCoverage.uncoveredRows.length === 0 &&
+            securityCertificationDeepCoverage.questionGapRows.length === 0
+              ? "100% 준비"
+              : "확인 필요"}
+          </span>
+        </div>
+        <div className="stats-grid admin-stats">
+          <div className="stat-card">
+            <span>전체 학습 노드</span>
+            <strong>{securityCertificationDeepCoverage.nodeCount}</strong>
+            <small>
+              Content {securityCertificationDeepCoverage.contentLinkedCount}/
+              {securityCertificationDeepCoverage.nodeCount} · 문항{" "}
+              {securityCertificationDeepCoverage.questionLinkedCount}/
+              {securityCertificationDeepCoverage.nodeCount}
+            </small>
+          </div>
+          <div className="stat-card">
+            <span>Content 연결률</span>
+            <strong>
+              {securityCertificationDeepCoverage.contentCoveragePercent}%
+            </strong>
+            <small>
+              미연결 {securityCertificationDeepCoverage.uncoveredRows.length}개
+            </small>
+          </div>
+          <div className="stat-card">
+            <span>문항 연결률</span>
+            <strong>
+              {securityCertificationDeepCoverage.questionCoveragePercent}%
+            </strong>
+            <small>
+              문항 공백 {securityCertificationDeepCoverage.questionGapRows.length}
+              개
+            </small>
+          </div>
+          <div className="stat-card">
+            <span>과목 개요 커버리지</span>
+            <strong>
+              {securityCertificationContentSummary.rowsWithQuestionsCount}/
+              {securityCertificationContentSummary.rowCount}
+            </strong>
+            <small>
+              상위 과목·실기 항목 샘플 문항 연결 상태
+            </small>
+          </div>
+          {selectedCertificationCoverage ? (
+            <div className="stat-card">
+              <span>선택 과정 기준</span>
+              <strong>{selectedCertificationCoverage.questionCoveragePercent}%</strong>
+              <small>
+                {selectedCertificationCoverage.questionLinkedCount}/
+                {selectedCertificationCoverage.nodeCount}개 노드에 문항 연결
+              </small>
+            </div>
+          ) : null}
+        </div>
+      </section>
       <AdminCurriculumManager
         key={selectedTreeId}
         courses={courses.map((course) => ({
