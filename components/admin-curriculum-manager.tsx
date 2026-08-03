@@ -85,6 +85,8 @@ type OntologyCoverageSummary = {
   linkedCurriculumNodeCount: number;
   courseLessonEdgeCount: number;
   conceptEdgeCount: number;
+  questionContentEdgeCount: number;
+  questionConceptEdgeCount: number;
   gapCount: number;
   topGapIds: string[];
 };
@@ -565,6 +567,14 @@ function OntologyCoveragePanel({
         <div>
           <dt>Concept Edge</dt>
           <dd>{summary.conceptEdgeCount}</dd>
+        </div>
+        <div>
+          <dt>Question→Content</dt>
+          <dd>{summary.questionContentEdgeCount}</dd>
+        </div>
+        <div>
+          <dt>Question→Concept</dt>
+          <dd>{summary.questionConceptEdgeCount}</dd>
         </div>
       </dl>
 

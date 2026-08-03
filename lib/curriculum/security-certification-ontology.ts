@@ -56,6 +56,8 @@ export type SecurityCertificationOntologyCoverageSummary = {
   linkedCurriculumNodeCount: number;
   courseLessonEdgeCount: number;
   conceptEdgeCount: number;
+  questionContentEdgeCount: number;
+  questionConceptEdgeCount: number;
   gapCount: number;
   topGapIds: string[];
 };
@@ -221,6 +223,18 @@ export function getSecurityCertificationOntologyCoverageSummaries(): SecurityCer
         edge.fromType === "CONTENT" &&
         edge.toType === "CONCEPT",
     ).length;
+    const questionContentEdgeCount = edges.filter(
+      (edge) =>
+        edge.courseId === tree.courseId &&
+        edge.fromType === "QUESTION" &&
+        edge.toType === "CONTENT",
+    ).length;
+    const questionConceptEdgeCount = edges.filter(
+      (edge) =>
+        edge.courseId === tree.courseId &&
+        edge.fromType === "QUESTION" &&
+        edge.toType === "CONCEPT",
+    ).length;
 
     return {
       treeId: tree.treeId,
@@ -235,6 +249,8 @@ export function getSecurityCertificationOntologyCoverageSummaries(): SecurityCer
           edge.toType === "COURSE_LESSON",
       ).length,
       conceptEdgeCount,
+      questionContentEdgeCount,
+      questionConceptEdgeCount,
       gapCount: gaps.length,
       topGapIds: gaps.slice(0, 10).map((gap) => gap.id),
     };

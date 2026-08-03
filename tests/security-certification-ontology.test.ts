@@ -113,6 +113,18 @@ test("ontology coverage summaries expose linked nodes and remaining gaps per cou
       ?.linkedCurriculumNodeCount,
     62,
   );
+  assert.ok(
+    Number(
+      summaries.find((summary) => summary.courseId === "course-ise")
+        ?.questionContentEdgeCount,
+    ) > 0,
+  );
+  assert.ok(
+    Number(
+      summaries.find((summary) => summary.courseId === "course-isie")
+        ?.questionConceptEdgeCount,
+    ) > 0,
+  );
   assert.ok(summaries.every((summary) => summary.gapCount > 0));
   assert.ok(summaries.every((summary) => summary.topGapIds.length > 0));
 });
