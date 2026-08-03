@@ -11,6 +11,16 @@ export type ConceptAwareRetrievalCandidate = {
   courseIds?: readonly string[];
 };
 
+export type RetrievalQueryExpansionDiagnostics = {
+  originalQuery: string;
+  expandedQueries: string[];
+  addedQueries: string[];
+  matchedConceptLabels: string[];
+  courseId?: string;
+  candidateCount: number;
+  scopedCandidateCount: number;
+};
+
 export interface RetrievalProvider {
   search(options: RetrievalSearchOptions): Promise<RetrievalContext[]>;
   searchByCourse(
@@ -70,18 +80,41 @@ export function expandRetrievalQueriesWithConceptAliases(
   candidates: readonly ConceptAwareRetrievalCandidate[],
   aliasLimit = 4,
 ) {
-  const query = normalizeRetrievalQuery(options.query);
-  if (!query) return [""];
+  return describeRetrievalQueryExpansion(
+    options,
+    candidates,
+    aliasLimit,
+  ).expandedQueries;
+}
 
-  const expanded = [options.query.trim()];
-  for (const candidate of candidates) {
-    if (
-      options.courseId &&
-      candidate.courseIds?.length &&
-      !candidate.courseIds.includes(options.courseId)
-    ) {
-      continue;
-    }
+export function describeRetrievalQueryExpansion(
+  options: RetrievalSearchOptions & { courseId?: string },
+  candidates: readonly ConceptAwareRetrievalCandidate[],
+  aliasLimit = 4,
+): RetrievalQueryExpansionDiagnostics {
+  const originalQuery = options.query.trim();
+  const query = normalizeRetrievalQuery(options.query);
+  const scopedCandidates = candidates.filter(
+    (candidate) =>
+      !options.courseId ||
+      !candidate.courseIds?.length ||
+      candidate.courseIds.includes(options.courseId),
+  );
+  if (!query) {
+    return {
+      originalQuery,
+      expandedQueries: [""],
+      addedQueries: [],
+      matchedConceptLabels: [],
+      courseId: options.courseId,
+      candidateCount: candidates.length,
+      scopedCandidateCount: scopedCandidates.length,
+    };
+  }
+
+  const expanded = [originalQuery];
+  const matchedConceptLabels: string[] = [];
+  for (const candidate of scopedCandidates) {
 
     const labels = [candidate.label, ...(candidate.aliases ?? [])]
       .map((value) => value.trim())
@@ -92,6 +125,7 @@ export function expandRetrievalQueriesWithConceptAliases(
     });
     if (!matched) continue;
 
+    matchedConceptLabels.push(candidate.label);
     for (const label of labels) {
       if (normalizeRetrievalQuery(label) === query) continue;
       expanded.push(label);
@@ -100,7 +134,22 @@ export function expandRetrievalQueriesWithConceptAliases(
     if (expanded.length > aliasLimit) break;
   }
 
-  return [...new Set(expanded)].slice(0, Math.max(1, aliasLimit + 1));
+  const expandedQueries = [...new Set(expanded)].slice(
+    0,
+    Math.max(1, aliasLimit + 1),
+  );
+  return {
+    originalQuery,
+    expandedQueries,
+    addedQueries: expandedQueries.filter(
+      (expandedQuery) =>
+        normalizeRetrievalQuery(expandedQuery) !== query,
+    ),
+    matchedConceptLabels: [...new Set(matchedConceptLabels)],
+    courseId: options.courseId,
+    candidateCount: candidates.length,
+    scopedCandidateCount: scopedCandidates.length,
+  };
 }
 
 function normalizeRetrievalQuery(value: string) {

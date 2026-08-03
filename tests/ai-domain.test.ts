@@ -12,7 +12,10 @@ import {
   INSUFFICIENT_CONTEXT_MESSAGE,
   type QuestionExplanationInput,
 } from "../lib/ai/types.ts";
-import { expandRetrievalQueriesWithConceptAliases } from "../lib/ai/retrieval-provider.ts";
+import {
+  describeRetrievalQueryExpansion,
+  expandRetrievalQueriesWithConceptAliases,
+} from "../lib/ai/retrieval-provider.ts";
 
 function explanationInput(
   contexts: QuestionExplanationInput["contexts"] = [
@@ -226,4 +229,40 @@ test("RetrievalProvider query expansion adds course-scoped concept aliases", () 
     "RBAC",
     "permission management",
   ]);
+});
+
+test("RetrievalProvider query expansion diagnostics explain matched aliases", () => {
+  const candidates = [
+    {
+      label: "access control",
+      aliases: ["Access Control", "ACL", "RBAC", "authorization"],
+      courseIds: ["course-ise"],
+    },
+    {
+      label: "privacy impact assessment",
+      aliases: ["PIA"],
+      courseIds: ["course-pia"],
+    },
+  ];
+  const diagnostics = describeRetrievalQueryExpansion(
+    { query: "RBAC", courseId: "course-ise", limit: 8 },
+    candidates,
+  );
+
+  assert.deepEqual(diagnostics.expandedQueries, [
+    "RBAC",
+    "access control",
+    "Access Control",
+    "ACL",
+    "authorization",
+  ]);
+  assert.deepEqual(diagnostics.addedQueries, [
+    "access control",
+    "Access Control",
+    "ACL",
+    "authorization",
+  ]);
+  assert.deepEqual(diagnostics.matchedConceptLabels, ["access control"]);
+  assert.equal(diagnostics.candidateCount, 2);
+  assert.equal(diagnostics.scopedCandidateCount, 1);
 });
