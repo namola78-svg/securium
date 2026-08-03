@@ -15,10 +15,10 @@ import {
 test("security certification course lesson seed reuses shared contents across engineer tracks", () => {
   const stats = getSecurityCertificationCourseLessonSeedStats();
 
-  assert.equal(stats.contentCount, 45);
-  assert.equal(stats.courseLessonCount, 89);
+  assert.equal(stats.contentCount, 52);
+  assert.equal(stats.courseLessonCount, 96);
   assert.equal(stats.courseLessonExtensionCount, 2);
-  assert.equal(stats.linkedContentCount, 45);
+  assert.equal(stats.linkedContentCount, 52);
   assert.equal(stats.reusedContentCount, 44);
   assert.equal(stats.allLessonsHaveKnownContent, true);
   assert.equal(stats.expectedTopLevelNodeCount, 11);
@@ -34,7 +34,7 @@ test("security certification course lesson seed keeps course progress separated"
     (lesson) => lesson.courseId === "course-isie",
   );
 
-  assert.equal(engineerLessons.length, 45);
+  assert.equal(engineerLessons.length, 52);
   assert.equal(industrialLessons.length, 44);
 
   const courseLessonIds = new Set(
@@ -455,6 +455,46 @@ test("information security general sub items are split into shared CourseLessons
       `${contentId} should preserve course-specific information security general progress`,
     );
   }
+});
+
+test("management law sub items are split into engineer-only CourseLessons", () => {
+  const managementSubItemLessons =
+    officialSecurityCertificationCourseLessons.filter((lesson) =>
+      lesson.id.startsWith("course-lesson-ise-official-management-law-"),
+    );
+  const managementOverviewLessons =
+    officialSecurityCertificationCourseLessons.filter(
+      (lesson) =>
+        lesson.id === "course-lesson-ise-official-management-law-overview",
+    );
+  const managementSubItemsOnly = managementSubItemLessons.filter(
+    (lesson) => !managementOverviewLessons.includes(lesson),
+  );
+
+  assert.equal(managementSubItemsOnly.length, 7);
+  assert.equal(
+    managementSubItemsOnly.every((lesson) => lesson.courseId === "course-ise"),
+    true,
+  );
+  assert.equal(
+    officialSecurityCertificationCourseLessons.some((lesson) =>
+      lesson.id.startsWith("course-lesson-isie-official-management-law-"),
+    ),
+    false,
+    "management law must not leak into the industrial engineer course",
+  );
+  assert.deepEqual(
+    managementSubItemsOnly.map((lesson) => lesson.curriculumNodeId).sort(),
+    [
+      "curriculum-node-ise-2027-2029-01-05-01-01",
+      "curriculum-node-ise-2027-2029-01-05-01-02",
+      "curriculum-node-ise-2027-2029-01-05-01-03",
+      "curriculum-node-ise-2027-2029-01-05-01-04",
+      "curriculum-node-ise-2027-2029-01-05-02-01",
+      "curriculum-node-ise-2027-2029-01-05-02-02",
+      "curriculum-node-ise-2027-2029-01-05-02-03",
+    ],
+  );
 });
 
 test("network security sub items are split into shared CourseLessons", () => {

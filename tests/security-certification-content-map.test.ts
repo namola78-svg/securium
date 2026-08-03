@@ -86,16 +86,16 @@ test("security certification deep node coverage exposes remaining major and sub 
   const summary = getSecurityCertificationDeepNodeCoverageSummary();
 
   assert.equal(summary.nodeCount, 139);
-  assert.equal(summary.contentLinkedCount, 89);
+  assert.equal(summary.contentLinkedCount, 96);
   assert.equal(summary.questionLinkedCount, 57);
-  assert.equal(summary.contentCoveragePercent, 64);
+  assert.equal(summary.contentCoveragePercent, 69.1);
   assert.equal(summary.questionCoveragePercent, 41);
   assert.deepEqual(summary.byCourse, {
     "course-ise": {
       nodeCount: 77,
-      contentLinkedCount: 45,
+      contentLinkedCount: 52,
       questionLinkedCount: 29,
-      contentCoveragePercent: 58.4,
+      contentCoveragePercent: 67.5,
       questionCoveragePercent: 37.7,
     },
     "course-isie": {
@@ -111,10 +111,10 @@ test("security certification deep node coverage exposes remaining major and sub 
   assert.equal(summary.byNodeType.MAJOR_ITEM.nodeCount, 33);
   assert.equal(summary.byNodeType.SUB_ITEM.nodeCount, 95);
   assert.equal(summary.byNodeType.MAJOR_ITEM.contentLinkedCount, 16);
-  assert.equal(summary.byNodeType.SUB_ITEM.contentLinkedCount, 62);
+  assert.equal(summary.byNodeType.SUB_ITEM.contentLinkedCount, 69);
   assert.equal(summary.byNodeType.SUB_ITEM.questionLinkedCount, 48);
-  assert.equal(summary.uncoveredRows.length, 50);
-  assert.equal(summary.questionGapRows.length, 32);
+  assert.equal(summary.uncoveredRows.length, 43);
+  assert.equal(summary.questionGapRows.length, 39);
   assert.equal(
     summary.questionGapRows.every(
       (row) =>
@@ -123,6 +123,7 @@ test("security certification deep node coverage exposes remaining major and sub 
         row.stableKey.startsWith("ISE-2027-2029-01-02-") ||
         row.stableKey.startsWith("ISE-2027-2029-01-03-") ||
         row.stableKey.startsWith("ISE-2027-2029-01-04-") ||
+        row.stableKey.startsWith("ISE-2027-2029-01-05-") ||
         row.stableKey.startsWith("ISIE-2027-2029-01-01-") ||
         row.stableKey === "ISIE-2027-2029-01-02" ||
         row.stableKey.startsWith("ISIE-2027-2029-01-02-") ||
