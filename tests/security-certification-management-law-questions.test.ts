@@ -5,6 +5,7 @@ import {
   MANAGEMENT_LAW_CONTENT_ID,
   MANAGEMENT_LAW_COURSE_IDS,
   MANAGEMENT_LAW_EXCLUDED_COURSE_IDS,
+  MANAGEMENT_LAW_SUBITEM_CONTENT_IDS_BY_QUESTION_ID,
   generateManagementLawQuestionSeedSql,
   getManagementLawQuestionBankReadiness,
   managementLawQuestionSamples,
@@ -23,6 +24,7 @@ test("management law question bank is engineer-only", () => {
   assert.equal(readiness.allLinkedToEngineerCourseOnly, true);
   assert.equal(readiness.leaksToIndustrialEngineer, false);
   assert.equal(readiness.allLinkedToManagementContent, true);
+  assert.equal(readiness.subItemContentLinkedCount, 6);
   assert.deepEqual(readiness.courseCounts, {
     "course-ise": 6,
     "course-isie": 0,
@@ -40,10 +42,19 @@ test("management law questions remain content linked without industrial course l
     assert.equal(question.status, "PUBLISHED");
     assert.equal(question.sampleOnly, true);
     assert.match(question.source, /SECURIUM independently authored/);
-    assert.equal(question.contentLinks.length, 1);
+    assert.equal(question.contentLinks.length, 2);
     assert.deepEqual(question.contentLinks[0], {
       contentType: "CONTENT",
       contentId: MANAGEMENT_LAW_CONTENT_ID,
+      relationType: "PRACTICE",
+    });
+    const expectedSubItemContentId = Object.entries(
+      MANAGEMENT_LAW_SUBITEM_CONTENT_IDS_BY_QUESTION_ID,
+    ).find(([questionId]) => questionId === question.id)?.[1];
+    assert.ok(expectedSubItemContentId);
+    assert.deepEqual(question.contentLinks[1], {
+      contentType: "CONTENT",
+      contentId: expectedSubItemContentId,
       relationType: "PRACTICE",
     });
     assert.deepEqual(

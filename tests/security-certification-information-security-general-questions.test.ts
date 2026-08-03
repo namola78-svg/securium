@@ -6,6 +6,7 @@ import {
   INFORMATION_SECURITY_GENERAL_COURSE_IDS,
   generateInformationSecurityGeneralQuestionSeedSql,
   getInformationSecurityGeneralQuestionBankReadiness,
+  INFORMATION_SECURITY_GENERAL_SUBITEM_CONTENT_IDS_BY_QUESTION_ID,
   securityCertificationInformationSecurityGeneralQuestionSamples,
   toInformationSecurityGeneralGradingQuestion,
 } from "../lib/data/security-certification-information-security-general-questions.mjs";
@@ -19,6 +20,7 @@ test("information security general question bank covers current auto-graded type
   assert.equal(readiness.allIndependentlyAuthored, true);
   assert.equal(readiness.allLinkedToBothCourses, true);
   assert.equal(readiness.allLinkedToGeneralContent, true);
+  assert.equal(readiness.subItemContentLinkedCount, 6);
   assert.deepEqual(readiness.courseCounts, {
     "course-ise": 6,
     "course-isie": 6,
@@ -36,10 +38,19 @@ test("information security general questions remain course scoped and content li
     assert.equal(question.status, "PUBLISHED");
     assert.equal(question.sampleOnly, true);
     assert.match(question.source, /SECURIUM independently authored/);
-    assert.equal(question.contentLinks.length, 1);
+    assert.equal(question.contentLinks.length, 2);
     assert.deepEqual(question.contentLinks[0], {
       contentType: "CONTENT",
       contentId: INFORMATION_SECURITY_GENERAL_CONTENT_ID,
+      relationType: "PRACTICE",
+    });
+    const expectedSubItemContentId = Object.entries(
+      INFORMATION_SECURITY_GENERAL_SUBITEM_CONTENT_IDS_BY_QUESTION_ID,
+    ).find(([questionId]) => questionId === question.id)?.[1];
+    assert.ok(expectedSubItemContentId);
+    assert.deepEqual(question.contentLinks[1], {
+      contentType: "CONTENT",
+      contentId: expectedSubItemContentId,
       relationType: "PRACTICE",
     });
     assert.deepEqual(
