@@ -236,6 +236,115 @@ test("admin curriculum and shared content pages expose network security coverage
   assert.match(curriculumHtml, /추천 후보/);
   assert.match(curriculumHtml, /연결 준비/);
 
+  const createUnlinkedCourseLessonResponse = await fetch(
+    `${baseUrl}/api/admin/shared-content`,
+    {
+      method: "POST",
+      headers: {
+        ...adminHeaders,
+        "content-type": "application/json",
+        origin: baseUrl,
+      },
+      body: JSON.stringify({
+        operation: "saveCourseLesson",
+        courseLesson: {
+          courseId: "course-ise",
+          curriculumNodeId: "",
+          lessonId: "",
+          contentId: "content-official-security-cert-network-security-overview",
+          displayTitle: "Rendered HTML temporary unlinked CourseLesson",
+          sortOrder: 99990,
+          difficulty: "",
+          importance: 50,
+          estimatedMinutes: 7,
+          isRequired: true,
+          unlockCondition: "",
+          completionRule: "MANUAL",
+          status: "PUBLISHED",
+        },
+      }),
+    },
+  );
+  const createUnlinkedCourseLessonPayload = await readJsonResponse(
+    createUnlinkedCourseLessonResponse,
+  );
+  assert.equal(
+    createUnlinkedCourseLessonResponse.status,
+    201,
+    JSON.stringify(createUnlinkedCourseLessonPayload),
+  );
+  const temporaryCourseLessonId = createUnlinkedCourseLessonPayload.id;
+  assert.match(temporaryCourseLessonId, /^[0-9a-f-]{36}$/);
+
+  const unlinkedCourseLessonsResponse = await fetch(
+    `${baseUrl}/api/admin/shared-content?scope=courseLessons&courseId=course-ise`,
+    { headers: adminHeaders },
+  );
+  const unlinkedCourseLessonsPayload = await readJsonResponse(
+    unlinkedCourseLessonsResponse,
+  );
+  assert.equal(
+    unlinkedCourseLessonsResponse.status,
+    200,
+    JSON.stringify(unlinkedCourseLessonsPayload),
+  );
+  assert.equal(
+    unlinkedCourseLessonsPayload.courseLessons.find(
+      (lesson) => lesson.id === temporaryCourseLessonId,
+    )?.curriculumNodeId,
+    null,
+  );
+
+  const linkCourseLessonResponse = await fetch(
+    `${baseUrl}/api/admin/shared-content`,
+    {
+      method: "POST",
+      headers: {
+        ...adminHeaders,
+        "content-type": "application/json",
+        origin: baseUrl,
+      },
+      body: JSON.stringify({
+        operation: "saveCourseLesson",
+        courseLesson: {
+          id: temporaryCourseLessonId,
+          courseId: "course-ise",
+          curriculumNodeId: "curriculum-node-ise-2027-2029-02",
+          lessonId: "",
+          contentId: "content-official-security-cert-network-security-overview",
+          displayTitle: "Rendered HTML temporary unlinked CourseLesson",
+          sortOrder: 99990,
+          difficulty: "",
+          importance: 50,
+          estimatedMinutes: 7,
+          isRequired: true,
+          unlockCondition: "",
+          completionRule: "MANUAL",
+          status: "PUBLISHED",
+        },
+      }),
+    },
+  );
+  assert.equal(
+    linkCourseLessonResponse.status,
+    200,
+    JSON.stringify(await readJsonResponse(linkCourseLessonResponse)),
+  );
+
+  const linkedCourseLessonsResponse = await fetch(
+    `${baseUrl}/api/admin/shared-content?scope=courseLessons&courseId=course-ise`,
+    { headers: adminHeaders },
+  );
+  const linkedCourseLessonsPayload = await readJsonResponse(
+    linkedCourseLessonsResponse,
+  );
+  assert.equal(
+    linkedCourseLessonsPayload.courseLessons.find(
+      (lesson) => lesson.id === temporaryCourseLessonId,
+    )?.curriculumNodeId,
+    "curriculum-node-ise-2027-2029-02",
+  );
+
   const sharedContentResponse = await fetch(
     `${baseUrl}/admin/shared-content?courseId=course-ise&contentId=content-official-security-cert-network-security-overview&courseLessonId=course-lesson-ise-official-network-security-overview&curriculumNodeId=curriculum-node-ise-2027-2029-02`,
     { headers: adminHeaders },
