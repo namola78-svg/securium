@@ -66,6 +66,18 @@ export default async function AdminCurriculumPage({
   const selectedSharedContentHref = selectedTree?.courseId
     ? `/admin/shared-content?courseId=${selectedTree.courseId}`
     : "/admin/shared-content";
+  function sharedContentNodeHref(row: {
+    courseId: string;
+    contentIds: string[];
+    curriculumNodeId: string;
+  }) {
+    const params = new URLSearchParams({ courseId: row.courseId });
+    if (row.contentIds[0]) {
+      params.set("contentId", row.contentIds[0]);
+    }
+    params.set("curriculumNodeId", row.curriculumNodeId);
+    return `/admin/shared-content?${params.toString()}`;
+  }
   const operationalSummary = nodeStats.reduce(
     (summary, stat) => ({
       questionCount: summary.questionCount + stat.questionCount,
@@ -299,7 +311,7 @@ export default async function AdminCurriculumPage({
                     </small>
                     <Link
                       className="text-link"
-                      href={`/admin/shared-content?courseId=${row.courseId}`}
+                      href={sharedContentNodeHref(row)}
                     >
                       공통 콘텐츠 관리로 이동
                     </Link>
@@ -339,11 +351,7 @@ export default async function AdminCurriculumPage({
                     </small>
                     <Link
                       className="text-link"
-                      href={
-                        row.contentIds[0]
-                          ? `/admin/shared-content?courseId=${row.courseId}&contentId=${row.contentIds[0]}`
-                          : `/admin/shared-content?courseId=${row.courseId}`
-                      }
+                      href={sharedContentNodeHref(row)}
                     >
                       연결 Content 확인
                     </Link>

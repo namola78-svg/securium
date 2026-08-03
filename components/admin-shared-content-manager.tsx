@@ -101,6 +101,7 @@ export function AdminSharedContentManager({
   usage,
   selectedCourseId,
   selectedContentId,
+  selectedCurriculumNodeId,
 }: {
   courses: Course[];
   contents: SharedContent[];
@@ -110,14 +111,21 @@ export function AdminSharedContentManager({
   usage: ContentUsage[];
   selectedCourseId: string;
   selectedContentId: string;
+  selectedCurriculumNodeId: string;
 }) {
   const [message, setMessage] = useState("");
   const [pendingAction, setPendingAction] = useState("");
   const [editingContentId, setEditingContentId] = useState(
     selectedContentId || contents[0]?.id || "",
   );
+  const initialCourseLessonId =
+    selectedCurriculumNodeId
+      ? courseLessons.find(
+          (lesson) => lesson.curriculumNodeId === selectedCurriculumNodeId,
+        )?.id
+      : "";
   const [editingCourseLessonId, setEditingCourseLessonId] = useState(
-    courseLessons[0]?.id || "",
+    initialCourseLessonId || courseLessons[0]?.id || "",
   );
   const [contentQuery, setContentQuery] = useState("");
   const [contentStatusFilter, setContentStatusFilter] = useState("ALL");
@@ -132,6 +140,13 @@ export function AdminSharedContentManager({
     contents.find((content) => content.id === selectedContentId) ??
     contents[0] ??
     null;
+  const selectedCurriculumNode =
+    curriculumNodes.find((node) => node.id === selectedCurriculumNodeId) ?? null;
+  const selectedNodeCourseLessons = selectedCurriculumNodeId
+    ? courseLessons.filter(
+        (lesson) => lesson.curriculumNodeId === selectedCurriculumNodeId,
+      )
+    : [];
   const selectedTreeLabel = useMemo(() => {
     const active = curriculumTrees.find((tree) => tree.status === "ACTIVE");
     const fallback = curriculumTrees[0];
@@ -465,6 +480,27 @@ export function AdminSharedContentManager({
             </button>
           </div>
         </div>
+        {selectedCurriculumNode ? (
+          <div className="admin-record selected-record">
+            <div className="admin-record-summary">
+              <span>
+                <strong>선택된 커리큘럼 노드</strong>
+                <small>
+                  {selectedCurriculumNode.title} · {selectedCurriculumNode.nodeType}
+                  {" · "}
+                  연결 CourseLesson {selectedNodeCourseLessons.length}개
+                </small>
+              </span>
+              <span className="status-badge compact">
+                {selectedCurriculumNode.status}
+              </span>
+            </div>
+            <p className="admin-helper">
+              커버리지 화면에서 넘어온 노드입니다. 새 CourseLesson을 만들 때
+              아래 커리큘럼 노드 필드에 기본 선택됩니다.
+            </p>
+          </div>
+        ) : null}
         <form
           className="admin-form"
           action={saveCourseLesson}
@@ -489,7 +525,11 @@ export function AdminSharedContentManager({
             커리큘럼 노드
             <select
               name="curriculumNodeId"
-              defaultValue={editingCourseLesson?.curriculumNodeId ?? ""}
+              defaultValue={
+                editingCourseLesson?.curriculumNodeId ??
+                selectedCurriculumNodeId ??
+                ""
+              }
             >
               <option value="">노드 미연결</option>
               {curriculumNodes.map((node) => (

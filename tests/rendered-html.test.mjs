@@ -229,7 +229,7 @@ test("admin curriculum and shared content pages expose network security coverage
   assert.match(curriculumHtml, /비교 기준 분리/);
 
   const sharedContentResponse = await fetch(
-    `${baseUrl}/admin/shared-content?courseId=course-ise&contentId=content-official-security-cert-network-security-overview`,
+    `${baseUrl}/admin/shared-content?courseId=course-ise&contentId=content-official-security-cert-network-security-overview&curriculumNodeId=curriculum-node-ise-2027-2029-02`,
     { headers: adminHeaders },
   );
   const sharedContentHtml = await sharedContentResponse.text();
@@ -245,6 +245,8 @@ test("admin curriculum and shared content pages expose network security coverage
   assert.match(sharedContentHtml, /네트워크 보안/);
   assert.match(sharedContentHtml, /정보보안기사/);
   assert.match(sharedContentHtml, /PUBLISHED/);
+  assert.match(sharedContentHtml, /선택된 커리큘럼 노드/);
+  assert.match(sharedContentHtml, /커버리지 화면에서 넘어온 노드입니다/);
 });
 
 let networkQuestionSeedApplied = false;

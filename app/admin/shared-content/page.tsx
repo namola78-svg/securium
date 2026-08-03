@@ -16,7 +16,11 @@ export const dynamic = "force-dynamic";
 export default async function AdminSharedContentPage({
   searchParams,
 }: {
-  searchParams: Promise<{ courseId?: string; contentId?: string }>;
+  searchParams: Promise<{
+    courseId?: string;
+    contentId?: string;
+    curriculumNodeId?: string;
+  }>;
 }) {
   await requireCatalogManager("/admin/shared-content");
   const query = await searchParams;
@@ -46,6 +50,11 @@ export default async function AdminSharedContentPage({
   const curriculumNodes = activeTree
     ? await listCurriculumNodes(activeTree.id)
     : [];
+  const selectedCurriculumNodeId =
+    query.curriculumNodeId &&
+    curriculumNodes.some((node) => node.id === query.curriculumNodeId)
+      ? query.curriculumNodeId
+      : "";
 
   return (
     <>
@@ -97,6 +106,7 @@ export default async function AdminSharedContentPage({
         usage={usage}
         selectedCourseId={selectedCourseId}
         selectedContentId={selectedContentId}
+        selectedCurriculumNodeId={selectedCurriculumNodeId}
       />
     </>
   );
