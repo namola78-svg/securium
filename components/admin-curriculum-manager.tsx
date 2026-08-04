@@ -482,8 +482,11 @@ export function AdminCurriculumManager({
               </aside>
             </div>
 
-            <details className="admin-panel curriculum-create-node-panel">
-              <summary>새 노드 추가</summary>
+            <details
+              className="admin-panel curriculum-create-node-panel"
+              aria-labelledby="curriculum-create-node-title"
+            >
+              <summary id="curriculum-create-node-title">새 노드 추가</summary>
               <NodeForm
                 nodes={nodes}
                 linkableContent={linkableContent}

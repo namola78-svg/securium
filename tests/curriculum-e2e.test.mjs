@@ -407,6 +407,11 @@ test("관리자 커리큘럼 화면은 Tree, Node, 기존 콘텐츠 연결, 운�
   );
   assert.match(html, /class="curriculum-node-edit-panel" aria-labelledby="curriculum-node-edit-title-/);
   assert.match(html, /<summary id="curriculum-node-edit-title-[^"]+">선택 노드 수정<\/summary>/);
+  assert.match(
+    html,
+    /class="admin-panel curriculum-create-node-panel" aria-labelledby="curriculum-create-node-title"/,
+  );
+  assert.match(html, /<summary id="curriculum-create-node-title">새 노드 추가<\/summary>/);
   assert.match(html, /admin-mobile-nav-button/);
   assert.match(html, /aria-controls="admin-sidebar-navigation"/);
   assert.match(html, /관리자 본문으로 이동/);
