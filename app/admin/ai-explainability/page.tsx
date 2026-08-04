@@ -1,5 +1,5 @@
-import { listAdminAIExplainabilityTraces } from "@/db/ai-explainability-repositories";
 import { AdminAIExplainabilityFeedbackForm } from "@/components/admin-ai-explainability-feedback";
+import { listAdminAIExplainabilityTraces } from "@/db/ai-explainability-repositories";
 import type { AIExplainabilityTraceSource } from "@/lib/ai/explainability";
 import { requireAuditViewer } from "@/lib/auth";
 
@@ -37,8 +37,8 @@ export default async function AdminAIExplainabilityPage({
         <p className="eyebrow">AI EXPLAINABILITY</p>
         <h1>AI 설명 가능성 콘솔</h1>
         <p>
-          AI 요청이 어떤 개념을 감지했고, 어떤 별칭으로 확장했으며,
-          어떤 근거와 지표를 사용했는지 관리자 전용으로 확인합니다.
+          AI 요청이 어떤 개념을 감지했고, 어떤 검색어로 확장됐으며, 어떤
+          검수 근거와 citation을 사용했는지 관리자 전용으로 확인합니다.
         </p>
       </header>
 
@@ -51,7 +51,7 @@ export default async function AdminAIExplainabilityPage({
         <div className="admin-panel">
           <p className="eyebrow">TOKENS</p>
           <strong>{summary.totalTokens.toLocaleString()}</strong>
-          <span>입력+출력 합계</span>
+          <span>입력과 출력 합계</span>
         </div>
         <div className="admin-panel">
           <p className="eyebrow">LATENCY</p>
@@ -73,13 +73,16 @@ export default async function AdminAIExplainabilityPage({
       <section className="admin-panel ai-explainability-policy">
         <h2>보안 정책</h2>
         <p>
-          Prompt Viewer는 원문 프롬프트와 답안 원문을 저장하거나 노출하지
-          않습니다. 대신 fingerprint, 검색 근거, citation, token/latency/cost
-          지표만 표시합니다.
+          Prompt Viewer는 전체 프롬프트, 원문 답안, 민감정보를 저장하거나
+          노출하지 않습니다. 관리자 콘솔에는 fingerprint, 검수 근거,
+          citation, token/latency/cost 지표만 표시합니다.
         </p>
       </section>
 
-      <form className="admin-panel ai-trace-filter-form" action="/admin/ai-explainability">
+      <form
+        className="admin-panel ai-trace-filter-form"
+        action="/admin/ai-explainability"
+      >
         <label>
           Source
           <select name="source" defaultValue={filters.source ?? ""}>
@@ -154,8 +157,12 @@ export default async function AdminAIExplainabilityPage({
           </select>
         </label>
         <div className="ai-trace-filter-actions">
-          <button className="button button-dark" type="submit">Filter</button>
-          <a className="button button-ghost" href="/admin/ai-explainability">Reset</a>
+          <button className="button button-dark" type="submit">
+            Filter
+          </button>
+          <a className="button button-ghost" href="/admin/ai-explainability">
+            Reset
+          </a>
         </div>
       </form>
 
@@ -166,8 +173,12 @@ export default async function AdminAIExplainabilityPage({
               <header className="ai-trace-header">
                 <div>
                   <p className="eyebrow">{trace.source.replaceAll("_", " ")}</p>
-                  <h2>{trace.courseName} · {trace.targetType}</h2>
-                  <p>{trace.userEmail} · {trace.generatedAt}</p>
+                  <h2>
+                    {trace.courseName} · {trace.targetType}
+                  </h2>
+                  <p>
+                    {trace.userEmail} · {trace.generatedAt}
+                  </p>
                 </div>
                 <div className="admin-ai-badges">
                   <span className="status-badge">{trace.provider}</span>
@@ -222,10 +233,37 @@ export default async function AdminAIExplainabilityPage({
 
                 <details open>
                   <summary>Alias Expansion</summary>
-                  <p>원문: {trace.aliasExpansion.originalQuery}</p>
-                  <p>
-                    확장: {trace.aliasExpansion.expandedQueries.join(", ") || "없음"}
-                  </p>
+                  <dl className="ai-feedback-summary">
+                    <div>
+                      <dt>Original query</dt>
+                      <dd>{trace.aliasExpansion.originalQuery || "none"}</dd>
+                    </div>
+                    <div>
+                      <dt>Expanded queries</dt>
+                      <dd>
+                        {trace.aliasExpansion.expandedQueries.join(", ") ||
+                          "none"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Added queries</dt>
+                      <dd>
+                        {trace.aliasExpansion.addedQueries.join(", ") ||
+                          "none"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Concept candidates</dt>
+                      <dd>
+                        {trace.aliasExpansion.scopedCandidateCount.toLocaleString()}{" "}
+                        / {trace.aliasExpansion.candidateCount.toLocaleString()}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Course scope</dt>
+                      <dd>{trace.aliasExpansion.courseId ?? "global"}</dd>
+                    </div>
+                  </dl>
                 </details>
 
                 <details>
@@ -235,7 +273,9 @@ export default async function AdminAIExplainabilityPage({
                       {trace.contexts.map((context) => (
                         <li key={context.id}>
                           <strong>{context.title}</strong>
-                          <small>{context.kind} · {context.id}</small>
+                          <small>
+                            {context.kind} · {context.id}
+                          </small>
                           <p>{context.excerpt}</p>
                         </li>
                       ))}
@@ -315,7 +355,9 @@ export default async function AdminAIExplainabilityPage({
         ) : (
           <div className="empty-state">
             <strong>표시할 AI trace가 없습니다.</strong>
-            <p>학습자가 AI 해설 또는 특화 AI 검토를 요청하면 여기에 기록됩니다.</p>
+            <p>
+              학습자가 AI 해설 또는 특화 AI 검토를 요청하면 이곳에 기록됩니다.
+            </p>
           </div>
         )}
       </section>
