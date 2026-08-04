@@ -19,14 +19,37 @@ export function AccountDrawer({ user }: AccountDrawerProps) {
   const [error, setError] = useState("");
   const triggerRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open) return;
+
+    const focusTimer = window.setTimeout(() => closeButtonRef.current?.focus(), 50);
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setOpen(false);
         window.requestAnimationFrame(() => triggerRef.current?.focus());
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+
+      const focusableElements = Array.from(
+        drawerRef.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      );
+      if (!focusableElements.length) return;
+
+      const first = focusableElements[0];
+      const last = focusableElements[focusableElements.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
       }
     }
 
@@ -40,6 +63,7 @@ export function AccountDrawer({ user }: AccountDrawerProps) {
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("pointerdown", handlePointerDown);
     return () => {
+      window.clearTimeout(focusTimer);
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("pointerdown", handlePointerDown);
     };
@@ -111,7 +135,7 @@ export function AccountDrawer({ user }: AccountDrawerProps) {
           ref={drawerRef}
           role="dialog"
           aria-modal="false"
-          aria-label="관리자 계정 메뉴"
+          aria-labelledby="admin-account-drawer-title"
         >
           <header className="account-drawer-header">
             <span className="account-avatar large" aria-hidden="true">
@@ -119,9 +143,21 @@ export function AccountDrawer({ user }: AccountDrawerProps) {
             </span>
             <div>
               <p className="eyebrow">ACCOUNT</p>
-              <h2>{user.displayName}</h2>
+              <h2 id="admin-account-drawer-title">{user.displayName}</h2>
               <p>{visibleRoles}</p>
             </div>
+            <button
+              aria-label="계정 메뉴 닫기"
+              className="account-drawer-close"
+              onClick={() => {
+                setOpen(false);
+                window.requestAnimationFrame(() => triggerRef.current?.focus());
+              }}
+              ref={closeButtonRef}
+              type="button"
+            >
+              ×
+            </button>
           </header>
 
           <div className="account-drawer-links">
