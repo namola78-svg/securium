@@ -477,6 +477,7 @@ export function AdminCurriculumManager({
                 className="curriculum-node-detail-panel"
                 aria-label="선택 노드 상세"
                 aria-live="polite"
+                aria-busy={Boolean(pendingAction)}
               >
                 {selectedNode ? (
                   <NodeDetailPanel
