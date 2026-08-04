@@ -401,6 +401,7 @@ test("관리자 커리큘럼 화면은 Tree, Node, 기존 콘텐츠 연결, 운�
   assert.match(html, /aria-label="[^"]+ 노드 선택"/);
   assert.match(html, /aria-describedby="curriculum-node-meta-/);
   assert.match(html, /aria-controls="curriculum-node-detail-/);
+  assert.match(html, /class="curriculum-node-detail-panel" aria-label="선택 노드 상세" aria-live="polite"/);
   assert.match(
     html,
     /id="curriculum-node-detail-[^"]+" role="region" aria-labelledby="curriculum-node-detail-title-/,

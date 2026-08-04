@@ -464,7 +464,11 @@ export function AdminCurriculumManager({
                 ))}
               </div>
 
-              <aside className="curriculum-node-detail-panel" aria-label="선택 노드 상세">
+              <aside
+                className="curriculum-node-detail-panel"
+                aria-label="선택 노드 상세"
+                aria-live="polite"
+              >
                 {selectedNode ? (
                   <NodeDetailPanel
                     key={selectedNode.id}
