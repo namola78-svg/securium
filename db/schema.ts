@@ -2757,6 +2757,62 @@ export const aiReviewedContents = sqliteTable(
   ],
 );
 
+export const aiExplainabilityFeedback = sqliteTable(
+  "ai_explainability_feedback",
+  {
+    id: text("id").primaryKey(),
+    traceSource: text("trace_source").notNull(),
+    questionGenerationId: text("question_generation_id").references(
+      () => aiGenerationRecords.id,
+      { onDelete: "restrict" },
+    ),
+    specializedGenerationId: text("specialized_generation_id").references(
+      () => aiSpecializedGenerationRecords.id,
+      { onDelete: "restrict" },
+    ),
+    reviewerId: text("reviewer_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    rating: text("rating").notNull(),
+    issueType: text("issue_type").notNull(),
+    note: text("note").notNull().default(""),
+    metadataJson: text("metadata_json").notNull().default("{}"),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    index("ai_explainability_feedback_trace_idx").on(
+      table.traceSource,
+      table.createdAt,
+    ),
+    index("ai_explainability_feedback_reviewer_idx").on(
+      table.reviewerId,
+      table.createdAt,
+    ),
+    index("ai_explainability_feedback_question_idx").on(
+      table.questionGenerationId,
+    ),
+    index("ai_explainability_feedback_specialized_idx").on(
+      table.specializedGenerationId,
+    ),
+    check(
+      "ai_explainability_feedback_trace_source_check",
+      sql`${table.traceSource} IN ('QUESTION_EXPLANATION', 'SPECIALIZED_REVIEW')`,
+    ),
+    check(
+      "ai_explainability_feedback_rating_check",
+      sql`${table.rating} IN ('HELPFUL', 'NOT_HELPFUL', 'NEEDS_REVIEW')`,
+    ),
+    check(
+      "ai_explainability_feedback_issue_type_check",
+      sql`${table.issueType} IN ('NONE', 'LOW_QUALITY_CONTEXT', 'MISSING_CITATION', 'WRONG_CONCEPT', 'PROMPT_ISSUE', 'SENSITIVE_CONTENT_RISK', 'OTHER')`,
+    ),
+    check(
+      "ai_explainability_feedback_target_check",
+      sql`(${table.traceSource} = 'QUESTION_EXPLANATION' AND ${table.questionGenerationId} IS NOT NULL AND ${table.specializedGenerationId} IS NULL) OR (${table.traceSource} = 'SPECIALIZED_REVIEW' AND ${table.specializedGenerationId} IS NOT NULL AND ${table.questionGenerationId} IS NULL)`,
+    ),
+  ],
+);
+
 export const auditLogs = sqliteTable(
   "audit_logs",
   {
@@ -2874,4 +2930,6 @@ export type AISpecializedGenerationRecord =
   typeof aiSpecializedGenerationRecords.$inferSelect;
 export type AISpecializedReview = typeof aiSpecializedReviews.$inferSelect;
 export type AIReviewedContent = typeof aiReviewedContents.$inferSelect;
+export type AIExplainabilityFeedback =
+  typeof aiExplainabilityFeedback.$inferSelect;
 export type AuditLog = typeof adminAuditLogs.$inferSelect;

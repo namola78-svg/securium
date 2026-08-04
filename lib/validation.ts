@@ -496,6 +496,22 @@ export const specializedAIReviewSchema = z.object({
   reviewedContentTitle: z.string().trim().max(300).default(""),
 });
 
+export const aiExplainabilityFeedbackSchema = z.object({
+  traceId: id,
+  traceSource: z.enum(["QUESTION_EXPLANATION", "SPECIALIZED_REVIEW"]),
+  rating: z.enum(["HELPFUL", "NOT_HELPFUL", "NEEDS_REVIEW"]),
+  issueType: z.enum([
+    "NONE",
+    "LOW_QUALITY_CONTEXT",
+    "MISSING_CITATION",
+    "WRONG_CONCEPT",
+    "PROMPT_ISSUE",
+    "SENSITIVE_CONTENT_RISK",
+    "OTHER",
+  ]),
+  note: z.string().trim().max(2000).default(""),
+});
+
 export const bookmarkSchema = z.object({
   targetType: z.enum(["QUESTION", "TOPIC", "SUBJECT"]),
   targetId: id,

@@ -1,6 +1,20 @@
-import { listAdminAIExplainabilityTraces } from "@/db/ai-explainability-repositories";
+import {
+  listAdminAIExplainabilityTraces,
+  submitAdminAIExplainabilityFeedback,
+} from "@/db/ai-explainability-repositories";
+import { recordAuditEventSafely } from "@/db/audit-repositories";
 import { requireAuditViewer } from "@/lib/auth";
-import { errorResponse, successResponse } from "@/lib/http";
+import {
+  assertSameOrigin,
+  errorResponse,
+  readRequestInput,
+  successResponse,
+} from "@/lib/http";
+import { assertAdminActionRateLimit } from "@/lib/rate-limit";
+import {
+  aiExplainabilityFeedbackSchema,
+  parseInput,
+} from "@/lib/validation";
 
 export async function GET(request: Request) {
   try {
@@ -17,6 +31,41 @@ export async function GET(request: Request) {
         requestId: stringParam(params.get("requestId")),
       }),
     );
+  } catch (error) {
+    return errorResponse(error);
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    assertSameOrigin(request);
+    const user = await requireAuditViewer();
+    await assertAdminActionRateLimit(user.id, "ai-explainability-feedback");
+    const input = parseInput(
+      aiExplainabilityFeedbackSchema,
+      await readRequestInput(request),
+    );
+    const result = await submitAdminAIExplainabilityFeedback({
+      reviewerId: user.id,
+      ...input,
+    });
+    await recordAuditEventSafely(
+      {
+        actorUserId: user.id,
+        actorRoles: user.roles,
+        action: "AI_EXPLAINABILITY_FEEDBACK_CREATE",
+        resourceType: "AI_EXPLAINABILITY_TRACE",
+        resourceId: input.traceId,
+        requestId: result.id,
+        metadata: {
+          traceSource: input.traceSource,
+          rating: input.rating,
+          issueType: input.issueType,
+        },
+      },
+      request,
+    );
+    return successResponse(request, { result });
   } catch (error) {
     return errorResponse(error);
   }

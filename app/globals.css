@@ -1639,6 +1639,13 @@ button:disabled {
   line-height: 1.6;
 }
 
+.inline-success {
+  margin: 0;
+  color: #166534;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
 .course-detail-hero,
 .learn-hero {
   padding: 68px 0;
@@ -5571,6 +5578,33 @@ a.specialized-card:hover {
   overflow-wrap: anywhere;
 }
 
+.ai-feedback-form {
+  display: grid;
+  gap: .75rem;
+  margin-block: .9rem;
+  padding: .9rem;
+  border: 1px solid var(--line);
+  border-radius: .85rem;
+  background: var(--white);
+}
+
+.ai-feedback-form-grid {
+  display: grid;
+  gap: .75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ai-feedback-form label {
+  display: grid;
+  gap: .35rem;
+  font-weight: 800;
+}
+
+.ai-feedback-form textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
 @media (max-width: 900px) {
   .practical-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .scenario-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -5594,6 +5628,7 @@ a.specialized-card:hover {
   .admin-summary-grid,
   .ai-trace-grid,
   .ai-trace-facts,
+  .ai-feedback-form-grid,
   .ai-trace-filter-form { grid-template-columns: 1fr; }
   .ai-trace-header { flex-direction: column; }
   .ai-trace-filter-actions { flex-direction: column; }

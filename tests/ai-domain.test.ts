@@ -21,6 +21,7 @@ import {
   matchesAIExplainabilityTraceFilters,
   summarizeAITraceMetrics,
 } from "../lib/ai/explainability.ts";
+import { aiExplainabilityFeedbackSchema } from "../lib/validation.ts";
 
 function explanationInput(
   contexts: QuestionExplanationInput["contexts"] = [
@@ -420,5 +421,36 @@ test("AI explainability trace filters support source, course, provider, status a
       source: "QUESTION_EXPLANATION",
     }),
     false,
+  );
+});
+
+test("AI explainability feedback validation accepts bounded admin review metadata", () => {
+  const valid = aiExplainabilityFeedbackSchema.parse({
+    traceId: "ai-record-1",
+    traceSource: "QUESTION_EXPLANATION",
+    rating: "NEEDS_REVIEW",
+    issueType: "MISSING_CITATION",
+    note: "Need stronger citation coverage.",
+  });
+
+  assert.equal(valid.traceId, "ai-record-1");
+  assert.equal(valid.rating, "NEEDS_REVIEW");
+  assert.throws(() =>
+    aiExplainabilityFeedbackSchema.parse({
+      traceId: "ai-record-1",
+      traceSource: "QUESTION_EXPLANATION",
+      rating: "OFFICIAL_SCORE_CHANGE",
+      issueType: "NONE",
+      note: "",
+    }),
+  );
+  assert.throws(() =>
+    aiExplainabilityFeedbackSchema.parse({
+      traceId: "ai-record-1",
+      traceSource: "SPECIALIZED_REVIEW",
+      rating: "HELPFUL",
+      issueType: "NONE",
+      note: "x".repeat(2001),
+    }),
   );
 });

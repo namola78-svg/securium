@@ -1,6 +1,7 @@
 import { desc, eq } from "drizzle-orm";
 import { getDb } from ".";
 import {
+  aiExplainabilityFeedback,
   aiGenerationRecords,
   aiSpecializedGenerationRecords,
   courses,
@@ -8,6 +9,7 @@ import {
   users,
 } from "./schema";
 import { DatabaseRetrievalProvider } from "./ai-repositories";
+import { AppError } from "@/lib/errors";
 import {
   buildAIExplainabilityTrace,
   matchesAIExplainabilityTraceFilters,
@@ -22,6 +24,20 @@ export type AIExplainabilityTraceList = {
   traces: AIExplainabilityTrace[];
   summary: ReturnType<typeof summarizeAITraceMetrics>;
 };
+
+export type AIExplainabilityFeedbackRating =
+  | "HELPFUL"
+  | "NOT_HELPFUL"
+  | "NEEDS_REVIEW";
+
+export type AIExplainabilityFeedbackIssueType =
+  | "NONE"
+  | "LOW_QUALITY_CONTEXT"
+  | "MISSING_CITATION"
+  | "WRONG_CONCEPT"
+  | "PROMPT_ISSUE"
+  | "SENSITIVE_CONTENT_RISK"
+  | "OTHER";
 
 type RawTraceRecord = {
   id: string;
@@ -191,6 +207,61 @@ export async function listAdminAIExplainabilityTraces(
     traces,
     summary: summarizeAITraceMetrics(traces),
   };
+}
+
+export async function submitAdminAIExplainabilityFeedback(input: {
+  reviewerId: string;
+  traceId: string;
+  traceSource: AIExplainabilityTraceSource;
+  rating: AIExplainabilityFeedbackRating;
+  issueType: AIExplainabilityFeedbackIssueType;
+  note: string;
+}) {
+  if (input.traceSource === "QUESTION_EXPLANATION") {
+    const [record] = await getDb()
+      .select({ id: aiGenerationRecords.id })
+      .from(aiGenerationRecords)
+      .where(eq(aiGenerationRecords.id, input.traceId))
+      .limit(1);
+    if (!record) {
+      throw new AppError(
+        "AI trace를 찾을 수 없습니다.",
+        404,
+        "AI_TRACE_NOT_FOUND",
+      );
+    }
+  } else {
+    const [record] = await getDb()
+      .select({ id: aiSpecializedGenerationRecords.id })
+      .from(aiSpecializedGenerationRecords)
+      .where(eq(aiSpecializedGenerationRecords.id, input.traceId))
+      .limit(1);
+    if (!record) {
+      throw new AppError(
+        "AI trace를 찾을 수 없습니다.",
+        404,
+        "AI_TRACE_NOT_FOUND",
+      );
+    }
+  }
+
+  const id = crypto.randomUUID();
+  await getDb().insert(aiExplainabilityFeedback).values({
+    id,
+    traceSource: input.traceSource,
+    questionGenerationId:
+      input.traceSource === "QUESTION_EXPLANATION" ? input.traceId : null,
+    specializedGenerationId:
+      input.traceSource === "SPECIALIZED_REVIEW" ? input.traceId : null,
+    reviewerId: input.reviewerId,
+    rating: input.rating,
+    issueType: input.issueType,
+    note: input.note,
+    metadataJson: JSON.stringify({
+      surface: "admin-ai-explainability-console",
+    }),
+  });
+  return { id };
 }
 
 function matchesRawTraceRecord(

@@ -1,4 +1,5 @@
 import { listAdminAIExplainabilityTraces } from "@/db/ai-explainability-repositories";
+import { AdminAIExplainabilityFeedbackForm } from "@/components/admin-ai-explainability-feedback";
 import type { AIExplainabilityTraceSource } from "@/lib/ai/explainability";
 import { requireAuditViewer } from "@/lib/auth";
 
@@ -231,6 +232,10 @@ export default async function AdminAIExplainabilityPage({
                   <summary>AI Feedback / Result</summary>
                   <p>{trace.disclaimer}</p>
                   {trace.errorCode ? <p>오류 코드: {trace.errorCode}</p> : null}
+                  <AdminAIExplainabilityFeedbackForm
+                    traceId={trace.id}
+                    traceSource={trace.source}
+                  />
                   <pre>{JSON.stringify(trace.result, null, 2)}</pre>
                 </details>
               </div>
