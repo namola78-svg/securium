@@ -664,6 +664,7 @@ function CurriculumTreeRow({
         className="curriculum-tree-main"
         type="button"
         onClick={onSelect}
+        aria-pressed={selected}
         aria-label={`${officialNodeTitle(node)} 노드 선택`}
         aria-describedby={metaId}
       >

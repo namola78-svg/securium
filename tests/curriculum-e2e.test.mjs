@@ -397,6 +397,7 @@ test("관리자 커리큘럼 화면은 Tree, Node, 기존 콘텐츠 연결, 운�
   assert.match(html, /role="tree"/);
   assert.match(html, /role="treeitem"/);
   assert.match(html, /aria-level="1"/);
+  assert.match(html, /aria-pressed="true"/);
   assert.match(html, /aria-label="[^"]+ 노드 선택"/);
   assert.match(html, /aria-describedby="curriculum-node-meta-/);
   assert.match(html, /admin-mobile-nav-button/);
