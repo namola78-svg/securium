@@ -87,16 +87,22 @@ export type AIExplainabilityFeedbackSummary = {
 
 export function buildAIExplainabilityTrace(
   input: AIExplainabilityRecordInput,
-  conceptCandidates: readonly ConceptAwareRetrievalCandidate[],
+  conceptCandidatesOrExpansion:
+    | readonly ConceptAwareRetrievalCandidate[]
+    | RetrievalQueryExpansionDiagnostics,
 ): AIExplainabilityTrace {
-  const aliasExpansion = describeRetrievalQueryExpansion(
-    {
-      query: input.query,
-      courseId: input.courseId,
-      limit: 8,
-    },
-    conceptCandidates,
-  );
+  const aliasExpansion = isRetrievalQueryExpansionDiagnostics(
+    conceptCandidatesOrExpansion,
+  )
+    ? conceptCandidatesOrExpansion
+    : describeRetrievalQueryExpansion(
+        {
+          query: input.query,
+          courseId: input.courseId,
+          limit: 8,
+        },
+        conceptCandidatesOrExpansion,
+      );
   const citations = input.contexts.map((context) => ({
     id: context.id,
     title: context.title,
@@ -122,6 +128,14 @@ export function buildAIExplainabilityTrace(
     },
     feedbackSummary: summarizeAITraceFeedback([]),
   };
+}
+
+function isRetrievalQueryExpansionDiagnostics(
+  value:
+    | readonly ConceptAwareRetrievalCandidate[]
+    | RetrievalQueryExpansionDiagnostics,
+): value is RetrievalQueryExpansionDiagnostics {
+  return "expandedQueries" in value && Array.isArray(value.expandedQueries);
 }
 
 export function summarizeAITraceMetrics(

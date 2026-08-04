@@ -366,6 +366,51 @@ test("AI explainability trace exposes concepts, citations, metrics and prompt fi
   assert.equal(trace.promptViewer.fingerprint, "sha256:prompt");
 });
 
+test("AI explainability trace can preserve ontology graph retrieval diagnostics", () => {
+  const trace = buildAIExplainabilityTrace(
+    {
+      id: "ai-record-ontology",
+      requestId: "req-ontology",
+      source: "QUESTION_EXPLANATION",
+      courseId: "course-ise",
+      courseName: "Information Security Engineer",
+      userEmail: "learner@example.com",
+      targetType: "QUESTION",
+      targetId: "question-ontology",
+      query: "RBAC",
+      provider: "mock",
+      model: "mock",
+      generationStatus: "generated",
+      generatedAt: "2026-08-04T00:00:00.000Z",
+      sourceContextIds: [],
+      contexts: [],
+      result: {},
+      promptFingerprint: "sha256:ontology",
+      inputTokens: 10,
+      outputTokens: 20,
+      estimatedCostMicros: 0,
+      latencyMs: 12,
+      disclaimer: AI_DISCLAIMER,
+    },
+    {
+      originalQuery: "RBAC",
+      expandedQueries: ["RBAC", "Access Control", "Least Privilege"],
+      addedQueries: ["Access Control", "Least Privilege"],
+      matchedConceptLabels: ["Access Control"],
+      courseId: "course-ise",
+      candidateCount: 12,
+      scopedCandidateCount: 7,
+    },
+  );
+
+  assert.deepEqual(trace.detectedConcepts, ["Access Control"]);
+  assert.deepEqual(trace.aliasExpansion.addedQueries, [
+    "Access Control",
+    "Least Privilege",
+  ]);
+  assert.equal(trace.aliasExpansion.scopedCandidateCount, 7);
+});
+
 test("AI explainability metric summary handles empty and populated traces", () => {
   assert.deepEqual(summarizeAITraceMetrics([]), {
     count: 0,

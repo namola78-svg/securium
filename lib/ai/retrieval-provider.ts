@@ -107,6 +107,37 @@ export function expandRetrievalQueriesWithOntologyGraph(
   }).expandedQueries;
 }
 
+export function describeRetrievalQueryExpansionWithOntologyGraph(
+  options: RetrievalSearchOptions & { courseId?: string },
+  graph: OntologyGraph,
+  limit = 12,
+): RetrievalQueryExpansionDiagnostics {
+  const expansion = expandOntologyRetrievalQueries({
+    query: options.query,
+    graph,
+    courseId: options.courseId,
+    limit,
+  });
+  const originalQuery = options.query.trim();
+  const normalizedOriginal = normalizeRetrievalQuery(originalQuery);
+  const expandedQueries = expansion.expandedQueries.length
+    ? expansion.expandedQueries
+    : [originalQuery];
+
+  return {
+    originalQuery,
+    expandedQueries,
+    addedQueries: expandedQueries.filter(
+      (expandedQuery) =>
+        normalizeRetrievalQuery(expandedQuery) !== normalizedOriginal,
+    ),
+    matchedConceptLabels: expansion.matchedConceptLabels,
+    courseId: options.courseId,
+    candidateCount: graph.concepts.length,
+    scopedCandidateCount: graph.concepts.length,
+  };
+}
+
 export function describeRetrievalQueryExpansion(
   options: RetrievalSearchOptions & { courseId?: string },
   candidates: readonly ConceptAwareRetrievalCandidate[],

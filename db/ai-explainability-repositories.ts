@@ -9,6 +9,7 @@ import {
   users,
 } from "./schema";
 import { DatabaseRetrievalProvider } from "./ai-repositories";
+import { buildDatabaseOntologyGraph } from "./ontology-repositories";
 import { AppError } from "@/lib/errors";
 import {
   buildAIExplainabilityTrace,
@@ -19,6 +20,7 @@ import {
   type AIExplainabilityTraceFilters,
   type AIExplainabilityTraceSource,
 } from "@/lib/ai/explainability";
+import { describeRetrievalQueryExpansionWithOntologyGraph } from "@/lib/ai/retrieval-provider";
 import { getSecurityCertificationRetrievalConceptAliases } from "@/lib/curriculum/security-certification-ontology";
 
 export type AIExplainabilityTraceList = {
@@ -194,14 +196,26 @@ export async function listAdminAIExplainabilityTraces(
   const feedbackByTrace = await listFeedbackByRawTrace(rawRecords);
   const retrieval = new DatabaseRetrievalProvider();
   const conceptCandidates = getSecurityCertificationRetrievalConceptAliases();
+  const ontologyGraph = await safeBuildTraceOntologyGraph(filters.courseId);
   const traces = await Promise.all(
     rawRecords.map(async (record) => {
+      const aliasExpansion = ontologyGraph?.concepts.length
+        ? describeRetrievalQueryExpansionWithOntologyGraph(
+            {
+              query: record.query,
+              courseId: record.courseId,
+              limit: 8,
+            },
+            ontologyGraph,
+            8,
+          )
+        : conceptCandidates;
       const trace = buildAIExplainabilityTrace(
         {
           ...record,
           contexts: await retrieval.getContextByIds(record.sourceContextIds),
         },
-        conceptCandidates,
+        aliasExpansion,
       );
       return {
         ...trace,
@@ -218,6 +232,18 @@ export async function listAdminAIExplainabilityTraces(
     traces: filteredTraces,
     summary: summarizeAITraceMetrics(filteredTraces),
   };
+}
+
+async function safeBuildTraceOntologyGraph(courseId?: string) {
+  try {
+    const graph = await buildDatabaseOntologyGraph({
+      namespace: "security-certification",
+      courseId,
+    });
+    return graph.concepts.length ? graph : null;
+  } catch {
+    return null;
+  }
 }
 
 async function listFeedbackByRawTrace(records: readonly RawTraceRecord[]) {
