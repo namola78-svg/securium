@@ -630,6 +630,7 @@ function CurriculumTreeRow({
   const metadata = parseMetadata(node.metadata) as NodeMetadata;
   const stableKey = node.officialCode ?? node.id;
   const metaId = `curriculum-node-meta-${node.id}`;
+  const detailId = `curriculum-node-detail-${node.id}`;
   const [copied, setCopied] = useState(false);
 
   async function handleCopyStableKey() {
@@ -667,6 +668,7 @@ function CurriculumTreeRow({
         aria-pressed={selected}
         aria-label={`${officialNodeTitle(node)} 노드 선택`}
         aria-describedby={metaId}
+        aria-controls={selected ? detailId : undefined}
       >
         <span className="curriculum-tree-title-line">
           <span className="curriculum-node-sequence">{officialSequence(node)}</span>
@@ -714,6 +716,7 @@ function NodeDetailPanel({
 }) {
   const metadata = parseMetadata(node.metadata) as NodeMetadata;
   const stableKey = node.officialCode ?? node.id;
+  const detailId = `curriculum-node-detail-${node.id}`;
   const detailTitleId = `curriculum-node-detail-title-${node.id}`;
   const [recommendedLinkKeys, setRecommendedLinkKeys] = useState<string[]>([]);
   const [stableKeyCopied, setStableKeyCopied] = useState(false);
@@ -742,7 +745,12 @@ function NodeDetailPanel({
   }
 
   return (
-    <div className="curriculum-node-detail" role="region" aria-labelledby={detailTitleId}>
+    <div
+      className="curriculum-node-detail"
+      id={detailId}
+      role="region"
+      aria-labelledby={detailTitleId}
+    >
       <div className="curriculum-node-detail-heading">
         <span className="eyebrow">{nodeDisplayType(node, metadata)}</span>
         <h3 id={detailTitleId}>{officialNodeTitle(node)}</h3>
