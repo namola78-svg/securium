@@ -642,6 +642,7 @@ function CurriculumTreeRow({
     <div
       className={`curriculum-tree-row ${selected ? "selected" : ""}`}
       role="treeitem"
+      aria-level={node.depth + 1}
       aria-expanded={hasChildren ? expanded : undefined}
       aria-selected={selected}
       style={{ "--node-depth": node.depth } as React.CSSProperties}
