@@ -597,6 +597,31 @@ test("비로그인 사용자는 보호 페이지와 API에 접근할 수 없다"
   assert.equal(payload.code, "UNAUTHENTICATED");
 });
 
+test("관리자 대시보드는 Console Shell, Toolbar, Inspector 계약을 서버 렌더링한다", async () => {
+  const response = await fetch(`${baseUrl}/admin`, {
+    headers: {
+      "oai-authenticated-user-email": "dev-admin@example.invalid",
+    },
+  });
+  const html = await response.text();
+  assert.equal(response.status, 200, html.slice(0, 1200));
+  assert.match(html, /SECURIUM ADMIN/);
+  assert.match(html, /관리자 콘솔/);
+  assert.match(html, /운영 현황/);
+  assert.match(html, /관리자 본문으로 이동/);
+  assert.match(html, /admin-mobile-nav-button/);
+  assert.match(html, /aria-controls="admin-sidebar-navigation"/);
+  assert.match(html, /account-drawer-trigger/);
+  assert.match(html, /aria-controls="admin-account-drawer"/);
+  assert.match(html, /ds-page-toolbar/);
+  assert.match(html, /ds-workspace-layout/);
+  assert.match(html, /선택 항목 상세 정보/);
+  assert.match(html, /운영 상태 요약/);
+  assert.match(html, /Curriculum Coverage/);
+  assert.match(html, /Ontology Explorer/);
+  assert.match(html, /AI Trace Console/);
+});
+
 test("상태 변경 API는 동일 출처 요청만 허용한다", async () => {
   const response = await fetch(`${baseUrl}/api/learning-settings`, {
     method: "POST",
