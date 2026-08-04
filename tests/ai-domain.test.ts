@@ -15,7 +15,13 @@ import {
 import {
   describeRetrievalQueryExpansion,
   expandRetrievalQueriesWithConceptAliases,
+  expandRetrievalQueriesWithOntologyGraph,
 } from "../lib/ai/retrieval-provider.ts";
+import {
+  buildOntologyGraph,
+  createOntologyConcept,
+  createOntologyConceptRelationshipEdges,
+} from "../lib/services/ontology-service.ts";
 import {
   buildAIExplainabilityTrace,
   matchesAIExplainabilityTraceFilters,
@@ -272,6 +278,37 @@ test("RetrievalProvider query expansion diagnostics explain matched aliases", ()
   assert.deepEqual(diagnostics.matchedConceptLabels, ["access control"]);
   assert.equal(diagnostics.candidateCount, 2);
   assert.equal(diagnostics.scopedCandidateCount, 1);
+});
+
+test("RetrievalProvider query expansion can use stored ontology graph data", () => {
+  const accessControl = createOntologyConcept({
+    label: "Access Control",
+    aliases: ["RBAC", "authorization"],
+    namespace: "security-certification",
+  });
+  const leastPrivilege = createOntologyConcept({
+    label: "Least Privilege",
+    aliases: ["minimum privilege"],
+    namespace: "security-certification",
+  });
+  const graph = buildOntologyGraph({
+    concepts: [accessControl, leastPrivilege],
+    edges: createOntologyConceptRelationshipEdges({
+      relatedConceptKeys: [[accessControl.key, leastPrivilege.key]],
+      courseId: "course-ise",
+      evidence: ["stored-ontology"],
+    }),
+  });
+
+  const expanded = expandRetrievalQueriesWithOntologyGraph(
+    { query: "RBAC", courseId: "course-ise", limit: 8 },
+    graph,
+    8,
+  );
+
+  assert.ok(expanded.includes("Access Control"));
+  assert.ok(expanded.includes("authorization"));
+  assert.ok(expanded.includes("Least Privilege"));
 });
 
 test("AI explainability trace exposes concepts, citations, metrics and prompt fingerprint", () => {

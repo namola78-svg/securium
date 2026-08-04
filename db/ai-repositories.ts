@@ -39,10 +39,12 @@ import type { AIProvider } from "@/lib/ai/ai-provider";
 import {
   clampRetrievalLimit,
   expandRetrievalQueriesWithConceptAliases,
+  expandRetrievalQueriesWithOntologyGraph,
   type RetrievalProvider,
   type RetrievalSearchOptions,
 } from "@/lib/ai/retrieval-provider";
 import { getSecurityCertificationRetrievalConceptAliases } from "@/lib/curriculum/security-certification-ontology";
+import { buildDatabaseOntologyGraph } from "./ontology-repositories";
 import { assertDailyAILimit } from "@/lib/ai/safety";
 import type {
   AIResult,
@@ -91,10 +93,7 @@ export class DatabaseRetrievalProvider implements RetrievalProvider {
     // D1/SQLite may enforce a small byte limit for LIKE patterns. Bound the
     // UTF-8 payload rather than JavaScript code units so Korean titles cannot
     // make an otherwise valid retrieval request fail.
-    const queryPatterns = expandRetrievalQueriesWithConceptAliases(
-      { ...options, courseId: scope.courseId },
-      getSecurityCertificationRetrievalConceptAliases(),
-    )
+    const queryPatterns = (await expandSearchQueries(scope, options))
       .map((query) => truncateUtf8(query.trim(), 48))
       .filter(Boolean)
       .map((query) => `%${query.replaceAll("%", "").replaceAll("_", "")}%`);
@@ -695,6 +694,34 @@ export class DatabaseRetrievalProvider implements RetrievalProvider {
     });
     return results.find((context) => context.id === id) ?? null;
   }
+}
+
+async function expandSearchQueries(
+  scope: SearchScope,
+  options: RetrievalSearchOptions,
+) {
+  try {
+    const graph = await buildDatabaseOntologyGraph({
+      namespace: "security-certification",
+      courseId: scope.courseId,
+    });
+    const expanded = expandRetrievalQueriesWithOntologyGraph(
+      { ...options, courseId: scope.courseId },
+      graph,
+      12,
+    );
+    if (expanded.some((query) => query.trim().length > 0)) {
+      return expanded;
+    }
+  } catch {
+    // The ontology tables are additive. Deployments that have not applied the
+    // storage migration yet must continue to use the existing static aliases.
+  }
+
+  return expandRetrievalQueriesWithConceptAliases(
+    { ...options, courseId: scope.courseId },
+    getSecurityCertificationRetrievalConceptAliases(),
+  );
 }
 
 function truncateUtf8(value: string, maxBytes: number) {

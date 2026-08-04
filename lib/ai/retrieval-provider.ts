@@ -1,4 +1,8 @@
 import type { RetrievalContext } from "./types.ts";
+import {
+  expandOntologyRetrievalQueries,
+  type OntologyGraph,
+} from "../services/ontology-service.ts";
 
 export type RetrievalSearchOptions = {
   query: string;
@@ -85,6 +89,22 @@ export function expandRetrievalQueriesWithConceptAliases(
     candidates,
     aliasLimit,
   ).expandedQueries;
+}
+
+export function expandRetrievalQueriesWithOntologyGraph(
+  options: RetrievalSearchOptions & { courseId?: string },
+  graph: OntologyGraph,
+  limit = 12,
+) {
+  if (graph.concepts.length === 0) {
+    return [options.query.trim()];
+  }
+  return expandOntologyRetrievalQueries({
+    query: options.query,
+    graph,
+    courseId: options.courseId,
+    limit,
+  }).expandedQueries;
 }
 
 export function describeRetrievalQueryExpansion(
