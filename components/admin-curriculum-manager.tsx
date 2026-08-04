@@ -629,6 +629,7 @@ function CurriculumTreeRow({
 }) {
   const metadata = parseMetadata(node.metadata) as NodeMetadata;
   const stableKey = node.officialCode ?? node.id;
+  const metaId = `curriculum-node-meta-${node.id}`;
   const [copied, setCopied] = useState(false);
 
   async function handleCopyStableKey() {
@@ -663,13 +664,15 @@ function CurriculumTreeRow({
         className="curriculum-tree-main"
         type="button"
         onClick={onSelect}
+        aria-label={`${officialNodeTitle(node)} 노드 선택`}
+        aria-describedby={metaId}
       >
         <span className="curriculum-tree-title-line">
           <span className="curriculum-node-sequence">{officialSequence(node)}</span>
           <strong>{officialNodeTitle(node)}</strong>
           <span className="status-badge compact">{nodeStatusLabel(node.status)}</span>
         </span>
-        <span className="curriculum-tree-meta-line">
+        <span className="curriculum-tree-meta-line" id={metaId}>
           <span>{nodeDisplayType(node, metadata)}</span>
           <span>{sourcePageLabel(metadata)}</span>
           <span className="curriculum-stable-key">{stableKey}</span>
