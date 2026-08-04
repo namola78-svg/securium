@@ -174,9 +174,7 @@ export function AdminQuestionForm({
               <input
                 type="checkbox"
                 checked={courseIds.includes(course.id)}
-                onChange={() =>
-                  toggle(course.id, courseIds, setCourseIds)
-                }
+                onChange={() => toggle(course.id, courseIds, setCourseIds)}
               />
               {course.name}
             </label>
@@ -196,9 +194,7 @@ export function AdminQuestionForm({
                 <input
                   type="checkbox"
                   checked={subjectIds.includes(subject.id)}
-                  onChange={() =>
-                    toggle(subject.id, subjectIds, setSubjectIds)
-                  }
+                  onChange={() => toggle(subject.id, subjectIds, setSubjectIds)}
                 />
                 {subject.name}
               </label>
@@ -322,10 +318,9 @@ export function AdminQuestionForm({
         type="submit"
         disabled={saving || !courseIds.length}
       >
-        {saving ? "저장 중…" : initial ? "새 버전 저장" : "초안 저장"}
+        {saving ? "저장 중..." : initial ? "변경사항 저장" : "초안 저장"}
       </button>
       {message ? <p className="form-message wide">{message}</p> : null}
     </form>
   );
 }
-
