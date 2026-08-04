@@ -28,7 +28,7 @@ function formatDate(value: Date | string | null | undefined) {
 function statusLabel(status: string) {
   const labels: Record<string, string> = {
     REVIEW_REQUESTED: "검수 요청",
-    IN_REVIEW: "검토 중",
+    IN_REVIEW: "검수 중",
     APPROVED: "승인",
     PUBLISHED: "게시",
     REJECTED: "반려",
@@ -44,6 +44,32 @@ function statusTone(status: string): Tone {
   if (status === "APPROVED" || status === "PUBLISHED") return "success";
   if (status === "REJECTED") return "danger";
   return "neutral";
+}
+
+function questionTypeLabel(type: string) {
+  const labels: Record<string, string> = {
+    TRUE_FALSE: "OX",
+    SINGLE_CHOICE: "단일선택형",
+    MULTIPLE_CHOICE: "복수선택형",
+    SHORT_ANSWER: "단답형",
+    ESSAY: "서술형",
+    ORDERING: "순서형",
+    FILL_BLANK: "빈칸형",
+    CASE_ANALYSIS: "사례분석",
+    CODE_ANALYSIS: "코드분석",
+    LOG_ANALYSIS: "로그분석",
+    CALCULATION: "계산형",
+  };
+  return labels[type] ?? type;
+}
+
+function difficultyLabel(difficulty: string) {
+  const labels: Record<string, string> = {
+    EASY: "쉬움",
+    MEDIUM: "보통",
+    HARD: "어려움",
+  };
+  return labels[difficulty] ?? difficulty;
 }
 
 export default async function ReviewQueuePage() {
@@ -63,7 +89,7 @@ export default async function ReviewQueuePage() {
       <SectionHeader
         eyebrow="REVIEW QUEUE"
         title="문제 검수 대기열"
-        description="작성자와 검수자의 역할을 분리하고, 승인 전 문제 품질과 해설·정답 근거를 확인합니다."
+        description="작성자와 검수자 역할을 분리하고, 승인 전 문제의 정답·해설·근거를 확인합니다."
         breadcrumbs={[
           { label: "관리자", href: "/admin" },
           { label: "문제 검수", current: true },
@@ -71,7 +97,7 @@ export default async function ReviewQueuePage() {
         actions={
           <>
             <StatusBadge tone="warning">검수 요청 {requested.length}</StatusBadge>
-            <StatusBadge tone="info">검토 중 {reviewing.length}</StatusBadge>
+            <StatusBadge tone="info">검수 중 {reviewing.length}</StatusBadge>
           </>
         }
       />
@@ -98,14 +124,17 @@ export default async function ReviewQueuePage() {
           </>
         }
       >
-        <span>승인되지 않은 문제는 일반 사용자에게 노출되지 않도록 검수 상태를 먼저 확인하세요.</span>
+        <span>
+          승인되지 않은 문제는 일반 사용자에게 노출되지 않도록 검수 상태를
+          먼저 확인하세요.
+        </span>
       </PageToolbar>
 
       <section className="stats-grid admin-stats" aria-label="문제 검수 현황">
         <MetricCard
           label="전체 대기열"
           value={rows.length}
-          description="검수 요청과 검토 중 문제"
+          description="검수 요청과 검수 중 문제"
         />
         <MetricCard
           label="검수 요청"
@@ -113,14 +142,14 @@ export default async function ReviewQueuePage() {
           description="검수자가 확인해야 하는 신규 요청"
         />
         <MetricCard
-          label="검토 중"
+          label="검수 중"
           value={reviewing.length}
           description="현재 검토가 시작된 문제"
         />
         <MetricCard
-          label="개발용 샘플"
+          label="샘플 문제"
           value={sampleCount}
-          description="운영 콘텐츠와 구분해 확인"
+          description="샘플 콘텐츠 여부 확인"
         />
       </section>
 
@@ -150,8 +179,8 @@ export default async function ReviewQueuePage() {
                     <StatusBadge compact tone={statusTone(question.status)}>
                       {statusLabel(question.status)}
                     </StatusBadge>
-                    <span>{question.type}</span>
-                    <span>{question.difficulty}</span>
+                    <span>{questionTypeLabel(question.type)}</span>
+                    <span>{difficultyLabel(question.difficulty)}</span>
                     <span>{formatDate(question.updatedAt)}</span>
                   </Link>
                 ))}
@@ -159,7 +188,9 @@ export default async function ReviewQueuePage() {
             ) : (
               <div className="empty-state">
                 <strong>검수 대기 중인 문제가 없습니다.</strong>
-                <p>작성자가 검수를 요청하거나 검토를 시작하면 이 화면에 표시됩니다.</p>
+                <p>
+                  작성자가 검수를 요청하거나 검토를 시작하면 이 화면에 표시됩니다.
+                </p>
                 <Link className="button ghost" href="/admin/questions">
                   문제 목록 보기
                 </Link>
@@ -171,7 +202,7 @@ export default async function ReviewQueuePage() {
           <InspectorPanel
             eyebrow="INSPECTOR"
             title={latestQuestion?.title ?? "검수 대기열 없음"}
-            description="가장 최근에 갱신된 검수 대상 문제의 상태와 검토 기준을 빠르게 확인합니다."
+            description="가장 최근에 갱신된 검수 대상 문제의 상태와 검수 기준을 빠르게 확인합니다."
             badges={
               latestQuestion
                 ? [
@@ -179,18 +210,30 @@ export default async function ReviewQueuePage() {
                       label: statusLabel(latestQuestion.status),
                       tone: statusTone(latestQuestion.status),
                     },
-                    { label: latestQuestion.type, tone: "neutral" },
+                    {
+                      label: questionTypeLabel(latestQuestion.type),
+                      tone: "neutral",
+                    },
                   ]
                 : [{ label: "정상", tone: "success" }]
             }
             meta={
               latestQuestion
                 ? [
-                    { label: "난이도", value: latestQuestion.difficulty },
+                    {
+                      label: "난이도",
+                      value: difficultyLabel(latestQuestion.difficulty),
+                    },
                     { label: "버전", value: `v${latestQuestion.version}` },
                     { label: "작성자", value: latestQuestion.createdBy },
-                    { label: "검수자", value: latestQuestion.reviewedBy ?? "미지정" },
-                    { label: "최근 수정", value: formatDate(latestQuestion.updatedAt) },
+                    {
+                      label: "검수자",
+                      value: latestQuestion.reviewedBy ?? "미지정",
+                    },
+                    {
+                      label: "최근 수정",
+                      value: formatDate(latestQuestion.updatedAt),
+                    },
                   ]
                 : []
             }
@@ -213,7 +256,9 @@ export default async function ReviewQueuePage() {
               <div className="admin-record">
                 <span>검수 기준</span>
                 <strong>정답, 해설, 오답 해설, 연결 근거 확인</strong>
-                <small>승인 전 문제는 일반 사용자에게 노출되지 않습니다.</small>
+                <small>
+                  승인 전 문제는 일반 사용자에게 노출하지 않는 정책을 유지합니다.
+                </small>
               </div>
               <div className="admin-record">
                 <span>권한 정책</span>
