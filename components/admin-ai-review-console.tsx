@@ -64,7 +64,7 @@ export function AdminAIReviewConsole({
       ) : (
         <div className="empty-state">
           <strong>검수할 AI 결과가 없습니다.</strong>
-          <p>학습자가 과정 특화 AI 보조 기능을 사용하면 여기에 표시됩니다.</p>
+          <p>학습자가 과정 특화 AI 보조 기능을 사용하면 이곳에 표시됩니다.</p>
         </div>
       )}
     </div>
@@ -136,11 +136,17 @@ function AdminAIReviewCard({
       <header>
         <div>
           <p className="eyebrow">{record.targetType.replaceAll("_", " ")}</p>
-          <h2>{record.courseName} · {targetLabel(record.targetType)}</h2>
-          <p>{record.userEmail} · {record.generatedAt}</p>
+          <h2>
+            {record.courseName} · {targetLabel(record.targetType)}
+          </h2>
+          <p>
+            {record.userEmail} · {record.generatedAt}
+          </p>
         </div>
         <div className="admin-ai-badges">
-          <span className="status-badge">{record.provider === "mock" ? "MOCK AI" : record.provider}</span>
+          <span className="status-badge">
+            {record.provider === "mock" ? "모의 AI" : record.provider}
+          </span>
           <span className="status-badge">{record.reviewStatus}</span>
         </div>
       </header>
@@ -176,19 +182,44 @@ function AdminAIReviewCard({
         />
       </label>
       <div className="admin-ai-actions">
-        <button type="button" className="button button-ghost" disabled={submitting} onClick={() => void review("REVIEWED")}>
+        <button
+          type="button"
+          className="button button-ghost"
+          disabled={submitting}
+          onClick={() => void review("REVIEWED")}
+        >
           검수 완료
         </button>
-        <button type="button" className="button button-dark" disabled={submitting} onClick={() => void review("APPROVED_WITH_EDITS")}>
+        <button
+          type="button"
+          className="button button-dark"
+          disabled={submitting}
+          onClick={() => void review("APPROVED_WITH_EDITS")}
+        >
           수정 후 승인
         </button>
-        <button type="button" className="button button-ghost" disabled={submitting} onClick={() => void review("REJECTED")}>
+        <button
+          type="button"
+          className="button button-ghost"
+          disabled={submitting}
+          onClick={() => void review("REJECTED")}
+        >
           반려
         </button>
-        <button type="button" className="button button-ghost" disabled={submitting} onClick={() => void review("DELETED")}>
+        <button
+          type="button"
+          className="button button-ghost"
+          disabled={submitting}
+          onClick={() => void review("DELETED")}
+        >
           삭제
         </button>
-        <button type="button" className="button button-primary" disabled={submitting || !title.trim()} onClick={() => void review("COPIED")}>
+        <button
+          type="button"
+          className="button button-primary"
+          disabled={submitting || !title.trim()}
+          onClick={() => void review("COPIED")}
+        >
           검수 콘텐츠로 복사
         </button>
       </div>
@@ -197,10 +228,11 @@ function AdminAIReviewCard({
         <details className="ai-source-details">
           <summary>검수 이력 {record.reviews.length}건</summary>
           <ol>
-            {record.reviews.map((review) => (
-              <li key={review.id}>
-                v{review.revision} · {review.action} · {review.reviewerEmail}
-                {review.reviewNote ? ` · ${review.reviewNote}` : ""}
+            {record.reviews.map((reviewItem) => (
+              <li key={reviewItem.id}>
+                v{reviewItem.revision} · {reviewItem.action} ·{" "}
+                {reviewItem.reviewerEmail}
+                {reviewItem.reviewNote ? ` · ${reviewItem.reviewNote}` : ""}
               </li>
             ))}
           </ol>

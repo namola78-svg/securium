@@ -402,7 +402,10 @@ export class OpenAIProvider implements AIProvider {
       requestId: input.requestId,
       latencyMs: 0,
       status: "insufficient_context",
-      content: { message: "이번 Sprint에서는 문제 AI 해설만 활성화됩니다." },
+      content: {
+        message:
+          "검수된 근거가 부족하여 확정적인 설명을 제공하기 어렵습니다. 현재는 문제 해설 중심의 AI 지원을 우선 제공합니다.",
+      },
     };
   }
 

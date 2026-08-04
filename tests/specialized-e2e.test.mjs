@@ -18,8 +18,12 @@ before(async () => {
       windowsHide: true,
     },
   );
-  server.stdout.on("data", (chunk) => { output += chunk.toString(); });
-  server.stderr.on("data", (chunk) => { output += chunk.toString(); });
+  server.stdout.on("data", (chunk) => {
+    output += chunk.toString();
+  });
+  server.stderr.on("data", (chunk) => {
+    output += chunk.toString();
+  });
   for (let attempt = 0; attempt < 480; attempt += 1) {
     if (server.exitCode !== null) throw new Error(`Specialized E2E server stopped.\n${output}`);
     try {
@@ -46,7 +50,7 @@ test("ISMS-P 인증기준과 연결된 결함·문제·법령을 조회한다", 
   assert.equal(overview.status, 200, overviewHtml.slice(0, 1200));
   assert.match(overviewHtml, /인증기준 탐색/);
   assert.match(overviewHtml, /결함사례 학습/);
-  assert.match(overviewHtml, /학습용 사례/);
+  assert.match(overviewHtml, /학습 사례/);
 
   const detail = await fetch(
     `${baseUrl}/specialized/isms-p/ISMS_STANDARD/sample-isms-standard-01`,
@@ -78,13 +82,13 @@ test("법령 버전을 조회하고 하나의 조문을 여러 과정에서 공�
   assert.equal(engineer.status, 200, (await engineer.text()).slice(0, 1200));
 });
 
-test("기사 서술형은 공식 점수가 아닌 키워드 기반 부분점수를 반환한다", async () => {
+test("기사 서술형은 공식 점수가 아닌 키워드 기반 부분점수만 반환한다", async () => {
   const response = await fetch(`${baseUrl}/api/specialized/written-grade`, {
     method: "POST",
     headers: { ...user2, origin: baseUrl, "content-type": "application/json" },
     body: JSON.stringify({
       questionId: "spec-ise-question-16",
-      answer: "자산을 식별하고 로그 통제를 적용한다.",
+      answer: "자산을 식별하고 로그 통제를 적용합니다.",
     }),
   });
   const payload = await response.json();
@@ -171,7 +175,7 @@ test("관리자는 특화 콘텐츠와 버전·위험등급 관리 화면을 조
   });
   const html = await response.text();
   assert.equal(response.status, 200, html.slice(0, 1200));
-  assert.match(html, /과정 특화 콘텐츠 관리/);
-  assert.match(html, /법령·조문 및 버전/);
-  assert.match(html, /위험등급 기준/);
+  assert.match(html, /과정별 특화 콘텐츠/);
+  assert.match(html, /법령·조문/);
+  assert.match(html, /위험관리 시나리오/);
 });

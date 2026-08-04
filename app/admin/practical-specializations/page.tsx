@@ -18,9 +18,11 @@ export const dynamic = "force-dynamic";
 
 function formatDate(value: string | Date | null | undefined) {
   if (!value) return "기록 없음";
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "기록 없음";
   return new Intl.DateTimeFormat("ko-KR", {
     dateStyle: "medium",
-  }).format(new Date(value));
+  }).format(date);
 }
 
 export default async function AdminPracticalSpecializationsPage() {
@@ -105,8 +107,8 @@ export default async function AdminPracticalSpecializationsPage() {
       >
         <strong>실무 콘텐츠 작업공간</strong>
         <span>
-          코드 샘플은 실행하지 않고 분석·채점 기준만 관리합니다. 개인정보 흐름도는
-          검증된 노드와 연결 데이터로 표시합니다.
+          코드 샘플은 실행하지 않고 분석·채점 기준만 관리합니다. 개인정보 흐름도는 검증된
+          노드와 연결 데이터로 표시합니다.
         </span>
       </PageToolbar>
 
@@ -167,7 +169,7 @@ export default async function AdminPracticalSpecializationsPage() {
                 label:
                   latestScenario?.active ?? latestWeakness?.active
                     ? "활성"
-                    : "비활성/대기",
+                    : "비활성·대기",
                 tone:
                   latestScenario?.active ?? latestWeakness?.active
                     ? "success"
@@ -220,15 +222,14 @@ export default async function AdminPracticalSpecializationsPage() {
                   커버리지 확인
                 </Link>
                 <Link className="button button-secondary" href="/admin/ai-reviews">
-                  AI 검수 큐
+                  AI 검수
                 </Link>
               </>
             }
           >
             <p>
-              사용자 입력 코드는 서버에서 실행하지 않습니다. 코드 샘플은 안전하게
-              표시하고, 부분점수 기준과 영향평가 모범답안은 공식 자료가 아닌
-              관리자가 검수한 학습용 기준으로 구분하세요.
+              사용자 입력 코드는 서버에서 실행하지 않습니다. 코드 샘플은 안전하게 표시하고,
+              부분점수 기준과 영향평가 모범답안은 관리자가 검수한 학습용 기준으로 구분하세요.
             </p>
             <p>최신 기준일: {formatDate(latestScenario?.updatedAt)}</p>
           </InspectorPanel>

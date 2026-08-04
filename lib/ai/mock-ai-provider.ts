@@ -28,6 +28,7 @@ export class MockAIProvider implements AIProvider {
     const correctChoices = input.question.choices.filter(
       (choice) => choice.isCorrect,
     );
+
     return {
       provider: "mock",
       model: "mock-ai-v1",
@@ -40,7 +41,7 @@ export class MockAIProvider implements AIProvider {
       status: hasContext ? "generated" : "insufficient_context",
       content: {
         intent: hasContext
-          ? `Mock AI: ${input.question.title}에서 묻는 핵심 개념을 검수 해설과 내부 근거로 확인합니다.`
+          ? `Mock AI: "${input.question.title}"에서 묻는 핵심 개념을 검수된 내부 근거와 연결해 설명합니다.`
           : INSUFFICIENT_CONTEXT_MESSAGE,
         correctReason: hasContext
           ? input.question.explanation
@@ -53,7 +54,7 @@ export class MockAIProvider implements AIProvider {
             reason:
               choice.explanation ||
               input.question.wrongAnswerExplanation ||
-              "Mock AI 해설에는 추가 오답 근거가 없습니다.",
+              "Mock AI 설명에는 추가 오답 근거가 없습니다.",
           })),
         relatedStandards: input.contexts
           .filter((context) => context.kind === "ISMS_STANDARD")
@@ -86,6 +87,7 @@ export class MockAIProvider implements AIProvider {
       referenceScore,
       numberValue(input.context.maximumScore, 100),
     );
+
     return this.specializedResult(input, {
       expectedScoreRange: {
         minimum: Math.max(0, referenceScore - 5),
@@ -97,15 +99,17 @@ export class MockAIProvider implements AIProvider {
         "Mock AI: 규칙 기반 채점에서 확인된 핵심 키워드를 답안에 포함했습니다.",
       ],
       improvements: stringArray(input.context.missingKeywords).length
-        ? ["누락된 핵심 키워드의 의미와 적용 근거를 보완하세요."]
-        : ["주장의 근거와 적용 범위를 더 명확하게 연결하세요."],
+        ? ["누락된 핵심 키워드의 의미와 적용 근거를 보완해 보세요."]
+        : ["주장, 근거, 적용 범위를 더 명확하게 연결해 보세요."],
       exampleAnswer: stringValue(input.context.modelAnswer),
       evidence: evidenceFrom(input),
       advisoryOnly: true,
     });
   }
 
-  recommendLearning(input: GenericAIInput) {
+  async recommendLearning(
+    input: GenericAIInput,
+  ): Promise<AIResult<Record<string, unknown>>> {
     return this.safeGeneric(input);
   }
 
@@ -120,23 +124,24 @@ export class MockAIProvider implements AIProvider {
       !threat ? "위협" : "",
       !vulnerability ? "취약점" : "",
     ].filter(Boolean);
+
     return this.specializedResult(input, {
       assetReview: asset
-        ? `Mock AI: 자산 “${asset}”이 식별되어 있습니다.`
+        ? `Mock AI: 자산 "${asset}"이 위험 시나리오에 포함되어 있습니다.`
         : "자산 식별이 필요합니다.",
       threatReview: threat
-        ? `Mock AI: 위협 “${threat}”이 식별되어 있습니다.`
+        ? `Mock AI: 위협 "${threat}"이 위험 시나리오에 포함되어 있습니다.`
         : "위협 식별이 필요합니다.",
       vulnerabilityReview: vulnerability
-        ? `Mock AI: 취약점 “${vulnerability}”이 식별되어 있습니다.`
+        ? `Mock AI: 취약점 "${vulnerability}"이 위험 시나리오에 포함되어 있습니다.`
         : "취약점 식별이 필요합니다.",
       completeness: missingElements.length
-        ? "핵심 구성요소 일부가 누락된 개발용 Mock 검토 결과입니다."
-        : "자산·위협·취약점의 기본 연결이 포함된 개발용 Mock 검토 결과입니다.",
+        ? "핵심 구성요소 일부가 누락된 Mock AI 검토 결과입니다."
+        : "자산·위협·취약점의 기본 연결이 포함된 Mock AI 검토 결과입니다.",
       missingElements,
       treatmentOptions: [
         stringValue(input.context.treatmentOption) ||
-          "회피·완화·전가·수용 중 근거에 맞는 방안을 선택하세요.",
+          "회피·완화·전가·수용 중 근거에 맞는 처리 방안을 선택해 보세요.",
       ],
       evidence: evidenceFrom(input),
     });
@@ -148,13 +153,13 @@ export class MockAIProvider implements AIProvider {
     return this.specializedResult(input, {
       missingAssessmentItems: stringArray(input.context.missingAssessmentItems),
       flowReview:
-        "Mock AI: 등록된 처리 흐름 노드와 연결관계를 기준으로 수집·이용·보관·제공·파기 단계를 확인했습니다.",
+        "Mock AI: 등록된 개인정보 처리 흐름의 노드와 연결관계를 기준으로 수집·이용·보관·제공·파기 단계를 확인했습니다.",
       riskReview:
         stringValue(input.context.identifiedRisks) ||
         "식별된 위험요인을 추가로 작성해야 합니다.",
       improvements: [
         stringValue(input.context.modelImprovementPlan) ||
-          "누락 평가항목과 개인정보 흐름별 보호조치를 연결하세요.",
+          "누락 평가항목과 개인정보 흐름별 보호조치를 연결해 보세요.",
       ],
       relatedAssessmentItems: stringArray(
         input.context.relatedAssessmentItems,
@@ -185,13 +190,13 @@ export class MockAIProvider implements AIProvider {
       ],
       rootCause:
         stringValue(input.context.detectionGuide) ||
-        "입력값 신뢰경계와 안전하지 않은 API 사용 여부를 확인하세요.",
+        "입력값 검증, 권한 경계, 안전하지 않은 API 사용 여부를 확인하세요.",
       secureCodeExample: stringValue(input.context.secureCode),
       falsePositiveAssessment: booleanValue(
         input.context.falsePositivePossible,
       )
         ? "오탐 가능성이 등록되어 있으므로 호출 경로와 입력 통제를 함께 확인해야 합니다."
-        : "등록된 샘플 기준으로 오탐 가능성이 낮지만 실제 호출 흐름 확인이 필요합니다.",
+        : "등록된 샘플 기준으로 오탐 가능성은 낮지만 실제 호출 흐름 확인이 필요합니다.",
       relatedTheory: [
         stringValue(input.context.remediationGuide) ||
           "입력 검증과 안전한 API 사용 원칙",

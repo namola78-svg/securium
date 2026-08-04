@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { publicCopy } from "@/lib/public-copy";
 import { SpecializedAIReview } from "./specialized-ai-review";
 
 type AssessmentItem = {
@@ -51,9 +52,7 @@ export function PrivacyAssessmentWorkbench({
     modelImprovementPlan: string;
     error?: { message?: string };
   } | null>(null);
-  const [savedAnswerId, setSavedAnswerId] = useState(
-    previousAnswer?.id ?? "",
-  );
+  const [savedAnswerId, setSavedAnswerId] = useState(previousAnswer?.id ?? "");
   const [submitting, setSubmitting] = useState(false);
 
   function toggleItem(id: string) {
@@ -77,7 +76,7 @@ export function PrivacyAssessmentWorkbench({
         improvementPlan,
       }),
     });
-    const payload = await response.json() as NonNullable<typeof result>;
+    const payload = (await response.json()) as NonNullable<typeof result>;
     setSubmitting(false);
     setResult(payload);
     if (!payload.error && payload.answerId) {
@@ -86,7 +85,10 @@ export function PrivacyAssessmentWorkbench({
   }
 
   return (
-    <section className="privacy-assessment-form" aria-labelledby="privacy-answer-title">
+    <section
+      className="privacy-assessment-form"
+      aria-labelledby="privacy-answer-title"
+    >
       <h2 id="privacy-answer-title">평가보고서형 답안</h2>
       <fieldset>
         <legend>영향평가 대상 판단</legend>
@@ -107,7 +109,7 @@ export function PrivacyAssessmentWorkbench({
         ))}
       </fieldset>
       <fieldset className="assessment-checklist">
-        <legend>평가항목과 침해요인 매핑</legend>
+        <legend>평가 항목과 침해요인 매핑</legend>
         {items.map((item) => (
           <label key={item.id}>
             <input
@@ -115,27 +117,55 @@ export function PrivacyAssessmentWorkbench({
               checked={selectedItems.includes(item.id)}
               onChange={() => toggleItem(item.id)}
             />
-            <span><strong>{item.code} · {item.title}</strong><small>{item.category} · {item.checkPoints}</small></span>
+            <span>
+              <strong>
+                {item.code} · {publicCopy(item.title)}
+              </strong>
+              <small>
+                {publicCopy(item.category)} · {publicCopy(item.checkPoints)}
+              </small>
+            </span>
           </label>
         ))}
       </fieldset>
       <label>
         식별한 침해요인
-        <textarea value={identifiedRisks} onChange={(event) => setIdentifiedRisks(event.target.value)} rows={7} />
+        <textarea
+          value={identifiedRisks}
+          onChange={(event) => setIdentifiedRisks(event.target.value)}
+          rows={7}
+        />
       </label>
       <label>
         개선방안
-        <textarea value={improvementPlan} onChange={(event) => setImprovementPlan(event.target.value)} rows={9} />
+        <textarea
+          value={improvementPlan}
+          onChange={(event) => setImprovementPlan(event.target.value)}
+          rows={9}
+        />
       </label>
-      <button className="button button-primary" type="button" disabled={submitting} onClick={submit}>
-        {submitting ? "저장·채점 중…" : "답안 저장 및 참고 채점"}
+      <button
+        className="button button-primary"
+        type="button"
+        disabled={submitting}
+        onClick={submit}
+      >
+        {submitting ? "저장하는 중..." : "답안 저장 및 참고 채점"}
       </button>
-      {result?.error ? <p className="form-message error-state" role="alert">{result.error.message}</p> : null}
+      {result?.error ? (
+        <p className="form-message error-state" role="alert">
+          {result.error.message}
+        </p>
+      ) : null}
       {result && !result.error ? (
         <section className="analysis-result" aria-live="polite">
           <h3>참고 점수 {result.score}/100</h3>
-          <p className="sample-notice">개발용 규칙 기반 학습 보조 점수이며 공식 영향평가 결과가 아닙니다.</p>
-          <p><strong>모범 개선방안:</strong> {result.modelImprovementPlan}</p>
+          <p className="sample-notice">
+            규칙 기반 학습 보조 점수이며 공식 영향평가 결과가 아닙니다.
+          </p>
+          <p>
+            <strong>모범 개선방안:</strong> {publicCopy(result.modelImprovementPlan)}
+          </p>
           <SpecializedAIReview
             request={{
               targetType: "PRIVACY_ASSESSMENT",

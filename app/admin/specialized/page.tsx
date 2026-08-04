@@ -97,7 +97,7 @@ export default async function AdminSpecializedPage() {
         <MetricCard
           label="법령·조문"
           value={data.legal.length}
-          description={`활성 ${activeLegalArticles}개 · 최근 기준 ${formatDate(
+          description={`활성 ${activeLegalArticles}개 · 최근 기준일 ${formatDate(
             latestLegalArticle?.effectiveDate,
           )}`}
         />
@@ -164,7 +164,7 @@ export default async function AdminSpecializedPage() {
               ) : (
                 <div className="empty-state compact">
                   <strong>아직 연결된 특화 콘텐츠가 없습니다.</strong>
-                  <p>과정 연결을 추가하면 학습·문제·AI 근거에서 함께 활용됩니다.</p>
+                  <p>과정 연결을 추가하면 학습·문제·AI 근거에서 함께 사용할 수 있습니다.</p>
                 </div>
               )}
             </section>
@@ -219,7 +219,7 @@ export default async function AdminSpecializedPage() {
                 <small>기준일, 버전, 출처 URL을 함께 확인하세요.</small>
               </div>
               <div className="admin-record">
-                <span>재사용 정책</span>
+                <span>재사용 원칙</span>
                 <strong>콘텐츠는 과정별로 복제하지 않고 연결</strong>
                 <small>문제·레슨·AI Retrieval에서 같은 근거를 공유합니다.</small>
               </div>

@@ -148,13 +148,13 @@ export function AdminQuestionForm({
           <option value="SINGLE_CHOICE">단일선택형</option>
           <option value="MULTIPLE_CHOICE">복수선택형</option>
           <option value="SHORT_ANSWER">단답형</option>
-          <option value="ESSAY">서술형 · 자동채점 준비 중</option>
-          <option value="ORDERING">순서형 · 자동채점 준비 중</option>
-          <option value="FILL_BLANK">빈칸형 · 자동채점 준비 중</option>
-          <option value="CASE_ANALYSIS">사례분석 · 자동채점 준비 중</option>
-          <option value="CODE_ANALYSIS">코드분석 · 자동채점 준비 중</option>
-          <option value="LOG_ANALYSIS">로그분석 · 자동채점 준비 중</option>
-          <option value="CALCULATION">계산형 · 자동채점 준비 중</option>
+          <option value="ESSAY">서술형 · 수동 검수형</option>
+          <option value="ORDERING">순서형 · 수동 검수형</option>
+          <option value="FILL_BLANK">빈칸형 · 수동 검수형</option>
+          <option value="CASE_ANALYSIS">사례분석 · 수동 검수형</option>
+          <option value="CODE_ANALYSIS">코드분석 · 수동 검수형</option>
+          <option value="LOG_ANALYSIS">로그분석 · 수동 검수형</option>
+          <option value="CALCULATION">계산형 · 수동 검수형</option>
         </select>
       </label>
       <label>

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 export type Tone = "neutral" | "success" | "warning" | "danger" | "info" | "brand";
+
 type BreadcrumbItem = {
   label: ReactNode;
   href?: string;

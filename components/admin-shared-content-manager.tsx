@@ -980,7 +980,7 @@ export function AdminSharedContentManager({
             disabled={pendingAction === "extension-save" || !editingCourseLesson}
             type="submit"
           >
-            {pendingAction === "extension-save" ? "저장 중..." : "Extension 저장"}
+            {pendingAction === "extension-save" ? "저장 중..." : "과정별 보강 저장"}
           </button>
         </form>
       </section>

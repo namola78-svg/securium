@@ -14,6 +14,15 @@ import { requireQuestionReviewer } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
+function providerLabel(provider: string | undefined) {
+  if (!provider) return "제공자 없음";
+  return provider === "mock" ? "모의 AI" : provider;
+}
+
+function deletionLabel(deletedAt: string | null | undefined) {
+  return deletedAt ? "삭제됨" : "활성";
+}
+
 export default async function AdminAIReviewsPage() {
   await requireQuestionReviewer("/admin/ai-reviews");
   const records = await listAdminSpecializedAIRecords(100);
@@ -36,10 +45,10 @@ export default async function AdminAIReviewsPage() {
       <SectionHeader
         eyebrow="AI REVIEW"
         title="과정 특화 AI 결과 검수"
-        description="AI 원본과 관리자 수정본, 승인·반려·삭제·검수 콘텐츠 복사 이력을 분리해 관리합니다."
+        description="AI 원본과 관리자 수정본을 분리해 보존하고, 승인·반려·삭제·검수 콘텐츠 복사 이력을 관리합니다."
         breadcrumbs={[
-          { label: "Admin", href: "/admin" },
-          { label: "AI Reviews", current: true },
+          { label: "관리자", href: "/admin" },
+          { label: "AI 검수", current: true },
         ]}
         actions={
           <>
@@ -67,7 +76,7 @@ export default async function AdminAIReviewsPage() {
         <MetricCard
           label="반려·삭제"
           value={rejectedCount}
-          description={`Mock AI ${mockCount}개`}
+          description={`모의 AI ${mockCount}개`}
         />
       </section>
 
@@ -75,10 +84,10 @@ export default async function AdminAIReviewsPage() {
         secondary={
           <>
             <StatusBadge compact tone={pendingCount ? "warning" : "success"}>
-              PENDING {pendingCount}
+              대기 {pendingCount}
             </StatusBadge>
             <StatusBadge compact tone={mockCount ? "info" : "neutral"}>
-              MOCK {mockCount}
+              모의 AI {mockCount}
             </StatusBadge>
           </>
         }
@@ -101,15 +110,15 @@ export default async function AdminAIReviewsPage() {
             description={
               latestRecord
                 ? "가장 최근 생성된 AI 결과의 과정, 대상, 모델, 검수 상태를 요약합니다."
-                : "학습자가 과정 특화 AI 보조 기능을 사용하면 이곳에 검수 큐가 표시됩니다."
+                : "학습자가 과정 특화 AI 보조 기능을 사용하면 검수 대상이 표시됩니다."
             }
             badges={[
               {
-                label: latestRecord?.reviewStatus ?? "EMPTY",
+                label: latestRecord?.reviewStatus ?? "비어 있음",
                 tone: pendingCount ? "warning" : "success",
               },
               {
-                label: latestRecord?.provider === "mock" ? "MOCK AI" : latestRecord?.provider ?? "NO PROVIDER",
+                label: providerLabel(latestRecord?.provider),
                 tone: latestRecord?.provider === "mock" ? "info" : "neutral",
               },
             ]}
@@ -119,7 +128,7 @@ export default async function AdminAIReviewsPage() {
               { label: "모델", value: latestRecord?.model ?? "-" },
               { label: "생성 상태", value: latestRecord?.generationStatus ?? "-" },
               { label: "기존 검수 이력", value: `${latestRecord?.reviews.length ?? 0}건` },
-              { label: "삭제 여부", value: latestRecord?.deletedAt ? "삭제됨" : "활성" },
+              { label: "삭제 여부", value: deletionLabel(latestRecord?.deletedAt) },
             ]}
             actions={
               <>

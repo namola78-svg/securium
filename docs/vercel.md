@@ -40,8 +40,10 @@ account/project decision.
 
 ## Required work before a Vercel Preview
 
-1. Configure `AUTH_PROVIDER=supabase`, `SUPABASE_URL`, and
-   `SUPABASE_ANON_KEY` in the Vercel Preview environment.
+1. Configure `NEXT_PUBLIC_SITE_URL`, `AUTH_PROVIDER=supabase`,
+   `SUPABASE_URL`, and `SUPABASE_ANON_KEY` in the Vercel Preview environment.
+   `NEXT_PUBLIC_SITE_URL` should match the Preview or Production deployment
+   URL used for metadata, Open Graph, and callback documentation.
 2. Configure Supabase Auth email/password settings and allowed site/redirect
    URLs for the Preview deployment.
 3. Configure Preview and Production environments separately.
@@ -70,7 +72,8 @@ development-only. Production must never receive Mock/local credentials or
 
 The environment names are documented in `.env.example`; actual values belong
 in the deployment control plane. Preview must not point to the Production
-database, direct migration URL, or Production Storage buckets.
+database, direct migration URL, Production Storage buckets, or Production
+`NEXT_PUBLIC_SITE_URL`.
 
 ## Existing Sites configuration
 

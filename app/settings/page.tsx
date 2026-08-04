@@ -46,7 +46,7 @@ export default async function LearningSettingsPage() {
 
           <article className="course-detail-section course-detail-bottom-cta">
             <div>
-              <p className="eyebrow">NEXT</p>
+              <p className="eyebrow">다음 단계</p>
               <h2>설정 후 바로 학습을 이어가세요</h2>
               <p>
                 목표를 저장한 뒤 오늘의 학습이나 문제풀이 화면에서 현재 상태를

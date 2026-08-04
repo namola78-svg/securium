@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { ProgressBar } from "@/components/progress-bar";
 import { LearningSettingsForm } from "@/components/learning-settings-form";
-import { requireCurrentAppUser } from "@/lib/auth";
-import { listDashboardUserEnrollments } from "@/lib/dashboard-enrollments";
+import { ProgressBar } from "@/components/progress-bar";
 import { getTodayLearningPlan } from "@/db/phase3-repositories";
+import { listDashboardUserEnrollments } from "@/lib/dashboard-enrollments";
+import { requireCurrentAppUser } from "@/lib/auth";
 
 export const metadata: Metadata = { title: "통합 대시보드" };
 export const dynamic = "force-dynamic";
@@ -49,9 +49,7 @@ export default async function DashboardPage() {
         </Suspense>
 
         <Suspense fallback={<ActiveCoursesFallback />}>
-          <ActiveCoursesSection
-            enrollmentsPromise={enrollmentsPromise}
-          />
+          <ActiveCoursesSection enrollmentsPromise={enrollmentsPromise} />
         </Suspense>
       </div>
     </main>
@@ -99,11 +97,11 @@ async function DashboardHero({
     <section className="dashboard-intro dashboard-hero">
       <div>
         <p className="eyebrow">LEARNING OVERVIEW</p>
-        <h1>{displayName}님, 오늘 이어갈 학습을 확인하세요</h1>
+        <h1>{displayName}님의 오늘 학습을 확인하세요</h1>
         <p>
           {currentCourse
             ? `${currentCourse.courseName} 과정을 중심으로 최근 학습과 복습 일정을 정리했습니다.`
-            : "아직 진행 중인 과정이 없습니다. 관심 있는 과정을 추가하면 진도와 복습이 이곳에 표시됩니다."}
+            : "아직 진행 중인 과정이 없습니다. 관심 있는 과정을 추가하면 진도와 복습을 한곳에서 확인할 수 있습니다."}
         </p>
         <div className="dashboard-hero-actions">
           <Link className="button button-dark" href={primaryHref}>
@@ -141,12 +139,12 @@ function DashboardHeroFallback({ displayName }: { displayName: string }) {
     <section className="dashboard-intro dashboard-hero" aria-busy="true">
       <div>
         <p className="eyebrow">LEARNING OVERVIEW</p>
-        <h1>{displayName}님, 학습 정보를 불러오고 있습니다</h1>
+        <h1>{displayName}님의 학습 정보를 불러오고 있습니다</h1>
         <p>과정별 진도와 오늘의 복습 일정을 확인하는 중입니다.</p>
       </div>
       <aside className="dashboard-focus-card" aria-label="오늘의 학습 요약">
         <span className="badge">확인 중</span>
-        <strong>학습 요약 준비 중</strong>
+        <strong>학습 요약을 불러오고 있습니다</strong>
       </aside>
     </section>
   );
@@ -263,13 +261,15 @@ async function TodayPlanSection({
                 <strong>{item.title}</strong>
                 <p>{item.reason}</p>
               </div>
-              <small>약 {item.estimatedMinutes}분 →</small>
+              <small>약 {item.estimatedMinutes}분</small>
             </Link>
           ))}
           {!plan.recommendations.length ? (
             <div className="empty-state">
-              <strong>추천을 만들 학습 기록이 없습니다.</strong>
-              <p>과정의 첫 단계를 시작하면 실제 기록을 기반으로 추천합니다.</p>
+              <strong>추천을 만들 학습 기록이 아직 없습니다.</strong>
+              <p>
+                과정을 선택하고 첫 학습을 시작하면 실제 기록을 기반으로 추천합니다.
+              </p>
             </div>
           ) : null}
         </div>
@@ -359,9 +359,7 @@ async function ActiveCoursesSection({
                 </div>
                 <div>
                   <dt>이론 진도</dt>
-                  <dd>
-                    {enrollment.theoryProgressPercent ?? 0}%
-                  </dd>
+                  <dd>{enrollment.theoryProgressPercent ?? 0}%</dd>
                 </div>
               </dl>
               <div className="card-actions">

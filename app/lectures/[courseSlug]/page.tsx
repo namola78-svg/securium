@@ -105,7 +105,7 @@ export default async function LectureListPage({
           {recommended ? (
             <section className="lecture-recommendation">
               <div>
-                <span className="eyebrow">NEXT RECOMMENDED</span>
+                <span className="eyebrow">추천 강의</span>
                 <h2>다음 추천 강의</h2>
                 <p>
                   현재 조건에서 시청 가능하고 아직 완료하지 않은 첫

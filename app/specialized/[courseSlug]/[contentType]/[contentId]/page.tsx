@@ -28,7 +28,9 @@ export default async function SpecializedContentPage({
   }>;
 }) {
   const { courseSlug, contentType, contentId } = await params;
-  if (!allowedTypes.includes(contentType as (typeof allowedTypes)[number])) notFound();
+  if (!allowedTypes.includes(contentType as (typeof allowedTypes)[number])) {
+    notFound();
+  }
   const user = await requireCurrentAppUser(
     `/specialized/${courseSlug}/${contentType}/${contentId}`,
   );
@@ -74,7 +76,10 @@ export default async function SpecializedContentPage({
         <div className="shell">
           <p className="eyebrow">{contentType.replaceAll("_", " ")}</p>
           <h1>{title}</h1>
-          <p className="sample-notice">학습용 콘텐츠 · 기준일 {referenceDate || "미설정"} · 공식 출처 확인 필요</p>
+          <p className="sample-notice">
+            학습용 콘텐츠 · 기준일 {referenceDate || "미설정"} · 공식 출처
+            확인 필요
+          </p>
           {contentType === "ISMS_STANDARD" ||
           contentType === "LEGAL_ARTICLE" ? (
             <ContentVersionInfo revision={commonRevision} compact />
@@ -104,20 +109,31 @@ export default async function SpecializedContentPage({
           <section className="admin-panel">
             <h2>연결 과정</h2>
             {result.relatedCourses.map((related) => (
-              <Link href={`/specialized/${related.slug}`} key={related.id}>{related.name}</Link>
+              <Link href={`/specialized/${related.slug}`} key={related.id}>
+                {related.name}
+              </Link>
             ))}
           </section>
           <section className="admin-panel">
             <h2>관련 문제</h2>
-            {result.relatedQuestions.length ? result.relatedQuestions.map((question) => (
-              <Link href={`/practice/${courseSlug}?count=10`} key={question.id}>{question.title}</Link>
-            )) : <p>연결된 공개 문제가 없습니다.</p>}
+            {result.relatedQuestions.length ? (
+              result.relatedQuestions.map((question) => (
+                <Link href={`/practice/${courseSlug}?count=10`} key={question.id}>
+                  {question.title}
+                </Link>
+              ))
+            ) : (
+              <p>연결된 공개 문제가 없습니다.</p>
+            )}
           </section>
           {result.relatedLegalArticles.length ? (
             <section className="admin-panel">
               <h2>관련 법령</h2>
               {result.relatedLegalArticles.map((article) => (
-                <Link href={`/specialized/${courseSlug}/LEGAL_ARTICLE/${article.id}`} key={article.id}>
+                <Link
+                  href={`/specialized/${courseSlug}/LEGAL_ARTICLE/${article.id}`}
+                  key={article.id}
+                >
                   {article.lawName} {article.articleNumber}
                 </Link>
               ))}
@@ -131,10 +147,11 @@ export default async function SpecializedContentPage({
             <div className="specialized-grid">
               {result.cases.map((item) => (
                 <article className="specialized-card" key={String(item.id)}>
-                  <span className="badge">개발용 사례</span>
+                  <span className="badge">학습 사례</span>
                   <h3>{String(item.title)}</h3>
                   <p>{String(item.defectDescription)}</p>
-                  <strong>시정조치</strong><p>{String(item.correctiveAction)}</p>
+                  <strong>시정조치</strong>
+                  <p>{String(item.correctiveAction)}</p>
                 </article>
               ))}
             </div>
@@ -205,7 +222,9 @@ function DetailFields({ content }: { content: Record<string, unknown> }) {
         .map(([key, value]) => (
           <div key={key}>
             <dt>{labels[key] ?? key}</dt>
-            <dd>{typeof value === "boolean" ? (value ? "예" : "아니오") : String(value)}</dd>
+            <dd>
+              {typeof value === "boolean" ? (value ? "예" : "아니오") : String(value)}
+            </dd>
           </div>
         ))}
     </dl>

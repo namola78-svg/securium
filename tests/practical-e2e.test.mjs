@@ -18,8 +18,12 @@ before(async () => {
       windowsHide: true,
     },
   );
-  server.stdout.on("data", (chunk) => { output += chunk.toString(); });
-  server.stderr.on("data", (chunk) => { output += chunk.toString(); });
+  server.stdout.on("data", (chunk) => {
+    output += chunk.toString();
+  });
+  server.stderr.on("data", (chunk) => {
+    output += chunk.toString();
+  });
   for (let attempt = 0; attempt < 480; attempt += 1) {
     if (server.exitCode !== null) throw new Error(`Practical E2E server stopped.\n${output}`);
     try {
@@ -46,7 +50,7 @@ const apiHeaders = {
   "content-type": "application/json",
 };
 
-test("SW 보안약점 과정은 코드 샘플과 안전하게 이스케이프된 줄 선택 UI를 제공한다", async () => {
+test("SW 보안약점 과정은 코드 샘플과 안전한 표시 UI를 제공한다", async () => {
   const overview = await fetch(
     `${baseUrl}/practical/sw-vulnerability-diagnostician`,
     { headers: user1 },
@@ -68,7 +72,7 @@ test("SW 보안약점 과정은 코드 샘플과 안전하게 이스케이프된
   assert.match(html, /서버에서 실행하지 않습니다/);
 });
 
-test("코드 분석은 라인·CWE·오탐·부분점수를 서버에서 채점하고 멱등 처리한다", async () => {
+test("코드 분석 답안은 라인·CWE·오탐·부분점수를 서버에서 채점하고 멱등 처리한다", async () => {
   const idempotencyKey = `practical-code-${process.pid}-${Date.now()}`;
   const body = {
     courseId: "course-sw-vuln",
@@ -77,13 +81,15 @@ test("코드 분석은 라인·CWE·오탐·부분점수를 서버에서 채점�
     weaknessId: "weak-sql-injection",
     selectedCweCode: "CWE-89",
     truePositive: false,
-    userExplanation: "입력 검증, 허용 목록, 안전한 API를 확인했다.",
+    userExplanation: "입력 검증, 허용 목록, 안전한 API 사용을 설명합니다.",
     remediationCode: "return validator.allowListed(input);",
     responseTime: 1200,
     idempotencyKey,
   };
   const first = await fetch(`${baseUrl}/api/practical/code-analysis`, {
-    method: "POST", headers: apiHeaders, body: JSON.stringify(body),
+    method: "POST",
+    headers: apiHeaders,
+    body: JSON.stringify(body),
   });
   const firstPayload = await first.json();
   assert.equal(first.status, 201, JSON.stringify(firstPayload));
@@ -92,7 +98,9 @@ test("코드 분석은 라인·CWE·오탐·부분점수를 서버에서 채점�
   assert.equal(firstPayload.isCorrect, true);
 
   const replay = await fetch(`${baseUrl}/api/practical/code-analysis`, {
-    method: "POST", headers: apiHeaders, body: JSON.stringify(body),
+    method: "POST",
+    headers: apiHeaders,
+    body: JSON.stringify(body),
   });
   const replayPayload = await replay.json();
   assert.equal(replay.status, 201, JSON.stringify(replayPayload));
@@ -123,7 +131,7 @@ test("영향평가 답안은 사용자별로 저장되고 다른 사용자는 �
       targetDecision: "NOT_REQUIRED",
       selectedAssessmentItems: ["privacy-item-01", "privacy-item-02"],
       identifiedRisks: "과다 수집과 접근권한, 암호화 누락 가능성",
-      improvementPlan: "최소 수집, 권한 분리, 암호화를 적용한다.",
+      improvementPlan: "최소 수집, 권한 분리, 암호화를 적용합니다.",
     }),
   });
   const payload = await saved.json();
@@ -154,7 +162,7 @@ test("일반 사용자는 실무형 콘텐츠 관리자 API에 접근할 수 없
         code: "FORBIDDEN_ITEM",
         category: "테스트",
         title: "권한 없는 등록",
-        description: "차단되어야 한다.",
+        description: "차단되어야 합니다.",
         checkPoints: "없음",
         evidenceExamples: "",
         riskExamples: "",
@@ -173,5 +181,5 @@ test("일반 사용자는 실무형 콘텐츠 관리자 API에 접근할 수 없
   const html = await page.text();
   assert.equal(page.status, 200, html.slice(0, 1500));
   assert.match(html, /실무형 과정 콘텐츠 관리/);
-  assert.match(html, /보안약점 분류·CWE/);
+  assert.match(html, /보안약점 분류\s*·\s*CWE/);
 });

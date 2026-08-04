@@ -20,6 +20,7 @@ export function SpecializedBookmarkButton({
 }) {
   const [bookmarked, setBookmarked] = useState(initialBookmarked);
   const [message, setMessage] = useState("");
+
   async function toggle() {
     const response = await fetch("/api/specialized/bookmarks", {
       method: "POST",
@@ -34,11 +35,20 @@ export function SpecializedBookmarkButton({
       result: { bookmarked: boolean };
     };
     setBookmarked(payload.result.bookmarked);
-    setMessage(payload.result.bookmarked ? "즐겨찾기에 저장했습니다." : "즐겨찾기에서 해제했습니다.");
+    setMessage(
+      payload.result.bookmarked
+        ? "즐겨찾기에 저장했습니다."
+        : "즐겨찾기에서 해제했습니다.",
+    );
   }
+
   return (
     <div className="inline-actions">
-      <button className="button button-ghost" type="button" onClick={() => void toggle()}>
+      <button
+        className="button button-ghost"
+        type="button"
+        onClick={() => void toggle()}
+      >
         {bookmarked ? "★ 즐겨찾기 해제" : "☆ 즐겨찾기"}
       </button>
       {message ? <small>{message}</small> : null}
@@ -71,6 +81,7 @@ export function WrittenAnswerPractice({
   const [answer, setAnswer] = useState("");
   const [result, setResult] = useState<WrittenResult | null>(null);
   const [message, setMessage] = useState("");
+
   async function grade() {
     const response = await fetch("/api/specialized/written-grade", {
       method: "POST",
@@ -88,30 +99,52 @@ export function WrittenAnswerPractice({
     setResult(payload.result);
     setMessage("");
   }
+
   return (
     <article className="specialized-card written-practice">
       <p className="eyebrow">ADVISORY GRADING</p>
       <h3>{title}</h3>
-      <p>배점 {maximumScore}점 · 학습용 문항</p>
+      <p>
+        배점 {maximumScore}점 · 학습용 문항
+      </p>
       <textarea
         value={answer}
         onChange={(event) => setAnswer(event.target.value)}
-        placeholder="핵심 개념과 적용 통제를 서술하세요."
+        placeholder="핵심 개념과 적용 근거를 서술하세요."
         rows={6}
       />
-      <button className="button button-dark" type="button" disabled={!answer.trim()} onClick={() => void grade()}>
+      <button
+        className="button button-dark"
+        type="button"
+        disabled={!answer.trim()}
+        onClick={() => void grade()}
+      >
         참고용 보조채점
       </button>
       {message ? <p className="form-message">{message}</p> : null}
       {result ? (
         <div className="written-result">
-          <strong>참고 점수 {result.earnedScore} / {result.maximumScore}</strong>
+          <strong>
+            참고 점수 {result.earnedScore} / {result.maximumScore}
+          </strong>
           <p className="sample-notice">{result.guidance}</p>
           <dl className="content-facts">
-            <div><dt>충족한 필수 키워드</dt><dd>{result.fulfilledRequired.join(", ") || "없음"}</dd></div>
-            <div><dt>누락한 키워드</dt><dd>{result.missingRequired.join(", ") || "없음"}</dd></div>
-            <div><dt>충족한 선택 키워드</dt><dd>{result.fulfilledOptional.join(", ") || "없음"}</dd></div>
-            <div><dt>개발용 모범답안</dt><dd>{result.modelAnswer}</dd></div>
+            <div>
+              <dt>충족한 필수 키워드</dt>
+              <dd>{result.fulfilledRequired.join(", ") || "없음"}</dd>
+            </div>
+            <div>
+              <dt>누락한 키워드</dt>
+              <dd>{result.missingRequired.join(", ") || "없음"}</dd>
+            </div>
+            <div>
+              <dt>충족한 선택 키워드</dt>
+              <dd>{result.fulfilledOptional.join(", ") || "없음"}</dd>
+            </div>
+            <div>
+              <dt>예시 답안</dt>
+              <dd>{result.modelAnswer}</dd>
+            </div>
           </dl>
           <SpecializedAIReview
             request={{
@@ -194,23 +227,56 @@ export function RiskPractice({
         status: "OPEN",
       }),
     });
-    setMessage(response.ok ? "내 위험등록부에 저장했습니다." : "위험등록부를 저장하지 못했습니다.");
+    setMessage(
+      response.ok
+        ? "내 위험등록부에 저장했습니다."
+        : "위험등록부를 저장하지 못했습니다.",
+    );
   }
 
   return (
     <section className="risk-practice-grid">
       <article className="specialized-card">
         <p className="eyebrow">RISK CALCULATOR</p>
-        <h2>평가 방법을 바꿔 위험도 비교</h2>
-        <label>평가 방법<select value={methodId} onChange={(event) => setMethodId(event.target.value)}>
-          {methods.map((method) => <option key={method.id} value={method.id}>{method.name}</option>)}
-        </select></label>
-        <label>가능성<input type="number" min={0} max={1000} value={likelihood} onChange={(event) => setLikelihood(Number(event.target.value))} /></label>
-        <label>영향도<input type="number" min={0} max={1000} value={impact} onChange={(event) => setImpact(Number(event.target.value))} /></label>
-        <button className="button button-dark" type="button" onClick={() => void calculate()}>위험도 계산</button>
+        <h2>평가 방법을 바꿔 위험도를 비교</h2>
+        <label>
+          평가 방법
+          <select value={methodId} onChange={(event) => setMethodId(event.target.value)}>
+            {methods.map((method) => (
+              <option key={method.id} value={method.id}>
+                {method.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          가능성
+          <input
+            type="number"
+            min={0}
+            max={1000}
+            value={likelihood}
+            onChange={(event) => setLikelihood(Number(event.target.value))}
+          />
+        </label>
+        <label>
+          영향도
+          <input
+            type="number"
+            min={0}
+            max={1000}
+            value={impact}
+            onChange={(event) => setImpact(Number(event.target.value))}
+          />
+        </label>
+        <button className="button button-dark" type="button" onClick={() => void calculate()}>
+          위험도 계산
+        </button>
         {result ? (
           <div className="risk-result">
-            <strong>{result.riskValue} · {result.riskLabel}</strong>
+            <strong>
+              {result.riskValue} · {result.riskLabel}
+            </strong>
             <p>{result.method.name}</p>
             <p>{result.treatmentGuidance}</p>
           </div>
@@ -219,13 +285,31 @@ export function RiskPractice({
       <form className="specialized-card" action={saveRegister}>
         <p className="eyebrow">RISK REGISTER</p>
         <h2>위험등록부 작성 연습</h2>
-        <label>시나리오<select name="scenarioId" required>
-          {scenarios.map((scenario) => <option key={scenario.id} value={scenario.id}>{scenario.title}</option>)}
-        </select></label>
-        <label>처리 방안<textarea name="treatment" required /></label>
-        <label>담당자<input name="owner" required /></label>
-        <label>목표일<input name="dueDate" type="date" /></label>
-        <button className="button button-dark" type="submit">내 위험등록부에 저장</button>
+        <label>
+          시나리오
+          <select name="scenarioId" required>
+            {scenarios.map((scenario) => (
+              <option key={scenario.id} value={scenario.id}>
+                {scenario.title}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          처리 방안
+          <textarea name="treatment" required />
+        </label>
+        <label>
+          담당자
+          <input name="owner" required />
+        </label>
+        <label>
+          목표일
+          <input name="dueDate" type="date" />
+        </label>
+        <button className="button button-dark" type="submit">
+          내 위험등록부에 저장
+        </button>
         {message ? <p className="form-message">{message}</p> : null}
       </form>
     </section>
