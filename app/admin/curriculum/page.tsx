@@ -1,6 +1,13 @@
 import { AdminCurriculumManager } from "@/components/admin-curriculum-manager";
 import Link from "next/link";
 import {
+  InspectorPanel,
+  PageToolbar,
+  SectionHeader,
+  StatusBadge,
+  WorkspaceLayout,
+} from "@/components/design-system-primitives";
+import {
   getCurriculumTreeCoverage,
   listCurriculumLinkableContent,
   listCurriculumNodeOperationalStats,
@@ -237,15 +244,21 @@ export default async function AdminCurriculumPage({
 
   return (
     <>
-      <header className="admin-page-header">
-        <p className="eyebrow">공식 커리큘럼 아키텍처</p>
-        <h1>커리큘럼 트리 관리</h1>
-        <p>
-          과정별 공식·실무 커리큘럼 버전과 계층 노드를 관리합니다. 기존
-          과목, 주제, 학습 단위, 레슨 데이터는 삭제하지 않고 필요한 노드에
-          연결해 운영 통계와 콘텐츠 커버리지를 함께 확인합니다.
-        </p>
-      </header>
+      <SectionHeader
+        breadcrumbs={[
+          { label: "Admin", href: "/admin" },
+          { label: "Curriculum", current: true },
+        ]}
+        eyebrow="공식 커리큘럼 아키텍처"
+        title="커리큘럼 트리 관리"
+        description={
+          <>
+            과정별 공식·실무 커리큘럼 버전과 계층 노드를 관리합니다. 기존
+            과목, 주제, 학습 단위, 레슨 데이터는 삭제하지 않고 필요한 노드에
+            연결해 운영 통계와 콘텐츠 커버리지를 함께 확인합니다.
+          </>
+        }
+      />
       <section className="stats-grid admin-stats">
         <div className="stat-card">
           <span>관리 과정</span>
@@ -279,6 +292,30 @@ export default async function AdminCurriculumPage({
           </small>
         </div>
       </section>
+      <PageToolbar
+        secondary={
+          <>
+            <Link className="button button-ghost" href={selectedSharedContentHref}>
+              콘텐츠 연결
+            </Link>
+            <Link className="button button-ghost" href="/admin/ontology">
+              Ontology 확인
+            </Link>
+          </>
+        }
+        primary={
+          <Link className="button button-primary" href="/admin/curriculum">
+            트리 새로고침
+          </Link>
+        }
+      >
+        <span className="admin-toolbar-kicker">선택 트리</span>
+        <strong>
+          {selectedTree
+            ? `${selectedTree.title} · ${selectedTree.status}`
+            : "운영할 커리큘럼 트리를 선택하세요."}
+        </strong>
+      </PageToolbar>
       {coverage ? (
         <section className="stats-grid admin-stats" aria-label="커리큘럼 콘텐츠 커버리지">
           <div className="stat-card">
@@ -671,21 +708,82 @@ export default async function AdminCurriculumPage({
           </details>
         </div>
       </section>
-      <AdminCurriculumManager
-        key={selectedTreeId}
-        courses={courses.map((course) => ({
-          id: course.id,
-          name: course.name,
-          shortName: course.shortName,
-          groupName: course.groupName,
-        }))}
-        trees={trees}
-        nodes={nodes}
-        nodeStats={nodeStats}
-        linkableContent={linkableContent}
-        ontologyCoverageSummaries={ontologyCoverageSummaries}
-        ontologyGaps={selectedOntologyGaps}
-        selectedTreeId={selectedTreeId}
+      <WorkspaceLayout
+        main={
+          <AdminCurriculumManager
+            key={selectedTreeId}
+            courses={courses.map((course) => ({
+              id: course.id,
+              name: course.name,
+              shortName: course.shortName,
+              groupName: course.groupName,
+            }))}
+            trees={trees}
+            nodes={nodes}
+            nodeStats={nodeStats}
+            linkableContent={linkableContent}
+            ontologyCoverageSummaries={ontologyCoverageSummaries}
+            ontologyGaps={selectedOntologyGaps}
+            selectedTreeId={selectedTreeId}
+          />
+        }
+        inspector={
+          <InspectorPanel
+            eyebrow="CURRICULUM INSPECTOR"
+            title={selectedTree?.title ?? "선택된 트리 없음"}
+            description={
+              selectedTree
+                ? "선택한 커리큘럼 트리의 운영 준비 상태와 연결 상태를 확인합니다."
+                : "먼저 관리할 커리큘럼 트리를 선택하세요."
+            }
+            badges={[
+              {
+                label: selectedTree?.status ?? "NO TREE",
+                tone: selectedTreeActive ? "success" : "warning",
+              },
+              {
+                label: activationReadinessReady ? "운영 준비" : "검수 필요",
+                tone: activationReadinessReady ? "success" : "info",
+              },
+            ]}
+            meta={[
+              { label: "노드", value: nodes.length },
+              {
+                label: "연결 가능 콘텐츠",
+                value: linkableContent.length,
+              },
+              {
+                label: "CourseLesson gap",
+                value: coverage?.unlinkedCourseLessonCount ?? 0,
+              },
+              {
+                label: "Ontology gap",
+                value: selectedOntologyGaps.length,
+              },
+            ]}
+            actions={
+              <>
+                <Link className="button button-primary" href={selectedSharedContentHref}>
+                  콘텐츠 연결
+                </Link>
+                <Link className="button button-ghost" href="/admin/ontology">
+                  Ontology
+                </Link>
+              </>
+            }
+          >
+            <div>
+              <StatusBadge compact tone={operationalCoverageReady ? "success" : "warning"}>
+                {operationalCoverageReady ? "CourseLesson 연결 완료" : "CourseLesson 연결 검수"}
+              </StatusBadge>
+            </div>
+            <p>
+              이 패널은 앞으로 선택한 CurriculumNode의 공식 순번, stable key, 출처,
+              콘텐츠 연결, 문제 연결, 온톨로지 커버리지를 보여주는 우측 Inspector로
+              확장됩니다.
+            </p>
+          </InspectorPanel>
+        }
       />
     </>
   );

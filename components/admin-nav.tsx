@@ -64,6 +64,11 @@ const adminNavigation: AdminNavGroup[] = [
         description: "공식 출제기준 트리와 커버리지",
       },
       {
+        href: "/admin/coverage",
+        label: "Coverage",
+        description: "커리큘럼 콘텐츠·문항 공백 검수",
+      },
+      {
         href: "/admin/shared-content",
         label: "공통 콘텐츠",
         description: "여러 과정에서 재사용되는 학습 콘텐츠",

@@ -1,7 +1,15 @@
 import { AdminAIExplainabilityFeedbackForm } from "@/components/admin-ai-explainability-feedback";
+import {
+  InspectorPanel,
+  PageToolbar,
+  SectionHeader,
+  StatusBadge,
+  WorkspaceLayout,
+} from "@/components/design-system-primitives";
 import { listAdminAIExplainabilityTraces } from "@/db/ai-explainability-repositories";
 import type { AIExplainabilityTraceSource } from "@/lib/ai/explainability";
 import { requireAuditViewer } from "@/lib/auth";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -30,17 +38,30 @@ export default async function AdminAIExplainabilityPage({
     (total, trace) => total + trace.feedbackSummary.total,
     0,
   );
+  const selectedTrace = traces[0] ?? null;
+  const failedTraceCount = traces.filter((trace) =>
+    String(trace.generationStatus).toLowerCase().includes("fail"),
+  ).length;
+  const reviewedTraceCount = traces.filter((trace) =>
+    String(trace.reviewStatus ?? "").toLowerCase().includes("review"),
+  ).length;
 
   return (
     <>
-      <header className="admin-page-header">
-        <p className="eyebrow">AI EXPLAINABILITY</p>
-        <h1>AI 설명 가능성 콘솔</h1>
-        <p>
-          AI 요청이 어떤 개념을 감지했고, 어떤 검색어로 확장됐으며, 어떤
-          검수 근거와 citation을 사용했는지 관리자 전용으로 확인합니다.
-        </p>
-      </header>
+      <SectionHeader
+        breadcrumbs={[
+          { label: "Admin", href: "/admin" },
+          { label: "AI Trace", current: true },
+        ]}
+        eyebrow="AI EXPLAINABILITY"
+        title="AI 설명 가능성 콘솔"
+        description={
+          <>
+            AI 요청이 어떤 개념을 감지했고, 어떤 검색어로 확장됐으며, 어떤
+            검수 근거와 citation을 사용했는지 관리자 전용으로 확인합니다.
+          </>
+        }
+      />
 
       <section className="admin-summary-grid" aria-label="AI trace summary">
         <div className="admin-panel">
@@ -70,6 +91,33 @@ export default async function AdminAIExplainabilityPage({
         </div>
       </section>
 
+      <PageToolbar
+        secondary={
+          <>
+            <Link className="button button-ghost" href="/admin/ontology">
+              Ontology
+            </Link>
+            <Link className="button button-ghost" href="/admin/curriculum">
+              Curriculum
+            </Link>
+          </>
+        }
+        primary={
+          <Link className="button button-primary" href="/admin/ai-explainability">
+            Reset trace view
+          </Link>
+        }
+      >
+        <span className="admin-toolbar-kicker">Trace scope</span>
+        <strong>
+          Source {filters.source ?? "all"} · Provider {filters.provider ?? "all"} ·
+          Status {filters.status ?? "all"}
+        </strong>
+      </PageToolbar>
+
+      <WorkspaceLayout
+        main={
+          <>
       <section className="admin-panel ai-explainability-policy">
         <h2>보안 정책</h2>
         <p>
@@ -361,6 +409,62 @@ export default async function AdminAIExplainabilityPage({
           </div>
         )}
       </section>
+          </>
+        }
+        inspector={
+          <InspectorPanel
+            eyebrow="AI TRACE INSPECTOR"
+            title={selectedTrace?.requestId ?? "No trace selected"}
+            description={
+              selectedTrace
+                ? "The first visible trace is used as the current preview until row selection is introduced."
+                : "AI explanation and specialized review requests will appear here after learners use AI features."
+            }
+            badges={[
+              {
+                label: selectedTrace?.provider ?? "No provider",
+                tone: selectedTrace ? "info" : "warning",
+              },
+              {
+                label: selectedTrace?.generationStatus ?? "No status",
+                tone:
+                  !selectedTrace
+                    ? "warning"
+                    : String(selectedTrace.generationStatus).toLowerCase().includes("fail")
+                      ? "danger"
+                      : "success",
+              },
+            ]}
+            meta={[
+              { label: "Visible traces", value: traces.length },
+              { label: "Failed traces", value: failedTraceCount },
+              { label: "Reviewed traces", value: reviewedTraceCount },
+              { label: "Feedback", value: feedbackTotal },
+            ]}
+            actions={
+              <>
+                <Link className="button button-primary" href="/admin/ontology">
+                  Ontology
+                </Link>
+                <Link className="button button-ghost" href="/admin/ai-reviews">
+                  AI Reviews
+                </Link>
+              </>
+            }
+          >
+            <div>
+              <StatusBadge compact tone="brand">
+                Prompt 원문과 민감정보는 표시하지 않습니다.
+              </StatusBadge>
+            </div>
+            <p>
+              이 패널은 앞으로 선택한 trace의 concept detection, alias expansion,
+              retrieval context, citation, token, latency, cost, reviewer note를
+              한곳에서 확인하는 Inspector로 확장됩니다.
+            </p>
+          </InspectorPanel>
+        }
+      />
     </>
   );
 }

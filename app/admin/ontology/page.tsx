@@ -1,5 +1,12 @@
 import Link from "next/link";
 import {
+  InspectorPanel,
+  PageToolbar,
+  SectionHeader,
+  StatusBadge,
+  WorkspaceLayout,
+} from "@/components/design-system-primitives";
+import {
   listOntologyAdminConceptRows,
   listOntologyAdminEdgeRows,
   type OntologyConceptFilters,
@@ -48,19 +55,35 @@ export default async function AdminOntologyPage({ searchParams }: PageProps) {
   const edgeFilters = parseEdgeFilters(params);
   const returnTo = buildAdminOntologyReturnTo(conceptFilters, edgeFilters);
   const data = await loadOntologyAdminData(conceptFilters, edgeFilters);
+  const activeConceptCount = data.concepts.filter(
+    (concept) => concept.status === "ACTIVE",
+  ).length;
+  const draftConceptCount = data.concepts.filter(
+    (concept) => concept.status === "DRAFT",
+  ).length;
+  const activeEdgeCount = data.edges.filter((edge) => edge.status === "ACTIVE").length;
+  const draftEdgeCount = data.edges.filter((edge) => edge.status === "DRAFT").length;
+  const firstConcept = data.concepts[0] ?? null;
+  const firstEdge = data.edges[0] ?? null;
 
   return (
     <>
-      <header className="admin-page-header">
-        <p className="eyebrow">ONTOLOGY ENGINE</p>
-        <h1>Ontology Admin Console</h1>
-        <p>
-          Review and transition ontology concepts and edges that connect
-          courses, curriculum, content, questions, and AI retrieval. Status
-          changes are processed through server-side authorization and audit
-          logging.
-        </p>
-      </header>
+      <SectionHeader
+        breadcrumbs={[
+          { label: "Admin", href: "/admin" },
+          { label: "Ontology", current: true },
+        ]}
+        eyebrow="ONTOLOGY ENGINE"
+        title="Ontology Admin Console"
+        description={
+          <>
+            Review and transition ontology concepts and edges that connect
+            courses, curriculum, content, questions, and AI retrieval. Status
+            changes are processed through server-side authorization and audit
+            logging.
+          </>
+        }
+      />
 
       {data.error ? (
         <section className="admin-panel">
@@ -98,6 +121,33 @@ export default async function AdminOntologyPage({ searchParams }: PageProps) {
             </div>
           </section>
 
+          <PageToolbar
+            secondary={
+              <>
+                <Link className="button button-ghost" href="/admin/curriculum">
+                  View curriculum
+                </Link>
+                <Link className="button button-ghost" href="/admin/ai-explainability">
+                  View AI trace
+                </Link>
+              </>
+            }
+            primary={
+              <Link className="button button-primary" href="/admin/ontology">
+                Reset view
+              </Link>
+            }
+          >
+            <span className="admin-toolbar-kicker">Explorer scope</span>
+            <strong>
+              Namespace {conceptFilters.namespace ?? "all"} · Course{" "}
+              {edgeFilters.courseId ?? "global"}
+            </strong>
+          </PageToolbar>
+
+          <WorkspaceLayout
+            main={
+              <>
           <section className="admin-panel ai-explainability-policy">
             <h2>Review policy</h2>
             <p>
@@ -268,6 +318,59 @@ export default async function AdminOntologyPage({ searchParams }: PageProps) {
               )}
             </article>
           </section>
+              </>
+            }
+            inspector={
+              <InspectorPanel
+                eyebrow="ONTOLOGY INSPECTOR"
+                title={firstConcept?.label ?? firstEdge?.relation ?? "No selection"}
+                description={
+                  firstConcept
+                    ? "The first visible concept is used as the current preview until row selection is introduced."
+                    : firstEdge
+                      ? "The first visible edge is used as the current preview until row selection is introduced."
+                      : "Adjust filters or seed ontology data to inspect concepts and edges."
+                }
+                badges={[
+                  {
+                    label: data.concepts.length ? "Concepts visible" : "No concepts",
+                    tone: data.concepts.length ? "success" : "warning",
+                  },
+                  {
+                    label: data.edges.length ? "Edges visible" : "No edges",
+                    tone: data.edges.length ? "info" : "warning",
+                  },
+                ]}
+                meta={[
+                  { label: "Active concepts", value: activeConceptCount },
+                  { label: "Draft concepts", value: draftConceptCount },
+                  { label: "Active edges", value: activeEdgeCount },
+                  { label: "Draft edges", value: draftEdgeCount },
+                ]}
+                actions={
+                  <>
+                    <Link className="button button-primary" href="/admin/ai-explainability">
+                      AI Trace
+                    </Link>
+                    <Link className="button button-ghost" href="/admin/curriculum">
+                      Curriculum
+                    </Link>
+                  </>
+                }
+              >
+                <div>
+                  <StatusBadge compact tone="brand">
+                    Retrieval-ready data prefers ACTIVE ontology.
+                  </StatusBadge>
+                </div>
+                <p>
+                  This inspector will expand into concept metadata, aliases,
+                  relations, coverage, AI usage, audit history, and review notes
+                  as row selection is introduced.
+                </p>
+              </InspectorPanel>
+            }
+          />
         </>
       )}
     </>

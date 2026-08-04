@@ -2,7 +2,10 @@ import Link from "next/link";
 import {
   InspectorPanel,
   MetricCard,
+  PageToolbar,
   SectionHeader,
+  StatusBadge,
+  WorkspaceLayout,
 } from "@/components/design-system-primitives";
 import { listCurriculumTrees } from "@/db/curriculum-repositories";
 import { listAllCourseGroups, listAllCourses } from "@/db/repositories";
@@ -13,6 +16,8 @@ const adminActions = [
   {
     href: "/admin/curriculum",
     index: "01",
+    area: "Curriculum",
+    status: "우선 검수",
     title: "Curriculum Coverage",
     description:
       "공식 출제기준 트리, 노드 연결, 콘텐츠 커버리지 상태를 확인합니다.",
@@ -20,6 +25,8 @@ const adminActions = [
   {
     href: "/admin/shared-content",
     index: "02",
+    area: "Content",
+    status: "연결 관리",
     title: "Shared Content",
     description:
       "여러 과정에서 재사용되는 본문형 콘텐츠와 CourseLesson 연결을 관리합니다.",
@@ -27,6 +34,8 @@ const adminActions = [
   {
     href: "/admin/ontology",
     index: "03",
+    area: "Ontology",
+    status: "검수 흐름",
     title: "Ontology Explorer",
     description:
       "개념, 별칭, 관계, 과정 간 매핑 상태를 추적하고 검수합니다.",
@@ -34,6 +43,8 @@ const adminActions = [
   {
     href: "/admin/ai-explainability",
     index: "04",
+    area: "AI",
+    status: "Trace",
     title: "AI Trace Console",
     description:
       "AI 응답의 검색 근거, Citation, Prompt, 피드백 흐름을 검토합니다.",
@@ -41,6 +52,8 @@ const adminActions = [
   {
     href: "/admin/questions",
     index: "05",
+    area: "Question",
+    status: "운영",
     title: "Question Bank",
     description:
       "문제 등록, 과정 연결, 검수 요청, 게시 상태를 한곳에서 관리합니다.",
@@ -48,6 +61,8 @@ const adminActions = [
   {
     href: "/admin/audit-logs",
     index: "06",
+    area: "Audit",
+    status: "읽기 전용",
     title: "Audit Log",
     description:
       "중요 관리자 작업의 결과와 리소스 변경 이력을 확인합니다.",
@@ -78,6 +93,10 @@ export default async function AdminPage() {
   return (
     <>
       <SectionHeader
+        breadcrumbs={[
+          { label: "Admin", href: "/admin" },
+          { label: "Dashboard", current: true },
+        ]}
         eyebrow="ADMIN DASHBOARD"
         title="운영 현황"
         description={
@@ -111,17 +130,46 @@ export default async function AdminPage() {
         />
       </section>
 
-      <div className="admin-overview-layout">
+      <PageToolbar
+        secondary={
+          <>
+            <Link className="button button-ghost" href="/admin/ontology">
+              Ontology 검수
+            </Link>
+            <Link className="button button-ghost" href="/admin/ai-explainability">
+              AI Trace 확인
+            </Link>
+          </>
+        }
+        primary={
+          <Link className="button button-primary" href="/admin/curriculum">
+            Curriculum Coverage
+          </Link>
+        }
+      >
+        <span className="admin-toolbar-kicker">운영 우선순위</span>
+        <strong>커리큘럼 → 콘텐츠 → 온톨로지 → AI 근거 흐름을 순서대로 점검하세요.</strong>
+      </PageToolbar>
+
+      <WorkspaceLayout
+        main={
         <section className="admin-actions-grid" aria-label="관리자 작업 바로가기">
           {adminActions.map((action) => (
             <Link href={action.href} className="admin-action-card" key={action.href}>
-              <span>{action.index}</span>
+              <div className="admin-action-card-meta">
+                <span>{action.index}</span>
+                <StatusBadge compact tone="info">
+                  {action.area}
+                </StatusBadge>
+                <StatusBadge compact>{action.status}</StatusBadge>
+              </div>
               <h2>{action.title}</h2>
               <p>{action.description}</p>
             </Link>
           ))}
         </section>
-
+        }
+        inspector={
         <InspectorPanel
           eyebrow="INSPECTOR"
           title="운영 상태 요약"
@@ -164,11 +212,12 @@ export default async function AdminPage() {
             정보를 같은 패턴으로 보여주기 위한 공통 UI입니다.
           </p>
           <p>
-            이번 UI-3A에서는 관리자 Dashboard에 먼저 시범 적용하고, 이후
+            이번 UI-3C에서는 관리자 Dashboard에 먼저 시범 적용하고, 이후
             Curriculum·Ontology·AI Trace 화면으로 확장합니다.
           </p>
         </InspectorPanel>
-      </div>
+        }
+      />
     </>
   );
 }

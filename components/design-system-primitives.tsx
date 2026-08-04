@@ -1,6 +1,11 @@
 import type { ReactNode } from "react";
 
-type Tone = "neutral" | "success" | "warning" | "danger" | "info" | "brand";
+export type Tone = "neutral" | "success" | "warning" | "danger" | "info" | "brand";
+type BreadcrumbItem = {
+  label: ReactNode;
+  href?: string;
+  current?: boolean;
+};
 
 export function StatusBadge({
   children,
@@ -63,21 +68,134 @@ export function Panel({
   return <section className={`admin-panel ds-panel ${className}`}>{children}</section>;
 }
 
+export function Breadcrumbs({
+  items,
+  className = "",
+}: {
+  items: BreadcrumbItem[];
+  className?: string;
+}) {
+  if (!items.length) return null;
+
+  return (
+    <nav className={`ds-breadcrumbs ${className}`} aria-label="현재 위치">
+      <ol>
+        {items.map((item, index) => {
+          const isCurrent = item.current ?? index === items.length - 1;
+          return (
+            <li key={index}>
+              {item.href && !isCurrent ? (
+                <a href={item.href}>{item.label}</a>
+              ) : (
+                <span aria-current={isCurrent ? "page" : undefined}>
+                  {item.label}
+                </span>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
+  );
+}
+
 export function SectionHeader({
   eyebrow,
   title,
   description,
+  breadcrumbs,
+  actions,
 }: {
   eyebrow?: string;
   title: ReactNode;
   description?: ReactNode;
+  breadcrumbs?: BreadcrumbItem[];
+  actions?: ReactNode;
 }) {
   return (
     <header className="admin-page-header ds-section-header">
-      {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
-      <h1>{title}</h1>
-      {description ? <p>{description}</p> : null}
+      {breadcrumbs ? <Breadcrumbs items={breadcrumbs} /> : null}
+      <div className="ds-section-header-main">
+        <div>
+          {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
+          <h1>{title}</h1>
+          {description ? <p>{description}</p> : null}
+        </div>
+        {actions ? <div className="ds-section-header-actions">{actions}</div> : null}
+      </div>
     </header>
+  );
+}
+
+export function PageToolbar({
+  children,
+  primary,
+  secondary,
+  className = "",
+}: {
+  children?: ReactNode;
+  primary?: ReactNode;
+  secondary?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`ds-page-toolbar ${className}`}>
+      {children ? <div className="ds-page-toolbar-main">{children}</div> : null}
+      {secondary ? (
+        <div className="ds-page-toolbar-secondary">{secondary}</div>
+      ) : null}
+      {primary ? <div className="ds-page-toolbar-primary">{primary}</div> : null}
+    </div>
+  );
+}
+
+export function WorkspaceLayout({
+  main,
+  inspector,
+  className = "",
+}: {
+  main: ReactNode;
+  inspector?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`ds-workspace-layout ${inspector ? "has-inspector" : ""} ${className}`}
+    >
+      <div className="ds-workspace-main">{main}</div>
+      {inspector ? <div className="ds-workspace-inspector">{inspector}</div> : null}
+    </div>
+  );
+}
+
+export function DrawerSurface({
+  title,
+  description,
+  children,
+  footer,
+  open = false,
+  className = "",
+}: {
+  title: ReactNode;
+  description?: ReactNode;
+  children: ReactNode;
+  footer?: ReactNode;
+  open?: boolean;
+  className?: string;
+}) {
+  return (
+    <aside
+      className={`ds-drawer-surface ${open ? "is-open" : ""} ${className}`}
+      aria-hidden={!open}
+      aria-label={typeof title === "string" ? title : "상세 패널"}
+    >
+      <header className="ds-drawer-header">
+        <h2>{title}</h2>
+        {description ? <p>{description}</p> : null}
+      </header>
+      <div className="ds-drawer-body">{children}</div>
+      {footer ? <footer className="ds-drawer-footer">{footer}</footer> : null}
+    </aside>
   );
 }
 
