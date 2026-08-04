@@ -450,7 +450,16 @@ export function AdminCurriculumManager({
             />
 
             <div className="curriculum-tree-workspace">
-              <div className="curriculum-tree-list" role="tree" aria-label="커리큘럼 노드 목록">
+              <p className="sr-only" id="curriculum-tree-instructions">
+                노드를 선택하면 선택 노드 상세 패널이 갱신됩니다. 펼치기 버튼으로 하위
+                노드를 열고 닫을 수 있습니다.
+              </p>
+              <div
+                className="curriculum-tree-list"
+                role="tree"
+                aria-label="커리큘럼 노드 목록"
+                aria-describedby="curriculum-tree-instructions"
+              >
                 {visibleNodes.map(({ node, hasChildren }) => (
                   <CurriculumTreeRow
                     key={node.id}

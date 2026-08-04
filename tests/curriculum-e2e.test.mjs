@@ -395,6 +395,8 @@ test("관리자 커리큘럼 화면은 Tree, Node, 기존 콘텐츠 연결, 운�
   assert.match(html, /공식 커리큘럼 아키텍처/);
   assert.match(html, /기사·산업기사 공식 커리큘럼 커버리지/);
   assert.match(html, /role="tree"/);
+  assert.match(html, /id="curriculum-tree-instructions"/);
+  assert.match(html, /aria-describedby="curriculum-tree-instructions"/);
   assert.match(html, /role="treeitem"/);
   assert.match(html, /aria-level="1"/);
   assert.match(html, /aria-pressed="true"/);
