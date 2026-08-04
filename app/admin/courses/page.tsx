@@ -61,7 +61,7 @@ export default async function AdminCoursesPage() {
       <SectionHeader
         eyebrow="COURSES"
         title="과정 관리"
-        description="과정 정보를 DB에서 관리하고, 공개·활성·정렬 상태를 공통 과정 템플릿에 반영합니다."
+        description="과정 정보를 DB에서 관리하고 공개, 활성화, 정렬 상태를 공통 과정 템플릿에 반영합니다."
         breadcrumbs={[
           { label: "관리자", href: "/admin" },
           { label: "과정", current: true },
@@ -81,7 +81,7 @@ export default async function AdminCoursesPage() {
               과정군 {groups.length}
             </StatusBadge>
             <StatusBadge compact tone={sampleCourses ? "warning" : "neutral"}>
-              샘플 {sampleCourses}
+              샘플 콘텐츠 {sampleCourses}
             </StatusBadge>
           </>
         }
@@ -96,7 +96,9 @@ export default async function AdminCoursesPage() {
           </>
         }
       >
-        <span>신규 과정은 이 화면에서 추가한 뒤 과목·주제·커리큘럼을 연결합니다.</span>
+        <span>
+          신규 과정은 이 화면에서 추가한 뒤 과목, 주제, 커리큘럼을 연결합니다.
+        </span>
       </PageToolbar>
 
       <section className="stats-grid admin-stats" aria-label="과정 운영 현황">
@@ -108,7 +110,7 @@ export default async function AdminCoursesPage() {
         <MetricCard
           label="활성 과정"
           value={activeCourses}
-          description="수강·학습 흐름에 사용할 수 있는 과정"
+          description="수강과 학습 흐름에 사용할 수 있는 과정"
         />
         <MetricCard
           label="공개 과정"
@@ -116,7 +118,7 @@ export default async function AdminCoursesPage() {
           description="학습자 과정 목록에 노출되는 과정"
         />
         <MetricCard
-          label="개발용 샘플"
+          label="샘플 콘텐츠"
           value={sampleCourses}
           description="운영 콘텐츠와 구분해 관리"
         />
@@ -184,7 +186,7 @@ export default async function AdminCoursesPage() {
               ) : (
                 <div className="empty-state">
                   <strong>등록된 과정이 없습니다.</strong>
-                  <p>먼저 과정군을 만든 뒤 새 과정을 등록하세요.</p>
+                  <p>먼저 과정군을 만든 다음 과정을 등록하세요.</p>
                   <Link className="button ghost" href="/admin/course-groups">
                     과정군 관리
                   </Link>
@@ -242,7 +244,7 @@ export default async function AdminCoursesPage() {
                 </>
               ) : (
                 <Link className="button ghost" href="/admin/course-groups">
-                  과정군부터 만들기
+                  과정군 먼저 만들기
                 </Link>
               )
             }
@@ -251,12 +253,16 @@ export default async function AdminCoursesPage() {
               <div className="admin-record">
                 <span>동적 구조</span>
                 <strong>과정별 페이지를 복사하지 않음</strong>
-                <small>slug와 DB 데이터를 기반으로 공통 과정 템플릿을 사용합니다.</small>
+                <small>
+                  slug와 DB 데이터를 기반으로 공통 과정 템플릿을 사용합니다.
+                </small>
               </div>
               <div className="admin-record">
                 <span>학습 기록 보호</span>
-                <strong>비활성화 우선</strong>
-                <small>삭제보다 active/published 상태 전환으로 운영하세요.</small>
+                <strong>삭제보다 비활성화 우선</strong>
+                <small>
+                  학습 이력이 있는 과정은 active/published 상태 전환으로 운영하세요.
+                </small>
               </div>
             </div>
           </InspectorPanel>
@@ -384,7 +390,7 @@ export function CourseForm({
         />
       </label>
       <label>
-        정렬순서
+        정렬 순서
         <input
           name="displayOrder"
           type="number"
@@ -407,7 +413,7 @@ export function CourseForm({
         공개
       </label>
       <button className="button button-dark" type="submit">
-        {course ? "과정 변경 저장" : "과정 등록"}
+        {course ? "과정 변경사항 저장" : "과정 등록"}
       </button>
     </form>
   );
