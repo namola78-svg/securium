@@ -29,6 +29,10 @@ export async function GET(request: Request) {
         provider: stringParam(params.get("provider")),
         status: stringParam(params.get("status")),
         requestId: stringParam(params.get("requestId")),
+        feedbackRating: parseFeedbackRating(params.get("feedbackRating")),
+        feedbackIssueType: parseFeedbackIssueType(
+          params.get("feedbackIssueType"),
+        ),
       }),
     );
   } catch (error) {
@@ -78,6 +82,26 @@ function stringParam(value: string | null) {
 
 function parseSource(value: string | null) {
   return value === "QUESTION_EXPLANATION" || value === "SPECIALIZED_REVIEW"
+    ? value
+    : undefined;
+}
+
+function parseFeedbackRating(value: string | null) {
+  return value === "HELPFUL" ||
+    value === "NOT_HELPFUL" ||
+    value === "NEEDS_REVIEW"
+    ? value
+    : undefined;
+}
+
+function parseFeedbackIssueType(value: string | null) {
+  return value === "NONE" ||
+    value === "LOW_QUALITY_CONTEXT" ||
+    value === "MISSING_CITATION" ||
+    value === "WRONG_CONCEPT" ||
+    value === "PROMPT_ISSUE" ||
+    value === "SENSITIVE_CONTENT_RISK" ||
+    value === "OTHER"
     ? value
     : undefined;
 }

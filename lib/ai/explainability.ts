@@ -55,6 +55,7 @@ export type AIExplainabilityTrace = AIExplainabilityRecordInput & {
     fullPromptStored: false;
     note: string;
   };
+  feedbackSummary: AIExplainabilityFeedbackSummary;
 };
 
 export type AIExplainabilityTraceFilters = {
@@ -63,6 +64,25 @@ export type AIExplainabilityTraceFilters = {
   provider?: string;
   status?: string;
   requestId?: string;
+  feedbackRating?: string;
+  feedbackIssueType?: string;
+};
+
+export type AIExplainabilityFeedbackRecord = {
+  rating: string;
+  issueType: string;
+  createdAt: string;
+};
+
+export type AIExplainabilityFeedbackSummary = {
+  total: number;
+  helpful: number;
+  notHelpful: number;
+  needsReview: number;
+  issueCounts: Record<string, number>;
+  latestAt: string | null;
+  latestRating: string | null;
+  latestIssueType: string | null;
 };
 
 export function buildAIExplainabilityTrace(
@@ -100,6 +120,7 @@ export function buildAIExplainabilityTrace(
       note:
         "Full prompts and raw answers are not stored in AI traces. The console shows a fingerprint and sanitized retrieval context only.",
     },
+    feedbackSummary: summarizeAITraceFeedback([]),
   };
 }
 
@@ -142,6 +163,53 @@ export function matchesAIExplainabilityTraceFilters(
     (!filters.status ||
       trace.generationStatus === filters.status ||
       trace.reviewStatus === filters.status) &&
-    (!requestId || trace.requestId.toLowerCase().includes(requestId))
+    (!requestId || trace.requestId.toLowerCase().includes(requestId)) &&
+    (!filters.feedbackRating ||
+      feedbackSummaryHasRating(trace.feedbackSummary, filters.feedbackRating)) &&
+    (!filters.feedbackIssueType ||
+      (trace.feedbackSummary.issueCounts[filters.feedbackIssueType] ?? 0) > 0)
   );
+}
+
+export function summarizeAITraceFeedback(
+  records: readonly AIExplainabilityFeedbackRecord[],
+): AIExplainabilityFeedbackSummary {
+  const sorted = [...records].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const initial: AIExplainabilityFeedbackSummary = {
+    total: 0,
+    helpful: 0,
+    notHelpful: 0,
+    needsReview: 0,
+    issueCounts: {},
+    latestAt: null,
+    latestRating: null,
+    latestIssueType: null,
+  };
+  return sorted.reduce<AIExplainabilityFeedbackSummary>(
+    (summary, record) => {
+      summary.total += 1;
+      if (record.rating === "HELPFUL") summary.helpful += 1;
+      if (record.rating === "NOT_HELPFUL") summary.notHelpful += 1;
+      if (record.rating === "NEEDS_REVIEW") summary.needsReview += 1;
+      summary.issueCounts[record.issueType] =
+        (summary.issueCounts[record.issueType] ?? 0) + 1;
+      if (!summary.latestAt) {
+        summary.latestAt = record.createdAt;
+        summary.latestRating = record.rating;
+        summary.latestIssueType = record.issueType;
+      }
+      return summary;
+    },
+    initial,
+  );
+}
+
+function feedbackSummaryHasRating(
+  summary: AIExplainabilityFeedbackSummary,
+  rating: string,
+) {
+  if (rating === "HELPFUL") return summary.helpful > 0;
+  if (rating === "NOT_HELPFUL") return summary.notHelpful > 0;
+  if (rating === "NEEDS_REVIEW") return summary.needsReview > 0;
+  return false;
 }

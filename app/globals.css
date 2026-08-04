@@ -5489,7 +5489,7 @@ a.specialized-card:hover {
   align-items: end;
   display: grid;
   gap: .85rem;
-  grid-template-columns: repeat(5, minmax(0, 1fr)) auto;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
 }
 
 .ai-trace-filter-form label {
@@ -5605,6 +5605,34 @@ a.specialized-card:hover {
   resize: vertical;
 }
 
+.ai-feedback-summary {
+  display: grid;
+  gap: .5rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-block: .75rem;
+}
+
+.ai-feedback-summary div {
+  min-width: 0;
+  padding: .65rem;
+  border: 1px solid var(--line);
+  border-radius: .75rem;
+  background: #fff;
+}
+
+.ai-feedback-summary dt {
+  color: var(--muted);
+  font-size: .75rem;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.ai-feedback-summary dd {
+  margin: .25rem 0 0;
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 900px) {
   .practical-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .scenario-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -5628,6 +5656,7 @@ a.specialized-card:hover {
   .admin-summary-grid,
   .ai-trace-grid,
   .ai-trace-facts,
+  .ai-feedback-summary,
   .ai-feedback-form-grid,
   .ai-trace-filter-form { grid-template-columns: 1fr; }
   .ai-trace-header { flex-direction: column; }

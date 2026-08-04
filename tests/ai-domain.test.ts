@@ -19,6 +19,7 @@ import {
 import {
   buildAIExplainabilityTrace,
   matchesAIExplainabilityTraceFilters,
+  summarizeAITraceFeedback,
   summarizeAITraceMetrics,
 } from "../lib/ai/explainability.ts";
 import { aiExplainabilityFeedbackSchema } from "../lib/validation.ts";
@@ -452,5 +453,68 @@ test("AI explainability feedback validation accepts bounded admin review metadat
       issueType: "NONE",
       note: "x".repeat(2001),
     }),
+  );
+});
+
+test("AI explainability feedback summary supports review filters", () => {
+  const summary = summarizeAITraceFeedback([
+    {
+      rating: "HELPFUL",
+      issueType: "NONE",
+      createdAt: "2026-08-04T00:00:00.000Z",
+    },
+    {
+      rating: "NEEDS_REVIEW",
+      issueType: "MISSING_CITATION",
+      createdAt: "2026-08-04T01:00:00.000Z",
+    },
+  ]);
+  const trace = {
+    ...buildAIExplainabilityTrace(
+      {
+        id: "ai-record-1",
+        requestId: "request-feedback-1",
+        source: "QUESTION_EXPLANATION",
+        courseId: "course-ise",
+        courseName: "Information Security Engineer",
+        userEmail: "admin@example.invalid",
+        targetType: "QUESTION",
+        targetId: "question-1",
+        query: "access control",
+        provider: "mock",
+        model: "mock-ai-v1",
+        generationStatus: "generated",
+        generatedAt: "2026-08-04T01:00:00.000Z",
+        sourceContextIds: [],
+        contexts: [],
+        result: {},
+        promptFingerprint: "sha256:feedback",
+        inputTokens: 0,
+        outputTokens: 0,
+        estimatedCostMicros: 0,
+        latencyMs: 0,
+        disclaimer: "AI generated reference.",
+      },
+      [],
+    ),
+    feedbackSummary: summary,
+  };
+
+  assert.equal(summary.total, 2);
+  assert.equal(summary.needsReview, 1);
+  assert.equal(summary.latestRating, "NEEDS_REVIEW");
+  assert.equal(summary.issueCounts.MISSING_CITATION, 1);
+  assert.equal(
+    matchesAIExplainabilityTraceFilters(trace, {
+      feedbackRating: "NEEDS_REVIEW",
+      feedbackIssueType: "MISSING_CITATION",
+    }),
+    true,
+  );
+  assert.equal(
+    matchesAIExplainabilityTraceFilters(trace, {
+      feedbackRating: "NOT_HELPFUL",
+    }),
+    false,
   );
 });

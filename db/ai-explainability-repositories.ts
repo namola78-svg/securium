@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, inArray, or } from "drizzle-orm";
 import { getDb } from ".";
 import {
   aiExplainabilityFeedback,
@@ -13,6 +13,7 @@ import { AppError } from "@/lib/errors";
 import {
   buildAIExplainabilityTrace,
   matchesAIExplainabilityTraceFilters,
+  summarizeAITraceFeedback,
   summarizeAITraceMetrics,
   type AIExplainabilityTrace,
   type AIExplainabilityTraceFilters,
@@ -190,23 +191,101 @@ export async function listAdminAIExplainabilityTraces(
     .sort((a, b) => b.generatedAt.localeCompare(a.generatedAt))
     .filter((record) => matchesRawTraceRecord(record, filters))
     .slice(0, safeLimit);
+  const feedbackByTrace = await listFeedbackByRawTrace(rawRecords);
   const retrieval = new DatabaseRetrievalProvider();
   const conceptCandidates = getSecurityCertificationRetrievalConceptAliases();
   const traces = await Promise.all(
-    rawRecords.map(async (record) =>
-      buildAIExplainabilityTrace(
+    rawRecords.map(async (record) => {
+      const trace = buildAIExplainabilityTrace(
         {
           ...record,
           contexts: await retrieval.getContextByIds(record.sourceContextIds),
         },
         conceptCandidates,
-      ),
-    ),
+      );
+      return {
+        ...trace,
+        feedbackSummary:
+          feedbackByTrace.get(traceKey(record.source, record.id)) ??
+          summarizeAITraceFeedback([]),
+      };
+    }),
+  );
+  const filteredTraces = traces.filter((trace) =>
+    matchesAIExplainabilityTraceFilters(trace, filters),
   );
   return {
-    traces,
-    summary: summarizeAITraceMetrics(traces),
+    traces: filteredTraces,
+    summary: summarizeAITraceMetrics(filteredTraces),
   };
+}
+
+async function listFeedbackByRawTrace(records: readonly RawTraceRecord[]) {
+  const questionIds = records
+    .filter((record) => record.source === "QUESTION_EXPLANATION")
+    .map((record) => record.id);
+  const specializedIds = records
+    .filter((record) => record.source === "SPECIALIZED_REVIEW")
+    .map((record) => record.id);
+  const conditions = [
+    questionIds.length
+      ? inArray(aiExplainabilityFeedback.questionGenerationId, questionIds)
+      : undefined,
+    specializedIds.length
+      ? inArray(aiExplainabilityFeedback.specializedGenerationId, specializedIds)
+      : undefined,
+  ].filter(Boolean);
+  if (!conditions.length) {
+    return new Map<string, ReturnType<typeof summarizeAITraceFeedback>>();
+  }
+
+  const rows = await getDb()
+    .select({
+      traceSource: aiExplainabilityFeedback.traceSource,
+      questionGenerationId: aiExplainabilityFeedback.questionGenerationId,
+      specializedGenerationId:
+        aiExplainabilityFeedback.specializedGenerationId,
+      rating: aiExplainabilityFeedback.rating,
+      issueType: aiExplainabilityFeedback.issueType,
+      createdAt: aiExplainabilityFeedback.createdAt,
+    })
+    .from(aiExplainabilityFeedback)
+    .where(conditions.length === 1 ? conditions[0] : or(...conditions))
+    .orderBy(desc(aiExplainabilityFeedback.createdAt))
+    .limit(Math.min(500, Math.max(50, records.length * 20)));
+
+  const grouped = new Map<
+    string,
+    Array<{ rating: string; issueType: string; createdAt: string }>
+  >();
+  for (const row of rows) {
+    const source = row.traceSource as AIExplainabilityTraceSource;
+    const id =
+      source === "QUESTION_EXPLANATION"
+        ? row.questionGenerationId
+        : row.specializedGenerationId;
+    if (!id) continue;
+    const key = traceKey(source, id);
+    grouped.set(key, [
+      ...(grouped.get(key) ?? []),
+      {
+        rating: row.rating,
+        issueType: row.issueType,
+        createdAt: row.createdAt,
+      },
+    ]);
+  }
+
+  return new Map(
+    [...grouped.entries()].map(([key, feedback]) => [
+      key,
+      summarizeAITraceFeedback(feedback),
+    ]),
+  );
+}
+
+function traceKey(source: AIExplainabilityTraceSource, id: string) {
+  return `${source}:${id}`;
 }
 
 export async function submitAdminAIExplainabilityFeedback(input: {
@@ -292,6 +371,7 @@ function matchesRawTraceRecord(
       fullPromptStored: false as const,
       note: "",
     },
+    feedbackSummary: summarizeAITraceFeedback([]),
   };
   return matchesAIExplainabilityTraceFilters(traceLike, filters);
 }

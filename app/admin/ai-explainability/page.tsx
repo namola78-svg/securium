@@ -20,8 +20,16 @@ export default async function AdminAIExplainabilityPage({
     provider: readParam(rawParams.provider),
     status: readParam(rawParams.status),
     requestId: readParam(rawParams.requestId),
+    feedbackRating: parseFeedbackRating(readParam(rawParams.feedbackRating)),
+    feedbackIssueType: parseFeedbackIssueType(
+      readParam(rawParams.feedbackIssueType),
+    ),
   };
   const { traces, summary } = await listAdminAIExplainabilityTraces(50, filters);
+  const feedbackTotal = traces.reduce(
+    (total, trace) => total + trace.feedbackSummary.total,
+    0,
+  );
 
   return (
     <>
@@ -54,6 +62,11 @@ export default async function AdminAIExplainabilityPage({
           <p className="eyebrow">COST</p>
           <strong>{summary.totalCostMicros.toLocaleString()}</strong>
           <span>추정 비용(micros)</span>
+        </div>
+        <div className="admin-panel">
+          <p className="eyebrow">FEEDBACK</p>
+          <strong>{feedbackTotal.toLocaleString()}</strong>
+          <span>관리자 피드백</span>
         </div>
       </section>
 
@@ -110,6 +123,36 @@ export default async function AdminAIExplainabilityPage({
             maxLength={200}
           />
         </label>
+        <label>
+          Feedback
+          <select
+            name="feedbackRating"
+            defaultValue={filters.feedbackRating ?? ""}
+          >
+            <option value="">All</option>
+            <option value="HELPFUL">Helpful</option>
+            <option value="NOT_HELPFUL">Not helpful</option>
+            <option value="NEEDS_REVIEW">Needs review</option>
+          </select>
+        </label>
+        <label>
+          Issue
+          <select
+            name="feedbackIssueType"
+            defaultValue={filters.feedbackIssueType ?? ""}
+          >
+            <option value="">All</option>
+            <option value="NONE">None</option>
+            <option value="LOW_QUALITY_CONTEXT">Low quality context</option>
+            <option value="MISSING_CITATION">Missing citation</option>
+            <option value="WRONG_CONCEPT">Wrong concept</option>
+            <option value="PROMPT_ISSUE">Prompt issue</option>
+            <option value="SENSITIVE_CONTENT_RISK">
+              Sensitive content risk
+            </option>
+            <option value="OTHER">Other</option>
+          </select>
+        </label>
         <div className="ai-trace-filter-actions">
           <button className="button button-dark" type="submit">Filter</button>
           <a className="button button-ghost" href="/admin/ai-explainability">Reset</a>
@@ -131,6 +174,11 @@ export default async function AdminAIExplainabilityPage({
                   <span className="status-badge">{trace.generationStatus}</span>
                   {trace.reviewStatus ? (
                     <span className="status-badge">{trace.reviewStatus}</span>
+                  ) : null}
+                  {trace.feedbackSummary.total ? (
+                    <span className="status-badge">
+                      Feedback {trace.feedbackSummary.total}
+                    </span>
                   ) : null}
                 </div>
               </header>
@@ -232,6 +280,29 @@ export default async function AdminAIExplainabilityPage({
                   <summary>AI Feedback / Result</summary>
                   <p>{trace.disclaimer}</p>
                   {trace.errorCode ? <p>오류 코드: {trace.errorCode}</p> : null}
+                  <dl className="ai-feedback-summary">
+                    <div>
+                      <dt>Feedback count</dt>
+                      <dd>{trace.feedbackSummary.total}</dd>
+                    </div>
+                    <div>
+                      <dt>Helpful / Not helpful / Review</dt>
+                      <dd>
+                        {trace.feedbackSummary.helpful} /{" "}
+                        {trace.feedbackSummary.notHelpful} /{" "}
+                        {trace.feedbackSummary.needsReview}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Latest</dt>
+                      <dd>
+                        {trace.feedbackSummary.latestRating ?? "None"}
+                        {trace.feedbackSummary.latestIssueType
+                          ? ` · ${trace.feedbackSummary.latestIssueType}`
+                          : ""}
+                      </dd>
+                    </div>
+                  </dl>
                   <AdminAIExplainabilityFeedbackForm
                     traceId={trace.id}
                     traceSource={trace.source}
@@ -262,6 +333,26 @@ function parseSource(
   value: string | undefined,
 ): AIExplainabilityTraceSource | undefined {
   return value === "QUESTION_EXPLANATION" || value === "SPECIALIZED_REVIEW"
+    ? value
+    : undefined;
+}
+
+function parseFeedbackRating(value: string | undefined) {
+  return value === "HELPFUL" ||
+    value === "NOT_HELPFUL" ||
+    value === "NEEDS_REVIEW"
+    ? value
+    : undefined;
+}
+
+function parseFeedbackIssueType(value: string | undefined) {
+  return value === "NONE" ||
+    value === "LOW_QUALITY_CONTEXT" ||
+    value === "MISSING_CITATION" ||
+    value === "WRONG_CONCEPT" ||
+    value === "PROMPT_ISSUE" ||
+    value === "SENSITIVE_CONTENT_RISK" ||
+    value === "OTHER"
     ? value
     : undefined;
 }
