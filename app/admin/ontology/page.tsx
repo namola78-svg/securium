@@ -46,6 +46,7 @@ export default async function AdminOntologyPage({ searchParams }: PageProps) {
   const params = (await searchParams) ?? {};
   const conceptFilters = parseConceptFilters(params);
   const edgeFilters = parseEdgeFilters(params);
+  const returnTo = buildAdminOntologyReturnTo(conceptFilters, edgeFilters);
   const data = await loadOntologyAdminData(conceptFilters, edgeFilters);
 
   return (
@@ -176,6 +177,7 @@ export default async function AdminOntologyPage({ searchParams }: PageProps) {
                       ) : null}
                       <OntologyStatusForm
                         currentStatus={concept.status}
+                        returnTo={returnTo}
                         targetId={concept.id}
                         targetType="CONCEPT"
                       />
@@ -251,6 +253,7 @@ export default async function AdminOntologyPage({ searchParams }: PageProps) {
                       ) : null}
                       <OntologyStatusForm
                         currentStatus={edge.status}
+                        returnTo={returnTo}
                         targetId={edge.id}
                         targetType="EDGE"
                       />
@@ -354,10 +357,12 @@ function OntologyFilterForm({
 
 function OntologyStatusForm({
   currentStatus,
+  returnTo,
   targetId,
   targetType,
 }: {
   currentStatus: OntologyStatus;
+  returnTo: string;
   targetId: string;
   targetType: "CONCEPT" | "EDGE";
 }) {
@@ -371,7 +376,7 @@ function OntologyStatusForm({
     >
       <input type="hidden" name="targetType" value={targetType} />
       <input type="hidden" name="targetId" value={targetId} />
-      <input type="hidden" name="returnTo" value="/admin/ontology" />
+      <input type="hidden" name="returnTo" value={returnTo} />
       <label>
         Next status
         <select name="nextStatus" defaultValue={options[0]}>
@@ -456,6 +461,29 @@ function getStatusTransitionOptions(status: OntologyStatus): OntologyStatus[] {
   if (status === "DRAFT") return ["ACTIVE", "ARCHIVED"];
   if (status === "ACTIVE") return ["DRAFT", "ARCHIVED"];
   return ["DRAFT"];
+}
+
+function buildAdminOntologyReturnTo(
+  conceptFilters: OntologyConceptFilters,
+  edgeFilters: OntologyEdgeFilters,
+) {
+  const params = new URLSearchParams();
+  setQueryParam(params, "namespace", conceptFilters.namespace);
+  setQueryParam(params, "conceptStatus", conceptFilters.status);
+  setQueryParam(params, "sourceType", conceptFilters.sourceType);
+  setQueryParam(params, "courseId", edgeFilters.courseId);
+  setQueryParam(params, "relation", edgeFilters.relation);
+  setQueryParam(params, "edgeStatus", edgeFilters.status);
+  const query = params.toString();
+  return query ? `/admin/ontology?${query}` : "/admin/ontology";
+}
+
+function setQueryParam(
+  params: URLSearchParams,
+  key: string,
+  value: string | undefined,
+) {
+  if (value) params.set(key, value);
 }
 
 function parseRelation(

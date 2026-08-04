@@ -16,13 +16,17 @@ import {
   rankOntologyCoverageGaps,
   validateOntologyReviewTransition,
 } from "../lib/services/ontology-service.ts";
+import {
+  ontologyReviewStatusSchema,
+  parseInput,
+} from "../lib/validation.ts";
 
 test("normalizes ontology labels for stable concept matching", () => {
   assert.equal(normalizeOntologyLabel("  Access   Control  "), "access control");
-  assert.equal(normalizeOntologyLabel("개인정보 / 접근통제"), "개인정보/접근통제");
+  assert.equal(normalizeOntologyLabel("SQL Injection / Access Control"), "sql injection/access control");
   assert.equal(
-    createOntologyConceptKey("개인정보 접근통제", "security-certification"),
-    "ontology:security-certification:개인정보-접근통제",
+    createOntologyConceptKey("SQL Injection Access Control", "security-certification"),
+    "ontology:security-certification:sql-injection-access-control",
   );
 });
 
@@ -373,9 +377,50 @@ test("ontology review transitions require roles, evidence and audit actions", ()
   );
 });
 
+test("ontology review status input preserves safe filters and rejects external return paths", () => {
+  const parsed = parseInput(ontologyReviewStatusSchema, {
+    targetType: "CONCEPT",
+    targetId: "concept-1",
+    nextStatus: "ACTIVE",
+    evidence: "official-page-1, review-ticket-7",
+    returnTo: "/admin/ontology?namespace=security-certification&conceptStatus=DRAFT",
+  });
+
+  assert.deepEqual(parsed.evidence, ["official-page-1", "review-ticket-7"]);
+  assert.equal(
+    parsed.returnTo,
+    "/admin/ontology?namespace=security-certification&conceptStatus=DRAFT",
+  );
+
+  for (const returnTo of [
+    "//evil.example",
+    "https://evil.example",
+    "javascript:alert(1)",
+  ]) {
+    assert.throws(
+      () =>
+        parseInput(ontologyReviewStatusSchema, {
+          targetType: "EDGE",
+          targetId: "edge-1",
+          nextStatus: "DRAFT",
+          returnTo,
+        }),
+      (error: unknown) =>
+        error instanceof Error &&
+        "code" in error &&
+        error.code === "VALIDATION_ERROR",
+    );
+  }
+});
+
 test("admin ontology console is protected and uses review-status workflow", async () => {
-  const [adminHomeSource, adminOntologySource, reviewRouteSource, auditSource] =
-    await Promise.all([
+  const [
+    adminHomeSource,
+    adminOntologySource,
+    reviewRouteSource,
+    auditSource,
+    validationSource,
+  ] = await Promise.all([
     readFile(new URL("../app/admin/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/admin/ontology/page.tsx", import.meta.url), "utf8"),
     readFile(
@@ -383,6 +428,7 @@ test("admin ontology console is protected and uses review-status workflow", asyn
       "utf8",
     ),
     readFile(new URL("../lib/services/audit-service.ts", import.meta.url), "utf8"),
+    readFile(new URL("../lib/validation.ts", import.meta.url), "utf8"),
   ]);
 
   assert.match(adminHomeSource, /href="\/admin\/ontology"/);
@@ -390,6 +436,8 @@ test("admin ontology console is protected and uses review-status workflow", asyn
   assert.match(adminOntologySource, /requireCatalogManager\("\/admin\/ontology"\)/);
   assert.match(adminOntologySource, /listOntologyAdminConceptRows/);
   assert.match(adminOntologySource, /listOntologyAdminEdgeRows/);
+  assert.match(adminOntologySource, /buildAdminOntologyReturnTo/);
+  assert.match(adminOntologySource, /returnTo=\{returnTo\}/);
   assert.match(adminOntologySource, /concept\.status/);
   assert.match(adminOntologySource, /edge\.status/);
   assert.match(adminOntologySource, /formatDateTime/);
@@ -410,4 +458,6 @@ test("admin ontology console is protected and uses review-status workflow", asyn
   assert.match(reviewRouteSource, /evidenceCount:\s*input\.evidence\.length/);
   assert.match(auditSource, /ONTOLOGY_ACTIVATED/);
   assert.match(auditSource, /evidenceCount/);
+  assert.match(validationSource, /safeInternalPath/);
+  assert.match(validationSource, /isSafeInternalPath/);
 });

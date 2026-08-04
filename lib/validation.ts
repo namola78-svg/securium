@@ -15,6 +15,12 @@ const activeBoolean = z.preprocess(
   z.boolean(),
 );
 
+const safeInternalPath = z
+  .string()
+  .trim()
+  .max(300)
+  .refine(isSafeInternalPath, "안전한 내부 경로만 사용할 수 있습니다.");
+
 export const enrollmentSchema = z.object({
   courseId: id,
   returnTo: z.string().trim().startsWith("/").max(300).default("/dashboard"),
@@ -1020,7 +1026,7 @@ export const ontologyReviewStatusSchema = z.object({
   nextStatus: z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]),
   evidence: ontologyEvidenceList,
   changeSummary: z.string().trim().max(1000).optional(),
-  returnTo: z.string().trim().startsWith("/").max(300).optional(),
+  returnTo: safeInternalPath.optional(),
 });
 
 export type CourseGroupInput = z.infer<typeof courseGroupSchema>;
@@ -1037,4 +1043,14 @@ export function parseInput<T>(schema: z.ZodType<T>, value: unknown): T {
 
   const message = result.error.issues[0]?.message ?? "입력값을 확인해 주세요.";
   throw new AppError(message, 400, "VALIDATION_ERROR");
+}
+
+function isSafeInternalPath(value: string) {
+  if (!value.startsWith("/") || value.startsWith("//")) return false;
+  try {
+    const url = new URL(value, "https://securium.local");
+    return url.origin === "https://securium.local";
+  } catch {
+    return false;
+  }
 }
