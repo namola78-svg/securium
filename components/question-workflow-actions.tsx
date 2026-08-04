@@ -4,11 +4,21 @@ import { useState } from "react";
 
 const labels: Record<string, string> = {
   REQUEST_REVIEW: "검수 요청",
-  START_REVIEW: "검수 시작",
+  START_REVIEW: "검토 시작",
   APPROVE: "승인",
   REJECT: "반려",
   PUBLISH: "게시",
   ARCHIVE: "보관",
+};
+
+const statusLabels: Record<string, string> = {
+  DRAFT: "초안",
+  REVIEW_REQUESTED: "검수 요청",
+  IN_REVIEW: "검토 중",
+  APPROVED: "승인",
+  PUBLISHED: "게시",
+  REJECTED: "반려",
+  ARCHIVED: "보관",
 };
 
 const actionsByStatus: Record<string, string[]> = {
@@ -68,7 +78,7 @@ export function QuestionWorkflowActions({
     <section className="admin-panel">
       <h2>검수 및 게시</h2>
       <p>
-        현재 상태 <span className="badge">{status}</span>
+        현재 상태 <span className="badge">{statusLabels[status] ?? status}</span>
       </p>
       <textarea
         value={comment}
@@ -95,4 +105,3 @@ export function QuestionWorkflowActions({
     </section>
   );
 }
-
