@@ -714,6 +714,7 @@ function NodeDetailPanel({
 }) {
   const metadata = parseMetadata(node.metadata) as NodeMetadata;
   const stableKey = node.officialCode ?? node.id;
+  const detailTitleId = `curriculum-node-detail-title-${node.id}`;
   const [recommendedLinkKeys, setRecommendedLinkKeys] = useState<string[]>([]);
   const [stableKeyCopied, setStableKeyCopied] = useState(false);
   const recommendations = recommendLinkableContentForNode({
@@ -741,10 +742,10 @@ function NodeDetailPanel({
   }
 
   return (
-    <div className="curriculum-node-detail">
+    <div className="curriculum-node-detail" role="region" aria-labelledby={detailTitleId}>
       <div className="curriculum-node-detail-heading">
         <span className="eyebrow">{nodeDisplayType(node, metadata)}</span>
-        <h3>{officialNodeTitle(node)}</h3>
+        <h3 id={detailTitleId}>{officialNodeTitle(node)}</h3>
         <span className="status-badge compact">{nodeStatusLabel(node.status)}</span>
       </div>
 
