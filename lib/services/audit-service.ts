@@ -32,6 +32,14 @@ export const AUDIT_ACTION_METADATA_ALLOWLIST: Record<string, readonly string[]> 
   LESSON_CREATED: ["version"],
   LESSON_UPDATED: ["version"],
   LESSON_ARCHIVED: ["version"],
+  ONTOLOGY_DRAFTED: ["targetType", "fromStatus", "toStatus"],
+  ONTOLOGY_ACTIVATED: [
+    "targetType",
+    "fromStatus",
+    "toStatus",
+    "evidenceCount",
+  ],
+  ONTOLOGY_ARCHIVED: ["targetType", "fromStatus", "toStatus", "summaryLength"],
 };
 
 const SENSITIVE_KEY =

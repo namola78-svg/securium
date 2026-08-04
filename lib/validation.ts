@@ -1003,6 +1003,26 @@ export const auditLogFilterSchema = z.object({
   pageSize: z.coerce.number().int().min(10).max(100).default(30),
 });
 
+const ontologyEvidenceList = z.preprocess((value) => {
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string") {
+    return value
+      .split(/[\n,;]+/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+  return [];
+}, z.array(z.string().trim().min(1).max(500)).max(20));
+
+export const ontologyReviewStatusSchema = z.object({
+  targetType: z.enum(["CONCEPT", "EDGE"]),
+  targetId: id,
+  nextStatus: z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]),
+  evidence: ontologyEvidenceList,
+  changeSummary: z.string().trim().max(1000).optional(),
+  returnTo: z.string().trim().startsWith("/").max(300).optional(),
+});
+
 export type CourseGroupInput = z.infer<typeof courseGroupSchema>;
 export type CourseInput = z.infer<typeof courseSchema>;
 export type SubjectInput = z.infer<typeof subjectSchema>;

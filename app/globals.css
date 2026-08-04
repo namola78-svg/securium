@@ -5673,6 +5673,150 @@ a.specialized-card:hover {
   overflow-wrap: anywhere;
 }
 
+.ontology-admin-grid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ontology-admin-section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.ontology-admin-section-header h2,
+.ontology-admin-section-header p {
+  margin-block: 0 .35rem;
+}
+
+.ontology-admin-list {
+  display: grid;
+  gap: .85rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ontology-admin-list > li {
+  min-width: 0;
+  padding: .9rem;
+  border: 1px solid var(--line);
+  border-radius: .9rem;
+  background: #f8faf6;
+}
+
+.ontology-admin-row-title {
+  display: flex;
+  gap: .65rem;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.ontology-admin-list strong,
+.ontology-admin-list small,
+.ontology-admin-list p {
+  overflow-wrap: anywhere;
+}
+
+.status-pill {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.45rem;
+  padding: .18rem .55rem;
+  border-radius: 999px;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.status-active {
+  color: #166534;
+  background: rgba(34, 197, 94, .16);
+}
+
+.status-draft {
+  color: #92400e;
+  background: rgba(245, 158, 11, .18);
+}
+
+.status-archived {
+  color: #475569;
+  background: rgba(100, 116, 139, .16);
+}
+
+.ontology-admin-list small {
+  display: block;
+  margin-top: .2rem;
+  color: var(--muted);
+}
+
+.ontology-admin-list dl {
+  display: grid;
+  gap: .55rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-block: .8rem;
+}
+
+.ontology-admin-list dl div {
+  min-width: 0;
+  padding: .6rem;
+  border: 1px solid var(--line);
+  border-radius: .75rem;
+  background: #fff;
+}
+
+.ontology-admin-list dt {
+  color: var(--muted);
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.ontology-admin-list dd {
+  margin: .25rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.ontology-status-form {
+  display: grid;
+  gap: .65rem;
+  margin-top: .85rem;
+  padding-top: .85rem;
+  border-top: 1px solid var(--line);
+}
+
+.ontology-status-form label {
+  display: grid;
+  gap: .3rem;
+  color: var(--muted);
+  font-size: .75rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+
+.ontology-status-form input,
+.ontology-status-form select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: .75rem;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  padding: .65rem .75rem;
+}
+
+.ontology-status-form .button {
+  justify-self: start;
+  min-height: 44px;
+}
+
 @media (max-width: 900px) {
   .practical-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .scenario-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -5702,6 +5846,11 @@ a.specialized-card:hover {
   .ai-trace-header { flex-direction: column; }
   .ai-trace-filter-actions { flex-direction: column; }
   .ai-trace-filter-actions .button { width: 100%; }
+  .ontology-admin-grid,
+  .ontology-admin-list dl { grid-template-columns: 1fr; }
+  .ontology-admin-section-header { flex-direction: column; }
+  .ontology-admin-section-header .button { width: 100%; }
+  .ontology-status-form .button { width: 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -14,6 +14,7 @@ import {
   findOntologyConceptMatches,
   normalizeOntologyLabel,
   rankOntologyCoverageGaps,
+  validateOntologyReviewTransition,
 } from "../lib/services/ontology-service.ts";
 
 test("normalizes ontology labels for stable concept matching", () => {
@@ -290,7 +291,123 @@ test("ontology graph storage migrations and repository contract are additive", a
   assert.match(postgresSql, /INSERT INTO app_schema_migrations \(id, checksum\)/);
   assert.match(repositorySource, /upsertOntologyConcept/);
   assert.match(repositorySource, /upsertOntologyEdge/);
+  assert.match(repositorySource, /listOntologyAdminConceptRows/);
+  assert.match(repositorySource, /listOntologyAdminEdgeRows/);
+  assert.match(repositorySource, /getOntologyReviewTarget/);
+  assert.match(repositorySource, /updateOntologyReviewStatus/);
   assert.match(repositorySource, /buildDatabaseOntologyGraph/);
   assert.doesNotMatch(d1Sql, /\bDROP\s+TABLE\b|\bDELETE\s+FROM\b|\bTRUNCATE\b/i);
   assert.doesNotMatch(postgresSql, /\bDROP\s+TABLE\b|\bDELETE\s+FROM\b|\bTRUNCATE\b/i);
+});
+
+test("ontology review transitions require roles, evidence and audit actions", () => {
+  assert.deepEqual(
+    validateOntologyReviewTransition({
+      currentStatus: "DRAFT",
+      nextStatus: "ACTIVE",
+      actorRoles: ["CONTENT_REVIEWER"],
+      evidence: ["official-curriculum-page-2"],
+    }),
+    {
+      from: "DRAFT",
+      to: "ACTIVE",
+      requiresAuditLog: true,
+      auditAction: "ONTOLOGY_ACTIVATED",
+    },
+  );
+
+  assert.throws(
+    () =>
+      validateOntologyReviewTransition({
+        currentStatus: "DRAFT",
+        nextStatus: "ACTIVE",
+        actorRoles: ["CONTENT_EDITOR"],
+        evidence: ["official-curriculum-page-2"],
+      }),
+    (error: unknown) =>
+      error instanceof Error &&
+      "code" in error &&
+      error.code === "ONTOLOGY_REVIEW_FORBIDDEN",
+  );
+
+  assert.throws(
+    () =>
+      validateOntologyReviewTransition({
+        currentStatus: "DRAFT",
+        nextStatus: "ACTIVE",
+        actorRoles: ["CONTENT_REVIEWER"],
+        evidence: [],
+      }),
+    (error: unknown) =>
+      error instanceof Error &&
+      "code" in error &&
+      error.code === "ONTOLOGY_REVIEW_EVIDENCE_REQUIRED",
+  );
+
+  assert.deepEqual(
+    validateOntologyReviewTransition({
+      currentStatus: "ACTIVE",
+      nextStatus: "ARCHIVED",
+      actorRoles: ["COURSE_MANAGER"],
+      changeSummary: "Superseded by updated official curriculum mapping.",
+    }),
+    {
+      from: "ACTIVE",
+      to: "ARCHIVED",
+      requiresAuditLog: true,
+      auditAction: "ONTOLOGY_ARCHIVED",
+    },
+  );
+
+  assert.throws(
+    () =>
+      validateOntologyReviewTransition({
+        currentStatus: "ACTIVE",
+        nextStatus: "ACTIVE",
+        actorRoles: ["ADMIN"],
+      }),
+    (error: unknown) =>
+      error instanceof Error &&
+      "code" in error &&
+      error.code === "ONTOLOGY_STATUS_UNCHANGED",
+  );
+});
+
+test("admin ontology console is protected and uses review-status workflow", async () => {
+  const [adminHomeSource, adminOntologySource, reviewRouteSource, auditSource] =
+    await Promise.all([
+    readFile(new URL("../app/admin/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/admin/ontology/page.tsx", import.meta.url), "utf8"),
+    readFile(
+      new URL("../app/api/admin/ontology/review-status/route.ts", import.meta.url),
+      "utf8",
+    ),
+    readFile(new URL("../lib/services/audit-service.ts", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(adminHomeSource, /href="\/admin\/ontology"/);
+  assert.match(adminHomeSource, /Ontology 관리|Ontology Admin/);
+  assert.match(adminOntologySource, /requireCatalogManager\("\/admin\/ontology"\)/);
+  assert.match(adminOntologySource, /listOntologyAdminConceptRows/);
+  assert.match(adminOntologySource, /listOntologyAdminEdgeRows/);
+  assert.match(adminOntologySource, /concept\.status/);
+  assert.match(adminOntologySource, /edge\.status/);
+  assert.match(adminOntologySource, /formatDateTime/);
+  assert.match(adminOntologySource, /OntologyStatusForm/);
+  assert.match(adminOntologySource, /\/api\/admin\/ontology\/review-status/);
+  assert.match(adminOntologySource, /name="evidence"/);
+  assert.match(adminOntologySource, /name="changeSummary"/);
+  assert.match(adminOntologySource, /ONTOLOGY_STORAGE_UNAVAILABLE/);
+  assert.doesNotMatch(adminOntologySource, /upsertOntologyConcept/);
+  assert.doesNotMatch(adminOntologySource, /upsertOntologyEdge/);
+  assert.match(adminOntologySource, /method="post"/i);
+  assert.match(reviewRouteSource, /requireOntologyAdministrator/);
+  assert.match(reviewRouteSource, /assertSameOrigin/);
+  assert.match(reviewRouteSource, /validateOntologyReviewTransition/);
+  assert.match(reviewRouteSource, /updateOntologyReviewStatus/);
+  assert.match(reviewRouteSource, /recordAudit/);
+  assert.match(reviewRouteSource, /evidence:\s*input\.evidence/);
+  assert.match(reviewRouteSource, /evidenceCount:\s*input\.evidence\.length/);
+  assert.match(auditSource, /ONTOLOGY_ACTIVATED/);
+  assert.match(auditSource, /evidenceCount/);
 });

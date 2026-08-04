@@ -121,6 +121,30 @@ export type OntologyRetrievalExpansion = {
   courseId?: string;
 };
 
+export type OntologyReviewStatus = "DRAFT" | "ACTIVE" | "ARCHIVED";
+
+export type OntologyReviewRole =
+  | "CONTENT_EDITOR"
+  | "CONTENT_REVIEWER"
+  | "COURSE_MANAGER"
+  | "ADMIN"
+  | "SUPER_ADMIN";
+
+export type OntologyReviewTransitionInput = {
+  currentStatus: OntologyReviewStatus;
+  nextStatus: OntologyReviewStatus;
+  actorRoles: OntologyReviewRole[];
+  evidence?: string[];
+  changeSummary?: string;
+};
+
+export type OntologyReviewTransition = {
+  from: OntologyReviewStatus;
+  to: OntologyReviewStatus;
+  requiresAuditLog: true;
+  auditAction: "ONTOLOGY_DRAFTED" | "ONTOLOGY_ACTIVATED" | "ONTOLOGY_ARCHIVED";
+};
+
 const DEFAULT_NAMESPACE = "securium";
 
 export function normalizeOntologyLabel(value: string) {
@@ -592,6 +616,75 @@ export function rankOntologyCoverageGaps(input: {
     .sort((a, b) => b.score - a.score || a.title.localeCompare(b.title));
 }
 
+export function validateOntologyReviewTransition(
+  input: OntologyReviewTransitionInput,
+): OntologyReviewTransition {
+  if (input.currentStatus === input.nextStatus) {
+    throw new AppError(
+      "Ontology status is already set.",
+      409,
+      "ONTOLOGY_STATUS_UNCHANGED",
+    );
+  }
+
+  if (input.nextStatus === "ACTIVE") {
+    assertOntologyReviewRole(input.actorRoles, [
+      "CONTENT_REVIEWER",
+      "COURSE_MANAGER",
+      "ADMIN",
+      "SUPER_ADMIN",
+    ]);
+    if (!hasReviewEvidence(input.evidence)) {
+      throw new AppError(
+        "Active ontology items require review evidence.",
+        400,
+        "ONTOLOGY_REVIEW_EVIDENCE_REQUIRED",
+      );
+    }
+    return {
+      from: input.currentStatus,
+      to: input.nextStatus,
+      requiresAuditLog: true,
+      auditAction: "ONTOLOGY_ACTIVATED",
+    };
+  }
+
+  if (input.nextStatus === "ARCHIVED") {
+    assertOntologyReviewRole(input.actorRoles, [
+      "COURSE_MANAGER",
+      "ADMIN",
+      "SUPER_ADMIN",
+    ]);
+    if (!input.changeSummary?.trim()) {
+      throw new AppError(
+        "Archiving ontology items requires a change summary.",
+        400,
+        "ONTOLOGY_ARCHIVE_SUMMARY_REQUIRED",
+      );
+    }
+    return {
+      from: input.currentStatus,
+      to: input.nextStatus,
+      requiresAuditLog: true,
+      auditAction: "ONTOLOGY_ARCHIVED",
+    };
+  }
+
+  assertOntologyReviewRole(input.actorRoles, [
+    "CONTENT_EDITOR",
+    "CONTENT_REVIEWER",
+    "COURSE_MANAGER",
+    "ADMIN",
+    "SUPER_ADMIN",
+  ]);
+  return {
+    from: input.currentStatus,
+    to: input.nextStatus,
+    requiresAuditLog: true,
+    auditAction: "ONTOLOGY_DRAFTED",
+  };
+}
+
 function normalizeWeight(value: number | undefined) {
   if (!Number.isFinite(value)) return 1;
   return Math.max(0, Math.min(100, Number(value)));
@@ -690,4 +783,21 @@ function uniqueBy<T>(values: T[], keyFactory: (value: T) => string) {
     result.push(value);
   }
   return result;
+}
+
+function assertOntologyReviewRole(
+  actorRoles: OntologyReviewRole[],
+  allowedRoles: OntologyReviewRole[],
+) {
+  if (!actorRoles.some((role) => allowedRoles.includes(role))) {
+    throw new AppError(
+      "Actor is not allowed to change ontology review status.",
+      403,
+      "ONTOLOGY_REVIEW_FORBIDDEN",
+    );
+  }
+}
+
+function hasReviewEvidence(evidence: string[] | undefined) {
+  return (evidence ?? []).some((item) => item.trim().length > 0);
 }

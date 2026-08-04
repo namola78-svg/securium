@@ -163,6 +163,20 @@ export function requireQuestionAdministrator(returnTo?: string) {
   );
 }
 
+export function requireOntologyAdministrator(returnTo?: string) {
+  return requireRoleSet(
+    [
+      "CONTENT_EDITOR",
+      "CONTENT_REVIEWER",
+      "COURSE_MANAGER",
+      "ADMIN",
+      "SUPER_ADMIN",
+    ],
+    "ONTOLOGY_ADMIN_FORBIDDEN",
+    returnTo,
+  );
+}
+
 export function requireAuditViewer(returnTo?: string) {
   return requireRoleSet(
     ["ADMIN", "SUPER_ADMIN"],

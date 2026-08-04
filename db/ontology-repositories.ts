@@ -14,6 +14,7 @@ import {
   type OntologyGraph,
   type OntologyRelationType,
 } from "@/lib/services/ontology-service";
+import { AppError } from "@/lib/errors";
 
 export type OntologyConceptFilters = {
   namespace?: string;
@@ -32,6 +33,35 @@ export type OntologyEdgeFilters = {
   toId?: string;
   status?: "ACTIVE" | "DRAFT" | "ARCHIVED";
   limit?: number;
+};
+
+export type OntologyAdminStatus = "ACTIVE" | "DRAFT" | "ARCHIVED";
+
+export type OntologyAdminConceptRow = OntologyConcept & {
+  id: string;
+  status: OntologyAdminStatus;
+  updatedAt: string;
+};
+
+export type OntologyAdminEdgeRow = OntologyEdge & {
+  id: string;
+  status: OntologyAdminStatus;
+  updatedAt: string;
+};
+
+export type OntologyReviewTargetType = "CONCEPT" | "EDGE";
+
+export type OntologyReviewStatusUpdateInput = {
+  targetType: OntologyReviewTargetType;
+  targetId: string;
+  status: OntologyAdminStatus;
+};
+
+export type OntologyReviewTarget = {
+  id: string;
+  key: string;
+  targetType: OntologyReviewTargetType;
+  status: OntologyAdminStatus;
 };
 
 export async function upsertOntologyConcept(
@@ -217,6 +247,187 @@ export async function listOntologyEdges(
   }));
 }
 
+export async function listOntologyAdminConceptRows(
+  filters: OntologyConceptFilters = {},
+): Promise<OntologyAdminConceptRow[]> {
+  const rows = await getDb()
+    .select({
+      id: ontologyConcepts.id,
+      conceptKey: ontologyConcepts.conceptKey,
+      namespace: ontologyConcepts.namespace,
+      label: ontologyConcepts.label,
+      normalizedLabel: ontologyConcepts.normalizedLabel,
+      category: ontologyConcepts.category,
+      sourceType: ontologyConcepts.sourceType,
+      sourceId: ontologyConcepts.sourceId,
+      weight: ontologyConcepts.weight,
+      status: ontologyConcepts.status,
+      updatedAt: ontologyConcepts.updatedAt,
+    })
+    .from(ontologyConcepts)
+    .where(and(...conceptConditions(filters)))
+    .orderBy(desc(ontologyConcepts.updatedAt), desc(ontologyConcepts.weight))
+    .limit(safeLimit(filters.limit, 500));
+
+  const aliasesByConceptId = await listAliasesByConceptId(rows.map((row) => row.id));
+  return rows.map((row) => ({
+    id: row.id,
+    key: row.conceptKey,
+    label: row.label,
+    normalizedLabel: row.normalizedLabel,
+    namespace: row.namespace,
+    category: row.category,
+    aliases: aliasesByConceptId.get(row.id) ?? [],
+    sourceType: row.sourceType as OntologyEntityType | undefined,
+    sourceId: row.sourceId ?? undefined,
+    weight: row.weight,
+    status: normalizeStatus(row.status),
+    updatedAt: row.updatedAt,
+  }));
+}
+
+export async function listOntologyAdminEdgeRows(
+  filters: OntologyEdgeFilters = {},
+): Promise<OntologyAdminEdgeRow[]> {
+  const rows = await getDb()
+    .select({
+      id: ontologyEdges.id,
+      edgeKey: ontologyEdges.edgeKey,
+      courseId: ontologyEdges.courseId,
+      fromType: ontologyEdges.fromType,
+      fromId: ontologyEdges.fromId,
+      toType: ontologyEdges.toType,
+      toId: ontologyEdges.toId,
+      relation: ontologyEdges.relation,
+      confidence: ontologyEdges.confidence,
+      evidenceJson: ontologyEdges.evidenceJson,
+      status: ontologyEdges.status,
+      updatedAt: ontologyEdges.updatedAt,
+    })
+    .from(ontologyEdges)
+    .where(and(...edgeConditions(filters)))
+    .orderBy(desc(ontologyEdges.updatedAt))
+    .limit(safeLimit(filters.limit, 1000));
+
+  return rows.map((row) => ({
+    id: row.id,
+    key: row.edgeKey,
+    courseId: row.courseId ?? undefined,
+    fromType: row.fromType as OntologyEntityType,
+    fromId: row.fromId,
+    toType: row.toType as OntologyEntityType,
+    toId: row.toId,
+    relation: row.relation as OntologyRelationType,
+    confidence: Math.max(0, Math.min(1, row.confidence / 10000)),
+    evidence: parseJson<string[]>(row.evidenceJson, []),
+    status: normalizeStatus(row.status),
+    updatedAt: row.updatedAt,
+  }));
+}
+
+export async function updateOntologyReviewStatus(
+  input: OntologyReviewStatusUpdateInput,
+) {
+  const updatedAt = new Date().toISOString();
+
+  if (input.targetType === "CONCEPT") {
+    const [existing] = await getDb()
+      .select({
+        id: ontologyConcepts.id,
+        conceptKey: ontologyConcepts.conceptKey,
+        status: ontologyConcepts.status,
+      })
+      .from(ontologyConcepts)
+      .where(eq(ontologyConcepts.id, input.targetId))
+    .limit(1);
+    if (!existing) {
+      throw new AppError("Ontology concept was not found.", 404, "ONTOLOGY_CONCEPT_NOT_FOUND");
+    }
+    await getDb()
+      .update(ontologyConcepts)
+      .set({ status: input.status, updatedAt })
+      .where(eq(ontologyConcepts.id, input.targetId));
+    return {
+      id: existing.id,
+      key: existing.conceptKey,
+      targetType: input.targetType,
+      previousStatus: normalizeStatus(existing.status),
+      status: input.status,
+      updatedAt,
+    };
+  }
+
+  const [existing] = await getDb()
+    .select({
+      id: ontologyEdges.id,
+      edgeKey: ontologyEdges.edgeKey,
+      status: ontologyEdges.status,
+    })
+    .from(ontologyEdges)
+    .where(eq(ontologyEdges.id, input.targetId))
+    .limit(1);
+  if (!existing) {
+    throw new AppError("Ontology edge was not found.", 404, "ONTOLOGY_EDGE_NOT_FOUND");
+  }
+  await getDb()
+    .update(ontologyEdges)
+    .set({ status: input.status, updatedAt })
+    .where(eq(ontologyEdges.id, input.targetId));
+  return {
+    id: existing.id,
+    key: existing.edgeKey,
+    targetType: input.targetType,
+    previousStatus: normalizeStatus(existing.status),
+    status: input.status,
+    updatedAt,
+  };
+}
+
+export async function getOntologyReviewTarget(input: {
+  targetType: OntologyReviewTargetType;
+  targetId: string;
+}): Promise<OntologyReviewTarget> {
+  if (input.targetType === "CONCEPT") {
+    const [existing] = await getDb()
+      .select({
+        id: ontologyConcepts.id,
+        conceptKey: ontologyConcepts.conceptKey,
+        status: ontologyConcepts.status,
+      })
+      .from(ontologyConcepts)
+      .where(eq(ontologyConcepts.id, input.targetId))
+      .limit(1);
+    if (!existing) {
+      throw new AppError("Ontology concept was not found.", 404, "ONTOLOGY_CONCEPT_NOT_FOUND");
+    }
+    return {
+      id: existing.id,
+      key: existing.conceptKey,
+      targetType: input.targetType,
+      status: normalizeStatus(existing.status),
+    };
+  }
+
+  const [existing] = await getDb()
+    .select({
+      id: ontologyEdges.id,
+      edgeKey: ontologyEdges.edgeKey,
+      status: ontologyEdges.status,
+    })
+    .from(ontologyEdges)
+    .where(eq(ontologyEdges.id, input.targetId))
+    .limit(1);
+  if (!existing) {
+    throw new AppError("Ontology edge was not found.", 404, "ONTOLOGY_EDGE_NOT_FOUND");
+  }
+  return {
+    id: existing.id,
+    key: existing.edgeKey,
+    targetType: input.targetType,
+    status: normalizeStatus(existing.status),
+  };
+}
+
 export async function buildDatabaseOntologyGraph(input: {
   namespace?: string;
   courseId?: string;
@@ -283,4 +494,8 @@ function parseJson<T>(value: string, fallback: T): T {
   } catch {
     return fallback;
   }
+}
+
+function normalizeStatus(value: string): OntologyAdminStatus {
+  return value === "DRAFT" || value === "ARCHIVED" ? value : "ACTIVE";
 }
