@@ -718,6 +718,7 @@ function NodeDetailPanel({
   const stableKey = node.officialCode ?? node.id;
   const detailId = `curriculum-node-detail-${node.id}`;
   const detailTitleId = `curriculum-node-detail-title-${node.id}`;
+  const editPanelTitleId = `curriculum-node-edit-title-${node.id}`;
   const [recommendedLinkKeys, setRecommendedLinkKeys] = useState<string[]>([]);
   const [stableKeyCopied, setStableKeyCopied] = useState(false);
   const recommendations = recommendLinkableContentForNode({
@@ -810,8 +811,8 @@ function NodeDetailPanel({
 
       <PendingLinkedContentPreview selectedContent={selectedRecommendedContent} />
 
-      <details className="curriculum-node-edit-panel">
-        <summary>선택 노드 수정</summary>
+      <details className="curriculum-node-edit-panel" aria-labelledby={editPanelTitleId}>
+        <summary id={editPanelTitleId}>선택 노드 수정</summary>
         <NodeForm
           key={`${node.id}:${recommendedLinkKeys.join("|")}`}
           nodes={nodes}
