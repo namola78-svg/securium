@@ -21,7 +21,11 @@ export type OntologyRelationType =
   | "ASSESSED_BY"
   | "PREREQUISITE_OF"
   | "RELATED_TO"
-  | "DERIVED_FROM";
+  | "DERIVED_FROM"
+  | "PARENT_OF"
+  | "CHILD_OF"
+  | "SYNONYM_OF"
+  | "CROSS_COURSE_EQUIVALENT";
 
 export type OntologyConceptInput = {
   label: string;
@@ -89,6 +93,32 @@ export type OntologyCoverageNode = {
 export type OntologyCoverageGap = OntologyCoverageNode & {
   score: number;
   reasons: string[];
+};
+
+export type OntologyGraph = {
+  concepts: OntologyConcept[];
+  edges: OntologyEdge[];
+  conceptsByKey: Map<string, OntologyConcept>;
+  aliasesByLookup: Map<string, string[]>;
+  outgoingEdgesByConcept: Map<string, OntologyEdge[]>;
+  incomingEdgesByConcept: Map<string, OntologyEdge[]>;
+  courseIdsByConceptKey: Map<string, Set<string>>;
+};
+
+export type OntologyConceptMatch = {
+  concept: OntologyConcept;
+  matchedBy: "label" | "alias";
+  matchedValue: string;
+  courseScoped: boolean;
+};
+
+export type OntologyRetrievalExpansion = {
+  originalQuery: string;
+  expandedQueries: string[];
+  matchedConceptKeys: string[];
+  matchedConceptLabels: string[];
+  relatedConceptKeys: string[];
+  courseId?: string;
 };
 
 const DEFAULT_NAMESPACE = "securium";
@@ -230,6 +260,236 @@ export function createOntologyEdge(input: OntologyEdgeInput): OntologyEdge {
   };
 }
 
+export function buildOntologyGraph(input: {
+  concepts: OntologyConcept[];
+  edges: OntologyEdge[];
+}): OntologyGraph {
+  const conceptsByKey = new Map(
+    input.concepts.map((concept) => [concept.key, concept]),
+  );
+  const aliasesByLookup = new Map<string, string[]>();
+  const outgoingEdgesByConcept = new Map<string, OntologyEdge[]>();
+  const incomingEdgesByConcept = new Map<string, OntologyEdge[]>();
+  const courseIdsByConceptKey = new Map<string, Set<string>>();
+
+  for (const concept of input.concepts) {
+    addLookup(aliasesByLookup, concept.normalizedLabel, concept.key);
+    addLookup(aliasesByLookup, concept.label, concept.key);
+    for (const alias of concept.aliases) {
+      addLookup(aliasesByLookup, alias, concept.key);
+    }
+  }
+
+  for (const edge of input.edges) {
+    if (edge.fromType === "CONCEPT") {
+      addEdge(outgoingEdgesByConcept, edge.fromId, edge);
+      if (edge.courseId) addCourseScope(courseIdsByConceptKey, edge.fromId, edge.courseId);
+    }
+    if (edge.toType === "CONCEPT") {
+      addEdge(incomingEdgesByConcept, edge.toId, edge);
+      if (edge.courseId) addCourseScope(courseIdsByConceptKey, edge.toId, edge.courseId);
+    }
+  }
+
+  return {
+    concepts: input.concepts,
+    edges: input.edges,
+    conceptsByKey,
+    aliasesByLookup,
+    outgoingEdgesByConcept,
+    incomingEdgesByConcept,
+    courseIdsByConceptKey,
+  };
+}
+
+export function findOntologyConceptMatches(input: {
+  query: string;
+  graph: OntologyGraph;
+  courseId?: string;
+  limit?: number;
+}): OntologyConceptMatch[] {
+  const normalizedQuery = normalizeOntologyLabel(input.query);
+  if (!normalizedQuery) return [];
+
+  const matches = new Map<string, OntologyConceptMatch>();
+  for (const [lookup, conceptKeys] of input.graph.aliasesByLookup.entries()) {
+    const normalizedLookup = normalizeOntologyLabel(lookup);
+    if (
+      normalizedLookup !== normalizedQuery &&
+      !normalizedQuery.includes(normalizedLookup) &&
+      !normalizedLookup.includes(normalizedQuery)
+    ) {
+      continue;
+    }
+
+    for (const conceptKey of conceptKeys) {
+      const concept = input.graph.conceptsByKey.get(conceptKey);
+      if (!concept) continue;
+      const courseScoped = isConceptInCourseScope(
+        input.graph,
+        conceptKey,
+        input.courseId,
+      );
+      if (!courseScoped) continue;
+      matches.set(conceptKey, {
+        concept,
+        matchedBy:
+          normalizedLookup === concept.normalizedLabel ? "label" : "alias",
+        matchedValue: lookup,
+        courseScoped,
+      });
+    }
+  }
+
+  return [...matches.values()]
+    .sort(
+      (a, b) =>
+        exactMatchScore(b.matchedValue, normalizedQuery) -
+          exactMatchScore(a.matchedValue, normalizedQuery) ||
+        b.concept.weight - a.concept.weight ||
+        a.concept.label.localeCompare(b.concept.label),
+    )
+    .slice(0, Math.max(1, Math.min(input.limit ?? 8, 50)));
+}
+
+export function expandOntologyRetrievalQueries(input: {
+  query: string;
+  graph: OntologyGraph;
+  courseId?: string;
+  limit?: number;
+}) {
+  const matches = findOntologyConceptMatches(input);
+  const relatedConceptKeys = uniqueStrings(
+    matches.flatMap((match) =>
+      getOntologyRelatedConceptKeys({
+        graph: input.graph,
+        conceptKey: match.concept.key,
+        courseId: input.courseId,
+      }),
+    ),
+  );
+  const relatedConcepts = relatedConceptKeys
+    .map((key) => input.graph.conceptsByKey.get(key))
+    .filter((concept): concept is OntologyConcept => Boolean(concept));
+  const expandedQueries = uniqueStrings([
+    input.query,
+    ...matches.flatMap((match) => [
+      match.concept.label,
+      ...match.concept.aliases,
+    ]),
+    ...relatedConcepts.flatMap((concept) => [
+      concept.label,
+      ...concept.aliases.slice(0, 3),
+    ]),
+  ])
+    .filter((query) => query.trim().length > 0)
+    .slice(0, Math.max(1, Math.min(input.limit ?? 12, 50)));
+
+  return {
+    originalQuery: input.query,
+    expandedQueries,
+    matchedConceptKeys: matches.map((match) => match.concept.key),
+    matchedConceptLabels: matches.map((match) => match.concept.label),
+    relatedConceptKeys,
+    courseId: input.courseId,
+  } satisfies OntologyRetrievalExpansion;
+}
+
+export function createOntologyConceptRelationshipEdges(input: {
+  parentConceptKey?: string;
+  childConceptKey?: string;
+  relatedConceptKeys?: Array<[string, string]>;
+  synonymConceptKeys?: Array<[string, string]>;
+  courseId?: string;
+  evidence?: string[];
+}) {
+  const edges: OntologyEdge[] = [];
+  if (input.parentConceptKey && input.childConceptKey) {
+    edges.push(
+      createOntologyEdge({
+        courseId: input.courseId,
+        fromType: "CONCEPT",
+        fromId: input.parentConceptKey,
+        toType: "CONCEPT",
+        toId: input.childConceptKey,
+        relation: "PARENT_OF",
+        confidence: 1,
+        evidence: input.evidence,
+      }),
+      createOntologyEdge({
+        courseId: input.courseId,
+        fromType: "CONCEPT",
+        fromId: input.childConceptKey,
+        toType: "CONCEPT",
+        toId: input.parentConceptKey,
+        relation: "CHILD_OF",
+        confidence: 1,
+        evidence: input.evidence,
+      }),
+    );
+  }
+  for (const [fromId, toId] of input.relatedConceptKeys ?? []) {
+    edges.push(
+      createOntologyEdge({
+        courseId: input.courseId,
+        fromType: "CONCEPT",
+        fromId,
+        toType: "CONCEPT",
+        toId,
+        relation: "RELATED_TO",
+        confidence: 0.75,
+        evidence: input.evidence,
+      }),
+    );
+  }
+  for (const [fromId, toId] of input.synonymConceptKeys ?? []) {
+    edges.push(
+      createOntologyEdge({
+        courseId: input.courseId,
+        fromType: "CONCEPT",
+        fromId,
+        toType: "CONCEPT",
+        toId,
+        relation: "SYNONYM_OF",
+        confidence: 0.95,
+        evidence: input.evidence,
+      }),
+    );
+  }
+  return edges;
+}
+
+export function createCrossCourseConceptMapping(input: {
+  sourceCourseId: string;
+  targetCourseId: string;
+  sourceConceptKey: string;
+  targetConceptKey: string;
+  evidence?: string[];
+}) {
+  return [
+    createOntologyEdge({
+      courseId: input.sourceCourseId,
+      fromType: "CONCEPT",
+      fromId: input.sourceConceptKey,
+      toType: "CONCEPT",
+      toId: input.targetConceptKey,
+      relation: "CROSS_COURSE_EQUIVALENT",
+      confidence: 0.9,
+      evidence: input.evidence,
+    }),
+    createOntologyEdge({
+      courseId: input.targetCourseId,
+      fromType: "CONCEPT",
+      fromId: input.targetConceptKey,
+      toType: "CONCEPT",
+      toId: input.sourceConceptKey,
+      relation: "CROSS_COURSE_EQUIVALENT",
+      confidence: 0.9,
+      evidence: input.evidence,
+    }),
+  ];
+}
+
 export function createCurriculumContentOntologyEdges(
   input: CurriculumContentBridgeInput,
 ) {
@@ -344,6 +604,80 @@ function normalizeConfidence(value: number | undefined) {
 
 function uniqueStrings(values: string[]) {
   return [...new Set(values)];
+}
+
+function addLookup(
+  lookups: Map<string, string[]>,
+  value: string,
+  conceptKey: string,
+) {
+  const normalized = normalizeOntologyLabel(value);
+  if (!normalized) return;
+  lookups.set(normalized, uniqueStrings([...(lookups.get(normalized) ?? []), conceptKey]));
+}
+
+function addEdge(
+  edgesByConcept: Map<string, OntologyEdge[]>,
+  conceptKey: string,
+  edge: OntologyEdge,
+) {
+  edgesByConcept.set(conceptKey, [...(edgesByConcept.get(conceptKey) ?? []), edge]);
+}
+
+function addCourseScope(
+  scopes: Map<string, Set<string>>,
+  conceptKey: string,
+  courseId: string,
+) {
+  const current = scopes.get(conceptKey) ?? new Set<string>();
+  current.add(courseId);
+  scopes.set(conceptKey, current);
+}
+
+function isConceptInCourseScope(
+  graph: OntologyGraph,
+  conceptKey: string,
+  courseId?: string,
+) {
+  if (!courseId) return true;
+  const scopes = graph.courseIdsByConceptKey.get(conceptKey);
+  return !scopes || scopes.size === 0 || scopes.has(courseId);
+}
+
+function getOntologyRelatedConceptKeys(input: {
+  graph: OntologyGraph;
+  conceptKey: string;
+  courseId?: string;
+}) {
+  const relations = new Set<OntologyRelationType>([
+    "PARENT_OF",
+    "CHILD_OF",
+    "SYNONYM_OF",
+    "RELATED_TO",
+    "CROSS_COURSE_EQUIVALENT",
+  ]);
+  const keys: string[] = [];
+  for (const edge of [
+    ...(input.graph.outgoingEdgesByConcept.get(input.conceptKey) ?? []),
+    ...(input.graph.incomingEdgesByConcept.get(input.conceptKey) ?? []),
+  ]) {
+    if (!relations.has(edge.relation)) continue;
+    if (edge.courseId && input.courseId && edge.courseId !== input.courseId) continue;
+    const relatedKey =
+      edge.fromId === input.conceptKey ? edge.toId : edge.fromId;
+    if (
+      relatedKey !== input.conceptKey &&
+      input.graph.conceptsByKey.has(relatedKey) &&
+      isConceptInCourseScope(input.graph, relatedKey, input.courseId)
+    ) {
+      keys.push(relatedKey);
+    }
+  }
+  return uniqueStrings(keys);
+}
+
+function exactMatchScore(value: string, normalizedQuery: string) {
+  return normalizeOntologyLabel(value) === normalizedQuery ? 1 : 0;
 }
 
 function uniqueBy<T>(values: T[], keyFactory: (value: T) => string) {

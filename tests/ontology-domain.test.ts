@@ -2,10 +2,15 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   assertOntologyCourseScope,
+  buildOntologyGraph,
+  createCrossCourseConceptMapping,
   createCurriculumContentOntologyEdges,
   createOntologyConcept,
   createOntologyConceptKey,
+  createOntologyConceptRelationshipEdges,
   dedupeOntologyConcepts,
+  expandOntologyRetrievalQueries,
+  findOntologyConceptMatches,
   normalizeOntologyLabel,
   rankOntologyCoverageGaps,
 } from "../lib/services/ontology-service.ts";
@@ -155,4 +160,92 @@ test("ranks required deep curriculum nodes with missing ontology edges first", (
   ]);
   assert.ok(gaps.some((gap) => gap.id === "node-c"));
   assert.ok(!gaps.some((gap) => gap.id === "node-a"));
+});
+
+test("builds an ontology graph with aliases, hierarchy and related concepts", () => {
+  const parent = createOntologyConcept({
+    label: "Access Control",
+    aliases: ["접근통제", "Authorization"],
+    weight: 20,
+  });
+  const child = createOntologyConcept({
+    label: "RBAC",
+    aliases: ["Role Based Access Control"],
+    weight: 15,
+  });
+  const related = createOntologyConcept({
+    label: "Least Privilege",
+    aliases: ["최소권한"],
+    weight: 10,
+  });
+  const graph = buildOntologyGraph({
+    concepts: [parent, child, related],
+    edges: [
+      ...createOntologyConceptRelationshipEdges({
+        parentConceptKey: parent.key,
+        childConceptKey: child.key,
+        relatedConceptKeys: [[child.key, related.key]],
+        synonymConceptKeys: [[parent.key, related.key]],
+        courseId: "course-ise",
+        evidence: ["ontology-test"],
+      }),
+    ],
+  });
+
+  const matches = findOntologyConceptMatches({
+    query: "Role Based Access Control",
+    graph,
+    courseId: "course-ise",
+  });
+  const expansion = expandOntologyRetrievalQueries({
+    query: "Role Based Access Control",
+    graph,
+    courseId: "course-ise",
+    limit: 12,
+  });
+
+  assert.equal(matches[0]?.concept.key, child.key);
+  assert.ok(expansion.expandedQueries.includes("RBAC"));
+  assert.ok(expansion.expandedQueries.includes("Access Control"));
+  assert.ok(expansion.expandedQueries.includes("Least Privilege"));
+  assert.ok(expansion.relatedConceptKeys.includes(parent.key));
+  assert.ok(expansion.relatedConceptKeys.includes(related.key));
+});
+
+test("ontology retrieval expansion keeps course scoped mappings isolated", () => {
+  const engineerConcept = createOntologyConcept({
+    label: "Incident Response",
+    namespace: "security-certification",
+    aliases: ["IR"],
+  });
+  const privacyConcept = createOntologyConcept({
+    label: "Privacy Incident Response",
+    namespace: "privacy",
+    aliases: ["PIA Incident"],
+  });
+  const graph = buildOntologyGraph({
+    concepts: [engineerConcept, privacyConcept],
+    edges: createCrossCourseConceptMapping({
+      sourceCourseId: "course-ise",
+      targetCourseId: "course-pia",
+      sourceConceptKey: engineerConcept.key,
+      targetConceptKey: privacyConcept.key,
+      evidence: ["cross-course-map"],
+    }),
+  });
+
+  const engineerExpansion = expandOntologyRetrievalQueries({
+    query: "IR",
+    graph,
+    courseId: "course-ise",
+  });
+  const unrelatedExpansion = expandOntologyRetrievalQueries({
+    query: "IR",
+    graph,
+    courseId: "course-cppg",
+  });
+
+  assert.ok(engineerExpansion.expandedQueries.includes("Incident Response"));
+  assert.ok(engineerExpansion.expandedQueries.includes("Privacy Incident Response"));
+  assert.deepEqual(unrelatedExpansion.expandedQueries, ["IR"]);
 });
