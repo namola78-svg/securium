@@ -431,8 +431,8 @@ test("admin ontology console is protected and uses review-status workflow", asyn
     readFile(new URL("../lib/validation.ts", import.meta.url), "utf8"),
   ]);
 
-  assert.match(adminHomeSource, /href="\/admin\/ontology"/);
-  assert.match(adminHomeSource, /Ontology 관리|Ontology Admin/);
+  assert.match(adminHomeSource, /href:\s*"\/admin\/ontology"/);
+  assert.match(adminHomeSource, /title:\s*"Ontology Explorer"/);
   assert.match(adminOntologySource, /requireCatalogManager\("\/admin\/ontology"\)/);
   assert.match(adminOntologySource, /listOntologyAdminConceptRows/);
   assert.match(adminOntologySource, /listOntologyAdminEdgeRows/);

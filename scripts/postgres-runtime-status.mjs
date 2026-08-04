@@ -16,7 +16,7 @@ const sql = postgres(connectionUrl, {
   idle_timeout: 5,
   onnotice: false,
   debug: false,
-  connection: { application_name: "shield-academy-status" },
+  connection: { application_name: "securium-runtime-status" },
 });
 
 try {
@@ -46,8 +46,8 @@ try {
       counts,
     }),
   );
-} catch {
-  fail("POSTGRES_RUNTIME_STATUS_FAILED");
+} catch (error) {
+  failWithDetail("POSTGRES_RUNTIME_STATUS_FAILED", safeErrorCode(error));
 } finally {
   await sql.end({ timeout: 5 });
 }
@@ -55,4 +55,18 @@ try {
 function fail(code) {
   console.error(code);
   process.exitCode = 1;
+}
+
+function failWithDetail(code, detail) {
+  console.error(detail ? `${code}:${detail}` : code);
+  process.exitCode = 1;
+}
+
+function safeErrorCode(error) {
+  if (!error || typeof error !== "object") return "UNKNOWN";
+  const code = "code" in error ? error.code : undefined;
+  if (typeof code === "string" && /^[A-Z0-9_]+$/.test(code)) return code;
+  const name = "name" in error ? error.name : undefined;
+  if (typeof name === "string" && /^[A-Za-z0-9_]+$/.test(name)) return name;
+  return "UNKNOWN";
 }

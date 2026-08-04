@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { env } from "cloudflare:workers";
 import { cache } from "react";
 import { getChatGPTUser, chatGPTSignInPath } from "@/app/chatgpt-auth";
 import { ensureUser, findUserWithRoleCodesByEmail } from "@/db/repositories";
@@ -19,7 +20,14 @@ async function getIdentity() {
 
   const devEmail =
     process.env.NODE_ENV !== "production"
-      ? process.env.DEV_AUTH_EMAIL?.trim().toLowerCase()
+      ? (
+          process.env.DEV_AUTH_EMAIL ??
+          process.env.ADMIN_BOOTSTRAP_EMAIL ??
+          runtimeDevAuthEmail() ??
+          ""
+        )
+          .trim()
+          .toLowerCase()
       : null;
   if (!devEmail) return null;
 
@@ -28,6 +36,14 @@ async function getIdentity() {
     displayName: "로컬 개발 사용자",
     fullName: null,
   };
+}
+
+function runtimeDevAuthEmail() {
+  const runtimeEnv = env as unknown as {
+    DEV_AUTH_EMAIL?: string;
+    ADMIN_BOOTSTRAP_EMAIL?: string;
+  };
+  return runtimeEnv.DEV_AUTH_EMAIL ?? runtimeEnv.ADMIN_BOOTSTRAP_EMAIL;
 }
 
 async function resolveCurrentAppUser(): Promise<AppUser | null> {

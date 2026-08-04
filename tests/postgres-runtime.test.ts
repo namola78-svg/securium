@@ -286,14 +286,17 @@ test("D1 Drizzle batch uses one provider transaction and returns statement resul
 });
 
 test("D1 Drizzle raw compatibility preserves duplicate PostgreSQL column positions", async () => {
+  const calls: Array<{ sql: string; parameters: readonly unknown[] }> = [];
   const executor = new PostgresJsExecutor(
     createFakeClient({
       onQuery: () => rows([]),
-      onRawQuery: () =>
-        rawRows(
+      onRawQuery: (sql, parameters) => {
+        calls.push({ sql, parameters });
+        return rawRows(
           [["group-name", "course-name", 100, 60, "INTERMEDIATE"]],
           ["name", "name", "total_levels", "passing_score", "difficulty"],
-        ),
+        );
+      },
     }),
     1000,
   );
@@ -309,6 +312,34 @@ test("D1 Drizzle raw compatibility preserves duplicate PostgreSQL column positio
     ["name", "name", "total_levels", "passing_score", "difficulty"],
     ["group-name", "course-name", 100, 60, "INTERMEDIATE"],
   ]);
+  assert.equal(calls[0].sql.includes("?"), false);
+});
+
+test("D1 Drizzle raw compatibility normalizes bound parameters for PostgreSQL", async () => {
+  const calls: Array<{ sql: string; parameters: readonly unknown[] }> = [];
+  const executor = new PostgresJsExecutor(
+    createFakeClient({
+      onQuery: () => rows([]),
+      onRawQuery: (sql, parameters) => {
+        calls.push({ sql, parameters });
+        return rawRows([["user-1"]], ["id"]);
+      },
+    }),
+    1000,
+  );
+  const provider = new PostgresDatabaseProvider(executor);
+  const compatibility = new DrizzleD1CompatibilityDatabase(() => provider);
+  const raw = await compatibility
+    .prepare('SELECT "users"."id" FROM "users" WHERE "users"."email" = ?')
+    .bind("learner@example.com")
+    .raw({ columnNames: true });
+
+  assert.deepEqual(raw, [["id"], ["user-1"]]);
+  assert.equal(
+    calls[0].sql,
+    'SELECT "users"."id" FROM "users" WHERE "users"."email" = $1',
+  );
+  assert.deepEqual(calls[0].parameters, ["learner@example.com"]);
 });
 
 test("D1 SQL translation keeps aggregate max and normalizes scalar max and LIKE", () => {

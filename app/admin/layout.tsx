@@ -1,3 +1,4 @@
+import { AdminConsoleTopBar } from "@/components/admin-console-top-bar";
 import { AdminNav } from "@/components/admin-nav";
 import { requireQuestionAdministrator } from "@/lib/auth";
 
@@ -14,12 +15,23 @@ export default async function AdminLayout({
     <main className="admin-shell">
       <div className="shell admin-layout">
         <aside className="admin-sidebar">
-          <p className="eyebrow">ADMIN CONSOLE</p>
-          <h2>과정 운영</h2>
-          <p>{user.displayName}</p>
+          <div className="admin-sidebar-brand">
+            <p className="eyebrow">CONSOLE NAVIGATION</p>
+            <strong>SECURIUM</strong>
+            <span>운영 · 콘텐츠 · AI 지식 관리</span>
+          </div>
           <AdminNav />
         </aside>
-        <div className="admin-content">{children}</div>
+
+        <section className="admin-workspace" aria-label="관리자 작업 영역">
+          <AdminConsoleTopBar
+            user={{
+              displayName: user.displayName,
+              roles: user.roles,
+            }}
+          />
+          <div className="admin-content">{children}</div>
+        </section>
       </div>
     </main>
   );

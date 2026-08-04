@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { CommandPalette } from "@/components/command-palette";
 import { SiteHeader } from "@/components/site-header";
 import { BRAND } from "@/lib/brand";
 import "./globals.css";
@@ -52,6 +53,7 @@ export default function RootLayout({
     <html lang="ko">
       <body>
         <SiteHeader />
+        <CommandPalette />
         {children}
         <footer className="site-footer">
           <div className="shell footer-inner">
