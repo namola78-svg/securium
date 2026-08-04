@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   assertOntologyCourseScope,
@@ -248,4 +249,48 @@ test("ontology retrieval expansion keeps course scoped mappings isolated", () =>
   assert.ok(engineerExpansion.expandedQueries.includes("Incident Response"));
   assert.ok(engineerExpansion.expandedQueries.includes("Privacy Incident Response"));
   assert.deepEqual(unrelatedExpansion.expandedQueries, ["IR"]);
+});
+
+test("ontology graph storage migrations and repository contract are additive", async () => {
+  const [d1Sql, postgresSql, repositorySource] = await Promise.all([
+    readFile(
+      new URL("../drizzle/0019_ontology_graph_storage.sql", import.meta.url),
+      "utf8",
+    ),
+    readFile(
+      new URL(
+        "../db/postgres/migrations/0008_ontology_graph_storage.sql",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+    readFile(new URL("../db/ontology-repositories.ts", import.meta.url), "utf8"),
+  ]);
+
+  for (const tableName of [
+    "ontology_concepts",
+    "ontology_aliases",
+    "ontology_edges",
+  ]) {
+    assert.match(d1Sql, new RegExp(`CREATE TABLE IF NOT EXISTS "${tableName}"`));
+    assert.match(
+      postgresSql,
+      new RegExp(`CREATE TABLE IF NOT EXISTS "${tableName}"`),
+    );
+    assert.match(
+      postgresSql,
+      new RegExp(`REVOKE ALL PRIVILEGES ON TABLE public\\."${tableName}"`),
+    );
+    assert.match(
+      postgresSql,
+      new RegExp(`ALTER TABLE public\\."${tableName}" ENABLE ROW LEVEL SECURITY`),
+    );
+  }
+
+  assert.match(postgresSql, /INSERT INTO app_schema_migrations \(id, checksum\)/);
+  assert.match(repositorySource, /upsertOntologyConcept/);
+  assert.match(repositorySource, /upsertOntologyEdge/);
+  assert.match(repositorySource, /buildDatabaseOntologyGraph/);
+  assert.doesNotMatch(d1Sql, /\bDROP\s+TABLE\b|\bDELETE\s+FROM\b|\bTRUNCATE\b/i);
+  assert.doesNotMatch(postgresSql, /\bDROP\s+TABLE\b|\bDELETE\s+FROM\b|\bTRUNCATE\b/i);
 });

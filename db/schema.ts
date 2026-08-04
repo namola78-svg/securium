@@ -2813,6 +2813,112 @@ export const aiExplainabilityFeedback = sqliteTable(
   ],
 );
 
+export const ontologyConcepts = sqliteTable(
+  "ontology_concepts",
+  {
+    id: text("id").primaryKey(),
+    conceptKey: text("concept_key").notNull(),
+    namespace: text("namespace").notNull().default("securium"),
+    label: text("label").notNull(),
+    normalizedLabel: text("normalized_label").notNull(),
+    category: text("category").notNull().default("general"),
+    description: text("description").notNull().default(""),
+    sourceType: text("source_type"),
+    sourceId: text("source_id"),
+    weight: integer("weight").notNull().default(1),
+    status: text("status").notNull().default("ACTIVE"),
+    metadataJson: text("metadata_json").notNull().default("{}"),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("ontology_concepts_key_unique").on(table.conceptKey),
+    index("ontology_concepts_namespace_idx").on(
+      table.namespace,
+      table.status,
+      table.weight,
+    ),
+    index("ontology_concepts_normalized_idx").on(table.normalizedLabel),
+    index("ontology_concepts_source_idx").on(table.sourceType, table.sourceId),
+    check(
+      "ontology_concepts_status_check",
+      sql`${table.status} IN ('ACTIVE', 'DRAFT', 'ARCHIVED')`,
+    ),
+    check(
+      "ontology_concepts_weight_check",
+      sql`${table.weight} >= 0 AND ${table.weight} <= 100`,
+    ),
+  ],
+);
+
+export const ontologyAliases = sqliteTable(
+  "ontology_aliases",
+  {
+    id: text("id").primaryKey(),
+    conceptId: text("concept_id")
+      .notNull()
+      .references(() => ontologyConcepts.id, { onDelete: "cascade" }),
+    alias: text("alias").notNull(),
+    normalizedAlias: text("normalized_alias").notNull(),
+    language: text("language").notNull().default("und"),
+    source: text("source").notNull().default("manual"),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("ontology_aliases_concept_normalized_unique").on(
+      table.conceptId,
+      table.normalizedAlias,
+    ),
+    index("ontology_aliases_lookup_idx").on(table.normalizedAlias),
+  ],
+);
+
+export const ontologyEdges = sqliteTable(
+  "ontology_edges",
+  {
+    id: text("id").primaryKey(),
+    edgeKey: text("edge_key").notNull(),
+    courseId: text("course_id").references(() => courses.id, {
+      onDelete: "restrict",
+    }),
+    fromType: text("from_type").notNull(),
+    fromId: text("from_id").notNull(),
+    toType: text("to_type").notNull(),
+    toId: text("to_id").notNull(),
+    relation: text("relation").notNull(),
+    confidence: integer("confidence").notNull().default(10000),
+    evidenceJson: text("evidence_json").notNull().default("[]"),
+    status: text("status").notNull().default("ACTIVE"),
+    metadataJson: text("metadata_json").notNull().default("{}"),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("ontology_edges_key_unique").on(table.edgeKey),
+    index("ontology_edges_course_relation_idx").on(
+      table.courseId,
+      table.relation,
+      table.status,
+    ),
+    index("ontology_edges_from_idx").on(
+      table.fromType,
+      table.fromId,
+      table.relation,
+    ),
+    index("ontology_edges_to_idx").on(table.toType, table.toId, table.relation),
+    check(
+      "ontology_edges_status_check",
+      sql`${table.status} IN ('ACTIVE', 'DRAFT', 'ARCHIVED')`,
+    ),
+    check(
+      "ontology_edges_confidence_check",
+      sql`${table.confidence} >= 0 AND ${table.confidence} <= 10000`,
+    ),
+    check(
+      "ontology_edges_relation_check",
+      sql`${table.relation} IN ('COVERS', 'EXPLAINS', 'TESTS', 'REUSES_CONTENT', 'ASSESSED_BY', 'PREREQUISITE_OF', 'RELATED_TO', 'DERIVED_FROM', 'PARENT_OF', 'CHILD_OF', 'SYNONYM_OF', 'CROSS_COURSE_EQUIVALENT')`,
+    ),
+  ],
+);
+
 export const auditLogs = sqliteTable(
   "audit_logs",
   {
@@ -2932,4 +3038,7 @@ export type AISpecializedReview = typeof aiSpecializedReviews.$inferSelect;
 export type AIReviewedContent = typeof aiReviewedContents.$inferSelect;
 export type AIExplainabilityFeedback =
   typeof aiExplainabilityFeedback.$inferSelect;
+export type OntologyConcept = typeof ontologyConcepts.$inferSelect;
+export type OntologyAlias = typeof ontologyAliases.$inferSelect;
+export type OntologyEdge = typeof ontologyEdges.$inferSelect;
 export type AuditLog = typeof adminAuditLogs.$inferSelect;
