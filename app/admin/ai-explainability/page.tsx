@@ -8,7 +8,10 @@ import {
   WorkspaceLayout,
 } from "@/components/design-system-primitives";
 import { listAdminAIExplainabilityTraces } from "@/db/ai-explainability-repositories";
-import type { AIExplainabilityTraceSource } from "@/lib/ai/explainability";
+import {
+  summarizeAITraceMetrics,
+  type AIExplainabilityTraceSource,
+} from "@/lib/ai/explainability";
 import { requireAuditViewer } from "@/lib/auth";
 import Link from "next/link";
 
@@ -34,7 +37,16 @@ export default async function AdminAIExplainabilityPage({
       readParam(rawParams.feedbackIssueType),
     ),
   };
-  const { traces, summary } = await listAdminAIExplainabilityTraces(50, filters);
+  const traceState = await listAdminAIExplainabilityTraces(50, filters)
+    .then((value) => ({ ok: true as const, value }))
+    .catch(() => ({
+      ok: false as const,
+      value: {
+        traces: [],
+        summary: summarizeAITraceMetrics([]),
+      },
+    }));
+  const { traces, summary } = traceState.value;
   const feedbackTotal = traces.reduce(
     (total, trace) => total + trace.feedbackSummary.total,
     0,
@@ -115,6 +127,21 @@ export default async function AdminAIExplainabilityPage({
           Status {filters.status ?? "all"}
         </strong>
       </PageToolbar>
+
+      {!traceState.ok ? (
+        <section className="admin-panel section-block" role="alert">
+          <div className="section-heading compact">
+            <div>
+              <p className="eyebrow">AI TRACE STORAGE CHECK</p>
+              <h2>AI Trace를 불러오지 못했습니다</h2>
+            </div>
+          </div>
+          <p>
+            민감한 내부 오류는 화면에 표시하지 않습니다. AI Explainability
+            migration과 운영 데이터 저장소 상태를 확인한 뒤 다시 시도해주세요.
+          </p>
+        </section>
+      ) : null}
 
       <WorkspaceLayout
         main={

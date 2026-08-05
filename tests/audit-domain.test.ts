@@ -45,6 +45,17 @@ test("토큰·답안·개인정보 형태의 metadata 키를 차단한다", () =
   assert.deepEqual(safe, { format: "CSV", rowCount: 3 });
 });
 
+test("관리자 감사로그 화면은 필터 보조 조회 실패가 목록 렌더를 막지 않도록 분리한다", () => {
+  const source = readFileSync("app/admin/audit-logs/page.tsx", "utf8");
+  assert.match(source, /\[result,\s*detail\]\s*=\s*await withAdminAuditTimeout/);
+  assert.match(source, /withAdminAuditTimeout\(listAuditActors\(\),\s*2500\)\.catch\(\(\)\s*=>\s*\[\]\)/);
+  assert.match(source, /withAdminAuditTimeout\(listAuditFilterOptions\(\),\s*2500\)\.catch/);
+  assert.doesNotMatch(
+    source,
+    /\[result,\s*actors,\s*options,\s*detail\]\s*=\s*await withAdminAuditTimeout/,
+  );
+});
+
 test("허용된 metadata 필드 안의 민감정보 형태도 마스킹한다", () => {
   const safe = sanitizeAuditMetadata("QUESTION_REJECTED", {
     fromStatus: "IN_REVIEW",

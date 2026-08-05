@@ -8,10 +8,6 @@ import {
   StatusBadge,
   WorkspaceLayout,
 } from "@/components/design-system-primitives";
-import {
-  getSecurityCertificationContentMapSummary,
-  getSecurityCertificationDeepNodeCoverageSummary,
-} from "@/lib/curriculum/security-certification-content-map";
 import type { OfficialCurriculumNodeType } from "@/lib/curriculum/security-certification-standards";
 import { requireCatalogManager } from "@/lib/auth";
 
@@ -29,8 +25,11 @@ const nodeTypeLabels: Record<OfficialCurriculumNodeType, string> = {
 export default async function AdminCoveragePage() {
   await requireCatalogManager("/admin/coverage");
 
-  const deepCoverage = getSecurityCertificationDeepNodeCoverageSummary();
-  const contentSummary = getSecurityCertificationContentMapSummary();
+  const coverageState = await loadCoverageState();
+  if (!coverageState.ok) {
+    return <CoverageUnavailable />;
+  }
+  const { deepCoverage, contentSummary } = coverageState;
   const contentGaps = deepCoverage.uncoveredRows.slice(0, 12);
   const questionGaps = deepCoverage.questionGapRows.slice(0, 12);
   const priorityRows = [
@@ -228,6 +227,53 @@ export default async function AdminCoveragePage() {
           </InspectorPanel>
         }
       />
+    </>
+  );
+}
+
+async function loadCoverageState() {
+  try {
+    const {
+      getSecurityCertificationContentMapSummary,
+      getSecurityCertificationDeepNodeCoverageSummary,
+    } = await import("@/lib/curriculum/security-certification-content-map");
+    return {
+      ok: true as const,
+      deepCoverage: getSecurityCertificationDeepNodeCoverageSummary(),
+      contentSummary: getSecurityCertificationContentMapSummary(),
+    };
+  } catch {
+    return { ok: false as const };
+  }
+}
+
+function CoverageUnavailable() {
+  return (
+    <>
+      <SectionHeader
+        breadcrumbs={[
+          { label: "Admin", href: "/admin" },
+          { label: "Coverage", current: true },
+        ]}
+        eyebrow="COVERAGE OPERATIONS"
+        title="커버리지 운영 검수"
+        description="커버리지 기준 데이터를 확인하는 중 문제가 발생했습니다. 배포 산출물과 커리큘럼 데이터 상태를 확인해주세요."
+      />
+      <section className="admin-panel section-block" role="alert">
+        <div className="section-heading compact">
+          <div>
+            <p className="eyebrow">COVERAGE STORAGE CHECK</p>
+            <h2>커버리지 정보를 불러오지 못했습니다</h2>
+          </div>
+        </div>
+        <p>
+          민감한 내부 오류는 화면에 표시하지 않습니다. 커리큘럼 데이터와
+          Vercel Function Logs를 확인한 뒤 다시 시도해주세요.
+        </p>
+        <Link className="button button-ghost" href="/admin/curriculum">
+          Curriculum으로 이동
+        </Link>
+      </section>
     </>
   );
 }

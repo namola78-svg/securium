@@ -211,3 +211,12 @@ test("admin curriculum page content is mounted after hydration", () => {
   assert.match(wrapperSource, /getClientSnapshot\s*=\s*\(\)\s*=>\s*true/);
   assert.match(wrapperSource, /mounted \? <>\{children\}<\/> : <>\{fallback\}<\/>/);
 });
+
+test("admin coverage page degrades safely when coverage data cannot be loaded", () => {
+  const source = readFileSync("app/admin/coverage/page.tsx", "utf8");
+  assert.match(source, /async function loadCoverageState/);
+  assert.match(source, /await import\("@\/lib\/curriculum\/security-certification-content-map"\)/);
+  assert.match(source, /return \{ ok: false as const \}/);
+  assert.match(source, /function CoverageUnavailable/);
+  assert.match(source, /커버리지 정보를 불러오지 못했습니다/);
+});

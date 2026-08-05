@@ -42,15 +42,11 @@ export default async function AuditLogsPage({
   const detailId =
     typeof raw.detailId === "string" ? raw.detailId.slice(0, 200) : null;
   let result;
-  let actors;
-  let options;
   let detail;
   try {
-    [result, actors, options, detail] = await withAdminAuditTimeout(
+    [result, detail] = await withAdminAuditTimeout(
       Promise.all([
         listAuditLogs(filters),
-        listAuditActors(),
-        listAuditFilterOptions(),
         detailId ? getAuditLogById(detailId) : null,
       ]),
     );
@@ -84,6 +80,13 @@ export default async function AuditLogsPage({
       </>
     );
   }
+  const [actors, options] = await Promise.all([
+    withAdminAuditTimeout(listAuditActors(), 2500).catch(() => []),
+    withAdminAuditTimeout(listAuditFilterOptions(), 2500).catch(() => ({
+      actions: [],
+      resources: [],
+    })),
+  ]);
   const filterQuery = buildQuery(filters, ["page", "pageSize"]);
   const successCount = result.rows.filter((row) => row.result === "SUCCESS").length;
   const failureCount = result.rows.filter((row) => row.result === "FAILURE").length;

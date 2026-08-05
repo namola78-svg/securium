@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import { createAIProvider } from "../lib/ai/provider-factory.ts";
 import { OpenAIProvider } from "../lib/ai/openai-provider.ts";
@@ -599,4 +600,13 @@ test("AI explainability feedback summary supports review filters", () => {
     }),
     false,
   );
+});
+
+test("admin AI explainability page renders a safe fallback when trace storage fails", () => {
+  const source = readFileSync("app/admin/ai-explainability/page.tsx", "utf8");
+  assert.match(source, /listAdminAIExplainabilityTraces\(50,\s*filters\)/);
+  assert.match(source, /\.catch\(\(\)\s*=>\s*\(\{/);
+  assert.match(source, /summary:\s*summarizeAITraceMetrics\(\[\]\)/);
+  assert.match(source, /AI Trace를 불러오지 못했습니다/);
+  assert.match(source, /role="alert"/);
 });
