@@ -817,6 +817,8 @@ function NodeDetailPanel({
         ) : null}
       </dl>
 
+      <LinkedContentBreakdown metadata={node.metadata} />
+
       {stat ? <NodeOperationalStats stat={stat} /> : null}
 
       <RecommendedLinkableContent
@@ -852,6 +854,55 @@ function NodeDetailPanel({
         </button>
       </div>
     </div>
+  );
+}
+
+function LinkedContentBreakdown({
+  metadata,
+}: {
+  metadata: string | null;
+}) {
+  const links = parseLinkedContent(metadata);
+  const counts = links.reduce<Record<LinkableContent["type"], number>>(
+    (summary, link) => {
+      summary[link.type] += 1;
+      return summary;
+    },
+    {
+      SUBJECT: 0,
+      TOPIC: 0,
+      LEARNING_UNIT: 0,
+      LESSON: 0,
+    },
+  );
+  const entries = Object.entries(counts).filter(([, count]) => count > 0) as Array<
+    [LinkableContent["type"], number]
+  >;
+
+  return (
+    <section
+      className="curriculum-linked-content-breakdown"
+      aria-label="연결 콘텐츠 구성"
+    >
+      <div>
+        <h4>연결 콘텐츠 구성</h4>
+        <p className="admin-helper">
+          선택 노드에 연결된 기존 학습 콘텐츠를 유형별로 요약합니다.
+        </p>
+      </div>
+      {entries.length ? (
+        <ul>
+          {entries.map(([type, count]) => (
+            <li key={type}>
+              <span>{contentTypeLabels[type]}</span>
+              <strong>{count}</strong>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="empty-copy">아직 연결된 콘텐츠가 없습니다.</p>
+      )}
+    </section>
   );
 }
 

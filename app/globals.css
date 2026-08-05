@@ -4269,6 +4269,51 @@ textarea {
   font-weight: 900;
 }
 
+.curriculum-linked-content-breakdown {
+  background: rgba(196, 255, 76, 0.08);
+  border: 1px solid rgba(89, 112, 101, 0.14);
+  border-radius: 14px;
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.85rem;
+}
+
+.curriculum-linked-content-breakdown h4,
+.curriculum-linked-content-breakdown p {
+  margin: 0;
+}
+
+.curriculum-linked-content-breakdown ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.curriculum-linked-content-breakdown li {
+  align-items: center;
+  background: var(--white);
+  border: 1px solid rgba(89, 112, 101, 0.16);
+  border-radius: 999px;
+  display: inline-flex;
+  gap: 0.45rem;
+  min-height: 34px;
+  padding: 0.35rem 0.65rem;
+}
+
+.curriculum-linked-content-breakdown li span {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.curriculum-linked-content-breakdown li strong {
+  color: var(--ink);
+  font-size: 0.9rem;
+}
+
 .curriculum-content-recommendations {
   background: var(--white);
   border: 1px solid rgba(89, 112, 101, 0.16);
