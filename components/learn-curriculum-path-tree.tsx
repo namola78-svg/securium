@@ -64,6 +64,7 @@ export function LearnCurriculumPathTree({
     () => flattenVisibleNodes(nodes, expandedNodeIds),
     [expandedNodeIds, nodes],
   );
+  const summary = useMemo(() => summarizeCurriculumPath(nodes), [nodes]);
   const selectedNode =
     allNodes.find((node) => node.id === selectedNodeId) ?? visibleNodes[0]?.node ?? null;
 
@@ -81,6 +82,34 @@ export function LearnCurriculumPathTree({
 
   return (
     <div className="learn-curriculum-compact learn-curriculum-path-tree">
+      <div className="learn-curriculum-summary" aria-label="공식 커리큘럼 학습 요약">
+        <div>
+          <p className="eyebrow">OFFICIAL CURRICULUM PATH</p>
+          <strong>공식 구조를 따라 학습하고, 연결된 레슨과 문제로 바로 이동합니다.</strong>
+          <span>
+            현재 선택: {selectedNode ? selectedNode.officialTitle || selectedNode.title : "없음"}
+          </span>
+        </div>
+        <dl>
+          <div>
+            <dt>전체 노드</dt>
+            <dd>{summary.totalNodes}개</dd>
+          </div>
+          <div>
+            <dt>연결 레슨</dt>
+            <dd>{summary.linkedLessons}개</dd>
+          </div>
+          <div>
+            <dt>완료 레슨</dt>
+            <dd>{summary.completedLessons}개</dd>
+          </div>
+          <div>
+            <dt>연결 문제</dt>
+            <dd>{summary.questionCount}개</dd>
+          </div>
+        </dl>
+      </div>
+
       <div className="learn-curriculum-toolbar" aria-label="커리큘럼 표시 옵션">
         <button
           className="button button-ghost"
@@ -96,7 +125,15 @@ export function LearnCurriculumPathTree({
         >
           과목까지만 보기
         </button>
+        <button
+          className="button button-ghost"
+          type="button"
+          onClick={() => setExpandedNodeIds(new Set())}
+        >
+          전체 접기
+        </button>
       </div>
+
       <div className="learn-curriculum-layout">
         <div className="learn-curriculum-list" role="tree">
           {visibleNodes.map(({ node, hasChildren }) => (
@@ -141,6 +178,9 @@ function LearnCurriculumPathRow({
   const practiceHref = getCurriculumPracticeHref(courseSlug, node);
   const sourcePage = getSourcePageLabel(node.metadata);
   const stableKey = getStableKey(node);
+  const progressLabel = node.linkedLessonCount
+    ? `${node.completedLinkedLessons}/${node.linkedLessonCount} 완료`
+    : "레슨 준비 중";
 
   return (
     <article
@@ -180,6 +220,7 @@ function LearnCurriculumPathRow({
             <span className="learn-curriculum-code">공식 순번 {node.officialCode}</span>
           ) : null}
           <span className="badge">{getCurriculumNodeLabel(node.nodeType)}</span>
+          <span className="badge">{progressLabel}</span>
         </div>
         <div className="learn-curriculum-key-line">
           <span>Stable Key</span>
@@ -242,11 +283,26 @@ function LearnCurriculumNodeDetail({
   const stableKey = getStableKey(node);
   const sourcePage = getSourcePageLabel(node.metadata);
   const practiceHref = getCurriculumPracticeHref(courseSlug, node);
+  const nextAction = getCurriculumNodeNextAction(courseSlug, node, practiceHref);
 
   return (
     <aside className="learn-curriculum-detail" aria-label="선택한 커리큘럼 상세">
-      <p className="eyebrow">SELECTED NODE</p>
+      <p className="eyebrow">CURRICULUM INSPECTOR</p>
       <h3>{title}</h3>
+      <div className="learn-curriculum-next-card">
+        <span className="badge">다음 학습</span>
+        <strong>{nextAction.label}</strong>
+        <p>{nextAction.description}</p>
+        {nextAction.href ? (
+          <Link className="button button-dark" href={nextAction.href}>
+            바로 이동
+          </Link>
+        ) : (
+          <button className="button button-disabled" type="button" disabled>
+            연결 준비 중
+          </button>
+        )}
+      </div>
       <dl>
         <div>
           <dt>계층</dt>
@@ -370,6 +426,24 @@ function flattenVisibleNodes(
   return result;
 }
 
+function summarizeCurriculumPath(nodes: CurriculumPathNode[]) {
+  const allNodes = flattenAllNodes(nodes);
+  return allNodes.reduce(
+    (summary, node) => ({
+      totalNodes: summary.totalNodes + 1,
+      linkedLessons: summary.linkedLessons + node.linkedLessonCount,
+      completedLessons: summary.completedLessons + node.completedLinkedLessons,
+      questionCount: summary.questionCount + node.questionStats.questionCount,
+    }),
+    {
+      totalNodes: 0,
+      linkedLessons: 0,
+      completedLessons: 0,
+      questionCount: 0,
+    },
+  );
+}
+
 function getCurriculumPracticeHref(
   courseSlug: string,
   node: CurriculumPathNode,
@@ -389,6 +463,35 @@ function getCurriculumPracticeHref(
 
 function getStableKey(node: CurriculumPathNode) {
   return node.officialCode || node.id;
+}
+
+function getCurriculumNodeNextAction(
+  courseSlug: string,
+  node: CurriculumPathNode,
+  practiceHref: string | null,
+) {
+  if (node.linkedLesson) {
+    return {
+      href: `/learn/${courseSlug}/course-lessons/${node.linkedLesson.id}`,
+      label: "연결된 이론 레슨부터 학습하세요",
+      description: `${node.linkedLesson.title} 레슨으로 이동합니다.`,
+    };
+  }
+
+  if (practiceHref) {
+    return {
+      href: practiceHref,
+      label: "연결된 문제로 이해도를 확인하세요",
+      description: `${node.questionStats.questionCount}개의 연결 문제 중 일부를 풀어봅니다.`,
+    };
+  }
+
+  return {
+    href: null,
+    label: "연결된 학습 콘텐츠를 준비하고 있습니다",
+    description:
+      "공식 커리큘럼 위치는 확인할 수 있으며, 레슨과 문제 연결은 순차적으로 보강됩니다.",
+  };
 }
 
 function getSourcePageLabel(metadata: string | null) {

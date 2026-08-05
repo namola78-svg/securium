@@ -79,6 +79,9 @@ This sequence keeps the first user impression stable before refining deeper auth
 - Primary action: start or continue the selected node's linked content.
 - Empty state: show curriculum preparation state without internal implementation terms.
 - Risk: deep trees becoming admin-like rather than learning-oriented.
+- Current refinement: the learner curriculum now uses a compact official path summary,
+  node-level expand/collapse controls, Stable Key copy, and a right-side Curriculum
+  Inspector with the next best learning action.
 
 ### Lesson / Theory
 
@@ -94,12 +97,19 @@ This sequence keeps the first user impression stable before refining deeper auth
 - AI boundary: display "AI 참고 설명" separately from official explanation.
 - Risk: AI explanation looking like official grading.
 
+- Current refinement: the practice card now includes a Practice Guide and the AI
+  explanation panel exposes compact provider/source/latency/review metadata.
+
 ### Review / Wrong Notes
 
 - Goal: convert mistakes into a manageable review queue.
 - Primary action: start due review.
 - Empty state: celebrate no due reviews and suggest new practice.
 - Risk: repeated wrong notes feeling punitive.
+- Current refinement: Review now uses a Today Review Plan summary and a Review
+  Inspector for the next action. Wrong Notes now uses a Wrong Note Insight
+  summary, cleaned Korean copy, disabled pending states, and clearer retry/bookmark
+  actions.
 
 ### Analytics
 
@@ -107,6 +117,9 @@ This sequence keeps the first user impression stable before refining deeper auth
 - Primary action: go to weakest course/topic or recommended review.
 - Empty state: explain that analytics appears after learning activity.
 - Risk: overly complex charts without action.
+- Current refinement: Integrated Analytics now uses Learning Signals and Next
+  Analytic Action panels. Course Analytics now highlights Course Signals and the
+  Priority Area before detailed breakdowns.
 
 ## Regression checklist
 

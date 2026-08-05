@@ -23,6 +23,7 @@ export default async function CourseAnalyticsPage({
     listCurriculum(courseId),
   ]);
   if (!course || !enrollment) notFound();
+
   const stats = await getCourseStatistics(user.id, courseId);
   const subjectNameById = new Map(
     curriculum.map((subject) => [subject.id, subject.name]),
@@ -38,6 +39,16 @@ export default async function CourseAnalyticsPage({
   const weakTopics = [...stats.byTopic]
     .filter((item) => item.id !== "UNMAPPED")
     .sort((a, b) => a.accuracy - b.accuracy);
+  const weakestTopic = weakTopics[0];
+  const weakestTopicMeta = weakestTopic
+    ? topicMetaById.get(weakestTopic.id)
+    : undefined;
+  const weakestTopicParams = weakestTopic
+    ? new URLSearchParams({ topicId: weakestTopic.id, count: "10" })
+    : undefined;
+  if (weakestTopicParams && weakestTopicMeta?.subjectId) {
+    weakestTopicParams.set("subjectId", weakestTopicMeta.subjectId);
+  }
 
   return (
     <main className="page-main dashboard-page">
@@ -47,8 +58,8 @@ export default async function CourseAnalyticsPage({
             <p className="eyebrow">COURSE ANALYTICS</p>
             <h1>{course.name} 학습분석</h1>
             <p>
-              정답률 분모가 없는 항목은 0%로 안전하게 표시합니다. 낮은
-              정답률 영역은 바로 문제풀이로 이어갈 수 있습니다.
+              정답률, 최근 학습량, 반복 오답, 복습 성공률을 과정 범위 안에서
+              분석합니다.
             </p>
           </div>
           <Link
@@ -58,16 +69,67 @@ export default async function CourseAnalyticsPage({
             문제풀이 시작
           </Link>
         </header>
-        <section className="stats-grid">
-          <Metric label="전체 정답률" value={stats.overallAccuracy} unit="%" />
-          <Metric label="최근 7일" value={stats.recent7Days} unit="문제" />
-          <Metric
-            label="평균 응답"
-            value={Math.round(stats.averageResponseTime / 1000)}
-            unit="초"
-          />
-          <Metric label="모의고사 평균" value={stats.mockExamAverageScore} unit="점" />
+
+        <section className="analytics-overview-panel" aria-label="과정 분석 요약">
+          <div>
+            <p className="eyebrow">COURSE SIGNALS</p>
+            <h2>
+              {stats.totalQuestions
+                ? `현재 정답률 ${stats.overallAccuracy}%`
+                : "이 과정의 학습 기록이 아직 없습니다"}
+            </h2>
+            <p>
+              분모가 없는 지표는 안전하게 0으로 표시합니다. 학습 기록이 쌓이면
+              취약 과목과 주제를 더 정확하게 추천합니다.
+            </p>
+          </div>
+          <dl>
+            <div>
+              <dt>전체 정답률</dt>
+              <dd>{stats.overallAccuracy}%</dd>
+            </div>
+            <div>
+              <dt>최근 7일</dt>
+              <dd>{stats.recent7Days}문제</dd>
+            </div>
+            <div>
+              <dt>반복 오답</dt>
+              <dd>{stats.repeatedWrongCount}문제</dd>
+            </div>
+            <div>
+              <dt>단계 완료</dt>
+              <dd>{stats.levelCompletionRate}%</dd>
+            </div>
+          </dl>
         </section>
+
+        <section className="analytics-action-panel" aria-label="과정 분석 추천 행동">
+          <div>
+            <p className="eyebrow">PRIORITY AREA</p>
+            <h2>우선 확인할 취약 영역</h2>
+            {weakestTopic ? (
+              <p>
+                {weakestTopicMeta?.name ?? weakestTopic.id} 정답률이{" "}
+                {weakestTopic.accuracy}%입니다. 해당 주제 문제를 먼저 풀어보세요.
+              </p>
+            ) : (
+              <p>주제별 분석은 문제풀이 기록이 쌓이면 표시됩니다.</p>
+            )}
+          </div>
+          {weakestTopic && weakestTopicParams ? (
+            <Link
+              className="button button-dark"
+              href={`/practice/${course.slug}?${weakestTopicParams.toString()}`}
+            >
+              취약 주제 풀기
+            </Link>
+          ) : (
+            <Link className="button button-dark" href={`/practice/${course.slug}?count=10`}>
+              문제 10개 풀기
+            </Link>
+          )}
+        </section>
+
         <section className="analytics-grid section-block">
           <Breakdown title="난이도별 정답률" rows={stats.byDifficulty} />
           <Breakdown title="문제 유형별 정답률" rows={stats.byType} />
@@ -86,22 +148,30 @@ export default async function CourseAnalyticsPage({
             title="주제별 우선 복습 영역"
             rows={weakTopics.map((row) => {
               const topic = topicMetaById.get(row.id);
-              const params = new URLSearchParams({ topicId: row.id, count: "10" });
-              if (topic?.subjectId) params.set("subjectId", topic.subjectId);
+              const practiceParams = new URLSearchParams({
+                topicId: row.id,
+                count: "10",
+              });
+              if (topic?.subjectId) practiceParams.set("subjectId", topic.subjectId);
               return {
                 ...row,
                 label: topic?.name ?? row.id,
-                href: `/practice/${course.slug}?${params.toString()}`,
+                href: `/practice/${course.slug}?${practiceParams.toString()}`,
               };
             })}
             weakFirst
           />
         </section>
+
         <section className="stats-grid section-block">
           <Metric label="최근 30일" value={stats.recent30Days} unit="문제" />
-          <Metric label="반복 오답" value={stats.repeatedWrongCount} unit="문제" />
+          <Metric
+            label="평균 응답"
+            value={Math.round(stats.averageResponseTime / 1000)}
+            unit="초"
+          />
           <Metric label="복습 성공률" value={stats.reviewSuccessRate} unit="%" />
-          <Metric label="단계 완료율" value={stats.levelCompletionRate} unit="%" />
+          <Metric label="모의고사 평균" value={stats.mockExamAverageScore} unit="점" />
         </section>
       </div>
     </main>

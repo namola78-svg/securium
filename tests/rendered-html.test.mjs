@@ -67,6 +67,8 @@ test("network security practice flow stays scoped to engineer and industrial eng
   const engineerHtml = await engineerResponse.text();
   assert.equal(engineerResponse.status, 200, engineerHtml.slice(0, 1200));
   assert.match(engineerHtml, /CURRENT PRACTICE/);
+  assert.match(engineerHtml, /PRACTICE GUIDE/);
+  assert.match(engineerHtml, /AI 참고 해설은 채점 이후 요청할 수 있으며 공식 채점 결과가 아닙니다/);
   assert.match(engineerHtml, /TRUE FALSE/);
   assert.doesNotMatch(engineerHtml, /"isCorrect":true/);
   assert.doesNotMatch(engineerHtml, /answerConfigJson/);
@@ -190,6 +192,29 @@ test("network security course lesson extensions render different course contexts
   assert.match(industrialHtml, /기본 대응 방법/);
   assert.match(industrialHtml, /보안장비 역할/);
   assert.doesNotMatch(industrialHtml, /로그 이벤트/);
+});
+
+test("learner curriculum overview renders compact path summary and inspector", async () => {
+  await ensureSecurityCertificationCurriculumSeed();
+  await ensureCourseLessonSeed();
+  await ensureNetworkQuestionSeed();
+  await ensureSecurityCertificationCurriculumActive();
+  await ensureEnrollment("dev-user-1@example.invalid", "course-ise");
+
+  const response = await fetch(`${baseUrl}/learn/information-security-engineer`, {
+    headers: {
+      "oai-authenticated-user-email": "dev-user-1@example.invalid",
+    },
+  });
+  const html = await response.text();
+  assert.equal(response.status, 200, html.slice(0, 1200));
+  assert.match(html, /OFFICIAL CURRICULUM PATH/);
+  assert.match(html, /CURRICULUM INSPECTOR/);
+  assert.match(html, /Stable Key/);
+  assert.match(html, /course-lesson-ise-official-network-security-overview/);
+  assert.match(html, /\/practice\/information-security-engineer\?/);
+  assert.match(html, /전체 펼치기/);
+  assert.match(html, /전체 접기/);
 });
 
 test("admin curriculum and shared content pages expose network security coverage", async () => {
@@ -433,6 +458,7 @@ test("admin curriculum and shared content pages expose network security coverage
 let networkQuestionSeedApplied = false;
 let courseLessonSeedApplied = false;
 let securityCertificationCurriculumSeedApplied = false;
+let securityCertificationCurriculumActive = false;
 
 async function ensureSecurityCertificationCurriculumSeed() {
   if (securityCertificationCurriculumSeedApplied) return;
@@ -446,6 +472,30 @@ async function ensureSecurityCertificationCurriculumSeed() {
     /SECURITY_CERTIFICATION_CURRICULUM_SEED_D1_LOCAL_APPLIED/,
   );
   securityCertificationCurriculumSeedApplied = true;
+}
+
+async function ensureSecurityCertificationCurriculumActive() {
+  if (securityCertificationCurriculumActive) return;
+  const result = await runCommand(process.execPath, [
+    "scripts/run-wrangler.mjs",
+    "d1",
+    "execute",
+    "DB",
+    "--local",
+    "--config",
+    "wrangler.local.jsonc",
+    "--command",
+    [
+      "UPDATE curriculum_trees SET status = 'ARCHIVED', updated_at = CURRENT_TIMESTAMP",
+      "WHERE course_id IN ('course-ise', 'course-isie')",
+      "AND status = 'ACTIVE'",
+      "AND id NOT IN ('curriculum-ise-2027-2029-official', 'curriculum-isie-2027-2029-official');",
+      "UPDATE curriculum_trees SET status = 'ACTIVE', updated_at = CURRENT_TIMESTAMP",
+      "WHERE id IN ('curriculum-ise-2027-2029-official', 'curriculum-isie-2027-2029-official');",
+    ].join(" "),
+  ]);
+  assert.equal(result.code, 0, result.output);
+  securityCertificationCurriculumActive = true;
 }
 
 async function ensureNetworkQuestionSeed() {
@@ -986,8 +1036,8 @@ test("문제 제출을 서버에서 채점하고 반복 오답을 한 노트에 
   const notesHtml = await notesResponse.text();
   assert.equal(notesResponse.status, 200);
   assert.match(notesHtml, /CURRENT WRONG NOTES/);
-  assert.match(notesHtml, /현재 오답노트 조건/);
-  assert.match(notesHtml, /오답[\s\S]{0,50}회/);
+  assert.match(notesHtml, /WRONG NOTE INSIGHT/);
+  assert.match(notesHtml, /\/practice\/isms-p\?wrongOnly=1/);
 });
 
 test("같은 멱등성 키의 문제 제출은 통계에 한 번만 반영한다", async () => {
@@ -1056,7 +1106,8 @@ test("오늘의 복습은 과정별 복습 CTA와 우선순위 항목을 표시�
   const html = await response.text();
   assert.equal(response.status, 200, html.slice(0, 1000));
   assert.match(html, /SMART REVIEW/);
-  assert.match(html, /우선 복습 항목/);
+  assert.match(html, /TODAY REVIEW PLAN/);
+  assert.match(html, /REVIEW INSPECTOR/);
   assert.match(html, /\/practice\/isms-p\?reviewOnly=1/);
 });
 

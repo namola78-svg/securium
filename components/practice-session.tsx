@@ -263,8 +263,30 @@ export function PracticeSession({
   }
 
   const result = results[question.id];
+  const remaining = Math.max(questions.length - completed, 0);
   return (
     <section className="practice-card">
+      <div className="practice-session-brief" aria-label="문제풀이 진행 요약">
+        <div>
+          <p className="eyebrow">PRACTICE GUIDE</p>
+          <strong>답안을 제출하면 채점 결과와 검수 해설을 확인할 수 있습니다.</strong>
+          <span>AI 참고 해설은 채점 이후 요청할 수 있으며 공식 채점 결과가 아닙니다.</span>
+        </div>
+        <dl>
+          <div>
+            <dt>완료</dt>
+            <dd>{completed}문항</dd>
+          </div>
+          <div>
+            <dt>남은 문제</dt>
+            <dd>{remaining}문항</dd>
+          </div>
+          <div>
+            <dt>AI 해설</dt>
+            <dd>{result ? "요청 가능" : "제출 후 가능"}</dd>
+          </div>
+        </dl>
+      </div>
       <div className="practice-toolbar">
         <span>
           {index + 1} / {questions.length}
@@ -438,6 +460,24 @@ function AIExplanationPanel({ result }: { result: AIExplanationResult }) {
         </div>
         <span className="status-badge">{result.status}</span>
       </div>
+      <dl className="ai-trust-strip" aria-label="AI 해설 생성 정보">
+        <div>
+          <dt>Provider</dt>
+          <dd>{isMock ? "Mock AI" : result.provider}</dd>
+        </div>
+        <div>
+          <dt>근거</dt>
+          <dd>{result.sourceContextIds.length}개</dd>
+        </div>
+        <div>
+          <dt>응답시간</dt>
+          <dd>{result.latencyMs}ms</dd>
+        </div>
+        <div>
+          <dt>검수</dt>
+          <dd>{result.reviewed ? "완료" : "미검수"}</dd>
+        </div>
+      </dl>
       <p className="ai-disclaimer">{result.disclaimer}</p>
       {result.status === "insufficient_context" ||
       result.status === "failed" ? (
