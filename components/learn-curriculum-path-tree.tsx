@@ -84,7 +84,7 @@ export function LearnCurriculumPathTree({
     <div className="learn-curriculum-compact learn-curriculum-path-tree">
       <div className="learn-curriculum-summary" aria-label="공식 커리큘럼 학습 요약">
         <div>
-          <p className="eyebrow">OFFICIAL CURRICULUM PATH</p>
+          <p className="eyebrow">공식 커리큘럼 경로</p>
           <strong>공식 구조를 따라 학습하고, 연결된 레슨과 문제로 바로 이동합니다.</strong>
           <span>
             현재 선택: {selectedNode ? selectedNode.officialTitle || selectedNode.title : "없음"}
@@ -287,7 +287,7 @@ function LearnCurriculumNodeDetail({
 
   return (
     <aside className="learn-curriculum-detail" aria-label="선택한 커리큘럼 상세">
-      <p className="eyebrow">CURRICULUM INSPECTOR</p>
+      <p className="eyebrow">커리큘럼 상세</p>
       <h3>{title}</h3>
       <div className="learn-curriculum-next-card">
         <span className="badge">다음 학습</span>

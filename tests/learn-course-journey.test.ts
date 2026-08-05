@@ -44,3 +44,32 @@ test("course learn page uses user-facing labels for level statuses", () => {
   assert.match(serviceSource, /case "LOCKED":[\s\S]*?return "잠김"/);
   assert.doesNotMatch(overviewSource, /<span className="badge">\{level\.status\}<\/span>/);
 });
+
+test("course learn pages use learner-friendly section labels", () => {
+  const overviewSource = readFileSync("app/learn/[courseSlug]/page.tsx", "utf8");
+  const treeSource = readFileSync("components/learn-curriculum-path-tree.tsx", "utf8");
+  const sharedLessonSource = readFileSync(
+    "app/learn/[courseSlug]/course-lessons/[courseLessonId]/page.tsx",
+    "utf8",
+  );
+  const lessonSource = readFileSync(
+    "app/learn/[courseSlug]/lessons/[lessonId]/page.tsx",
+    "utf8",
+  );
+  const subjectSource = readFileSync(
+    "app/learn/[courseSlug]/subjects/[subjectId]/page.tsx",
+    "utf8",
+  );
+
+  assert.match(overviewSource, /오늘의 학습/);
+  assert.match(overviewSource, /단계 학습/);
+  assert.match(overviewSource, /공식 커리큘럼/);
+  assert.doesNotMatch(overviewSource, /TODAY LEARNING|LEVEL PATH|THEORY FALLBACK/);
+  assert.match(treeSource, /공식 커리큘럼 경로/);
+  assert.match(treeSource, /커리큘럼 상세/);
+  assert.match(sharedLessonSource, /공통 이론 레슨/);
+  assert.match(sharedLessonSource, /과정 맥락/);
+  assert.match(lessonSource, /이론 레슨/);
+  assert.match(subjectSource, /과목 학습/);
+  assert.match(subjectSource, /주제 목록/);
+});

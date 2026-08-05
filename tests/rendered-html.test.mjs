@@ -173,7 +173,7 @@ test("network security course lesson extensions render different course contexts
   );
   const engineerHtml = await engineerResponse.text();
   assert.equal(engineerResponse.status, 200, engineerHtml.slice(0, 1200));
-  assert.match(engineerHtml, /COURSE CONTEXT/);
+  assert.match(engineerHtml, /과정 맥락/);
   assert.match(engineerHtml, /로그 이벤트/);
   assert.match(engineerHtml, /차단 정책/);
   assert.doesNotMatch(engineerHtml, /기본 대응 방법/);
@@ -188,7 +188,7 @@ test("network security course lesson extensions render different course contexts
   );
   const industrialHtml = await industrialResponse.text();
   assert.equal(industrialResponse.status, 200, industrialHtml.slice(0, 1200));
-  assert.match(industrialHtml, /COURSE CONTEXT/);
+  assert.match(industrialHtml, /과정 맥락/);
   assert.match(industrialHtml, /기본 대응 방법/);
   assert.match(industrialHtml, /보안장비 역할/);
   assert.doesNotMatch(industrialHtml, /로그 이벤트/);
@@ -208,8 +208,8 @@ test("learner curriculum overview renders compact path summary and inspector", a
   });
   const html = await response.text();
   assert.equal(response.status, 200, html.slice(0, 1200));
-  assert.match(html, /OFFICIAL CURRICULUM PATH/);
-  assert.match(html, /CURRICULUM INSPECTOR/);
+  assert.match(html, /공식 커리큘럼 경로/);
+  assert.match(html, /커리큘럼 상세/);
   assert.match(html, /Stable Key/);
   assert.match(html, /course-lesson-ise-official-network-security-overview/);
   assert.match(html, /\/practice\/information-security-engineer\?/);
@@ -987,7 +987,7 @@ test("본문형 레슨을 조회하고 사용자별 완료를 멱등 처리한�
   );
   const html = await pageResponse.text();
   assert.equal(pageResponse.status, 200, html.slice(0, 1200));
-  assert.match(html, /본문형 이론 레슨|THEORY LESSON/);
+  assert.match(html, /본문형 이론 레슨|이론 레슨/);
   assert.doesNotMatch(html, /\[개발용 샘플 본문\]/);
   assert.match(html, /학습용 콘텐츠|학습 기록 원칙/);
 

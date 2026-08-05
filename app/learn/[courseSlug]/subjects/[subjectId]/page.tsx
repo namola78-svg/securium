@@ -58,7 +58,7 @@ async function ProtectedSubject({
           <Link className="breadcrumb" href={`/learn/${course.slug}`}>
             ← {course.shortName} 과정
           </Link>
-          <p className="eyebrow">SUBJECT</p>
+          <p className="eyebrow">과목 학습</p>
           <h1>{subject.name}</h1>
           <p>{subject.description}</p>
         </div>
@@ -67,7 +67,7 @@ async function ProtectedSubject({
         <div className="shell narrow">
           <div className="section-heading compact">
             <div>
-              <p className="eyebrow">TOPICS</p>
+              <p className="eyebrow">주제 목록</p>
               <h2>주제 목록</h2>
             </div>
           </div>
@@ -87,7 +87,7 @@ async function ProtectedSubject({
           </div>
           <div className="section-heading compact section-block">
             <div>
-              <p className="eyebrow">THEORY LESSONS</p>
+              <p className="eyebrow">이론 레슨</p>
               <h2>본문형 이론 레슨</h2>
             </div>
             <span className="count-label">

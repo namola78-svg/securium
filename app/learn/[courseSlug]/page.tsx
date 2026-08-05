@@ -287,7 +287,7 @@ async function LearnActionBoard({
     >
       <div className="section-heading compact">
         <div>
-          <p className="eyebrow">TODAY LEARNING</p>
+          <p className="eyebrow">오늘의 학습</p>
           <h2>오늘의 학습 보드</h2>
           <p>
             이어서 볼 이론, 풀 문제, 복습과 분석을 한눈에 확인하세요.
@@ -351,7 +351,7 @@ function LearnActionBoardFallback() {
     >
       <div className="section-heading compact">
         <div>
-          <p className="eyebrow">TODAY LEARNING</p>
+          <p className="eyebrow">오늘의 학습</p>
           <h2>오늘의 학습 보드를 불러오고 있습니다</h2>
         </div>
       </div>
@@ -421,7 +421,7 @@ function LearnLevelPath({
     <>
       <div className="section-heading compact">
         <div>
-          <p className="eyebrow">LEVEL PATH</p>
+          <p className="eyebrow">단계 학습</p>
           <h2>단계 학습</h2>
         </div>
         <span className="count-label">학습 단계 {levelRows.length}개</span>
@@ -485,7 +485,7 @@ function LearnLevelPathFallback() {
     <>
       <div className="section-heading compact" aria-live="polite">
         <div>
-          <p className="eyebrow">LEVEL PATH</p>
+          <p className="eyebrow">단계 학습</p>
           <h2>단계 학습을 불러오고 있습니다</h2>
         </div>
       </div>
@@ -521,7 +521,7 @@ async function SharedTheorySectionLoader({
     <section className="section-block">
       <div className="section-heading compact">
         <div>
-          <p className="eyebrow">THEORY FALLBACK</p>
+          <p className="eyebrow">보조 이론 학습</p>
           <h2>보조 이론 학습</h2>
           <p>
             공식 커리큘럼 연결이 충분하지 않은 과정에서는 기존 이론 레슨으로
@@ -575,7 +575,7 @@ function SharedTheorySectionFallback() {
     <section className="section-block" aria-live="polite">
       <div className="section-heading compact">
         <div>
-          <p className="eyebrow">SHARED THEORY</p>
+          <p className="eyebrow">공통 이론</p>
           <h2>공통 이론 레슨을 불러오고 있습니다</h2>
         </div>
       </div>
@@ -611,7 +611,7 @@ async function SubjectsSectionLoader({
       <div className="section-heading compact">
         <div>
           <p className="eyebrow">
-            {hasOfficialTreeWithoutLessons ? "LEGACY FALLBACK" : "SUBJECTS"}
+            {hasOfficialTreeWithoutLessons ? "기존 학습 자료" : "과목별 학습"}
           </p>
           <h2>{heading}</h2>
           <p>{description}</p>
@@ -645,7 +645,7 @@ function SubjectsSectionFallback() {
     <div aria-live="polite">
       <div className="section-heading compact">
         <div>
-          <p className="eyebrow">SUBJECTS</p>
+          <p className="eyebrow">과목별 학습</p>
           <h2>과목 목록을 불러오고 있습니다</h2>
         </div>
       </div>
@@ -677,7 +677,7 @@ async function TheorySideCardLoader({
 
   return (
     <div className="side-card">
-      <span className="eyebrow">THEORY</span>
+      <span className="eyebrow">이론 학습</span>
       <h3>이론 학습 {displayedTheoryProgress.progressPercent}%</h3>
       <p>
         {latestSharedLesson
@@ -710,7 +710,7 @@ async function TheorySideCardLoader({
 function TheorySideCardFallback() {
   return (
     <div className="side-card" aria-live="polite">
-      <span className="eyebrow">THEORY</span>
+      <span className="eyebrow">이론 학습</span>
       <h3>이론 학습을 불러오고 있습니다</h3>
       <div className="card-skeleton" aria-hidden="true" />
     </div>
@@ -729,7 +729,7 @@ async function SpecializationSideCardLoader({
 
   return (
     <div className="side-card specialization-callout">
-      <span className="eyebrow">SPECIALIZATION</span>
+      <span className="eyebrow">특화 학습</span>
       <h3>과정 특화 학습</h3>
       <p>{specializations.map((item) => item.displayName).join(" · ")}</p>
       <Link
@@ -765,7 +765,7 @@ async function LearnActivitySideCards({
   return (
     <>
       <div className="side-card">
-        <span className="eyebrow">REVIEW</span>
+        <span className="eyebrow">복습</span>
         <h3>오늘의 복습</h3>
         <p>{dueReviewCount}개 문제가 예정되어 있습니다.</p>
         <Link
@@ -784,7 +784,7 @@ async function LearnActivitySideCards({
         </Link>
       </div>
       <div className="side-card">
-        <span className="eyebrow">ANALYTICS</span>
+        <span className="eyebrow">학습분석</span>
         <h3>과정 분석</h3>
         <p>
           최근 7일 {stats.recent7Days}문제 · 반복 오답{" "}
@@ -805,7 +805,7 @@ function LearnActivitySideCardsFallback() {
   return (
     <>
       <div className="side-card" aria-live="polite">
-        <span className="eyebrow">REVIEW</span>
+        <span className="eyebrow">복습</span>
         <h3>오늘의 복습</h3>
         <p>복습 정보를 불러오고 있습니다.</p>
         <div className="card-skeleton" aria-hidden="true" />
@@ -817,7 +817,7 @@ function LearnActivitySideCardsFallback() {
         <div className="card-skeleton" aria-hidden="true" />
       </div>
       <div className="side-card" aria-live="polite">
-        <span className="eyebrow">ANALYTICS</span>
+        <span className="eyebrow">학습분석</span>
         <h3>과정 분석</h3>
         <p>분석 정보를 불러오고 있습니다.</p>
         <div className="card-skeleton" aria-hidden="true" />
@@ -849,7 +849,7 @@ function CurriculumPathFallback() {
     <section className="curriculum-path-section section-block" aria-live="polite">
       <div className="section-heading compact">
         <div>
-          <p className="eyebrow">CURRICULUM PATH</p>
+          <p className="eyebrow">커리큘럼 경로</p>
           <h2>커리큘럼 경로를 불러오고 있습니다</h2>
         </div>
       </div>
@@ -878,7 +878,7 @@ function CurriculumPathSection({
       ) : null}
       <div className="section-heading compact">
         <div>
-          <p className="eyebrow">OFFICIAL CURRICULUM</p>
+          <p className="eyebrow">공식 커리큘럼</p>
           <h2>공식 커리큘럼</h2>
           <p>
             {path.tree.title} · v{path.tree.version}

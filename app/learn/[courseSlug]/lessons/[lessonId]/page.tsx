@@ -71,7 +71,7 @@ export default async function LessonPage({
           >
             ← {publicCopy(lesson.subjectName)}
           </Link>
-          <p className="eyebrow">THEORY LESSON</p>
+          <p className="eyebrow">이론 레슨</p>
           <h1>{lessonTitle}</h1>
           <p>{lessonSummary}</p>
           <div className="lesson-meta">
