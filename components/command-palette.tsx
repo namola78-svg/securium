@@ -13,7 +13,7 @@ type CommandItem = {
   scope: CommandScope;
 };
 
-const commands: CommandItem[] = [
+const learnerCommands: CommandItem[] = [
   {
     title: "과정 둘러보기",
     description: "공개된 SECURIUM 과정을 비교하고 상세 정보를 확인합니다.",
@@ -67,9 +67,12 @@ const commands: CommandItem[] = [
     title: "AI 튜터",
     description: "근거 기반 AI 설명과 학습 힌트를 확인합니다.",
     href: "/ai-tutor",
-    keywords: ["ai", "tutor", "trace", "튜터"],
+    keywords: ["ai", "tutor", "튜터", "설명"],
     scope: "학습",
   },
+];
+
+const operatorCommands: CommandItem[] = [
   {
     title: "관리자 운영 대시보드",
     description: "과정, 커리큘럼, 콘텐츠, 온톨로지 운영 상태를 봅니다.",
@@ -116,6 +119,13 @@ export function CommandPalette() {
   const inputRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousPathnameRef = useRef(pathname);
+  const commands = useMemo(
+    () =>
+      pathname.startsWith("/admin") || pathname.startsWith("/ops")
+        ? [...learnerCommands, ...operatorCommands]
+        : learnerCommands,
+    [pathname],
+  );
 
   const filteredCommands = useMemo(() => {
     const normalizedQuery = normalize(query);
@@ -132,7 +142,7 @@ export function CommandPalette() {
       );
       return haystack.includes(normalizedQuery);
     });
-  }, [query]);
+  }, [commands, query]);
 
   function openPalette() {
     setQuery("");
