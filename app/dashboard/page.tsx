@@ -47,7 +47,7 @@ export default async function DashboardPage() {
         <section className="section-block dashboard-summary-section">
           <div className="section-heading compact">
             <div>
-              <p className="eyebrow">LEARNING SUMMARY</p>
+              <p className="eyebrow">학습 요약</p>
               <h2>최근 학습 요약</h2>
               <p>오늘의 행동을 정한 뒤 필요한 수치만 가볍게 확인합니다.</p>
             </div>
@@ -110,7 +110,7 @@ async function DashboardHero({
   return (
     <section className="dashboard-intro dashboard-hero">
       <div>
-        <p className="eyebrow">TODAY START</p>
+        <p className="eyebrow">오늘 시작하기</p>
         <h1>{displayName}님의 다음 학습을 정리했습니다</h1>
         <p>
           {currentCourse
@@ -167,7 +167,7 @@ function DashboardHeroFallback({ displayName }: { displayName: string }) {
   return (
     <section className="dashboard-intro dashboard-hero" aria-busy="true">
       <div>
-        <p className="eyebrow">TODAY START</p>
+        <p className="eyebrow">오늘 시작하기</p>
         <h1>{displayName}님의 학습 정보를 불러오고 있습니다</h1>
         <p>과정별 진도와 오늘의 복습 일정을 확인하는 중입니다.</p>
       </div>
@@ -269,7 +269,7 @@ async function TodayPlanSection({
     <section className="section-block today-plan">
       <div className="section-heading compact">
         <div>
-          <p className="eyebrow">TODAY PLAN</p>
+          <p className="eyebrow">오늘의 학습 계획</p>
           <h2>오늘 할 학습</h2>
           <p>복습 예정, 취약 영역, 최근 학습 흐름을 기준으로 바로 시작할 일을 정리합니다.</p>
         </div>
@@ -324,7 +324,7 @@ async function TodayPlanSection({
       <div className="today-recommendation-panel">
         <div className="section-heading compact">
           <div>
-            <p className="eyebrow">NEXT ACTIONS</p>
+            <p className="eyebrow">추천 학습</p>
             <h3>바로 이어갈 학습</h3>
           </div>
         </div>
@@ -366,7 +366,7 @@ function TodayPlanFallback() {
     <section className="section-block today-plan" aria-busy="true">
       <div className="section-heading compact">
         <div>
-          <p className="eyebrow">TODAY PLAN</p>
+          <p className="eyebrow">오늘의 학습 계획</p>
           <h2>오늘 할 학습</h2>
         </div>
         <Link className="text-link" href="/reviews">
@@ -395,7 +395,7 @@ async function ActiveCoursesSection({
     <section className="section-block">
       <div className="section-heading compact">
         <div>
-          <p className="eyebrow">CONTINUE LEARNING</p>
+          <p className="eyebrow">이어서 학습</p>
           <h2>이어서 학습</h2>
         </div>
         <Link className="text-link" href="/my-courses">
@@ -482,7 +482,7 @@ function ActiveCoursesFallback() {
     <section className="section-block" aria-busy="true">
       <div className="section-heading compact">
         <div>
-          <p className="eyebrow">CONTINUE LEARNING</p>
+          <p className="eyebrow">이어서 학습</p>
           <h2>이어서 학습</h2>
         </div>
         <Link className="text-link" href="/my-courses">

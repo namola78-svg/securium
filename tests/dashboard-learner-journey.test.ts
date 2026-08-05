@@ -24,10 +24,23 @@ test("today plan uses learner cards for goal, AI recommendation, review, and set
   assert.match(source, /AI 추천/);
   assert.match(source, /복습/);
   assert.match(source, /학습 설정/);
-  assert.match(source, /NEXT ACTIONS/);
+  assert.match(source, /추천 학습/);
   assert.match(source, /바로 이어갈 학습/);
   assert.match(styles, /\.today-plan-card/);
   assert.match(styles, /@media \(max-width: 1024px\)[\s\S]*?\.today-plan-grid/);
+});
+
+test("learner dashboard avoids admin-style English section labels", () => {
+  const source = readFileSync("app/dashboard/page.tsx", "utf8");
+
+  assert.match(source, /오늘 시작하기/);
+  assert.match(source, /오늘의 학습 계획/);
+  assert.match(source, /이어서 학습/);
+  assert.match(source, /학습 요약/);
+  assert.doesNotMatch(
+    source,
+    /LEARNING SUMMARY|TODAY START|TODAY PLAN|NEXT ACTIONS|CONTINUE LEARNING/,
+  );
 });
 
 test("learner dashboard maps internal enrollment status to user-facing labels", () => {
