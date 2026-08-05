@@ -330,6 +330,38 @@ export default async function Home() {
             </div>
           </div>
         </div>
+        <div className="shell">
+          <article className="ai-result-card" aria-labelledby="ai-result-title">
+            <div className="ai-result-question">
+              <p className="eyebrow">AI RESULT PREVIEW</p>
+              <h3 id="ai-result-title">
+                “접근통제에서 권한 검토가 왜 중요한가요?”
+              </h3>
+              <p>
+                질문 하나가 설명, 근거, 관련 문제, 관련 개념으로 이어지는 방식이
+                SECURIUM의 AI 학습 경험입니다.
+              </p>
+            </div>
+            <div className="ai-result-grid">
+              <div>
+                <span>AI 설명</span>
+                <strong>권한은 한 번 부여한 뒤에도 업무 변경과 퇴사에 따라 계속 검토해야 합니다.</strong>
+              </div>
+              <div>
+                <span>근거</span>
+                <strong>공식 기준의 접근권한 부여·변경·말소 관리 항목과 연결됩니다.</strong>
+              </div>
+              <div>
+                <span>관련 문제</span>
+                <strong>권한 회수 지연, 공유 계정 사용, 최소권한 원칙 문제를 추천합니다.</strong>
+              </div>
+              <div>
+                <span>관련 개념</span>
+                <strong>최소권한, 직무분리, 계정 수명주기, 접근권한 검토</strong>
+              </div>
+            </div>
+          </article>
+        </div>
       </section>
 
       <section className="section landing-value-section">
