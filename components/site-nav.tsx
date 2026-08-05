@@ -7,13 +7,12 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 const publicNavItems = [{ href: "/courses", label: "과정" }];
 
 const userNavItems = [
-  { href: "/dashboard", label: "대시보드" },
-  { href: "/my-courses", label: "내 과정" },
-  { href: "/wrong-notes", label: "오답노트" },
-  { href: "/reviews", label: "오늘의 복습" },
-  { href: "/mock-exams", label: "모의고사" },
-  { href: "/analytics", label: "학습분석" },
-  { href: "/bookmarks", label: "즐겨찾기" },
+  { href: "/dashboard", label: "학습 시작" },
+  { href: "/my-courses", label: "이론 학습" },
+  { href: "/practice", label: "문제 풀이" },
+  { href: "/reviews", label: "복습" },
+  { href: "/analytics", label: "분석" },
+  { href: "/ai-tutor", label: "AI 튜터" },
   { href: "/profile", label: "프로필" },
 ];
 

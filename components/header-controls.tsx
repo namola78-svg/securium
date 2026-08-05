@@ -27,10 +27,11 @@ const publicItems: NavItem[] = [
 ];
 
 const signedInItems: NavItem[] = [
-  { href: "/my-courses", label: "내 학습" },
-  { href: "/practice", label: "문제풀이" },
-  { href: "/wrong-notes", label: "오답노트" },
-  { href: "/reviews", label: "오늘의 복습" },
+  { href: "/dashboard", label: "학습 시작" },
+  { href: "/my-courses", label: "이론 학습" },
+  { href: "/practice", label: "문제 풀이" },
+  { href: "/reviews", label: "복습" },
+  { href: "/analytics", label: "분석" },
   { href: "/ai-tutor", label: "AI 튜터" },
 ];
 
