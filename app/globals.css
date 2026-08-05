@@ -3906,6 +3906,49 @@ textarea {
   margin: 0;
 }
 
+.ds-inspector-section {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(148, 169, 161, 0.22);
+  border-radius: 14px;
+  background: rgb(255 255 255 / 0.62);
+}
+
+.ds-inspector-section-header {
+  display: grid;
+  gap: 4px;
+}
+
+.ds-inspector-section-header h3,
+.ds-inspector-section-header p {
+  margin: 0;
+}
+
+.ds-inspector-section-header h3 {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ds-inspector-section-header p,
+.ds-inspector-section-body {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.ds-inspector-section-body {
+  display: grid;
+  gap: 8px;
+}
+
+.ds-inspector-section-body p {
+  margin: 0;
+}
+
 .ds-inspector-actions .button {
   min-height: 42px;
 }

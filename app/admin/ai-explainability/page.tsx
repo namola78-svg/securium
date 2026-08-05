@@ -1,6 +1,7 @@
 import { AdminAIExplainabilityFeedbackForm } from "@/components/admin-ai-explainability-feedback";
 import {
   InspectorPanel,
+  InspectorSection,
   PageToolbar,
   SectionHeader,
   StatusBadge,
@@ -452,16 +453,21 @@ export default async function AdminAIExplainabilityPage({
               </>
             }
           >
-            <div>
+            <InspectorSection
+              title="Trace safety"
+              description="AI Inspector는 근거와 품질 신호를 보여주되 민감한 원문은 노출하지 않습니다."
+            >
               <StatusBadge compact tone="brand">
                 Prompt 원문과 민감정보는 표시하지 않습니다.
               </StatusBadge>
-            </div>
-            <p>
-              이 패널은 앞으로 선택한 trace의 concept detection, alias expansion,
-              retrieval context, citation, token, latency, cost, reviewer note를
-              한곳에서 확인하는 Inspector로 확장됩니다.
-            </p>
+            </InspectorSection>
+            <InspectorSection title="Trace anatomy">
+              <p>
+                이 패널은 앞으로 선택한 trace의 concept detection, alias expansion,
+                retrieval context, citation, token, latency, cost, reviewer note를
+                한곳에서 확인하는 Inspector로 확장됩니다.
+              </p>
+            </InspectorSection>
           </InspectorPanel>
         }
       />

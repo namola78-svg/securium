@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   InspectorPanel,
+  InspectorSection,
   PageToolbar,
   SectionHeader,
   StatusBadge,
@@ -358,16 +359,21 @@ export default async function AdminOntologyPage({ searchParams }: PageProps) {
                   </>
                 }
               >
-                <div>
+                <InspectorSection
+                  title="Retrieval readiness"
+                  description="Ontology Inspector는 검색·AI 해설에 사용할 수 있는 ACTIVE 개념과 관계를 우선 확인합니다."
+                >
                   <StatusBadge compact tone="brand">
                     Retrieval-ready data prefers ACTIVE ontology.
                   </StatusBadge>
-                </div>
-                <p>
-                  This inspector will expand into concept metadata, aliases,
-                  relations, coverage, AI usage, audit history, and review notes
-                  as row selection is introduced.
-                </p>
+                </InspectorSection>
+                <InspectorSection title="Concept context">
+                  <p>
+                    This inspector will expand into concept metadata, aliases,
+                    relations, coverage, AI usage, audit history, and review notes
+                    as row selection is introduced.
+                  </p>
+                </InspectorSection>
               </InspectorPanel>
             }
           />

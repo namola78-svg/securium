@@ -253,3 +253,25 @@ export function InspectorPanel({
     </aside>
   );
 }
+
+export function InspectorSection({
+  title,
+  description,
+  children,
+  className = "",
+}: {
+  title: ReactNode;
+  description?: ReactNode;
+  children?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={`ds-inspector-section ${className}`}>
+      <header className="ds-inspector-section-header">
+        <h3>{title}</h3>
+        {description ? <p>{description}</p> : null}
+      </header>
+      {children ? <div className="ds-inspector-section-body">{children}</div> : null}
+    </section>
+  );
+}

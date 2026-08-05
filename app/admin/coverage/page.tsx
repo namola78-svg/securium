@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   InspectorPanel,
+  InspectorSection,
   MetricCard,
   PageToolbar,
   SectionHeader,
@@ -215,10 +216,15 @@ export default async function AdminCoveragePage() {
               </>
             }
           >
-            <p>
-              이 화면은 Coverage Matrix의 첫 단계입니다. 이후에는 과정, 과목,
-              노드 타입, gap 유형별 필터와 담당자 기반 action queue로 확장합니다.
-            </p>
+            <InspectorSection
+              title="Coverage focus"
+              description="커버리지 Inspector는 선택한 과정·노드의 콘텐츠, 문제, 운영 공백을 한곳에서 요약합니다."
+            >
+              <p>
+                이 화면은 Coverage Matrix의 첫 단계입니다. 이후에는 과정, 과목,
+                노드 타입, gap 유형별 필터와 담당자 기반 action queue로 확장합니다.
+              </p>
+            </InspectorSection>
           </InspectorPanel>
         }
       />

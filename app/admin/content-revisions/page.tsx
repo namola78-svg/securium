@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import {
   InspectorPanel,
+  InspectorSection,
   MetricCard,
   PageToolbar,
   SectionHeader,
@@ -395,13 +396,18 @@ export default async function ContentRevisionsAdminPage({
               </>
             }
           >
-            <div className="admin-card-meta">
-              <span>
-                새 버전 게시 시 이전 최신 버전은 자동으로 superseded 처리됩니다.
-              </span>
-              <span>초안은 일반 사용자 검색과 AI Retrieval에서 제외됩니다.</span>
-              <span>기존 학습 기록은 콘텐츠 버전 작업으로 삭제되지 않습니다.</span>
-            </div>
+            <InspectorSection
+              title="Revision safety"
+              description="Revision Inspector는 최신성, 영향 범위, 학습 기록 보존 조건을 한곳에서 확인합니다."
+            >
+              <div className="admin-card-meta">
+                <span>
+                  새 버전 게시 시 이전 최신 버전은 자동으로 superseded 처리됩니다.
+                </span>
+                <span>초안은 일반 사용자 검색과 AI Retrieval에서 제외됩니다.</span>
+                <span>기존 학습 기록은 콘텐츠 버전 작업으로 삭제되지 않습니다.</span>
+              </div>
+            </InspectorSection>
           </InspectorPanel>
         }
       />
