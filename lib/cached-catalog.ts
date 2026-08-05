@@ -10,11 +10,23 @@ const cacheOptions = {
   tags: ["public-catalog"],
 };
 
+async function cachedListPublishedCourses() {
+  return listPublishedCourses();
+}
+
+async function cachedGetPublicCourseBySlug(slug: string) {
+  return getPublicCourseBySlug(slug);
+}
+
+async function cachedListCurriculum(courseId: string) {
+  return listCurriculum(courseId);
+}
+
 export const listPublishedCoursesCached =
   process.env.NODE_ENV === "test"
     ? listPublishedCourses
     : unstable_cache(
-        listPublishedCourses,
+        cachedListPublishedCourses,
         ["list-published-courses"],
         cacheOptions,
       );
@@ -23,7 +35,7 @@ export const getPublicCourseBySlugCached =
   process.env.NODE_ENV === "test"
     ? getPublicCourseBySlug
     : unstable_cache(
-        getPublicCourseBySlug,
+        cachedGetPublicCourseBySlug,
         ["get-public-course-by-slug"],
         cacheOptions,
       );
@@ -31,4 +43,4 @@ export const getPublicCourseBySlugCached =
 export const listCurriculumCached =
   process.env.NODE_ENV === "test"
     ? listCurriculum
-    : unstable_cache(listCurriculum, ["list-curriculum"], cacheOptions);
+    : unstable_cache(cachedListCurriculum, ["list-curriculum"], cacheOptions);

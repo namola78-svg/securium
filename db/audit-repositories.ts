@@ -4,6 +4,7 @@ import {
   desc,
   eq,
   gte,
+  inArray,
   like,
   lte,
   sql,
@@ -221,13 +222,29 @@ export async function getAuditLogById(id: string) {
 }
 
 export async function listAuditActors() {
+  const recentActorRows = await getDb()
+    .select({
+      actorUserId: auditLogs.actorUserId,
+      createdAt: auditLogs.createdAt,
+    })
+    .from(auditLogs)
+    .orderBy(desc(auditLogs.createdAt), desc(auditLogs.id))
+    .limit(250);
+  const actorIds = Array.from(
+    new Set(
+      recentActorRows
+        .map((row) => row.actorUserId)
+        .filter((actorUserId): actorUserId is string => Boolean(actorUserId)),
+    ),
+  ).slice(0, 100);
+  if (actorIds.length === 0) return [];
   return getDb()
-    .selectDistinct({
+    .select({
       id: users.id,
       email: users.email,
     })
-    .from(auditLogs)
-    .innerJoin(users, eq(auditLogs.actorUserId, users.id))
+    .from(users)
+    .where(inArray(users.id, actorIds))
     .orderBy(asc(users.email));
 }
 

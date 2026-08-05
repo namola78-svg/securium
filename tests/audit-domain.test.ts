@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import {
   auditResultForStatus,
@@ -85,4 +86,19 @@ test("IP 원문 대신 hash와 축약 User-Agent만 생성한다", async () => {
 test("권한 거부와 처리 실패 결과를 구분한다", () => {
   assert.equal(auditResultForStatus(403), "DENIED");
   assert.equal(auditResultForStatus(500), "FAILURE");
+});
+
+test("admin audit actor filter avoids DISTINCT join scans", () => {
+  const source = readFileSync("db/audit-repositories.ts", "utf8");
+  const start = source.indexOf("export async function listAuditActors");
+  const end = source.indexOf("export async function listAuditFilterOptions");
+  assert.ok(start > -1);
+  assert.ok(end > start);
+  const functionBody = source.slice(start, end);
+
+  assert.doesNotMatch(functionBody, /selectDistinct/);
+  assert.doesNotMatch(functionBody, /\.from\(auditLogs\)[\s\S]*innerJoin\(users/);
+  assert.match(functionBody, /orderBy\(desc\(auditLogs\.createdAt\)/);
+  assert.match(functionBody, /\.limit\(250\)/);
+  assert.match(functionBody, /where\(inArray\(users\.id,\s*actorIds\)\)/);
 });

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import {
   assertNoDuplicateSortOrder,
@@ -160,4 +161,14 @@ test("관리자 권한 검증은 일반 사용자를 차단한다", () => {
       error.code === "ADMIN_FORBIDDEN",
   );
   assert.doesNotThrow(() => assertCatalogManager(["COURSE_MANAGER"]));
+});
+
+test("public catalog cache uses stable wrappers instead of repository functions", () => {
+  const source = readFileSync("lib/cached-catalog.ts", "utf8");
+  assert.doesNotMatch(source, /unstable_cache\(\s*listPublishedCourses\s*,/);
+  assert.doesNotMatch(source, /unstable_cache\(\s*getPublicCourseBySlug\s*,/);
+  assert.doesNotMatch(source, /unstable_cache\(\s*listCurriculum\s*,/);
+  assert.match(source, /unstable_cache\(\s*cachedListPublishedCourses\s*,/);
+  assert.match(source, /unstable_cache\(\s*cachedGetPublicCourseBySlug\s*,/);
+  assert.match(source, /unstable_cache\(\s*cachedListCurriculum\s*,/);
 });
