@@ -1275,3 +1275,20 @@ test("core admin operations pages share the console inspector contract", async (
     }
   }
 });
+
+test("admin question reports page uses the shared workspace inspector primitive", async () => {
+  const response = await fetch(`${baseUrl}/admin/question-reports`, {
+    headers: {
+      "oai-authenticated-user-email": "dev-admin@example.invalid",
+    },
+  });
+  const html = await response.text();
+  assert.equal(response.status, 200, html.slice(0, 1200));
+  assert.match(html, /QUESTION REPORTS/);
+  assert.match(html, /문제 신고 관리/);
+  assert.match(html, /신고 큐/);
+  assert.match(html, /ds-page-toolbar/);
+  assert.match(html, /ds-workspace-layout/);
+  assert.match(html, /ds-inspector-panel/);
+  assert.match(html, /REPORT INSPECTOR/);
+});
