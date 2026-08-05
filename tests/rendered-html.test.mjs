@@ -617,6 +617,9 @@ test("통합 학습 플랫폼 랜딩페이지를 서버 렌더링한다", async 
   assert.match(visibleHtml, /과정 둘러보기/);
   assert.match(visibleHtml, /SECURIUM 학습 경험/);
   assert.match(visibleHtml, /공식 커리큘럼부터 AI 복습까지/);
+  assert.match(visibleHtml, /문제 풀이/);
+  assert.match(visibleHtml, /AI 근거 설명/);
+  assert.match(visibleHtml, /복습 추천/);
   assert.match(visibleHtml, /공식 기준 기반/);
   assert.match(visibleHtml, /시험 준비와 실무 역량/);
   assert.match(visibleHtml, /과정별 진도 자동 관리/);

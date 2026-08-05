@@ -104,6 +104,29 @@ export default async function Home() {
                 흐름으로 제공합니다.
               </p>
             </div>
+            <div className="hero-ai-flow" aria-label="AI 학습 흐름">
+              <div>
+                <span>01</span>
+                <strong>문제 풀이</strong>
+                <p>과정별 문제를 풀고 취약 영역을 확인합니다.</p>
+              </div>
+              <div className="hero-ai-flow-arrow" aria-hidden="true">
+                →
+              </div>
+              <div>
+                <span>02</span>
+                <strong>AI 근거 설명</strong>
+                <p>공식 기준과 연결된 근거로 정답 이유를 설명합니다.</p>
+              </div>
+              <div className="hero-ai-flow-arrow" aria-hidden="true">
+                →
+              </div>
+              <div>
+                <span>03</span>
+                <strong>복습 추천</strong>
+                <p>오답과 취약 개념을 오늘의 복습으로 이어줍니다.</p>
+              </div>
+            </div>
             <div className="signal-list">
               <div>
                 <span>기준</span>
