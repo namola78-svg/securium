@@ -7,6 +7,9 @@ Facilitator: TBD
 
 This document is the working log for the first guided Preview Beta user testing round.
 
+Tester-facing guide: `docs/ui/preview-beta-tester-guide.md`.
+Feedback form: `docs/ui/preview-beta-feedback-form.md`.
+
 ## Goals
 
 Round 1 focuses on whether SECURIUM is understandable, trustworthy, and action-oriented for both learners and administrators.
@@ -89,4 +92,3 @@ Round 1 is complete when:
 - All P0/P1 issues are fixed or accepted with a documented reason.
 - P2/P3 issues are logged for post-beta triage.
 - Production Release Readiness is updated with the user testing result.
-
