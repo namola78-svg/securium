@@ -21,6 +21,8 @@ Freeze record: `docs/ui/preview-beta-freeze.md`.
 QA record: `docs/ui/preview-beta-qa-results.md`.
 Issue triage: `docs/ui/preview-beta-issue-triage.md`.
 Release candidate review: `docs/ui/production-release-candidate.md`.
+Production smoke runbook: `docs/ui/production-smoke-test-runbook.md`.
+Production release evidence log: `docs/ui/production-release-evidence-log.md`.
 
 ## Smoke tests after release
 
