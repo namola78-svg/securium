@@ -6,6 +6,7 @@ import {
   PageToolbar,
   SectionHeader,
   StatusBadge,
+  WorkspaceLayout,
 } from "@/components/design-system-primitives";
 import { ReportAdminActions } from "@/components/report-admin-actions";
 import { listQuestionReports } from "@/db/question-repositories";
@@ -117,8 +118,8 @@ export default async function QuestionReportsPage() {
         </span>
       </PageToolbar>
 
-      <div className="ds-workspace-layout has-inspector">
-        <div className="ds-workspace-main">
+      <WorkspaceLayout
+        main={
           <section className="admin-panel">
             {reports.length ? (
               <div className="admin-record-list">
@@ -154,9 +155,8 @@ export default async function QuestionReportsPage() {
               </div>
             )}
           </section>
-        </div>
-
-        <div className="ds-workspace-inspector">
+        }
+        inspector={
           <InspectorPanel
             eyebrow="REPORT INSPECTOR"
             title={
@@ -214,8 +214,8 @@ export default async function QuestionReportsPage() {
               처리 이력은 감사로그와 함께 확인하세요.
             </p>
           </InspectorPanel>
-        </div>
-      </div>
+        }
+      />
     </>
   );
 }
