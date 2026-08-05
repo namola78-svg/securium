@@ -66,8 +66,8 @@ test("network security practice flow stays scoped to engineer and industrial eng
   );
   const engineerHtml = await engineerResponse.text();
   assert.equal(engineerResponse.status, 200, engineerHtml.slice(0, 1200));
-  assert.match(engineerHtml, /CURRENT PRACTICE/);
-  assert.match(engineerHtml, /PRACTICE GUIDE/);
+  assert.match(engineerHtml, /현재 문제풀이 조건/);
+  assert.match(engineerHtml, /풀이 안내/);
   assert.match(engineerHtml, /AI 참고 해설은 채점 이후 요청할 수 있으며 공식 채점 결과가 아닙니다/);
   assert.match(engineerHtml, /TRUE FALSE/);
   assert.doesNotMatch(engineerHtml, /"isCorrect":true/);
@@ -83,7 +83,7 @@ test("network security practice flow stays scoped to engineer and industrial eng
   );
   const industrialHtml = await industrialResponse.text();
   assert.equal(industrialResponse.status, 200, industrialHtml.slice(0, 1200));
-  assert.match(industrialHtml, /CURRENT PRACTICE/);
+  assert.match(industrialHtml, /현재 문제풀이 조건/);
   assert.match(industrialHtml, /MULTIPLE CHOICE/);
   assert.doesNotMatch(industrialHtml, /"isCorrect":true/);
   assert.doesNotMatch(industrialHtml, /answerConfigJson/);
@@ -1035,7 +1035,7 @@ test("공개 문제만 표시하고 제출 전 정답 플래그를 노출하지 
   );
   const html = await response.text();
   assert.equal(response.status, 200, html.slice(0, 1200));
-  assert.match(html, /CURRENT PRACTICE/);
+  assert.match(html, /현재 문제풀이 조건/);
   assert.match(html, /현재 문제풀이 조건/);
   assert.match(html, /ISMS-P[\s\S]{0,40}문제풀이/);
   assert.doesNotMatch(html, /\[개발용 샘플\]/);

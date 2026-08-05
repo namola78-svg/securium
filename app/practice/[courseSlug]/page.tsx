@@ -14,6 +14,10 @@ import {
 import { listDueReviews } from "@/db/phase3-repositories";
 import { requireCurrentAppUser } from "@/lib/auth";
 import { publicCopy } from "@/lib/public-copy";
+import {
+  formatDifficultyLabel,
+  formatQuestionTypeLabel,
+} from "@/lib/question-display";
 
 export const dynamic = "force-dynamic";
 
@@ -94,7 +98,7 @@ export default async function PracticePage({
     <main className="page-main practice-page">
       <header className="page-hero">
         <div className="shell">
-          <p className="eyebrow">PRACTICE MODE</p>
+          <p className="eyebrow">문제풀이</p>
           <h1>{course.shortName} 문제풀이</h1>
           <p>
             제출 후 서버에서 채점하고 해설을 제공합니다. 정답 데이터는 제출 전
@@ -239,8 +243,10 @@ function PracticeContextSummary({
   const filters = [
     selectedSubjectName ? `과목: ${selectedSubjectName}` : "전체 과목",
     selectedTopicName ? `주제: ${selectedTopicName}` : "전체 주제",
-    questionType ? `유형: ${formatQuestionType(questionType)}` : "전체 유형",
-    difficulty ? `난이도: ${formatDifficulty(difficulty)}` : "전체 난이도",
+    questionType
+      ? `유형: ${formatQuestionTypeLabel(questionType)}`
+      : "전체 유형",
+    difficulty ? `난이도: ${formatDifficultyLabel(difficulty)}` : "전체 난이도",
     random ? "무작위 출제" : "기본 순서",
     wrongOnly ? "오답만" : null,
     reviewOnly ? "복습 예정" : null,
@@ -250,7 +256,7 @@ function PracticeContextSummary({
   return (
     <section className="practice-context-card" aria-label="현재 문제풀이 조건">
       <div>
-        <p className="eyebrow">CURRENT PRACTICE</p>
+        <p className="eyebrow">현재 풀이 조건</p>
         <h2>현재 문제풀이 조건</h2>
         <p>
           {questionCount}개 문항을 불러왔습니다. 커리큘럼에서 진입한 경우
@@ -267,25 +273,4 @@ function PracticeContextSummary({
       </a>
     </section>
   );
-}
-
-function formatQuestionType(type: string) {
-  const labels: Record<string, string> = {
-    TRUE_FALSE: "OX",
-    SINGLE_CHOICE: "단일선택",
-    MULTIPLE_CHOICE: "복수선택",
-    SHORT_ANSWER: "단답형",
-    ESSAY: "서술형",
-    CALCULATION: "계산형",
-  };
-  return labels[type] ?? type;
-}
-
-function formatDifficulty(difficulty: string) {
-  const labels: Record<string, string> = {
-    EASY: "쉬움",
-    MEDIUM: "보통",
-    HARD: "어려움",
-  };
-  return labels[difficulty] ?? difficulty;
 }

@@ -3,6 +3,11 @@
 import { useMemo, useRef, useState } from "react";
 import { EmptyState } from "@/components/state-ui";
 import { publicCopy } from "@/lib/public-copy";
+import {
+  formatAIExplanationStatusLabel,
+  formatDifficultyLabel,
+  formatQuestionTypeLabel,
+} from "@/lib/question-display";
 
 type PublicQuestion = {
   id: string;
@@ -112,7 +117,7 @@ export function PracticeSession({
   if (finished) {
     return (
       <section className="practice-card practice-finish">
-        <p className="eyebrow">SESSION COMPLETE</p>
+        <p className="eyebrow">풀이 완료</p>
         <h2>학습 세션을 종료했습니다.</h2>
         <div className="practice-summary">
           <strong>{completed}</strong>
@@ -268,7 +273,7 @@ export function PracticeSession({
     <section className="practice-card">
       <div className="practice-session-brief" aria-label="문제풀이 진행 요약">
         <div>
-          <p className="eyebrow">PRACTICE GUIDE</p>
+          <p className="eyebrow">풀이 안내</p>
           <strong>풀이 → 채점 → 검수 해설 → AI 근거 순서로 학습합니다.</strong>
           <span>
             답안을 제출하면 채점 결과와 검수 해설을 확인할 수 있습니다. AI 참고
@@ -312,7 +317,7 @@ export function PracticeSession({
         <span>
           {index + 1} / {questions.length}
         </span>
-        <span>{question.difficulty}</span>
+        <span>{formatDifficultyLabel(question.difficulty)}</span>
         <button type="button" className="text-link" onClick={bookmark}>
           즐겨찾기
         </button>
@@ -325,7 +330,7 @@ export function PracticeSession({
           style={{ width: `${((index + 1) / questions.length) * 100}%` }}
         />
       </div>
-      <p className="eyebrow">{question.type.replaceAll("_", " ")}</p>
+      <p className="eyebrow">{formatQuestionTypeLabel(question.type)}</p>
       <h2>{publicCopy(question.title)}</h2>
       <p className="question-content">{publicCopy(question.content)}</p>
 
@@ -487,7 +492,9 @@ function AIExplanationPanel({ result }: { result: AIExplanationResult }) {
           <p className="eyebrow">{isMock ? "AI 해설 미리보기" : "AI 생성 해설"}</p>
           <h3 id={`ai-explanation-${result.requestId}`}>AI 참고 해설</h3>
         </div>
-        <span className="status-badge">{result.status}</span>
+        <span className="status-badge">
+          {formatAIExplanationStatusLabel(result.status)}
+        </span>
       </div>
       <dl className="ai-trust-strip" aria-label="AI 해설 생성 정보">
         <div>
