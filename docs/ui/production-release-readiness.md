@@ -24,6 +24,7 @@ Release candidate review: `docs/ui/production-release-candidate.md`.
 Production release gate: `docs/ui/production-release-gate.md`.
 Production smoke runbook: `docs/ui/production-smoke-test-runbook.md`.
 Production release evidence log: `docs/ui/production-release-evidence-log.md`.
+Production rollback drill: `docs/ui/production-rollback-drill.md`.
 
 ## Smoke tests after release
 
