@@ -14,7 +14,7 @@ export default async function IntegratedAnalyticsPage() {
       <div className="shell">
         <header className="dashboard-intro">
           <div>
-            <p className="eyebrow">LEARNING ANALYTICS</p>
+            <p className="eyebrow">학습분석</p>
             <h1>통합 학습분석</h1>
             <p>
               과정별 문제풀이, 이론 진도, 복습 기록을 모아 다음 학습 결정을
@@ -52,7 +52,7 @@ async function AnalyticsOverview({
     <>
       <section className="analytics-overview-panel" aria-label="통합 학습분석 요약">
         <div>
-          <p className="eyebrow">LEARNING SIGNALS</p>
+          <p className="eyebrow">학습 신호</p>
           <h2>
             {analytics.totalQuestions
               ? `전체 정답률 ${analytics.overallAccuracy}%`
@@ -84,7 +84,7 @@ async function AnalyticsOverview({
       </section>
       <section className="analytics-action-panel" aria-label="추천 분석 행동">
         <div>
-          <p className="eyebrow">NEXT ANALYTIC ACTION</p>
+          <p className="eyebrow">다음 추천 행동</p>
           <h2>가장 먼저 확인할 영역</h2>
           {topCourse ? (
             <p>
@@ -151,14 +151,14 @@ function AnalyticsMetricsFallback() {
   return (
     <section className="analytics-overview-panel" aria-live="polite">
       <div>
-        <p className="eyebrow">LEARNING SIGNALS</p>
+        <p className="eyebrow">학습 신호</p>
         <h2>학습분석 정보를 불러오고 있습니다</h2>
         <p>과정별 학습 신호를 정리하는 중입니다.</p>
       </div>
       <dl aria-hidden="true">
         {[0, 1, 2, 3].map((item) => (
           <div key={item}>
-            <dt>Loading</dt>
+            <dt>불러오는 중</dt>
             <dd>-</dd>
           </div>
         ))}
@@ -177,7 +177,7 @@ async function AnalyticsCourseActions({
     <section className="section-block admin-panel">
       <div className="section-heading compact">
         <div>
-          <p className="eyebrow">COURSE ACTIONS</p>
+          <p className="eyebrow">과정별 다음 행동</p>
           <h2>과정별 학습 상태</h2>
           <p>
             정답률, 단계 완료율, 이론 진도율을 비교하고 과정별 분석 또는
@@ -232,7 +232,7 @@ function AnalyticsCourseActionsFallback() {
     <section className="section-block admin-panel" aria-live="polite">
       <div className="section-heading compact">
         <div>
-          <p className="eyebrow">COURSE ACTIONS</p>
+          <p className="eyebrow">과정별 다음 행동</p>
           <h2>과정별 학습 상태를 불러오고 있습니다</h2>
           <p>학습분석 정보를 준비하고 있습니다.</p>
         </div>

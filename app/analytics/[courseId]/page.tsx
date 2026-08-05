@@ -55,7 +55,7 @@ export default async function CourseAnalyticsPage({
       <div className="shell">
         <header className="dashboard-intro">
           <div>
-            <p className="eyebrow">COURSE ANALYTICS</p>
+            <p className="eyebrow">과정 학습분석</p>
             <h1>{course.name} 학습분석</h1>
             <p>
               정답률, 최근 학습량, 반복 오답, 복습 성공률을 과정 범위 안에서
@@ -72,7 +72,7 @@ export default async function CourseAnalyticsPage({
 
         <section className="analytics-overview-panel" aria-label="과정 분석 요약">
           <div>
-            <p className="eyebrow">COURSE SIGNALS</p>
+            <p className="eyebrow">과정 학습 신호</p>
             <h2>
               {stats.totalQuestions
                 ? `현재 정답률 ${stats.overallAccuracy}%`
@@ -105,7 +105,7 @@ export default async function CourseAnalyticsPage({
 
         <section className="analytics-action-panel" aria-label="과정 분석 추천 행동">
           <div>
-            <p className="eyebrow">PRIORITY AREA</p>
+            <p className="eyebrow">우선 확인 영역</p>
             <h2>우선 확인할 취약 영역</h2>
             {weakestTopic ? (
               <p>
