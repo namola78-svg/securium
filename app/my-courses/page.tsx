@@ -16,7 +16,7 @@ export default async function MyCoursesPage() {
     <main className="page-main">
       <section className="page-hero">
         <div className="shell">
-          <p className="eyebrow">MY LEARNING</p>
+          <p className="eyebrow">내 학습</p>
           <h1>내 학습</h1>
           <p>
             수강 상태를 관리하고 각 과정의 문제풀이와 학습 공간으로 이동할 수

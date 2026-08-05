@@ -11,7 +11,7 @@ export default async function ProfilePage() {
     <main className="page-main">
       <section className="page-hero">
         <div className="shell">
-          <p className="eyebrow">MY PROFILE</p>
+          <p className="eyebrow">내 프로필</p>
           <h1>프로필</h1>
           <p>
             로그인 계정과 플랫폼 권한 정보를 확인합니다. 민감한 인증 정보는
@@ -32,7 +32,7 @@ export default async function ProfilePage() {
             </div>
             <div>
               <dt>역할</dt>
-              <dd>{user.roles.join(", ") || "USER"}</dd>
+              <dd>{formatRoles(user.roles)}</dd>
             </div>
             <div>
               <dt>비밀번호</dt>
@@ -43,4 +43,17 @@ export default async function ProfilePage() {
       </section>
     </main>
   );
+}
+
+function formatRoles(roles: string[]) {
+  if (!roles.length) return "일반 사용자";
+
+  const labels: Record<string, string> = {
+    ADMIN: "관리자",
+    SUPER_ADMIN: "최고 관리자",
+    CONTENT_REVIEWER: "콘텐츠 검수자",
+    USER: "일반 사용자",
+  };
+
+  return roles.map((role) => labels[role] ?? role).join(", ");
 }

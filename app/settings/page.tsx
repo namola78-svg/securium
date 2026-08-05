@@ -18,7 +18,7 @@ export default async function LearningSettingsPage() {
     <main className="page-main">
       <section className="page-hero">
         <div className="shell">
-          <p className="eyebrow">LEARNING SETTINGS</p>
+          <p className="eyebrow">학습 설정</p>
           <h1>학습 설정</h1>
           <p>
             오늘의 학습 계획과 추천 학습에 사용할 하루 목표 문제 수와 학습
@@ -30,7 +30,7 @@ export default async function LearningSettingsPage() {
       <section className="section">
         <div className="shell narrow">
           <article className="course-detail-section">
-            <p className="eyebrow">DAILY GOAL</p>
+            <p className="eyebrow">하루 목표</p>
             <h2>하루 학습 목표</h2>
             <p>
               설정한 목표는 통합 대시보드와 오늘의 학습 계획에서 사용됩니다.

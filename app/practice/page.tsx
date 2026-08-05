@@ -21,7 +21,7 @@ export default async function PracticeHubPage() {
     <main className="page-main">
       <section className="page-hero">
         <div className="shell">
-          <p className="eyebrow">QUESTION PRACTICE</p>
+          <p className="eyebrow">문제풀이</p>
           <h1>문제풀이</h1>
           <p>
             수강 중인 과정에서 문제풀이를 시작하세요. 과정별 풀이 기록과
@@ -34,7 +34,7 @@ export default async function PracticeHubPage() {
         <div className="shell">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">MY COURSES</p>
+              <p className="eyebrow">내 과정</p>
               <h2>과정별 문제풀이</h2>
             </div>
             <Link className="text-link" href="/courses">
