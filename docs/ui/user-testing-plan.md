@@ -3,6 +3,7 @@
 User testing should validate whether SECURIUM feels useful and trustworthy, not whether every future feature exists.
 
 Detailed facilitator script: `docs/ui/preview-beta-test-script.md`.
+Round 1 working log: `docs/ui/preview-beta-user-testing-round-1.md`.
 
 ## Participant profile
 
