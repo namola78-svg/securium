@@ -1613,6 +1613,136 @@ button:disabled {
   color: #aeb9bb;
 }
 
+.landing-course-spotlight {
+  margin-top: -34px;
+  padding-bottom: 36px;
+  background: linear-gradient(180deg, var(--ink) 0, var(--paper) 100%);
+}
+
+.landing-course-spotlight .shell {
+  position: relative;
+  z-index: 1;
+}
+
+.landing-course-spotlight-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 18px;
+  color: var(--white);
+}
+
+.landing-course-spotlight-header h2 {
+  max-width: 720px;
+  margin: 0;
+  color: var(--white);
+  font-size: clamp(26px, 3vw, 40px);
+  letter-spacing: -0.045em;
+}
+
+.landing-course-spotlight-header .text-link {
+  color: #d9f99d;
+}
+
+.landing-course-spotlight-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.landing-course-spotlight-card {
+  display: flex;
+  min-height: 212px;
+  flex-direction: column;
+  gap: 12px;
+  padding: 22px;
+  border: 1px solid rgb(255 255 255 / 0.16);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.03)),
+    #132123;
+  color: var(--white);
+  text-decoration: none;
+  box-shadow: 0 18px 40px rgb(0 0 0 / 0.16);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.landing-course-spotlight-card:hover,
+.landing-course-spotlight-card:focus-visible {
+  border-color: rgb(207 255 78 / 0.7);
+  box-shadow: 0 24px 56px rgb(0 0 0 / 0.22);
+  outline: none;
+  transform: translateY(-2px);
+}
+
+.landing-course-spotlight-status {
+  align-self: flex-start;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgb(207 255 78 / 0.12);
+  color: var(--lime);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.landing-course-spotlight-card strong {
+  font-size: 22px;
+  letter-spacing: -0.035em;
+  line-height: 1.25;
+}
+
+.landing-course-spotlight-card p {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  color: #c8d4d5;
+  font-size: 14px;
+  line-height: 1.65;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.landing-course-spotlight-meta {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid rgb(255 255 255 / 0.12);
+  color: #a8b7ba;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+@media (width <= 1024px) {
+  .landing-course-spotlight-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (width <= 640px) {
+  .landing-course-spotlight {
+    margin-top: -18px;
+    padding-bottom: 24px;
+  }
+
+  .landing-course-spotlight-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .landing-course-spotlight-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-course-spotlight-card {
+    min-height: 184px;
+    padding: 20px;
+  }
+}
+
 .landing-value-section {
   padding-bottom: 48px;
 }

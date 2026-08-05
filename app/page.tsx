@@ -4,8 +4,48 @@ import { CourseCard } from "@/components/course-card";
 import type { CourseListItem } from "@/db/repositories";
 import { getOptionalCurrentAppUser } from "@/lib/auth";
 import { listPublishedCoursesCached } from "@/lib/cached-catalog";
+import { courseDescription, safeCount } from "@/lib/course-display";
 
 export const dynamic = "force-dynamic";
+
+const spotlightCourseOrder = [
+  "information-security-engineer",
+  "isms-p",
+  "cppg",
+  "secure-coding-diagnostician",
+  "privacy-impact-assessment",
+];
+
+function getSpotlightCourses(courses: CourseListItem[]) {
+  const bySlug = new Map(courses.map((course) => [course.slug, course]));
+  const preferred = spotlightCourseOrder
+    .map((slug) => bySlug.get(slug))
+    .filter((course): course is CourseListItem => Boolean(course));
+  const remaining = courses.filter(
+    (course) => !spotlightCourseOrder.includes(course.slug),
+  );
+
+  return [...preferred, ...remaining].slice(0, 4);
+}
+
+function spotlightMeta(course: CourseListItem) {
+  const subjectCount = safeCount(course.subjectCount);
+  const topicCount = safeCount(course.topicCount);
+  const questionCount = safeCount(course.questionCount);
+  const available =
+    course.active &&
+    course.published &&
+    (subjectCount > 0 || topicCount > 0 || questionCount > 0);
+
+  return {
+    description: courseDescription(course.description),
+    status: available ? "학습 가능" : "개설 예정",
+    stats:
+      questionCount > 0
+        ? `${subjectCount || "여러"}개 과목 · ${questionCount}문항`
+        : `${subjectCount || "여러"}개 과목 · ${topicCount || "주요"}개 주제`,
+  };
+}
 
 export default async function Home() {
   const user = await getOptionalCurrentAppUser();
@@ -18,6 +58,7 @@ export default async function Home() {
   } catch {
     databaseReady = false;
   }
+  const spotlightCourses = getSpotlightCourses(courses);
 
   return (
     <main>
@@ -83,6 +124,46 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      {databaseReady && spotlightCourses.length ? (
+        <section className="landing-course-spotlight" aria-labelledby="landing-course-spotlight-title">
+          <div className="shell">
+            <div className="landing-course-spotlight-header">
+              <div>
+                <p className="eyebrow">POPULAR LEARNING TRACKS</p>
+                <h2 id="landing-course-spotlight-title">
+                  준비하는 과정이 바로 보이도록
+                </h2>
+              </div>
+              <Link className="text-link" href="/courses">
+                전체 과정 보기 →
+              </Link>
+            </div>
+            <div className="landing-course-spotlight-grid">
+              {spotlightCourses.map((course) => {
+                const meta = spotlightMeta(course);
+
+                return (
+                  <Link
+                    key={course.id}
+                    className="landing-course-spotlight-card"
+                    href={`/courses/${course.slug}`}
+                  >
+                    <span className="landing-course-spotlight-status">
+                      {meta.status}
+                    </span>
+                    <strong>{course.name || course.shortName}</strong>
+                    <p>{meta.description}</p>
+                    <span className="landing-course-spotlight-meta">
+                      {meta.stats}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <section className="section landing-value-section">
         <div className="shell">
