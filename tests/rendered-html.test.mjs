@@ -1077,8 +1077,8 @@ test("문제 제출을 서버에서 채점하고 반복 오답을 한 노트에 
   );
   const notesHtml = await notesResponse.text();
   assert.equal(notesResponse.status, 200);
-  assert.match(notesHtml, /CURRENT WRONG NOTES/);
-  assert.match(notesHtml, /WRONG NOTE INSIGHT/);
+  assert.match(notesHtml, /현재 오답 조건/);
+  assert.match(notesHtml, /오답 인사이트/);
   assert.match(notesHtml, /\/practice\/isms-p\?wrongOnly=1/);
 });
 
@@ -1147,9 +1147,9 @@ test("오늘의 복습은 과정별 복습 CTA와 우선순위 항목을 표시�
   });
   const html = await response.text();
   assert.equal(response.status, 200, html.slice(0, 1000));
-  assert.match(html, /SMART REVIEW/);
-  assert.match(html, /TODAY REVIEW PLAN/);
-  assert.match(html, /REVIEW INSPECTOR/);
+  assert.match(html, /스마트 복습/);
+  assert.match(html, /오늘의 복습 계획/);
+  assert.match(html, /복습 인스펙터/);
   assert.match(html, /\/practice\/isms-p\?reviewOnly=1/);
 });
 

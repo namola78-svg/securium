@@ -7,6 +7,7 @@ import {
 } from "@/db/repositories";
 import { listWrongNotes } from "@/db/question-repositories";
 import { requireCurrentAppUser } from "@/lib/auth";
+import { formatDifficultyLabel } from "@/lib/question-display";
 
 export const dynamic = "force-dynamic";
 
@@ -57,7 +58,7 @@ export default async function WrongNotesPage({
       <div className="shell">
         <header className="dashboard-intro">
           <div>
-            <p className="eyebrow">WRONG ANSWER REVIEW</p>
+            <p className="eyebrow">오답 복습</p>
             <h1>오답노트</h1>
             <p>
               반복 오답과 메모를 과정별로 분리해 관리하고, 필요한 문제만 다시
@@ -71,7 +72,7 @@ export default async function WrongNotesPage({
 
         <section className="review-overview-panel" aria-label="오답노트 요약">
           <div>
-            <p className="eyebrow">WRONG NOTE INSIGHT</p>
+            <p className="eyebrow">오답 인사이트</p>
             <h2>
               {notes.length
                 ? `${notes.length}개의 오답 기록을 확인하세요`
@@ -214,7 +215,7 @@ function WrongNoteFilterSummary({
     selectedCourseName ? `과정: ${selectedCourseName}` : "전체 과정",
     selectedSubjectName ? `과목: ${selectedSubjectName}` : "전체 과목",
     selectedTopicName ? `주제: ${selectedTopicName}` : "전체 주제",
-    difficulty ? `난이도: ${formatDifficulty(difficulty)}` : "전체 난이도",
+    difficulty ? `난이도: ${formatDifficultyLabel(difficulty)}` : "전체 난이도",
     repeated ? "반복 오답" : null,
     mastered ? `상태: ${mastered}` : "전체 숙지 상태",
   ].filter((item): item is string => Boolean(item));
@@ -222,7 +223,7 @@ function WrongNoteFilterSummary({
   return (
     <section className="review-context-card" aria-label="현재 오답노트 조건">
       <div>
-        <p className="eyebrow">CURRENT WRONG NOTES</p>
+        <p className="eyebrow">현재 오답 조건</p>
         <h2>현재 필터 조건</h2>
         <p>
           {noteCount}개의 오답 기록을 불러왔습니다. 조건을 좁혀 취약한 영역을
@@ -266,15 +267,6 @@ function WrongNoteFilterSummary({
       </div>
     </section>
   );
-}
-
-function formatDifficulty(difficulty: string) {
-  const labels: Record<string, string> = {
-    EASY: "쉬움",
-    MEDIUM: "보통",
-    HARD: "어려움",
-  };
-  return labels[difficulty] ?? difficulty;
 }
 
 function formatMastered(mastered?: boolean) {

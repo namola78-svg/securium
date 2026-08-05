@@ -17,7 +17,7 @@ export default async function ReviewsPage() {
       <div className="shell">
         <header className="dashboard-intro">
           <div>
-            <p className="eyebrow">SMART REVIEW</p>
+            <p className="eyebrow">스마트 복습</p>
             <h1>오늘의 복습</h1>
             <p>
               오답과 복습 예정일을 기준으로 오늘 다시 확인할 문제를
@@ -31,7 +31,7 @@ export default async function ReviewsPage() {
 
         <section className="review-overview-panel" aria-label="오늘의 복습 요약">
           <div>
-            <p className="eyebrow">TODAY REVIEW PLAN</p>
+            <p className="eyebrow">오늘의 복습 계획</p>
             <h2>
               {hasDueReviews
                 ? `${summary.dueCount}문제를 먼저 복습하세요`
@@ -123,7 +123,7 @@ export default async function ReviewsPage() {
           <section className="section-block review-priority-panel">
             <div className="section-heading compact">
               <div>
-                <p className="eyebrow">REVIEW PRIORITY</p>
+                <p className="eyebrow">복습 우선순위</p>
                 <h2>우선 복습 항목</h2>
                 <p>가장 먼저 확인할 복습 항목 5개를 보여줍니다.</p>
               </div>
@@ -152,7 +152,7 @@ export default async function ReviewsPage() {
                 ))}
               </div>
               <aside className="review-inspector" aria-label="복습 인스펙터">
-                <p className="eyebrow">REVIEW INSPECTOR</p>
+                <p className="eyebrow">복습 인스펙터</p>
                 <h2>다음 복습</h2>
                 {topItem ? (
                   <>
