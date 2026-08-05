@@ -25,6 +25,7 @@ Production release gate: `docs/ui/production-release-gate.md`.
 Production smoke runbook: `docs/ui/production-smoke-test-runbook.md`.
 Production release evidence log: `docs/ui/production-release-evidence-log.md`.
 Production rollback drill: `docs/ui/production-rollback-drill.md`.
+Production monitoring checklist: `docs/ui/production-monitoring-checklist.md`.
 
 ## Smoke tests after release
 
