@@ -36,15 +36,6 @@ export default async function DashboardPage() {
           />
         </Suspense>
 
-        <section className="stats-grid">
-          <Suspense fallback={<DashboardStatsFallback />}>
-            <DashboardStats
-              enrollmentsPromise={enrollmentsPromise}
-              todayPlanPromise={todayPlanPromise}
-            />
-          </Suspense>
-        </section>
-
         <Suspense fallback={<TodayPlanFallback />}>
           <TodayPlanSection planPromise={todayPlanPromise} />
         </Suspense>
@@ -52,6 +43,27 @@ export default async function DashboardPage() {
         <Suspense fallback={<ActiveCoursesFallback />}>
           <ActiveCoursesSection enrollmentsPromise={enrollmentsPromise} />
         </Suspense>
+
+        <section className="section-block dashboard-summary-section">
+          <div className="section-heading compact">
+            <div>
+              <p className="eyebrow">LEARNING SUMMARY</p>
+              <h2>최근 학습 요약</h2>
+              <p>오늘의 행동을 정한 뒤 필요한 수치만 가볍게 확인합니다.</p>
+            </div>
+            <Link className="text-link" href="/analytics">
+              자세히 분석하기 →
+            </Link>
+          </div>
+          <div className="stats-grid">
+            <Suspense fallback={<DashboardStatsFallback />}>
+              <DashboardStats
+                enrollmentsPromise={enrollmentsPromise}
+                todayPlanPromise={todayPlanPromise}
+              />
+            </Suspense>
+          </div>
+        </section>
       </div>
     </main>
   );
@@ -98,7 +110,7 @@ async function DashboardHero({
   return (
     <section className="dashboard-intro dashboard-hero">
       <div>
-        <p className="eyebrow">LEARNING OVERVIEW</p>
+        <p className="eyebrow">TODAY START</p>
         <h1>{displayName}님의 다음 학습을 정리했습니다</h1>
         <p>
           {currentCourse
@@ -155,7 +167,7 @@ function DashboardHeroFallback({ displayName }: { displayName: string }) {
   return (
     <section className="dashboard-intro dashboard-hero" aria-busy="true">
       <div>
-        <p className="eyebrow">LEARNING OVERVIEW</p>
+        <p className="eyebrow">TODAY START</p>
         <h1>{displayName}님의 학습 정보를 불러오고 있습니다</h1>
         <p>과정별 진도와 오늘의 복습 일정을 확인하는 중입니다.</p>
       </div>
@@ -187,24 +199,24 @@ async function DashboardStats({
   return (
     <>
       <div className="stat-card">
-        <span>수강 중</span>
+        <span>학습 중</span>
         <strong>{activeEnrollments.length}</strong>
-        <small>ACTIVE 과정</small>
+        <small>이어갈 수 있는 과정</small>
       </div>
       <div className="stat-card">
-        <span>전체 등록</span>
+        <span>등록 과정</span>
         <strong>{enrollments.length}</strong>
-        <small>동시 수강 가능</small>
+        <small>과정별 기록 분리</small>
       </div>
       <div className="stat-card">
-        <span>오늘의 학습</span>
+        <span>오늘 완료</span>
         <strong>{plan.completedQuestions}</strong>
         <small>
           목표 {plan.settings.dailyQuestionGoal}문제 · {plan.completionPercent}%
         </small>
       </div>
       <div className="stat-card">
-        <span>오늘의 복습</span>
+        <span>복습 대기</span>
         <strong>{plan.reviewSummary.dueCount}</strong>
         <small>
           <Link href="/reviews">예정된 복습 시작</Link>
@@ -218,22 +230,22 @@ function DashboardStatsFallback() {
   return (
     <>
       <div className="stat-card" aria-busy="true">
-        <span>수강 중</span>
+        <span>학습 중</span>
         <strong>--</strong>
         <small>수강 정보를 확인하고 있습니다</small>
       </div>
       <div className="stat-card" aria-busy="true">
-        <span>전체 등록</span>
+        <span>등록 과정</span>
         <strong>--</strong>
         <small>학습 기록을 불러오고 있습니다</small>
       </div>
       <div className="stat-card" aria-busy="true">
-        <span>오늘의 학습</span>
+        <span>오늘 완료</span>
         <strong>--</strong>
         <small>학습 정보를 불러오고 있습니다</small>
       </div>
       <div className="stat-card" aria-busy="true">
-        <span>오늘의 복습</span>
+        <span>복습 대기</span>
         <strong>--</strong>
         <small>복습 일정을 확인하고 있습니다</small>
       </div>
@@ -253,11 +265,11 @@ async function TodayPlanSection({
       <div className="section-heading compact">
         <div>
           <p className="eyebrow">TODAY PLAN</p>
-          <h2>우선 학습 큐</h2>
-          <p>복습 예정, 취약 영역, 최근 학습 흐름을 기준으로 다음 행동을 정리합니다.</p>
+          <h2>오늘 할 학습</h2>
+          <p>복습 예정, 취약 영역, 최근 학습 흐름을 기준으로 바로 시작할 일을 정리합니다.</p>
         </div>
-        <Link className="text-link" href="/analytics">
-          통합 학습분석 →
+        <Link className="text-link" href="/reviews">
+          복습 전체 보기 →
         </Link>
       </div>
       <div className="today-plan-grid">
@@ -307,10 +319,10 @@ function TodayPlanFallback() {
       <div className="section-heading compact">
         <div>
           <p className="eyebrow">TODAY PLAN</p>
-          <h2>우선 학습 큐</h2>
+          <h2>오늘 할 학습</h2>
         </div>
-        <Link className="text-link" href="/analytics">
-          통합 학습분석 →
+        <Link className="text-link" href="/reviews">
+          복습 전체 보기 →
         </Link>
       </div>
       <div className="empty-state">
@@ -335,11 +347,11 @@ async function ActiveCoursesSection({
     <section className="section-block">
       <div className="section-heading compact">
         <div>
-          <p className="eyebrow">MY ACTIVE COURSES</p>
-          <h2>진행 중인 과정</h2>
+          <p className="eyebrow">CONTINUE LEARNING</p>
+          <h2>이어서 학습</h2>
         </div>
         <Link className="text-link" href="/my-courses">
-          전체 수강 관리 →
+          내 학습 전체 보기 →
         </Link>
       </div>
       {activeEnrollments.length ? (
@@ -420,11 +432,11 @@ function ActiveCoursesFallback() {
     <section className="section-block" aria-busy="true">
       <div className="section-heading compact">
         <div>
-          <p className="eyebrow">MY ACTIVE COURSES</p>
-          <h2>진행 중인 과정</h2>
+          <p className="eyebrow">CONTINUE LEARNING</p>
+          <h2>이어서 학습</h2>
         </div>
         <Link className="text-link" href="/my-courses">
-          전체 수강 관리 →
+          내 학습 전체 보기 →
         </Link>
       </div>
       <div className="empty-state">

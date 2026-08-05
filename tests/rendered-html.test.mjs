@@ -748,13 +748,15 @@ test("개발 사용자의 여러 수강 과정과 분리된 진도를 표시한�
   assert.match(html, /\/practice\/isms-p/);
   assert.match(html, /\/practice\/cppg/);
   assert.match(html, /과정 진도/);
-  assert.match(html, /동시 수강 가능/);
+  assert.match(html, /과정별 기록 분리/);
   assert.match(html, /추천 다음 행동/);
   assert.match(html, /바로 시작하기/);
-  assert.match(html, /우선 학습 큐/);
+  assert.match(html, /오늘 할 학습/);
+  assert.match(html, /이어서 학습/);
+  assert.match(html, /최근 학습 요약/);
   assert.match(html, /ISMS-P/);
   assert.match(html, /CPPG 개인정보관리사/);
-  assert.match(html, /전체 등록/);
+  assert.match(html, /등록 과정/);
 });
 
 test("관리자가 학습단위와 레슨을 생성·수정하고 학습자는 공개 범위에서 완료한다", async () => {
