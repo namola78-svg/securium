@@ -22,10 +22,10 @@
    - Primary CTA: free learning start
    - Secondary CTA: course browsing
 2. Product preview card
-   - Today's learning
-   - Course/topic sample
-   - Progress
-   - Recommendation signal
+   - SECURIUM learning experience
+   - Published course count
+   - Official standards, evidence-based AI explanation, and learning loop
+   - Course catalog CTA
 3. Value section
    - Course-scoped progress
    - Problem and review-centered learning
@@ -58,7 +58,7 @@
 | Brand | `시큐리움`, `SECURIUM`, and official description remain consistent. |
 | Hero | Heading wraps naturally at 360px, 390px, 768px, and desktop widths. |
 | CTA | Primary and secondary buttons are at least 44px high and keyboard-focusable. |
-| Product card | Progress and recommendation text are understandable without color alone. |
+| Product card | Public visitors see platform value rather than personal progress or detailed curriculum node metadata. |
 | Course preview | Empty and database-unavailable states are user-readable. |
 | Accessibility | Main heading is unique; decorative effects are not required for understanding. |
 | Regression | Server-rendered HTML includes the hero message, CTA, values, and no development-stage labels. |
@@ -70,4 +70,3 @@
 3. Question + AI Explanation: separate official explanation, AI note, citation, and next review action.
 4. Wrong Notes + Review: reduce anxiety with priority, due date, and mastery status.
 5. Analytics: translate metrics into recommended learning actions.
-

@@ -50,39 +50,36 @@ export default async function Home() {
               <li>오답 및 취약영역 복습</li>
             </ul>
           </div>
-          <div className="hero-panel" aria-label="오늘의 학습 예시">
+          <div className="hero-panel" aria-label="SECURIUM 학습 경험 요약">
             <div className="hero-panel-header">
-              <span>오늘의 학습</span>
-              <span className="live-dot">맞춤 추천</span>
+              <span>SECURIUM 학습 경험</span>
+              <span className="live-dot">공개 과정</span>
             </div>
             <div className="today-card-title">
-              <span>ISMS-P</span>
-              <strong>인증기준 2.6 접근통제</strong>
-              <p>심사 관점과 실무 증적을 함께 점검합니다.</p>
-            </div>
-            <div className="hero-progress" aria-label="오늘의 학습 진행률 68%">
-              <div>
-                <span>진행률</span>
-                <strong>68%</strong>
-              </div>
-              <div className="progress-track" aria-hidden="true">
-                <span style={{ width: "68%" }} />
-              </div>
+              <span>{databaseReady ? `${courses.length}개 전문과정` : "과정 확인 중"}</span>
+              <strong>공식 커리큘럼부터 AI 복습까지</strong>
+              <p>
+                과정 선택부터 이론, 문제, 근거 해설, 오답 복습을 하나의
+                흐름으로 제공합니다.
+              </p>
             </div>
             <div className="signal-list">
               <div>
-                <span>학습 흐름</span>
-                <strong>이론 → 문제 → 복습</strong>
+                <span>기준</span>
+                <strong>공식 기준 기반</strong>
               </div>
               <div>
-                <span>AI 튜터</span>
+                <span>설명</span>
                 <strong>근거 기반 설명</strong>
               </div>
               <div>
-                <span>공개 과정</span>
-                <strong>{databaseReady ? `${courses.length}개` : "확인 중"}</strong>
+                <span>흐름</span>
+                <strong>이론 · 문제 · 복습</strong>
               </div>
             </div>
+            <Link className="button button-outline-light hero-card-cta" href="/courses">
+              과정 둘러보기
+            </Link>
           </div>
         </div>
       </section>

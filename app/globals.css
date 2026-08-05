@@ -1357,6 +1357,13 @@ button:disabled {
   color: #8c999c;
 }
 
+.hero-card-cta {
+  width: 100%;
+  justify-content: center;
+  margin-top: 24px;
+  min-height: 46px;
+}
+
 .section {
   padding: 88px 0;
 }
