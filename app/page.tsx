@@ -324,6 +324,57 @@ export default async function Home() {
         </div>
       </section>
 
+      <section
+        className="section landing-dashboard-preview"
+        aria-labelledby="dashboard-preview-title"
+      >
+        <div className="shell dashboard-preview-grid">
+          <div>
+            <p className="eyebrow">LEARNER DASHBOARD</p>
+            <h2 id="dashboard-preview-title">
+              오늘 무엇을 배우고, 어디를 다시 봐야 하는지 바로 보입니다
+            </h2>
+            <p>
+              학습자는 통계표를 먼저 보는 것이 아니라, 오늘 할 학습과 AI 설명,
+              복습 추천, 취약 영역을 한 화면에서 확인합니다.
+            </p>
+          </div>
+          <article className="learner-dashboard-card" aria-label="학습자 대시보드 미리보기">
+            <div className="learner-dashboard-card-header">
+              <div>
+                <span>TODAY</span>
+                <strong>오늘의 학습</strong>
+              </div>
+              <span className="dashboard-preview-badge">17분 예상</span>
+            </div>
+            <div className="learner-dashboard-main">
+              <div>
+                <span>이어서 학습</span>
+                <strong>네트워크 보안 · 접근통제 기초</strong>
+                <p>공식 기준과 연결된 이론 1개를 이어서 학습합니다.</p>
+              </div>
+              <div>
+                <span>AI 설명</span>
+                <strong>권한 검토 개념 설명 완료</strong>
+                <p>근거 3개와 관련 개념 4개가 함께 연결되었습니다.</p>
+              </div>
+            </div>
+            <div className="learner-dashboard-row">
+              <div>
+                <span>복습 추천</span>
+                <strong>5문제</strong>
+                <p>오답과 유사 문제 중심</p>
+              </div>
+              <div>
+                <span>취약 영역</span>
+                <strong>접근권한 관리</strong>
+                <p>정답률 58% · 우선 복습</p>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
       {databaseReady && spotlightCourses.length ? (
         <section className="landing-course-spotlight" aria-labelledby="landing-course-spotlight-title">
           <div className="shell">
