@@ -2446,6 +2446,43 @@ button:disabled {
   margin-top: 24px;
 }
 
+.dashboard-next-action {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 18px;
+  border: 1px solid rgb(159 211 35 / 0.26);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgb(200 244 90 / 0.18), rgb(137 232 209 / 0.08)),
+    #fbfdf5;
+}
+
+.dashboard-next-action .badge {
+  grid-column: 1 / -1;
+  width: fit-content;
+}
+
+.dashboard-next-action strong,
+.dashboard-next-action p {
+  margin: 0;
+}
+
+.dashboard-next-action strong {
+  display: block;
+  color: var(--ink);
+  font-size: 20px;
+  letter-spacing: -0.035em;
+}
+
+.dashboard-next-action p {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
 .dashboard-focus-card {
   display: grid;
   min-width: min(100%, 320px);
@@ -2461,6 +2498,12 @@ button:disabled {
   font-size: 24px;
   letter-spacing: -0.04em;
   line-height: 1.25;
+}
+
+.dashboard-focus-card > p {
+  margin: -8px 0 0;
+  color: var(--muted);
+  font-size: 14px;
 }
 
 .dashboard-focus-list {
@@ -6117,6 +6160,7 @@ textarea {
 }
 
 @media (max-width: 760px) {
+  .dashboard-next-action,
   .level-card,
   .recommendation-card,
   .today-plan-grid,

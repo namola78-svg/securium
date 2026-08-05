@@ -12,6 +12,7 @@ export const dynamic = "force-dynamic";
 
 type Enrollment = Awaited<ReturnType<typeof listDashboardUserEnrollments>>[number];
 type TodayPlan = NonNullable<Awaited<ReturnType<typeof getTodayLearningPlan>>>;
+type DashboardPlan = TodayPlan | ReturnType<typeof createEmptyTodayPlan>;
 
 export default async function DashboardPage() {
   const user = await requireCurrentAppUser("/dashboard");
@@ -92,17 +93,28 @@ async function DashboardHero({
     ? `/learn/${currentCourse.courseSlug}`
     : "/courses";
   const primaryLabel = currentCourse ? "계속 학습하기" : "과정 둘러보기";
+  const nextAction = getDashboardNextAction(currentCourse, plan);
 
   return (
     <section className="dashboard-intro dashboard-hero">
       <div>
         <p className="eyebrow">LEARNING OVERVIEW</p>
-        <h1>{displayName}님의 오늘 학습을 확인하세요</h1>
+        <h1>{displayName}님의 다음 학습을 정리했습니다</h1>
         <p>
           {currentCourse
             ? `${currentCourse.courseName} 과정을 중심으로 최근 학습과 복습 일정을 정리했습니다.`
             : "아직 진행 중인 과정이 없습니다. 관심 있는 과정을 추가하면 진도와 복습을 한곳에서 확인할 수 있습니다."}
         </p>
+        <div className="dashboard-next-action">
+          <span className="badge">추천 다음 행동</span>
+          <div>
+            <strong>{nextAction.title}</strong>
+            <p>{nextAction.reason}</p>
+          </div>
+          <Link className="button button-lime" href={nextAction.href}>
+            바로 시작하기
+          </Link>
+        </div>
         <div className="dashboard-hero-actions">
           <Link className="button button-dark" href={primaryHref}>
             {primaryLabel}
@@ -115,6 +127,11 @@ async function DashboardHero({
       <aside className="dashboard-focus-card" aria-label="오늘의 학습 요약">
         <span className="badge">오늘의 초점</span>
         <strong>{currentCourse?.courseName ?? "학습 과정 선택"}</strong>
+        <p>
+          {currentCourse
+            ? "학습, 복습, 문제풀이를 한 과정 안에서 이어갑니다."
+            : "첫 과정을 선택하면 개인화된 학습 흐름이 시작됩니다."}
+        </p>
         <dl className="dashboard-focus-list">
           <div>
             <dt>남은 목표</dt>
@@ -145,6 +162,7 @@ function DashboardHeroFallback({ displayName }: { displayName: string }) {
       <aside className="dashboard-focus-card" aria-label="오늘의 학습 요약">
         <span className="badge">확인 중</span>
         <strong>학습 요약을 불러오고 있습니다</strong>
+        <p>잠시 후 오늘의 추천 행동과 과정별 진도를 표시합니다.</p>
       </aside>
     </section>
   );
@@ -235,7 +253,8 @@ async function TodayPlanSection({
       <div className="section-heading compact">
         <div>
           <p className="eyebrow">TODAY PLAN</p>
-          <h2>오늘의 추천 학습</h2>
+          <h2>우선 학습 큐</h2>
+          <p>복습 예정, 취약 영역, 최근 학습 흐름을 기준으로 다음 행동을 정리합니다.</p>
         </div>
         <Link className="text-link" href="/analytics">
           통합 학습분석 →
@@ -261,15 +280,19 @@ async function TodayPlanSection({
                 <strong>{item.title}</strong>
                 <p>{item.reason}</p>
               </div>
-              <small>약 {item.estimatedMinutes}분</small>
+              <small>약 {item.estimatedMinutes}분 →</small>
             </Link>
           ))}
           {!plan.recommendations.length ? (
             <div className="empty-state">
-              <strong>추천을 만들 학습 기록이 아직 없습니다.</strong>
+              <strong>아직 추천할 학습 기록이 충분하지 않습니다.</strong>
               <p>
-                과정을 선택하고 첫 학습을 시작하면 실제 기록을 기반으로 추천합니다.
+                과정을 선택하고 첫 문제풀이 또는 이론 학습을 시작하면 실제 기록을
+                기반으로 추천합니다.
               </p>
+              <Link className="button button-dark" href="/courses">
+                과정 둘러보기
+              </Link>
             </div>
           ) : null}
         </div>
@@ -284,7 +307,7 @@ function TodayPlanFallback() {
       <div className="section-heading compact">
         <div>
           <p className="eyebrow">TODAY PLAN</p>
-          <h2>오늘의 추천 학습</h2>
+          <h2>우선 학습 큐</h2>
         </div>
         <Link className="text-link" href="/analytics">
           통합 학습분석 →
@@ -439,5 +462,41 @@ function createEmptyTodayPlan() {
       byCourse: [],
     },
     recommendations: [],
+  };
+}
+
+function getDashboardNextAction(
+  currentCourse: Enrollment | undefined,
+  plan: DashboardPlan,
+) {
+  const firstRecommendation = plan.recommendations[0];
+  if (firstRecommendation) {
+    return {
+      href: firstRecommendation.href,
+      title: firstRecommendation.title,
+      reason: firstRecommendation.reason,
+    };
+  }
+
+  if (plan.reviewSummary.dueCount > 0) {
+    return {
+      href: "/reviews",
+      title: "오늘 예정된 복습부터 시작하세요",
+      reason: `${plan.reviewSummary.dueCount}개의 복습 항목이 기다리고 있습니다.`,
+    };
+  }
+
+  if (currentCourse) {
+    return {
+      href: `/learn/${currentCourse.courseSlug}`,
+      title: `${currentCourse.courseName} 학습을 이어가세요`,
+      reason: `현재 과정 진도는 ${currentCourse.progressPercent}%입니다.`,
+    };
+  }
+
+  return {
+    href: "/courses",
+    title: "첫 학습 과정을 선택하세요",
+    reason: "과정을 추가하면 진도, 복습, 추천 학습이 과정별로 관리됩니다.",
   };
 }

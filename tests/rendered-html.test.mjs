@@ -680,6 +680,9 @@ test("개발 사용자의 여러 수강 과정과 분리된 진도를 표시한�
   assert.match(html, /\/practice\/cppg/);
   assert.match(html, /과정 진도/);
   assert.match(html, /동시 수강 가능/);
+  assert.match(html, /추천 다음 행동/);
+  assert.match(html, /바로 시작하기/);
+  assert.match(html, /우선 학습 큐/);
   assert.match(html, /ISMS-P/);
   assert.match(html, /CPPG 개인정보관리사/);
   assert.match(html, /전체 등록/);

@@ -67,9 +67,11 @@ This sequence keeps the first user impression stable before refining deeper auth
 ### Dashboard
 
 - Goal: show today's plan and course progress.
-- Primary action: continue next recommended item.
+- Primary action: continue the next recommended item before scanning metrics.
 - Empty state: guide users to enroll in a course.
 - Risk: showing aggregate numbers without clear next action.
+- Current refinement: the dashboard hero now reserves a first-class "추천 다음 행동" area
+  before secondary stats so that learners can immediately continue studying.
 
 ### Curriculum
 
@@ -114,4 +116,3 @@ This sequence keeps the first user impression stable before refining deeper auth
 - CTAs use existing auth and course-enrollment logic.
 - No course names or subjects are hardcoded in new UI logic.
 - Empty, loading, and error states use shared state components where practical.
-
