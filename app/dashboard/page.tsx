@@ -408,7 +408,9 @@ async function ActiveCoursesSection({
             <article className="enrollment-card" key={enrollment.id}>
               <div className="course-card-top">
                 <span className="course-code">{enrollment.groupName}</span>
-                <span className="badge">{enrollment.status}</span>
+                <span className="badge">
+                  {getEnrollmentStatusLabel(enrollment.status)}
+                </span>
               </div>
               <h3>{enrollment.courseName}</h3>
               <ProgressBar
@@ -559,4 +561,17 @@ function getDashboardNextAction(
     title: "첫 학습 과정을 선택하세요",
     reason: "과정을 추가하면 진도, 복습, 추천 학습이 과정별로 관리됩니다.",
   };
+}
+
+function getEnrollmentStatusLabel(status: Enrollment["status"]) {
+  switch (status) {
+    case "ACTIVE":
+      return "학습 중";
+    case "COMPLETED":
+      return "완료";
+    case "CANCELLED":
+      return "수강 취소";
+    default:
+      return "학습 상태";
+  }
 }

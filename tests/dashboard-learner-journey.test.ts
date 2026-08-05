@@ -29,3 +29,12 @@ test("today plan uses learner cards for goal, AI recommendation, review, and set
   assert.match(styles, /\.today-plan-card/);
   assert.match(styles, /@media \(max-width: 1024px\)[\s\S]*?\.today-plan-grid/);
 });
+
+test("learner dashboard maps internal enrollment status to user-facing labels", () => {
+  const source = readFileSync("app/dashboard/page.tsx", "utf8");
+
+  assert.match(source, /getEnrollmentStatusLabel\(enrollment\.status\)/);
+  assert.match(source, /case "ACTIVE":[\s\S]*?return "학습 중"/);
+  assert.match(source, /case "COMPLETED":[\s\S]*?return "완료"/);
+  assert.doesNotMatch(source, /<span className="badge">\{enrollment\.status\}<\/span>/);
+});
