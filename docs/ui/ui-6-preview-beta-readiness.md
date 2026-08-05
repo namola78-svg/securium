@@ -44,16 +44,18 @@ UI-6 must not change:
 
 Preview Beta Freeze can begin when all items below are true:
 
-- [ ] `main` has no unreviewed local changes except approved release notes.
-- [ ] Typecheck passes.
-- [ ] Lint passes.
-- [ ] Rendered HTML integration tests pass.
-- [ ] Production build passes.
-- [ ] Public branding and development-copy search is clean.
-- [ ] Learner core flow has a completed manual QA pass.
-- [ ] Admin core flow has a completed manual QA pass.
-- [ ] Known limitations are documented and accepted.
-- [ ] No DB, seed, migration, API, auth, or secret change is waiting unreviewed.
+- [x] `main` has no unreviewed local changes except approved release notes.
+- [x] Typecheck passes.
+- [x] Lint passes.
+- [x] Rendered HTML integration tests pass.
+- [x] Production build passes.
+- [x] Public branding and development-copy search is clean.
+- [x] Learner core flow has a completed manual QA pass.
+- [x] Admin core flow has a completed manual QA pass.
+- [x] Known limitations are documented and accepted.
+- [x] No DB, seed, migration, API, auth, or secret change is waiting unreviewed.
+
+Latest QA record: `docs/ui/preview-beta-qa-results.md`.
 
 ## QA scope
 
@@ -119,4 +121,3 @@ After freeze starts, only these changes are allowed:
 - Documentation corrections.
 
 Everything else moves to the post-beta backlog.
-
