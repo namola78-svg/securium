@@ -33,6 +33,49 @@ import {
 
 export const dynamic = "force-dynamic";
 
+type CurriculumNodes = Awaited<ReturnType<typeof listCurriculumNodes>>;
+type CurriculumNodeStats = Awaited<
+  ReturnType<typeof listCurriculumNodeOperationalStats>
+>;
+type CurriculumCoverage = NonNullable<
+  Awaited<ReturnType<typeof getCurriculumTreeCoverage>>
+>;
+type UnlinkedCourseLessons = Awaited<
+  ReturnType<typeof listUnlinkedCourseLessonsForCurriculumTree>
+>;
+
+function emptyCurriculumCoverage(
+  treeId: string,
+  courseId: string,
+  status: string,
+): CurriculumCoverage {
+  return {
+    treeId,
+    courseId,
+    status,
+    nodeCount: 0,
+    linkedNodeCount: 0,
+    linkedNodePercent: 0,
+    publishedCourseLessonCount: 0,
+    courseLessonNodeCount: 0,
+    courseLessonNodePercent: 0,
+    unlinkedCourseLessonCount: 0,
+    publishedQuestionCount: 0,
+  };
+}
+
+function withAdminCurriculumTimeout<T>(promise: Promise<T>, timeoutMs = 8000) {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => {
+      setTimeout(
+        () => reject(new Error("ADMIN_CURRICULUM_DATA_TIMEOUT")),
+        timeoutMs,
+      );
+    }),
+  ]);
+}
+
 export default async function AdminCurriculumPage({
   searchParams,
 }: {
@@ -40,26 +83,88 @@ export default async function AdminCurriculumPage({
 }) {
   await requireCatalogManager("/admin/curriculum");
   const { treeId } = await searchParams;
-  const [courses, trees] = await Promise.all([
-    listAllCourses(),
-    listCurriculumTrees(),
-  ]);
-  const sharedContents = await listSharedContents("PUBLISHED");
+  let courses;
+  let trees;
+  try {
+    [courses, trees] = await withAdminCurriculumTimeout(
+      Promise.all([listAllCourses(), listCurriculumTrees()]),
+    );
+  } catch {
+    return (
+      <>
+        <SectionHeader
+          breadcrumbs={[
+            { label: "Admin", href: "/admin" },
+            { label: "Curriculum", current: true },
+          ]}
+          eyebrow="OFFICIAL CURRICULUM"
+          title="커리큘럼 트리 관리"
+          description="커리큘럼 저장소를 확인하는 중 문제가 발생했습니다. 운영 데이터와 migration 상태를 먼저 확인해주세요."
+        />
+        <section className="admin-panel section-block" role="alert">
+          <div className="section-heading compact">
+            <div>
+              <p className="eyebrow">CURRICULUM STORAGE CHECK</p>
+              <h2>커리큘럼 데이터를 불러오지 못했습니다</h2>
+            </div>
+          </div>
+          <p>
+            민감한 내부 오류는 화면에 표시하지 않습니다. Vercel Function Logs와
+            운영 데이터베이스의 curriculum 테이블 및 migration 상태를 확인한 뒤
+            다시 시도해주세요.
+          </p>
+          <Link className="button button-ghost" href="/admin">
+            관리자 대시보드로 이동
+          </Link>
+        </section>
+      </>
+    );
+  }
+  const sharedContents = await withAdminCurriculumTimeout(
+    listSharedContents("PUBLISHED"),
+  ).catch(() => []);
   const selectedTreeId =
     treeId && trees.some((tree) => tree.id === treeId)
       ? treeId
       : trees[0]?.id ?? "";
   const selectedTree = trees.find((tree) => tree.id === selectedTreeId) ?? null;
-  const [nodes, nodeStats, coverage, unlinkedCourseLessons] = selectedTreeId
+  const fallbackCoverage = selectedTree
+    ? emptyCurriculumCoverage(
+        selectedTree.id,
+        selectedTree.courseId,
+        selectedTree.status,
+      )
+    : null;
+  const [nodes, nodeStats, coverage, unlinkedCourseLessons]: [
+    CurriculumNodes,
+    CurriculumNodeStats,
+    CurriculumCoverage | null,
+    UnlinkedCourseLessons,
+  ] = selectedTreeId
     ? await Promise.all([
-        listCurriculumNodes(selectedTreeId),
-        listCurriculumNodeOperationalStats(selectedTreeId),
-        getCurriculumTreeCoverage(selectedTreeId),
-        listUnlinkedCourseLessonsForCurriculumTree(selectedTreeId, 8),
+        withAdminCurriculumTimeout(listCurriculumNodes(selectedTreeId)).catch(
+          () => [] as CurriculumNodes,
+        ),
+        withAdminCurriculumTimeout(
+          listCurriculumNodeOperationalStats(selectedTreeId),
+        ).catch(() => [] as CurriculumNodeStats),
+        withAdminCurriculumTimeout(
+          getCurriculumTreeCoverage(selectedTreeId),
+        ).then(
+          (result) => result ?? fallbackCoverage,
+          () => fallbackCoverage,
+        ),
+        withAdminCurriculumTimeout(
+          listUnlinkedCourseLessonsForCurriculumTree(selectedTreeId, 8),
+        ).catch(
+          () => [] as UnlinkedCourseLessons,
+        ),
       ])
-    : [[], [], null, []];
+    : [[], [], fallbackCoverage, []];
   const linkableContent = selectedTree
-    ? await listCurriculumLinkableContent(selectedTree.courseId)
+    ? await withAdminCurriculumTimeout(
+        listCurriculumLinkableContent(selectedTree.courseId),
+      ).catch(() => [])
     : [];
   const ontologyCoverageSummaries =
     getSecurityCertificationOntologyCoverageSummaries();

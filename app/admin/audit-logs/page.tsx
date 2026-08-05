@@ -17,6 +17,15 @@ import { auditLogFilterSchema, parseInput } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
+function withAdminAuditTimeout<T>(promise: Promise<T>, timeoutMs = 8000) {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => {
+      setTimeout(() => reject(new Error("ADMIN_AUDIT_DATA_TIMEOUT")), timeoutMs);
+    }),
+  ]);
+}
+
 export default async function AuditLogsPage({
   searchParams,
 }: {
@@ -32,12 +41,49 @@ export default async function AuditLogsPage({
   const filters = parseInput(auditLogFilterSchema, normalized);
   const detailId =
     typeof raw.detailId === "string" ? raw.detailId.slice(0, 200) : null;
-  const [result, actors, options, detail] = await Promise.all([
-    listAuditLogs(filters),
-    listAuditActors(),
-    listAuditFilterOptions(),
-    detailId ? getAuditLogById(detailId) : null,
-  ]);
+  let result;
+  let actors;
+  let options;
+  let detail;
+  try {
+    [result, actors, options, detail] = await withAdminAuditTimeout(
+      Promise.all([
+        listAuditLogs(filters),
+        listAuditActors(),
+        listAuditFilterOptions(),
+        detailId ? getAuditLogById(detailId) : null,
+      ]),
+    );
+  } catch {
+    return (
+      <>
+        <SectionHeader
+          breadcrumbs={[
+            { label: "Admin", href: "/admin" },
+            { label: "Audit", current: true },
+          ]}
+          eyebrow="IMMUTABLE AUDIT TRAIL"
+          title="관리자 감사로그"
+          description="감사로그 저장소를 확인하는 중 문제가 발생했습니다. 운영 데이터와 migration 상태를 먼저 확인해주세요."
+        />
+        <section className="admin-panel section-block" role="alert">
+          <div className="section-heading compact">
+            <div>
+              <p className="eyebrow">AUDIT STORAGE CHECK</p>
+              <h2>감사로그를 불러오지 못했습니다</h2>
+            </div>
+          </div>
+          <p>
+            민감한 내부 오류는 화면에 표시하지 않습니다. Vercel Function Logs와
+            운영 데이터베이스의 감사로그 테이블 상태를 확인한 뒤 다시 시도해주세요.
+          </p>
+          <Link className="button button-ghost" href="/admin">
+            관리자 대시보드로 이동
+          </Link>
+        </section>
+      </>
+    );
+  }
   const filterQuery = buildQuery(filters, ["page", "pageSize"]);
   const successCount = result.rows.filter((row) => row.result === "SUCCESS").length;
   const failureCount = result.rows.filter((row) => row.result === "FAILURE").length;
