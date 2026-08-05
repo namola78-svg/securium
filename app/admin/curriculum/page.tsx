@@ -1,4 +1,5 @@
 import { AdminCurriculumManager } from "@/components/admin-curriculum-manager-client";
+import { ClientMounted } from "@/components/client-mounted";
 import Link from "next/link";
 import {
   InspectorPanel,
@@ -7,6 +8,7 @@ import {
   StatusBadge,
   WorkspaceLayout,
 } from "@/components/design-system-primitives";
+import { CardSkeleton } from "@/components/state-ui";
 import {
   getCurriculumTreeCoverage,
   listCurriculumLinkableContent,
@@ -364,6 +366,18 @@ export default async function AdminCurriculumPage({
           </>
         }
       />
+      <ClientMounted
+        fallback={
+          <section
+            className="admin-panel"
+            role="status"
+            aria-live="polite"
+            aria-label="커리큘럼 관리자 데이터를 표시하고 있습니다"
+          >
+            <CardSkeleton />
+          </section>
+        }
+      >
       <section className="stats-grid admin-stats">
         <div className="stat-card">
           <span>관리 과정</span>
@@ -890,6 +904,7 @@ export default async function AdminCurriculumPage({
           </InspectorPanel>
         }
       />
+      </ClientMounted>
     </>
   );
 }

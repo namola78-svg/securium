@@ -200,3 +200,14 @@ test("admin curriculum manager is loaded client-only to avoid hydration drift", 
   assert.match(wrapperSource, /dynamic\(/);
   assert.match(wrapperSource, /ssr:\s*false/);
 });
+
+test("admin curriculum page content is mounted after hydration", () => {
+  const pageSource = readFileSync("app/admin/curriculum/page.tsx", "utf8");
+  const wrapperSource = readFileSync("components/client-mounted.tsx", "utf8");
+  assert.match(pageSource, /@\/components\/client-mounted/);
+  assert.match(pageSource, /<ClientMounted/);
+  assert.match(wrapperSource, /useSyncExternalStore/);
+  assert.match(wrapperSource, /getServerSnapshot\s*=\s*\(\)\s*=>\s*false/);
+  assert.match(wrapperSource, /getClientSnapshot\s*=\s*\(\)\s*=>\s*true/);
+  assert.match(wrapperSource, /mounted \? <>\{children\}<\/> : <>\{fallback\}<\/>/);
+});
