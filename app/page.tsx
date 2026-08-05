@@ -202,6 +202,55 @@ export default async function Home() {
         </section>
       ) : null}
 
+      <section className="section landing-learning-chain" aria-labelledby="learning-chain-title">
+        <div className="shell">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">SECURIUM LEARNING CHAIN</p>
+              <h2 id="learning-chain-title">
+                기준, 개념, 문제, AI 해설이 끊기지 않고 이어집니다
+              </h2>
+              <p>
+                단순 문제풀이가 아니라 공식 기준에서 출발해 개념과 콘텐츠,
+                문제, 근거 해설, 복습까지 하나의 학습 경로로 연결합니다.
+              </p>
+            </div>
+          </div>
+          <ol className="learning-chain-list" aria-label="SECURIUM 학습 연결 구조">
+            <li>
+              <span>01</span>
+              <strong>공식 기준</strong>
+              <p>출제기준과 인증기준을 학습의 출발점으로 둡니다.</p>
+            </li>
+            <li>
+              <span>02</span>
+              <strong>개념 연결</strong>
+              <p>흩어진 용어와 주제를 같은 의미망 안에서 연결합니다.</p>
+            </li>
+            <li>
+              <span>03</span>
+              <strong>이론 콘텐츠</strong>
+              <p>기준과 연결된 본문형 학습 콘텐츠로 개념을 이해합니다.</p>
+            </li>
+            <li>
+              <span>04</span>
+              <strong>문제 풀이</strong>
+              <p>과정·과목·주제별 문제로 실제 이해도를 확인합니다.</p>
+            </li>
+            <li>
+              <span>05</span>
+              <strong>근거 해설</strong>
+              <p>AI 설명은 검수된 근거와 함께 참고용으로 제공합니다.</p>
+            </li>
+            <li>
+              <span>06</span>
+              <strong>복습</strong>
+              <p>오답과 취약 개념을 다시 볼 학습으로 이어갑니다.</p>
+            </li>
+          </ol>
+        </div>
+      </section>
+
       <section className="section landing-value-section">
         <div className="shell">
           <div className="section-heading">

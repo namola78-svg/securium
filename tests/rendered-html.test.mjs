@@ -631,6 +631,8 @@ test("통합 학습 플랫폼 랜딩페이지를 서버 렌더링한다", async 
   assert.doesNotMatch(visibleHtml, /인증기준 2\.6 접근통제/);
   assert.doesNotMatch(visibleHtml, /진행률/);
   assert.doesNotMatch(visibleHtml, /68%/);
+  assert.match(visibleHtml, /SECURIUM LEARNING CHAIN/);
+  assert.match(visibleHtml, /learning-chain-list/);
   assert.doesNotMatch(visibleHtml, /Phase 1/);
   assert.doesNotMatch(visibleHtml, /개발용 샘플/);
   assert.doesNotMatch(visibleHtml, /COMMON LEARNING CORE/);
