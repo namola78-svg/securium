@@ -4455,6 +4455,7 @@ textarea {
   border: 1px solid rgba(135, 102, 31, 0.12);
   border-radius: 12px;
   display: flex;
+  flex-wrap: wrap;
   gap: 0.75rem;
   justify-content: space-between;
   padding: 0.65rem 0.75rem;
@@ -4475,6 +4476,22 @@ textarea {
   font-weight: 700;
   margin-top: 0.15rem;
   overflow-wrap: anywhere;
+}
+
+.remove-inline {
+  border: 0;
+  background: transparent;
+  color: #7b3f2b;
+  cursor: pointer;
+  font-weight: 900;
+  min-height: 34px;
+  padding: 0.2rem 0.35rem;
+}
+
+.remove-inline:hover,
+.remove-inline:focus-visible {
+  color: #4d2418;
+  text-decoration: underline;
 }
 
 .curriculum-reason-chip {

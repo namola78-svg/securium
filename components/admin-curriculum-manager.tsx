@@ -755,6 +755,11 @@ function NodeDetailPanel({
     );
   }
 
+  function removeRecommendedContent(item: LinkableContent) {
+    const key = linkKey(item);
+    setRecommendedLinkKeys((current) => current.filter((value) => value !== key));
+  }
+
   async function handleCopyStableKey() {
     const ok = await copyStableKey(stableKey);
     if (!ok) return;
@@ -828,7 +833,10 @@ function NodeDetailPanel({
         onSelectRecommendation={selectRecommendedContent}
       />
 
-      <PendingLinkedContentPreview selectedContent={selectedRecommendedContent} />
+      <PendingLinkedContentPreview
+        selectedContent={selectedRecommendedContent}
+        onRemove={removeRecommendedContent}
+      />
 
       <details className="curriculum-node-edit-panel" aria-labelledby={editPanelTitleId}>
         <summary id={editPanelTitleId}>선택 노드 수정</summary>
@@ -943,8 +951,10 @@ function NodeOperationalStats({
 
 function PendingLinkedContentPreview({
   selectedContent,
+  onRemove,
 }: {
   selectedContent: LinkableContent[];
+  onRemove: (item: LinkableContent) => void;
 }) {
   if (!selectedContent.length) return null;
 
@@ -970,6 +980,14 @@ function PendingLinkedContentPreview({
               </small>
             </span>
             <span className="status-badge compact">추가 예정</span>
+            <button
+              className="text-link remove-inline"
+              type="button"
+              onClick={() => onRemove(item)}
+              aria-label={`${item.title} 추가 예정 연결 제거`}
+            >
+              제거
+            </button>
           </li>
         ))}
       </ul>
