@@ -186,3 +186,17 @@ test("curriculum content recommendations avoid locale-dependent hydration drift"
   assert.match(source, /stableStringCompare\(a\.title,\s*b\.title\)/);
   assert.match(source, /stableStringCompare\(a\.id,\s*b\.id\)/);
 });
+
+test("admin curriculum manager is loaded client-only to avoid hydration drift", () => {
+  const pageSource = readFileSync("app/admin/curriculum/page.tsx", "utf8");
+  const wrapperSource = readFileSync(
+    "components/admin-curriculum-manager-client.tsx",
+    "utf8",
+  );
+  assert.match(
+    pageSource,
+    /@\/components\/admin-curriculum-manager-client/,
+  );
+  assert.match(wrapperSource, /dynamic\(/);
+  assert.match(wrapperSource, /ssr:\s*false/);
+});

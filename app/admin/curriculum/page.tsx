@@ -1,4 +1,4 @@
-import { AdminCurriculumManager } from "@/components/admin-curriculum-manager";
+import { AdminCurriculumManager } from "@/components/admin-curriculum-manager-client";
 import Link from "next/link";
 import {
   InspectorPanel,
