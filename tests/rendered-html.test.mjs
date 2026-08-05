@@ -643,9 +643,9 @@ test("통합 학습 플랫폼 랜딩페이지를 서버 렌더링한다", async 
   assert.match(visibleHtml, /Ontology/);
   assert.match(visibleHtml, /Citation/);
   assert.match(visibleHtml, /Review/);
-  assert.match(visibleHtml, /AI RESULT PREVIEW/);
-  assert.match(visibleHtml, /관련 문제/);
-  assert.match(visibleHtml, /관련 개념/);
+  assert.match(visibleHtml, /VERIFIABLE AI EXPLANATION/);
+  assert.match(visibleHtml, /검증 가능한 근거/);
+  assert.match(visibleHtml, /공식 기준 근거/);
   assert.match(visibleHtml, /LEARNER DASHBOARD/);
   assert.match(visibleHtml, /learner-dashboard-card/);
   assert.match(visibleHtml, /취약 영역/);
