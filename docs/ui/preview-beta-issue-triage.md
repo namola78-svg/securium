@@ -26,6 +26,8 @@ This board translates Preview Beta QA and user testing findings into release dec
 | BETA-001 | QA | P3 | Learner | `/analytics` | Initial loading state can remain visible for a few seconds before sparse analytics content appears. | Yes | TBD | Accepted for beta |
 | BETA-002 | QA | P3 | Mobile | Global | Mobile menu Escape close needs real-browser keyboard confirmation. | Needs manual check | TBD | Open |
 | BETA-003 | Ops | P2 | Operator | Local CLI | Vercel CLI status check can fail locally because of network/TLS `EACCES`. | Yes | TBD | Workaround: use Vercel dashboard |
+| PROD-QA-001 | Browser QA | P1 | Admin | `/admin/curriculum` | Production renders the global error state and logs `SECURIUM_PAGE_ERROR`; likely production data, schema, or runtime mismatch needs server log confirmation. | Yes | TBD | Open |
+| PROD-QA-002 | Browser QA | P1 | Admin | `/admin/audit-logs` | Production renders the global error state and logs `SECURIUM_PAGE_ERROR`; audit repository or production audit table availability should be checked. | Yes | TBD | Open |
 
 ## Decision matrix
 
@@ -68,4 +70,3 @@ Accepted risks:
 Owner approval:
 Release commit:
 ```
-

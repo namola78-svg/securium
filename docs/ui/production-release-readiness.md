@@ -17,6 +17,8 @@ Production Release begins only after Preview Beta Freeze, QA, and user testing a
 - [ ] Production DB migration approval recorded separately if needed.
 - [ ] Production seed approval recorded separately if needed.
 
+Current gate status: NO-GO until `PROD-QA-001` and `PROD-QA-002` are fixed or explicitly accepted with an approved operational workaround.
+
 Freeze record: `docs/ui/preview-beta-freeze.md`.
 QA record: `docs/ui/preview-beta-qa-results.md`.
 Issue triage: `docs/ui/preview-beta-issue-triage.md`.
