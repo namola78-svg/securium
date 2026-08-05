@@ -703,7 +703,7 @@ function CurriculumTreeRow({
         type="button"
         onClick={handleCopyStableKey}
         title={copied ? "Stable Key 복사됨" : "Stable Key 복사"}
-        aria-label={`${stableKey} ${copied ? "복사됨" : "복사"}`}
+        aria-label={`Stable Key ${stableKey} ${copied ? "복사됨" : "복사"}`}
       >
         {copied ? "복사됨" : "복사"}
       </button>
@@ -788,7 +788,7 @@ function NodeDetailPanel({
               className="text-link copy-inline"
               type="button"
               onClick={handleCopyStableKey}
-              aria-label={`${stableKey} ${stableKeyCopied ? "복사됨" : "복사"}`}
+              aria-label={`Stable Key ${stableKey} ${stableKeyCopied ? "복사됨" : "복사"}`}
             >
               {stableKeyCopied ? "복사됨" : "복사"}
             </button>
