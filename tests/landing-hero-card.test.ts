@@ -10,7 +10,8 @@ test("public landing hero card explains platform value instead of personal progr
     )?.[0] ?? "";
 
   assert.match(heroPanelSource, /SECURIUM 학습 경험/);
-  assert.match(heroPanelSource, /SECURIUM Knowledge Core/);
+  assert.match(heroPanelSource, /공식 기준 기반 학습 코어/);
+  assert.match(heroPanelSource, /Knowledge-linked Learning/);
   assert.match(heroPanelSource, /검증 가능/);
   assert.match(heroPanelSource, /공식 기준 기반 학습 엔진/);
   assert.match(heroPanelSource, /출제기준, 이론, 문제, AI 근거 설명, 복습 신호/);
@@ -33,7 +34,7 @@ test("public landing ends with product value CTA instead of course count summary
   assert.match(finalCtaSource, /START WITH SECURIUM/);
   assert.match(finalCtaSource, /공식 기준으로 배우고, AI 근거로 복습하세요/);
   assert.match(finalCtaSource, /무료로 학습 시작하기/);
-  assert.match(finalCtaSource, /과정 둘러보기/);
+  assert.match(finalCtaSource, /과정 먼저 둘러보기/);
   assert.doesNotMatch(source, /landing-course-summary/);
   assert.doesNotMatch(source, /개 과정이 준비되어 있습니다/);
 });

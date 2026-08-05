@@ -2188,6 +2188,27 @@ button:disabled {
   line-height: 1.6;
 }
 
+.dashboard-preview-progress {
+  height: 9px;
+  margin-top: 16px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.12);
+}
+
+.dashboard-preview-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--lime), var(--aqua));
+}
+
+.learner-dashboard-cta {
+  justify-content: center;
+  width: 100%;
+  margin-top: 16px;
+}
+
 @media (width <= 1024px) {
   .landing-course-spotlight-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

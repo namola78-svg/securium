@@ -92,11 +92,11 @@ export default async function Home() {
           </div>
           <div className="hero-panel" aria-label="SECURIUM 학습 경험 요약">
             <div className="hero-panel-header">
-              <span>SECURIUM Knowledge Core</span>
+              <span>공식 기준 기반 학습 코어</span>
               <span className="live-dot">검증 가능</span>
             </div>
             <div className="today-card-title">
-              <span>{databaseReady ? `${courses.length}개 전문과정` : "과정 확인 중"}</span>
+              <span>Knowledge-linked Learning</span>
               <strong>공식 기준 기반 학습 엔진</strong>
               <p>
                 출제기준, 이론, 문제, AI 근거 설명, 복습 신호를 하나의 지식 구조로
@@ -134,7 +134,7 @@ export default async function Home() {
               </h2>
               <p>
                 SECURIUM은 공식 기준에서 출발해 커리큘럼, 이론, 문제, AI 근거,
-                복습까지 하나의 흐름으로 이어지는 Knowledge Platform입니다.
+                복습까지 하나의 흐름으로 이어지는 지식 기반 학습 플랫폼입니다.
               </p>
             </div>
           </div>
@@ -142,32 +142,32 @@ export default async function Home() {
             <li>
               <span>01</span>
               <strong>공식 기준</strong>
-              <p>KISA · NCS · 출제기준 · 인증기준</p>
+              <p>정보보안기사 네트워크 보안 출제기준</p>
             </li>
             <li>
               <span>02</span>
               <strong>커리큘럼</strong>
-              <p>Ontology 기반 개념 연결</p>
+              <p>서비스 거부 공격과 대응 개념 연결</p>
             </li>
             <li>
               <span>03</span>
-              <strong>콘텐츠</strong>
-              <p>Theory · 사례 · 기준 해설</p>
+              <strong>이론</strong>
+              <p>DoS/DDoS 개념과 탐지 기준 정리</p>
             </li>
             <li>
               <span>04</span>
               <strong>문제</strong>
-              <p>Question · 오답 · 취약 개념</p>
+              <p>공격 유형 판단과 대응 방법 문제풀이</p>
             </li>
             <li>
               <span>05</span>
               <strong>AI 근거</strong>
-              <p>Citation · 검색 근거 · 검수 상태</p>
+              <p>관련 출제기준과 해설 근거 연결</p>
             </li>
             <li>
               <span>06</span>
               <strong>복습</strong>
-              <p>Weak Areas · 추천 · 학습 루프</p>
+              <p>오답 5문제와 취약 개념 재추천</p>
             </li>
           </ol>
         </div>
@@ -185,8 +185,8 @@ export default async function Home() {
             </h2>
             <p className="knowledge-platform-copy">
               SECURIUM의 핵심은 AI 자체가 아닙니다. 공식 기준을 출발점으로
-              Ontology, Content, Question, Citation, Review가 이어지는 구조 위에서
-              AI가 근거 있는 설명과 다음 학습을 돕습니다.
+              개념 연결, 이론 콘텐츠, 문제, 근거 해설, 복습 추천이 이어지는 구조 위에서
+              AI가 이해와 다음 학습을 돕습니다.
             </p>
             <div className="knowledge-platform-equation" aria-label="SECURIUM 핵심 구조">
               <span>AI</span>
@@ -201,17 +201,17 @@ export default async function Home() {
               </article>
               <article>
                 <span>02</span>
-                <strong>Ontology</strong>
+                <strong>개념 연결</strong>
                 <p>용어, 주제, 과정 간 관계를 연결해 흩어진 지식을 이어줍니다.</p>
               </article>
               <article>
                 <span>03</span>
-                <strong>Content · Question</strong>
+                <strong>이론 · 문제</strong>
                 <p>이론 콘텐츠와 문제를 같은 개념 흐름 안에서 학습하게 합니다.</p>
               </article>
               <article>
                 <span>04</span>
-                <strong>Citation · Review</strong>
+                <strong>근거 · 복습</strong>
                 <p>근거 해설과 복습 신호를 다시 취약 개념으로 연결합니다.</p>
               </article>
             </div>
@@ -222,32 +222,32 @@ export default async function Home() {
           >
             <div>
               <span>01</span>
-              <strong>Official Standard</strong>
+              <strong>공식 기준</strong>
               <p>출제기준 · 인증기준 · 법령 기준일</p>
             </div>
             <div>
               <span>02</span>
-              <strong>Ontology</strong>
+              <strong>개념 연결</strong>
               <p>개념 · 별칭 · 관계 · 과정 간 매핑</p>
             </div>
             <div>
               <span>03</span>
-              <strong>Content</strong>
+              <strong>이론 콘텐츠</strong>
               <p>이론 · 사례 · 기준 해설</p>
             </div>
             <div>
               <span>04</span>
-              <strong>Question</strong>
+              <strong>문제풀이</strong>
               <p>문제 · 오답 · 취약 개념</p>
             </div>
             <div>
               <span>05</span>
-              <strong>Citation</strong>
+              <strong>근거 해설</strong>
               <p>검색 근거 · 인용 · 검수 상태</p>
             </div>
             <div>
               <span>06</span>
-              <strong>Review</strong>
+              <strong>맞춤 복습</strong>
               <p>복습 일정 · 추천 · 학습 루프</p>
             </div>
           </div>
@@ -314,6 +314,9 @@ export default async function Home() {
                 <span>이어서 학습</span>
                 <strong>네트워크 보안 · 접근통제 기초</strong>
                 <p>공식 기준과 연결된 이론 1개를 이어서 학습합니다.</p>
+                <div className="dashboard-preview-progress" aria-label="이어서 학습 진행률 64%">
+                  <span style={{ width: "64%" }} />
+                </div>
               </div>
               <div>
                 <span>AI 설명</span>
@@ -338,6 +341,9 @@ export default async function Home() {
                 <p>정답률 58% · 우선 복습</p>
               </div>
             </div>
+            <Link className="button button-lime learner-dashboard-cta" href="/signup">
+              오늘 학습 시작하기
+            </Link>
           </article>
         </div>
       </section>
@@ -349,7 +355,7 @@ export default async function Home() {
               <div>
                 <p className="eyebrow">POPULAR LEARNING TRACKS</p>
                 <h2 id="landing-course-spotlight-title">
-                  지식 체계를 목적별 과정으로 학습하세요
+                  내가 준비하는 과정을 선택하세요
                 </h2>
               </div>
               <Link className="text-link" href="/courses">
@@ -435,7 +441,7 @@ export default async function Home() {
                 무료로 학습 시작하기
               </Link>
               <Link className="button button-secondary" href="/courses">
-                과정 둘러보기
+                과정 먼저 둘러보기
               </Link>
             </div>
           </div>
