@@ -1142,3 +1142,21 @@ test("문제 수정 실패 시 본문과 연결 정보를 함께 롤백한다", 
   assert.match(detailHtml, new RegExp(originalTitle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   assert.doesNotMatch(detailHtml, /\[실패 시 저장되면 안 됨\]/);
 });
+
+test("admin analytics page uses the shared console inspector pattern", async () => {
+  const response = await fetch(`${baseUrl}/admin/analytics`, {
+    headers: {
+      "oai-authenticated-user-email": "dev-admin@example.invalid",
+    },
+  });
+  const html = await response.text();
+  assert.equal(response.status, 200, html.slice(0, 1200));
+  assert.match(html, /OPERATIONS ANALYTICS/);
+  assert.match(html, /학습 운영 통계/);
+  assert.match(html, /ds-workspace-layout/);
+  assert.match(html, /ds-inspector-panel/);
+  assert.match(html, /ANALYTICS INSPECTOR/);
+  assert.match(html, /Metric formula/);
+  assert.match(html, /Source data/);
+  assert.match(html, /0으로 나누는 오류를 방지합니다/);
+});
