@@ -29,3 +29,18 @@ test("course learn action board exposes the core learner journey", () => {
   assert.match(styles, /\.learn-action-card:focus-visible/);
   assert.match(styles, /@media \(max-width: 680px\)[\s\S]*?\.learn-action-grid/);
 });
+
+test("course learn page uses user-facing labels for level statuses", () => {
+  const overviewSource = readFileSync("app/learn/[courseSlug]/page.tsx", "utf8");
+  const levelSource = readFileSync(
+    "app/learn/[courseSlug]/levels/[levelId]/page.tsx",
+    "utf8",
+  );
+  const serviceSource = readFileSync("lib/services/level-service.ts", "utf8");
+
+  assert.match(overviewSource, /levelStatusLabel\(level\.status\)/);
+  assert.match(levelSource, /levelStatusLabel\(level\.status\)/);
+  assert.match(serviceSource, /case "AVAILABLE":[\s\S]*?return "학습 가능"/);
+  assert.match(serviceSource, /case "LOCKED":[\s\S]*?return "잠김"/);
+  assert.doesNotMatch(overviewSource, /<span className="badge">\{level\.status\}<\/span>/);
+});

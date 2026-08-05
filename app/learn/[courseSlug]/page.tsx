@@ -18,6 +18,7 @@ import { getCourseTheoryProgress } from "@/db/lesson-repositories";
 import { getPublishedCourseLessonProgressSummary } from "@/db/shared-content-repositories";
 import { publicCopy } from "@/lib/public-copy";
 import { hasPrimaryCurriculumPath } from "@/lib/services/learn-overview-service";
+import { levelStatusLabel } from "@/lib/services/level-service";
 
 export const dynamic = "force-dynamic";
 
@@ -452,7 +453,7 @@ function LearnLevelCard({
       </span>
       <div>
         <div className="course-card-top">
-          <span className="badge">{level.status}</span>
+          <span className="badge">{levelStatusLabel(level.status)}</span>
           <span>통과 {level.passingScore}점</span>
         </div>
         <h3>{level.title}</h3>

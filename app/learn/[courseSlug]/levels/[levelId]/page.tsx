@@ -9,6 +9,7 @@ import { getPublicCourseBySlug } from "@/db/repositories";
 import { listPublicQuestions } from "@/db/question-repositories";
 import { requireCurrentAppUser } from "@/lib/auth";
 import { AppError } from "@/lib/errors";
+import { levelStatusLabel } from "@/lib/services/level-service";
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +48,8 @@ export default async function LevelLearningPage({
       <header className="page-hero">
         <div className="shell">
           <p className="eyebrow">
-            LEVEL {String(level.number).padStart(2, "0")} · {level.status}
+            LEVEL {String(level.number).padStart(2, "0")} ·{" "}
+            {levelStatusLabel(level.status)}
           </p>
           <h1>{level.title}</h1>
           <p>

@@ -29,6 +29,23 @@ export function assertLevelAccessible(status: LevelStatus) {
   }
 }
 
+export function levelStatusLabel(status: LevelStatus | string) {
+  switch (status) {
+    case "LOCKED":
+      return "잠김";
+    case "AVAILABLE":
+      return "학습 가능";
+    case "IN_PROGRESS":
+      return "진행 중";
+    case "COMPLETED":
+      return "완료";
+    case "MASTERED":
+      return "숙달";
+    default:
+      return "단계 상태";
+  }
+}
+
 export function applyLevelResult(
   current: LevelProgressState,
   score: number,
