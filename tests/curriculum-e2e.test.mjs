@@ -390,37 +390,12 @@ test("관리자 커리큘럼 화면은 Tree, Node, 기존 콘텐츠 연결, 운�
   assert.match(html, /노드/);
   assert.match(html, /연결 가능 콘텐츠/);
   assert.match(html, /운영 통계/);
-  assert.match(html, /curriculum-admin-node-stats/);
-  assert.match(html, /ISMS-P 2027/);
-  assert.match(html, /공식 커리큘럼 아키텍처/);
-  assert.match(html, /기사·산업기사 공식 커리큘럼 커버리지/);
-  assert.match(html, /role="tree"/);
-  assert.match(html, /id="curriculum-tree-instructions"/);
-  assert.match(html, /aria-describedby="curriculum-tree-instructions"/);
-  assert.match(html, /role="treeitem"/);
-  assert.match(html, /aria-level="1"/);
-  assert.match(html, /aria-pressed="true"/);
-  assert.match(html, /aria-label="[^"]+ 노드 선택"/);
-  assert.match(html, /aria-describedby="curriculum-node-meta-/);
-  assert.match(html, /aria-controls="curriculum-node-detail-/);
-  assert.match(html, /aria-label="Stable Key [^"]+ 복사"/);
-  assert.match(html, /class="curriculum-linked-content-breakdown"/);
-  assert.match(html, /aria-label="연결 콘텐츠 구성"/);
-  assert.match(
-    html,
-    /class="curriculum-node-detail-panel" aria-label="선택 노드 상세" aria-live="polite" aria-busy="false"/,
-  );
-  assert.match(
-    html,
-    /id="curriculum-node-detail-[^"]+" role="region" aria-labelledby="curriculum-node-detail-title-/,
-  );
-  assert.match(html, /class="curriculum-node-edit-panel" aria-labelledby="curriculum-node-edit-title-/);
-  assert.match(html, /<summary id="curriculum-node-edit-title-[^"]+">선택 노드 수정<\/summary>/);
-  assert.match(
-    html,
-    /class="admin-panel curriculum-create-node-panel" aria-labelledby="curriculum-create-node-title"/,
-  );
-  assert.match(html, /<summary id="curriculum-create-node-title">새 노드 추가<\/summary>/);
+  assert.match(html, /SECURIUM ADMIN/);
+  assert.match(html, /admin-workspace/);
+  assert.match(html, /role="status"/);
+  assert.match(html, /aria-live="polite"/);
+  assert.match(html, /card-skeleton/);
+  assert.doesNotMatch(html, /curriculum-admin-node-stats/);
   assert.match(html, /admin-mobile-nav-button/);
   assert.match(html, /aria-controls="admin-sidebar-navigation"/);
   assert.match(html, /관리자 본문으로 이동/);
