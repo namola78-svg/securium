@@ -635,7 +635,11 @@ test("통합 학습 플랫폼 랜딩페이지를 서버 렌더링한다", async 
   assert.match(visibleHtml, /learning-chain-list/);
   assert.match(visibleHtml, /KNOWLEDGE PLATFORM/);
   assert.match(visibleHtml, /knowledge-platform-stack/);
-  assert.match(visibleHtml, /AI Citation/);
+  assert.match(visibleHtml, /knowledge-platform-equation/);
+  assert.match(visibleHtml, /Official Standard/);
+  assert.match(visibleHtml, /Ontology/);
+  assert.match(visibleHtml, /Citation/);
+  assert.match(visibleHtml, /Review/);
   assert.doesNotMatch(visibleHtml, /Phase 1/);
   assert.doesNotMatch(visibleHtml, /개발용 샘플/);
   assert.doesNotMatch(visibleHtml, /COMMON LEARNING CORE/);

@@ -259,64 +259,74 @@ export default async function Home() {
           <div>
             <p className="eyebrow">KNOWLEDGE PLATFORM</p>
             <h2 id="knowledge-platform-title">
-              강의보다 깊게, 지식을 연결하는 학습 플랫폼
+              AI만 붙인 학습이 아니라, 기준에서 복습까지 연결된 지식 플랫폼
             </h2>
             <p className="knowledge-platform-copy">
-              SECURIUM은 콘텐츠를 단순히 나열하지 않습니다. 공식 기준과
-              개념, 이론, 문제, AI 근거 해설, 복습 신호를 하나의 지식 흐름으로
-              연결해 학습자가 “왜 맞고, 어디가 약한지”까지 이해하도록 돕습니다.
+              SECURIUM의 핵심은 AI 자체가 아닙니다. 공식 기준을 출발점으로
+              Ontology, Content, Question, Citation, Review가 이어지는 구조 위에서
+              AI가 근거 있는 설명과 다음 학습을 돕습니다.
             </p>
+            <div className="knowledge-platform-equation" aria-label="SECURIUM 핵심 구조">
+              <span>AI</span>
+              <strong>×</strong>
+              <span>공식 기준 기반 지식 연결</span>
+            </div>
             <div className="knowledge-platform-features">
               <article>
                 <span>01</span>
-                <strong>공식 기준 저장소</strong>
+                <strong>공식 기준</strong>
                 <p>출제기준과 인증기준을 학습 콘텐츠의 기준점으로 관리합니다.</p>
               </article>
               <article>
                 <span>02</span>
-                <strong>Ontology 기반 연결</strong>
+                <strong>Ontology</strong>
                 <p>용어, 주제, 과정 간 관계를 연결해 흩어진 지식을 이어줍니다.</p>
               </article>
               <article>
                 <span>03</span>
-                <strong>근거 기반 AI 설명</strong>
-                <p>AI 해설은 내부 콘텐츠와 기준을 근거로 삼아 참고 설명을 제공합니다.</p>
+                <strong>Content · Question</strong>
+                <p>이론 콘텐츠와 문제를 같은 개념 흐름 안에서 학습하게 합니다.</p>
               </article>
               <article>
                 <span>04</span>
-                <strong>복습 피드백 루프</strong>
-                <p>문제 풀이 결과를 취약 개념과 복습 계획으로 다시 연결합니다.</p>
+                <strong>Citation · Review</strong>
+                <p>근거 해설과 복습 신호를 다시 취약 개념으로 연결합니다.</p>
               </article>
             </div>
           </div>
           <div
             className="knowledge-platform-stack"
-            aria-label="SECURIUM 지식 플랫폼 구조"
+            aria-label="SECURIUM 지식 플랫폼 파이프라인"
           >
             <div>
-              <span>Layer 01</span>
-              <strong>Official Standards</strong>
+              <span>01</span>
+              <strong>Official Standard</strong>
               <p>출제기준 · 인증기준 · 법령 기준일</p>
             </div>
             <div>
-              <span>Layer 02</span>
-              <strong>Ontology Map</strong>
+              <span>02</span>
+              <strong>Ontology</strong>
               <p>개념 · 별칭 · 관계 · 과정 간 매핑</p>
             </div>
             <div>
-              <span>Layer 03</span>
-              <strong>Content Graph</strong>
-              <p>이론 · 사례 · 기준 · 문제 연결</p>
+              <span>03</span>
+              <strong>Content</strong>
+              <p>이론 · 사례 · 기준 해설</p>
             </div>
             <div>
-              <span>Layer 04</span>
-              <strong>AI Citation</strong>
+              <span>04</span>
+              <strong>Question</strong>
+              <p>문제 · 오답 · 취약 개념</p>
+            </div>
+            <div>
+              <span>05</span>
+              <strong>Citation</strong>
               <p>검색 근거 · 인용 · 검수 상태</p>
             </div>
             <div>
-              <span>Layer 05</span>
-              <strong>Review Signal</strong>
-              <p>오답 · 취약 영역 · 복습 추천</p>
+              <span>06</span>
+              <strong>Review</strong>
+              <p>복습 일정 · 추천 · 학습 루프</p>
             </div>
           </div>
         </div>

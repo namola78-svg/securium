@@ -1905,6 +1905,38 @@ button:disabled {
   line-height: 1.85;
 }
 
+.knowledge-platform-equation {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+  padding: 10px;
+  border: 1px solid rgb(12 23 25 / 0.1);
+  border-radius: 999px;
+  background: #f7faf2;
+  box-shadow: 0 14px 36px rgb(28 42 45 / 0.06);
+}
+
+.knowledge-platform-equation span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: var(--white);
+  color: #0c1719;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.knowledge-platform-equation strong {
+  color: var(--lime-deep);
+  font-size: 18px;
+  line-height: 1;
+}
+
 .knowledge-platform-features {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2064,6 +2096,22 @@ button:disabled {
 
   .knowledge-platform-copy {
     font-size: 15px;
+  }
+
+  .knowledge-platform-equation {
+    width: 100%;
+    border-radius: 22px;
+  }
+
+  .knowledge-platform-equation span {
+    flex: 1 1 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .knowledge-platform-equation strong {
+    width: 100%;
+    text-align: center;
   }
 
   .knowledge-platform-features {
