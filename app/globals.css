@@ -1209,84 +1209,6 @@ button:disabled {
   content: "";
 }
 
-.hero-ai-flow {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
-  align-items: stretch;
-  gap: 10px;
-  margin: 24px 0;
-}
-
-.hero-ai-flow > div:not(.hero-ai-flow-arrow) {
-  display: flex;
-  min-height: 148px;
-  flex-direction: column;
-  gap: 8px;
-  padding: 16px;
-  border: 1px solid rgb(255 255 255 / 0.12);
-  border-radius: 16px;
-  background: rgb(255 255 255 / 0.055);
-}
-
-.hero-ai-flow span {
-  color: var(--lime);
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-}
-
-.hero-ai-flow strong {
-  color: var(--white);
-  font-size: 15px;
-  line-height: 1.35;
-}
-
-.hero-ai-flow p {
-  margin: 0;
-  color: #b9c6c8;
-  font-size: 12px;
-  line-height: 1.55;
-}
-
-.hero-ai-flow-arrow {
-  display: grid;
-  align-items: center;
-  color: var(--lime);
-  font-size: 18px;
-  font-weight: 900;
-}
-
-.hero-learning-pulse {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin: 22px 0 0;
-}
-
-.hero-learning-pulse div {
-  padding: 14px;
-  border: 1px solid rgb(207 255 78 / 0.18);
-  border-radius: 15px;
-  background:
-    radial-gradient(circle at 18% 0, rgb(207 255 78 / 0.14), transparent 46%),
-    rgb(255 255 255 / 0.045);
-}
-
-.hero-learning-pulse span {
-  display: block;
-  margin-bottom: 8px;
-  color: #aebcbe;
-  font-size: 12px;
-  font-weight: 750;
-}
-
-.hero-learning-pulse strong {
-  color: var(--white);
-  font-size: 22px;
-  letter-spacing: -0.035em;
-}
-
 .eyebrow {
   margin: 0 0 8px;
   color: #5d6c71;
@@ -2224,7 +2146,7 @@ button:disabled {
 }
 
 .learner-dashboard-row {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   margin-top: 12px;
 }
 
@@ -6688,18 +6610,6 @@ textarea {
   .enroll-panel,
   .learn-progress-panel {
     max-width: 560px;
-  }
-
-  .hero-ai-flow {
-    grid-template-columns: 1fr;
-  }
-
-  .hero-ai-flow-arrow {
-    display: none;
-  }
-
-  .hero-learning-pulse {
-    grid-template-columns: 1fr;
   }
 
   .course-detail-bottom-cta {
