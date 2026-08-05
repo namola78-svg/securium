@@ -211,46 +211,6 @@ export default async function Home() {
         </div>
       </section>
 
-      {databaseReady && spotlightCourses.length ? (
-        <section className="landing-course-spotlight" aria-labelledby="landing-course-spotlight-title">
-          <div className="shell">
-            <div className="landing-course-spotlight-header">
-              <div>
-                <p className="eyebrow">POPULAR LEARNING TRACKS</p>
-                <h2 id="landing-course-spotlight-title">
-                  준비하는 과정이 바로 보이도록
-                </h2>
-              </div>
-              <Link className="text-link" href="/courses">
-                전체 과정 보기 →
-              </Link>
-            </div>
-            <div className="landing-course-spotlight-grid">
-              {spotlightCourses.map((course) => {
-                const meta = spotlightMeta(course);
-
-                return (
-                  <Link
-                    key={course.id}
-                    className="landing-course-spotlight-card"
-                    href={`/courses/${course.slug}`}
-                  >
-                    <span className="landing-course-spotlight-status">
-                      {meta.status}
-                    </span>
-                    <strong>{course.name || course.shortName}</strong>
-                    <p>{meta.description}</p>
-                    <span className="landing-course-spotlight-meta">
-                      {meta.stats}
-                    </span>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-      ) : null}
-
       <section
         className="section landing-knowledge-platform"
         aria-labelledby="knowledge-platform-title"
@@ -363,6 +323,46 @@ export default async function Home() {
           </article>
         </div>
       </section>
+
+      {databaseReady && spotlightCourses.length ? (
+        <section className="landing-course-spotlight" aria-labelledby="landing-course-spotlight-title">
+          <div className="shell">
+            <div className="landing-course-spotlight-header">
+              <div>
+                <p className="eyebrow">POPULAR LEARNING TRACKS</p>
+                <h2 id="landing-course-spotlight-title">
+                  지식 체계를 목적별 과정으로 학습하세요
+                </h2>
+              </div>
+              <Link className="text-link" href="/courses">
+                전체 과정 보기 →
+              </Link>
+            </div>
+            <div className="landing-course-spotlight-grid">
+              {spotlightCourses.map((course) => {
+                const meta = spotlightMeta(course);
+
+                return (
+                  <Link
+                    key={course.id}
+                    className="landing-course-spotlight-card"
+                    href={`/courses/${course.slug}`}
+                  >
+                    <span className="landing-course-spotlight-status">
+                      {meta.status}
+                    </span>
+                    <strong>{course.name || course.shortName}</strong>
+                    <p>{meta.description}</p>
+                    <span className="landing-course-spotlight-meta">
+                      {meta.stats}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <section className="section landing-value-section">
         <div className="shell">

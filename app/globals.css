@@ -1692,9 +1692,11 @@ button:disabled {
 }
 
 .landing-course-spotlight {
-  margin-top: -34px;
-  padding-bottom: 36px;
-  background: linear-gradient(180deg, var(--ink) 0, var(--paper) 100%);
+  margin-top: 0;
+  padding: 72px 0;
+  background:
+    radial-gradient(circle at top right, rgb(207 255 78 / 0.1), transparent 36%),
+    var(--ink);
 }
 
 .landing-course-spotlight .shell {
@@ -2139,8 +2141,7 @@ button:disabled {
 
 @media (width <= 640px) {
   .landing-course-spotlight {
-    margin-top: -18px;
-    padding-bottom: 24px;
+    padding: 54px 0;
   }
 
   .landing-course-spotlight-header {
