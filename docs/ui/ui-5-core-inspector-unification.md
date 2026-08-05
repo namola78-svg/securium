@@ -44,6 +44,20 @@ It should not become a second editing form unless the screen specifically needs 
 4. Content Revision — version safety and impact scope.
 5. Analytics — formula and drill-down inspector.
 
+## Current implementation lock
+
+The current implementation uses the shared contract on all five target pages:
+
+| Route | Required shell markers |
+| --- | --- |
+| `/admin/coverage` | `COVERAGE OPERATIONS`, `COVERAGE INSPECTOR`, `ds-page-toolbar`, `ds-workspace-layout`, `ds-inspector-panel` |
+| `/admin/ontology` | `ONTOLOGY ENGINE`, `ONTOLOGY INSPECTOR`, `ds-page-toolbar`, `ds-workspace-layout`, `ds-inspector-panel` |
+| `/admin/ai-explainability` | `AI EXPLAINABILITY`, `AI TRACE INSPECTOR`, `ds-page-toolbar`, `ds-workspace-layout`, `ds-inspector-panel` |
+| `/admin/content-revisions` | `CONTENT REVISION CONTROL`, `REVISION INSPECTOR`, `ds-page-toolbar`, `ds-workspace-layout`, `ds-inspector-panel` |
+| `/admin/analytics` | `OPERATIONS ANALYTICS`, `ANALYTICS INSPECTOR`, `ds-page-toolbar`, `ds-workspace-layout`, `ds-inspector-panel` |
+
+`tests/rendered-html.test.mjs` includes a server-rendered regression test that checks these markers with an authenticated admin request. This keeps the UI contract stable while allowing each page to evolve its workspace independently.
+
 ## Non-goals
 
 - No DB change.

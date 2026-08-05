@@ -1222,3 +1222,56 @@ test("admin analytics page uses the shared console inspector pattern", async () 
   assert.match(html, /Source data/);
   assert.match(html, /0으로 나누는 오류를 방지합니다/);
 });
+
+test("core admin operations pages share the console inspector contract", async () => {
+  const pages = [
+    {
+      path: "/admin/coverage",
+      header: /COVERAGE OPERATIONS/,
+      inspector: /COVERAGE INSPECTOR/,
+      adjacent: [/Curriculum/, /Shared Content/],
+    },
+    {
+      path: "/admin/ontology",
+      header: /ONTOLOGY ENGINE/,
+      inspector: /ONTOLOGY INSPECTOR/,
+      adjacent: [/View curriculum/, /View AI trace/],
+    },
+    {
+      path: "/admin/ai-explainability",
+      header: /AI EXPLAINABILITY/,
+      inspector: /AI TRACE INSPECTOR/,
+      adjacent: [/Ontology/, /AI Reviews/],
+    },
+    {
+      path: "/admin/content-revisions",
+      header: /CONTENT REVISION CONTROL/,
+      inspector: /REVISION INSPECTOR/,
+      adjacent: [/Shared Content/, /AI Retrieval/],
+    },
+    {
+      path: "/admin/analytics",
+      header: /OPERATIONS ANALYTICS/,
+      inspector: /ANALYTICS INSPECTOR/,
+      adjacent: [/Coverage/, /AI Trace/],
+    },
+  ];
+
+  for (const page of pages) {
+    const response = await fetch(`${baseUrl}${page.path}`, {
+      headers: {
+        "oai-authenticated-user-email": "dev-admin@example.invalid",
+      },
+    });
+    const html = await response.text();
+    assert.equal(response.status, 200, `${page.path}\n${html.slice(0, 1200)}`);
+    assert.match(html, page.header, page.path);
+    assert.match(html, /ds-page-toolbar/, page.path);
+    assert.match(html, /ds-workspace-layout/, page.path);
+    assert.match(html, /ds-inspector-panel/, page.path);
+    assert.match(html, page.inspector, page.path);
+    for (const pattern of page.adjacent) {
+      assert.match(html, pattern, page.path);
+    }
+  }
+});
