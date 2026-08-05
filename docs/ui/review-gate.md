@@ -1,10 +1,12 @@
 # UI-2 Review Gate
 
-Sprint UI-2가 끝난 뒤 바로 React 구현으로 넘어가지 않는다. SECURIUM은 일반 자격증 사이트보다 정보 구조가 깊기 때문에 Figma 수준의 핵심 화면 리뷰를 먼저 수행한다.
+Sprint UI-2가 끝난 뒤 곧바로 React 구현으로 넘어가지 않고, SECURIUM의 핵심 화면 구조를 제품 관점에서 먼저 검토하기 위한 게이트입니다.
+
+SECURIUM은 일반 자격증 사이트보다 커리큘럼, 문제, 콘텐츠, 온톨로지, AI 근거 추적, 커버리지 분석이 깊게 연결되는 제품입니다. 따라서 구현 전에 화면 정보 구조와 공통 패턴을 확인해야 이후 재작업 비용을 줄일 수 있습니다.
 
 ## Review Goal
 
-핵심 화면 15~20개를 제품 관점에서 검토하고, 이후 구현 Sprint에서 화면을 다시 크게 뜯어고치는 비용을 줄인다.
+핵심 화면 15~20개를 제품 관점에서 검토하고, 이후 구현 Sprint에서 화면을 다시 크게 뜯어고치는 비용을 줄입니다.
 
 ## Review Order
 
@@ -18,7 +20,7 @@ Sprint UI-2가 끝난 뒤 바로 React 구현으로 넘어가지 않는다. SECU
 
 ## Implementation Rollout Gate
 
-리뷰가 끝나도 전체 관리자 화면을 한 번에 바꾸지 않는다.
+리뷰가 끝나도 전체 관리자 화면을 한 번에 교체하지 않습니다.
 
 권장 구현 순서:
 
@@ -28,9 +30,9 @@ Sprint UI-2가 끝난 뒤 바로 React 구현으로 넘어가지 않는다. SECU
 4. 관리자 Dashboard 한 화면에 시범 적용
 5. Curriculum
 6. Ontology
-7. AI Trace·Coverage
+7. AI Trace · Coverage
 
-Dashboard에서 Shell을 먼저 검증한 뒤 복잡한 Tree·Inspector 화면으로 확장한다. 이렇게 하면 인증, 권한, 반응형, 로딩/오류 상태 회귀 위험을 줄일 수 있다.
+Dashboard에서 Shell을 먼저 검증한 뒤 복잡한 Tree · Inspector 화면으로 확장합니다. 이렇게 하면 인증, 권한, 반응형, 로딩, 오류 상태 회귀 위험을 줄일 수 있습니다.
 
 ## Core Screens to Review
 
@@ -73,7 +75,7 @@ Use [Core Screen Review Checklist](./core-screen-review-checklist.md) during rev
 | --- | --- |
 | Information Priority | 첫 화면에서 가장 중요한 정보가 먼저 보이는가 |
 | Primary CTA | 사용자의 다음 행동이 명확한가 |
-| Empty State | 데이터가 없을 때 다음 행동을 알려주는가 |
+| Empty State | 데이터가 없을 때 다음 행동을 안내하는가 |
 | Loading State | 레이아웃 이동을 줄이는가 |
 | Error State | 내부 오류를 숨기고 복구 행동을 제공하는가 |
 | Mobile | 360px/390px에서 핵심 CTA가 먼저 보이는가 |
