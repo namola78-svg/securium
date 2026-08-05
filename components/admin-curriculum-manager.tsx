@@ -1476,12 +1476,22 @@ function buildTreeModel(nodes: CurriculumNode[]) {
     childrenByParent.set(key, siblings);
   }
   for (const siblings of childrenByParent.values()) {
-    siblings.sort((a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title));
+    siblings.sort(
+      (a, b) =>
+        a.sortOrder - b.sortOrder ||
+        stableStringCompare(a.title, b.title) ||
+        stableStringCompare(a.id, b.id),
+    );
   }
   return {
     rootNodes: childrenByParent.get(null) ?? [],
     childrenByParent,
   };
+}
+
+function stableStringCompare(left: string, right: string) {
+  if (left === right) return 0;
+  return left < right ? -1 : 1;
 }
 
 function flattenVisibleNodes(

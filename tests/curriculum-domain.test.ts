@@ -172,3 +172,10 @@ test("public catalog cache uses stable wrappers instead of repository functions"
   assert.match(source, /unstable_cache\(\s*cachedGetPublicCourseBySlug\s*,/);
   assert.match(source, /unstable_cache\(\s*cachedListCurriculum\s*,/);
 });
+
+test("admin curriculum tree sorting avoids locale-dependent hydration drift", () => {
+  const source = readFileSync("components/admin-curriculum-manager.tsx", "utf8");
+  assert.doesNotMatch(source, /siblings\.sort\([\s\S]*localeCompare/);
+  assert.match(source, /stableStringCompare\(a\.title,\s*b\.title\)/);
+  assert.match(source, /stableStringCompare\(a\.id,\s*b\.id\)/);
+});
