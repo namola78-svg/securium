@@ -104,7 +104,8 @@ export function recommendLinkableContentForNode<
         b.score - a.score ||
         contentTypeRank(a.type) - contentTypeRank(b.type) ||
         a.displayOrder - b.displayOrder ||
-        a.title.localeCompare(b.title),
+        stableStringCompare(a.title, b.title) ||
+        stableStringCompare(a.id, b.id),
     );
 
   return typeof limit === "number" ? recommendations.slice(0, limit) : recommendations;
@@ -179,6 +180,11 @@ function contentTypeRank(type: string) {
     LESSON: 3,
   };
   return ranks[type] ?? 99;
+}
+
+function stableStringCompare(left: string, right: string) {
+  if (left === right) return 0;
+  return left < right ? -1 : 1;
 }
 
 function stripLinkedContentMetadata(metadata: string | null | undefined) {

@@ -179,3 +179,10 @@ test("admin curriculum tree sorting avoids locale-dependent hydration drift", ()
   assert.match(source, /stableStringCompare\(a\.title,\s*b\.title\)/);
   assert.match(source, /stableStringCompare\(a\.id,\s*b\.id\)/);
 });
+
+test("curriculum content recommendations avoid locale-dependent hydration drift", () => {
+  const source = readFileSync("lib/curriculum/content-recommendations.ts", "utf8");
+  assert.doesNotMatch(source, /recommendations[\s\S]*localeCompare/);
+  assert.match(source, /stableStringCompare\(a\.title,\s*b\.title\)/);
+  assert.match(source, /stableStringCompare\(a\.id,\s*b\.id\)/);
+});
