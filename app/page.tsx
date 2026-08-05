@@ -421,37 +421,24 @@ export default async function Home() {
 
       <section className="section">
         <div className="shell">
-          <div className="section-heading">
+          <div className="landing-final-cta">
             <div>
-              <p className="eyebrow">NEXT STEP</p>
-              <h2>내가 준비하는 과정을 찾아보세요</h2>
-            </div>
-            <Link className="text-link" href="/courses">
-              전체 과정 보기 →
-            </Link>
-          </div>
-          {!databaseReady ? (
-            <div className="notice warning">
-              로컬 데이터베이스 준비가 필요합니다. README의 DB 설정 절차를
-              실행하면 과정이 표시됩니다.
-            </div>
-          ) : courses.length ? (
-            <div className="landing-course-summary">
-              <strong>{courses.length}개 과정이 준비되어 있습니다.</strong>
+              <p className="eyebrow">START WITH SECURIUM</p>
+              <h2>공식 기준으로 배우고, AI 근거로 복습하세요</h2>
               <p>
-                공식 기준 기반 커리큘럼을 과정별로 확인하고, 나에게 맞는 학습 경로를
-                선택할 수 있습니다.
+                정보보호·개인정보보호 학습을 과정, 문제, 해설, 복습까지
+                하나의 흐름으로 이어갑니다.
               </p>
-              <Link className="button button-dark" href="/courses">
-                전체 과정 보기
+            </div>
+            <div className="landing-final-actions" aria-label="SECURIUM 시작하기">
+              <Link className="button button-dark" href="/signup">
+                무료로 학습 시작하기
+              </Link>
+              <Link className="button button-secondary" href="/courses">
+                과정 둘러보기
               </Link>
             </div>
-          ) : (
-            <div className="empty-state">
-              <strong>공개된 과정이 없습니다.</strong>
-              <p>관리자가 과정을 공개하면 이곳에 표시됩니다.</p>
-            </div>
-          )}
+          </div>
         </div>
       </section>
 

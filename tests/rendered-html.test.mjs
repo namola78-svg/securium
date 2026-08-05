@@ -641,6 +641,10 @@ test("통합 학습 플랫폼 랜딩페이지를 서버 렌더링한다", async 
   assert.match(visibleHtml, /취약 영역/);
   assert.match(visibleHtml, /오늘 완료/);
   assert.match(visibleHtml, /2\/5/);
+  assert.match(visibleHtml, /START WITH SECURIUM/);
+  assert.match(visibleHtml, /landing-final-cta/);
+  assert.match(visibleHtml, /무료로 학습 시작하기/);
+  assert.doesNotMatch(visibleHtml, /개 과정이 준비되어 있습니다/);
   assert.doesNotMatch(visibleHtml, /Phase 1/);
   assert.doesNotMatch(visibleHtml, /개발용 샘플/);
   assert.doesNotMatch(visibleHtml, /COMMON LEARNING CORE/);

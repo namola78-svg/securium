@@ -23,3 +23,17 @@ test("public landing hero card explains platform value instead of personal progr
   assert.doesNotMatch(heroPanelSource, /68%/);
   assert.doesNotMatch(heroPanelSource, /progress-track/);
 });
+
+test("public landing ends with product value CTA instead of course count summary", () => {
+  const source = readFileSync("app/page.tsx", "utf8");
+  const finalCtaSource =
+    source.match(/<div className="landing-final-cta"[\s\S]*?<\/div>\s*<\/section>/)?.[0] ??
+    "";
+
+  assert.match(finalCtaSource, /START WITH SECURIUM/);
+  assert.match(finalCtaSource, /공식 기준으로 배우고, AI 근거로 복습하세요/);
+  assert.match(finalCtaSource, /무료로 학습 시작하기/);
+  assert.match(finalCtaSource, /과정 둘러보기/);
+  assert.doesNotMatch(source, /landing-course-summary/);
+  assert.doesNotMatch(source, /개 과정이 준비되어 있습니다/);
+});
