@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CourseCard } from "@/components/course-card";
 import type { CourseListItem } from "@/db/repositories";
 import { getOptionalCurrentAppUser } from "@/lib/auth";
 import { listPublishedCoursesCached } from "@/lib/cached-catalog";
@@ -456,8 +455,8 @@ export default async function Home() {
         <div className="shell">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">COURSE CATALOG</p>
-              <h2>한 계정으로 이어지는 전문 과정</h2>
+              <p className="eyebrow">NEXT STEP</p>
+              <h2>지식 체계를 과정별로 더 자세히 살펴보세요</h2>
             </div>
             <Link className="text-link" href="/courses">
               전체 과정 보기 →
@@ -469,10 +468,15 @@ export default async function Home() {
               실행하면 과정이 표시됩니다.
             </div>
           ) : courses.length ? (
-            <div className="course-grid">
-              {courses.slice(0, 3).map((course) => (
-                <CourseCard key={course.id} course={course} />
-              ))}
+            <div className="landing-course-summary">
+              <strong>{courses.length}개 과정이 준비되어 있습니다.</strong>
+              <p>
+                과정 카드는 위에서 한 번만 보여주고, 전체 목록은 과정 페이지에서
+                비교할 수 있습니다.
+              </p>
+              <Link className="button button-dark" href="/courses">
+                전체 과정 보기
+              </Link>
             </div>
           ) : (
             <div className="empty-state">

@@ -1795,6 +1795,34 @@ button:disabled {
   font-weight: 750;
 }
 
+.landing-course-summary {
+  display: grid;
+  gap: 14px;
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--white);
+  box-shadow: 0 16px 42px rgb(28 42 45 / 0.06);
+}
+
+.landing-course-summary strong {
+  color: #0c1719;
+  font-size: 24px;
+  letter-spacing: -0.04em;
+}
+
+.landing-course-summary p {
+  max-width: 640px;
+  margin: 0;
+  color: #5f6e72;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.landing-course-summary .button {
+  justify-self: flex-start;
+}
+
 .landing-learning-chain {
   padding-top: 72px;
   padding-bottom: 48px;
