@@ -633,6 +633,9 @@ test("통합 학습 플랫폼 랜딩페이지를 서버 렌더링한다", async 
   assert.doesNotMatch(visibleHtml, /68%/);
   assert.match(visibleHtml, /SECURIUM LEARNING CHAIN/);
   assert.match(visibleHtml, /learning-chain-list/);
+  assert.match(visibleHtml, /KNOWLEDGE PLATFORM/);
+  assert.match(visibleHtml, /knowledge-platform-stack/);
+  assert.match(visibleHtml, /AI Citation/);
   assert.doesNotMatch(visibleHtml, /Phase 1/);
   assert.doesNotMatch(visibleHtml, /개발용 샘플/);
   assert.doesNotMatch(visibleHtml, /COMMON LEARNING CORE/);

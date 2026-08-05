@@ -251,6 +251,77 @@ export default async function Home() {
         </div>
       </section>
 
+      <section
+        className="section landing-knowledge-platform"
+        aria-labelledby="knowledge-platform-title"
+      >
+        <div className="shell knowledge-platform-grid">
+          <div>
+            <p className="eyebrow">KNOWLEDGE PLATFORM</p>
+            <h2 id="knowledge-platform-title">
+              강의보다 깊게, 지식을 연결하는 학습 플랫폼
+            </h2>
+            <p className="knowledge-platform-copy">
+              SECURIUM은 콘텐츠를 단순히 나열하지 않습니다. 공식 기준과
+              개념, 이론, 문제, AI 근거 해설, 복습 신호를 하나의 지식 흐름으로
+              연결해 학습자가 “왜 맞고, 어디가 약한지”까지 이해하도록 돕습니다.
+            </p>
+            <div className="knowledge-platform-features">
+              <article>
+                <span>01</span>
+                <strong>공식 기준 저장소</strong>
+                <p>출제기준과 인증기준을 학습 콘텐츠의 기준점으로 관리합니다.</p>
+              </article>
+              <article>
+                <span>02</span>
+                <strong>Ontology 기반 연결</strong>
+                <p>용어, 주제, 과정 간 관계를 연결해 흩어진 지식을 이어줍니다.</p>
+              </article>
+              <article>
+                <span>03</span>
+                <strong>근거 기반 AI 설명</strong>
+                <p>AI 해설은 내부 콘텐츠와 기준을 근거로 삼아 참고 설명을 제공합니다.</p>
+              </article>
+              <article>
+                <span>04</span>
+                <strong>복습 피드백 루프</strong>
+                <p>문제 풀이 결과를 취약 개념과 복습 계획으로 다시 연결합니다.</p>
+              </article>
+            </div>
+          </div>
+          <div
+            className="knowledge-platform-stack"
+            aria-label="SECURIUM 지식 플랫폼 구조"
+          >
+            <div>
+              <span>Layer 01</span>
+              <strong>Official Standards</strong>
+              <p>출제기준 · 인증기준 · 법령 기준일</p>
+            </div>
+            <div>
+              <span>Layer 02</span>
+              <strong>Ontology Map</strong>
+              <p>개념 · 별칭 · 관계 · 과정 간 매핑</p>
+            </div>
+            <div>
+              <span>Layer 03</span>
+              <strong>Content Graph</strong>
+              <p>이론 · 사례 · 기준 · 문제 연결</p>
+            </div>
+            <div>
+              <span>Layer 04</span>
+              <strong>AI Citation</strong>
+              <p>검색 근거 · 인용 · 검수 상태</p>
+            </div>
+            <div>
+              <span>Layer 05</span>
+              <strong>Review Signal</strong>
+              <p>오답 · 취약 영역 · 복습 추천</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="section landing-value-section">
         <div className="shell">
           <div className="section-heading">
