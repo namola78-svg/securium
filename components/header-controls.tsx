@@ -200,7 +200,7 @@ export function HeaderControls({ user }: HeaderControlsProps) {
       { href: "/profile", label: "프로필" },
       { href: "/settings", label: "학습 설정" },
     ];
-    if (isAdmin) items.push({ href: "/admin", label: "관리자 화면" });
+    if (isAdmin) items.push({ href: "/admin", label: "운영 콘솔" });
     return items;
   }, [isAdmin]);
 
@@ -301,7 +301,7 @@ export function HeaderControls({ user }: HeaderControlsProps) {
             </span>
             <div>
               <strong>{currentUser.displayName}</strong>
-              <span>{isAdmin ? "관리자 권한" : "학습자"}</span>
+              <span>{isAdmin ? "운영 권한 보유" : "학습자"}</span>
             </div>
           </div>
         ) : null}
@@ -373,7 +373,7 @@ export function HeaderControls({ user }: HeaderControlsProps) {
               <div className="profile-menu-panel" id="profile-menu-panel" role="menu">
                 <div className="profile-menu-summary" role="presentation">
                   <strong>{currentUser.displayName}</strong>
-                  <span>{isAdmin ? "관리자 권한" : "학습자"}</span>
+                  <span>{isAdmin ? "운영 권한 보유" : "학습자"}</span>
                 </div>
                 {profileItems.map((item) => (
                   <HeaderNavItem
