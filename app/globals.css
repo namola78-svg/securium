@@ -1257,6 +1257,36 @@ button:disabled {
   font-weight: 900;
 }
 
+.hero-learning-pulse {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 22px 0 0;
+}
+
+.hero-learning-pulse div {
+  padding: 14px;
+  border: 1px solid rgb(207 255 78 / 0.18);
+  border-radius: 15px;
+  background:
+    radial-gradient(circle at 18% 0, rgb(207 255 78 / 0.14), transparent 46%),
+    rgb(255 255 255 / 0.045);
+}
+
+.hero-learning-pulse span {
+  display: block;
+  margin-bottom: 8px;
+  color: #aebcbe;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.hero-learning-pulse strong {
+  color: var(--white);
+  font-size: 22px;
+  letter-spacing: -0.035em;
+}
+
 .eyebrow {
   margin: 0 0 8px;
   color: #5d6c71;
@@ -6079,6 +6109,10 @@ textarea {
 
   .hero-ai-flow-arrow {
     display: none;
+  }
+
+  .hero-learning-pulse {
+    grid-template-columns: 1fr;
   }
 
   .course-detail-bottom-cta {

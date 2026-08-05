@@ -104,6 +104,20 @@ export default async function Home() {
                 흐름으로 제공합니다.
               </p>
             </div>
+            <div className="hero-learning-pulse" aria-label="오늘의 학습 예시">
+              <div>
+                <span>오늘 학습</span>
+                <strong>17분</strong>
+              </div>
+              <div>
+                <span>AI 설명</span>
+                <strong>완료</strong>
+              </div>
+              <div>
+                <span>복습 추천</span>
+                <strong>5문제</strong>
+              </div>
+            </div>
             <div className="hero-ai-flow" aria-label="AI 학습 흐름">
               <div>
                 <span>01</span>
