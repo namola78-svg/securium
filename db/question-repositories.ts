@@ -105,6 +105,7 @@ export async function listPublicQuestions(filters: QuestionFilters) {
       difficulty: questions.difficulty,
       isSample: questions.isSample,
       courseId: questionCourses.courseId,
+      createdAt: questions.createdAt,
     })
     .from(questions)
     .innerJoin(questionCourses, eq(questions.id, questionCourses.questionId))
@@ -113,10 +114,14 @@ export async function listPublicQuestions(filters: QuestionFilters) {
     .leftJoin(questionTopics, eq(questions.id, questionTopics.questionId))
     .where(and(...conditions))
     .orderBy(
-      filters.random ? sql`random()` : asc(questions.createdAt),
+      asc(questions.createdAt),
       asc(questions.id),
     )
     .limit(Math.min(filters.limit ?? 10, 50));
+
+  if (filters.random) {
+    rows.sort(() => Math.random() - 0.5);
+  }
 
   const ids = rows.map((row) => row.id);
   const choiceRows = ids.length

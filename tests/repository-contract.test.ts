@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import {
   createCoreRepositories,
@@ -17,6 +18,18 @@ import type {
   DatabaseStatement,
 } from "../db/provider/database-provider.ts";
 import { AppError } from "../lib/errors.ts";
+
+test("public question listing keeps PostgreSQL DISTINCT ordering safe", () => {
+  const source = readFileSync("db/question-repositories.ts", "utf8");
+  const listPublicQuestionsSource =
+    source.match(
+      /export async function listPublicQuestions[\s\S]*?export async function getQuestionForGrading/,
+    )?.[0] ?? "";
+
+  assert.match(listPublicQuestionsSource, /createdAt:\s*questions\.createdAt/);
+  assert.doesNotMatch(listPublicQuestionsSource, /orderBy\(\s*filters\.random/);
+  assert.doesNotMatch(listPublicQuestionsSource, /sql`random\(\)`/);
+});
 
 const now = "2026-07-27 10:00:00";
 const rowsByRepository = {
