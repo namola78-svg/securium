@@ -269,8 +269,11 @@ export function PracticeSession({
       <div className="practice-session-brief" aria-label="문제풀이 진행 요약">
         <div>
           <p className="eyebrow">PRACTICE GUIDE</p>
-          <strong>답안을 제출하면 채점 결과와 검수 해설을 확인할 수 있습니다.</strong>
-          <span>AI 참고 해설은 채점 이후 요청할 수 있으며 공식 채점 결과가 아닙니다.</span>
+          <strong>풀이 → 채점 → 검수 해설 → AI 근거 순서로 학습합니다.</strong>
+          <span>
+            답안을 제출하면 채점 결과와 검수 해설을 확인할 수 있습니다. AI 참고
+            해설은 채점 이후 요청할 수 있으며 공식 채점 결과가 아닙니다.
+          </span>
         </div>
         <dl>
           <div>
@@ -287,6 +290,24 @@ export function PracticeSession({
           </div>
         </dl>
       </div>
+      <ol className="practice-learning-flow" aria-label="문제풀이 학습 흐름">
+        <li className={!result ? "is-current" : "is-done"}>
+          <span>1</span>
+          <strong>답안 선택</strong>
+        </li>
+        <li className={result ? "is-done" : ""}>
+          <span>2</span>
+          <strong>서버 채점</strong>
+        </li>
+        <li className={result ? "is-current" : ""}>
+          <span>3</span>
+          <strong>검수 해설</strong>
+        </li>
+        <li className={aiExplanations[question.id] ? "is-current" : ""}>
+          <span>4</span>
+          <strong>AI 근거</strong>
+        </li>
+      </ol>
       <div className="practice-toolbar">
         <span>
           {index + 1} / {questions.length}
@@ -352,9 +373,13 @@ export function PracticeSession({
         <div
           className={`grade-panel ${result.isCorrect ? "grade-correct" : "grade-wrong"}`}
         >
-          <strong>{result.isCorrect ? "정답입니다." : "오답입니다."}</strong>
-          <p>점수 {result.score}점</p>
-          <p className="explanation-label">관리자 검수 해설</p>
+          <div className="grade-panel-heading">
+            <div>
+              <p className="explanation-label">관리자 검수 해설</p>
+              <strong>{result.isCorrect ? "정답입니다." : "오답입니다."}</strong>
+            </div>
+            <span>점수 {result.score}점</span>
+          </div>
           {result.explanationVersion.version ? (
             <p className="muted-copy">
               기준일 {result.explanationVersion.contentDate ?? "미등록"} · 버전{" "}
@@ -364,6 +389,10 @@ export function PracticeSession({
           ) : (
             <p className="muted-copy">검수 정보가 등록되지 않았습니다.</p>
           )}
+          <p className="grade-context-copy">
+            아래 해설은 관리자 검수 콘텐츠입니다. AI 참고 해설은 이 해설을
+            대체하지 않고 이해를 돕는 보조 설명으로만 표시됩니다.
+          </p>
           <p>{publicCopy(result.explanation)}</p>
           {!result.isCorrect ? <p>{publicCopy(result.wrongAnswerExplanation)}</p> : null}
           <p>정답: {result.correctAnswer.map(publicCopy).join(", ")}</p>
@@ -381,7 +410,7 @@ export function PracticeSession({
               ? "AI 참고 해설 생성 중…"
               : aiExplanations[question.id]
                 ? "AI 참고 해설 생성 완료"
-                : "AI 참고 해설 보기"}
+                : "AI 근거 해설 보기"}
           </button>
           {aiExplanations[question.id] ? (
             <AIExplanationPanel result={aiExplanations[question.id]} />

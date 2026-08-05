@@ -47,6 +47,10 @@ export default async function WrongNotesPage({
   const selectedTopic = topics.find((topic) => topic.id === topicId);
   const repeatedCount = notes.filter((note) => note.wrongCount > 1).length;
   const unresolvedCount = notes.filter((note) => !note.mastered).length;
+  const highestWrongCount = notes.reduce(
+    (max, note) => Math.max(max, note.wrongCount),
+    0,
+  );
 
   return (
     <main className="page-main dashboard-page">
@@ -150,12 +154,15 @@ export default async function WrongNotesPage({
         <WrongNoteFilterSummary
           courseSlug={selectedCourse?.slug}
           difficulty={difficulty}
+          highestWrongCount={highestWrongCount}
           mastered={formatMastered(mastered)}
           noteCount={notes.length}
           repeated={repeated}
+          repeatedCount={repeatedCount}
           selectedCourseName={selectedCourse?.shortName ?? selectedCourse?.name}
           selectedSubjectName={selectedSubject?.name}
           selectedTopicName={selectedTopic?.name}
+          unresolvedCount={unresolvedCount}
         />
 
         {notes.length ? (
@@ -181,21 +188,27 @@ export default async function WrongNotesPage({
 function WrongNoteFilterSummary({
   courseSlug,
   difficulty,
+  highestWrongCount,
   mastered,
   noteCount,
   repeated,
+  repeatedCount,
   selectedCourseName,
   selectedSubjectName,
   selectedTopicName,
+  unresolvedCount,
 }: {
   courseSlug?: string;
   difficulty?: string;
+  highestWrongCount: number;
   mastered?: string;
   noteCount: number;
   repeated: boolean;
+  repeatedCount: number;
   selectedCourseName?: string;
   selectedSubjectName?: string;
   selectedTopicName?: string;
+  unresolvedCount: number;
 }) {
   const filters = [
     selectedCourseName ? `과정: ${selectedCourseName}` : "전체 과정",
@@ -233,6 +246,23 @@ function WrongNoteFilterSummary({
         <Link className="button button-ghost" href="/wrong-notes">
           필터 초기화
         </Link>
+      </div>
+      <div className="wrong-note-insight-grid" aria-label="오답 우선순위 요약">
+        <div>
+          <span>반복 오답</span>
+          <strong>{repeatedCount}개</strong>
+          <p>두 번 이상 틀린 문제를 먼저 확인하세요.</p>
+        </div>
+        <div>
+          <span>미숙지</span>
+          <strong>{unresolvedCount}개</strong>
+          <p>아직 숙지 완료로 표시하지 않은 항목입니다.</p>
+        </div>
+        <div>
+          <span>최대 오답 횟수</span>
+          <strong>{highestWrongCount}회</strong>
+          <p>가장 많이 틀린 문제는 별도 메모를 남기는 것이 좋습니다.</p>
+        </div>
       </div>
     </section>
   );

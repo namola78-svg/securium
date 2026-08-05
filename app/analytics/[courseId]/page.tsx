@@ -130,6 +130,42 @@ export default async function CourseAnalyticsPage({
           )}
         </section>
 
+        <section className="analytics-action-strip section-block" aria-label="과정 분석 다음 행동">
+          <Link
+            className="analytics-action-card analytics-action-card-primary"
+            href={
+              weakestTopic && weakestTopicParams
+                ? `/practice/${course.slug}?${weakestTopicParams.toString()}`
+                : `/practice/${course.slug}?count=10`
+            }
+          >
+            <span>01 · 취약 영역</span>
+            <strong>
+              {weakestTopic
+                ? weakestTopicMeta?.name ?? weakestTopic.id
+                : "분석 데이터 준비 중"}
+            </strong>
+            <p>
+              {weakestTopic
+                ? `정답률 ${weakestTopic.accuracy}% 영역을 먼저 보완하세요.`
+                : "문제풀이 기록이 쌓이면 우선 영역을 추천합니다."}
+            </p>
+          </Link>
+          <Link
+            className="analytics-action-card"
+            href={`/practice/${course.slug}?count=10`}
+          >
+            <span>02 · 추가 풀이</span>
+            <strong>과정 문제 10개 풀기</strong>
+            <p>새 풀이 기록으로 과목·주제별 분석 정확도를 높입니다.</p>
+          </Link>
+          <Link className="analytics-action-card" href="/reviews">
+            <span>03 · 복습 연결</span>
+            <strong>오늘의 복습으로 이동</strong>
+            <p>반복 오답과 예정 복습을 정리해 취약 신호를 줄입니다.</p>
+          </Link>
+        </section>
+
         <section className="analytics-grid section-block">
           <Breakdown title="난이도별 정답률" rows={stats.byDifficulty} />
           <Breakdown title="문제 유형별 정답률" rows={stats.byType} />

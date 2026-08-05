@@ -64,22 +64,25 @@ export default async function LearnCoursePage({
             <div>
               <p className="eyebrow light">{course.groupName}</p>
               <h1>{course.name}</h1>
-              <p>단계 학습, 복습, 문제풀이와 모의고사를 한곳에서 관리합니다.</p>
+              <p>
+                공식 커리큘럼을 따라 이론을 익히고, 문제풀이와 복습까지 한
+                흐름으로 이어갑니다.
+              </p>
               <div className="button-row">
+                <Link
+                  className="button button-primary"
+                  href="#today-learning-board"
+                >
+                  오늘 학습 보기
+                </Link>
                 <Link
                   className="button button-outline-light"
                   href={`/practice/${course.slug}?random=1&count=10`}
                 >
-                  랜덤 문제 풀기
+                  문제 풀기
                 </Link>
                 <Link className="button button-outline-light" href="/reviews">
                   오늘의 복습
-                </Link>
-                <Link
-                  className="button button-outline-light"
-                  href={`/lectures/${course.slug}`}
-                >
-                  강의 보기
                 </Link>
               </div>
             </div>
@@ -95,6 +98,16 @@ export default async function LearnCoursePage({
       </section>
       <section className="section">
         <div className="shell">
+          <Suspense fallback={<LearnActionBoardFallback />}>
+            <LearnActionBoard
+              activitySummaryPromise={activitySummaryPromise}
+              courseId={course.id}
+              courseSlug={course.slug}
+              levelRowsPromise={levelRowsPromise}
+              theoryProgressViewPromise={theoryProgressViewPromise}
+            />
+          </Suspense>
+
           <Suspense fallback={<LearnLevelPathFallback />}>
             <LearnLevelPathLoader
               courseSlug={course.slug}
@@ -229,6 +242,128 @@ function getLevelCompletion(levelRows: CourseLevelRows) {
     ).length /
       levelRows.length) *
       100,
+  );
+}
+
+async function LearnActionBoard({
+  activitySummaryPromise,
+  courseId,
+  courseSlug,
+  levelRowsPromise,
+  theoryProgressViewPromise,
+}: {
+  activitySummaryPromise: Promise<LearnCourseActivitySummary>;
+  courseId: string;
+  courseSlug: string;
+  levelRowsPromise: Promise<CourseLevelRows>;
+  theoryProgressViewPromise: Promise<TheoryProgressView>;
+}) {
+  const [
+    { dueReviewCount, stats },
+    levelRows,
+    { displayedTheoryProgress, nextSharedLesson, legacyTheoryProgress },
+  ] = await Promise.all([
+    activitySummaryPromise,
+    levelRowsPromise,
+    theoryProgressViewPromise,
+  ]);
+  const nextLegacyLesson = legacyTheoryProgress?.nextLesson ?? null;
+  const continueHref = nextSharedLesson
+    ? `/learn/${courseSlug}/course-lessons/${nextSharedLesson.id}`
+    : nextLegacyLesson
+      ? `/learn/${courseSlug}/lessons/${nextLegacyLesson.id}`
+      : `/practice/${courseSlug}?random=1&count=10`;
+  const continueTitle = nextSharedLesson
+    ? publicCopy(nextSharedLesson.title)
+    : nextLegacyLesson
+      ? publicCopy(nextLegacyLesson.title)
+      : "문제풀이로 학습을 시작하세요";
+
+  return (
+    <section
+      className="learn-action-board section-block"
+      id="today-learning-board"
+    >
+      <div className="section-heading compact">
+        <div>
+          <p className="eyebrow">TODAY LEARNING</p>
+          <h2>오늘의 학습 보드</h2>
+          <p>
+            이어서 볼 이론, 풀 문제, 복습과 분석을 한눈에 확인하세요.
+          </p>
+        </div>
+        <span className="count-label">
+          단계 완료율 {getLevelCompletion(levelRows)}%
+        </span>
+      </div>
+      <div className="learn-action-grid">
+        <Link
+          className="learn-action-card learn-action-card-primary"
+          href={continueHref}
+        >
+          <span>01 · 이어서 학습</span>
+          <strong>{continueTitle}</strong>
+          <p>
+            이론 진도 {displayedTheoryProgress.completedLessons}/
+            {displayedTheoryProgress.totalLessons} 완료
+          </p>
+          <small>학습 계속하기 →</small>
+        </Link>
+        <Link
+          className="learn-action-card"
+          href={`/practice/${courseSlug}?random=1&count=10`}
+        >
+          <span>02 · 문제풀이</span>
+          <strong>10문항으로 실력 점검</strong>
+          <p>최근 7일 {stats.recent7Days}문제를 풀이했습니다.</p>
+          <small>문제 풀기 →</small>
+        </Link>
+        <Link
+          className="learn-action-card"
+          href={`/practice/${courseSlug}?reviewOnly=1&count=50`}
+        >
+          <span>03 · 복습</span>
+          <strong>{dueReviewCount}개 복습 예정</strong>
+          <p>오답과 취약 영역을 먼저 정리합니다.</p>
+          <small>복습 시작 →</small>
+        </Link>
+        <Link className="learn-action-card" href={`/analytics/${courseId}`}>
+          <span>04 · 분석</span>
+          <strong>과정별 학습 분석</strong>
+          <p>
+            전체 정답률 {stats.overallAccuracy}% · 반복 오답{" "}
+            {stats.repeatedWrongCount}개
+          </p>
+          <small>분석 보기 →</small>
+        </Link>
+      </div>
+    </section>
+  );
+}
+
+function LearnActionBoardFallback() {
+  return (
+    <section
+      className="learn-action-board section-block"
+      id="today-learning-board"
+      aria-live="polite"
+    >
+      <div className="section-heading compact">
+        <div>
+          <p className="eyebrow">TODAY LEARNING</p>
+          <h2>오늘의 학습 보드를 불러오고 있습니다</h2>
+        </div>
+      </div>
+      <div className="learn-action-grid" aria-hidden="true">
+        {[0, 1, 2, 3].map((item) => (
+          <div className="card-skeleton compact" key={item}>
+            <span />
+            <span />
+            <span />
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 

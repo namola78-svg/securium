@@ -10,6 +10,7 @@ export default async function ReviewsPage() {
   const summary = await getReviewSummary(user.id);
   const hasDueReviews = summary.dueCount > 0;
   const topItem = summary.items[0];
+  const primaryReviewCourse = summary.byCourse[0];
 
   return (
     <main className="page-main dashboard-page">
@@ -66,6 +67,37 @@ export default async function ReviewsPage() {
             value={summary.completionRate}
             label="오늘의 복습 완료율"
           />
+        </section>
+
+        <section className="review-action-strip section-block" aria-label="복습 실행 메뉴">
+          <Link
+            className="review-action-card review-action-card-primary"
+            href={
+              primaryReviewCourse
+                ? `/practice/${primaryReviewCourse.slug}?reviewOnly=1&count=50`
+                : "/practice"
+            }
+          >
+            <span>01 · 오늘 복습</span>
+            <strong>
+              {hasDueReviews ? "예정 문제부터 풀기" : "새 문제로 복습 일정 만들기"}
+            </strong>
+            <p>
+              {hasDueReviews
+                ? `${summary.dueCount}개 항목을 우선순위대로 정리했습니다.`
+                : "문제를 풀면 정답 여부에 따라 다음 복습일이 만들어집니다."}
+            </p>
+          </Link>
+          <Link className="review-action-card" href="/wrong-notes">
+            <span>02 · 오답 정리</span>
+            <strong>반복 오답 확인</strong>
+            <p>메모와 숙지 상태를 보며 헷갈린 개념을 다시 정리합니다.</p>
+          </Link>
+          <Link className="review-action-card" href="/practice">
+            <span>03 · 추가 풀이</span>
+            <strong>부족한 문제 더 풀기</strong>
+            <p>새 풀이 기록을 쌓아 복습 추천을 더 정확하게 만듭니다.</p>
+          </Link>
         </section>
 
         <section className="section-block review-grid">

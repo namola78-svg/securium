@@ -116,6 +116,33 @@ async function AnalyticsOverview({
           </Link>
         )}
       </section>
+      <section className="analytics-action-strip section-block" aria-label="학습분석 다음 행동">
+        <Link
+          className="analytics-action-card analytics-action-card-primary"
+          href={topCourse ? `/analytics/${topCourse.courseId}` : "/courses"}
+        >
+          <span>01 · 취약 과정</span>
+          <strong>{topCourse ? topCourse.courseName : "과정 선택"}</strong>
+          <p>
+            {topCourse
+              ? "정답률과 이론 진도를 먼저 확인할 과정입니다."
+              : "학습할 과정을 등록하면 분석이 시작됩니다."}
+          </p>
+        </Link>
+        <Link
+          className="analytics-action-card"
+          href={topCourse ? `/practice/${topCourse.courseSlug}?count=10` : "/practice"}
+        >
+          <span>02 · 문제풀이</span>
+          <strong>10문항으로 신호 만들기</strong>
+          <p>새 풀이 기록이 쌓일수록 취약 영역 추천이 정교해집니다.</p>
+        </Link>
+        <Link className="analytics-action-card" href="/reviews">
+          <span>03 · 복습</span>
+          <strong>오답과 연체 복습 확인</strong>
+          <p>분석에서 발견한 취약 신호를 복습 루틴으로 이어갑니다.</p>
+        </Link>
+      </section>
     </>
   );
 }
