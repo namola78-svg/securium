@@ -20,6 +20,7 @@ Production Release begins only after Preview Beta Freeze, QA, and user testing a
 Freeze record: `docs/ui/preview-beta-freeze.md`.
 QA record: `docs/ui/preview-beta-qa-results.md`.
 Issue triage: `docs/ui/preview-beta-issue-triage.md`.
+Release candidate review: `docs/ui/production-release-candidate.md`.
 
 ## Smoke tests after release
 
