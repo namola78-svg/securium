@@ -7156,7 +7156,7 @@ textarea {
 
 .level-card,
 .recommendation-card,
-.today-plan-grid > article,
+.today-plan-card,
 .analytics-card {
   padding: 20px;
   border: 1px solid var(--line);
@@ -7204,6 +7204,70 @@ textarea {
 
 .today-plan-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: stretch;
+}
+
+.today-plan-card {
+  display: flex;
+  min-height: 248px;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.today-plan-card h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 22px;
+  letter-spacing: -0.04em;
+  line-height: 1.25;
+}
+
+.today-plan-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.today-plan-card .button,
+.today-plan-card .text-link {
+  margin-top: auto;
+}
+
+.today-plan-card-primary {
+  border-color: rgb(159 211 35 / 0.34);
+  background:
+    radial-gradient(circle at top right, rgb(200 244 90 / 0.2), transparent 38%),
+    var(--white);
+}
+
+.today-plan-settings-card {
+  background: #f7f8f4;
+}
+
+.today-plan-settings-card .goal-form {
+  margin-top: auto;
+}
+
+.today-recommendation-panel {
+  margin-top: 22px;
+}
+
+.today-recommendation-panel .section-heading {
+  margin-bottom: 14px;
+}
+
+.today-recommendation-panel h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 24px;
+  letter-spacing: -0.04em;
+}
+
+@media (max-width: 1024px) {
+  .today-plan-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .goal-form,

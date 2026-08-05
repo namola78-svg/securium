@@ -259,6 +259,11 @@ async function TodayPlanSection({
   planPromise: Promise<TodayPlan | null>;
 }) {
   const plan = (await planPromise) ?? createEmptyTodayPlan();
+  const primaryRecommendation = plan.recommendations[0];
+  const remainingQuestions = Math.max(
+    plan.settings.dailyQuestionGoal - plan.completedQuestions,
+    0,
+  );
 
   return (
     <section className="section-block today-plan">
@@ -273,12 +278,55 @@ async function TodayPlanSection({
         </Link>
       </div>
       <div className="today-plan-grid">
-        <div className="admin-panel">
+        <article className="today-plan-card today-plan-card-primary">
+          <span className="badge">오늘 목표</span>
+          <h3>{remainingQuestions ? `${remainingQuestions}문제 남았습니다` : "오늘 목표를 완료했습니다"}</h3>
           <ProgressBar value={plan.completionPercent} label="오늘 문제 목표" />
+          <p>
+            목표 {plan.settings.dailyQuestionGoal}문제 중 {plan.completedQuestions}문제를
+            완료했습니다. 실제 풀이 기록을 기준으로 표시합니다.
+          </p>
+          <Link className="button button-dark" href={primaryRecommendation?.href ?? "/practice"}>
+            문제풀이 시작하기
+          </Link>
+        </article>
+        <article className="today-plan-card">
+          <span className="badge">AI 추천</span>
+          <h3>{primaryRecommendation?.title ?? "첫 학습 기록을 만들어보세요"}</h3>
+          <p>
+            {primaryRecommendation?.reason ??
+              "문제풀이와 이론 학습 기록이 쌓이면 AI가 다음 학습 후보를 더 정확하게 정리합니다."}
+          </p>
+          <Link className="text-link" href={primaryRecommendation?.href ?? "/courses"}>
+            추천 학습 열기 →
+          </Link>
+        </article>
+        <article className="today-plan-card">
+          <span className="badge">복습</span>
+          <h3>{plan.reviewSummary.dueCount}개 복습 예정</h3>
+          <p>
+            오답, 취약 개념, 반복 학습 기록을 기준으로 오늘 다시 볼 항목을 모았습니다.
+          </p>
+          <Link className="text-link" href="/reviews">
+            복습 시작하기 →
+          </Link>
+        </article>
+        <article className="today-plan-card today-plan-settings-card">
+          <span className="badge">학습 설정</span>
+          <h3>하루 목표 조정</h3>
+          <p>문제 수와 학습 시간을 내 페이스에 맞춰 조정합니다.</p>
           <LearningSettingsForm
             dailyQuestionGoal={plan.settings.dailyQuestionGoal}
             dailyStudyMinutes={plan.settings.dailyStudyMinutes}
           />
+        </article>
+      </div>
+      <div className="today-recommendation-panel">
+        <div className="section-heading compact">
+          <div>
+            <p className="eyebrow">NEXT ACTIONS</p>
+            <h3>바로 이어갈 학습</h3>
+          </div>
         </div>
         <div className="recommendation-list">
           {plan.recommendations.slice(0, 5).map((item) => (
