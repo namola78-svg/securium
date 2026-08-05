@@ -4,8 +4,8 @@ Production Release begins only after Preview Beta Freeze, QA, and user testing a
 
 ## Production release gate
 
-- [ ] Preview Beta Freeze completed.
-- [ ] QA completed.
+- [x] Preview Beta Freeze completed.
+- [x] QA completed.
 - [ ] User testing completed or explicitly deferred by owner.
 - [ ] Known issues triaged.
 - [ ] Release owner assigned.
@@ -16,6 +16,9 @@ Production Release begins only after Preview Beta Freeze, QA, and user testing a
 - [ ] Production environment values verified in provider UI without exposing secrets.
 - [ ] Production DB migration approval recorded separately if needed.
 - [ ] Production seed approval recorded separately if needed.
+
+Freeze record: `docs/ui/preview-beta-freeze.md`.
+QA record: `docs/ui/preview-beta-qa-results.md`.
 
 ## Smoke tests after release
 
@@ -71,4 +74,3 @@ Verification:
 - Preview smoke:
 - Production smoke:
 ```
-

@@ -2,6 +2,8 @@
 
 User testing should validate whether SECURIUM feels useful and trustworthy, not whether every future feature exists.
 
+Detailed facilitator script: `docs/ui/preview-beta-test-script.md`.
+
 ## Participant profile
 
 | Group | Count | Goal |
@@ -56,4 +58,3 @@ For each issue:
 - Observed behavior.
 - Severity: P0, P1, P2, P3.
 - Suggested fix.
-
