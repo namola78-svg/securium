@@ -180,7 +180,7 @@ function LearnCurriculumPathRow({
   const stableKey = getStableKey(node);
   const progressLabel = node.linkedLessonCount
     ? `${node.completedLinkedLessons}/${node.linkedLessonCount} 완료`
-    : "레슨 준비 중";
+    : "레슨 연결 예정";
 
   return (
     <article
@@ -299,7 +299,7 @@ function LearnCurriculumNodeDetail({
           </Link>
         ) : (
           <button className="button button-disabled" type="button" disabled>
-            연결 준비 중
+            콘텐츠 연결 예정
           </button>
         )}
       </div>
