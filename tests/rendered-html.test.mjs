@@ -549,12 +549,20 @@ test("통합 학습 플랫폼 랜딩페이지를 서버 렌더링한다", async 
   assert.match(response.headers.get("permissions-policy") ?? "", /camera=\(\)/);
 
   const html = await response.text();
-  assert.match(html, /SECURIUM/);
-  assert.match(html, /정보보호 전문 역량을/);
-  assert.match(html, /과정별 진도 자동 관리/);
-  assert.match(html, /AI 기반 맞춤 설명/);
-  assert.doesNotMatch(html, /codex-preview/);
-  assert.doesNotMatch(html, /react-loading-skeleton/);
+  const visibleHtml = html.split('<script id="_R_">')[0];
+  assert.match(visibleHtml, /SECURIUM/);
+  assert.match(visibleHtml, /정보보호 전문 역량을/);
+  assert.match(visibleHtml, /무료로 학습 시작하기/);
+  assert.match(visibleHtml, /과정 둘러보기/);
+  assert.match(visibleHtml, /오늘의 학습/);
+  assert.match(visibleHtml, /시험 준비와 실무 역량/);
+  assert.match(visibleHtml, /과정별 진도 자동 관리/);
+  assert.match(visibleHtml, /AI 기반 맞춤 설명/);
+  assert.doesNotMatch(visibleHtml, /Phase 1/);
+  assert.doesNotMatch(visibleHtml, /개발용 샘플/);
+  assert.doesNotMatch(visibleHtml, /COMMON LEARNING CORE/);
+  assert.doesNotMatch(visibleHtml, /codex-preview/);
+  assert.doesNotMatch(visibleHtml, /react-loading-skeleton/);
 });
 
 test("과정 목록을 로컬 D1에서 조회한다", async () => {
