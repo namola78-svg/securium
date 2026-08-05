@@ -369,6 +369,15 @@ test("admin curriculum and shared content pages expose network security coverage
     )?.curriculumNodeId,
     null,
   );
+  const targetCurriculumNodeId = "curriculum-node-ise-2027-2029-02";
+  const linkedCourseLessonSortOrder =
+    Math.max(
+      temporaryCourseLessonSortOrder,
+      0,
+      ...unlinkedCourseLessonsPayload.courseLessons
+        .filter((lesson) => lesson.curriculumNodeId === targetCurriculumNodeId)
+        .map((lesson) => Number(lesson.sortOrder) || 0),
+    ) + 1;
 
   const linkCourseLessonResponse = await fetch(
     `${baseUrl}/api/admin/shared-content`,
@@ -384,11 +393,11 @@ test("admin curriculum and shared content pages expose network security coverage
         courseLesson: {
           id: temporaryCourseLessonId,
           courseId: "course-ise",
-          curriculumNodeId: "curriculum-node-ise-2027-2029-02",
+          curriculumNodeId: targetCurriculumNodeId,
           lessonId: "",
           contentId: temporaryContentId,
           displayTitle: "Rendered HTML temporary unlinked CourseLesson",
-          sortOrder: temporaryCourseLessonSortOrder,
+          sortOrder: linkedCourseLessonSortOrder,
           difficulty: "",
           importance: 50,
           estimatedMinutes: 7,
@@ -417,7 +426,7 @@ test("admin curriculum and shared content pages expose network security coverage
     linkedCourseLessonsPayload.courseLessons.find(
       (lesson) => lesson.id === temporaryCourseLessonId,
     )?.curriculumNodeId,
-    "curriculum-node-ise-2027-2029-02",
+    targetCurriculumNodeId,
   );
 
   const sharedContentResponse = await fetch(
@@ -601,7 +610,9 @@ test("통합 학습 플랫폼 랜딩페이지를 서버 렌더링한다", async 
   const html = await response.text();
   const visibleHtml = html.split('<script id="_R_">')[0];
   assert.match(visibleHtml, /SECURIUM/);
-  assert.match(visibleHtml, /정보보호 전문 역량을/);
+  assert.match(visibleHtml, /공식 기준으로 배우고/);
+  assert.match(visibleHtml, /AI 근거로 이해하는 정보보호 학습 플랫폼/);
+  assert.match(visibleHtml, /공식 출제기준과 검수된 학습 콘텐츠를 중심으로/);
   assert.match(visibleHtml, /무료로 학습 시작하기/);
   assert.match(visibleHtml, /과정 둘러보기/);
   assert.match(visibleHtml, /SECURIUM 학습 경험/);
