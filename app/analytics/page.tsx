@@ -56,7 +56,7 @@ async function AnalyticsOverview({
           <h2>
             {analytics.totalQuestions
               ? `전체 정답률 ${analytics.overallAccuracy}%`
-              : "학습 기록이 쌓이면 분석이 시작됩니다"}
+              : "문제를 풀면 학습 결과가 바로 정리됩니다"}
           </h2>
           <p>
             분석은 과정별로 분리된 풀이 기록을 사용합니다. 취약 영역이 보이면
@@ -153,7 +153,7 @@ async function AnalyticsOverview({
         >
           <span>02 · 문제풀이</span>
           <strong>10문항으로 취약 영역 찾기</strong>
-          <p>새 풀이 기록이 쌓일수록 취약 영역 추천이 정교해집니다.</p>
+          <p>새 문제를 풀면 취약 영역 추천이 더 구체적으로 정리됩니다.</p>
         </Link>
         <Link className="analytics-action-card" href="/reviews">
           <span>03 · 복습</span>

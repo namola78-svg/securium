@@ -53,3 +53,18 @@ test("analytics loading copy explains that learner records are being checked", (
   assert.match(source, /최근 학습 기록과 과정별 진도를 확인하고 있습니다/);
   assert.doesNotMatch(source, /학습분석 정보를 준비하고 있습니다/);
 });
+
+test("analytics empty and low-data copy stays action oriented", () => {
+  const combined = [
+    "app/analytics/page.tsx",
+    "app/analytics/[courseId]/page.tsx",
+  ]
+    .map((file) => readFileSync(file, "utf8"))
+    .join("\n");
+
+  assert.match(combined, /문제를 풀면 학습 결과가 바로 정리됩니다/);
+  assert.match(combined, /문제를 풀면 주제별 취약 영역이 표시됩니다/);
+  assert.match(combined, /문제를 풀면 우선 보완할 영역을 추천합니다/);
+  assert.doesNotMatch(combined, /학습 기록이 쌓이면/);
+  assert.doesNotMatch(combined, /문제풀이 기록이 쌓이면/);
+});

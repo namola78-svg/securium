@@ -79,8 +79,8 @@ export default async function CourseAnalyticsPage({
                 : "이 과정의 학습 기록이 아직 없습니다"}
             </h2>
             <p>
-              분모가 없는 지표는 안전하게 0으로 표시합니다. 학습 기록이 쌓이면
-              취약 과목과 주제를 더 정확하게 추천합니다.
+              아직 풀이가 없는 지표는 0으로 표시합니다. 문제를 풀면 취약
+              과목과 주제를 바로 확인할 수 있습니다.
             </p>
           </div>
           <dl>
@@ -113,7 +113,7 @@ export default async function CourseAnalyticsPage({
                 {weakestTopic.accuracy}%입니다. 해당 주제 문제를 먼저 풀어보세요.
               </p>
             ) : (
-              <p>주제별 분석은 문제풀이 기록이 쌓이면 표시됩니다.</p>
+              <p>문제를 풀면 주제별 취약 영역이 표시됩니다.</p>
             )}
           </div>
           {weakestTopic && weakestTopicParams ? (
@@ -179,7 +179,7 @@ export default async function CourseAnalyticsPage({
             <p>
               {weakestTopic
                 ? `정답률 ${weakestTopic.accuracy}% 영역을 먼저 보완하세요.`
-                : "문제풀이 기록이 쌓이면 우선 영역을 추천합니다."}
+                : "문제를 풀면 우선 보완할 영역을 추천합니다."}
             </p>
           </Link>
           <Link
