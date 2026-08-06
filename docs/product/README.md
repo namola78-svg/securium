@@ -1,5 +1,9 @@
 # SECURIUM Product Documentation
 
+> Product UI standard: [`docs/design/design-system-v2.md`](../design/design-system-v2.md)
+>
+> Use Design System v2 as the current source of truth for learner/admin layout standards, CTA patterns, component behavior, responsive rules, accessibility, and terminology.
+
 `docs/product`는 SECURIUM의 제품 설계 문서 허브다.
 
 기존 `docs/design` 문서가 UI/UX Foundation의 산출물을 담는다면, `docs/product`는 브랜드, IA, 학습 경험, AI, 온톨로지, 관리자, 접근성, 로드맵까지 제품 전체를 연결하는 상위 분류 체계다.
