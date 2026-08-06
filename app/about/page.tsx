@@ -31,7 +31,7 @@ export default function AboutPage() {
     <main className="page-main">
       <section className="page-hero">
         <div className="shell">
-          <p className="eyebrow">ABOUT SECURIUM</p>
+          <p className="eyebrow">시큐리움 소개</p>
           <h1>시큐리움 | SECURIUM</h1>
           <p>{BRAND.shortDescription}</p>
         </div>
@@ -40,7 +40,7 @@ export default function AboutPage() {
       <section className="section">
         <div className="shell narrow">
           <article className="course-detail-section">
-            <p className="eyebrow">MISSION</p>
+            <p className="eyebrow">서비스 목표</p>
             <h2>흩어진 보안 학습을 하나의 체계로 연결합니다</h2>
             <p>
               시큐리움은 자격시험 준비, 실무 사례 학습, 문제풀이, 오답 복습,
@@ -50,7 +50,7 @@ export default function AboutPage() {
           </article>
 
           <article className="course-detail-section">
-            <p className="eyebrow">PRINCIPLES</p>
+            <p className="eyebrow">학습 설계 원칙</p>
             <h2>학습 설계 원칙</h2>
             <div className="value-grid">
               {principles.map((principle) => (
@@ -63,7 +63,7 @@ export default function AboutPage() {
           </article>
 
           <article className="course-detail-section">
-            <p className="eyebrow">FOR LEARNERS</p>
+            <p className="eyebrow">학습자를 위해</p>
             <h2>이런 학습자를 위해 만들었습니다</h2>
             <ul className="feature-list">
               <li>정보보호·개인정보보호 자격시험을 준비하는 학습자</li>
@@ -75,7 +75,7 @@ export default function AboutPage() {
 
           <article className="course-detail-section course-detail-bottom-cta">
             <div>
-              <p className="eyebrow">GET STARTED</p>
+              <p className="eyebrow">학습 시작</p>
               <h2>내 학습 여정을 시작하세요</h2>
               <p>
                 공개된 과정 목록에서 현재 목표에 맞는 과정을 선택하고, 과정별

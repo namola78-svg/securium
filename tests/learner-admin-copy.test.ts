@@ -102,3 +102,27 @@ test("public course detail uses learner-facing section labels", () => {
     /START LEARNING|OVERVIEW|RECOMMENDED FOR|GOALS|CURRICULUM|COMPLETION|READY TO START/,
   );
 });
+
+test("public landing guide and about pages use learner-facing eyebrow labels", () => {
+  const combined = [
+    "app/page.tsx",
+    "app/guide/page.tsx",
+    "app/about/page.tsx",
+  ]
+    .map((file) => readFileSync(file, "utf8"))
+    .join("\n");
+
+  for (const internalLabel of [
+    "Knowledge Engine",
+    "TODAY",
+    "LEARNING GUIDE",
+    "RECOMMENDED FLOW",
+    "ABOUT SECURIUM",
+    "MISSION",
+    "PRINCIPLES",
+    "FOR LEARNERS",
+    "GET STARTED",
+  ]) {
+    assert.doesNotMatch(combined, new RegExp(internalLabel));
+  }
+});

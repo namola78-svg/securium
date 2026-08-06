@@ -146,7 +146,7 @@ export default async function Home() {
         <div className="shell">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">Knowledge Engine</p>
+              <p className="eyebrow">학습 연결 구조</p>
               <h2 id="learning-chain-title">
                 공식 기준이 문제와 AI 근거까지 이어집니다
               </h2>
@@ -324,7 +324,7 @@ export default async function Home() {
           <article className="learner-dashboard-card" aria-label="학습자 대시보드 미리보기">
             <div className="learner-dashboard-card-header">
               <div>
-                <span>TODAY</span>
+                <span>오늘의 학습</span>
                 <strong>지금 할 일</strong>
               </div>
               <span className="dashboard-preview-badge">17분 예상</span>
