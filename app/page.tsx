@@ -104,9 +104,9 @@ export default async function Home() {
             </div>
             <div className="today-card-title">
               <span>공식 기준 기반 학습</span>
-              <strong>공식 기준 기반 학습 엔진</strong>
+              <strong>공식 기준 기반 학습 흐름</strong>
               <p>
-                출제기준, 이론, 문제, AI 근거 설명, 복습 신호를 하나의 지식 구조로
+                출제기준, 이론, 문제, AI 근거 설명, 복습 추천을 하나의 학습 구조로
                 연결합니다.
               </p>
             </div>
@@ -231,7 +231,7 @@ export default async function Home() {
               <article>
                 <span>04</span>
                 <strong>근거 · 복습</strong>
-                <p>근거 해설과 복습 신호를 다시 취약 개념으로 연결합니다.</p>
+                <p>근거 해설과 복습 추천을 다시 취약 개념으로 연결합니다.</p>
               </article>
             </div>
           </div>
