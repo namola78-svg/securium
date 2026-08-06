@@ -433,6 +433,9 @@ test("admin ontology console is protected and uses review-status workflow", asyn
 
   assert.match(adminHomeSource, /href:\s*"\/admin\/ontology"/);
   assert.match(adminHomeSource, /title:\s*"지식 연결 탐색"/);
+  assert.match(adminHomeSource, /loadAdminDashboardRows/);
+  assert.match(adminHomeSource, /listSharedContentSummaries/);
+  assert.doesNotMatch(adminHomeSource, /listSharedContents\(\)/);
   assert.match(adminOntologySource, /requireCatalogManager\("\/admin\/ontology"\)/);
   assert.match(adminOntologySource, /listOntologyAdminConceptRows/);
   assert.match(adminOntologySource, /listOntologyAdminEdgeRows/);

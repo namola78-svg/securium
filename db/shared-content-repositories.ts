@@ -70,6 +70,27 @@ export async function listSharedContents(status?: string) {
     .orderBy(asc(contents.title), asc(contents.version));
 }
 
+export async function listSharedContentSummaries(status?: string) {
+  return getDb()
+    .select({
+      id: contents.id,
+      slug: contents.slug,
+      canonicalKey: contents.canonicalKey,
+      title: contents.title,
+      version: contents.version,
+      status: contents.status,
+      updatedAt: contents.updatedAt,
+    })
+    .from(contents)
+    .where(
+      and(
+        isNull(contents.deletedAt),
+        status ? eq(contents.status, status) : undefined,
+      ),
+    )
+    .orderBy(asc(contents.title), asc(contents.version));
+}
+
 export async function getSharedContentById(contentId: string) {
   const [content] = await getDb()
     .select()

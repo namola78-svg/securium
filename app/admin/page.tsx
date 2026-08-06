@@ -9,7 +9,7 @@ import {
 } from "@/components/design-system-primitives";
 import { listCurriculumTrees } from "@/db/curriculum-repositories";
 import { listAllCourseGroups, listAllCourses } from "@/db/repositories";
-import { listSharedContents } from "@/db/shared-content-repositories";
+import { listSharedContentSummaries } from "@/db/shared-content-repositories";
 import { requireCatalogManager } from "@/lib/auth";
 
 const adminActions = [
@@ -69,13 +69,25 @@ const adminActions = [
   },
 ];
 
+async function loadAdminDashboardRows<T>(label: string, loader: Promise<T[]>) {
+  try {
+    return await loader;
+  } catch (error) {
+    console.error("[admin-dashboard] summary load failed", {
+      label,
+      name: error instanceof Error ? error.name : "UnknownError",
+    });
+    return [];
+  }
+}
+
 export default async function AdminPage() {
   await requireCatalogManager("/admin");
   const [groups, courses, curriculumTrees, sharedContents] = await Promise.all([
-    listAllCourseGroups(),
-    listAllCourses(),
-    listCurriculumTrees(),
-    listSharedContents(),
+    loadAdminDashboardRows("course-groups", listAllCourseGroups()),
+    loadAdminDashboardRows("courses", listAllCourses()),
+    loadAdminDashboardRows("curriculum-trees", listCurriculumTrees()),
+    loadAdminDashboardRows("shared-content", listSharedContentSummaries()),
   ]);
 
   const activeGroups = groups.filter((group) => group.active).length;
