@@ -215,6 +215,10 @@ a {
   display: none;
 }
 
+.mobile-bottom-nav {
+  display: none;
+}
+
 .mobile-nav-actions {
   display: none;
 }
@@ -321,6 +325,66 @@ a {
 
 .profile-menu-item:disabled {
   opacity: 0.65;
+}
+
+@media (max-width: 680px) {
+  .mobile-bottom-nav {
+    position: fixed;
+    right: max(10px, env(safe-area-inset-right));
+    bottom: max(10px, env(safe-area-inset-bottom));
+    left: max(10px, env(safe-area-inset-left));
+    z-index: 35;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 4px;
+    padding: 7px;
+    border: 1px solid rgb(255 255 255 / 0.14);
+    border-radius: 22px;
+    background: rgb(17 27 32 / 0.94);
+    box-shadow: 0 18px 50px rgb(0 0 0 / 0.28);
+    backdrop-filter: blur(16px);
+  }
+
+  .mobile-bottom-nav a {
+    display: grid;
+    min-width: 0;
+    min-height: 52px;
+    place-items: center;
+    gap: 2px;
+    border-radius: 16px;
+    color: #c4ccce;
+    text-align: center;
+    text-decoration: none;
+  }
+
+  .mobile-bottom-nav a:focus-visible {
+    outline: 3px solid var(--lime);
+    outline-offset: 2px;
+  }
+
+  .mobile-bottom-nav a.active {
+    background: rgb(200 244 90 / 0.16);
+    color: var(--lime);
+  }
+
+  .mobile-bottom-nav span {
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  .mobile-bottom-nav strong {
+    overflow: hidden;
+    max-width: 100%;
+    font-size: 11px;
+    font-weight: 900;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .command-palette-trigger {
+    bottom: calc(88px + env(safe-area-inset-bottom));
+  }
 }
 
 .command-palette-trigger {
@@ -7641,6 +7705,10 @@ textarea {
 
   .practice-hub-flow {
     grid-template-columns: 1fr;
+  }
+
+  .command-palette-trigger {
+    bottom: calc(88px + env(safe-area-inset-bottom));
   }
 
   .grade-panel-heading {

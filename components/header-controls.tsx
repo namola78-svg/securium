@@ -35,6 +35,14 @@ const signedInItems: NavItem[] = [
   { href: "/ai-tutor", label: "AI 튜터" },
 ];
 
+const mobileBottomItems: Array<NavItem & { icon: string }> = [
+  { href: "/dashboard", label: "홈", icon: "⌂" },
+  { href: "/my-courses", label: "학습", icon: "□" },
+  { href: "/practice", label: "문제", icon: "✓" },
+  { href: "/reviews", label: "복습", icon: "↻" },
+  { href: "/profile", label: "마이", icon: "◦" },
+];
+
 export function HeaderControls({ user }: HeaderControlsProps) {
   const pathname = usePathname() || "/";
   const router = useRouter();
@@ -421,6 +429,26 @@ export function HeaderControls({ user }: HeaderControlsProps) {
           aria-label="메뉴 닫기"
           onClick={closeMenus}
         />
+      ) : null}
+
+      {isSignedIn ? (
+        <nav className="mobile-bottom-nav" aria-label="모바일 학습 빠른 이동">
+          {mobileBottomItems.map((item) => {
+            const active = item.href ? isActivePath(activePath, item.href) : false;
+            return (
+              <Link
+                aria-current={active ? "page" : undefined}
+                className={active ? "active" : undefined}
+                href={item.href ?? "#"}
+                key={item.label}
+                title={active ? `현재 위치: ${item.label}` : item.label}
+              >
+                <span aria-hidden="true">{item.icon}</span>
+                <strong>{item.label}</strong>
+              </Link>
+            );
+          })}
+        </nav>
       ) : null}
     </>
   );
