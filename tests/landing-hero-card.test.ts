@@ -10,11 +10,11 @@ test("public landing hero card explains knowledge-linked AI outcomes", () => {
     )?.[0] ?? "";
 
   assert.match(heroPanelSource, /SECURIUM 학습 경험/);
-  assert.match(heroPanelSource, /공식 기준 기반 학습 코어/);
-  assert.match(heroPanelSource, /Knowledge-linked Learning/);
+  assert.match(heroPanelSource, /공식 기준 기반 학습 요약/);
+  assert.match(heroPanelSource, /공식 기준 기반 학습 흐름/);
   assert.match(heroPanelSource, /검증 가능/);
-  assert.match(heroPanelSource, /공식 기준 기반 학습 엔진/);
-  assert.match(heroPanelSource, /출제기준, 이론, 문제, AI 근거 설명, 복습 신호/);
+  assert.match(heroPanelSource, /공식 기준 기반 학습/);
+  assert.match(heroPanelSource, /출제기준, 이론, 문제, AI 근거 설명, 복습 추천/);
   assert.match(heroPanelSource, /KISA · NCS 기반/);
   assert.match(heroPanelSource, /검증 가능한 해설/);
   assert.match(heroPanelSource, /취약 영역 추천/);
@@ -86,7 +86,7 @@ test("public landing learning chain presents the SECURIUM knowledge engine", () 
     source.match(/<section className="section landing-learning-chain"[\s\S]*?<\/section>/)?.[0] ??
     "";
 
-  assert.match(learningChainSource, /Knowledge Engine/);
+  assert.match(learningChainSource, /학습 연결 구조/);
   assert.match(learningChainSource, /공식 기준이 문제와 AI 근거까지 이어집니다/);
   assert.match(learningChainSource, /검증 가능한 AI 근거/);
   assert.match(learningChainSource, /핵심 이론/);
@@ -105,5 +105,5 @@ test("public landing AI result card shows explainable answer outcomes", () => {
   assert.match(aiResultSource, /02 · AI 설명/);
   assert.match(aiResultSource, /03 · 공식 근거/);
   assert.match(aiResultSource, /04 · 다음 학습/);
-  assert.match(aiResultSource, /근거 표시 · 검수 상태 확인/);
+  assert.match(aiResultSource, /출처 표시 · 근거 확인 가능/);
 });

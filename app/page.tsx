@@ -262,7 +262,7 @@ export default async function Home() {
             <div>
               <span>05</span>
               <strong>근거 해설</strong>
-              <p>검색 근거 · 인용 · 검수 상태</p>
+              <p>검색 근거 · 인용 · 출처 확인</p>
             </div>
             <div>
               <span>06</span>
@@ -295,7 +295,7 @@ export default async function Home() {
               <div className="ai-result-citation">
                 <span>03 · 공식 근거</span>
                 <strong>ISMS-P 접근권한 부여·변경·말소 관리 기준과 연결됩니다.</strong>
-                <em>근거 표시 · 검수 상태 확인</em>
+                <em>출처 표시 · 근거 확인 가능</em>
               </div>
               <div>
                 <span>04 · 다음 학습</span>
@@ -452,7 +452,7 @@ export default async function Home() {
               <span>03</span>
               <strong>AI 학습 지원</strong>
               <p>
-                공식 해설을 대체하지 않고, 검수된 근거 콘텐츠를 바탕으로
+                공식 해설을 대체하지 않고, 확인 가능한 근거 콘텐츠를 바탕으로
                 개념 이해를 돕는 참고 설명을 제공합니다.
               </p>
             </article>
