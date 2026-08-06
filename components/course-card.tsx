@@ -21,6 +21,7 @@ export function CourseCard({ course }: { course: CourseListItem }) {
     course.published &&
     (subjectCount > 0 || topicCount > 0 || questionCount > 0);
   const status = available ? "학습 가능" : "개설 예정";
+  const courseName = course.name || course.shortName || "이름 없는 과정";
 
   return (
     <article className="course-card" aria-labelledby={`course-${course.id}`}>
@@ -28,16 +29,14 @@ export function CourseCard({ course }: { course: CourseListItem }) {
         <span className="course-code">{typeLabel}</span>
         <span
           className={`course-status ${
-            status === "학습 가능" ? "available" : "planned"
+            available ? "available" : "planned"
           }`}
         >
           {status}
         </span>
       </div>
       <p className="eyebrow">{course.groupName}</p>
-      <h3 id={`course-${course.id}`}>
-        {course.name || course.shortName || "이름 없는 과정"}
-      </h3>
+      <h3 id={`course-${course.id}`}>{courseName}</h3>
       <p className="course-summary">{description}</p>
       <dl className="course-comparison-list">
         <div>
@@ -56,7 +55,7 @@ export function CourseCard({ course }: { course: CourseListItem }) {
         </div>
         <div>
           <dt>문제</dt>
-          <dd>{questionCount ? `${questionCount}문항` : "문제 콘텐츠 준비 중"}</dd>
+          <dd>{questionCount ? `${questionCount}문항` : "문항 업데이트 예정"}</dd>
         </div>
       </dl>
       {available ? (

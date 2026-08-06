@@ -5,8 +5,8 @@ import { CourseEnrollAction } from "@/components/course-enroll-action";
 import { EmptyState } from "@/components/state-ui";
 import { getEnrollmentForCourse } from "@/db/repositories";
 import {
-  courseDescription,
   courseAudienceLabel,
+  courseDescription,
   courseLearningGoals,
   estimateWeeks,
   formatCount,
@@ -85,7 +85,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
               </div>
               <div>
                 <dt>총 문제 수</dt>
-                <dd>{formatCount(questionCount, "문항", "문제 콘텐츠 준비 중")}</dd>
+                <dd>{formatCount(questionCount, "문항", "문항 업데이트 예정")}</dd>
               </div>
               <div>
                 <dt>통과 기준</dt>
@@ -100,9 +100,9 @@ export default async function CourseDetailPage({ params }: PageProps) {
 
           <aside className="enroll-panel course-detail-cta">
             <span className="eyebrow">학습 시작</span>
-            <h2>수강 신청</h2>
+            <h2>내 학습에 추가</h2>
             <p>
-              내 학습에 추가하면 과정별 진도, 문제풀이, 복습 기록이 다른
+              이 과정을 추가하면 과정별 진도, 문제풀이, 복습 기록이 다른
               과정과 분리되어 관리됩니다.
             </p>
             <CourseEnrollAction
@@ -214,7 +214,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
           <article className="course-detail-section course-detail-bottom-cta">
             <div>
               <p className="eyebrow">다음 행동</p>
-              <h2>수강 신청 또는 학습 계속하기</h2>
+              <h2>내 학습에 추가하고 이어서 학습하세요</h2>
               <p>
                 선택한 과정의 학습 기록은 다른 과정과 섞이지 않도록 별도로
                 저장됩니다.

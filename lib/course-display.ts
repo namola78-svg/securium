@@ -8,10 +8,10 @@ export function safeCount(value: unknown) {
 }
 
 export function difficultyLabel(value: string | null | undefined) {
-  if (value === "BEGINNER") return "입문";
-  if (value === "INTERMEDIATE") return "중급";
-  if (value === "ADVANCED") return "심화";
-  return "난이도 안내 예정";
+  if (value === "BEGINNER") return "처음 학습";
+  if (value === "INTERMEDIATE") return "실무 기본";
+  if (value === "ADVANCED") return "심화 적용";
+  return "학습 수준 안내 예정";
 }
 
 export function recommendedAudience(value: string | null | undefined) {
@@ -28,15 +28,19 @@ export function courseTypeLabel(course: {
 }) {
   const text = `${course.groupName ?? ""} ${course.name ?? ""} ${
     course.shortName ?? ""
-  }`;
+  }`.toLowerCase();
 
-  if (/국가기술자격|정보보안기사|정보보안산업기사/.test(text)) {
+  if (
+    /ise|isie|정보보안기사|정보보안산업기사|국가기술자격|security engineer/.test(
+      text,
+    )
+  ) {
     return "국가기술자격";
   }
-  if (/ISMS|관리체계/.test(text)) return "관리체계";
-  if (/CPPG|개인정보/.test(text)) return "개인정보";
-  if (/위험관리|ISRM/.test(text)) return "위험관리";
-  if (/보안약점|진단/.test(text)) return "실무 역량";
+  if (/isms|관리체계|인증/.test(text)) return "관리체계";
+  if (/cppg|개인정보관리사|개인정보/.test(text)) return "개인정보";
+  if (/isrm|위험관리/.test(text)) return "위험관리";
+  if (/보안약점|진단|secure coding|weakness/.test(text)) return "실무 역량";
   return "전문 과정";
 }
 
@@ -90,7 +94,7 @@ export function formatCourseDate(value: string | null | undefined) {
 }
 
 export function courseDescription(value: string | null | undefined) {
-  return publicCopy(value ?? "") || "과정 설명을 준비하고 있습니다.";
+  return publicCopy(value ?? "") || "과정 소개를 준비하고 있습니다.";
 }
 
 export function courseLearningGoals(courseName: string) {

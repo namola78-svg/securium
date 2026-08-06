@@ -19,7 +19,7 @@ test("learner pages do not expose admin ownership in routine guidance", () => {
 
   for (const expected of [
     "과정이 공개되면 이곳에서 목표별 학습 경로를 바로 확인",
-    "이 과목의 레슨이 공개되면",
+    "이 과목의 이론 콘텐츠가 공개되면",
     "결과 공개 시점 이후",
     "검토 후 필요한 경우 반영됩니다",
     "기준 해설",
@@ -81,8 +81,8 @@ test("public courses directory uses learner-facing labels", () => {
   assert.match(source, /목표별 학습 경로/);
   assert.doesNotMatch(source, /COURSE DIRECTORY/);
   assert.doesNotMatch(source, /COURSE GROUP/);
-  assert.match(cardSource, /문제 콘텐츠 준비 중/);
-  assert.doesNotMatch(cardSource, /문항 업데이트 예정/);
+  assert.match(cardSource, /문항 업데이트 예정/);
+  assert.doesNotMatch(cardSource, /문제 콘텐츠 준비 중/);
 });
 
 test("public course detail uses learner-facing section labels", () => {
@@ -104,8 +104,8 @@ test("public course detail uses learner-facing section labels", () => {
     source,
     /START LEARNING|OVERVIEW|RECOMMENDED FOR|GOALS|CURRICULUM|COMPLETION|READY TO START/,
   );
-  assert.match(source, /문제 콘텐츠 준비 중/);
-  assert.doesNotMatch(source, /문항 업데이트 예정/);
+  assert.match(source, /문항 업데이트 예정/);
+  assert.doesNotMatch(source, /문제 콘텐츠 준비 중/);
 });
 
 test("public landing guide and about pages use learner-facing eyebrow labels", () => {
