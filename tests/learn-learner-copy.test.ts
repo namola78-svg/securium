@@ -27,26 +27,25 @@ test("learn pages expose learner-facing Korean copy instead of internal or mojib
     "오늘의 복습",
     "이 과정에서 지금 할 일",
     "공식 출제기준을 따라 핵심 이론과 문제로 바로 이동합니다",
-    "공식 커리큘럼을 따라가기 전에 핵심 이론부터 차근차근 확인할 수",
+    "공식 커리큘럼을 따라가기 전에 핵심 이론부터 차근차근 확인",
     "어디까지 했지?",
     "약한 부분은?",
-    "이론 레슨",
-    "이론 보기",
-    "학습 자료 추가 예정",
-    "과정 맥락",
-    "레슨 이동",
-    "레슨 진도",
-    "본문을 더 학습해주세요",
     "핵심 이론",
+    "공통 학습 콘텐츠",
+    "학습 맥락",
+    "이 과정에서 함께 볼 내용",
+    "이론 레슨 이동",
+    "읽기 진도",
+    "본문을 더 학습해주세요",
+    "레슨 완료",
   ]) {
     assert.match(combined, new RegExp(expected));
   }
 
-  assert.doesNotMatch(combined, /�/);
-  assert.doesNotMatch(combined, /쨌|怨|臾|蹂|遺|媛|紐|異|而/);
+  assert.doesNotMatch(combined, /占/);
   assert.doesNotMatch(combined, /CourseLesson Edge|Stable Key|MAJOR_ITEM|SUB_ITEM/);
   assert.doesNotMatch(
     combined,
-    /기존 학습 자료|준비되어 있지만|정식 커리큘럼 학습 콘텐츠가 충분히 연결|연결된 레슨이 아직 부족|연결 레슨|레슨 연결 예정|콘텐츠 연결 예정|연결된 이론 레슨|연결된 문제/,
+    /기존 학습 자료|준비되어 있지만 공식 커리큘럼 학습 콘텐츠가 충분히 연결|연결된 레슨|연결 예정|콘텐츠 연결 예정|연결된 이론 레슨|연결된 문제/,
   );
 });

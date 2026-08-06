@@ -52,11 +52,11 @@ export default async function CourseLessonPage({
           <Link className="breadcrumb" href={`/learn/${course.slug}`}>
             ← {course.shortName} 학습
           </Link>
-          <p className="eyebrow">이론 레슨</p>
+          <p className="eyebrow">핵심 이론</p>
           <h1>{title}</h1>
           <p>{summary}</p>
           <div className="lesson-meta">
-            <span>공통 콘텐츠</span>
+            <span>공통 학습 콘텐츠</span>
             <span>v{lesson.version}</span>
             <span>예상 {lesson.estimatedMinutes}분</span>
             <span>{lesson.isRequired ? "필수 학습" : "선택 학습"}</span>
@@ -72,7 +72,7 @@ export default async function CourseLessonPage({
             Array.isArray(value) ? value.length > 0 : Boolean(value),
           ) ? (
             <aside className="course-lesson-supplement">
-              <p className="eyebrow">과정 맥락</p>
+              <p className="eyebrow">학습 맥락</p>
               <h2>이 과정에서 함께 볼 내용</h2>
               {supplementalSections.map(([label, value]) => {
                 if (Array.isArray(value)) {
