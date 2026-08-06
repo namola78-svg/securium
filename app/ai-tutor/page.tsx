@@ -39,7 +39,7 @@ export default async function AiTutorPage() {
               <li>
                 <span>01</span>
                 <strong>문제를 풉니다</strong>
-                <p>먼저 내 답안을 제출하고 서버 채점 결과를 확인합니다.</p>
+                <p>먼저 내 답안을 제출하고 자동 채점 결과를 확인합니다.</p>
               </li>
               <li>
                 <span>02</span>
@@ -105,8 +105,8 @@ export default async function AiTutorPage() {
             <p className="eyebrow">맞춤 추천</p>
             <h2>오늘 참고할 학습 추천</h2>
             <EmptyState
-              title="AI 맞춤 추천을 준비하고 있습니다"
-              description="문제풀이와 복습 기록이 쌓이면 추천 학습과 AI 해설이 더 정확하게 연결됩니다."
+              title="AI 추천은 학습 후 바로 연결됩니다"
+              description="문제를 풀고 복습을 진행하면 다음에 볼 이론, 문제, 취약 영역을 함께 안내합니다."
               action={{ href: "/practice", label: "문제풀이 시작" }}
             />
           </article>

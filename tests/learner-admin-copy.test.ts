@@ -202,3 +202,14 @@ test("practice guidance describes grading in learner-facing terms", () => {
   assert.doesNotMatch(source, /검수 해설/);
   assert.doesNotMatch(source, /검수 정보가 등록되지 않았습니다/);
 });
+
+test("ai tutor empty state explains the next learner action", () => {
+  const source = readFileSync("app/ai-tutor/page.tsx", "utf8");
+
+  assert.match(source, /자동 채점 결과/);
+  assert.match(source, /AI 추천은 학습 후 바로 연결됩니다/);
+  assert.match(source, /다음에 볼 이론, 문제, 취약 영역/);
+  assert.doesNotMatch(source, /서버 채점 결과/);
+  assert.doesNotMatch(source, /AI 맞춤 추천을 준비하고 있습니다/);
+  assert.doesNotMatch(source, /기록이 쌓이면 추천 학습과 AI 해설/);
+});
