@@ -121,7 +121,7 @@ export default async function SignupPage({
           className="button button-dark full-width"
           href={chatGPTSignInPath(returnTo)}
         >
-          플랫폼 로그인으로 시작하기
+          Sign in with ChatGPT
         </Link>
       </section>
     </main>

@@ -3,15 +3,16 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const authFacingFiles = [
+  "app/login/page.tsx",
   "app/signup/page.tsx",
   "components/login-panel.tsx",
   "components/command-palette.tsx",
 ];
 
 test("auth and command palette copy avoids exposing implementation details to learners", () => {
-  const signupPage = readFileSync(authFacingFiles[0], "utf8");
-  const loginPanel = readFileSync(authFacingFiles[1], "utf8");
-  const commandPalette = readFileSync(authFacingFiles[2], "utf8");
+  const signupPage = readFileSync(authFacingFiles[1], "utf8");
+  const loginPanel = readFileSync(authFacingFiles[2], "utf8");
+  const commandPalette = readFileSync(authFacingFiles[3], "utf8");
   const combined = [signupPage, loginPanel, commandPalette].join("\n");
 
   for (const expected of [
@@ -27,4 +28,14 @@ test("auth and command palette copy avoids exposing implementation details to le
   assert.doesNotMatch(loginPanel, /Supabase 메일 설정/);
   assert.doesNotMatch(commandPalette, /CourseLesson 커버리지/);
   assert.doesNotMatch(combined, /�/);
+});
+
+test("Sites auth screen exposes the ChatGPT sign-in action", () => {
+  const loginPage = readFileSync(authFacingFiles[0], "utf8");
+  const signupPage = readFileSync(authFacingFiles[1], "utf8");
+
+  assert.match(loginPage, /Sign in with ChatGPT/);
+  assert.match(signupPage, /Sign in with ChatGPT/);
+  assert.match(loginPage, /chatGPTSignInPath\(returnTo\)/);
+  assert.match(signupPage, /chatGPTSignInPath\(returnTo\)/);
 });

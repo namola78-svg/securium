@@ -2902,6 +2902,8 @@ button:disabled {
 
 .breadcrumb {
   display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   margin-bottom: 32px;
   color: inherit;
   font-size: 13px;
