@@ -5,8 +5,8 @@ import { getOptionalCurrentAppUser } from "@/lib/auth";
 import { listPublishedCoursesCached } from "@/lib/cached-catalog";
 import {
   courseDescription,
+  courseAudienceLabel,
   difficultyLabel,
-  recommendedAudience,
   safeCount,
 } from "@/lib/course-display";
 
@@ -43,7 +43,7 @@ function spotlightMeta(course: CourseListItem) {
 
   return {
     description: courseDescription(course.description),
-    audience: recommendedAudience(course.difficulty),
+    audience: courseAudienceLabel(course),
     difficulty: difficultyLabel(course.difficulty),
     status: available ? "학습 가능" : "개설 예정",
     stats:

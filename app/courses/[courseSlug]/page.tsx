@@ -6,11 +6,11 @@ import { EmptyState } from "@/components/state-ui";
 import { getEnrollmentForCourse } from "@/db/repositories";
 import {
   courseDescription,
+  courseAudienceLabel,
   courseLearningGoals,
   estimateWeeks,
   formatCount,
   formatCourseDate,
-  recommendedAudience,
   safeCount,
 } from "@/lib/course-display";
 import { getOptionalCurrentAppUser } from "@/lib/auth";
@@ -56,7 +56,8 @@ export default async function CourseDetailPage({ params }: PageProps) {
   const questionCount = safeCount(course.questionCount);
   const estimatedWeeks = estimateWeeks(course.totalLevels);
   const goals = courseLearningGoals(course.name);
-  const recommendedTargets = recommendedAudience(course.difficulty).split(" · ");
+  const audienceLabel = courseAudienceLabel(course);
+  const recommendedTargets = audienceLabel.split(" · ");
 
   return (
     <main className="page-main">
@@ -72,7 +73,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
             <dl className="course-fact-grid" aria-label="과정 핵심 정보">
               <div>
                 <dt>추천 대상</dt>
-                <dd>{recommendedAudience(course.difficulty)}</dd>
+                <dd>{audienceLabel}</dd>
               </div>
               <div>
                 <dt>예상 학습기간</dt>

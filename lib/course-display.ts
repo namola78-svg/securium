@@ -40,6 +40,33 @@ export function courseTypeLabel(course: {
   return "전문 과정";
 }
 
+export function courseAudienceLabel(course: {
+  difficulty?: string | null;
+  groupName?: string | null;
+  name?: string | null;
+  shortName?: string | null;
+}) {
+  const courseType = courseTypeLabel(course);
+
+  if (courseType === "국가기술자격") {
+    return "자격시험 준비자 · 정보보호 담당자";
+  }
+  if (courseType === "관리체계") {
+    return "인증 준비자 · 관리체계 담당자";
+  }
+  if (courseType === "개인정보") {
+    return "개인정보보호 담당자 · 자격 준비자";
+  }
+  if (courseType === "위험관리") {
+    return "위험관리 실무자 · 보안 리더";
+  }
+  if (courseType === "실무 역량") {
+    return "개발자 · 보안 진단 담당자";
+  }
+
+  return recommendedAudience(course.difficulty);
+}
+
 export function estimateWeeks(totalLevels: number | null | undefined) {
   const levels = safeCount(totalLevels);
   if (!levels) return 4;
