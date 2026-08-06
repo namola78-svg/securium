@@ -26,9 +26,12 @@ test("learn pages expose learner-facing Korean copy instead of internal or mojib
     "문제 풀기",
     "오늘의 복습",
     "이 과정에서 지금 할 일",
+    "공식 출제기준을 따라 핵심 이론과 문제로 바로 이동합니다",
     "어디까지 했지?",
     "약한 부분은?",
     "이론 레슨",
+    "이론 보기",
+    "학습 자료 추가 예정",
     "과정 맥락",
     "레슨 이동",
     "레슨 진도",
@@ -41,5 +44,8 @@ test("learn pages expose learner-facing Korean copy instead of internal or mojib
   assert.doesNotMatch(combined, /�/);
   assert.doesNotMatch(combined, /쨌|怨|臾|蹂|遺|媛|紐|異|而/);
   assert.doesNotMatch(combined, /CourseLesson Edge|Stable Key|MAJOR_ITEM|SUB_ITEM/);
-  assert.doesNotMatch(combined, /기존 학습 자료|준비되어 있지만|연결된 레슨이 아직 부족/);
+  assert.doesNotMatch(
+    combined,
+    /기존 학습 자료|준비되어 있지만|연결된 레슨이 아직 부족|연결 레슨|레슨 연결 예정|콘텐츠 연결 예정|연결된 이론 레슨|연결된 문제/,
+  );
 });
