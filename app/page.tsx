@@ -117,9 +117,20 @@ export default async function Home() {
                 <strong>취약 영역 추천</strong>
               </div>
             </div>
-            <Link className="button button-outline-light hero-card-cta" href="/courses">
-              과정 둘러보기
-            </Link>
+            <div className="hero-outcome-card" aria-label="AI 근거 학습 결과 예시">
+              <div>
+                <span>질문</span>
+                <strong>왜 접근권한 검토가 반복되어야 하나요?</strong>
+              </div>
+              <div>
+                <span>AI 근거</span>
+                <strong>공식 기준 2개 · 관련 개념 4개 연결</strong>
+              </div>
+              <div>
+                <span>다음 행동</span>
+                <strong>오답 5문제 복습 추천</strong>
+              </div>
+            </div>
           </div>
         </div>
       </section>

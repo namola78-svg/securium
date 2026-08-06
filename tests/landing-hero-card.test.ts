@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-test("public landing hero card explains platform value instead of personal progress", () => {
+test("public landing hero card explains knowledge-linked AI outcomes", () => {
   const source = readFileSync("app/page.tsx", "utf8");
   const heroPanelSource =
     source.match(
@@ -18,7 +18,11 @@ test("public landing hero card explains platform value instead of personal progr
   assert.match(heroPanelSource, /KISA · NCS 기반/);
   assert.match(heroPanelSource, /검증 가능한 해설/);
   assert.match(heroPanelSource, /취약 영역 추천/);
-  assert.match(heroPanelSource, /href="\/courses"/);
+  assert.match(heroPanelSource, /AI 근거 학습 결과 예시/);
+  assert.match(heroPanelSource, /왜 접근권한 검토가 반복되어야 하나요/);
+  assert.match(heroPanelSource, /공식 기준 2개 · 관련 개념 4개 연결/);
+  assert.match(heroPanelSource, /오답 5문제 복습 추천/);
+  assert.doesNotMatch(heroPanelSource, /href="\/courses"/);
   assert.doesNotMatch(heroPanelSource, /인증기준 2\.6 접근통제/);
   assert.doesNotMatch(heroPanelSource, /진행률/);
   assert.doesNotMatch(heroPanelSource, /68%/);
