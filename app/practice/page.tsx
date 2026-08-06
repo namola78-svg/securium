@@ -27,6 +27,24 @@ export default async function PracticeHubPage() {
             수강 중인 과정에서 문제를 선택해 풀고, 채점 결과와 해설을 확인할 수
             있습니다. 풀이 기록과 오답은 과정별로 분리되어 관리됩니다.
           </p>
+          <ol className="practice-hub-flow" aria-label="문제풀이 시작 흐름">
+            <li>
+              <span>01</span>
+              <strong>과정 선택</strong>
+            </li>
+            <li>
+              <span>02</span>
+              <strong>10문제 풀이</strong>
+            </li>
+            <li>
+              <span>03</span>
+              <strong>채점·AI 해설</strong>
+            </li>
+            <li>
+              <span>04</span>
+              <strong>오답·복습 연결</strong>
+            </li>
+          </ol>
         </div>
       </section>
 

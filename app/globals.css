@@ -5989,6 +5989,41 @@ textarea {
   min-width: 0;
 }
 
+.practice-hub-flow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  max-width: 860px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.practice-hub-flow li {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgb(255 255 255 / 0.18);
+  border-radius: 16px;
+  background: rgb(255 255 255 / 0.08);
+  color: var(--white);
+}
+
+.practice-hub-flow span {
+  color: var(--lime);
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+}
+
+.practice-hub-flow strong {
+  overflow: hidden;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .practice-filter,
 .practice-context-card,
 .practice-card,
@@ -7507,6 +7542,10 @@ textarea {
   }
 
   .practice-learning-flow {
+    grid-template-columns: 1fr;
+  }
+
+  .practice-hub-flow {
     grid-template-columns: 1fr;
   }
 
