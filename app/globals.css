@@ -3264,6 +3264,10 @@ button:disabled {
   white-space: nowrap;
 }
 
+.learn-action-rail {
+  margin-top: 0;
+}
+
 .dashboard-next-action {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

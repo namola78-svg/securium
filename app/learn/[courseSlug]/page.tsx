@@ -288,7 +288,7 @@ async function LearnActionBoard({
       <div className="section-heading compact">
         <div>
           <p className="eyebrow">오늘의 학습</p>
-          <h2>오늘의 학습 보드</h2>
+          <h2>이 과정에서 지금 할 일</h2>
           <p>
             이어서 볼 이론, 풀 문제, 복습과 분석을 한눈에 확인하세요.
           </p>
@@ -297,6 +297,24 @@ async function LearnActionBoard({
           단계 완료율 {getLevelCompletion(levelRows)}%
         </span>
       </div>
+      <dl className="dashboard-action-rail learn-action-rail" aria-label="과정 학습 판단 기준">
+        <div>
+          <dt>어디까지 했지?</dt>
+          <dd>단계 {getLevelCompletion(levelRows)}%</dd>
+        </div>
+        <div>
+          <dt>다음은?</dt>
+          <dd>{continueTitle}</dd>
+        </div>
+        <div>
+          <dt>오늘 풀 문제는?</dt>
+          <dd>10문항 점검</dd>
+        </div>
+        <div>
+          <dt>약한 부분은?</dt>
+          <dd>{dueReviewCount}개 복습 예정</dd>
+        </div>
+      </dl>
       <div className="learn-action-grid">
         <Link
           className="learn-action-card learn-action-card-primary"
