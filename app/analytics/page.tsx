@@ -94,6 +94,24 @@ async function AnalyticsOverview({
           ) : (
             <p>과정을 수강하고 문제를 풀면 우선 확인할 영역을 보여줍니다.</p>
           )}
+          <ol className="analytics-decision-flow" aria-label="학습분석 판단 기준">
+            <li>
+              <span>01</span>
+              <strong>어디까지 했지?</strong>
+            </li>
+            <li>
+              <span>02</span>
+              <strong>다음은 뭘 하지?</strong>
+            </li>
+            <li>
+              <span>03</span>
+              <strong>얼마나 남았지?</strong>
+            </li>
+            <li>
+              <span>04</span>
+              <strong>어디가 약하지?</strong>
+            </li>
+          </ol>
         </div>
         {topCourse ? (
           <div className="analytics-action-buttons">

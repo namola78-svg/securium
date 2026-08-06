@@ -16,6 +16,11 @@ test("integrated analytics exposes learner next-action cards", () => {
   assert.match(source, /취약 과정/);
   assert.match(source, /문제풀이/);
   assert.match(source, /복습/);
+  assert.match(source, /어디까지 했지\?/);
+  assert.match(source, /다음은 뭘 하지\?/);
+  assert.match(source, /얼마나 남았지\?/);
+  assert.match(source, /어디가 약하지\?/);
+  assert.match(source, /analytics-decision-flow/);
 });
 
 test("course analytics connects weak areas to practice and review", () => {
