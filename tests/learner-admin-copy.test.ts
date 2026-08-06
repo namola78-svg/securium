@@ -244,3 +244,17 @@ test("mock exam learner analysis cards do not reuse admin panel shell classes", 
   assert.doesNotMatch(source, /<article className="admin-panel">/);
   assert.match(styles, /\.exam-breakdown-panel/);
 });
+
+test("specialized learner pages do not reuse admin panel shell classes", () => {
+  const source = [
+    "app/specialized/[courseSlug]/page.tsx",
+    "app/specialized/[courseSlug]/[contentType]/[contentId]/page.tsx",
+  ]
+    .map((file) => readFileSync(file, "utf8"))
+    .join("\n");
+  const styles = readFileSync("app/globals.css", "utf8");
+
+  assert.match(source, /specialized-info-panel/);
+  assert.doesNotMatch(source, /className="admin-panel/);
+  assert.match(styles, /\.specialized-info-panel/);
+});

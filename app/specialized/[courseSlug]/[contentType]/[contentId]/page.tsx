@@ -106,7 +106,7 @@ export default async function SpecializedContentPage({
           ) : null}
         </article>
         <aside className="specialized-aside">
-          <section className="admin-panel">
+          <section className="specialized-info-panel">
             <h2>함께 학습할 과정</h2>
             {result.relatedCourses.map((related) => (
               <Link href={`/specialized/${related.slug}`} key={related.id}>
@@ -114,7 +114,7 @@ export default async function SpecializedContentPage({
               </Link>
             ))}
           </section>
-          <section className="admin-panel">
+          <section className="specialized-info-panel">
             <h2>관련 문제</h2>
             {result.relatedQuestions.length ? (
               result.relatedQuestions.map((question) => (
@@ -127,7 +127,7 @@ export default async function SpecializedContentPage({
             )}
           </section>
           {result.relatedLegalArticles.length ? (
-            <section className="admin-panel">
+            <section className="specialized-info-panel">
               <h2>관련 법령</h2>
               {result.relatedLegalArticles.map((article) => (
                 <Link
@@ -158,7 +158,7 @@ export default async function SpecializedContentPage({
           </section>
         ) : null}
         {result.versions.length ? (
-          <section className="admin-panel wide-section">
+          <section className="specialized-info-panel wide-section">
             <h2>버전 이력</h2>
             {result.versions.map((version) => (
               <div className="version-row" key={String(version.id)}>
