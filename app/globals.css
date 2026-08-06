@@ -1746,6 +1746,14 @@ button:disabled {
   letter-spacing: -0.045em;
 }
 
+.landing-course-spotlight-header p:not(.eyebrow) {
+  max-width: 620px;
+  margin: 12px 0 0;
+  color: #b9c8ca;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
 .landing-course-spotlight-header .text-link {
   color: #d9f99d;
 }
@@ -1811,11 +1819,39 @@ button:disabled {
   -webkit-line-clamp: 3;
 }
 
+.landing-course-spotlight-facts {
+  display: grid;
+  gap: 9px;
+  margin: 4px 0 0;
+  padding: 14px 0 0;
+  border-top: 1px solid rgb(255 255 255 / 0.12);
+}
+
+.landing-course-spotlight-facts div {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 10px;
+  align-items: baseline;
+}
+
+.landing-course-spotlight-facts dt {
+  color: #8fa0a3;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.landing-course-spotlight-facts dd {
+  margin: 0;
+  color: #ecf4f2;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
 .landing-course-spotlight-meta {
   margin-top: auto;
   padding-top: 12px;
-  border-top: 1px solid rgb(255 255 255 / 0.12);
-  color: #a8b7ba;
+  color: #d9f99d;
   font-size: 13px;
   font-weight: 750;
 }

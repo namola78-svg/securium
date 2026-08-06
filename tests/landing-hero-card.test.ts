@@ -45,3 +45,19 @@ test("public landing ends with product value CTA instead of course count summary
   assert.doesNotMatch(source, /landing-course-summary/);
   assert.doesNotMatch(source, /개 과정이 준비되어 있습니다/);
 });
+
+test("public landing course spotlight presents learner goal comparison facts", () => {
+  const source = readFileSync("app/page.tsx", "utf8");
+  const courseSpotlightSource =
+    source.match(/<section className="landing-course-spotlight"[\s\S]*?<\/section>/)?.[0] ??
+    "";
+
+  assert.match(courseSpotlightSource, /목표별 학습 경로/);
+  assert.match(courseSpotlightSource, /내가 준비하는 목표를 선택하세요/);
+  assert.match(courseSpotlightSource, /자격시험과 실무 역량을 공식 기준 기반 커리큘럼으로/);
+  assert.match(courseSpotlightSource, /추천 대상/);
+  assert.match(courseSpotlightSource, /난이도/);
+  assert.match(courseSpotlightSource, /학습 구성/);
+  assert.match(courseSpotlightSource, /과정 자세히 보기/);
+  assert.doesNotMatch(courseSpotlightSource, /COURSE CATALOG/);
+});

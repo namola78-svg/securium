@@ -38,6 +38,8 @@ function spotlightMeta(course: CourseListItem) {
 
   return {
     description: courseDescription(course.description),
+    audience: `${course.groupName || "전문 과정"} 준비자`,
+    difficulty: course.difficulty || "단계형",
     status: available ? "학습 가능" : "개설 예정",
     stats:
       questionCount > 0
@@ -364,10 +366,13 @@ export default async function Home() {
           <div className="shell">
             <div className="landing-course-spotlight-header">
               <div>
-                <p className="eyebrow">추천 과정</p>
+                <p className="eyebrow">목표별 학습 경로</p>
                 <h2 id="landing-course-spotlight-title">
-                  내가 준비하는 과정을 선택하세요
+                  내가 준비하는 목표를 선택하세요
                 </h2>
+                <p>
+                  자격시험과 실무 역량을 공식 기준 기반 커리큘럼으로 이어서 학습합니다.
+                </p>
               </div>
               <Link className="text-link" href="/courses">
                 전체 과정 보기 →
@@ -388,9 +393,21 @@ export default async function Home() {
                     </span>
                     <strong>{course.name || course.shortName}</strong>
                     <p>{meta.description}</p>
-                    <span className="landing-course-spotlight-meta">
-                      {meta.stats}
-                    </span>
+                    <dl className="landing-course-spotlight-facts">
+                      <div>
+                        <dt>추천 대상</dt>
+                        <dd>{meta.audience}</dd>
+                      </div>
+                      <div>
+                        <dt>난이도</dt>
+                        <dd>{meta.difficulty}</dd>
+                      </div>
+                      <div>
+                        <dt>학습 구성</dt>
+                        <dd>{meta.stats}</dd>
+                      </div>
+                    </dl>
+                    <span className="landing-course-spotlight-meta">과정 자세히 보기 →</span>
                   </Link>
                 );
               })}
