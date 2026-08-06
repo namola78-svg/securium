@@ -107,7 +107,7 @@ test("버전 게시 시 이전 버전을 superseded 처리하고 최신 단일�
   });
   const latestHtml = await latestPage.text();
   assert.equal(latestPage.status, 200, latestHtml.slice(0, 1000));
-  assert.match(latestHtml, /최신 검수 버전/);
+  assert.match(latestHtml, /최신 확인 버전/);
 
   const successor = await post(admin, {
     operation: "CREATE_DRAFT",
@@ -171,7 +171,7 @@ test("영향 콘텐츠를 조회하고 기존 학습 기록을 유지한다", as
   const lessonHtml = await lesson.text();
   assert.equal(lesson.status, 200, lessonHtml.slice(0, 1200));
   assert.match(lessonHtml, /완료됨/);
-  assert.match(lessonHtml, /콘텐츠 버전 정보|최신 검수 버전/);
+  assert.match(lessonHtml, /콘텐츠 버전 정보|최신 확인 버전/);
 });
 
 test("이전 버전을 보관하고 최신 버전은 보관하지 못한다", async () => {
