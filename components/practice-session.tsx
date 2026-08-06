@@ -515,6 +515,25 @@ function AIExplanationPanel({ result }: { result: AIExplanationResult }) {
         </div>
       </dl>
       <p className="ai-disclaimer">{result.disclaimer}</p>
+      {result.status === "generated" || result.status === "reviewed" ? (
+        <ol className="ai-explanation-map" aria-label="AI 해설 활용 순서">
+          <li>
+            <span>01</span>
+            <strong>의도 확인</strong>
+            <p>문제가 묻는 핵심 개념을 먼저 잡습니다.</p>
+          </li>
+          <li>
+            <span>02</span>
+            <strong>근거 확인</strong>
+            <p>정답과 오답을 기준·법령·이론과 연결합니다.</p>
+          </li>
+          <li>
+            <span>03</span>
+            <strong>복습 연결</strong>
+            <p>헷갈린 선택지는 오답노트와 취약 영역으로 이어집니다.</p>
+          </li>
+        </ol>
+      ) : null}
       {result.status === "insufficient_context" ||
       result.status === "failed" ? (
         <p>{result.content.intent}</p>
@@ -586,6 +605,15 @@ function AIExplanationPanel({ result }: { result: AIExplanationResult }) {
           <p>표시할 검수 근거가 없습니다.</p>
         )}
       </details>
+      {result.status === "generated" || result.status === "reviewed" ? (
+        <div className="ai-next-action" role="note">
+          <strong>다음 행동</strong>
+          <p>
+            요약을 한 문장으로 다시 말해보고, 틀린 선택지가 있었다면 오답노트에서
+            같은 개념을 한 번 더 풀어보세요.
+          </p>
+        </div>
+      ) : null}
       <small>
         {process.env.NODE_ENV !== "production"
           ? `${result.provider} · ${result.model} · 요청 ID ${result.requestId}`
