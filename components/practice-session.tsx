@@ -108,7 +108,7 @@ export function PracticeSession({
     return (
       <EmptyState
         title="조건에 맞는 공개 문제가 없습니다"
-        description="필터를 바꾸거나 공개된 문제가 추가된 뒤 다시 시도해 주세요."
+        description="필터를 바꾸거나 공개 문제가 추가된 뒤 다시 시도해 주세요."
         action={{ label: "다시 시도", onClick: () => window.location.reload() }}
       />
     );
@@ -118,7 +118,7 @@ export function PracticeSession({
     return (
       <section className="practice-card practice-finish">
         <p className="eyebrow">풀이 완료</p>
-        <h2>학습 세션을 종료했습니다.</h2>
+        <h2>학습 세션이 종료되었습니다.</h2>
         <div className="practice-summary">
           <strong>{completed}</strong>
           <span>풀이 완료</span>
@@ -274,7 +274,7 @@ export function PracticeSession({
       <div className="practice-session-brief" aria-label="문제풀이 진행 요약">
         <div>
           <p className="eyebrow">풀이 안내</p>
-          <strong>풀이 → 채점 → 검수 해설 → AI 근거 순서로 학습합니다.</strong>
+          <strong>답안 선택 → 서버 채점 → 검수 해설 → AI 근거 순서로 학습합니다.</strong>
           <span>
             답안을 제출하면 채점 결과와 검수 해설을 확인할 수 있습니다. AI 참고
             해설은 채점 이후 요청할 수 있으며 공식 채점 결과가 아닙니다.
@@ -336,8 +336,8 @@ export function PracticeSession({
 
       {!question.automaticGradingAvailable ? (
         <div className="notice warning">
-          이 문제 유형은 개설 예정입니다. 현재는 자동채점을 지원하는
-          문제부터 이용할 수 있습니다.
+          이 문제 유형은 개설 예정입니다. 현재는 자동채점을 지원하지 않으며
+          문제 본문만 확인할 수 있습니다.
         </div>
       ) : question.type === "SHORT_ANSWER" ? (
         <label className="answer-short">
@@ -412,7 +412,7 @@ export function PracticeSession({
             onClick={requestAIExplanation}
           >
             {aiLoading
-              ? "AI 참고 해설 생성 중…"
+              ? "AI 참고 해설 생성 중"
               : aiExplanations[question.id]
                 ? "AI 참고 해설 생성 완료"
                 : "AI 근거 해설 보기"}
@@ -443,7 +443,7 @@ export function PracticeSession({
             }
             onClick={submit}
           >
-            {submitting ? "제출 중…" : "답안 제출"}
+            {submitting ? "제출 중" : "답안 제출"}
           </button>
         ) : (
           <button
@@ -470,7 +470,7 @@ export function PracticeSession({
             <option value="DUPLICATE">중복 문제</option>
             <option value="OTHER">기타</option>
           </select>
-          <textarea name="content" maxLength={3000} placeholder="신고 내용을 입력하세요." />
+          <textarea name="content" maxLength={3000} placeholder="신고 내용을 입력하세요" />
           <button className="button button-ghost" type="submit">
             신고 접수
           </button>
@@ -498,7 +498,7 @@ function AIExplanationPanel({ result }: { result: AIExplanationResult }) {
       </div>
       <dl className="ai-trust-strip" aria-label="AI 해설 생성 정보">
         <div>
-          <dt>Provider</dt>
+          <dt>제공 방식</dt>
           <dd>{isMock ? "Mock AI" : result.provider}</dd>
         </div>
         <div>
@@ -506,7 +506,7 @@ function AIExplanationPanel({ result }: { result: AIExplanationResult }) {
           <dd>{result.sourceContextIds.length}개</dd>
         </div>
         <div>
-          <dt>응답시간</dt>
+          <dt>응답 시간</dt>
           <dd>{result.latencyMs}ms</dd>
         </div>
         <div>
@@ -565,7 +565,7 @@ function AIExplanationPanel({ result }: { result: AIExplanationResult }) {
               <h4>유사 문제</h4>
               <ul className="ai-reason-list">
                 {result.content.similarQuestions.map((item) => (
-              <li key={item.id}>{publicCopy(item.title)}</li>
+                  <li key={item.id}>{publicCopy(item.title)}</li>
                 ))}
               </ul>
             </div>

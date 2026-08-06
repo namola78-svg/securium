@@ -21,11 +21,11 @@ export default async function AiTutorPage() {
     <main className="page-main">
       <section className="page-hero">
         <div className="shell">
-          <p className="eyebrow">AI TUTOR</p>
-          <h1>AI 튜터</h1>
+          <p className="eyebrow">AI 튜터</p>
+          <h1>공식 기준을 근거로 이해를 돕습니다</h1>
           <p>
-            문제풀이 후 핵심 의도, 정답 이유, 오답 이유를 학습 보조 설명으로
-            확인하고 취약 영역 복습으로 이어갈 수 있습니다.
+            문제를 푼 뒤 정답 이유, 오답 이유, 관련 기준과 복습 방향을 확인할
+            수 있습니다. AI 설명은 참고용이며 공식 채점 결과를 대체하지 않습니다.
           </p>
         </div>
       </section>
@@ -33,12 +33,12 @@ export default async function AiTutorPage() {
       <section className="section">
         <div className="shell narrow">
           <article className="course-detail-section">
-            <p className="eyebrow">HOW IT WORKS</p>
-            <h2>AI 튜터로 할 수 있는 일</h2>
+            <p className="eyebrow">작동 방식</p>
+            <h2>AI 튜터가 도와주는 흐름</h2>
             <ul className="feature-list">
-              <li>문제풀이 결과를 바탕으로 정답과 오답 이유를 이해합니다.</li>
-              <li>관련 기준, 법령, 이론 콘텐츠를 함께 확인합니다.</li>
-              <li>반복 오답과 취약 주제를 기준으로 복습 방향을 정합니다.</li>
+              <li>문제풀이 결과를 바탕으로 정답과 오답 이유를 설명합니다.</li>
+              <li>관련 기준, 법령, 이론 콘텐츠를 근거로 함께 보여줍니다.</li>
+              <li>반복 오답과 취약 주제를 기준으로 복습 방향을 제안합니다.</li>
               <li>AI 설명은 참고용이며 공식 기준·법령·채점 결과가 아닙니다.</li>
             </ul>
           </article>
@@ -46,8 +46,8 @@ export default async function AiTutorPage() {
           <article className="course-detail-section">
             <div className="section-heading compact">
               <div>
-                <p className="eyebrow">START POINTS</p>
-                <h2>AI 해설을 시작할 수 있는 과정</h2>
+                <p className="eyebrow">시작 지점</p>
+                <h2>AI 해설을 확인할 수 있는 과정</h2>
               </div>
               <Link className="text-link" href="/courses">
                 과정 추가하기 →
@@ -64,7 +64,7 @@ export default async function AiTutorPage() {
                     <span className="badge">{enrollment.groupName}</span>
                     <div>
                       <strong>{enrollment.courseName}</strong>
-                      <p>문제를 푼 뒤 AI 해설 버튼으로 설명을 확인하세요.</p>
+                      <p>문제를 풀고 채점 후 AI 해설 버튼으로 설명을 확인하세요.</p>
                     </div>
                     <small>5문제</small>
                   </Link>
@@ -80,11 +80,11 @@ export default async function AiTutorPage() {
           </article>
 
           <article className="course-detail-section">
-            <p className="eyebrow">RECOMMENDED</p>
+            <p className="eyebrow">맞춤 추천</p>
             <h2>오늘 참고할 학습 추천</h2>
             <EmptyState
               title="AI 맞춤 추천을 준비하고 있습니다"
-              description="문제풀이와 복습 기록이 쌓이면 추천 학습과 AI 해설을 더 정교하게 연결할 예정입니다."
+              description="문제풀이와 복습 기록이 쌓이면 추천 학습과 AI 해설이 더 정확하게 연결됩니다."
               action={{ href: "/practice", label: "문제풀이 시작" }}
             />
           </article>

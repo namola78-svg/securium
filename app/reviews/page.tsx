@@ -20,8 +20,8 @@ export default async function ReviewsPage() {
             <p className="eyebrow">스마트 복습</p>
             <h1>오늘의 복습</h1>
             <p>
-              오답과 복습 예정일을 기준으로 오늘 다시 확인할 문제를
-              우선순위대로 정리합니다.
+              오답과 복습 예정일을 기준으로 오늘 다시 확인할 문제를 우선순위로
+              정리합니다.
             </p>
           </div>
           <Link className="button button-ghost" href="/wrong-notes">
@@ -48,7 +48,7 @@ export default async function ReviewsPage() {
               <dd>{summary.dueCount}문제</dd>
             </div>
             <div>
-              <dt>연체 복습</dt>
+              <dt>지연 복습</dt>
               <dd>{summary.overdueCount}문제</dd>
             </div>
             <div>
@@ -84,19 +84,19 @@ export default async function ReviewsPage() {
             </strong>
             <p>
               {hasDueReviews
-                ? `${summary.dueCount}개 항목을 우선순위대로 정리했습니다.`
+                ? `${summary.dueCount}개 항목이 우선순위로 정리되어 있습니다.`
                 : "문제를 풀면 정답 여부에 따라 다음 복습일이 만들어집니다."}
             </p>
           </Link>
           <Link className="review-action-card" href="/wrong-notes">
             <span>02 · 오답 정리</span>
             <strong>반복 오답 확인</strong>
-            <p>메모와 숙지 상태를 보며 헷갈린 개념을 다시 정리합니다.</p>
+            <p>메모와 학습 상태를 보며 헷갈린 개념을 다시 정리합니다.</p>
           </Link>
           <Link className="review-action-card" href="/practice">
             <span>03 · 추가 풀이</span>
             <strong>부족한 문제 더 풀기</strong>
-            <p>새 풀이 기록을 쌓아 복습 추천을 더 정확하게 만듭니다.</p>
+            <p>풀이 기록이 쌓일수록 복습 추천이 더 정확해집니다.</p>
           </Link>
         </section>
 

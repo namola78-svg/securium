@@ -61,8 +61,8 @@ export default async function WrongNotesPage({
             <p className="eyebrow">오답 복습</p>
             <h1>오답노트</h1>
             <p>
-              반복 오답과 메모를 과정별로 분리해 관리하고, 필요한 문제만 다시
-              풀 수 있습니다.
+              반복 오답과 나의 메모를 과정별로 분리해 관리하고, 필요한 문제만
+              다시 풀 수 있습니다.
             </p>
           </div>
           <Link className="button button-dark" href="/my-courses">
@@ -79,7 +79,7 @@ export default async function WrongNotesPage({
                 : "저장된 오답이 없습니다"}
             </h2>
             <p>
-              필터를 사용해 과정, 과목, 주제, 난이도별로 취약 영역을 좁혀 볼 수
+              필터를 사용해 과정, 과목, 주제, 난이도별 취약 영역을 좁혀 볼 수
               있습니다.
             </p>
           </div>
@@ -143,9 +143,9 @@ export default async function WrongNotesPage({
             name="mastered"
             defaultValue={typeof query.mastered === "string" ? query.mastered : ""}
           >
-            <option value="">전체 숙지 상태</option>
+            <option value="">전체 학습 상태</option>
             <option value="0">미숙지</option>
-            <option value="1">숙지 완료</option>
+            <option value="1">학습 완료</option>
           </select>
           <button className="button button-ghost" type="submit">
             필터 적용
@@ -217,7 +217,7 @@ function WrongNoteFilterSummary({
     selectedTopicName ? `주제: ${selectedTopicName}` : "전체 주제",
     difficulty ? `난이도: ${formatDifficultyLabel(difficulty)}` : "전체 난이도",
     repeated ? "반복 오답" : null,
-    mastered ? `상태: ${mastered}` : "전체 숙지 상태",
+    mastered ? `상태: ${mastered}` : "전체 학습 상태",
   ].filter((item): item is string => Boolean(item));
 
   return (
@@ -227,7 +227,7 @@ function WrongNoteFilterSummary({
         <h2>현재 필터 조건</h2>
         <p>
           {noteCount}개의 오답 기록을 불러왔습니다. 조건을 좁혀 취약한 영역을
-          다시 학습하거나 오답만 재풀이할 수 있습니다.
+          다시 학습하거나 오답만 반복해서 풀 수 있습니다.
         </p>
       </div>
       <div className="practice-context-tags" aria-label="적용된 오답 필터">
@@ -257,7 +257,7 @@ function WrongNoteFilterSummary({
         <div>
           <span>미숙지</span>
           <strong>{unresolvedCount}개</strong>
-          <p>아직 숙지 완료로 표시하지 않은 항목입니다.</p>
+          <p>아직 학습 완료로 표시하지 않은 항목입니다.</p>
         </div>
         <div>
           <span>최대 오답 횟수</span>
@@ -270,7 +270,7 @@ function WrongNoteFilterSummary({
 }
 
 function formatMastered(mastered?: boolean) {
-  if (mastered === true) return "숙지 완료";
+  if (mastered === true) return "학습 완료";
   if (mastered === false) return "미숙지";
   return undefined;
 }

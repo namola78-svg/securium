@@ -159,14 +159,16 @@ test("AI 요청 길이 제한을 서버에서도 적용한다", async () => {
   assert.equal(payload.code, "AI_REQUEST_TOO_LARGE");
 });
 
-test("문제풀이 UI는 답안 제출 전 AI 해설을 노출하지 않는다", async () => {
+test("문제풀이 UI는 답안 제출 전 생성된 AI 해설 패널을 노출하지 않는다", async () => {
   const response = await fetch(
     `${baseUrl}/practice/isms-p`,
     { headers: learnerHeaders },
   );
   const html = await response.text();
   assert.equal(response.status, 200, html.slice(0, 800));
-  assert.match(html, /제출 후 서버에서 채점하고 해설을 제공합니다/);
-  assert.doesNotMatch(html, /AI 생성 해설/);
-  assert.doesNotMatch(html, /Mock AI 해설/);
+  assert.match(html, /답안을 제출하면 서버에서 채점하고 검수된 해설을 제공합니다/);
+  assert.match(html, /제출 후 가능/);
+  assert.doesNotMatch(html, /class="ai-explanation-panel/);
+  assert.doesNotMatch(html, />AI 생성 해설</);
+  assert.doesNotMatch(html, />AI 해설 미리보기</);
 });

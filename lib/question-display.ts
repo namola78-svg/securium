@@ -1,8 +1,8 @@
 export function formatQuestionTypeLabel(type: string) {
   const labels: Record<string, string> = {
     TRUE_FALSE: "OX",
-    SINGLE_CHOICE: "단일선택형",
-    MULTIPLE_CHOICE: "복수선택형",
+    SINGLE_CHOICE: "단일 선택",
+    MULTIPLE_CHOICE: "복수 선택",
     SHORT_ANSWER: "단답형",
     ESSAY: "서술형",
     CALCULATION: "계산형",

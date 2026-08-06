@@ -101,8 +101,8 @@ export default async function PracticePage({
           <p className="eyebrow">문제풀이</p>
           <h1>{course.shortName} 문제풀이</h1>
           <p>
-            제출 후 서버에서 채점하고 해설을 제공합니다. 정답 데이터는 제출 전
-            응답에 포함되지 않습니다.
+            답안을 제출하면 서버에서 채점하고 검수된 해설을 제공합니다. 정답
+            데이터는 제출 전 응답에 포함되지 않습니다.
           </p>
         </div>
       </header>
@@ -145,8 +145,8 @@ export default async function PracticePage({
               >
                 <option value="">전체 유형</option>
                 <option value="TRUE_FALSE">OX</option>
-                <option value="SINGLE_CHOICE">단일선택형</option>
-                <option value="MULTIPLE_CHOICE">복수선택형</option>
+                <option value="SINGLE_CHOICE">단일 선택</option>
+                <option value="MULTIPLE_CHOICE">복수 선택</option>
                 <option value="SHORT_ANSWER">단답형</option>
                 <option value="ESSAY" disabled>
                   서술형 · 개설 예정
@@ -256,11 +256,11 @@ function PracticeContextSummary({
   return (
     <section className="practice-context-card" aria-label="현재 문제풀이 조건">
       <div>
-        <p className="eyebrow">현재 풀이 조건</p>
-        <h2>현재 문제풀이 조건</h2>
+        <p className="eyebrow">현재 조건</p>
+        <h2>이번 문제풀이 구성</h2>
         <p>
-          {questionCount}개 문항을 불러왔습니다. 커리큘럼에서 진입한 경우
-          연결된 과목과 주제 기준으로 문제가 구성됩니다.
+          {questionCount}개 문항을 불러왔습니다. 커리큘럼에서 진입한 경우 연결된
+          과목과 주제를 기준으로 문제가 구성됩니다.
         </p>
       </div>
       <div className="practice-context-tags" aria-label="적용된 필터">

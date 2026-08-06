@@ -38,7 +38,7 @@ export function WrongNoteCard({
       setMessage(
         response.ok
           ? "오답노트를 저장했습니다."
-          : "오답노트를 저장하지 못했습니다. 잠시 후 다시 시도해주세요.",
+          : "오답노트를 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.",
       );
     } finally {
       setSaving(false);
@@ -61,7 +61,7 @@ export function WrongNoteCard({
       setMessage(
         response.ok
           ? "즐겨찾기를 저장했습니다."
-          : "즐겨찾기를 저장하지 못했습니다. 잠시 후 다시 시도해주세요.",
+          : "즐겨찾기를 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.",
       );
     } finally {
       setBookmarking(false);
@@ -73,7 +73,7 @@ export function WrongNoteCard({
       <div className="course-card-top">
         <span className="badge">오답 {note.wrongCount}회</span>
         <span className={note.mastered ? "status-on" : "status-off"}>
-          {note.mastered ? "숙지 완료" : "미숙지"}
+          {note.mastered ? "학습 완료" : "미숙지"}
         </span>
       </div>
       <h2>{note.title}</h2>
@@ -85,12 +85,12 @@ export function WrongNoteCard({
             name="userMemo"
             defaultValue={note.userMemo}
             maxLength={2000}
-            placeholder="헷갈린 이유나 다시 볼 포인트를 적어두세요."
+            placeholder="틀린 이유나 다시 볼 포인트를 적어두세요."
           />
         </label>
         <label className="check-label">
           <input name="mastered" type="checkbox" defaultChecked={note.mastered} />
-          이 문제는 숙지 완료로 표시
+          이 문제를 학습 완료로 표시
         </label>
         <button className="button button-dark" type="submit" disabled={saving}>
           {saving ? "저장 중..." : "메모 저장"}

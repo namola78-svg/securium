@@ -10,7 +10,7 @@ import {
 test("practice session explains the learner flow before AI explanation is available", () => {
   const source = readFileSync("components/practice-session.tsx", "utf8");
 
-  assert.match(source, /풀이 → 채점 → 검수 해설 → AI 근거/);
+  assert.match(source, /답안 선택 → 서버 채점 → 검수 해설 → AI 근거/);
   assert.match(source, /practice-learning-flow/);
   assert.match(source, /답안 선택/);
   assert.match(source, /서버 채점/);
@@ -37,7 +37,7 @@ test("practice result separates reviewed explanation from AI reference explanati
 
 test("practice learner labels do not expose internal enum names", () => {
   assert.equal(formatQuestionTypeLabel("TRUE_FALSE"), "OX");
-  assert.equal(formatQuestionTypeLabel("MULTIPLE_CHOICE"), "복수선택형");
+  assert.equal(formatQuestionTypeLabel("MULTIPLE_CHOICE"), "복수 선택");
   assert.equal(formatQuestionTypeLabel("UNKNOWN_INTERNAL_TYPE"), "문제 유형");
   assert.equal(formatDifficultyLabel("MEDIUM"), "보통");
   assert.equal(formatDifficultyLabel("UNKNOWN_INTERNAL_DIFFICULTY"), "난이도");
