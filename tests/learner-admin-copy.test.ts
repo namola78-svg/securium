@@ -18,7 +18,7 @@ test("learner pages do not expose admin ownership in routine guidance", () => {
     .join("\n");
 
   for (const expected of [
-    "새 과정이 공개되면",
+    "과정이 공개되면 이곳에서 목표별 학습 경로를 바로 확인",
     "이 과목의 레슨이 공개되면",
     "결과 공개 시점 이후",
     "검토 후 필요한 경우 반영됩니다",
@@ -69,4 +69,15 @@ test("public course entry points use course-aware audience labels", () => {
   assert.doesNotMatch(landingSource, /recommendedAudience\(course\.difficulty\)/);
   assert.doesNotMatch(detailSource, /recommendedAudience\(course\.difficulty\)/);
   assert.doesNotMatch(cardSource, /recommendedAudience\(course\.difficulty\)/);
+});
+
+test("public courses directory uses learner-facing labels", () => {
+  const source = readFileSync("app/courses/page.tsx", "utf8");
+
+  assert.match(source, /학습 경로 선택/);
+  assert.match(source, /나에게 맞는 과정을 찾아보세요/);
+  assert.match(source, /과정 분류/);
+  assert.match(source, /목표별 학습 경로/);
+  assert.doesNotMatch(source, /COURSE DIRECTORY/);
+  assert.doesNotMatch(source, /COURSE GROUP/);
 });
