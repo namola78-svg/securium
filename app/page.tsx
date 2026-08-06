@@ -74,6 +74,7 @@ export default async function Home() {
             <p className="eyebrow light">AI 기반 정보보호 학습</p>
             <h1>
               <span className="hero-title-line">공식 기준으로 배우고</span>
+              {" "}
               <br />
               <span>AI 근거로 이해하세요</span>
             </h1>
