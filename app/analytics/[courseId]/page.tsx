@@ -72,7 +72,7 @@ export default async function CourseAnalyticsPage({
 
         <section className="analytics-overview-panel" aria-label="과정 분석 요약">
           <div>
-            <p className="eyebrow">과정 학습 신호</p>
+            <p className="eyebrow">과정 학습 결과</p>
             <h2>
               {stats.totalQuestions
                 ? `현재 정답률 ${stats.overallAccuracy}%`
@@ -142,7 +142,7 @@ export default async function CourseAnalyticsPage({
             <p>
               {weakestTopic
                 ? `${weakestTopicMeta?.name ?? weakestTopic.id} 문제부터 보완`
-                : "과정 문제 10개를 풀어 분석 신호 만들기"}
+                : "과정 문제 10개를 풀어 취약 영역 찾기"}
             </p>
           </div>
           <div>
@@ -193,7 +193,7 @@ export default async function CourseAnalyticsPage({
           <Link className="analytics-action-card" href="/reviews">
             <span>03 · 복습 연결</span>
             <strong>오늘의 복습으로 이동</strong>
-            <p>반복 오답과 예정 복습을 정리해 취약 신호를 줄입니다.</p>
+            <p>반복 오답과 예정 복습을 정리해 취약 영역을 줄입니다.</p>
           </Link>
         </section>
 

@@ -137,3 +137,16 @@ test("public landing guide and about pages use learner-facing eyebrow labels", (
     assert.doesNotMatch(combined, new RegExp(internalLabel));
   }
 });
+
+test("learner analytics pages avoid internal signal wording", () => {
+  const combined = [
+    "app/analytics/page.tsx",
+    "app/analytics/[courseId]/page.tsx",
+  ]
+    .map((file) => readFileSync(file, "utf8"))
+    .join("\n");
+
+  assert.match(combined, /학습 결과/);
+  assert.match(combined, /취약 영역/);
+  assert.doesNotMatch(combined, /학습 신호|취약 신호|분석 신호|신호 만들기/);
+});

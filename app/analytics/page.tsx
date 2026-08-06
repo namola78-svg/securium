@@ -52,14 +52,14 @@ async function AnalyticsOverview({
     <>
       <section className="analytics-overview-panel" aria-label="통합 학습분석 요약">
         <div>
-          <p className="eyebrow">학습 신호</p>
+          <p className="eyebrow">학습 결과</p>
           <h2>
             {analytics.totalQuestions
               ? `전체 정답률 ${analytics.overallAccuracy}%`
               : "학습 기록이 쌓이면 분석이 시작됩니다"}
           </h2>
           <p>
-            분석은 과정별로 분리된 풀이 기록을 사용합니다. 취약 신호가 보이면
+            분석은 과정별로 분리된 풀이 기록을 사용합니다. 취약 영역이 보이면
             바로 문제풀이와 복습으로 이어갈 수 있습니다.
           </p>
         </div>
@@ -152,13 +152,13 @@ async function AnalyticsOverview({
           href={topCourse ? `/practice/${topCourse.courseSlug}?count=10` : "/practice"}
         >
           <span>02 · 문제풀이</span>
-          <strong>10문항으로 신호 만들기</strong>
+          <strong>10문항으로 취약 영역 찾기</strong>
           <p>새 풀이 기록이 쌓일수록 취약 영역 추천이 정교해집니다.</p>
         </Link>
         <Link className="analytics-action-card" href="/reviews">
           <span>03 · 복습</span>
           <strong>오답과 연체 복습 확인</strong>
-          <p>분석에서 발견한 취약 신호를 복습 루틴으로 이어갑니다.</p>
+          <p>분석에서 발견한 취약 영역을 복습 루틴으로 이어갑니다.</p>
         </Link>
       </section>
     </>
@@ -169,9 +169,9 @@ function AnalyticsMetricsFallback() {
   return (
     <section className="analytics-overview-panel" aria-live="polite">
       <div>
-        <p className="eyebrow">학습 신호</p>
+        <p className="eyebrow">학습 결과</p>
         <h2>학습분석 정보를 불러오고 있습니다</h2>
-        <p>과정별 학습 신호를 정리하는 중입니다.</p>
+        <p>과정별 학습 결과를 정리하는 중입니다.</p>
       </div>
       <dl aria-hidden="true">
         {[0, 1, 2, 3].map((item) => (
