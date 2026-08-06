@@ -78,3 +78,17 @@ test("public landing dashboard preview emphasizes next learner actions", () => {
   assert.match(dashboardPreviewSource, /05 · 시험 감각/);
   assert.doesNotMatch(dashboardPreviewSource, /통계표를 먼저/);
 });
+
+test("public landing learning chain presents the SECURIUM knowledge engine", () => {
+  const source = readFileSync("app/page.tsx", "utf8");
+  const learningChainSource =
+    source.match(/<section className="section landing-learning-chain"[\s\S]*?<\/section>/)?.[0] ??
+    "";
+
+  assert.match(learningChainSource, /Knowledge Engine/);
+  assert.match(learningChainSource, /공식 기준이 문제와 AI 근거까지 이어집니다/);
+  assert.match(learningChainSource, /검증 가능한 AI 근거/);
+  assert.match(learningChainSource, /핵심 이론/);
+  assert.match(learningChainSource, /정답 이유와 오답 이유를 근거 콘텐츠와 함께 설명/);
+  assert.match(learningChainSource, /다음 학습 행동으로 다시 추천/);
+});

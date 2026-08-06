@@ -1937,6 +1937,7 @@ button:disabled {
   flex-direction: column;
   gap: 12px;
   padding: 24px 20px;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.96), rgb(246 249 246 / 0.72));
 }
 
 .learning-chain-list li + li {
@@ -1959,6 +1960,18 @@ button:disabled {
   content: "→";
   font-size: 13px;
   font-weight: 900;
+}
+
+.learning-chain-list li:nth-child(5) {
+  background:
+    radial-gradient(circle at top right, rgb(124 92 255 / 0.14), transparent 42%),
+    linear-gradient(180deg, #fff, #f7f6ff);
+}
+
+.learning-chain-list li:nth-child(6) {
+  background:
+    radial-gradient(circle at top right, rgb(207 255 78 / 0.22), transparent 42%),
+    linear-gradient(180deg, #fff, #f8fbef);
 }
 
 .learning-chain-list span {

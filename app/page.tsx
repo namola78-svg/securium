@@ -141,13 +141,14 @@ export default async function Home() {
         <div className="shell">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">학습 연결 구조</p>
+              <p className="eyebrow">Knowledge Engine</p>
               <h2 id="learning-chain-title">
-                SECURIUM은 이렇게 학습을 연결합니다
+                공식 기준이 문제와 AI 근거까지 이어집니다
               </h2>
               <p>
-                SECURIUM은 공식 기준에서 출발해 커리큘럼, 이론, 문제, AI 근거,
-                복습까지 하나의 흐름으로 이어지는 지식 기반 학습 플랫폼입니다.
+                단순히 강의를 모아두는 것이 아니라, 공식 기준을 출발점으로
+                커리큘럼, 핵심 이론, 문제, 검증 가능한 AI 근거, 복습 추천을
+                하나의 학습 경로로 연결합니다.
               </p>
             </div>
           </div>
@@ -155,32 +156,32 @@ export default async function Home() {
             <li>
               <span>01</span>
               <strong>공식 기준</strong>
-              <p>정보보안기사 네트워크 보안 출제기준</p>
+              <p>KISA·NCS 등 기준일이 관리되는 출제기준과 인증기준</p>
             </li>
             <li>
               <span>02</span>
               <strong>커리큘럼</strong>
-              <p>서비스 거부 공격과 대응 개념 연결</p>
+              <p>과목과 주요항목을 학습자가 이해하는 흐름으로 정리</p>
             </li>
             <li>
               <span>03</span>
-              <strong>이론</strong>
-              <p>DoS/DDoS 개념과 탐지 기준 정리</p>
+              <strong>핵심 이론</strong>
+              <p>시험과 실무에 필요한 개념을 짧은 본문형 레슨으로 학습</p>
             </li>
             <li>
               <span>04</span>
               <strong>문제</strong>
-              <p>공격 유형 판단과 대응 방법 문제풀이</p>
+              <p>개념이 실제 문항에서 어떻게 묻히는지 확인</p>
             </li>
             <li>
               <span>05</span>
               <strong>AI 근거</strong>
-              <p>관련 출제기준과 해설 근거 연결</p>
+              <p>정답 이유와 오답 이유를 근거 콘텐츠와 함께 설명</p>
             </li>
             <li>
               <span>06</span>
               <strong>복습</strong>
-              <p>오답 5문제와 취약 개념 재추천</p>
+              <p>오답과 취약 개념을 다음 학습 행동으로 다시 추천</p>
             </li>
           </ol>
         </div>

@@ -614,11 +614,12 @@ test("통합 학습 플랫폼 랜딩페이지를 서버 렌더링한다", async 
   assert.match(visibleHtml, /검증 가능/);
   assert.doesNotMatch(visibleHtml, /인증기준 2\.6 접근통제/);
   assert.doesNotMatch(visibleHtml, /68%/);
-  assert.match(visibleHtml, /학습 연결 구조/);
+  assert.match(visibleHtml, /Knowledge Engine/);
+  assert.match(visibleHtml, /공식 기준이 문제와 AI 근거까지 이어집니다/);
   assert.match(visibleHtml, /learning-chain-list/);
   assert.match(visibleHtml, /KISA/);
   assert.match(visibleHtml, /NCS/);
-  assert.match(visibleHtml, /취약 개념 재추천/);
+  assert.match(visibleHtml, /다음 학습 행동으로 다시 추천/);
   assert.match(visibleHtml, /지식 플랫폼/);
   assert.match(visibleHtml, /knowledge-platform-stack/);
   assert.match(visibleHtml, /knowledge-platform-equation/);
@@ -632,7 +633,7 @@ test("통합 학습 플랫폼 랜딩페이지를 서버 렌더링한다", async 
   assert.match(visibleHtml, /학습자 대시보드/);
   assert.match(visibleHtml, /learner-dashboard-card/);
   assert.match(visibleHtml, /취약 영역/);
-  assert.match(visibleHtml, /오늘 완료/);
+  assert.match(visibleHtml, /시험 감각/);
   assert.match(visibleHtml, /2\/5/);
   assert.match(visibleHtml, /오늘 학습 시작하기/);
   assert.match(visibleHtml, /SECURIUM 시작하기/);
