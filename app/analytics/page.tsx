@@ -192,7 +192,7 @@ async function AnalyticsCourseActions({
 }) {
   const analytics = await analyticsPromise;
   return (
-    <section className="section-block admin-panel">
+    <section className="section-block learner-analytics-panel">
       <div className="section-heading compact">
         <div>
           <p className="eyebrow">과정별 다음 행동</p>
@@ -247,7 +247,7 @@ async function AnalyticsCourseActions({
 
 function AnalyticsCourseActionsFallback() {
   return (
-    <section className="section-block admin-panel" aria-live="polite">
+    <section className="section-block learner-analytics-panel" aria-live="polite">
       <div className="section-heading compact">
         <div>
           <p className="eyebrow">과정별 다음 행동</p>

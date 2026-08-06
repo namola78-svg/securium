@@ -279,7 +279,7 @@ function Breakdown({
   weakFirst?: boolean;
 }) {
   return (
-    <section className="admin-panel analytics-panel">
+    <section className="learner-analytics-panel analytics-panel">
       <h2>{title}</h2>
       {rows.length ? (
         rows.map((row) => (

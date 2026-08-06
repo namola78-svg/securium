@@ -68,3 +68,17 @@ test("analytics empty and low-data copy stays action oriented", () => {
   assert.doesNotMatch(combined, /학습 기록이 쌓이면/);
   assert.doesNotMatch(combined, /문제풀이 기록이 쌓이면/);
 });
+
+test("learner analytics panels do not reuse admin panel shell classes", () => {
+  const combined = [
+    "app/analytics/page.tsx",
+    "app/analytics/[courseId]/page.tsx",
+  ]
+    .map((file) => readFileSync(file, "utf8"))
+    .join("\n");
+  const styles = readFileSync("app/globals.css", "utf8");
+
+  assert.match(combined, /learner-analytics-panel/);
+  assert.doesNotMatch(combined, /className="[^"]*admin-panel/);
+  assert.match(styles, /\.learner-analytics-panel/);
+});
