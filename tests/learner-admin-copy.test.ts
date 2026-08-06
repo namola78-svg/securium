@@ -226,3 +226,12 @@ test("ai tutor empty state explains the next learner action", () => {
   assert.doesNotMatch(source, /AI 맞춤 추천을 준비하고 있습니다/);
   assert.doesNotMatch(source, /기록이 쌓이면 추천 학습과 AI 해설/);
 });
+
+test("learner settings page does not reuse admin panel shell classes", () => {
+  const source = readFileSync("app/settings/page.tsx", "utf8");
+  const styles = readFileSync("app/globals.css", "utf8");
+
+  assert.match(source, /learner-settings-panel/);
+  assert.doesNotMatch(source, /admin-panel settings-panel/);
+  assert.match(styles, /\.learner-settings-panel/);
+});
