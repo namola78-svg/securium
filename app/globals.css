@@ -6106,6 +6106,42 @@ textarea {
   gap: 10px;
 }
 
+.wrong-note-action-flow {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wrong-note-action-flow li {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(89, 112, 101, 0.16);
+  border-radius: 14px;
+  background: #f8faf5;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.wrong-note-action-flow span {
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+
+.wrong-note-action-flow strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .wrong-note-insight-grid div {
   display: grid;
   gap: 6px;
@@ -7386,6 +7422,7 @@ textarea {
 
   .review-action-strip,
   .analytics-action-strip,
+  .wrong-note-action-flow,
   .wrong-note-insight-grid {
     grid-template-columns: 1fr;
   }

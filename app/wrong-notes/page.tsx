@@ -221,15 +221,29 @@ function WrongNoteFilterSummary({
   ].filter((item): item is string => Boolean(item));
 
   return (
-    <section className="review-context-card" aria-label="현재 오답노트 조건">
+    <section className="review-context-card" aria-label="다시 볼 오답 범위">
       <div>
-        <p className="eyebrow">현재 오답 조건</p>
-        <h2>현재 필터 조건</h2>
+        <p className="eyebrow">다시 볼 오답</p>
+        <h2>다시 풀 오답 범위</h2>
         <p>
-          {noteCount}개의 오답 기록을 불러왔습니다. 조건을 좁혀 취약한 영역을
-          다시 학습하거나 오답만 반복해서 풀 수 있습니다.
+          {noteCount}개의 오답 기록을 불러왔습니다. 반복 오답과 미숙지 항목을
+          먼저 확인하고, 필요한 문제만 다시 풀어 취약 영역을 줄이세요.
         </p>
       </div>
+      <ol className="wrong-note-action-flow" aria-label="오답 복습 흐름">
+        <li>
+          <span>01</span>
+          <strong>반복 오답 확인</strong>
+        </li>
+        <li>
+          <span>02</span>
+          <strong>필요한 문제 다시 풀기</strong>
+        </li>
+        <li>
+          <span>03</span>
+          <strong>학습 완료로 정리</strong>
+        </li>
+      </ol>
       <div className="practice-context-tags" aria-label="적용된 오답 필터">
         {filters.map((filter) => (
           <span key={filter}>{filter}</span>
