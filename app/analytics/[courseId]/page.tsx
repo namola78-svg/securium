@@ -174,7 +174,7 @@ export default async function CourseAnalyticsPage({
             <strong>
               {weakestTopic
                 ? weakestTopicMeta?.name ?? weakestTopic.id
-                : "분석 데이터 준비 중"}
+                : "학습 기록이 더 필요해요"}
             </strong>
             <p>
               {weakestTopic

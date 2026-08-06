@@ -252,7 +252,7 @@ function AnalyticsCourseActionsFallback() {
         <div>
           <p className="eyebrow">과정별 다음 행동</p>
           <h2>과정별 학습 상태를 불러오고 있습니다</h2>
-          <p>학습분석 정보를 준비하고 있습니다.</p>
+          <p>최근 학습 기록과 과정별 진도를 확인하고 있습니다.</p>
         </div>
       </div>
       <div className="analytics-course-list" aria-hidden="true">
