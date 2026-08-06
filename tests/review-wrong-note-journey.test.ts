@@ -4,18 +4,29 @@ import test from "node:test";
 
 test("reviews page exposes immediate review actions after the review summary", () => {
   const source = readFileSync("app/reviews/page.tsx", "utf8");
+  const styles = readFileSync("app/globals.css", "utf8");
   const overviewIndex = source.indexOf("review-overview-panel");
   const progressIndex = source.indexOf("오늘의 복습 완료율");
+  const routineIndex = source.indexOf("review-routine-panel");
   const actionStripIndex = source.indexOf("review-action-strip");
 
   assert.ok(overviewIndex > -1);
   assert.ok(progressIndex > -1);
+  assert.ok(routineIndex > -1);
   assert.ok(actionStripIndex > -1);
   assert.ok(overviewIndex < progressIndex);
-  assert.ok(progressIndex < actionStripIndex);
+  assert.ok(progressIndex < routineIndex);
+  assert.ok(routineIndex < actionStripIndex);
+  assert.match(source, /복습은 짧게 확인하고 바로 다시 풉니다/);
+  assert.match(source, /대상 확인/);
+  assert.match(source, /바로 풀이/);
+  assert.match(source, /오답 정리/);
+  assert.match(source, /간격 조정/);
   assert.match(source, /오늘 복습/);
   assert.match(source, /오답 정리/);
   assert.match(source, /추가 풀이/);
+  assert.match(styles, /\.review-routine-flow/);
+  assert.match(styles, /@media \(max-width: 680px\)[\s\S]*?\.review-routine-flow/);
 });
 
 test("wrong notes page summarizes repeated and unresolved weak areas", () => {

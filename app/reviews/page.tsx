@@ -69,6 +69,39 @@ export default async function ReviewsPage() {
           />
         </section>
 
+        <section className="review-routine-panel section-block" aria-label="오늘 복습 루틴">
+          <div>
+            <p className="eyebrow">오늘 할 순서</p>
+            <h2>복습은 짧게 확인하고 바로 다시 풉니다</h2>
+            <p>
+              SECURIUM은 복습 대상을 보여주는 데서 끝나지 않고, 풀이 결과를
+              다음 복습 간격과 취약 영역으로 다시 연결합니다.
+            </p>
+          </div>
+          <ol className="review-routine-flow">
+            <li>
+              <span>01</span>
+              <strong>대상 확인</strong>
+              <p>오래 미룬 항목과 반복 오답을 먼저 봅니다.</p>
+            </li>
+            <li>
+              <span>02</span>
+              <strong>바로 풀이</strong>
+              <p>예정 문제를 과정 범위 안에서 다시 풉니다.</p>
+            </li>
+            <li>
+              <span>03</span>
+              <strong>오답 정리</strong>
+              <p>틀린 이유와 헷갈린 개념을 오답노트에 남깁니다.</p>
+            </li>
+            <li>
+              <span>04</span>
+              <strong>간격 조정</strong>
+              <p>결과에 따라 다음 복습 일정이 자동 조정됩니다.</p>
+            </li>
+          </ol>
+        </section>
+
         <section className="review-action-strip section-block" aria-label="복습 실행 메뉴">
           <Link
             className="review-action-card review-action-card-primary"

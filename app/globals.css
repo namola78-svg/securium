@@ -6116,6 +6116,61 @@ textarea {
   justify-content: flex-start;
 }
 
+.review-routine-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.review-routine-panel h2 {
+  margin: 4px 0 8px;
+  font-size: clamp(22px, 3vw, 30px);
+}
+
+.review-routine-panel p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.review-routine-flow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.review-routine-flow li {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid rgba(89, 112, 101, 0.16);
+  border-radius: 14px;
+  background: #f8faf5;
+}
+
+.review-routine-flow span {
+  color: var(--lime-strong);
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+}
+
+.review-routine-flow strong {
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 950;
+}
+
+.review-routine-flow p {
+  font-size: 13px;
+  line-height: 1.55;
+}
+
 .review-action-strip {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -7522,6 +7577,7 @@ textarea {
   }
 
   .review-overview-panel,
+  .review-routine-panel,
   .review-workspace,
   .analytics-overview-panel,
   .analytics-action-panel {
@@ -7534,6 +7590,7 @@ textarea {
   }
 
   .review-action-strip,
+  .review-routine-flow,
   .analytics-action-strip,
   .analytics-decision-flow,
   .wrong-note-action-flow,
