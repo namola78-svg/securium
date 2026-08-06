@@ -230,7 +230,7 @@ async function DashboardStats({
       <div className="stat-card">
         <span>등록 과정</span>
         <strong>{enrollments.length}</strong>
-        <small>과정별 기록 분리</small>
+        <small>과정별로 따로 관리</small>
       </div>
       <div className="stat-card">
         <span>오늘 완료</span>
@@ -452,7 +452,7 @@ async function ActiveCoursesSection({
                   <dt>정답률</dt>
                   <dd>
                     {enrollment.accuracy === null
-                      ? "데이터 없음"
+                      ? "풀이 기록 없음"
                       : `${enrollment.accuracy}%`}
                   </dd>
                 </div>
@@ -463,7 +463,7 @@ async function ActiveCoursesSection({
                       ? new Date(enrollment.lastStudiedAt).toLocaleDateString(
                           "ko-KR",
                         )
-                      : "아직 없음"}
+                      : "시작 전"}
                   </dd>
                 </div>
                 <div>

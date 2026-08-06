@@ -618,10 +618,10 @@ async function SubjectsSectionLoader({
   if (hasPrimaryCurriculumPath(curriculumPath)) return null;
   const hasOfficialTreeWithoutLessons = Boolean(curriculumPath);
   const heading = hasOfficialTreeWithoutLessons
-    ? "기존 학습 자료"
+    ? "핵심 이론"
     : "과목별 학습";
   const description = hasOfficialTreeWithoutLessons
-    ? "공식 커리큘럼은 준비되어 있지만 연결된 레슨이 아직 부족해 기존 과목 구조로 학습을 제공합니다."
+    ? "공식 커리큘럼 흐름에 맞춰 핵심 개념을 과목별로 먼저 학습할 수 있습니다."
     : "공식 커리큘럼이 없는 과정은 기존 과목과 주제 구조로 학습을 제공합니다.";
 
   return (
@@ -629,7 +629,7 @@ async function SubjectsSectionLoader({
       <div className="section-heading compact">
         <div>
           <p className="eyebrow">
-            {hasOfficialTreeWithoutLessons ? "기존 학습 자료" : "과목별 학습"}
+            {hasOfficialTreeWithoutLessons ? "핵심 이론" : "과목별 학습"}
           </p>
           <h2>{heading}</h2>
           <p>{description}</p>
@@ -904,8 +904,8 @@ function CurriculumPathSection({
           </p>
           {!hasLinkedLessons ? (
             <p>
-              공식 분류는 준비되어 있지만 학습 콘텐츠가 아직 충분하지 않습니다.
-              아래 이론 레슨으로 먼저 학습을 이어갈 수 있습니다.
+              이 과정은 핵심 이론을 먼저 학습한 뒤 공식 커리큘럼 흐름으로
+              이어갈 수 있습니다.
             </p>
           ) : null}
         </div>

@@ -60,11 +60,14 @@ test("learner dashboard answers the four core learner questions before metrics",
   assert.match(styles, /\.dashboard-action-rail/);
 });
 
-test("learner dashboard maps internal enrollment status to user-facing labels", () => {
+test("learner dashboard maps internal enrollment status and empty values to user-facing labels", () => {
   const source = readFileSync("app/dashboard/page.tsx", "utf8");
 
   assert.match(source, /getEnrollmentStatusLabel\(enrollment\.status\)/);
   assert.match(source, /case "ACTIVE":[\s\S]*?return "학습 중"/);
   assert.match(source, /case "COMPLETED":[\s\S]*?return "완료"/);
+  assert.match(source, /풀이 기록 없음/);
+  assert.match(source, /시작 전/);
+  assert.match(source, /과정별로 따로 관리/);
   assert.doesNotMatch(source, /<span className="badge">\{enrollment\.status\}<\/span>/);
 });
