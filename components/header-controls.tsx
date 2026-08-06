@@ -35,12 +35,17 @@ const signedInItems: NavItem[] = [
   { href: "/ai-tutor", label: "AI 튜터" },
 ];
 
-const mobileBottomItems: Array<NavItem & { icon: string }> = [
-  { href: "/dashboard", label: "홈", icon: "⌂" },
-  { href: "/my-courses", label: "학습", icon: "□" },
-  { href: "/practice", label: "문제", icon: "✓" },
-  { href: "/reviews", label: "복습", icon: "↻" },
-  { href: "/profile", label: "마이", icon: "◦" },
+type MobileBottomNavItem = NavItem & {
+  icon: string;
+  activeHrefs: string[];
+};
+
+const mobileBottomItems: MobileBottomNavItem[] = [
+  { href: "/dashboard", label: "홈", icon: "⌂", activeHrefs: ["/dashboard"] },
+  { href: "/my-courses", label: "학습", icon: "□", activeHrefs: ["/my-courses", "/learn", "/courses"] },
+  { href: "/practice", label: "문제", icon: "✓", activeHrefs: ["/practice", "/questions"] },
+  { href: "/reviews", label: "복습", icon: "↻", activeHrefs: ["/reviews", "/wrong-notes"] },
+  { href: "/profile", label: "마이", icon: "◦", activeHrefs: ["/profile", "/settings"] },
 ];
 
 export function HeaderControls({ user }: HeaderControlsProps) {
@@ -434,7 +439,7 @@ export function HeaderControls({ user }: HeaderControlsProps) {
       {isSignedIn ? (
         <nav className="mobile-bottom-nav" aria-label="모바일 학습 빠른 이동">
           {mobileBottomItems.map((item) => {
-            const active = item.href ? isActivePath(activePath, item.href) : false;
+            const active = isMobileBottomActive(activePath, item);
             return (
               <Link
                 aria-current={active ? "page" : undefined}
@@ -516,4 +521,8 @@ function safeReturnPath(value: string | null) {
 
 function isActivePath(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function isMobileBottomActive(pathname: string, item: MobileBottomNavItem) {
+  return item.activeHrefs.some((href) => isActivePath(pathname, href));
 }

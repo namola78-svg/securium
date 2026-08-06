@@ -13,6 +13,12 @@ test("signed-in mobile header exposes app-like bottom navigation", () => {
   assert.match(source, /href: "\/practice", label: "문제"/);
   assert.match(source, /href: "\/reviews", label: "복습"/);
   assert.match(source, /href: "\/profile", label: "마이"/);
+  assert.match(source, /activeHrefs: \["\/my-courses", "\/learn", "\/courses"\]/);
+  assert.match(source, /activeHrefs: \["\/practice", "\/questions"\]/);
+  assert.match(source, /activeHrefs: \["\/reviews", "\/wrong-notes"\]/);
+  assert.match(source, /activeHrefs: \["\/profile", "\/settings"\]/);
+  assert.match(source, /isMobileBottomActive\(activePath, item\)/);
+  assert.match(source, /function isMobileBottomActive/);
   assert.match(source, /\{isSignedIn \? \(/);
   assert.match(styles, /\.mobile-bottom-nav\s*\{\s*display: none;/);
   assert.match(styles, /body:has\(\.mobile-bottom-nav\)/);
