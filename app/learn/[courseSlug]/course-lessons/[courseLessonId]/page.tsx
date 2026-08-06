@@ -52,7 +52,7 @@ export default async function CourseLessonPage({
           <Link className="breadcrumb" href={`/learn/${course.slug}`}>
             ← {course.shortName} 학습
           </Link>
-          <p className="eyebrow">공통 이론 레슨</p>
+          <p className="eyebrow">이론 레슨</p>
           <h1>{title}</h1>
           <p>{summary}</p>
           <div className="lesson-meta">
@@ -104,7 +104,7 @@ export default async function CourseLessonPage({
             completionRule={lesson.completionRule}
           />
 
-          <nav className="lesson-navigation" aria-label="공통 레슨 이동">
+          <nav className="lesson-navigation" aria-label="이론 레슨 이동">
             {lesson.previousLesson ? (
               <Link
                 className="button button-ghost"

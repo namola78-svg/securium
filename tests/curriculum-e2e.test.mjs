@@ -283,7 +283,7 @@ test("ACTIVE 커리큘럼 트리는 수강자의 학습 화면에 읽기 전용 
   assert.match(html, /OFFICIAL CURRICULUM/);
   assert.match(html, /공식 커리큘럼/);
   assert.match(html, /ISMS-P 2027/);
-  assert.match(html, /개 노드/);
+  assert.match(html, /개 항목/);
   assert.match(html, /learn-curriculum-path-tree/);
 });
 

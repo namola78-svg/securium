@@ -521,11 +521,11 @@ async function SharedTheorySectionLoader({
     <section className="section-block">
       <div className="section-heading compact">
         <div>
-          <p className="eyebrow">보조 이론 학습</p>
-          <h2>보조 이론 학습</h2>
+          <p className="eyebrow">추천 이론 학습</p>
+          <h2>이론 레슨으로 먼저 학습하기</h2>
           <p>
-            공식 커리큘럼 연결이 충분하지 않은 과정에서는 기존 이론 레슨으로
-            학습을 이어갑니다.
+            정식 커리큘럼 학습 콘텐츠가 충분히 연결되기 전까지는 준비된 이론
+            레슨으로 핵심 개념을 먼저 학습할 수 있습니다.
           </p>
         </div>
         <span className="count-label">
@@ -535,7 +535,7 @@ async function SharedTheorySectionLoader({
       </div>
       <ProgressBar
         value={sharedLessonSummary.progressPercent}
-        label="보조 이론 진도"
+        label="이론 레슨 진도"
       />
       <div className="course-lesson-grid">
         {sharedLessonSummary.lessons.map((lesson) => (
@@ -575,8 +575,8 @@ function SharedTheorySectionFallback() {
     <section className="section-block" aria-live="polite">
       <div className="section-heading compact">
         <div>
-          <p className="eyebrow">공통 이론</p>
-          <h2>공통 이론 레슨을 불러오고 있습니다</h2>
+          <p className="eyebrow">이론 학습</p>
+          <h2>이론 레슨을 불러오고 있습니다</h2>
         </div>
       </div>
       <div className="card-skeleton" aria-hidden="true" />
@@ -870,10 +870,10 @@ function CurriculumPathSection({
     <section className="curriculum-path-section section-block">
       {hasLinkedLessons ? (
         <div className="curriculum-path-summary">
-          <ProgressBar
-            value={path.progressPercent}
-            label={`커리큘럼 연결 레슨 ${path.completedLinkedLessons}/${path.linkedLessonCount} 완료`}
-          />
+            <ProgressBar
+              value={path.progressPercent}
+              label={`커리큘럼 레슨 ${path.completedLinkedLessons}/${path.linkedLessonCount} 완료`}
+            />
         </div>
       ) : null}
       <div className="section-heading compact">
@@ -886,12 +886,12 @@ function CurriculumPathSection({
           </p>
           {!hasLinkedLessons ? (
             <p>
-              공식 분류는 준비되어 있지만 연결된 학습 레슨이 아직 부족합니다.
-              아래 기존 학습 자료로 먼저 학습을 이어갈 수 있습니다.
+              공식 분류는 준비되어 있지만 학습 콘텐츠가 아직 충분하지 않습니다.
+              아래 이론 레슨으로 먼저 학습을 이어갈 수 있습니다.
             </p>
           ) : null}
         </div>
-        <span className="count-label">{path.nodeCount}개 노드</span>
+        <span className="count-label">{path.nodeCount}개 항목</span>
       </div>
       <LearnCurriculumPathTree courseSlug={courseSlug} nodes={path.nodes} />
     </section>
