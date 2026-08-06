@@ -130,6 +130,37 @@ export default async function CourseAnalyticsPage({
           )}
         </section>
 
+        <section className="analytics-learner-answer-panel section-block" aria-label="학습 상태 핵심 질문">
+          <div>
+            <span>01</span>
+            <strong>어디까지 했지?</strong>
+            <p>단계 완료율 {stats.levelCompletionRate}% · 최근 7일 {stats.recent7Days}문제</p>
+          </div>
+          <div>
+            <span>02</span>
+            <strong>다음은 뭘 하지?</strong>
+            <p>
+              {weakestTopic
+                ? `${weakestTopicMeta?.name ?? weakestTopic.id} 문제부터 보완`
+                : "과정 문제 10개를 풀어 분석 신호 만들기"}
+            </p>
+          </div>
+          <div>
+            <span>03</span>
+            <strong>얼마나 남았지?</strong>
+            <p>전체 정답률 {stats.overallAccuracy}% · 이 과정 기준으로 계속 집계</p>
+          </div>
+          <div>
+            <span>04</span>
+            <strong>어디가 약하지?</strong>
+            <p>
+              {weakestTopic
+                ? `최저 정답률 ${weakestTopic.accuracy}% 영역 우선`
+                : `반복 오답 ${stats.repeatedWrongCount}문제 확인`}
+            </p>
+          </div>
+        </section>
+
         <section className="analytics-action-strip section-block" aria-label="과정 분석 다음 행동">
           <Link
             className="analytics-action-card analytics-action-card-primary"

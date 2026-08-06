@@ -6449,6 +6449,42 @@ textarea {
   white-space: nowrap;
 }
 
+.analytics-learner-answer-panel {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.analytics-learner-answer-panel div {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid rgba(89, 112, 101, 0.16);
+  border-radius: 16px;
+  background: #f8faf5;
+}
+
+.analytics-learner-answer-panel span {
+  color: var(--lime-strong);
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+}
+
+.analytics-learner-answer-panel strong {
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 950;
+}
+
+.analytics-learner-answer-panel p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
 .analytics-action-strip {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -7591,6 +7627,7 @@ textarea {
 
   .review-action-strip,
   .review-routine-flow,
+  .analytics-learner-answer-panel,
   .analytics-action-strip,
   .analytics-decision-flow,
   .wrong-note-action-flow,
