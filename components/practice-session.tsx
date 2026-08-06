@@ -274,9 +274,9 @@ export function PracticeSession({
       <div className="practice-session-brief" aria-label="문제풀이 진행 요약">
         <div>
           <p className="eyebrow">풀이 안내</p>
-          <strong>답안 선택 → 자동 채점 → 검수 해설 → AI 근거 순서로 학습합니다.</strong>
+          <strong>답안 선택 → 자동 채점 → 기준 해설 → AI 근거 순서로 학습합니다.</strong>
           <span>
-            답안을 제출하면 채점 결과와 검수 해설을 확인할 수 있습니다. AI 참고
+            답안을 제출하면 채점 결과와 기준 해설을 확인할 수 있습니다. AI 참고
             해설은 채점 이후 요청할 수 있으며 공식 채점 결과가 아닙니다.
           </span>
         </div>
@@ -306,7 +306,7 @@ export function PracticeSession({
         </li>
         <li className={result ? "is-current" : ""}>
           <span>3</span>
-          <strong>검수 해설</strong>
+          <strong>기준 해설</strong>
         </li>
         <li className={aiExplanations[question.id] ? "is-current" : ""}>
           <span>4</span>
@@ -380,7 +380,7 @@ export function PracticeSession({
         >
           <div className="grade-panel-heading">
             <div>
-              <p className="explanation-label">검수 해설</p>
+              <p className="explanation-label">기준 해설</p>
               <strong>{result.isCorrect ? "정답입니다." : "오답입니다."}</strong>
             </div>
             <span>점수 {result.score}점</span>
@@ -392,10 +392,10 @@ export function PracticeSession({
               {result.explanationVersion.reviewedAt?.slice(0, 10) ?? "미등록"}
             </p>
           ) : (
-            <p className="muted-copy">검수 정보가 등록되지 않았습니다.</p>
+            <p className="muted-copy">기준일 정보가 없습니다.</p>
           )}
           <p className="grade-context-copy">
-            아래 해설은 검수된 학습 콘텐츠입니다. AI 참고 해설은 이 해설을
+            아래 해설은 검토된 학습 콘텐츠입니다. AI 참고 해설은 이 해설을
             대체하지 않고 이해를 돕는 보조 설명으로만 표시됩니다.
           </p>
           <p>{publicCopy(result.explanation)}</p>

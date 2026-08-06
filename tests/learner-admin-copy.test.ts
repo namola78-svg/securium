@@ -22,8 +22,8 @@ test("learner pages do not expose admin ownership in routine guidance", () => {
     "이 과목의 레슨이 공개되면",
     "결과 공개 시점 이후",
     "검토 후 필요한 경우 반영됩니다",
-    "검수 해설",
-    "검수된 학습 콘텐츠",
+    "기준 해설",
+    "검토된 학습 콘텐츠",
     "기존 채점 결과",
   ]) {
     assert.match(combined, new RegExp(expected));
@@ -196,5 +196,9 @@ test("practice guidance describes grading in learner-facing terms", () => {
   const source = readFileSync("components/practice-session.tsx", "utf8");
 
   assert.match(source, /자동 채점/);
+  assert.match(source, /기준 해설/);
+  assert.match(source, /검토된 학습 콘텐츠/);
   assert.doesNotMatch(source, /서버 채점/);
+  assert.doesNotMatch(source, /검수 해설/);
+  assert.doesNotMatch(source, /검수 정보가 등록되지 않았습니다/);
 });
