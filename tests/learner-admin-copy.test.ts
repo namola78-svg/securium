@@ -59,11 +59,14 @@ test("public course cards do not expose internal course codes as primary labels"
 test("public course entry points use course-aware audience labels", () => {
   const landingSource = readFileSync("app/page.tsx", "utf8");
   const detailSource = readFileSync("app/courses/[courseSlug]/page.tsx", "utf8");
+  const cardSource = readFileSync("components/course-card.tsx", "utf8");
   const displaySource = readFileSync("lib/course-display.ts", "utf8");
 
   assert.match(displaySource, /function courseAudienceLabel/);
   assert.match(landingSource, /courseAudienceLabel\(course\)/);
   assert.match(detailSource, /const audienceLabel = courseAudienceLabel\(course\)/);
+  assert.match(cardSource, /const recommendedFor = courseAudienceLabel\(course\)/);
   assert.doesNotMatch(landingSource, /recommendedAudience\(course\.difficulty\)/);
   assert.doesNotMatch(detailSource, /recommendedAudience\(course\.difficulty\)/);
+  assert.doesNotMatch(cardSource, /recommendedAudience\(course\.difficulty\)/);
 });

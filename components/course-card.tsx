@@ -1,16 +1,16 @@
 import Link from "next/link";
 import type { CourseListItem } from "@/db/repositories";
 import {
+  courseAudienceLabel,
   courseDescription,
   courseTypeLabel,
   estimateWeeks,
-  recommendedAudience,
   safeCount,
 } from "@/lib/course-display";
 
 export function CourseCard({ course }: { course: CourseListItem }) {
   const description = courseDescription(course.description);
-  const recommendedFor = recommendedAudience(course.difficulty);
+  const recommendedFor = courseAudienceLabel(course);
   const subjectCount = safeCount(course.subjectCount);
   const topicCount = safeCount(course.topicCount);
   const questionCount = safeCount(course.questionCount);
