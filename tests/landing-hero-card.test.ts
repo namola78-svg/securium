@@ -61,3 +61,20 @@ test("public landing course spotlight presents learner goal comparison facts", (
   assert.match(courseSpotlightSource, /과정 자세히 보기/);
   assert.doesNotMatch(courseSpotlightSource, /COURSE CATALOG/);
 });
+
+test("public landing dashboard preview emphasizes next learner actions", () => {
+  const source = readFileSync("app/page.tsx", "utf8");
+  const dashboardPreviewSource =
+    source.match(/<section[\s\S]*?landing-dashboard-preview[\s\S]*?<\/section>/)?.[0] ??
+    "";
+
+  assert.match(dashboardPreviewSource, /로그인하면 오늘 할 일이 먼저 보입니다/);
+  assert.match(dashboardPreviewSource, /행동 순서대로 확인합니다/);
+  assert.match(dashboardPreviewSource, /지금 할 일/);
+  assert.match(dashboardPreviewSource, /01 · 이어서 학습/);
+  assert.match(dashboardPreviewSource, /02 · AI 근거 확인/);
+  assert.match(dashboardPreviewSource, /03 · 복습/);
+  assert.match(dashboardPreviewSource, /04 · 약한 영역/);
+  assert.match(dashboardPreviewSource, /05 · 시험 감각/);
+  assert.doesNotMatch(dashboardPreviewSource, /통계표를 먼저/);
+});
