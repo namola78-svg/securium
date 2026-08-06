@@ -3228,6 +3228,42 @@ button:disabled {
   margin-top: 24px;
 }
 
+.dashboard-action-rail {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 24px 0 0;
+}
+
+.dashboard-action-rail div {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgb(24 58 56 / 0.1);
+  border-radius: 14px;
+  background: rgb(255 255 255 / 0.72);
+}
+
+.dashboard-action-rail dt,
+.dashboard-action-rail dd {
+  margin: 0;
+}
+
+.dashboard-action-rail dt {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.dashboard-action-rail dd {
+  margin-top: 4px;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .dashboard-next-action {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -7708,6 +7744,7 @@ textarea {
 
 @media (max-width: 760px) {
   .dashboard-next-action,
+  .dashboard-action-rail,
   .level-card,
   .recommendation-card,
   .today-plan-grid,
