@@ -97,7 +97,7 @@ export default async function LectureDetailPage({
                   ))}
                 </ul>
               ) : (
-                <p>연결된 공개 이론 레슨이 없습니다.</p>
+                <p>함께 볼 이론 자료가 아직 없습니다.</p>
               )}
             </section>
             <section className="side-card">
@@ -119,7 +119,7 @@ export default async function LectureDetailPage({
                   ))}
                 </ul>
               ) : (
-                <p>연결된 공개 문제가 없습니다.</p>
+                <p>이 강의와 함께 풀 문제가 아직 없습니다.</p>
               )}
             </section>
           </div>

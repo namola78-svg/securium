@@ -107,7 +107,7 @@ export default async function SpecializedContentPage({
         </article>
         <aside className="specialized-aside">
           <section className="admin-panel">
-            <h2>연결 과정</h2>
+            <h2>함께 학습할 과정</h2>
             {result.relatedCourses.map((related) => (
               <Link href={`/specialized/${related.slug}`} key={related.id}>
                 {related.name}
@@ -123,7 +123,7 @@ export default async function SpecializedContentPage({
                 </Link>
               ))
             ) : (
-              <p>연결된 공개 문제가 없습니다.</p>
+              <p>이 자료와 함께 풀 문제가 아직 없습니다.</p>
             )}
           </section>
           {result.relatedLegalArticles.length ? (
