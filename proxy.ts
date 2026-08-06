@@ -5,6 +5,7 @@ const SUPABASE_REFRESH_COOKIE = "sa_refresh_token";
 const AUTH_PAGES = new Set(["/login", "/signup"]);
 const PROTECTED_PREFIXES = [
   "/admin",
+  "/ai-tutor",
   "/analytics",
   "/bookmarks",
   "/content-versions",
@@ -92,6 +93,7 @@ export const config = {
   matcher: [
     "/login",
     "/signup",
+    "/ai-tutor",
     "/admin/:path*",
     "/analytics/:path*",
     "/bookmarks/:path*",
