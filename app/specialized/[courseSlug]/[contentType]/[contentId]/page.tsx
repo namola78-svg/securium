@@ -221,7 +221,7 @@ function DetailFields({ content }: { content: Record<string, unknown> }) {
         .filter(([key, value]) => !hidden.has(key) && value !== null && value !== "")
         .map(([key, value]) => (
           <div key={key}>
-            <dt>{labels[key] ?? key}</dt>
+            <dt>{labels[key] ?? "추가 정보"}</dt>
             <dd>
               {typeof value === "boolean" ? (value ? "예" : "아니오") : String(value)}
             </dd>

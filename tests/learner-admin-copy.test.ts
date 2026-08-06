@@ -138,7 +138,7 @@ test("public landing guide and about pages use learner-facing eyebrow labels", (
   }
 });
 
-test("learner analytics pages avoid internal signal wording", () => {
+test("learner analytics pages avoid internal signal wording and id fallbacks", () => {
   const combined = [
     "app/analytics/page.tsx",
     "app/analytics/[courseId]/page.tsx",
@@ -148,7 +148,11 @@ test("learner analytics pages avoid internal signal wording", () => {
 
   assert.match(combined, /학습 결과/);
   assert.match(combined, /취약 영역/);
+  assert.match(combined, /주제 정보 확인 중/);
+  assert.match(combined, /과목 정보 확인 중/);
   assert.doesNotMatch(combined, /학습 신호|취약 신호|분석 신호|신호 만들기/);
+  assert.doesNotMatch(combined, /label: subjectNameById\.get\(row\.id\) \?\? row\.id/);
+  assert.doesNotMatch(combined, /label: topic\?\.name \?\? row\.id/);
 });
 
 test("learner curriculum tree uses product-ready empty action copy", () => {
@@ -214,6 +218,23 @@ test("practice guidance describes grading in learner-facing terms", () => {
   assert.doesNotMatch(source, /검수된 관련/);
   assert.doesNotMatch(source, /검수 근거/);
   assert.doesNotMatch(source, /검수 정보가 등록되지 않았습니다/);
+});
+
+
+test("learner profile and specialized pages avoid raw role or field-key fallbacks", () => {
+  const combined = [
+    "app/profile/page.tsx",
+    "app/specialized/[courseSlug]/[contentType]/[contentId]/page.tsx",
+  ]
+    .map((file) => readFileSync(file, "utf8"))
+    .join("\n");
+
+  assert.match(combined, /콘텐츠 확인 담당자/);
+  assert.match(combined, /추가 권한/);
+  assert.match(combined, /추가 정보/);
+  assert.doesNotMatch(combined, /콘텐츠 검수자/);
+  assert.doesNotMatch(combined, /labels\[key\] \?\? key/);
+  assert.doesNotMatch(combined, /labels\[role\] \?\? role/);
 });
 
 test("ai tutor empty state explains the next learner action", () => {

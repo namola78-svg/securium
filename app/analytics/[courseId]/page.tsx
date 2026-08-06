@@ -43,6 +43,9 @@ export default async function CourseAnalyticsPage({
   const weakestTopicMeta = weakestTopic
     ? topicMetaById.get(weakestTopic.id)
     : undefined;
+  const weakestTopicLabel = weakestTopic
+    ? (weakestTopicMeta?.name ?? "확인할 주제")
+    : null;
   const weakestTopicParams = weakestTopic
     ? new URLSearchParams({ topicId: weakestTopic.id, count: "10" })
     : undefined;
@@ -109,7 +112,7 @@ export default async function CourseAnalyticsPage({
             <h2>우선 확인할 취약 영역</h2>
             {weakestTopic ? (
               <p>
-                {weakestTopicMeta?.name ?? weakestTopic.id} 정답률이{" "}
+                {weakestTopicLabel} 정답률이{" "}
                 {weakestTopic.accuracy}%입니다. 해당 주제 문제를 먼저 풀어보세요.
               </p>
             ) : (
@@ -141,7 +144,7 @@ export default async function CourseAnalyticsPage({
             <strong>다음은 뭘 하지?</strong>
             <p>
               {weakestTopic
-                ? `${weakestTopicMeta?.name ?? weakestTopic.id} 문제부터 보완`
+                ? `${weakestTopicLabel} 문제부터 보완`
                 : "과정 문제 10개를 풀어 취약 영역 찾기"}
             </p>
           </div>
@@ -173,7 +176,7 @@ export default async function CourseAnalyticsPage({
             <span>01 · 취약 영역</span>
             <strong>
               {weakestTopic
-                ? weakestTopicMeta?.name ?? weakestTopic.id
+                ? weakestTopicLabel
                 : "학습 기록이 더 필요해요"}
             </strong>
             <p>
@@ -204,7 +207,7 @@ export default async function CourseAnalyticsPage({
             title="과목별 정답률"
             rows={stats.bySubject.map((row) => ({
               ...row,
-              label: subjectNameById.get(row.id) ?? row.id,
+              label: subjectNameById.get(row.id) ?? "과목 정보 확인 중",
               href:
                 row.id === "UNMAPPED"
                   ? undefined
@@ -222,7 +225,7 @@ export default async function CourseAnalyticsPage({
               if (topic?.subjectId) practiceParams.set("subjectId", topic.subjectId);
               return {
                 ...row,
-                label: topic?.name ?? row.id,
+                label: topic?.name ?? "주제 정보 확인 중",
                 href: `/practice/${course.slug}?${practiceParams.toString()}`,
               };
             })}
@@ -285,7 +288,7 @@ function Breakdown({
         rows.map((row) => (
           <div className="bar-row analytics-action-row" key={row.id}>
             <div>
-              <strong>{row.label ?? row.id}</strong>
+              <strong>{row.label ?? "학습 영역"}</strong>
               <span>
                 {row.total}문제 · {row.accuracy}%
                 {weakFirst && row.accuracy < 70 ? " · 우선 복습 권장" : ""}

@@ -231,7 +231,7 @@ function formatTargetType(targetType: string) {
     CONTENT: "콘텐츠",
     TOPIC: "주제",
   };
-  return labels[targetType] ?? targetType;
+  return labels[targetType] ?? "학습 항목";
 }
 
 function formatReviewItemTitle(item: {
