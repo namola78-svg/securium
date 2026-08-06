@@ -3,7 +3,12 @@ import { redirect } from "next/navigation";
 import type { CourseListItem } from "@/db/repositories";
 import { getOptionalCurrentAppUser } from "@/lib/auth";
 import { listPublishedCoursesCached } from "@/lib/cached-catalog";
-import { courseDescription, difficultyLabel, safeCount } from "@/lib/course-display";
+import {
+  courseDescription,
+  difficultyLabel,
+  recommendedAudience,
+  safeCount,
+} from "@/lib/course-display";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +43,7 @@ function spotlightMeta(course: CourseListItem) {
 
   return {
     description: courseDescription(course.description),
-    audience: `${course.groupName || "전문 과정"} 준비자`,
+    audience: recommendedAudience(course.difficulty),
     difficulty: difficultyLabel(course.difficulty),
     status: available ? "학습 가능" : "개설 예정",
     stats:
