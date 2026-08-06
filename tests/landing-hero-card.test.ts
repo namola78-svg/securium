@@ -60,6 +60,7 @@ test("public landing course spotlight presents learner goal comparison facts", (
   assert.match(courseSpotlightSource, /학습 구성/);
   assert.match(courseSpotlightSource, /과정 자세히 보기/);
   assert.doesNotMatch(courseSpotlightSource, /COURSE CATALOG/);
+  assert.doesNotMatch(courseSpotlightSource, /INTERMEDIATE|BEGINNER|ADVANCED/);
 });
 
 test("public landing dashboard preview emphasizes next learner actions", () => {
