@@ -274,7 +274,7 @@ export function PracticeSession({
       <div className="practice-session-brief" aria-label="문제풀이 진행 요약">
         <div>
           <p className="eyebrow">풀이 안내</p>
-          <strong>답안 선택 → 서버 채점 → 검수 해설 → AI 근거 순서로 학습합니다.</strong>
+          <strong>답안 선택 → 자동 채점 → 검수 해설 → AI 근거 순서로 학습합니다.</strong>
           <span>
             답안을 제출하면 채점 결과와 검수 해설을 확인할 수 있습니다. AI 참고
             해설은 채점 이후 요청할 수 있으며 공식 채점 결과가 아닙니다.
@@ -302,7 +302,7 @@ export function PracticeSession({
         </li>
         <li className={result ? "is-done" : ""}>
           <span>2</span>
-          <strong>서버 채점</strong>
+          <strong>자동 채점</strong>
         </li>
         <li className={result ? "is-current" : ""}>
           <span>3</span>
