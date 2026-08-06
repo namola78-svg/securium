@@ -103,7 +103,7 @@ export default async function Home() {
               <span className="live-dot">검증 가능</span>
             </div>
             <div className="today-card-title">
-              <span>Knowledge-linked Learning</span>
+              <span>공식 기준 기반 학습</span>
               <strong>공식 기준 기반 학습 엔진</strong>
               <p>
                 출제기준, 이론, 문제, AI 근거 설명, 복습 신호를 하나의 지식 구조로

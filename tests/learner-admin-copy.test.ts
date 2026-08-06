@@ -114,6 +114,7 @@ test("public landing guide and about pages use learner-facing eyebrow labels", (
 
   for (const internalLabel of [
     "Knowledge Engine",
+    "Knowledge-linked Learning",
     "TODAY",
     "LEARNING GUIDE",
     "RECOMMENDED FLOW",
