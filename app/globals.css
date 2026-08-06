@@ -2213,6 +2213,13 @@ button:disabled {
   background: #fbfcf8;
 }
 
+.ai-result-grid .ai-result-citation {
+  border-color: rgb(124 92 255 / 0.28);
+  background:
+    radial-gradient(circle at top right, rgb(124 92 255 / 0.14), transparent 40%),
+    #fbfaff;
+}
+
 .ai-result-grid span {
   color: var(--lime-deep);
   font-family: var(--font-geist-mono), monospace;
@@ -2228,6 +2235,19 @@ button:disabled {
   font-size: 15px;
   letter-spacing: -0.025em;
   line-height: 1.55;
+}
+
+.ai-result-grid em {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 14px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgb(124 92 255 / 0.1);
+  color: #5b3ca8;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 850;
 }
 
 .ai-tutor-flow {

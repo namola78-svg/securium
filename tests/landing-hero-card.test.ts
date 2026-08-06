@@ -92,3 +92,17 @@ test("public landing learning chain presents the SECURIUM knowledge engine", () 
   assert.match(learningChainSource, /정답 이유와 오답 이유를 근거 콘텐츠와 함께 설명/);
   assert.match(learningChainSource, /다음 학습 행동으로 다시 추천/);
 });
+
+test("public landing AI result card shows explainable answer outcomes", () => {
+  const source = readFileSync("app/page.tsx", "utf8");
+  const aiResultSource =
+    source.match(/<article className="ai-result-card"[\s\S]*?<\/article>/)?.[0] ?? "";
+
+  assert.match(aiResultSource, /AI 답변보다 중요한 것은, 왜 그런지 확인하는 것입니다/);
+  assert.match(aiResultSource, /설명, 공식 근거, 관련 문제, 관련 개념, 다음 복습/);
+  assert.match(aiResultSource, /01 · 질문/);
+  assert.match(aiResultSource, /02 · AI 설명/);
+  assert.match(aiResultSource, /03 · 공식 근거/);
+  assert.match(aiResultSource, /04 · 다음 학습/);
+  assert.match(aiResultSource, /근거 표시 · 검수 상태 확인/);
+});

@@ -271,28 +271,29 @@ export default async function Home() {
             <div className="ai-result-question">
               <p className="eyebrow">검증 가능한 AI 해설</p>
               <h3 id="ai-result-title">
-                AI가 답만 알려주는 것이 아니라, 왜 그런지 공식 기준으로 설명합니다
+                AI 답변보다 중요한 것은, 왜 그런지 확인하는 것입니다
               </h3>
               <p>
-                SECURIUM의 AI 설명은 검증 가능한 근거를 함께 보여줍니다.
-                질문 하나가 설명, 공식 기준, 관련 문제, 관련 개념으로 이어집니다.
+                SECURIUM은 답변을 단독으로 보여주지 않습니다. 질문 하나가
+                설명, 공식 근거, 관련 문제, 관련 개념, 다음 복습으로 이어집니다.
               </p>
             </div>
             <div className="ai-result-grid">
               <div>
-                <span>질문</span>
+                <span>01 · 질문</span>
                 <strong>접근통제에서 권한 검토가 왜 중요한가요?</strong>
               </div>
               <div>
-                <span>설명</span>
+                <span>02 · AI 설명</span>
                 <strong>권한은 한 번 부여한 뒤에도 업무 변경과 퇴사에 따라 계속 검토해야 합니다.</strong>
               </div>
-              <div>
-                <span>근거</span>
+              <div className="ai-result-citation">
+                <span>03 · 공식 근거</span>
                 <strong>ISMS-P 접근권한 부여·변경·말소 관리 기준과 연결됩니다.</strong>
+                <em>근거 표시 · 검수 상태 확인</em>
               </div>
               <div>
-                <span>다음 학습</span>
+                <span>04 · 다음 학습</span>
                 <strong>관련 문제 5개 · 관련 개념 4개 · 복습 추천 1개</strong>
               </div>
             </div>

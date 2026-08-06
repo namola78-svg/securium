@@ -628,7 +628,8 @@ test("통합 학습 플랫폼 랜딩페이지를 서버 렌더링한다", async 
   assert.match(visibleHtml, /근거 해설/);
   assert.match(visibleHtml, /맞춤 복습/);
   assert.match(visibleHtml, /검증 가능한 AI 해설/);
-  assert.match(visibleHtml, /검증 가능한 근거/);
+  assert.match(visibleHtml, /공식 근거/);
+  assert.match(visibleHtml, /근거 표시 · 검수 상태 확인/);
   assert.match(visibleHtml, /ISMS-P/);
   assert.match(visibleHtml, /학습자 대시보드/);
   assert.match(visibleHtml, /learner-dashboard-card/);
