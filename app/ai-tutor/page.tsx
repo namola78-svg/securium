@@ -35,6 +35,28 @@ export default async function AiTutorPage() {
           <article className="course-detail-section">
             <p className="eyebrow">작동 방식</p>
             <h2>AI 튜터가 도와주는 흐름</h2>
+            <ol className="ai-tutor-flow" aria-label="AI 튜터 학습 흐름">
+              <li>
+                <span>01</span>
+                <strong>문제를 풉니다</strong>
+                <p>먼저 내 답안을 제출하고 서버 채점 결과를 확인합니다.</p>
+              </li>
+              <li>
+                <span>02</span>
+                <strong>AI 설명을 요청합니다</strong>
+                <p>정답 이유와 오답 이유를 참고 설명으로 확인합니다.</p>
+              </li>
+              <li>
+                <span>03</span>
+                <strong>근거를 확인합니다</strong>
+                <p>관련 기준, 법령, 이론 콘텐츠가 있으면 함께 확인합니다.</p>
+              </li>
+              <li>
+                <span>04</span>
+                <strong>복습으로 이어갑니다</strong>
+                <p>반복 오답과 취약 주제를 다음 학습 행동으로 연결합니다.</p>
+              </li>
+            </ol>
             <ul className="feature-list">
               <li>문제풀이 결과를 바탕으로 정답과 오답 이유를 설명합니다.</li>
               <li>관련 기준, 법령, 이론 콘텐츠를 근거로 함께 보여줍니다.</li>
