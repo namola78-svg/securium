@@ -40,8 +40,18 @@ test("learner pages do not expose admin ownership in routine guidance", () => {
 
 test("public course cards do not expose internal course codes as primary labels", () => {
   const source = readFileSync("components/course-card.tsx", "utf8");
+  const displaySource = readFileSync("lib/course-display.ts", "utf8");
 
-  assert.match(source, /전문 과정/);
+  assert.match(source, /courseTypeLabel/);
   assert.doesNotMatch(source, /aria-label=\{`과정 코드/);
   assert.doesNotMatch(source, />\s*\{course\.code\}\s*<\/span>/);
+  for (const label of [
+    "국가기술자격",
+    "관리체계",
+    "개인정보",
+    "위험관리",
+    "실무 역량",
+  ]) {
+    assert.match(displaySource, new RegExp(label));
+  }
 });

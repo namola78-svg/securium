@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { CourseListItem } from "@/db/repositories";
 import {
   courseDescription,
+  courseTypeLabel,
   estimateWeeks,
   recommendedAudience,
   safeCount,
@@ -14,6 +15,7 @@ export function CourseCard({ course }: { course: CourseListItem }) {
   const topicCount = safeCount(course.topicCount);
   const questionCount = safeCount(course.questionCount);
   const estimatedWeeks = estimateWeeks(course.totalLevels);
+  const typeLabel = courseTypeLabel(course);
   const available =
     course.active &&
     course.published &&
@@ -23,7 +25,7 @@ export function CourseCard({ course }: { course: CourseListItem }) {
   return (
     <article className="course-card" aria-labelledby={`course-${course.id}`}>
       <div className="course-card-top">
-        <span className="course-code">전문 과정</span>
+        <span className="course-code">{typeLabel}</span>
         <span
           className={`course-status ${
             status === "학습 가능" ? "available" : "planned"

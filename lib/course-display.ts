@@ -21,6 +21,25 @@ export function recommendedAudience(value: string | null | undefined) {
   return "정보보호·개인정보보호 학습자";
 }
 
+export function courseTypeLabel(course: {
+  groupName?: string | null;
+  name?: string | null;
+  shortName?: string | null;
+}) {
+  const text = `${course.groupName ?? ""} ${course.name ?? ""} ${
+    course.shortName ?? ""
+  }`;
+
+  if (/국가기술자격|정보보안기사|정보보안산업기사/.test(text)) {
+    return "국가기술자격";
+  }
+  if (/ISMS|관리체계/.test(text)) return "관리체계";
+  if (/CPPG|개인정보/.test(text)) return "개인정보";
+  if (/위험관리|ISRM/.test(text)) return "위험관리";
+  if (/보안약점|진단/.test(text)) return "실무 역량";
+  return "전문 과정";
+}
+
 export function estimateWeeks(totalLevels: number | null | undefined) {
   const levels = safeCount(totalLevels);
   if (!levels) return 4;
