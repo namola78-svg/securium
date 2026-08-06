@@ -85,7 +85,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
               </div>
               <div>
                 <dt>총 문제 수</dt>
-                <dd>{formatCount(questionCount, "문항", "문항 업데이트 예정")}</dd>
+                <dd>{formatCount(questionCount, "문항", "문제 콘텐츠 준비 중")}</dd>
               </div>
               <div>
                 <dt>통과 기준</dt>

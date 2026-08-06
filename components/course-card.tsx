@@ -56,7 +56,7 @@ export function CourseCard({ course }: { course: CourseListItem }) {
         </div>
         <div>
           <dt>문제</dt>
-          <dd>{questionCount ? `${questionCount}문항` : "문항 업데이트 예정"}</dd>
+          <dd>{questionCount ? `${questionCount}문항` : "문제 콘텐츠 준비 중"}</dd>
         </div>
       </dl>
       {available ? (

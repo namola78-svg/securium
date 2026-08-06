@@ -73,6 +73,7 @@ test("public course entry points use course-aware audience labels", () => {
 
 test("public courses directory uses learner-facing labels", () => {
   const source = readFileSync("app/courses/page.tsx", "utf8");
+  const cardSource = readFileSync("components/course-card.tsx", "utf8");
 
   assert.match(source, /학습 경로 선택/);
   assert.match(source, /나에게 맞는 과정을 찾아보세요/);
@@ -80,6 +81,8 @@ test("public courses directory uses learner-facing labels", () => {
   assert.match(source, /목표별 학습 경로/);
   assert.doesNotMatch(source, /COURSE DIRECTORY/);
   assert.doesNotMatch(source, /COURSE GROUP/);
+  assert.match(cardSource, /문제 콘텐츠 준비 중/);
+  assert.doesNotMatch(cardSource, /문항 업데이트 예정/);
 });
 
 test("public course detail uses learner-facing section labels", () => {
@@ -101,6 +104,8 @@ test("public course detail uses learner-facing section labels", () => {
     source,
     /START LEARNING|OVERVIEW|RECOMMENDED FOR|GOALS|CURRICULUM|COMPLETION|READY TO START/,
   );
+  assert.match(source, /문제 콘텐츠 준비 중/);
+  assert.doesNotMatch(source, /문항 업데이트 예정/);
 });
 
 test("public landing guide and about pages use learner-facing eyebrow labels", () => {
