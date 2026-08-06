@@ -715,9 +715,9 @@ test("관리자 대시보드는 Console Shell, Toolbar, Inspector 계약을 서�
   assert.match(html, /ds-workspace-layout/);
   assert.match(html, /선택 항목 상세 정보/);
   assert.match(html, /운영 상태 요약/);
-  assert.match(html, /Curriculum Coverage/);
-  assert.match(html, /Ontology Explorer/);
-  assert.match(html, /AI Trace Console/);
+  assert.match(html, /커리큘럼 커버리지/);
+  assert.match(html, /지식 연결 탐색/);
+  assert.match(html, /AI 근거 추적/);
 });
 
 test("상태 변경 API는 동일 출처 요청만 허용한다", async () => {
