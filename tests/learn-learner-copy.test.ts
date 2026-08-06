@@ -7,6 +7,7 @@ const learnerFacingFiles = [
   "app/learn/[courseSlug]/subjects/[subjectId]/page.tsx",
   "app/learn/[courseSlug]/lessons/[lessonId]/page.tsx",
   "app/learn/[courseSlug]/course-lessons/[courseLessonId]/page.tsx",
+  "components/lesson-actions.tsx",
   "components/course-lesson-actions.tsx",
   "components/learn-curriculum-path-tree.tsx",
 ];
@@ -16,13 +17,15 @@ test("learn pages expose learner-facing Korean copy instead of internal or mojib
   const subjectPage = readFileSync(learnerFacingFiles[1], "utf8");
   const legacyLessonPage = readFileSync(learnerFacingFiles[2], "utf8");
   const courseLessonPage = readFileSync(learnerFacingFiles[3], "utf8");
-  const courseLessonActions = readFileSync(learnerFacingFiles[4], "utf8");
-  const curriculumPathTree = readFileSync(learnerFacingFiles[5], "utf8");
+  const lessonActions = readFileSync(learnerFacingFiles[4], "utf8");
+  const courseLessonActions = readFileSync(learnerFacingFiles[5], "utf8");
+  const curriculumPathTree = readFileSync(learnerFacingFiles[6], "utf8");
   const combined = [
     learnOverview,
     subjectPage,
     legacyLessonPage,
     courseLessonPage,
+    lessonActions,
     courseLessonActions,
     curriculumPathTree,
   ].join("\n");
