@@ -149,11 +149,17 @@ function SpecializedAIResultView({
         <CodeResult content={result.content as SecureCodeAIExplanation} />
       ) : null}
       <small>
-        {result.provider} · {result.model} · 관리자 검수 상태{" "}
+        {formatSpecializedAIProviderLabel(result.provider)} · {result.model} · 검수 상태{" "}
         {result.reviewStatus}
       </small>
     </section>
   );
+}
+
+function formatSpecializedAIProviderLabel(
+  provider: SpecializedAIResponse["provider"],
+) {
+  return provider === "mock" ? "시범 AI" : "AI 생성";
 }
 
 function WrittenResult({ content }: { content: WrittenAnswerAIReview }) {

@@ -499,7 +499,7 @@ function AIExplanationPanel({ result }: { result: AIExplanationResult }) {
       <dl className="ai-trust-strip" aria-label="AI 해설 생성 정보">
         <div>
           <dt>제공 방식</dt>
-          <dd>{isMock ? "Mock AI" : result.provider}</dd>
+          <dd>{formatAIProviderLabel(result.provider)}</dd>
         </div>
         <div>
           <dt>근거</dt>
@@ -621,4 +621,8 @@ function AIExplanationPanel({ result }: { result: AIExplanationResult }) {
       </small>
     </section>
   );
+}
+
+function formatAIProviderLabel(provider: AIExplanationResult["provider"]) {
+  return provider === "mock" ? "시범 AI" : "AI 생성";
 }
