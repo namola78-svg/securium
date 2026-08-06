@@ -260,8 +260,8 @@ function PracticeContextSummary({
         <p className="eyebrow">현재 조건</p>
         <h2>이번 문제풀이 구성</h2>
         <p>
-          {questionCount}개 문항을 불러왔습니다. 커리큘럼에서 진입한 경우 연결된
-          과목과 주제를 기준으로 문제가 구성됩니다.
+          {questionCount}개 문항을 불러왔습니다. 선택한 과목과 주제에 맞춰
+          지금 풀 문제를 구성했습니다.
         </p>
         <p className="practice-context-note">
           채점 후에는 관리자 검수 해설을 먼저 확인하고, 필요한 경우 AI 근거

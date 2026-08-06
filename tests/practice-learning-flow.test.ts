@@ -28,6 +28,8 @@ test("practice page frames AI explanation as post-grading evidence support", () 
 
   assert.match(source, /검수된 해설과 AI 참고 해설/);
   assert.match(source, /다음 복습 방향/);
+  assert.match(source, /선택한 과목과 주제에 맞춰\s+지금 풀 문제를 구성했습니다/);
+  assert.doesNotMatch(source, /커리큘럼에서 진입한 경우 연결된/);
   assert.match(source, /관리자 검수 해설을 먼저 확인/);
   assert.match(source, /AI 근거\s+해설로 관련 기준과 개념/);
   assert.match(styles, /\.practice-context-card \.practice-context-note/);
