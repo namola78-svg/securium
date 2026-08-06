@@ -171,9 +171,7 @@ export default async function ReviewsPage() {
                     <summary>
                       <span>
                         <small>#{index + 1} · {item.courseName}</small>
-                        <strong>
-                          {item.questionTitle ?? `${item.targetType} ${item.targetId}`}
-                        </strong>
+                        <strong>{formatReviewItemTitle(item)}</strong>
                         <small>
                           예정일 {item.nextReviewAt.slice(0, 10)} · 반복 오답{" "}
                           {item.consecutiveWrong}회
@@ -189,7 +187,7 @@ export default async function ReviewsPage() {
                 <h2>다음 복습</h2>
                 {topItem ? (
                   <>
-                    <strong>{topItem.questionTitle ?? topItem.targetId}</strong>
+                    <strong>{formatReviewItemTitle(topItem)}</strong>
                     <p>
                       {topItem.courseName} · 예정일{" "}
                       {topItem.nextReviewAt.slice(0, 10)}
@@ -234,4 +232,12 @@ function formatTargetType(targetType: string) {
     TOPIC: "주제",
   };
   return labels[targetType] ?? targetType;
+}
+
+function formatReviewItemTitle(item: {
+  questionTitle: string | null;
+  targetType: string;
+}) {
+  if (item.questionTitle) return item.questionTitle;
+  return `${formatTargetType(item.targetType)} 복습 항목`;
 }

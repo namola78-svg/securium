@@ -166,3 +166,12 @@ test("practical code analysis uses learner-facing Korean labels", () => {
   assert.match(source, /코드 분석 실습/);
   assert.doesNotMatch(source, /CODE ANALYSIS/);
 });
+
+test("review page does not expose internal target ids as fallback titles", () => {
+  const source = readFileSync("app/reviews/page.tsx", "utf8");
+
+  assert.match(source, /formatReviewItemTitle/);
+  assert.match(source, /복습 항목/);
+  assert.doesNotMatch(source, /`\\$\\{item\\.targetType\\} \\$\\{item\\.targetId\\}`/);
+  assert.doesNotMatch(source, /topItem\\.questionTitle \\?\\? topItem\\.targetId/);
+});
