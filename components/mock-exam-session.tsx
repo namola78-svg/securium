@@ -91,7 +91,7 @@ export function MockExamSession({
         answer: question.type === "MULTIPLE_CHOICE" ? next : (next[0] ?? ""),
       }),
     });
-    setMessage(response.ok ? "답안 임시 저장됨" : "답안 저장 실패");
+    setMessage(response.ok ? "답안이 저장되었습니다." : "답안을 저장하지 못했습니다.");
   }
 
   async function submit(auto = false) {
@@ -287,7 +287,7 @@ function ExamBreakdown({
           </div>
         ))
       ) : (
-        <p>분석 가능한 연결 정보가 없습니다.</p>
+        <p>분석할 학습 기록이 아직 충분하지 않습니다.</p>
       )}
     </article>
   );
