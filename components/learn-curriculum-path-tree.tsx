@@ -442,9 +442,9 @@ function getCurriculumNodeNextAction(
 
   return {
     href: null,
-    label: "학습 자료를 준비하고 있습니다",
+    label: "연결된 학습 자료가 곧 제공됩니다",
     description:
-      "공식 커리큘럼 위치는 확인할 수 있으며, 이론과 문제는 순차적으로 보강됩니다.",
+      "공식 커리큘럼 위치는 확인할 수 있으며, 이론과 문제는 차례대로 제공됩니다.",
   };
 }
 

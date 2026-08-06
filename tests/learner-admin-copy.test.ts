@@ -150,3 +150,12 @@ test("learner analytics pages avoid internal signal wording", () => {
   assert.match(combined, /취약 영역/);
   assert.doesNotMatch(combined, /학습 신호|취약 신호|분석 신호|신호 만들기/);
 });
+
+test("learner curriculum tree uses product-ready empty action copy", () => {
+  const source = readFileSync("components/learn-curriculum-path-tree.tsx", "utf8");
+
+  assert.match(source, /연결된 학습 자료가 곧 제공됩니다/);
+  assert.match(source, /이론과 문제는 차례대로 제공됩니다/);
+  assert.doesNotMatch(source, /학습 자료를 준비하고 있습니다/);
+  assert.doesNotMatch(source, /순차적으로 보강됩니다/);
+});
