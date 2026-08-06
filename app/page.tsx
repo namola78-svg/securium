@@ -66,14 +66,14 @@ export default async function Home() {
           <div>
             <p className="eyebrow light">AI-POWERED SECURITY LEARNING</p>
             <h1>
-              <span className="hero-title-line">공식 기준으로 검증되는</span>
+              <span className="hero-title-line">공식 기준으로 배우고</span>
               <br />
-              <span>정보보호 AI 학습 플랫폼</span>
+              <span>AI 근거로 이해하세요</span>
             </h1>
             <p className="hero-copy">
-              출제기준과 인증기준에서 출발해
+              자격시험과 실무 기준을 이론, 문제, 근거 해설, 복습으로 연결하는
               <br />
-              이론, 문제, 근거 해설, 복습까지 하나의 흐름으로 학습하세요.
+              정보보호·개인정보보호 학습 플랫폼입니다.
             </p>
             <div className="button-row">
               <Link className="button button-lime" href="/signup">
