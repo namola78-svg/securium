@@ -184,3 +184,10 @@ test("dashboard empty recommendation copy points to the next learning action", (
   assert.doesNotMatch(source, /첫 학습 기록을 만들어보세요/);
   assert.doesNotMatch(source, /기록이 쌓이면 AI가 다음 학습 후보/);
 });
+
+test("wrong notes empty state explains the learner action loop", () => {
+  const source = readFileSync("app/wrong-notes/page.tsx", "utf8");
+
+  assert.match(source, /틀린 항목이 생기면 여기서 바로 다시 볼 수 있습니다/);
+  assert.doesNotMatch(source, /오답 결과가 자동으로 누적됩니다/);
+});

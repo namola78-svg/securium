@@ -175,7 +175,7 @@ export default async function WrongNotesPage({
         ) : (
           <div className="empty-state">
             <strong>저장된 오답이 없습니다.</strong>
-            <p>문제를 풀면 오답 결과가 자동으로 누적됩니다.</p>
+            <p>문제를 풀고 틀린 항목이 생기면 여기서 바로 다시 볼 수 있습니다.</p>
             <Link className="button button-dark" href="/practice">
               문제풀이 시작
             </Link>
