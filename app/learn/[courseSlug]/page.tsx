@@ -542,8 +542,8 @@ async function SharedTheorySectionLoader({
           <p className="eyebrow">추천 이론 학습</p>
           <h2>이론 레슨으로 먼저 학습하기</h2>
           <p>
-            정식 커리큘럼 학습 콘텐츠가 충분히 연결되기 전까지는 준비된 이론
-            레슨으로 핵심 개념을 먼저 학습할 수 있습니다.
+            공식 커리큘럼을 따라가기 전에 핵심 이론부터 차근차근 확인할 수
+            있습니다.
           </p>
         </div>
         <span className="count-label">
