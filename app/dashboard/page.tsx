@@ -7,7 +7,7 @@ import { getTodayLearningPlan } from "@/db/phase3-repositories";
 import { listDashboardUserEnrollments } from "@/lib/dashboard-enrollments";
 import { requireCurrentAppUser } from "@/lib/auth";
 
-export const metadata: Metadata = { title: "통합 대시보드" };
+export const metadata: Metadata = { title: "내 학습 대시보드" };
 export const dynamic = "force-dynamic";
 
 type Enrollment = Awaited<ReturnType<typeof listDashboardUserEnrollments>>[number];

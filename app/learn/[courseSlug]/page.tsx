@@ -59,7 +59,7 @@ export default async function LearnCoursePage({
       <section className="learn-hero">
         <div className="shell">
           <Link className="breadcrumb" href="/dashboard">
-            ← 통합 대시보드
+            ← 내 학습 대시보드
           </Link>
           <div className="learn-hero-grid">
             <div>
