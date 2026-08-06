@@ -17,6 +17,7 @@ const PROTECTED_PREFIXES = [
   "/practice",
   "/profile",
   "/reviews",
+  "/settings",
   "/specialized",
   "/wrong-notes",
 ];
@@ -104,6 +105,7 @@ export const config = {
     "/practice/:path*",
     "/profile",
     "/reviews",
+    "/settings",
     "/specialized/:path*",
     "/wrong-notes",
   ],
