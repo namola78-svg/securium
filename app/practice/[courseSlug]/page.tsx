@@ -101,9 +101,9 @@ export default async function PracticePage({
           <p className="eyebrow">문제풀이</p>
           <h1>{course.shortName} 문제풀이</h1>
           <p>
-            답안을 제출하면 서버에서 채점하고 검수된 해설과 AI 참고 해설로
-            다음 복습 방향을 확인할 수 있습니다. 정답 데이터는 제출 전
-            응답에 포함되지 않습니다.
+            답안을 제출하면 자동 채점 결과와 기준 해설, AI 참고 해설로
+            다음 복습 방향을 확인할 수 있습니다. 정답은 제출 전 화면에
+            표시되지 않습니다.
           </p>
         </div>
       </header>
@@ -264,7 +264,7 @@ function PracticeContextSummary({
           지금 풀 문제를 구성했습니다.
         </p>
         <p className="practice-context-note">
-          채점 후에는 검수 해설을 먼저 확인하고, 필요한 경우 AI 근거
+          채점 후에는 기준 해설을 먼저 확인하고, 필요한 경우 AI 근거
           해설로 관련 기준과 개념을 이어서 확인하세요.
         </p>
       </div>

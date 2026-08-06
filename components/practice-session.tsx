@@ -388,7 +388,7 @@ export function PracticeSession({
           {result.explanationVersion.version ? (
             <p className="muted-copy">
               기준일 {result.explanationVersion.contentDate ?? "미등록"} · 버전{" "}
-              {result.explanationVersion.version} · 최신 검수일{" "}
+              {result.explanationVersion.version} · 최신 확인일{" "}
               {result.explanationVersion.reviewedAt?.slice(0, 10) ?? "미등록"}
             </p>
           ) : (
@@ -510,8 +510,8 @@ function AIExplanationPanel({ result }: { result: AIExplanationResult }) {
           <dd>{result.latencyMs}ms</dd>
         </div>
         <div>
-          <dt>검수</dt>
-          <dd>{result.reviewed ? "완료" : "미검수"}</dd>
+          <dt>근거 확인</dt>
+          <dd>{result.reviewed ? "완료" : "확인 전"}</dd>
         </div>
       </dl>
       <p className="ai-disclaimer">{result.disclaimer}</p>
@@ -568,14 +568,14 @@ function AIExplanationPanel({ result }: { result: AIExplanationResult }) {
               <h4>관련 기준</h4>
               <p>
                 {result.content.relatedStandards.join(", ") ||
-                  "검수된 관련 기준 없음"}
+                  "관련 기준 없음"}
               </p>
             </div>
             <div>
               <h4>관련 법령</h4>
               <p>
                 {result.content.relatedLaws.join(", ") ||
-                  "검수된 관련 법령 없음"}
+                  "관련 법령 없음"}
               </p>
             </div>
           </div>
@@ -602,7 +602,7 @@ function AIExplanationPanel({ result }: { result: AIExplanationResult }) {
             ))}
           </ul>
         ) : (
-          <p>표시할 검수 근거가 없습니다.</p>
+          <p>표시할 학습 근거가 없습니다.</p>
         )}
       </details>
       {result.status === "generated" || result.status === "reviewed" ? (

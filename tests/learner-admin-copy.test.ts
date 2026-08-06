@@ -193,13 +193,26 @@ test("wrong notes empty state explains the learner action loop", () => {
 });
 
 test("practice guidance describes grading in learner-facing terms", () => {
-  const source = readFileSync("components/practice-session.tsx", "utf8");
+  const source = [
+    "app/practice/[courseSlug]/page.tsx",
+    "components/practice-session.tsx",
+  ]
+    .map((file) => readFileSync(file, "utf8"))
+    .join("\n");
 
   assert.match(source, /자동 채점/);
   assert.match(source, /기준 해설/);
-  assert.match(source, /검토된 학습 콘텐츠/);
+  assert.match(source, /최신 확인일/);
+  assert.match(source, /근거 확인/);
+  assert.match(source, /표시할 학습 근거가 없습니다/);
+  assert.doesNotMatch(source, /서버에서 채점/);
   assert.doesNotMatch(source, /서버 채점/);
   assert.doesNotMatch(source, /검수 해설/);
+  assert.doesNotMatch(source, /최신 검수일/);
+  assert.doesNotMatch(source, />검수</);
+  assert.doesNotMatch(source, /미검수/);
+  assert.doesNotMatch(source, /검수된 관련/);
+  assert.doesNotMatch(source, /검수 근거/);
   assert.doesNotMatch(source, /검수 정보가 등록되지 않았습니다/);
 });
 
