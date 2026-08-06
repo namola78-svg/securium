@@ -210,7 +210,7 @@ test("learner curriculum overview renders compact path summary and inspector", a
   assert.equal(response.status, 200, html.slice(0, 1200));
   assert.match(html, /공식 커리큘럼 경로/);
   assert.match(html, /커리큘럼 상세/);
-  assert.match(html, /Stable Key/);
+  assert.doesNotMatch(html, /Stable Key/);
   assert.match(html, /course-lesson-ise-official-network-security-overview/);
   assert.match(html, /\/practice\/information-security-engineer\?/);
   assert.match(html, /전체 펼치기/);

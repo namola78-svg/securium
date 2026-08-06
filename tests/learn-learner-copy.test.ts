@@ -6,15 +6,20 @@ const learnerFacingFiles = [
   "app/learn/[courseSlug]/page.tsx",
   "app/learn/[courseSlug]/course-lessons/[courseLessonId]/page.tsx",
   "components/course-lesson-actions.tsx",
+  "components/learn-curriculum-path-tree.tsx",
 ];
 
 test("learn pages expose learner-facing Korean copy instead of internal or mojibake labels", () => {
   const learnOverview = readFileSync(learnerFacingFiles[0], "utf8");
   const courseLessonPage = readFileSync(learnerFacingFiles[1], "utf8");
   const courseLessonActions = readFileSync(learnerFacingFiles[2], "utf8");
-  const combined = [learnOverview, courseLessonPage, courseLessonActions].join(
-    "\n",
-  );
+  const curriculumPathTree = readFileSync(learnerFacingFiles[3], "utf8");
+  const combined = [
+    learnOverview,
+    courseLessonPage,
+    courseLessonActions,
+    curriculumPathTree,
+  ].join("\n");
 
   for (const expected of [
     "오늘 학습 보기",

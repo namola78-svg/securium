@@ -4028,44 +4028,6 @@ textarea {
   overflow-wrap: anywhere;
 }
 
-.learn-curriculum-key-line {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 800;
-}
-
-.learn-curriculum-key-line code,
-.learn-curriculum-detail code {
-  padding: 2px 6px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--white) 92%, var(--accent));
-  color: var(--ink);
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 11px;
-  overflow-wrap: anywhere;
-}
-
-.learn-curriculum-copy {
-  min-height: 24px;
-  padding: 2px 8px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--white);
-  color: var(--ink);
-  cursor: pointer;
-  font-size: 11px;
-  font-weight: 900;
-}
-
-.learn-curriculum-copy:hover {
-  border-color: var(--lime);
-}
-
 .learn-curriculum-code {
   color: var(--lime-deep);
   font-family: var(--font-geist-mono), monospace;

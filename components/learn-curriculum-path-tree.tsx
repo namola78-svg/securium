@@ -177,7 +177,6 @@ function LearnCurriculumPathRow({
   const nodeTitle = node.officialTitle || node.title;
   const practiceHref = getCurriculumPracticeHref(courseSlug, node);
   const sourcePage = getSourcePageLabel(node.metadata);
-  const stableKey = getStableKey(node);
   const progressLabel = node.linkedLessonCount
     ? `${node.completedLinkedLessons}/${node.linkedLessonCount} 완료`
     : "레슨 연결 예정";
@@ -221,11 +220,6 @@ function LearnCurriculumPathRow({
           ) : null}
           <span className="badge">{getCurriculumNodeLabel(node.nodeType)}</span>
           <span className="badge">{progressLabel}</span>
-        </div>
-        <div className="learn-curriculum-key-line">
-          <span>Stable Key</span>
-          <code>{stableKey}</code>
-          <CopyStableKeyButton stableKey={stableKey} />
         </div>
         <div className="learn-curriculum-meta-line">
           <span>{node.isRequired ? "필수" : "선택"}</span>
@@ -280,7 +274,6 @@ function LearnCurriculumNodeDetail({
   node: CurriculumPathNode;
 }) {
   const title = node.officialTitle || node.title;
-  const stableKey = getStableKey(node);
   const sourcePage = getSourcePageLabel(node.metadata);
   const practiceHref = getCurriculumPracticeHref(courseSlug, node);
   const nextAction = getCurriculumNodeNextAction(courseSlug, node, practiceHref);
@@ -314,13 +307,6 @@ function LearnCurriculumNodeDetail({
             <dd>{node.officialCode}</dd>
           </div>
         ) : null}
-        <div>
-          <dt>Stable Key</dt>
-          <dd>
-            <code>{stableKey}</code>
-            <CopyStableKeyButton stableKey={stableKey} />
-          </dd>
-        </div>
         {sourcePage ? (
           <div>
             <dt>출처</dt>
@@ -357,34 +343,6 @@ function LearnCurriculumNodeDetail({
         ) : null}
       </div>
     </aside>
-  );
-}
-
-function CopyStableKeyButton({ stableKey }: { stableKey: string }) {
-  const [copied, setCopied] = useState(false);
-
-  async function copyStableKey() {
-    try {
-      await navigator.clipboard.writeText(stableKey);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1500);
-    } catch {
-      setCopied(false);
-    }
-  }
-
-  return (
-    <button
-      aria-label={`${stableKey} 복사`}
-      className="learn-curriculum-copy"
-      type="button"
-      onClick={(event) => {
-        event.stopPropagation();
-        void copyStableKey();
-      }}
-    >
-      {copied ? "복사됨" : "복사"}
-    </button>
   );
 }
 
@@ -459,10 +417,6 @@ function getCurriculumPracticeHref(
   if (subjectLink) params.set("subjectId", subjectLink.id);
   if (topicLink) params.set("topicId", topicLink.id);
   return `/practice/${courseSlug}?${params.toString()}`;
-}
-
-function getStableKey(node: CurriculumPathNode) {
-  return node.officialCode || node.id;
 }
 
 function getCurriculumNodeNextAction(
