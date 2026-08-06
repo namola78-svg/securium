@@ -71,7 +71,7 @@ export default async function Home() {
       <section className="hero">
         <div className="shell hero-grid">
           <div>
-            <p className="eyebrow light">AI-POWERED SECURITY LEARNING</p>
+            <p className="eyebrow light">AI 기반 정보보호 학습</p>
             <h1>
               <span className="hero-title-line">공식 기준으로 배우고</span>
               <br />
@@ -99,7 +99,7 @@ export default async function Home() {
           </div>
           <div className="hero-panel" aria-label="SECURIUM 학습 경험 요약">
             <div className="hero-panel-header">
-              <span>공식 기준 기반 학습 코어</span>
+              <span>공식 기준 기반 학습 요약</span>
               <span className="live-dot">검증 가능</span>
             </div>
             <div className="today-card-title">
