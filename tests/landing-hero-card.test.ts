@@ -31,7 +31,7 @@ test("public landing ends with product value CTA instead of course count summary
     source.match(/<div className="landing-final-cta"[\s\S]*?<\/div>\s*<\/section>/)?.[0] ??
     "";
 
-  assert.match(finalCtaSource, /START WITH SECURIUM/);
+  assert.match(finalCtaSource, /SECURIUM 시작하기/);
   assert.match(finalCtaSource, /공식 기준으로 배우고, AI 근거로 복습하세요/);
   assert.match(finalCtaSource, /무료로 학습 시작하기/);
   assert.match(finalCtaSource, /과정 먼저 둘러보기/);

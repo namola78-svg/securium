@@ -128,7 +128,7 @@ export default async function Home() {
         <div className="shell">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">SECURIUM LEARNING CHAIN</p>
+              <p className="eyebrow">학습 연결 구조</p>
               <h2 id="learning-chain-title">
                 SECURIUM은 이렇게 학습을 연결합니다
               </h2>
@@ -179,7 +179,7 @@ export default async function Home() {
       >
         <div className="shell knowledge-platform-grid">
           <div>
-            <p className="eyebrow">KNOWLEDGE PLATFORM</p>
+            <p className="eyebrow">지식 플랫폼</p>
             <h2 id="knowledge-platform-title">
               AI만 붙인 학습이 아니라, 기준에서 복습까지 연결된 지식 플랫폼
             </h2>
@@ -255,7 +255,7 @@ export default async function Home() {
         <div className="shell">
           <article className="ai-result-card" aria-labelledby="ai-result-title">
             <div className="ai-result-question">
-              <p className="eyebrow">VERIFIABLE AI EXPLANATION</p>
+              <p className="eyebrow">검증 가능한 AI 해설</p>
               <h3 id="ai-result-title">
                 AI가 답만 알려주는 것이 아니라, 왜 그런지 공식 기준으로 설명합니다
               </h3>
@@ -292,7 +292,7 @@ export default async function Home() {
       >
         <div className="shell dashboard-preview-grid">
           <div>
-            <p className="eyebrow">LEARNER DASHBOARD</p>
+            <p className="eyebrow">학습자 대시보드</p>
             <h2 id="dashboard-preview-title">
               오늘 무엇을 배우고, 어디를 다시 봐야 하는지 바로 보입니다
             </h2>
@@ -353,7 +353,7 @@ export default async function Home() {
           <div className="shell">
             <div className="landing-course-spotlight-header">
               <div>
-                <p className="eyebrow">POPULAR LEARNING TRACKS</p>
+                <p className="eyebrow">추천 과정</p>
                 <h2 id="landing-course-spotlight-title">
                   내가 준비하는 과정을 선택하세요
                 </h2>
@@ -392,7 +392,7 @@ export default async function Home() {
         <div className="shell">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">WHY SECURIUM</p>
+              <p className="eyebrow">왜 SECURIUM인가</p>
               <h2>시험 준비와 실무 역량을 같은 흐름으로 연결합니다</h2>
             </div>
           </div>
@@ -429,7 +429,7 @@ export default async function Home() {
         <div className="shell">
           <div className="landing-final-cta">
             <div>
-              <p className="eyebrow">START WITH SECURIUM</p>
+              <p className="eyebrow">SECURIUM 시작하기</p>
               <h2>공식 기준으로 배우고, AI 근거로 복습하세요</h2>
               <p>
                 정보보호·개인정보보호 학습을 과정, 문제, 해설, 복습까지
