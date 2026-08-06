@@ -38,7 +38,7 @@ export default async function ContentVersionPage({
         <article className="shell narrow version-snapshot">
           {revision.isLatest ? null : (
             <div className="warning-banner" role="alert">
-              이 화면은 구버전입니다. 학습과 판단에는 최신 검수 버전을
+              이 화면은 구버전입니다. 학습과 판단에는 최신 확인 버전을
               우선 확인하세요.
             </div>
           )}

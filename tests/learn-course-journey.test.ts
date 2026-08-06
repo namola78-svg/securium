@@ -19,13 +19,19 @@ test("course learn action board exposes the core learner journey", () => {
   const source = readFileSync("app/learn/[courseSlug]/page.tsx", "utf8");
   const styles = readFileSync("app/globals.css", "utf8");
 
-  assert.match(source, /오늘의 학습 보드/);
+  assert.match(source, /이 과정에서 지금 할 일/);
   assert.match(source, /이어서 학습/);
   assert.match(source, /문제풀이/);
   assert.match(source, /복습/);
   assert.match(source, /분석/);
+  assert.match(source, /어디까지 했지\?/);
+  assert.match(source, /다음은\?/);
+  assert.match(source, /오늘 풀 문제는\?/);
+  assert.match(source, /약한 부분은\?/);
+  assert.match(source, /learn-action-rail/);
   assert.match(source, /today-learning-board/);
   assert.match(styles, /\.learn-action-grid/);
+  assert.match(styles, /\.learn-action-rail/);
   assert.match(styles, /\.learn-action-card:focus-visible/);
   assert.match(styles, /@media \(max-width: 680px\)[\s\S]*?\.learn-action-grid/);
 });
@@ -67,9 +73,9 @@ test("course learn pages use learner-friendly section labels", () => {
   assert.doesNotMatch(overviewSource, /TODAY LEARNING|LEVEL PATH|THEORY FALLBACK/);
   assert.match(treeSource, /공식 커리큘럼 경로/);
   assert.match(treeSource, /커리큘럼 상세/);
-  assert.match(sharedLessonSource, /공통 이론 레슨/);
-  assert.match(sharedLessonSource, /과정 맥락/);
-  assert.match(lessonSource, /이론 레슨/);
+  assert.match(sharedLessonSource, /핵심 이론/);
+  assert.match(sharedLessonSource, /학습 맥락/);
+  assert.match(lessonSource, /핵심 이론/);
   assert.match(subjectSource, /과목 학습/);
   assert.match(subjectSource, /주제 목록/);
 });

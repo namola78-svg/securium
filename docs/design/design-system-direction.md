@@ -1,5 +1,9 @@
 # SECURIUM Design System Direction
 
+> Current standard: [SECURIUM Design System v2](./design-system-v2.md)
+>
+> Design System v2 is the product-level source of truth for learner action-first UX, admin Console + Inspector UX, semantic tokens, responsive rules, accessibility, CTA patterns, and terminology. This direction document remains as historical foundation material.
+
 ## 1. 목적
 
 Foundation Sprint는 개별 화면을 예쁘게 고치는 작업이 아니라, SECURIUM 전체 화면이 같은 규칙으로 확장되도록 디자인 시스템의 뼈대를 만드는 작업이다.

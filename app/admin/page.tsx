@@ -18,7 +18,7 @@ const adminActions = [
     index: "01",
     area: "Curriculum",
     status: "우선 점검",
-    title: "Curriculum Coverage",
+    title: "커리큘럼 커버리지",
     description:
       "공식 출제기준 트리, 노드 연결, 콘텐츠 커버리지 상태를 확인합니다.",
   },
@@ -36,7 +36,7 @@ const adminActions = [
     index: "03",
     area: "Ontology",
     status: "검색 흐름",
-    title: "Ontology Explorer",
+    title: "지식 연결 탐색",
     description:
       "개념, 별칭, 관계, 과정 간 매핑 상태를 추적하고 검토합니다.",
   },
@@ -45,7 +45,7 @@ const adminActions = [
     index: "04",
     area: "AI",
     status: "Trace",
-    title: "AI Trace Console",
+    title: "AI 근거 추적",
     description:
       "AI 응답의 검색 근거, Citation, Prompt, 피드백 흐름을 검토합니다.",
   },
@@ -134,16 +134,16 @@ export default async function AdminPage() {
         secondary={
           <>
             <Link className="button button-ghost" href="/admin/ontology">
-              Ontology 검토
+              지식 연결 검토
             </Link>
             <Link className="button button-ghost" href="/admin/ai-explainability">
-              AI Trace 확인
+              AI 근거 확인
             </Link>
           </>
         }
         primary={
           <Link className="button button-primary" href="/admin/curriculum">
-            Curriculum Coverage
+            커리큘럼 커버리지
           </Link>
         }
       >

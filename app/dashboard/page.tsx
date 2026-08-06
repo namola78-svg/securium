@@ -7,7 +7,7 @@ import { getTodayLearningPlan } from "@/db/phase3-repositories";
 import { listDashboardUserEnrollments } from "@/lib/dashboard-enrollments";
 import { requireCurrentAppUser } from "@/lib/auth";
 
-export const metadata: Metadata = { title: "통합 대시보드" };
+export const metadata: Metadata = { title: "내 학습 대시보드" };
 export const dynamic = "force-dynamic";
 
 type Enrollment = Awaited<ReturnType<typeof listDashboardUserEnrollments>>[number];
@@ -47,9 +47,9 @@ export default async function DashboardPage() {
         <section className="section-block dashboard-summary-section">
           <div className="section-heading compact">
             <div>
-              <p className="eyebrow">학습 요약</p>
-              <h2>최근 학습 요약</h2>
-              <p>오늘의 행동을 정한 뒤 필요한 수치만 가볍게 확인합니다.</p>
+              <p className="eyebrow">기록 요약</p>
+              <h2>학습 기록은 아래에서 가볍게 확인하세요</h2>
+              <p>오늘 할 일을 먼저 정한 뒤, 필요한 수치만 확인합니다.</p>
             </div>
             <Link className="text-link" href="/analytics">
               자세히 분석하기 →
@@ -104,27 +104,51 @@ async function DashboardHero({
   const primaryHref = currentCourse
     ? `/learn/${currentCourse.courseSlug}`
     : "/courses";
-  const primaryLabel = currentCourse ? "계속 학습하기" : "과정 둘러보기";
+  const primaryLabel = currentCourse ? "이어서 학습" : "과정 선택";
   const nextAction = getDashboardNextAction(currentCourse, plan);
+  const nextLearningLabel = currentCourse
+    ? `${currentCourse.courseName} · ${currentCourse.progressPercent}%`
+    : "과정 선택 전";
+  const examReadinessLabel = currentCourse
+    ? `${currentCourse.currentLevel}/${currentCourse.totalLevels}단계 진행`
+    : "첫 과정 선택 필요";
 
   return (
     <section className="dashboard-intro dashboard-hero">
       <div>
-        <p className="eyebrow">오늘 시작하기</p>
-        <h1>{displayName}님의 다음 학습을 정리했습니다</h1>
+        <p className="eyebrow">오늘의 학습 홈</p>
+        <h1>{displayName}님, 오늘 할 일만 모았습니다</h1>
         <p>
           {currentCourse
-            ? `${currentCourse.courseName} 과정을 중심으로 최근 학습과 복습 일정을 정리했습니다.`
-            : "아직 진행 중인 과정이 없습니다. 관심 있는 과정을 추가하면 진도와 복습을 한곳에서 확인할 수 있습니다."}
+            ? `${currentCourse.courseName}의 이어서 학습, 복습, 문제풀이 중 지금 먼저 할 행동을 정리했습니다.`
+            : "관심 있는 과정을 선택하면 오늘 할 일, 복습, 취약 영역을 자동으로 정리합니다."}
         </p>
+        <dl className="dashboard-action-rail" aria-label="오늘의 학습 판단 기준">
+          <div>
+            <dt>어디까지 했지?</dt>
+            <dd>{nextLearningLabel}</dd>
+          </div>
+          <div>
+            <dt>다음은?</dt>
+            <dd>{nextAction.title}</dd>
+          </div>
+          <div>
+            <dt>시험 준비는?</dt>
+            <dd>{examReadinessLabel}</dd>
+          </div>
+          <div>
+            <dt>약한 부분은?</dt>
+            <dd>{plan.reviewSummary.dueCount}개 복습 예정</dd>
+          </div>
+        </dl>
         <div className="dashboard-next-action">
-          <span className="badge">추천 다음 행동</span>
+          <span className="badge">지금 해야 할 일</span>
           <div>
             <strong>{nextAction.title}</strong>
             <p>{nextAction.reason}</p>
           </div>
           <Link className="button button-lime" href={nextAction.href}>
-            바로 시작하기
+            {nextAction.cta}
           </Link>
         </div>
         <div className="dashboard-hero-actions">
@@ -137,16 +161,16 @@ async function DashboardHero({
         </div>
       </div>
       <aside className="dashboard-focus-card" aria-label="오늘의 학습 요약">
-        <span className="badge">오늘의 초점</span>
+        <span className="badge">오늘 진행 상황</span>
         <strong>{currentCourse?.courseName ?? "학습 과정 선택"}</strong>
         <p>
           {currentCourse
-            ? "학습, 복습, 문제풀이를 한 과정 안에서 이어갑니다."
+            ? "진도, 오늘 문제, 복습 예정 항목을 한 과정 안에서 이어갑니다."
             : "첫 과정을 선택하면 개인화된 학습 흐름이 시작됩니다."}
         </p>
         <dl className="dashboard-focus-list">
           <div>
-            <dt>남은 목표</dt>
+            <dt>오늘 남은 문제</dt>
             <dd>{remainingQuestions}문제</dd>
           </div>
           <div>
@@ -154,8 +178,8 @@ async function DashboardHero({
             <dd>{plan.reviewSummary.dueCount}개</dd>
           </div>
           <div>
-            <dt>과정 진도</dt>
-            <dd>{currentCourse ? `${currentCourse.progressPercent}%` : "대기 중"}</dd>
+            <dt>전체 진도</dt>
+            <dd>{currentCourse ? `${currentCourse.progressPercent}%` : "과정 선택 전"}</dd>
           </div>
         </dl>
       </aside>
@@ -167,9 +191,9 @@ function DashboardHeroFallback({ displayName }: { displayName: string }) {
   return (
     <section className="dashboard-intro dashboard-hero" aria-busy="true">
       <div>
-        <p className="eyebrow">오늘 시작하기</p>
-        <h1>{displayName}님의 학습 정보를 불러오고 있습니다</h1>
-        <p>과정별 진도와 오늘의 복습 일정을 확인하는 중입니다.</p>
+        <p className="eyebrow">오늘의 학습 홈</p>
+        <h1>{displayName}님의 오늘 할 일을 불러오고 있습니다</h1>
+        <p>이어서 학습, 복습, 문제풀이 후보를 확인하는 중입니다.</p>
       </div>
       <aside className="dashboard-focus-card" aria-label="오늘의 학습 요약">
         <span className="badge">확인 중</span>
@@ -206,7 +230,7 @@ async function DashboardStats({
       <div className="stat-card">
         <span>등록 과정</span>
         <strong>{enrollments.length}</strong>
-        <small>과정별 기록 분리</small>
+        <small>과정별로 따로 관리</small>
       </div>
       <div className="stat-card">
         <span>오늘 완료</span>
@@ -270,8 +294,8 @@ async function TodayPlanSection({
       <div className="section-heading compact">
         <div>
           <p className="eyebrow">오늘의 학습 계획</p>
-          <h2>오늘 할 학습</h2>
-          <p>복습 예정, 취약 영역, 최근 학습 흐름을 기준으로 바로 시작할 일을 정리합니다.</p>
+          <h2>오늘 바로 할 일</h2>
+          <p>복습 예정, 취약 영역, 최근 학습 흐름을 기준으로 다음 행동을 먼저 보여줍니다.</p>
         </div>
         <Link className="text-link" href="/reviews">
           복습 전체 보기 →
@@ -291,17 +315,6 @@ async function TodayPlanSection({
           </Link>
         </article>
         <article className="today-plan-card">
-          <span className="badge">AI 추천</span>
-          <h3>{primaryRecommendation?.title ?? "첫 학습 기록을 만들어보세요"}</h3>
-          <p>
-            {primaryRecommendation?.reason ??
-              "문제풀이와 이론 학습 기록이 쌓이면 AI가 다음 학습 후보를 더 정확하게 정리합니다."}
-          </p>
-          <Link className="text-link" href={primaryRecommendation?.href ?? "/courses"}>
-            추천 학습 열기 →
-          </Link>
-        </article>
-        <article className="today-plan-card">
           <span className="badge">복습</span>
           <h3>{plan.reviewSummary.dueCount}개 복습 예정</h3>
           <p>
@@ -309,6 +322,17 @@ async function TodayPlanSection({
           </p>
           <Link className="text-link" href="/reviews">
             복습 시작하기 →
+          </Link>
+        </article>
+        <article className="today-plan-card">
+          <span className="badge">다음 추천</span>
+          <h3>{primaryRecommendation?.title ?? "오늘 학습을 시작해보세요"}</h3>
+          <p>
+            {primaryRecommendation?.reason ??
+              "관심 과정을 선택하면 이론, 문제, 복습 순서에 맞춰 다음 학습을 안내합니다."}
+          </p>
+          <Link className="text-link" href={primaryRecommendation?.href ?? "/courses"}>
+            추천 학습 열기 →
           </Link>
         </article>
         <article className="today-plan-card today-plan-settings-card">
@@ -367,7 +391,7 @@ function TodayPlanFallback() {
       <div className="section-heading compact">
         <div>
           <p className="eyebrow">오늘의 학습 계획</p>
-          <h2>오늘 할 학습</h2>
+          <h2>오늘 바로 할 일</h2>
         </div>
         <Link className="text-link" href="/reviews">
           복습 전체 보기 →
@@ -396,7 +420,7 @@ async function ActiveCoursesSection({
       <div className="section-heading compact">
         <div>
           <p className="eyebrow">이어서 학습</p>
-          <h2>이어서 학습</h2>
+          <h2>진행 중인 과정</h2>
         </div>
         <Link className="text-link" href="/my-courses">
           내 학습 전체 보기 →
@@ -428,7 +452,7 @@ async function ActiveCoursesSection({
                   <dt>정답률</dt>
                   <dd>
                     {enrollment.accuracy === null
-                      ? "데이터 없음"
+                      ? "풀이 기록 없음"
                       : `${enrollment.accuracy}%`}
                   </dd>
                 </div>
@@ -439,7 +463,7 @@ async function ActiveCoursesSection({
                       ? new Date(enrollment.lastStudiedAt).toLocaleDateString(
                           "ko-KR",
                         )
-                      : "아직 없음"}
+                      : "시작 전"}
                   </dd>
                 </div>
                 <div>
@@ -458,7 +482,7 @@ async function ActiveCoursesSection({
                   className="button button-ghost"
                   href={`/learn/${enrollment.courseSlug}`}
                 >
-                  과정 대시보드
+                  이어서 학습
                 </Link>
               </div>
             </article>
@@ -537,6 +561,7 @@ function getDashboardNextAction(
       href: firstRecommendation.href,
       title: firstRecommendation.title,
       reason: firstRecommendation.reason,
+      cta: "추천 학습 열기",
     };
   }
 
@@ -545,6 +570,7 @@ function getDashboardNextAction(
       href: "/reviews",
       title: "오늘 예정된 복습부터 시작하세요",
       reason: `${plan.reviewSummary.dueCount}개의 복습 항목이 기다리고 있습니다.`,
+      cta: "복습 시작",
     };
   }
 
@@ -553,6 +579,7 @@ function getDashboardNextAction(
       href: `/learn/${currentCourse.courseSlug}`,
       title: `${currentCourse.courseName} 학습을 이어가세요`,
       reason: `현재 과정 진도는 ${currentCourse.progressPercent}%입니다.`,
+      cta: "이어서 학습",
     };
   }
 
@@ -560,6 +587,7 @@ function getDashboardNextAction(
     href: "/courses",
     title: "첫 학습 과정을 선택하세요",
     reason: "과정을 추가하면 진도, 복습, 추천 학습이 과정별로 관리됩니다.",
+    cta: "과정 선택",
   };
 }
 

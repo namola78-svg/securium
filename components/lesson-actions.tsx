@@ -127,7 +127,7 @@ export function LessonActions({
           : status === "COMPLETED"
             ? "완료됨"
             : scrollRequired
-              ? "본문 하단까지 학습"
+            ? "본문 끝까지 학습"
             : "레슨 완료"}
       </button>
       {message ? <p className="form-message">{message}</p> : null}

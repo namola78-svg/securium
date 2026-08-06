@@ -20,8 +20,8 @@ export default async function ReviewsPage() {
             <p className="eyebrow">스마트 복습</p>
             <h1>오늘의 복습</h1>
             <p>
-              오답과 복습 예정일을 기준으로 오늘 다시 확인할 문제를
-              우선순위대로 정리합니다.
+              오답과 복습 예정일을 기준으로 오늘 다시 확인할 문제를 우선순위로
+              정리합니다.
             </p>
           </div>
           <Link className="button button-ghost" href="/wrong-notes">
@@ -48,7 +48,7 @@ export default async function ReviewsPage() {
               <dd>{summary.dueCount}문제</dd>
             </div>
             <div>
-              <dt>연체 복습</dt>
+              <dt>지연 복습</dt>
               <dd>{summary.overdueCount}문제</dd>
             </div>
             <div>
@@ -69,6 +69,39 @@ export default async function ReviewsPage() {
           />
         </section>
 
+        <section className="review-routine-panel section-block" aria-label="오늘 복습 루틴">
+          <div>
+            <p className="eyebrow">오늘 할 순서</p>
+            <h2>복습은 짧게 확인하고 바로 다시 풉니다</h2>
+            <p>
+              SECURIUM은 복습 대상을 보여주는 데서 끝나지 않고, 풀이 결과를
+              다음 복습 간격과 취약 영역으로 다시 연결합니다.
+            </p>
+          </div>
+          <ol className="review-routine-flow">
+            <li>
+              <span>01</span>
+              <strong>대상 확인</strong>
+              <p>오래 미룬 항목과 반복 오답을 먼저 봅니다.</p>
+            </li>
+            <li>
+              <span>02</span>
+              <strong>바로 풀이</strong>
+              <p>예정 문제를 과정 범위 안에서 다시 풉니다.</p>
+            </li>
+            <li>
+              <span>03</span>
+              <strong>오답 정리</strong>
+              <p>틀린 이유와 헷갈린 개념을 오답노트에 남깁니다.</p>
+            </li>
+            <li>
+              <span>04</span>
+              <strong>간격 조정</strong>
+              <p>결과에 따라 다음 복습 일정이 자동 조정됩니다.</p>
+            </li>
+          </ol>
+        </section>
+
         <section className="review-action-strip section-block" aria-label="복습 실행 메뉴">
           <Link
             className="review-action-card review-action-card-primary"
@@ -84,19 +117,19 @@ export default async function ReviewsPage() {
             </strong>
             <p>
               {hasDueReviews
-                ? `${summary.dueCount}개 항목을 우선순위대로 정리했습니다.`
+                ? `${summary.dueCount}개 항목이 우선순위로 정리되어 있습니다.`
                 : "문제를 풀면 정답 여부에 따라 다음 복습일이 만들어집니다."}
             </p>
           </Link>
           <Link className="review-action-card" href="/wrong-notes">
             <span>02 · 오답 정리</span>
             <strong>반복 오답 확인</strong>
-            <p>메모와 숙지 상태를 보며 헷갈린 개념을 다시 정리합니다.</p>
+            <p>메모와 학습 상태를 보며 헷갈린 개념을 다시 정리합니다.</p>
           </Link>
           <Link className="review-action-card" href="/practice">
             <span>03 · 추가 풀이</span>
             <strong>부족한 문제 더 풀기</strong>
-            <p>새 풀이 기록을 쌓아 복습 추천을 더 정확하게 만듭니다.</p>
+            <p>풀이 기록이 쌓일수록 복습 추천이 더 정확해집니다.</p>
           </Link>
         </section>
 
@@ -138,9 +171,7 @@ export default async function ReviewsPage() {
                     <summary>
                       <span>
                         <small>#{index + 1} · {item.courseName}</small>
-                        <strong>
-                          {item.questionTitle ?? `${item.targetType} ${item.targetId}`}
-                        </strong>
+                        <strong>{formatReviewItemTitle(item)}</strong>
                         <small>
                           예정일 {item.nextReviewAt.slice(0, 10)} · 반복 오답{" "}
                           {item.consecutiveWrong}회
@@ -156,7 +187,7 @@ export default async function ReviewsPage() {
                 <h2>다음 복습</h2>
                 {topItem ? (
                   <>
-                    <strong>{topItem.questionTitle ?? topItem.targetId}</strong>
+                    <strong>{formatReviewItemTitle(topItem)}</strong>
                     <p>
                       {topItem.courseName} · 예정일{" "}
                       {topItem.nextReviewAt.slice(0, 10)}
@@ -200,5 +231,13 @@ function formatTargetType(targetType: string) {
     CONTENT: "콘텐츠",
     TOPIC: "주제",
   };
-  return labels[targetType] ?? targetType;
+  return labels[targetType] ?? "학습 항목";
+}
+
+function formatReviewItemTitle(item: {
+  questionTitle: string | null;
+  targetType: string;
+}) {
+  if (item.questionTitle) return item.questionTitle;
+  return `${formatTargetType(item.targetType)} 복습 항목`;
 }

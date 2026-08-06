@@ -52,14 +52,14 @@ async function AnalyticsOverview({
     <>
       <section className="analytics-overview-panel" aria-label="통합 학습분석 요약">
         <div>
-          <p className="eyebrow">학습 신호</p>
+          <p className="eyebrow">학습 결과</p>
           <h2>
             {analytics.totalQuestions
               ? `전체 정답률 ${analytics.overallAccuracy}%`
-              : "학습 기록이 쌓이면 분석이 시작됩니다"}
+              : "문제를 풀면 학습 결과가 바로 정리됩니다"}
           </h2>
           <p>
-            분석은 과정별로 분리된 풀이 기록을 사용합니다. 취약 신호가 보이면
+            분석은 과정별로 분리된 풀이 기록을 사용합니다. 취약 영역이 보이면
             바로 문제풀이와 복습으로 이어갈 수 있습니다.
           </p>
         </div>
@@ -94,6 +94,24 @@ async function AnalyticsOverview({
           ) : (
             <p>과정을 수강하고 문제를 풀면 우선 확인할 영역을 보여줍니다.</p>
           )}
+          <ol className="analytics-decision-flow" aria-label="학습분석 판단 기준">
+            <li>
+              <span>01</span>
+              <strong>어디까지 했지?</strong>
+            </li>
+            <li>
+              <span>02</span>
+              <strong>다음은 뭘 하지?</strong>
+            </li>
+            <li>
+              <span>03</span>
+              <strong>얼마나 남았지?</strong>
+            </li>
+            <li>
+              <span>04</span>
+              <strong>어디가 약하지?</strong>
+            </li>
+          </ol>
         </div>
         {topCourse ? (
           <div className="analytics-action-buttons">
@@ -134,13 +152,13 @@ async function AnalyticsOverview({
           href={topCourse ? `/practice/${topCourse.courseSlug}?count=10` : "/practice"}
         >
           <span>02 · 문제풀이</span>
-          <strong>10문항으로 신호 만들기</strong>
-          <p>새 풀이 기록이 쌓일수록 취약 영역 추천이 정교해집니다.</p>
+          <strong>10문항으로 취약 영역 찾기</strong>
+          <p>새 문제를 풀면 취약 영역 추천이 더 구체적으로 정리됩니다.</p>
         </Link>
         <Link className="analytics-action-card" href="/reviews">
           <span>03 · 복습</span>
           <strong>오답과 연체 복습 확인</strong>
-          <p>분석에서 발견한 취약 신호를 복습 루틴으로 이어갑니다.</p>
+          <p>분석에서 발견한 취약 영역을 복습 루틴으로 이어갑니다.</p>
         </Link>
       </section>
     </>
@@ -151,9 +169,9 @@ function AnalyticsMetricsFallback() {
   return (
     <section className="analytics-overview-panel" aria-live="polite">
       <div>
-        <p className="eyebrow">학습 신호</p>
+        <p className="eyebrow">학습 결과</p>
         <h2>학습분석 정보를 불러오고 있습니다</h2>
-        <p>과정별 학습 신호를 정리하는 중입니다.</p>
+        <p>과정별 학습 결과를 정리하는 중입니다.</p>
       </div>
       <dl aria-hidden="true">
         {[0, 1, 2, 3].map((item) => (
@@ -174,7 +192,7 @@ async function AnalyticsCourseActions({
 }) {
   const analytics = await analyticsPromise;
   return (
-    <section className="section-block admin-panel">
+    <section className="section-block learner-analytics-panel">
       <div className="section-heading compact">
         <div>
           <p className="eyebrow">과정별 다음 행동</p>
@@ -229,12 +247,12 @@ async function AnalyticsCourseActions({
 
 function AnalyticsCourseActionsFallback() {
   return (
-    <section className="section-block admin-panel" aria-live="polite">
+    <section className="section-block learner-analytics-panel" aria-live="polite">
       <div className="section-heading compact">
         <div>
           <p className="eyebrow">과정별 다음 행동</p>
           <h2>과정별 학습 상태를 불러오고 있습니다</h2>
-          <p>학습분석 정보를 준비하고 있습니다.</p>
+          <p>최근 학습 기록과 과정별 진도를 확인하고 있습니다.</p>
         </div>
       </div>
       <div className="analytics-course-list" aria-hidden="true">

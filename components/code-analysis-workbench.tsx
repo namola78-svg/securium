@@ -119,7 +119,7 @@ export function CodeAnalysisWorkbench({
     <section className="code-workbench" aria-labelledby="code-analysis-title">
       <div className="section-heading compact">
         <div>
-          <p className="eyebrow">{sample.language} CODE ANALYSIS</p>
+          <p className="eyebrow">{sample.language} 코드 분석 실습</p>
           <h2 id="code-analysis-title">{sample.title}</h2>
           <p>취약하다고 판단한 줄을 선택하세요. 코드는 표시만 하며 실행하지 않습니다.</p>
         </div>

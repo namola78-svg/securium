@@ -106,15 +106,15 @@ export default async function SpecializedContentPage({
           ) : null}
         </article>
         <aside className="specialized-aside">
-          <section className="admin-panel">
-            <h2>연결 과정</h2>
+          <section className="specialized-info-panel">
+            <h2>함께 학습할 과정</h2>
             {result.relatedCourses.map((related) => (
               <Link href={`/specialized/${related.slug}`} key={related.id}>
                 {related.name}
               </Link>
             ))}
           </section>
-          <section className="admin-panel">
+          <section className="specialized-info-panel">
             <h2>관련 문제</h2>
             {result.relatedQuestions.length ? (
               result.relatedQuestions.map((question) => (
@@ -123,11 +123,11 @@ export default async function SpecializedContentPage({
                 </Link>
               ))
             ) : (
-              <p>연결된 공개 문제가 없습니다.</p>
+              <p>이 자료와 함께 풀 문제가 아직 없습니다.</p>
             )}
           </section>
           {result.relatedLegalArticles.length ? (
-            <section className="admin-panel">
+            <section className="specialized-info-panel">
               <h2>관련 법령</h2>
               {result.relatedLegalArticles.map((article) => (
                 <Link
@@ -158,7 +158,7 @@ export default async function SpecializedContentPage({
           </section>
         ) : null}
         {result.versions.length ? (
-          <section className="admin-panel wide-section">
+          <section className="specialized-info-panel wide-section">
             <h2>버전 이력</h2>
             {result.versions.map((version) => (
               <div className="version-row" key={String(version.id)}>
@@ -221,7 +221,7 @@ function DetailFields({ content }: { content: Record<string, unknown> }) {
         .filter(([key, value]) => !hidden.has(key) && value !== null && value !== "")
         .map(([key, value]) => (
           <div key={key}>
-            <dt>{labels[key] ?? key}</dt>
+            <dt>{labels[key] ?? "추가 정보"}</dt>
             <dd>
               {typeof value === "boolean" ? (value ? "예" : "아니오") : String(value)}
             </dd>

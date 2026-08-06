@@ -14,7 +14,7 @@ export default async function BookmarksPage() {
           <div>
             <p className="eyebrow">SAVED QUESTIONS</p>
             <h1>즐겨찾기</h1>
-            <p>과정 맥락을 유지한 채 저장한 문제를 다시 확인합니다.</p>
+            <p>학습 맥락을 유지한 채 저장한 문제를 다시 확인합니다.</p>
           </div>
         </header>
         {items.length ? (

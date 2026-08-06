@@ -85,26 +85,26 @@ export function LearnCurriculumPathTree({
       <div className="learn-curriculum-summary" aria-label="공식 커리큘럼 학습 요약">
         <div>
           <p className="eyebrow">공식 커리큘럼 경로</p>
-          <strong>공식 구조를 따라 학습하고, 연결된 레슨과 문제로 바로 이동합니다.</strong>
+          <strong>공식 출제기준을 따라 핵심 이론과 문제로 바로 이동합니다.</strong>
           <span>
             현재 선택: {selectedNode ? selectedNode.officialTitle || selectedNode.title : "없음"}
           </span>
         </div>
         <dl>
           <div>
-            <dt>전체 노드</dt>
+            <dt>학습 항목</dt>
             <dd>{summary.totalNodes}개</dd>
           </div>
           <div>
-            <dt>연결 레슨</dt>
+            <dt>학습 자료</dt>
             <dd>{summary.linkedLessons}개</dd>
           </div>
           <div>
-            <dt>완료 레슨</dt>
+            <dt>완료 자료</dt>
             <dd>{summary.completedLessons}개</dd>
           </div>
           <div>
-            <dt>연결 문제</dt>
+            <dt>문제</dt>
             <dd>{summary.questionCount}개</dd>
           </div>
         </dl>
@@ -177,10 +177,9 @@ function LearnCurriculumPathRow({
   const nodeTitle = node.officialTitle || node.title;
   const practiceHref = getCurriculumPracticeHref(courseSlug, node);
   const sourcePage = getSourcePageLabel(node.metadata);
-  const stableKey = getStableKey(node);
   const progressLabel = node.linkedLessonCount
     ? `${node.completedLinkedLessons}/${node.linkedLessonCount} 완료`
-    : "레슨 연결 예정";
+    : "학습 자료 추가 예정";
 
   return (
     <article
@@ -222,22 +221,17 @@ function LearnCurriculumPathRow({
           <span className="badge">{getCurriculumNodeLabel(node.nodeType)}</span>
           <span className="badge">{progressLabel}</span>
         </div>
-        <div className="learn-curriculum-key-line">
-          <span>Stable Key</span>
-          <code>{stableKey}</code>
-          <CopyStableKeyButton stableKey={stableKey} />
-        </div>
         <div className="learn-curriculum-meta-line">
           <span>{node.isRequired ? "필수" : "선택"}</span>
           {node.isPractical ? <span>실무</span> : null}
           {sourcePage ? <span>{sourcePage}</span> : null}
           {node.linkedLessonCount ? (
             <span>
-              레슨 {node.completedLinkedLessons}/{node.linkedLessonCount} 완료 ·{" "}
+              학습 자료 {node.completedLinkedLessons}/{node.linkedLessonCount} 완료 ·{" "}
               {node.linkedLessonProgressPercent}%
             </span>
           ) : (
-            <span>연결 레슨 없음</span>
+            <span>학습 자료 추가 예정</span>
           )}
           {node.questionStats.questionCount ? (
             <span>문제 {node.questionStats.questionCount}개</span>
@@ -255,7 +249,7 @@ function LearnCurriculumPathRow({
             href={`/learn/${courseSlug}/course-lessons/${node.linkedLesson.id}`}
             onClick={(event) => event.stopPropagation()}
           >
-            레슨 보기
+            이론 보기
           </Link>
         ) : null}
         {practiceHref ? (
@@ -280,7 +274,6 @@ function LearnCurriculumNodeDetail({
   node: CurriculumPathNode;
 }) {
   const title = node.officialTitle || node.title;
-  const stableKey = getStableKey(node);
   const sourcePage = getSourcePageLabel(node.metadata);
   const practiceHref = getCurriculumPracticeHref(courseSlug, node);
   const nextAction = getCurriculumNodeNextAction(courseSlug, node, practiceHref);
@@ -299,7 +292,7 @@ function LearnCurriculumNodeDetail({
           </Link>
         ) : (
           <button className="button button-disabled" type="button" disabled>
-            콘텐츠 연결 예정
+            학습 자료 추가 예정
           </button>
         )}
       </div>
@@ -314,13 +307,6 @@ function LearnCurriculumNodeDetail({
             <dd>{node.officialCode}</dd>
           </div>
         ) : null}
-        <div>
-          <dt>Stable Key</dt>
-          <dd>
-            <code>{stableKey}</code>
-            <CopyStableKeyButton stableKey={stableKey} />
-          </dd>
-        </div>
         {sourcePage ? (
           <div>
             <dt>출처</dt>
@@ -328,11 +314,11 @@ function LearnCurriculumNodeDetail({
           </div>
         ) : null}
         <div>
-          <dt>연결 레슨</dt>
+          <dt>학습 자료</dt>
           <dd>
             {node.linkedLessonCount
               ? `${node.completedLinkedLessons}/${node.linkedLessonCount} 완료`
-              : "연결 레슨 없음"}
+              : "학습 자료 추가 예정"}
           </dd>
         </div>
         <div>
@@ -347,7 +333,7 @@ function LearnCurriculumNodeDetail({
             className="button button-ghost"
             href={`/learn/${courseSlug}/course-lessons/${node.linkedLesson.id}`}
           >
-            레슨 보기
+            이론 보기
           </Link>
         ) : null}
         {practiceHref ? (
@@ -357,34 +343,6 @@ function LearnCurriculumNodeDetail({
         ) : null}
       </div>
     </aside>
-  );
-}
-
-function CopyStableKeyButton({ stableKey }: { stableKey: string }) {
-  const [copied, setCopied] = useState(false);
-
-  async function copyStableKey() {
-    try {
-      await navigator.clipboard.writeText(stableKey);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1500);
-    } catch {
-      setCopied(false);
-    }
-  }
-
-  return (
-    <button
-      aria-label={`${stableKey} 복사`}
-      className="learn-curriculum-copy"
-      type="button"
-      onClick={(event) => {
-        event.stopPropagation();
-        void copyStableKey();
-      }}
-    >
-      {copied ? "복사됨" : "복사"}
-    </button>
   );
 }
 
@@ -461,10 +419,6 @@ function getCurriculumPracticeHref(
   return `/practice/${courseSlug}?${params.toString()}`;
 }
 
-function getStableKey(node: CurriculumPathNode) {
-  return node.officialCode || node.id;
-}
-
 function getCurriculumNodeNextAction(
   courseSlug: string,
   node: CurriculumPathNode,
@@ -473,24 +427,24 @@ function getCurriculumNodeNextAction(
   if (node.linkedLesson) {
     return {
       href: `/learn/${courseSlug}/course-lessons/${node.linkedLesson.id}`,
-      label: "연결된 이론 레슨부터 학습하세요",
-      description: `${node.linkedLesson.title} 레슨으로 이동합니다.`,
+      label: "이론부터 학습하세요",
+      description: `${node.linkedLesson.title} 이론으로 이동합니다.`,
     };
   }
 
   if (practiceHref) {
     return {
       href: practiceHref,
-      label: "연결된 문제로 이해도를 확인하세요",
-      description: `${node.questionStats.questionCount}개의 연결 문제 중 일부를 풀어봅니다.`,
+      label: "문제로 이해도를 확인하세요",
+      description: `${node.questionStats.questionCount}개 문제 중 일부를 풀어봅니다.`,
     };
   }
 
   return {
     href: null,
-    label: "연결된 학습 콘텐츠를 준비하고 있습니다",
+    label: "연결된 학습 자료가 곧 제공됩니다",
     description:
-      "공식 커리큘럼 위치는 확인할 수 있으며, 레슨과 문제 연결은 순차적으로 보강됩니다.",
+      "공식 커리큘럼 위치는 확인할 수 있으며, 이론과 문제는 차례대로 제공됩니다.",
   };
 }
 

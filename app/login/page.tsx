@@ -65,7 +65,7 @@ export default async function LoginPage({
           className="button button-dark full-width"
           href={chatGPTSignInPath(returnTo)}
         >
-          안전하게 로그인
+          Sign in with ChatGPT
         </Link>
         <p className="auth-note">
           최초 로그인 시 기본 학습 프로필이 자동으로 생성됩니다.

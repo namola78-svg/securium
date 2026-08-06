@@ -21,7 +21,7 @@ test("today plan uses learner cards for goal, AI recommendation, review, and set
 
   assert.match(source, /today-plan-card today-plan-card-primary/);
   assert.match(source, /오늘 목표/);
-  assert.match(source, /AI 추천/);
+  assert.match(source, /다음 추천/);
   assert.match(source, /복습/);
   assert.match(source, /학습 설정/);
   assert.match(source, /추천 학습/);
@@ -33,21 +33,43 @@ test("today plan uses learner cards for goal, AI recommendation, review, and set
 test("learner dashboard avoids admin-style English section labels", () => {
   const source = readFileSync("app/dashboard/page.tsx", "utf8");
 
-  assert.match(source, /오늘 시작하기/);
+  assert.match(source, /오늘의 학습 홈/);
   assert.match(source, /오늘의 학습 계획/);
   assert.match(source, /이어서 학습/);
-  assert.match(source, /학습 요약/);
+  assert.match(source, /기록 요약/);
   assert.doesNotMatch(
     source,
     /LEARNING SUMMARY|TODAY START|TODAY PLAN|NEXT ACTIONS|CONTINUE LEARNING/,
   );
 });
 
-test("learner dashboard maps internal enrollment status to user-facing labels", () => {
+test("learner dashboard answers the four core learner questions before metrics", () => {
+  const source = readFileSync("app/dashboard/page.tsx", "utf8");
+  const styles = readFileSync("app/globals.css", "utf8");
+  const actionRailIndex = source.indexOf("dashboard-action-rail");
+  const nextActionIndex = source.indexOf("dashboard-next-action");
+
+  assert.ok(actionRailIndex > -1);
+  assert.ok(nextActionIndex > -1);
+  assert.ok(actionRailIndex < nextActionIndex);
+  assert.match(source, /어디까지 했지\?/);
+  assert.match(source, /다음은\?/);
+  assert.match(source, /시험 준비는\?/);
+  assert.match(source, /약한 부분은\?/);
+  assert.match(source, /오늘 할 일만 모았습니다/);
+  assert.match(source, /지금 해야 할 일/);
+  assert.match(source, /오늘 바로 할 일/);
+  assert.match(styles, /\.dashboard-action-rail/);
+});
+
+test("learner dashboard maps internal enrollment status and empty values to user-facing labels", () => {
   const source = readFileSync("app/dashboard/page.tsx", "utf8");
 
   assert.match(source, /getEnrollmentStatusLabel\(enrollment\.status\)/);
   assert.match(source, /case "ACTIVE":[\s\S]*?return "학습 중"/);
   assert.match(source, /case "COMPLETED":[\s\S]*?return "완료"/);
+  assert.match(source, /풀이 기록 없음/);
+  assert.match(source, /시작 전/);
+  assert.match(source, /과정별로 따로 관리/);
   assert.doesNotMatch(source, /<span className="badge">\{enrollment\.status\}<\/span>/);
 });

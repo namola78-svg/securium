@@ -36,7 +36,7 @@ export default function GuidePage() {
     <main className="page-main">
       <section className="page-hero">
         <div className="shell">
-          <p className="eyebrow">LEARNING GUIDE</p>
+          <p className="eyebrow">학습 가이드</p>
           <h1>시큐리움 학습 가이드</h1>
           <p>
             처음 시작하는 학습자도 과정 선택부터 진도 관리, 문제풀이, 복습까지
@@ -48,7 +48,7 @@ export default function GuidePage() {
       <section className="section">
         <div className="shell narrow">
           <div className="course-detail-section">
-            <p className="eyebrow">START</p>
+            <p className="eyebrow">처음 시작하기</p>
             <h2>이렇게 시작하세요</h2>
             <div className="value-grid">
               {guideSteps.map((step) => (
@@ -61,7 +61,7 @@ export default function GuidePage() {
           </div>
 
           <div className="course-detail-section">
-            <p className="eyebrow">RECOMMENDED FLOW</p>
+            <p className="eyebrow">추천 학습 순서</p>
             <h2>추천 학습 흐름</h2>
             <ul className="feature-list">
               <li>과정 상세에서 추천 대상과 학습 구성을 확인합니다.</li>

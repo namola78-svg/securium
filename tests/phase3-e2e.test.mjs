@@ -65,14 +65,14 @@ test("오늘 복습과 학습 분석을 사용자별 서버 데이터로 렌더�
     assert.equal(response.status, 200, `${path}: ${html.slice(0, 800)}`);
     if (path === "/reviews") assert.match(html, /ISMS-P/);
     if (path === "/analytics") {
-      assert.match(html, /LEARNING SIGNALS/);
-      assert.match(html, /NEXT ANALYTIC ACTION/);
-      assert.match(html, /COURSE ACTIONS/);
+      assert.match(html, /학습 결과/);
+      assert.match(html, /다음 추천 행동/);
+      assert.match(html, /과정별 다음 행동/);
       assert.match(html, /\/practice\/isms-p\?count=10/);
     }
     if (path === "/analytics/course-isms-p") {
-      assert.match(html, /COURSE SIGNALS/);
-      assert.match(html, /PRIORITY AREA/);
+      assert.match(html, /과정 학습 결과/);
+      assert.match(html, /우선 확인 영역/);
       assert.match(html, /\/practice\/isms-p\?/);
       assert.doesNotMatch(html, /course-cppg-subject/);
     }

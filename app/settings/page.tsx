@@ -33,10 +33,10 @@ export default async function LearningSettingsPage() {
             <p className="eyebrow">하루 목표</p>
             <h2>하루 학습 목표</h2>
             <p>
-              설정한 목표는 통합 대시보드와 오늘의 학습 계획에서 사용됩니다.
+              설정한 목표는 내 학습 대시보드와 오늘의 학습 계획에서 사용됩니다.
               실제 완료 여부는 풀이와 학습 기록을 기준으로 계산됩니다.
             </p>
-            <div className="admin-panel settings-panel">
+            <div className="learner-settings-panel settings-panel">
               <LearningSettingsForm
                 dailyQuestionGoal={settings?.dailyQuestionGoal ?? 10}
                 dailyStudyMinutes={settings?.dailyStudyMinutes ?? 30}

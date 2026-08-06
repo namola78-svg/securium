@@ -3,7 +3,12 @@ import { redirect } from "next/navigation";
 import type { CourseListItem } from "@/db/repositories";
 import { getOptionalCurrentAppUser } from "@/lib/auth";
 import { listPublishedCoursesCached } from "@/lib/cached-catalog";
-import { courseDescription, safeCount } from "@/lib/course-display";
+import {
+  courseDescription,
+  courseAudienceLabel,
+  difficultyLabel,
+  safeCount,
+} from "@/lib/course-display";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +43,8 @@ function spotlightMeta(course: CourseListItem) {
 
   return {
     description: courseDescription(course.description),
+    audience: courseAudienceLabel(course),
+    difficulty: difficultyLabel(course.difficulty),
     status: available ? "학습 가능" : "개설 예정",
     stats:
       questionCount > 0
@@ -64,16 +71,16 @@ export default async function Home() {
       <section className="hero">
         <div className="shell hero-grid">
           <div>
-            <p className="eyebrow light">AI-POWERED SECURITY LEARNING</p>
+            <p className="eyebrow light">AI 기반 정보보호 학습</p>
             <h1>
-              <span className="hero-title-line">공식 기준으로 검증되는</span>
+              <span className="hero-title-line">공식 기준으로 배우고</span>
               <br />
-              <span>정보보호 AI 학습 플랫폼</span>
+              <span>AI 근거로 이해하세요</span>
             </h1>
             <p className="hero-copy">
-              출제기준과 인증기준에서 출발해
+              자격시험과 실무 기준을 이론, 문제, 근거 해설, 복습으로 연결하는
               <br />
-              이론, 문제, 근거 해설, 복습까지 하나의 흐름으로 학습하세요.
+              정보보호·개인정보보호 학습 플랫폼입니다.
             </p>
             <div className="button-row">
               <Link className="button button-lime" href="/signup">
@@ -92,14 +99,14 @@ export default async function Home() {
           </div>
           <div className="hero-panel" aria-label="SECURIUM 학습 경험 요약">
             <div className="hero-panel-header">
-              <span>공식 기준 기반 학습 코어</span>
+              <span>공식 기준 기반 학습 요약</span>
               <span className="live-dot">검증 가능</span>
             </div>
             <div className="today-card-title">
-              <span>Knowledge-linked Learning</span>
-              <strong>공식 기준 기반 학습 엔진</strong>
+              <span>공식 기준 기반 학습</span>
+              <strong>공식 기준 기반 학습 흐름</strong>
               <p>
-                출제기준, 이론, 문제, AI 근거 설명, 복습 신호를 하나의 지식 구조로
+                출제기준, 이론, 문제, AI 근거 설명, 복습 추천을 하나의 학습 구조로
                 연결합니다.
               </p>
             </div>
@@ -117,9 +124,20 @@ export default async function Home() {
                 <strong>취약 영역 추천</strong>
               </div>
             </div>
-            <Link className="button button-outline-light hero-card-cta" href="/courses">
-              과정 둘러보기
-            </Link>
+            <div className="hero-outcome-card" aria-label="AI 근거 학습 결과 예시">
+              <div>
+                <span>질문</span>
+                <strong>왜 접근권한 검토가 반복되어야 하나요?</strong>
+              </div>
+              <div>
+                <span>AI 근거</span>
+                <strong>공식 기준 2개 · 관련 개념 4개 연결</strong>
+              </div>
+              <div>
+                <span>다음 행동</span>
+                <strong>오답 5문제 복습 추천</strong>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -130,11 +148,12 @@ export default async function Home() {
             <div>
               <p className="eyebrow">학습 연결 구조</p>
               <h2 id="learning-chain-title">
-                SECURIUM은 이렇게 학습을 연결합니다
+                공식 기준이 문제와 AI 근거까지 이어집니다
               </h2>
               <p>
-                SECURIUM은 공식 기준에서 출발해 커리큘럼, 이론, 문제, AI 근거,
-                복습까지 하나의 흐름으로 이어지는 지식 기반 학습 플랫폼입니다.
+                단순히 강의를 모아두는 것이 아니라, 공식 기준을 출발점으로
+                커리큘럼, 핵심 이론, 문제, 검증 가능한 AI 근거, 복습 추천을
+                하나의 학습 경로로 연결합니다.
               </p>
             </div>
           </div>
@@ -142,32 +161,32 @@ export default async function Home() {
             <li>
               <span>01</span>
               <strong>공식 기준</strong>
-              <p>정보보안기사 네트워크 보안 출제기준</p>
+              <p>KISA·NCS 등 기준일이 관리되는 출제기준과 인증기준</p>
             </li>
             <li>
               <span>02</span>
               <strong>커리큘럼</strong>
-              <p>서비스 거부 공격과 대응 개념 연결</p>
+              <p>과목과 주요항목을 학습자가 이해하는 흐름으로 정리</p>
             </li>
             <li>
               <span>03</span>
-              <strong>이론</strong>
-              <p>DoS/DDoS 개념과 탐지 기준 정리</p>
+              <strong>핵심 이론</strong>
+              <p>시험과 실무에 필요한 개념을 짧은 본문형 레슨으로 학습</p>
             </li>
             <li>
               <span>04</span>
               <strong>문제</strong>
-              <p>공격 유형 판단과 대응 방법 문제풀이</p>
+              <p>개념이 실제 문항에서 어떻게 묻히는지 확인</p>
             </li>
             <li>
               <span>05</span>
               <strong>AI 근거</strong>
-              <p>관련 출제기준과 해설 근거 연결</p>
+              <p>정답 이유와 오답 이유를 근거 콘텐츠와 함께 설명</p>
             </li>
             <li>
               <span>06</span>
               <strong>복습</strong>
-              <p>오답 5문제와 취약 개념 재추천</p>
+              <p>오답과 취약 개념을 다음 학습 행동으로 다시 추천</p>
             </li>
           </ol>
         </div>
@@ -212,7 +231,7 @@ export default async function Home() {
               <article>
                 <span>04</span>
                 <strong>근거 · 복습</strong>
-                <p>근거 해설과 복습 신호를 다시 취약 개념으로 연결합니다.</p>
+                <p>근거 해설과 복습 추천을 다시 취약 개념으로 연결합니다.</p>
               </article>
             </div>
           </div>
@@ -243,7 +262,7 @@ export default async function Home() {
             <div>
               <span>05</span>
               <strong>근거 해설</strong>
-              <p>검색 근거 · 인용 · 검수 상태</p>
+              <p>검색 근거 · 인용 · 출처 확인</p>
             </div>
             <div>
               <span>06</span>
@@ -257,28 +276,29 @@ export default async function Home() {
             <div className="ai-result-question">
               <p className="eyebrow">검증 가능한 AI 해설</p>
               <h3 id="ai-result-title">
-                AI가 답만 알려주는 것이 아니라, 왜 그런지 공식 기준으로 설명합니다
+                AI 답변보다 중요한 것은, 왜 그런지 확인하는 것입니다
               </h3>
               <p>
-                SECURIUM의 AI 설명은 검증 가능한 근거를 함께 보여줍니다.
-                질문 하나가 설명, 공식 기준, 관련 문제, 관련 개념으로 이어집니다.
+                SECURIUM은 답변을 단독으로 보여주지 않습니다. 질문 하나가
+                설명, 공식 근거, 관련 문제, 관련 개념, 다음 복습으로 이어집니다.
               </p>
             </div>
             <div className="ai-result-grid">
               <div>
-                <span>질문</span>
+                <span>01 · 질문</span>
                 <strong>접근통제에서 권한 검토가 왜 중요한가요?</strong>
               </div>
               <div>
-                <span>설명</span>
+                <span>02 · AI 설명</span>
                 <strong>권한은 한 번 부여한 뒤에도 업무 변경과 퇴사에 따라 계속 검토해야 합니다.</strong>
               </div>
-              <div>
-                <span>근거</span>
+              <div className="ai-result-citation">
+                <span>03 · 공식 근거</span>
                 <strong>ISMS-P 접근권한 부여·변경·말소 관리 기준과 연결됩니다.</strong>
+                <em>출처 표시 · 근거 확인 가능</em>
               </div>
               <div>
-                <span>다음 학습</span>
+                <span>04 · 다음 학습</span>
                 <strong>관련 문제 5개 · 관련 개념 4개 · 복습 추천 1개</strong>
               </div>
             </div>
@@ -294,24 +314,24 @@ export default async function Home() {
           <div>
             <p className="eyebrow">학습자 대시보드</p>
             <h2 id="dashboard-preview-title">
-              오늘 무엇을 배우고, 어디를 다시 봐야 하는지 바로 보입니다
+              로그인하면 오늘 할 일이 먼저 보입니다
             </h2>
             <p>
-              학습자는 통계표를 먼저 보는 것이 아니라, 오늘 할 학습과 AI 설명,
-              복습 추천, 취약 영역을 한 화면에서 확인합니다.
+              복잡한 메뉴를 찾기 전에 이어서 학습, AI 근거 확인, 복습 추천,
+              취약 영역을 행동 순서대로 확인합니다.
             </p>
           </div>
           <article className="learner-dashboard-card" aria-label="학습자 대시보드 미리보기">
             <div className="learner-dashboard-card-header">
               <div>
-                <span>TODAY</span>
-                <strong>오늘의 학습</strong>
+                <span>오늘의 학습</span>
+                <strong>지금 할 일</strong>
               </div>
               <span className="dashboard-preview-badge">17분 예상</span>
             </div>
             <div className="learner-dashboard-main">
               <div>
-                <span>이어서 학습</span>
+                <span>01 · 이어서 학습</span>
                 <strong>네트워크 보안 · 접근통제 기초</strong>
                 <p>공식 기준과 연결된 이론 1개를 이어서 학습합니다.</p>
                 <div className="dashboard-preview-progress" aria-label="이어서 학습 진행률 64%">
@@ -319,26 +339,26 @@ export default async function Home() {
                 </div>
               </div>
               <div>
-                <span>AI 설명</span>
+                <span>02 · AI 근거 확인</span>
                 <strong>권한 검토 개념 설명 완료</strong>
                 <p>근거 3개와 관련 개념 4개가 함께 연결되었습니다.</p>
               </div>
             </div>
             <div className="learner-dashboard-row">
               <div>
-                <span>오늘 완료</span>
-                <strong>2/5</strong>
-                <p>계획 대비 진행률</p>
-              </div>
-              <div>
-                <span>복습 추천</span>
+                <span>03 · 복습</span>
                 <strong>5문제</strong>
                 <p>오답과 유사 문제 중심</p>
               </div>
               <div>
-                <span>취약 영역</span>
+                <span>04 · 약한 영역</span>
                 <strong>접근권한 관리</strong>
                 <p>정답률 58% · 우선 복습</p>
+              </div>
+              <div>
+                <span>05 · 시험 감각</span>
+                <strong>오늘 완료 2/5</strong>
+                <p>계획 대비 진행률</p>
               </div>
             </div>
             <Link className="button button-lime learner-dashboard-cta" href="/signup">
@@ -353,10 +373,13 @@ export default async function Home() {
           <div className="shell">
             <div className="landing-course-spotlight-header">
               <div>
-                <p className="eyebrow">추천 과정</p>
+                <p className="eyebrow">목표별 학습 경로</p>
                 <h2 id="landing-course-spotlight-title">
-                  내가 준비하는 과정을 선택하세요
+                  내가 준비하는 목표를 선택하세요
                 </h2>
+                <p>
+                  자격시험과 실무 역량을 공식 기준 기반 커리큘럼으로 이어서 학습합니다.
+                </p>
               </div>
               <Link className="text-link" href="/courses">
                 전체 과정 보기 →
@@ -377,9 +400,21 @@ export default async function Home() {
                     </span>
                     <strong>{course.name || course.shortName}</strong>
                     <p>{meta.description}</p>
-                    <span className="landing-course-spotlight-meta">
-                      {meta.stats}
-                    </span>
+                    <dl className="landing-course-spotlight-facts">
+                      <div>
+                        <dt>추천 대상</dt>
+                        <dd>{meta.audience}</dd>
+                      </div>
+                      <div>
+                        <dt>난이도</dt>
+                        <dd>{meta.difficulty}</dd>
+                      </div>
+                      <div>
+                        <dt>학습 구성</dt>
+                        <dd>{meta.stats}</dd>
+                      </div>
+                    </dl>
+                    <span className="landing-course-spotlight-meta">과정 자세히 보기 →</span>
                   </Link>
                 );
               })}
@@ -417,7 +452,7 @@ export default async function Home() {
               <span>03</span>
               <strong>AI 학습 지원</strong>
               <p>
-                공식 해설을 대체하지 않고, 검수된 근거 콘텐츠를 바탕으로
+                공식 해설을 대체하지 않고, 확인 가능한 근거 콘텐츠를 바탕으로
                 개념 이해를 돕는 참고 설명을 제공합니다.
               </p>
             </article>

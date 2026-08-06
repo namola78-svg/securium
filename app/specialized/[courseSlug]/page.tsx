@@ -176,7 +176,7 @@ export default async function SpecializedCoursePage({
               ))}
             </ContentSection>
             <RiskPractice methods={riskMethods} scenarios={overview.riskScenarios} />
-            <section className="admin-panel section-block">
+            <section className="specialized-info-panel section-block">
               <h2>내 위험등록부 {riskRegister.length}건</h2>
               {riskRegister.length ? (
                 riskRegister.map((item) => (

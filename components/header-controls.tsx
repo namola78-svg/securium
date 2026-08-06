@@ -35,6 +35,19 @@ const signedInItems: NavItem[] = [
   { href: "/ai-tutor", label: "AI 튜터" },
 ];
 
+type MobileBottomNavItem = NavItem & {
+  icon: string;
+  activeHrefs: string[];
+};
+
+const mobileBottomItems: MobileBottomNavItem[] = [
+  { href: "/dashboard", label: "홈", icon: "⌂", activeHrefs: ["/dashboard"] },
+  { href: "/my-courses", label: "학습", icon: "□", activeHrefs: ["/my-courses", "/learn", "/courses"] },
+  { href: "/practice", label: "문제", icon: "✓", activeHrefs: ["/practice", "/questions"] },
+  { href: "/reviews", label: "복습", icon: "↻", activeHrefs: ["/reviews", "/wrong-notes"] },
+  { href: "/profile", label: "마이", icon: "◦", activeHrefs: ["/profile", "/settings"] },
+];
+
 export function HeaderControls({ user }: HeaderControlsProps) {
   const pathname = usePathname() || "/";
   const router = useRouter();
@@ -422,6 +435,26 @@ export function HeaderControls({ user }: HeaderControlsProps) {
           onClick={closeMenus}
         />
       ) : null}
+
+      {isSignedIn ? (
+        <nav className="mobile-bottom-nav" aria-label="모바일 학습 빠른 이동">
+          {mobileBottomItems.map((item) => {
+            const active = isMobileBottomActive(activePath, item);
+            return (
+              <Link
+                aria-current={active ? "page" : undefined}
+                className={active ? "active" : undefined}
+                href={item.href ?? "#"}
+                key={item.label}
+                title={active ? `현재 위치: ${item.label}` : item.label}
+              >
+                <span aria-hidden="true">{item.icon}</span>
+                <strong>{item.label}</strong>
+              </Link>
+            );
+          })}
+        </nav>
+      ) : null}
     </>
   );
 }
@@ -488,4 +521,8 @@ function safeReturnPath(value: string | null) {
 
 function isActivePath(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function isMobileBottomActive(pathname: string, item: MobileBottomNavItem) {
+  return item.activeHrefs.some((href) => isActivePath(pathname, href));
 }

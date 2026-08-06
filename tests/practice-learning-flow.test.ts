@@ -10,7 +10,7 @@ import {
 test("practice session explains the learner flow before AI explanation is available", () => {
   const source = readFileSync("components/practice-session.tsx", "utf8");
 
-  assert.match(source, /풀이 → 채점 → 검수 해설 → AI 근거/);
+  assert.match(source, /답안 선택 → 서버 채점 → 검수 해설 → AI 근거/);
   assert.match(source, /practice-learning-flow/);
   assert.match(source, /답안 선택/);
   assert.match(source, /서버 채점/);
@@ -20,6 +20,19 @@ test("practice session explains the learner flow before AI explanation is availa
     source,
     /AI 참고\s+해설은 채점 이후 요청할 수 있으며 공식 채점 결과가 아닙니다/,
   );
+});
+
+test("practice page frames AI explanation as post-grading evidence support", () => {
+  const source = readFileSync("app/practice/[courseSlug]/page.tsx", "utf8");
+  const styles = readFileSync("app/globals.css", "utf8");
+
+  assert.match(source, /검수된 해설과 AI 참고 해설/);
+  assert.match(source, /다음 복습 방향/);
+  assert.match(source, /선택한 과목과 주제에 맞춰\s+지금 풀 문제를 구성했습니다/);
+  assert.doesNotMatch(source, /커리큘럼에서 진입한 경우 연결된/);
+  assert.match(source, /관리자 검수 해설을 먼저 확인/);
+  assert.match(source, /AI 근거\s+해설로 관련 기준과 개념/);
+  assert.match(styles, /\.practice-context-card \.practice-context-note/);
 });
 
 test("practice result separates reviewed explanation from AI reference explanation", () => {
@@ -37,7 +50,7 @@ test("practice result separates reviewed explanation from AI reference explanati
 
 test("practice learner labels do not expose internal enum names", () => {
   assert.equal(formatQuestionTypeLabel("TRUE_FALSE"), "OX");
-  assert.equal(formatQuestionTypeLabel("MULTIPLE_CHOICE"), "복수선택형");
+  assert.equal(formatQuestionTypeLabel("MULTIPLE_CHOICE"), "복수 선택");
   assert.equal(formatQuestionTypeLabel("UNKNOWN_INTERNAL_TYPE"), "문제 유형");
   assert.equal(formatDifficultyLabel("MEDIUM"), "보통");
   assert.equal(formatDifficultyLabel("UNKNOWN_INTERNAL_DIFFICULTY"), "난이도");

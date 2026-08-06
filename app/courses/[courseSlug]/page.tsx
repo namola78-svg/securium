@@ -5,12 +5,12 @@ import { CourseEnrollAction } from "@/components/course-enroll-action";
 import { EmptyState } from "@/components/state-ui";
 import { getEnrollmentForCourse } from "@/db/repositories";
 import {
+  courseAudienceLabel,
   courseDescription,
   courseLearningGoals,
   estimateWeeks,
   formatCount,
   formatCourseDate,
-  recommendedAudience,
   safeCount,
 } from "@/lib/course-display";
 import { getOptionalCurrentAppUser } from "@/lib/auth";
@@ -56,7 +56,8 @@ export default async function CourseDetailPage({ params }: PageProps) {
   const questionCount = safeCount(course.questionCount);
   const estimatedWeeks = estimateWeeks(course.totalLevels);
   const goals = courseLearningGoals(course.name);
-  const recommendedTargets = recommendedAudience(course.difficulty).split(" · ");
+  const audienceLabel = courseAudienceLabel(course);
+  const recommendedTargets = audienceLabel.split(" · ");
 
   return (
     <main className="page-main">
@@ -72,7 +73,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
             <dl className="course-fact-grid" aria-label="과정 핵심 정보">
               <div>
                 <dt>추천 대상</dt>
-                <dd>{recommendedAudience(course.difficulty)}</dd>
+                <dd>{audienceLabel}</dd>
               </div>
               <div>
                 <dt>예상 학습기간</dt>
@@ -98,10 +99,10 @@ export default async function CourseDetailPage({ params }: PageProps) {
           </div>
 
           <aside className="enroll-panel course-detail-cta">
-            <span className="eyebrow">START LEARNING</span>
-            <h2>수강 신청</h2>
+            <span className="eyebrow">학습 시작</span>
+            <h2>내 학습에 추가</h2>
             <p>
-              내 학습에 추가하면 과정별 진도, 문제풀이, 복습 기록이 다른
+              이 과정을 추가하면 과정별 진도, 문제풀이, 복습 기록이 다른
               과정과 분리되어 관리됩니다.
             </p>
             <CourseEnrollAction
@@ -117,13 +118,13 @@ export default async function CourseDetailPage({ params }: PageProps) {
       <section className="section course-detail-content">
         <div className="shell narrow">
           <article className="course-detail-section">
-            <p className="eyebrow">OVERVIEW</p>
+            <p className="eyebrow">과정 소개</p>
             <h2>과정 소개</h2>
             <p>{description}</p>
           </article>
 
           <article className="course-detail-section">
-            <p className="eyebrow">RECOMMENDED FOR</p>
+            <p className="eyebrow">추천 대상</p>
             <h2>이런 분께 추천합니다</h2>
             <ul className="feature-list">
               {recommendedTargets.map((target) => (
@@ -133,7 +134,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
           </article>
 
           <article className="course-detail-section">
-            <p className="eyebrow">GOALS</p>
+            <p className="eyebrow">학습 목표</p>
             <h2>학습 목표</h2>
             <ul className="feature-list">
               {goals.map((goal) => (
@@ -145,7 +146,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
           <article className="course-detail-section">
             <div className="section-heading">
               <div>
-                <p className="eyebrow">CURRICULUM</p>
+                <p className="eyebrow">학습 구성</p>
                 <h2>커리큘럼</h2>
               </div>
               <span className="count-label">{curriculum.length}개 과목</span>
@@ -189,7 +190,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
           </article>
 
           <article className="course-detail-section">
-            <p className="eyebrow">COMPLETION</p>
+            <p className="eyebrow">수료 기준</p>
             <h2>평가 및 수료 기준</h2>
             <dl className="course-criteria-list">
               <div>
@@ -212,8 +213,8 @@ export default async function CourseDetailPage({ params }: PageProps) {
 
           <article className="course-detail-section course-detail-bottom-cta">
             <div>
-              <p className="eyebrow">READY TO START</p>
-              <h2>수강 신청 또는 학습 계속하기</h2>
+              <p className="eyebrow">다음 행동</p>
+              <h2>내 학습에 추가하고 이어서 학습하세요</h2>
               <p>
                 선택한 과정의 학습 기록은 다른 과정과 섞이지 않도록 별도로
                 저장됩니다.

@@ -43,6 +43,9 @@ export default async function CourseAnalyticsPage({
   const weakestTopicMeta = weakestTopic
     ? topicMetaById.get(weakestTopic.id)
     : undefined;
+  const weakestTopicLabel = weakestTopic
+    ? (weakestTopicMeta?.name ?? "확인할 주제")
+    : null;
   const weakestTopicParams = weakestTopic
     ? new URLSearchParams({ topicId: weakestTopic.id, count: "10" })
     : undefined;
@@ -72,15 +75,15 @@ export default async function CourseAnalyticsPage({
 
         <section className="analytics-overview-panel" aria-label="과정 분석 요약">
           <div>
-            <p className="eyebrow">과정 학습 신호</p>
+            <p className="eyebrow">과정 학습 결과</p>
             <h2>
               {stats.totalQuestions
                 ? `현재 정답률 ${stats.overallAccuracy}%`
                 : "이 과정의 학습 기록이 아직 없습니다"}
             </h2>
             <p>
-              분모가 없는 지표는 안전하게 0으로 표시합니다. 학습 기록이 쌓이면
-              취약 과목과 주제를 더 정확하게 추천합니다.
+              아직 풀이가 없는 지표는 0으로 표시합니다. 문제를 풀면 취약
+              과목과 주제를 바로 확인할 수 있습니다.
             </p>
           </div>
           <dl>
@@ -109,11 +112,11 @@ export default async function CourseAnalyticsPage({
             <h2>우선 확인할 취약 영역</h2>
             {weakestTopic ? (
               <p>
-                {weakestTopicMeta?.name ?? weakestTopic.id} 정답률이{" "}
+                {weakestTopicLabel} 정답률이{" "}
                 {weakestTopic.accuracy}%입니다. 해당 주제 문제를 먼저 풀어보세요.
               </p>
             ) : (
-              <p>주제별 분석은 문제풀이 기록이 쌓이면 표시됩니다.</p>
+              <p>문제를 풀면 주제별 취약 영역이 표시됩니다.</p>
             )}
           </div>
           {weakestTopic && weakestTopicParams ? (
@@ -130,6 +133,37 @@ export default async function CourseAnalyticsPage({
           )}
         </section>
 
+        <section className="analytics-learner-answer-panel section-block" aria-label="학습 상태 핵심 질문">
+          <div>
+            <span>01</span>
+            <strong>어디까지 했지?</strong>
+            <p>단계 완료율 {stats.levelCompletionRate}% · 최근 7일 {stats.recent7Days}문제</p>
+          </div>
+          <div>
+            <span>02</span>
+            <strong>다음은 뭘 하지?</strong>
+            <p>
+              {weakestTopic
+                ? `${weakestTopicLabel} 문제부터 보완`
+                : "과정 문제 10개를 풀어 취약 영역 찾기"}
+            </p>
+          </div>
+          <div>
+            <span>03</span>
+            <strong>얼마나 남았지?</strong>
+            <p>전체 정답률 {stats.overallAccuracy}% · 이 과정 기준으로 계속 집계</p>
+          </div>
+          <div>
+            <span>04</span>
+            <strong>어디가 약하지?</strong>
+            <p>
+              {weakestTopic
+                ? `최저 정답률 ${weakestTopic.accuracy}% 영역 우선`
+                : `반복 오답 ${stats.repeatedWrongCount}문제 확인`}
+            </p>
+          </div>
+        </section>
+
         <section className="analytics-action-strip section-block" aria-label="과정 분석 다음 행동">
           <Link
             className="analytics-action-card analytics-action-card-primary"
@@ -142,13 +176,13 @@ export default async function CourseAnalyticsPage({
             <span>01 · 취약 영역</span>
             <strong>
               {weakestTopic
-                ? weakestTopicMeta?.name ?? weakestTopic.id
-                : "분석 데이터 준비 중"}
+                ? weakestTopicLabel
+                : "학습 기록이 더 필요해요"}
             </strong>
             <p>
               {weakestTopic
                 ? `정답률 ${weakestTopic.accuracy}% 영역을 먼저 보완하세요.`
-                : "문제풀이 기록이 쌓이면 우선 영역을 추천합니다."}
+                : "문제를 풀면 우선 보완할 영역을 추천합니다."}
             </p>
           </Link>
           <Link
@@ -162,7 +196,7 @@ export default async function CourseAnalyticsPage({
           <Link className="analytics-action-card" href="/reviews">
             <span>03 · 복습 연결</span>
             <strong>오늘의 복습으로 이동</strong>
-            <p>반복 오답과 예정 복습을 정리해 취약 신호를 줄입니다.</p>
+            <p>반복 오답과 예정 복습을 정리해 취약 영역을 줄입니다.</p>
           </Link>
         </section>
 
@@ -173,7 +207,7 @@ export default async function CourseAnalyticsPage({
             title="과목별 정답률"
             rows={stats.bySubject.map((row) => ({
               ...row,
-              label: subjectNameById.get(row.id) ?? row.id,
+              label: subjectNameById.get(row.id) ?? "과목 정보 확인 중",
               href:
                 row.id === "UNMAPPED"
                   ? undefined
@@ -191,7 +225,7 @@ export default async function CourseAnalyticsPage({
               if (topic?.subjectId) practiceParams.set("subjectId", topic.subjectId);
               return {
                 ...row,
-                label: topic?.name ?? row.id,
+                label: topic?.name ?? "주제 정보 확인 중",
                 href: `/practice/${course.slug}?${practiceParams.toString()}`,
               };
             })}
@@ -248,13 +282,13 @@ function Breakdown({
   weakFirst?: boolean;
 }) {
   return (
-    <section className="admin-panel analytics-panel">
+    <section className="learner-analytics-panel analytics-panel">
       <h2>{title}</h2>
       {rows.length ? (
         rows.map((row) => (
           <div className="bar-row analytics-action-row" key={row.id}>
             <div>
-              <strong>{row.label ?? row.id}</strong>
+              <strong>{row.label ?? "학습 영역"}</strong>
               <span>
                 {row.total}문제 · {row.accuracy}%
                 {weakFirst && row.accuracy < 70 ? " · 우선 복습 권장" : ""}

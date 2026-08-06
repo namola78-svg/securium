@@ -1,43 +1,42 @@
 import Link from "next/link";
 import type { CourseListItem } from "@/db/repositories";
 import {
+  courseAudienceLabel,
   courseDescription,
+  courseTypeLabel,
   estimateWeeks,
-  recommendedAudience,
   safeCount,
 } from "@/lib/course-display";
 
 export function CourseCard({ course }: { course: CourseListItem }) {
   const description = courseDescription(course.description);
-  const recommendedFor = recommendedAudience(course.difficulty);
+  const recommendedFor = courseAudienceLabel(course);
   const subjectCount = safeCount(course.subjectCount);
   const topicCount = safeCount(course.topicCount);
   const questionCount = safeCount(course.questionCount);
   const estimatedWeeks = estimateWeeks(course.totalLevels);
+  const typeLabel = courseTypeLabel(course);
   const available =
     course.active &&
     course.published &&
     (subjectCount > 0 || topicCount > 0 || questionCount > 0);
   const status = available ? "학습 가능" : "개설 예정";
+  const courseName = course.name || course.shortName || "이름 없는 과정";
 
   return (
     <article className="course-card" aria-labelledby={`course-${course.id}`}>
       <div className="course-card-top">
-        <span className="course-code" aria-label={`과정 코드 ${course.code}`}>
-          {course.code}
-        </span>
+        <span className="course-code">{typeLabel}</span>
         <span
           className={`course-status ${
-            status === "학습 가능" ? "available" : "planned"
+            available ? "available" : "planned"
           }`}
         >
           {status}
         </span>
       </div>
       <p className="eyebrow">{course.groupName}</p>
-      <h3 id={`course-${course.id}`}>
-        {course.name || course.shortName || "이름 없는 과정"}
-      </h3>
+      <h3 id={`course-${course.id}`}>{courseName}</h3>
       <p className="course-summary">{description}</p>
       <dl className="course-comparison-list">
         <div>

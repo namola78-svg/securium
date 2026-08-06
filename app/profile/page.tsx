@@ -51,9 +51,9 @@ function formatRoles(roles: string[]) {
   const labels: Record<string, string> = {
     ADMIN: "관리자",
     SUPER_ADMIN: "최고 관리자",
-    CONTENT_REVIEWER: "콘텐츠 검수자",
+    CONTENT_REVIEWER: "콘텐츠 확인 담당자",
     USER: "일반 사용자",
   };
 
-  return roles.map((role) => labels[role] ?? role).join(", ");
+  return roles.map((role) => labels[role] ?? "추가 권한").join(", ");
 }
