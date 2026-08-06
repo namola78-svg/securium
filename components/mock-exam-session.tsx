@@ -219,7 +219,7 @@ export function MockExamSession({
         ) : submitted ? (
           <div className="grade-panel">
             <strong>결과 공개 전</strong>
-            <p>관리자가 설정한 결과 공개 시점 이후에 채점 결과와 해설을 확인할 수 있습니다.</p>
+            <p>결과 공개 시점 이후에 채점 결과와 해설을 확인할 수 있습니다.</p>
           </div>
         ) : null}
         <div className="practice-actions">

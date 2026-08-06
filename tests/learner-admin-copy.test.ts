@@ -1,0 +1,38 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import test from "node:test";
+
+const learnerFiles = [
+  "app/courses/page.tsx",
+  "app/learn/[courseSlug]/subjects/[subjectId]/page.tsx",
+  "components/mock-exam-session.tsx",
+  "components/practice-session.tsx",
+  "app/practice/[courseSlug]/page.tsx",
+  "components/specialized-ai-review.tsx",
+];
+
+test("learner pages do not expose admin ownership in routine guidance", () => {
+  const combined = learnerFiles
+    .map((file) => readFileSync(file, "utf8"))
+    .join("\n");
+
+  for (const expected of [
+    "새 과정이 공개되면",
+    "이 과목의 레슨이 공개되면",
+    "결과 공개 시점 이후",
+    "검토 후 필요한 경우 반영됩니다",
+    "검수 해설",
+    "검수된 학습 콘텐츠",
+    "기존 채점 결과",
+  ]) {
+    assert.match(combined, new RegExp(expected));
+  }
+
+  assert.doesNotMatch(combined, /관리자가 공개한 과정/);
+  assert.doesNotMatch(combined, /관리자가 이 과목의 레슨/);
+  assert.doesNotMatch(combined, /관리자가 설정한 결과/);
+  assert.doesNotMatch(combined, /관리자가 확인합니다/);
+  assert.doesNotMatch(combined, /관리자 검수 해설/);
+  assert.doesNotMatch(combined, /관리자 검수 콘텐츠/);
+  assert.doesNotMatch(combined, /관리자 채점 결과/);
+});

@@ -262,7 +262,7 @@ export function PracticeSession({
     });
     setMessage(
       response.ok
-        ? "신고를 접수했습니다. 관리자가 확인합니다."
+        ? "신고를 접수했습니다. 검토 후 필요한 경우 반영됩니다."
         : "신고를 접수하지 못했습니다.",
     );
   }
@@ -380,7 +380,7 @@ export function PracticeSession({
         >
           <div className="grade-panel-heading">
             <div>
-              <p className="explanation-label">관리자 검수 해설</p>
+              <p className="explanation-label">검수 해설</p>
               <strong>{result.isCorrect ? "정답입니다." : "오답입니다."}</strong>
             </div>
             <span>점수 {result.score}점</span>
@@ -395,7 +395,7 @@ export function PracticeSession({
             <p className="muted-copy">검수 정보가 등록되지 않았습니다.</p>
           )}
           <p className="grade-context-copy">
-            아래 해설은 관리자 검수 콘텐츠입니다. AI 참고 해설은 이 해설을
+            아래 해설은 검수된 학습 콘텐츠입니다. AI 참고 해설은 이 해설을
             대체하지 않고 이해를 돕는 보조 설명으로만 표시됩니다.
           </p>
           <p>{publicCopy(result.explanation)}</p>

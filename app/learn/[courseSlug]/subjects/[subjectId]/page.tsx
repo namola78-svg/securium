@@ -150,7 +150,7 @@ async function ProtectedSubject({
           ) : (
             <div className="empty-state">
               <h3>공개된 이론 레슨이 없습니다.</h3>
-              <p>관리자가 이 과목의 레슨을 공개하면 여기에 표시됩니다.</p>
+              <p>이 과목의 레슨이 공개되면 여기에 표시됩니다.</p>
             </div>
           )}
         </div>

@@ -47,7 +47,7 @@ export default async function CoursesPage() {
         ) : (
           <EmptyState
             title="공개된 과정이 없습니다"
-            description="관리자가 공개한 과정이 생기면 이곳에 표시됩니다."
+            description="새 과정이 공개되면 이곳에서 바로 확인할 수 있습니다."
             action={{ href: "/", label: "홈으로 이동" }}
           />
         )}

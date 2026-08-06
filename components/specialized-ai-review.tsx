@@ -99,7 +99,7 @@ export function SpecializedAIReview({
             : "AI 보조 검토"}
       </button>
       <p className="sample-notice">
-        공식 점수나 관리자 채점 결과를 변경하지 않는 참고용 보조 기능입니다.
+        공식 점수나 기존 채점 결과를 변경하지 않는 참고용 보조 기능입니다.
       </p>
       {message ? (
         <p className="form-message error-state" role="alert">

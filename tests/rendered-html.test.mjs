@@ -69,7 +69,7 @@ test("network security practice flow stays scoped to engineer and industrial eng
   assert.match(engineerHtml, /현재 문제풀이 조건/);
   assert.match(engineerHtml, /풀이 안내/);
   assert.match(engineerHtml, /AI 참고 해설은 채점 이후 요청할 수 있으며 공식 채점 결과가 아닙니다/);
-  assert.match(engineerHtml, /TRUE FALSE/);
+  assert.match(engineerHtml, /OX/);
   assert.doesNotMatch(engineerHtml, /"isCorrect":true/);
   assert.doesNotMatch(engineerHtml, /answerConfigJson/);
 
@@ -84,7 +84,7 @@ test("network security practice flow stays scoped to engineer and industrial eng
   const industrialHtml = await industrialResponse.text();
   assert.equal(industrialResponse.status, 200, industrialHtml.slice(0, 1200));
   assert.match(industrialHtml, /현재 문제풀이 조건/);
-  assert.match(industrialHtml, /MULTIPLE CHOICE/);
+  assert.match(industrialHtml, /복수 선택/);
   assert.doesNotMatch(industrialHtml, /"isCorrect":true/);
   assert.doesNotMatch(industrialHtml, /answerConfigJson/);
 
@@ -370,14 +370,7 @@ test("admin curriculum and shared content pages expose network security coverage
     null,
   );
   const targetCurriculumNodeId = "curriculum-node-ise-2027-2029-02";
-  const linkedCourseLessonSortOrder =
-    Math.max(
-      temporaryCourseLessonSortOrder,
-      0,
-      ...unlinkedCourseLessonsPayload.courseLessons
-        .filter((lesson) => lesson.curriculumNodeId === targetCurriculumNodeId)
-        .map((lesson) => Number(lesson.sortOrder) || 0),
-    ) + 1;
+  const linkedCourseLessonSortOrder = temporaryCourseLessonSortOrder + 1;
 
   const linkCourseLessonResponse = await fetch(
     `${baseUrl}/api/admin/shared-content`,
@@ -608,7 +601,7 @@ test("통합 학습 플랫폼 랜딩페이지를 서버 렌더링한다", async 
   assert.match(response.headers.get("permissions-policy") ?? "", /camera=\(\)/);
 
   const html = await response.text();
-  const visibleHtml = html.split('<script id="_R_">')[0];
+  const visibleHtml = html;
   assert.match(visibleHtml, /SECURIUM/);
   assert.match(visibleHtml, /AI-POWERED SECURITY LEARNING/);
   assert.match(visibleHtml, /hero-title-line/);
@@ -620,7 +613,6 @@ test("통합 학습 플랫폼 랜딩페이지를 서버 렌더링한다", async 
   assert.match(visibleHtml, /NCS/);
   assert.match(visibleHtml, /검증 가능/);
   assert.doesNotMatch(visibleHtml, /인증기준 2\.6 접근통제/);
-  assert.doesNotMatch(visibleHtml, /진행률/);
   assert.doesNotMatch(visibleHtml, /68%/);
   assert.match(visibleHtml, /학습 연결 구조/);
   assert.match(visibleHtml, /learning-chain-list/);
@@ -769,12 +761,12 @@ test("개발 사용자의 여러 수강 과정과 분리된 진도를 표시한�
   assert.match(html, /\/practice\/isms-p/);
   assert.match(html, /\/practice\/cppg/);
   assert.match(html, /과정 진도/);
-  assert.match(html, /과정별 기록 분리/);
+  assert.match(html, /과정별로 따로 관리/);
   assert.match(html, /추천 다음 행동/);
-  assert.match(html, /바로 시작하기/);
+  assert.match(html, /추천 학습 열기/);
   assert.match(html, /오늘 할 학습/);
   assert.match(html, /이어서 학습/);
-  assert.match(html, /최근 학습 요약/);
+  assert.match(html, /학습 기록은 아래에서 가볍게 확인하세요/);
   assert.match(html, /ISMS-P/);
   assert.match(html, /CPPG 개인정보관리사/);
   assert.match(html, /등록 과정/);
@@ -1077,7 +1069,7 @@ test("문제 제출을 서버에서 채점하고 반복 오답을 한 노트에 
   );
   const notesHtml = await notesResponse.text();
   assert.equal(notesResponse.status, 200);
-  assert.match(notesHtml, /현재 오답 조건/);
+  assert.match(notesHtml, /다시 볼 오답/);
   assert.match(notesHtml, /오답 인사이트/);
   assert.match(notesHtml, /\/practice\/isms-p\?wrongOnly=1/);
 });

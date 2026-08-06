@@ -264,7 +264,7 @@ function PracticeContextSummary({
           지금 풀 문제를 구성했습니다.
         </p>
         <p className="practice-context-note">
-          채점 후에는 관리자 검수 해설을 먼저 확인하고, 필요한 경우 AI 근거
+          채점 후에는 검수 해설을 먼저 확인하고, 필요한 경우 AI 근거
           해설로 관련 기준과 개념을 이어서 확인하세요.
         </p>
       </div>
