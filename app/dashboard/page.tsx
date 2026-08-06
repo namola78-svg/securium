@@ -326,10 +326,10 @@ async function TodayPlanSection({
         </article>
         <article className="today-plan-card">
           <span className="badge">AI 추천</span>
-          <h3>{primaryRecommendation?.title ?? "첫 학습 기록을 만들어보세요"}</h3>
+          <h3>{primaryRecommendation?.title ?? "오늘 학습을 시작해보세요"}</h3>
           <p>
             {primaryRecommendation?.reason ??
-              "문제풀이와 이론 학습 기록이 쌓이면 AI가 다음 학습 후보를 더 정확하게 정리합니다."}
+              "관심 과정을 선택하면 이론, 문제, 복습 순서에 맞춰 다음 학습을 안내합니다."}
           </p>
           <Link className="text-link" href={primaryRecommendation?.href ?? "/courses"}>
             추천 학습 열기 →

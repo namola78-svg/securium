@@ -175,3 +175,12 @@ test("review page does not expose internal target ids as fallback titles", () =>
   assert.doesNotMatch(source, /`\\$\\{item\\.targetType\\} \\$\\{item\\.targetId\\}`/);
   assert.doesNotMatch(source, /topItem\\.questionTitle \\?\\? topItem\\.targetId/);
 });
+
+test("dashboard empty recommendation copy points to the next learning action", () => {
+  const source = readFileSync("app/dashboard/page.tsx", "utf8");
+
+  assert.match(source, /오늘 학습을 시작해보세요/);
+  assert.match(source, /다음 학습을 안내합니다/);
+  assert.doesNotMatch(source, /첫 학습 기록을 만들어보세요/);
+  assert.doesNotMatch(source, /기록이 쌓이면 AI가 다음 학습 후보/);
+});
