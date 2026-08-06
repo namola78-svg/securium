@@ -235,3 +235,12 @@ test("learner settings page does not reuse admin panel shell classes", () => {
   assert.doesNotMatch(source, /admin-panel settings-panel/);
   assert.match(styles, /\.learner-settings-panel/);
 });
+
+test("mock exam learner analysis cards do not reuse admin panel shell classes", () => {
+  const source = readFileSync("components/mock-exam-session.tsx", "utf8");
+  const styles = readFileSync("app/globals.css", "utf8");
+
+  assert.match(source, /exam-breakdown-panel/);
+  assert.doesNotMatch(source, /<article className="admin-panel">/);
+  assert.match(styles, /\.exam-breakdown-panel/);
+});

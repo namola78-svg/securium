@@ -7939,11 +7939,19 @@ textarea {
 .level-card,
 .recommendation-card,
 .today-plan-card,
-.analytics-card {
+.analytics-card,
+.exam-breakdown-panel {
   padding: 20px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--white);
+}
+
+.exam-breakdown-panel h2 {
+  margin: 0 0 14px;
+  color: var(--ink);
+  font-size: 20px;
+  letter-spacing: -0.035em;
 }
 
 .level-card {

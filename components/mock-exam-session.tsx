@@ -274,7 +274,7 @@ function ExamBreakdown({
   rows: Array<{ id: string; name: string; total: number; accuracy: number }>;
 }) {
   return (
-    <article className="admin-panel">
+    <article className="exam-breakdown-panel">
       <h2>{title}</h2>
       {rows.length ? (
         rows.map((row) => (
