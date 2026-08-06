@@ -539,8 +539,8 @@ async function SharedTheorySectionLoader({
     <section className="section-block">
       <div className="section-heading compact">
         <div>
-          <p className="eyebrow">추천 이론 학습</p>
-          <h2>이론 레슨으로 먼저 학습하기</h2>
+          <p className="eyebrow">추천 핵심 이론</p>
+          <h2>핵심 이론부터 학습하기</h2>
           <p>
             공식 커리큘럼을 따라가기 전에 핵심 이론부터 차근차근 확인할 수
             있습니다.
@@ -553,7 +553,7 @@ async function SharedTheorySectionLoader({
       </div>
       <ProgressBar
         value={sharedLessonSummary.progressPercent}
-        label="이론 레슨 진도"
+        label="핵심 이론 진도"
       />
       <div className="course-lesson-grid">
         {sharedLessonSummary.lessons.map((lesson) => (
@@ -593,8 +593,8 @@ function SharedTheorySectionFallback() {
     <section className="section-block" aria-live="polite">
       <div className="section-heading compact">
         <div>
-          <p className="eyebrow">이론 학습</p>
-          <h2>이론 레슨을 불러오고 있습니다</h2>
+          <p className="eyebrow">핵심 이론</p>
+          <h2>핵심 이론을 불러오고 있습니다</h2>
         </div>
       </div>
       <div className="card-skeleton" aria-hidden="true" />

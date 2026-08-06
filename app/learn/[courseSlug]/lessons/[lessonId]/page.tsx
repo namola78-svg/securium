@@ -71,7 +71,7 @@ export default async function LessonPage({
           >
             ← {publicCopy(lesson.subjectName)}
           </Link>
-          <p className="eyebrow">이론 레슨</p>
+          <p className="eyebrow">핵심 이론</p>
           <h1>{lessonTitle}</h1>
           <p>{lessonSummary}</p>
           <div className="lesson-meta">
@@ -79,11 +79,11 @@ export default async function LessonPage({
             <span>{topicName}</span>
             <span>예상 {lesson.estimatedMinutes}분</span>
             <span>
-              완료 정책{" "}
+              완료 방식{" "}
               {lesson.completionPolicy === "MANUAL"
                 ? "직접 완료"
                 : lesson.completionPolicy === "SCROLL_END"
-                  ? "본문 하단 도달"
+                  ? "본문 끝까지 학습"
                   : "최소 학습 조건"}
             </span>
             {lesson.isSample ? <span>학습 자료</span> : null}

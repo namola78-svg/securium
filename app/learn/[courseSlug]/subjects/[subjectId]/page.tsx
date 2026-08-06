@@ -60,7 +60,7 @@ async function ProtectedSubject({
           </Link>
           <p className="eyebrow">과목 학습</p>
           <h1>{subject.name}</h1>
-          <p>{subject.description}</p>
+          <p>{publicCopy(subject.description)}</p>
         </div>
       </section>
       <section className="section">
@@ -68,7 +68,7 @@ async function ProtectedSubject({
           <div className="section-heading compact">
             <div>
               <p className="eyebrow">주제 목록</p>
-              <h2>주제 목록</h2>
+              <h2>이 과목에서 다루는 주제</h2>
             </div>
           </div>
           <div className="topic-grid">
@@ -87,8 +87,8 @@ async function ProtectedSubject({
           </div>
           <div className="section-heading compact section-block">
             <div>
-              <p className="eyebrow">이론 레슨</p>
-              <h2>본문형 이론 레슨</h2>
+              <p className="eyebrow">핵심 이론</p>
+              <h2>본문형 핵심 이론</h2>
             </div>
             <span className="count-label">
               {theoryProgress.completedLessons}/{theoryProgress.totalLessons} 완료
@@ -96,7 +96,7 @@ async function ProtectedSubject({
           </div>
           <ProgressBar
             value={theoryProgress.progressPercent}
-            label="과목 이론 진도율"
+            label="과목 이론 진도"
           />
           {learningUnits.length ? (
             <div className="learning-unit-list">
@@ -142,15 +142,15 @@ async function ProtectedSubject({
                       ))}
                     </div>
                   ) : (
-                    <p className="empty-inline">공개된 레슨이 없습니다.</p>
+                    <p className="empty-inline">공개된 핵심 이론이 없습니다.</p>
                   )}
                 </section>
               ))}
             </div>
           ) : (
             <div className="empty-state">
-              <h3>공개된 이론 레슨이 없습니다.</h3>
-              <p>이 과목의 레슨이 공개되면 여기에 표시됩니다.</p>
+              <h3>공개된 핵심 이론이 없습니다.</h3>
+              <p>이 과목의 이론 콘텐츠가 공개되면 여기에 표시됩니다.</p>
             </div>
           )}
         </div>
