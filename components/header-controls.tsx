@@ -298,7 +298,7 @@ export function HeaderControls({ user }: HeaderControlsProps) {
           <button
             className="mobile-drawer-close"
             type="button"
-            aria-label="메뉴 닫기"
+            aria-label="모바일 메뉴 닫기"
             onClick={() => {
               closeMenus();
               window.requestAnimationFrame(() => menuButtonRef.current?.focus());
@@ -431,7 +431,7 @@ export function HeaderControls({ user }: HeaderControlsProps) {
         <button
           className="mobile-menu-backdrop"
           type="button"
-          aria-label="메뉴 닫기"
+          aria-label="메뉴 바깥 영역 닫기"
           onClick={closeMenus}
         />
       ) : null}
