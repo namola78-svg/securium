@@ -101,8 +101,9 @@ export default async function PracticePage({
           <p className="eyebrow">문제풀이</p>
           <h1>{course.shortName} 문제풀이</h1>
           <p>
-            답안을 제출하면 서버에서 채점하고 검수된 해설을 제공합니다. 정답
-            데이터는 제출 전 응답에 포함되지 않습니다.
+            답안을 제출하면 서버에서 채점하고 검수된 해설과 AI 참고 해설로
+            다음 복습 방향을 확인할 수 있습니다. 정답 데이터는 제출 전
+            응답에 포함되지 않습니다.
           </p>
         </div>
       </header>
@@ -261,6 +262,10 @@ function PracticeContextSummary({
         <p>
           {questionCount}개 문항을 불러왔습니다. 커리큘럼에서 진입한 경우 연결된
           과목과 주제를 기준으로 문제가 구성됩니다.
+        </p>
+        <p className="practice-context-note">
+          채점 후에는 관리자 검수 해설을 먼저 확인하고, 필요한 경우 AI 근거
+          해설로 관련 기준과 개념을 이어서 확인하세요.
         </p>
       </div>
       <div className="practice-context-tags" aria-label="적용된 필터">

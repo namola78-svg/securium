@@ -5983,6 +5983,12 @@ textarea {
   line-height: 1.7;
 }
 
+.practice-context-card .practice-context-note {
+  margin-top: 10px;
+  color: var(--ink-soft);
+  font-weight: 700;
+}
+
 .practice-context-card .text-link {
   justify-self: end;
 }
