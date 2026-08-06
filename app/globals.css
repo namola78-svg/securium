@@ -328,6 +328,10 @@ a {
 }
 
 @media (max-width: 680px) {
+  body:has(.mobile-bottom-nav) {
+    padding-bottom: calc(92px + env(safe-area-inset-bottom));
+  }
+
   .mobile-bottom-nav {
     position: fixed;
     right: max(10px, env(safe-area-inset-right));

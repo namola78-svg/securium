@@ -15,6 +15,8 @@ test("signed-in mobile header exposes app-like bottom navigation", () => {
   assert.match(source, /href: "\/profile", label: "마이"/);
   assert.match(source, /\{isSignedIn \? \(/);
   assert.match(styles, /\.mobile-bottom-nav\s*\{\s*display: none;/);
+  assert.match(styles, /body:has\(\.mobile-bottom-nav\)/);
+  assert.match(styles, /padding-bottom: calc\(92px \+ env\(safe-area-inset-bottom\)\)/);
   assert.match(styles, /@media \(max-width: 680px\)[\s\S]*?\.mobile-bottom-nav\s*\{/);
   assert.match(styles, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\)/);
   assert.match(styles, /min-height: 52px/);
