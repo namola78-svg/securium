@@ -4,6 +4,7 @@ import test from "node:test";
 
 const learnerFiles = [
   "app/courses/page.tsx",
+  "components/course-card.tsx",
   "app/learn/[courseSlug]/subjects/[subjectId]/page.tsx",
   "components/mock-exam-session.tsx",
   "components/practice-session.tsx",
@@ -35,4 +36,12 @@ test("learner pages do not expose admin ownership in routine guidance", () => {
   assert.doesNotMatch(combined, /관리자 검수 해설/);
   assert.doesNotMatch(combined, /관리자 검수 콘텐츠/);
   assert.doesNotMatch(combined, /관리자 채점 결과/);
+});
+
+test("public course cards do not expose internal course codes as primary labels", () => {
+  const source = readFileSync("components/course-card.tsx", "utf8");
+
+  assert.match(source, /전문 과정/);
+  assert.doesNotMatch(source, /aria-label=\{`과정 코드/);
+  assert.doesNotMatch(source, />\s*\{course\.code\}\s*<\/span>/);
 });

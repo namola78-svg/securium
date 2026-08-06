@@ -23,9 +23,7 @@ export function CourseCard({ course }: { course: CourseListItem }) {
   return (
     <article className="course-card" aria-labelledby={`course-${course.id}`}>
       <div className="course-card-top">
-        <span className="course-code" aria-label={`과정 코드 ${course.code}`}>
-          {course.code}
-        </span>
+        <span className="course-code">전문 과정</span>
         <span
           className={`course-status ${
             status === "학습 가능" ? "available" : "planned"
