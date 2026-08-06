@@ -49,7 +49,6 @@ test("learn pages expose learner-facing Korean copy instead of internal or mojib
     "완료 방식",
     "본문 끝까지 학습",
     "핵심 이론 이동",
-    "레슨 이동",
     "읽기 진도",
     "본문을 더 학습해주세요",
     "레슨 완료",

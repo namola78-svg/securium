@@ -73,9 +73,9 @@ test("course learn pages use learner-friendly section labels", () => {
   assert.doesNotMatch(overviewSource, /TODAY LEARNING|LEVEL PATH|THEORY FALLBACK/);
   assert.match(treeSource, /공식 커리큘럼 경로/);
   assert.match(treeSource, /커리큘럼 상세/);
-  assert.match(sharedLessonSource, /이론 레슨/);
-  assert.match(sharedLessonSource, /과정 맥락/);
-  assert.match(lessonSource, /이론 레슨/);
+  assert.match(sharedLessonSource, /핵심 이론/);
+  assert.match(sharedLessonSource, /학습 맥락/);
+  assert.match(lessonSource, /핵심 이론/);
   assert.match(subjectSource, /과목 학습/);
   assert.match(subjectSource, /주제 목록/);
 });

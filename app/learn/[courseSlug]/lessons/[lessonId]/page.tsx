@@ -111,7 +111,7 @@ export default async function LessonPage({
             initialLastPosition={lesson.lastPosition}
             completionPolicy={lesson.completionPolicy}
           />
-          <nav className="lesson-navigation" aria-label="레슨 이동">
+          <nav className="lesson-navigation" aria-label="핵심 이론 이동">
             {lesson.previousLesson ? (
               <Link
                 className="button button-ghost"

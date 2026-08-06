@@ -173,7 +173,7 @@ test("network security course lesson extensions render different course contexts
   );
   const engineerHtml = await engineerResponse.text();
   assert.equal(engineerResponse.status, 200, engineerHtml.slice(0, 1200));
-  assert.match(engineerHtml, /과정 맥락/);
+  assert.match(engineerHtml, /학습 맥락/);
   assert.match(engineerHtml, /로그 이벤트/);
   assert.match(engineerHtml, /차단 정책/);
   assert.doesNotMatch(engineerHtml, /기본 대응 방법/);
@@ -188,7 +188,7 @@ test("network security course lesson extensions render different course contexts
   );
   const industrialHtml = await industrialResponse.text();
   assert.equal(industrialResponse.status, 200, industrialHtml.slice(0, 1200));
-  assert.match(industrialHtml, /과정 맥락/);
+  assert.match(industrialHtml, /학습 맥락/);
   assert.match(industrialHtml, /기본 대응 방법/);
   assert.match(industrialHtml, /보안장비 역할/);
   assert.doesNotMatch(industrialHtml, /로그 이벤트/);
@@ -603,18 +603,18 @@ test("통합 학습 플랫폼 랜딩페이지를 서버 렌더링한다", async 
   const html = await response.text();
   const visibleHtml = html;
   assert.match(visibleHtml, /SECURIUM/);
-  assert.match(visibleHtml, /AI-POWERED SECURITY LEARNING/);
+  assert.match(visibleHtml, /AI 기반 정보보호 학습/);
   assert.match(visibleHtml, /hero-title-line/);
   assert.match(visibleHtml, /hero-panel/);
-  assert.match(visibleHtml, /공식 기준 기반 학습 코어/);
-  assert.match(visibleHtml, /Knowledge-linked Learning/);
+  assert.match(visibleHtml, /공식 기준 기반 학습 요약/);
+  assert.match(visibleHtml, /공식 기준 기반 학습 흐름/);
   assert.match(visibleHtml, /signal-list/);
   assert.match(visibleHtml, /KISA/);
   assert.match(visibleHtml, /NCS/);
   assert.match(visibleHtml, /검증 가능/);
   assert.doesNotMatch(visibleHtml, /인증기준 2\.6 접근통제/);
   assert.doesNotMatch(visibleHtml, /68%/);
-  assert.match(visibleHtml, /Knowledge Engine/);
+  assert.match(visibleHtml, /학습 연결 구조/);
   assert.match(visibleHtml, /공식 기준이 문제와 AI 근거까지 이어집니다/);
   assert.match(visibleHtml, /learning-chain-list/);
   assert.match(visibleHtml, /KISA/);
@@ -629,7 +629,7 @@ test("통합 학습 플랫폼 랜딩페이지를 서버 렌더링한다", async 
   assert.match(visibleHtml, /맞춤 복습/);
   assert.match(visibleHtml, /검증 가능한 AI 해설/);
   assert.match(visibleHtml, /공식 근거/);
-  assert.match(visibleHtml, /근거 표시 · 검수 상태 확인/);
+  assert.match(visibleHtml, /출처 표시 · 근거 확인 가능/);
   assert.match(visibleHtml, /ISMS-P/);
   assert.match(visibleHtml, /학습자 대시보드/);
   assert.match(visibleHtml, /learner-dashboard-card/);
@@ -663,7 +663,7 @@ test("로그인 화면이 플랫폼 소유 인증 경로를 사용한다", async
   const response = await fetch(`${baseUrl}/login`);
   assert.equal(response.status, 200);
   const html = await response.text();
-  assert.match(html, /안전하게 로그인/);
+  assert.match(html, /Google로 계속하기|Sign in with ChatGPT/);
   assert.match(html, /SECURIUM/);
   assert.match(html, /다시 만나서 반갑습니다/);
 });
@@ -765,9 +765,9 @@ test("개발 사용자의 여러 수강 과정과 분리된 진도를 표시한�
   assert.match(html, /\/practice\/cppg/);
   assert.match(html, /과정 진도/);
   assert.match(html, /과정별로 따로 관리/);
-  assert.match(html, /추천 다음 행동/);
+  assert.match(html, /지금 해야 할 일/);
   assert.match(html, /추천 학습 열기/);
-  assert.match(html, /오늘 할 학습/);
+  assert.match(html, /오늘 바로 할 일/);
   assert.match(html, /이어서 학습/);
   assert.match(html, /학습 기록은 아래에서 가볍게 확인하세요/);
   assert.match(html, /ISMS-P/);
@@ -982,7 +982,7 @@ test("본문형 레슨을 조회하고 사용자별 완료를 멱등 처리한�
   );
   const html = await pageResponse.text();
   assert.equal(pageResponse.status, 200, html.slice(0, 1200));
-  assert.match(html, /본문형 이론 레슨|이론 레슨/);
+  assert.match(html, /핵심 이론/);
   assert.doesNotMatch(html, /\[개발용 샘플 본문\]/);
   assert.match(html, /학습용 콘텐츠|학습 기록 원칙/);
 

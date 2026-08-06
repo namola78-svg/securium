@@ -21,7 +21,7 @@ test("today plan uses learner cards for goal, AI recommendation, review, and set
 
   assert.match(source, /today-plan-card today-plan-card-primary/);
   assert.match(source, /오늘 목표/);
-  assert.match(source, /AI 추천/);
+  assert.match(source, /다음 추천/);
   assert.match(source, /복습/);
   assert.match(source, /학습 설정/);
   assert.match(source, /추천 학습/);
@@ -56,7 +56,9 @@ test("learner dashboard answers the four core learner questions before metrics",
   assert.match(source, /다음은\?/);
   assert.match(source, /시험 준비는\?/);
   assert.match(source, /약한 부분은\?/);
-  assert.match(source, /오늘은 이것부터 하면 됩니다/);
+  assert.match(source, /오늘 할 일만 모았습니다/);
+  assert.match(source, /지금 해야 할 일/);
+  assert.match(source, /오늘 바로 할 일/);
   assert.match(styles, /\.dashboard-action-rail/);
 });
 

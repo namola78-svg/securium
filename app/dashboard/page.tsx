@@ -117,11 +117,11 @@ async function DashboardHero({
     <section className="dashboard-intro dashboard-hero">
       <div>
         <p className="eyebrow">오늘의 학습 홈</p>
-        <h1>{displayName}님, 오늘은 이것부터 하면 됩니다</h1>
+        <h1>{displayName}님, 오늘 할 일만 모았습니다</h1>
         <p>
           {currentCourse
-            ? `${currentCourse.courseName}의 이어서 학습, 복습, 문제풀이를 한 화면에서 정리했습니다.`
-            : "관심 있는 과정을 선택하면 오늘 할 학습, 복습, 취약 영역을 자동으로 정리합니다."}
+            ? `${currentCourse.courseName}의 이어서 학습, 복습, 문제풀이 중 지금 먼저 할 행동을 정리했습니다.`
+            : "관심 있는 과정을 선택하면 오늘 할 일, 복습, 취약 영역을 자동으로 정리합니다."}
         </p>
         <dl className="dashboard-action-rail" aria-label="오늘의 학습 판단 기준">
           <div>
@@ -142,7 +142,7 @@ async function DashboardHero({
           </div>
         </dl>
         <div className="dashboard-next-action">
-          <span className="badge">추천 다음 행동</span>
+          <span className="badge">지금 해야 할 일</span>
           <div>
             <strong>{nextAction.title}</strong>
             <p>{nextAction.reason}</p>
@@ -161,11 +161,11 @@ async function DashboardHero({
         </div>
       </div>
       <aside className="dashboard-focus-card" aria-label="오늘의 학습 요약">
-        <span className="badge">오늘의 초점</span>
+        <span className="badge">오늘 진행 상황</span>
         <strong>{currentCourse?.courseName ?? "학습 과정 선택"}</strong>
         <p>
           {currentCourse
-            ? "학습, 복습, 문제풀이를 한 과정 안에서 이어갑니다."
+            ? "진도, 오늘 문제, 복습 예정 항목을 한 과정 안에서 이어갑니다."
             : "첫 과정을 선택하면 개인화된 학습 흐름이 시작됩니다."}
         </p>
         <dl className="dashboard-focus-list">
@@ -294,8 +294,8 @@ async function TodayPlanSection({
       <div className="section-heading compact">
         <div>
           <p className="eyebrow">오늘의 학습 계획</p>
-          <h2>오늘 할 학습</h2>
-          <p>복습 예정, 취약 영역, 최근 학습 흐름을 기준으로 지금 할 일을 정리합니다.</p>
+          <h2>오늘 바로 할 일</h2>
+          <p>복습 예정, 취약 영역, 최근 학습 흐름을 기준으로 다음 행동을 먼저 보여줍니다.</p>
         </div>
         <Link className="text-link" href="/reviews">
           복습 전체 보기 →
@@ -325,7 +325,7 @@ async function TodayPlanSection({
           </Link>
         </article>
         <article className="today-plan-card">
-          <span className="badge">AI 추천</span>
+          <span className="badge">다음 추천</span>
           <h3>{primaryRecommendation?.title ?? "오늘 학습을 시작해보세요"}</h3>
           <p>
             {primaryRecommendation?.reason ??
@@ -391,7 +391,7 @@ function TodayPlanFallback() {
       <div className="section-heading compact">
         <div>
           <p className="eyebrow">오늘의 학습 계획</p>
-          <h2>오늘 할 학습</h2>
+          <h2>오늘 바로 할 일</h2>
         </div>
         <Link className="text-link" href="/reviews">
           복습 전체 보기 →

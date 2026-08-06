@@ -166,7 +166,7 @@ test("문제풀이 UI는 답안 제출 전 생성된 AI 해설 패널을 노출�
   );
   const html = await response.text();
   assert.equal(response.status, 200, html.slice(0, 800));
-  assert.match(html, /답안을 제출하면 서버에서 채점하고 검수된 해설/);
+  assert.match(html, /답안을 제출하면 자동 채점 결과와 기준 해설/);
   assert.match(html, /AI 참고 해설/);
   assert.match(html, /제출 후 가능/);
   assert.doesNotMatch(html, /class="ai-explanation-panel/);

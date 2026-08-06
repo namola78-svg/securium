@@ -280,7 +280,7 @@ test("ACTIVE 커리큘럼 트리는 수강자의 학습 화면에 읽기 전용 
   const response = await fetch(`${baseUrl}/learn/isms-p`, { headers: user });
   const html = await response.text();
   assert.equal(response.status, 200, html.slice(0, 1000));
-  assert.match(html, /OFFICIAL CURRICULUM/);
+  assert.match(html, /커리큘럼 경로/);
   assert.match(html, /공식 커리큘럼/);
   assert.match(html, /ISMS-P 2027/);
   assert.match(html, /개 항목/);
