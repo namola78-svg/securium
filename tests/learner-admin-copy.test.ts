@@ -159,3 +159,10 @@ test("learner curriculum tree uses product-ready empty action copy", () => {
   assert.doesNotMatch(source, /학습 자료를 준비하고 있습니다/);
   assert.doesNotMatch(source, /순차적으로 보강됩니다/);
 });
+
+test("practical code analysis uses learner-facing Korean labels", () => {
+  const source = readFileSync("components/code-analysis-workbench.tsx", "utf8");
+
+  assert.match(source, /코드 분석 실습/);
+  assert.doesNotMatch(source, /CODE ANALYSIS/);
+});
