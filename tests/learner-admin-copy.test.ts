@@ -81,3 +81,24 @@ test("public courses directory uses learner-facing labels", () => {
   assert.doesNotMatch(source, /COURSE DIRECTORY/);
   assert.doesNotMatch(source, /COURSE GROUP/);
 });
+
+test("public course detail uses learner-facing section labels", () => {
+  const source = readFileSync("app/courses/[courseSlug]/page.tsx", "utf8");
+
+  for (const label of [
+    "학습 시작",
+    "과정 소개",
+    "추천 대상",
+    "학습 목표",
+    "학습 구성",
+    "수료 기준",
+    "다음 행동",
+  ]) {
+    assert.match(source, new RegExp(label));
+  }
+
+  assert.doesNotMatch(
+    source,
+    /START LEARNING|OVERVIEW|RECOMMENDED FOR|GOALS|CURRICULUM|COMPLETION|READY TO START/,
+  );
+});
