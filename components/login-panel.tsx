@@ -133,7 +133,7 @@ export function LoginPanel({ returnTo, error = "", notice = "" }: LoginPanelProp
               type="button"
               onClick={() => {
                 setForgotNotice(
-                  "비밀번호 재설정은 운영 환경의 Supabase 메일 설정 연결 후 사용할 수 있습니다.",
+                  "비밀번호 재설정 이메일 발송은 준비되는 대로 제공됩니다.",
                 );
               }}
             >

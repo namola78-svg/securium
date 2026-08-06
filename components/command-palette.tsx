@@ -82,7 +82,7 @@ const operatorCommands: CommandItem[] = [
   },
   {
     title: "커리큘럼 관리",
-    description: "공식 출제기준 트리와 CourseLesson 커버리지를 점검합니다.",
+    description: "공식 출제기준 트리와 학습 콘텐츠 연결 상태를 점검합니다.",
     href: "/admin/curriculum",
     keywords: ["curriculum", "tree", "coverage", "커리큘럼"],
     scope: "관리자",
