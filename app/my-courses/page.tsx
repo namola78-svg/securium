@@ -19,8 +19,8 @@ export default async function MyCoursesPage() {
           <p className="eyebrow">내 학습</p>
           <h1>내 학습</h1>
           <p>
-            수강 상태를 관리하고 각 과정의 문제풀이와 학습 공간으로 이동할 수
-            있습니다.
+            등록한 과정을 확인하고 이어서 학습, 문제풀이, 복습으로 바로
+            이동할 수 있습니다.
           </p>
         </div>
       </section>
@@ -50,7 +50,7 @@ export default async function MyCoursesPage() {
                       className="button button-dark button-small"
                       href={`/learn/${enrollment.courseSlug}`}
                     >
-                      학습 공간
+                      이어서 학습
                     </Link>
                     <form action="/api/enrollments/status" method="post">
                       <input

@@ -179,7 +179,7 @@ async function DashboardHero({
           </div>
           <div>
             <dt>전체 진도</dt>
-            <dd>{currentCourse ? `${currentCourse.progressPercent}%` : "대기 중"}</dd>
+            <dd>{currentCourse ? `${currentCourse.progressPercent}%` : "과정 선택 전"}</dd>
           </div>
         </dl>
       </aside>
