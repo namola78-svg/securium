@@ -6,7 +6,7 @@ This checklist defines what to watch after a SECURIUM production release. It doe
 
 | Window | Goal | Owner | Result |
 | --- | --- | --- | --- |
-| First 5 minutes | Confirm the release is reachable and authentication still works. | `namola78-svg` | Pending monitoring window |
+| First 5 minutes | Confirm the release is reachable and authentication still works. | `namola78-svg` | PASS on 2026-08-07 |
 | First 30 minutes | Confirm learner and admin core flows remain stable. | `namola78-svg` | Pending monitoring window |
 | First 24 hours | Watch for delayed auth, DB, AI, and analytics issues. | `namola78-svg` | Pending monitoring window |
 
@@ -14,12 +14,12 @@ This checklist defines what to watch after a SECURIUM production release. It doe
 
 | Check | Expected | Result |
 | --- | --- | --- |
-| Production URL | `https://securium.vercel.app` loads. | TBD |
-| Public landing page | Hero, CTA, and navigation render. | TBD |
-| Login | User can sign in. | TBD |
-| Logout | User can sign out and protected pages redirect. | TBD |
-| Vercel deployment status | Latest production deployment remains ready. | TBD |
-| Error spike | No obvious 5xx spike in hosting logs. | TBD |
+| Production URL | `https://securium.vercel.app` loads. | PASS |
+| Public landing page | Hero, CTA, and navigation render. | PASS |
+| Login | User can sign in. | Not rerun during this 5-minute check; authenticated session remained valid |
+| Logout | User can sign out and protected pages redirect. | Not rerun during this 5-minute check; protected logged-out redirects passed by HTTP smoke |
+| Vercel deployment status | Latest production deployment remains ready. | PASS - `https://securium-cyyuvvntq-namola78-svgs-projects.vercel.app` |
+| Error spike | No obvious 5xx spike in hosting logs. | PASS - browser console errors were not observed; hosting log review not performed |
 
 ## First 30 minutes
 
@@ -89,7 +89,7 @@ Monitoring owner:
 `namola78-svg`
 
 5-minute result:
-- 
+- PASS on 2026-08-07. Production URL, public routes, logged-out protected redirects, authenticated dashboard, admin curriculum, and admin audit logs were checked. No global error card or browser console error was observed.
 
 30-minute result:
 - 
