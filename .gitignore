@@ -44,6 +44,10 @@ next-env.d.ts
 /outputs/
 /work/
 
+# Codex-local working notes and source references
+/.codex/
+/references/
+
 # local database, generated uploads, and temporary imports
 *.sqlite
 *.sqlite3
