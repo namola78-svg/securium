@@ -104,6 +104,8 @@ async function assertPostgresPrerequisites(sql) {
     "questions",
     "question_choices",
     "question_courses",
+    "question_subjects",
+    "question_topics",
     "question_versions",
     "content_question_links",
     "contents",

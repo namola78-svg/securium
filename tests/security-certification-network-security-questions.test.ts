@@ -282,6 +282,8 @@ test("network security question seed generates additive SQL for D1 and Postgres"
   assert.match(d1Sql, /INSERT OR IGNORE INTO "questions"/);
   assert.match(d1Sql, /INSERT OR IGNORE INTO "question_choices"/);
   assert.match(d1Sql, /INSERT OR IGNORE INTO "question_courses"/);
+  assert.match(d1Sql, /INSERT OR IGNORE INTO "question_subjects"/);
+  assert.match(d1Sql, /INSERT OR IGNORE INTO "question_topics"/);
   assert.match(d1Sql, /INSERT OR IGNORE INTO "content_question_links"/);
   assert.doesNotMatch(d1Sql, /\bBEGIN;/);
   assert.doesNotMatch(d1Sql, /\bCOMMIT;/);
@@ -289,6 +291,8 @@ test("network security question seed generates additive SQL for D1 and Postgres"
   assert.match(postgresSql, /\bBEGIN;/);
   assert.match(postgresSql, /\bCOMMIT;/);
   assert.match(postgresSql, /INSERT INTO "questions"/);
+  assert.match(postgresSql, /INSERT INTO "question_subjects"/);
+  assert.match(postgresSql, /INSERT INTO "question_topics"/);
   assert.match(postgresSql, /ON CONFLICT \("id"\) DO UPDATE SET/);
   assert.match(
     postgresSql,
