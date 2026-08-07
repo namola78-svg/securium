@@ -59,7 +59,10 @@ async function verifyPostgres() {
 
 function buildVerificationSql(dialect) {
   const countCast = dialect === "postgres" ? "::int" : "";
-  const questionPattern = "network-security-official-sample-q%";
+  const questionPatterns = [
+    "network-security-official-sample-q%",
+    "network-security-arp-spoofing-slice-q%",
+  ];
   const courseIds = NETWORK_SECURITY_COURSE_IDS.map((courseId) =>
     sqlString(courseId),
   ).join(",");
@@ -71,7 +74,7 @@ function buildVerificationSql(dialect) {
 WITH network_questions AS (
   SELECT id, type, status, is_sample
   FROM questions
-  WHERE id LIKE ${sqlString(questionPattern)}
+  WHERE ${questionPatterns.map((pattern) => `id LIKE ${sqlString(pattern)}`).join(" OR ")}
 ),
 summary AS (
   SELECT

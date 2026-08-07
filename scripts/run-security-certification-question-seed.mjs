@@ -42,7 +42,10 @@ const domains = {
     label: "INFORMATION_SECURITY_GENERAL",
     contentId: INFORMATION_SECURITY_GENERAL_CONTENT_ID,
     courseIds: INFORMATION_SECURITY_GENERAL_COURSE_IDS,
-    questionPattern: "information-security-general-official-sample-q%",
+    questionPatterns: [
+      "information-security-general-official-sample-q%",
+      "information-security-general-cia-slice-q%",
+    ],
     tempPrefix: "securium-information-security-general-questions-",
     tempFileName: "information-security-general-questions.d1.sql",
     applicationName: "securium-information-security-general-question-seed",
@@ -299,7 +302,7 @@ function buildVerificationSql(config, dialect) {
 WITH scoped_questions AS (
   SELECT id, type, status, is_sample
   FROM questions
-  WHERE id LIKE ${sqlString(config.questionPattern)}
+  WHERE ${questionPatternPredicate(config)}
 ),
 summary AS (
   SELECT
@@ -476,6 +479,11 @@ function assertCount(rowMap, key, expected, config) {
       `${key}: expected ${expected}, got ${actual}`,
     );
   }
+}
+
+function questionPatternPredicate(config) {
+  const patterns = config.questionPatterns ?? [config.questionPattern];
+  return patterns.map((pattern) => `id LIKE ${sqlString(pattern)}`).join(" OR ");
 }
 
 function argValue(prefix) {
