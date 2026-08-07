@@ -42,7 +42,10 @@ export default async function PracticePage({
           <EmptyState
             title="수강 등록이 필요합니다"
             description="과정 상세에서 내 학습에 추가한 뒤 문제풀이를 시작할 수 있습니다."
-            action={{ href: `/courses/${course.slug}`, label: "과정 자세히 보기" }}
+            action={{
+              href: `/courses/${course.slug}`,
+              label: "과정 자세히 보기",
+            }}
             secondaryAction={{ href: "/courses", label: "과정 둘러보기" }}
           />
         </div>
@@ -133,12 +136,7 @@ export default async function PracticePage({
             </label>
             <label>
               주제
-              <select
-                name="topicId"
-                defaultValue={
-                  typeof query.topicId === "string" ? query.topicId : ""
-                }
-              >
+              <select name="topicId" defaultValue={topicId ?? ""}>
                 <option value="">전체 주제</option>
                 {topics.map((topic) => (
                   <option key={topic.id} value={topic.id}>
@@ -273,8 +271,8 @@ function PracticeContextSummary({
           지금 풀 문제를 구성했습니다.
         </p>
         <p className="practice-context-note">
-          채점 후에는 기준 해설을 먼저 확인하고, 필요한 경우 AI 근거
-          해설로 관련 기준과 개념을 이어서 확인하세요.
+          채점 후에는 기준 해설을 먼저 확인하고, 필요한 경우 AI 근거 해설로
+          관련 기준과 개념을 이어서 확인하세요.
         </p>
       </div>
       <div className="practice-context-tags" aria-label="적용된 필터">
