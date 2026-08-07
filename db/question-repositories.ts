@@ -152,6 +152,62 @@ export async function listPublicQuestions(filters: QuestionFilters) {
   }));
 }
 
+export async function listQuestionFilterSubjectsForCourse(courseId: string) {
+  return getDb()
+    .selectDistinct({
+      id: subjects.id,
+      name: subjects.name,
+      code: subjects.code,
+      displayOrder: subjects.displayOrder,
+    })
+    .from(subjects)
+    .innerJoin(questionSubjects, eq(questionSubjects.subjectId, subjects.id))
+    .innerJoin(questions, eq(questionSubjects.questionId, questions.id))
+    .innerJoin(questionCourses, eq(questionCourses.questionId, questions.id))
+    .innerJoin(courses, eq(questionCourses.courseId, courses.id))
+    .where(
+      and(
+        eq(questionCourses.courseId, courseId),
+        eq(questions.status, "PUBLISHED"),
+        eq(courses.active, true),
+        eq(courses.published, true),
+        isNull(courses.deletedAt),
+        isNull(subjects.deletedAt),
+      ),
+    )
+    .orderBy(asc(subjects.displayOrder), asc(subjects.name));
+}
+
+export async function listQuestionFilterTopicsForSubject(
+  courseId: string,
+  subjectId: string,
+) {
+  return getDb()
+    .selectDistinct({
+      id: topics.id,
+      name: topics.name,
+      code: topics.code,
+      displayOrder: topics.displayOrder,
+    })
+    .from(topics)
+    .innerJoin(questionTopics, eq(questionTopics.topicId, topics.id))
+    .innerJoin(questions, eq(questionTopics.questionId, questions.id))
+    .innerJoin(questionCourses, eq(questionCourses.questionId, questions.id))
+    .innerJoin(courses, eq(questionCourses.courseId, courses.id))
+    .where(
+      and(
+        eq(questionCourses.courseId, courseId),
+        eq(topics.subjectId, subjectId),
+        eq(questions.status, "PUBLISHED"),
+        eq(courses.active, true),
+        eq(courses.published, true),
+        isNull(courses.deletedAt),
+        isNull(topics.deletedAt),
+      ),
+    )
+    .orderBy(asc(topics.displayOrder), asc(topics.name));
+}
+
 export async function getQuestionForGrading(
   questionId: string,
   courseId: string,

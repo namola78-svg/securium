@@ -4,10 +4,10 @@ import { EmptyState } from "@/components/state-ui";
 import {
   getEnrollmentForCourse,
   getPublicCourseBySlug,
-  listSubjectsForCourse,
-  listTopicsForSubject,
 } from "@/db/repositories";
 import {
+  listQuestionFilterSubjectsForCourse,
+  listQuestionFilterTopicsForSubject,
   listPublicQuestions,
   listWrongQuestionIds,
 } from "@/db/question-repositories";
@@ -50,11 +50,20 @@ export default async function PracticePage({
     );
   }
 
-  const subjects = await listSubjectsForCourse(course.id);
-  const subjectId =
+  const subjects = await listQuestionFilterSubjectsForCourse(course.id);
+  const requestedSubjectId =
     typeof query.subjectId === "string" ? query.subjectId : undefined;
-  const topics = subjectId ? await listTopicsForSubject(subjectId) : [];
-  const topicId = typeof query.topicId === "string" ? query.topicId : undefined;
+  const subjectId = subjects.some((subject) => subject.id === requestedSubjectId)
+    ? requestedSubjectId
+    : undefined;
+  const topics = subjectId
+    ? await listQuestionFilterTopicsForSubject(course.id, subjectId)
+    : [];
+  const requestedTopicId =
+    typeof query.topicId === "string" ? query.topicId : undefined;
+  const topicId = topics.some((topic) => topic.id === requestedTopicId)
+    ? requestedTopicId
+    : undefined;
   const selectedSubject = subjects.find((subject) => subject.id === subjectId);
   const selectedTopic = topics.find((topic) => topic.id === topicId);
   const wrongQuestionIds =
