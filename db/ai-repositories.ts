@@ -770,12 +770,13 @@ export async function generateQuestionAIExplanation(input: {
           reviewedAt: question.publishedAt,
         }
       : null;
-  const relatedContexts = question.topicId
-    ? await retrieval.searchByTopic(input.courseId, question.topicId, {
-        query: "",
-        limit: 8,
-      })
-    : await retrieval.searchByCourse(input.courseId, { query: "", limit: 8 });
+  const relatedContexts = await listQuestionExplanationContexts({
+    retrieval,
+    courseId: input.courseId,
+    topicId: question.topicId,
+    query: buildQuestionRetrievalQuery(question),
+    limit: 8,
+  });
   const contexts = deduplicateContexts(
     [primaryContext, ...relatedContexts].filter(
       (context): context is RetrievalContext => context !== null,
@@ -832,6 +833,39 @@ export async function generateQuestionAIExplanation(input: {
     retentionUntil,
   });
   return result;
+}
+
+async function listQuestionExplanationContexts(input: {
+  retrieval: DatabaseRetrievalProvider;
+  courseId: string;
+  topicId: string | null;
+  query: string;
+  limit: number;
+}) {
+  try {
+    return input.topicId
+      ? await input.retrieval.searchByTopic(input.courseId, input.topicId, {
+          query: input.query,
+          limit: input.limit,
+        })
+      : await input.retrieval.searchByCourse(input.courseId, {
+          query: input.query,
+          limit: input.limit,
+        });
+  } catch {
+    // Question explanations already include the reviewed question explanation
+    // as the primary context. Retrieval is supporting evidence; a transient
+    // database timeout or missing optional content source must not make the
+    // learner-facing explanation button fail after grading.
+    return [];
+  }
+}
+
+export function buildQuestionRetrievalQuery(question: {
+  title: string;
+  content: string;
+}) {
+  return truncateUtf8([question.title, question.content].join(" "), 512);
 }
 
 export async function getAIExplanationRecord(

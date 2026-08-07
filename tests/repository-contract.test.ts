@@ -50,6 +50,19 @@ test("practice question filter subjects remain isolated by course", () => {
   assert.match(topicFilterSource, /isNull\(subjects\.deletedAt\)/);
 });
 
+test("question AI explanation retrieval avoids broad empty scans", () => {
+  const source = readFileSync("db/ai-repositories.ts", "utf8");
+  const generationSource =
+    source.match(
+      /export async function generateQuestionAIExplanation[\s\S]*?export async function getAIExplanationRecord/,
+    )?.[0] ?? "";
+
+  assert.match(generationSource, /buildQuestionRetrievalQuery\(question\)/);
+  assert.doesNotMatch(generationSource, /query:\s*""/);
+  assert.match(generationSource, /catch\s*\{/);
+  assert.match(generationSource, /return \[\]/);
+});
+
 const now = "2026-07-27 10:00:00";
 const rowsByRepository = {
   users: {
