@@ -3601,6 +3601,27 @@ button:disabled {
   letter-spacing: -0.02em;
 }
 
+.stat-card-action {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  width: fit-content;
+  color: var(--ink);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.stat-card-action:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.stat-card-action:focus-visible {
+  outline: 3px solid var(--lime);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
 .enrollment-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

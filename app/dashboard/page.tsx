@@ -243,7 +243,9 @@ async function DashboardStats({
         <span>복습 대기</span>
         <strong>{plan.reviewSummary.dueCount}</strong>
         <small>
-          <Link href="/reviews">예정된 복습 시작</Link>
+          <Link className="stat-card-action" href="/reviews">
+            예정된 복습 시작
+          </Link>
         </small>
       </div>
     </>
