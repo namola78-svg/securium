@@ -106,3 +106,34 @@ npm run curriculum:security-certification:management-law-questions:verify:postgr
 - seed 적용 전 stats를 먼저 확인한다.
 - seed 적용 후 verify를 실행한다.
 - 실패 시 오류 코드를 숨기지 말고 원인과 대상 DB를 분리해서 기록한다.
+
+## 운영 PostgreSQL 사용자 기록자 지정
+
+운영 DB에는 개발용 사용자 ID인 `user-admin`, `user-content-reviewer`가 없을 수 있다.
+이 경우 운영 Seed 실행 전에 기존 운영 관리자 사용자 ID를 다음 환경변수로 지정한다.
+
+```powershell
+$env:SECURIUM_QUESTION_SEED_ACTOR_USER_ID = "<existing-admin-user-id>"
+```
+
+이 값이 있으면 문제 `created_by`, `reviewed_by`, `question_versions.created_by`가
+해당 운영 사용자 ID로 기록된다. 값이 없으면 로컬 개발 Seed와의 호환성을 위해 기존
+`user-admin`, `user-content-reviewer`를 요구한다.
+
+운영 실행 예:
+
+```powershell
+$env:POSTGRES_SEED_URL = $env:DATABASE_URL
+$env:SECURIUM_QUESTION_SEED_ACTOR_USER_ID = "<existing-admin-user-id>"
+$env:SECURIUM_CONFIRM_APPLICATION_SECURITY_QUESTION_SEED = "APPLY_APPLICATION_SECURITY_QUESTION_SEED"
+npm.cmd run curriculum:security-certification:application-security-questions:seed:postgres -- --confirm-production-seed
+Remove-Item Env:SECURIUM_CONFIRM_APPLICATION_SECURITY_QUESTION_SEED
+Remove-Item Env:SECURIUM_QUESTION_SEED_ACTOR_USER_ID
+Remove-Item Env:POSTGRES_SEED_URL
+```
+
+주의:
+
+- 사용자 ID나 DB URL을 로그나 문서에 실제 값으로 기록하지 않는다.
+- 운영 Seed 전에는 `stats`, 적용 후에는 `verify:postgres`를 반드시 실행한다.
+- Production DB 변경은 명시 승인 후에만 수행한다.

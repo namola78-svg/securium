@@ -183,6 +183,10 @@ test("information security general question seed generates additive SQL for D1 a
     postgresSql,
     /seed_information_security_general_questions_2027_2029/,
   );
+  assert.match(postgresSql, /INSERT INTO "app_schema_migrations" \("id", "checksum"\)/);
+  assert.doesNotMatch(postgresSql, /INSERT INTO "schema_migrations"/);
+  assert.doesNotMatch(postgresSql, /"answer_config"/);
+  assert.doesNotMatch(postgresSql, /INTO "question_courses" \("id"/);
 
   for (const forbidden of [/\bDROP\b/i, /\bDELETE\b/i, /\bTRUNCATE\b/i]) {
     assert.doesNotMatch(postgresSql, forbidden);

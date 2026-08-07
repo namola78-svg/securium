@@ -12,6 +12,7 @@ import {
 } from "../lib/data/security-certification-system-security-questions.mjs";
 
 const CONFIRM_FLAG = "--confirm-production-seed";
+const QUESTION_SEED_ACTOR_ENV_NAME = "SECURIUM_QUESTION_SEED_ACTOR_USER_ID";
 const VALID_TARGETS = new Set(["stats", "d1-local", "postgres"]);
 
 const target = process.argv[2] ?? "stats";
@@ -80,8 +81,13 @@ async function runPostgresSeed() {
   });
 
   try {
-    await assertPostgresPrerequisites(sql);
-    await sql.unsafe(generateSystemSecurityQuestionSeedSql({ dialect: "postgres" }));
+    const actorIds = await assertPostgresPrerequisites(sql);
+    await sql.unsafe(
+      applyPostgresActorOverride(
+        generateSystemSecurityQuestionSeedSql({ dialect: "postgres" }),
+        actorIds,
+      ),
+    );
   } catch (error) {
     fail("SYSTEM_SECURITY_QUESTION_SEED_POSTGRES_FAILED", safeErrorCode(error));
   } finally {
@@ -140,7 +146,8 @@ async function assertPostgresPrerequisites(sql) {
     );
   }
 
-  const requiredUsers = ["user-admin", "user-content-reviewer"];
+  const actorIds = resolveQuestionSeedActorIds();
+  const requiredUsers = [...new Set([actorIds.createdBy, actorIds.reviewedBy])];
   const userRows = await sql`
     SELECT id FROM users WHERE id IN ${sql(requiredUsers)}
   `;
@@ -149,9 +156,32 @@ async function assertPostgresPrerequisites(sql) {
   if (missingUsers.length) {
     fail(
       `SYSTEM_SECURITY_QUESTION_SEED_USER_MISSING:${missingUsers.join(",")}`,
-      "Apply or verify the base development administrator seed before running this seed.",
+      `Apply or verify the base development administrator seed, or set ${QUESTION_SEED_ACTOR_ENV_NAME} to an existing operating user id.`,
     );
   }
+
+  return actorIds;
+}
+
+function resolveQuestionSeedActorIds() {
+  const actorUserId = process.env[QUESTION_SEED_ACTOR_ENV_NAME]?.trim();
+  if (actorUserId) {
+    return {
+      createdBy: actorUserId,
+      reviewedBy: actorUserId,
+    };
+  }
+
+  return {
+    createdBy: "user-admin",
+    reviewedBy: "user-content-reviewer",
+  };
+}
+
+function applyPostgresActorOverride(seedSql, actorIds) {
+  return seedSql
+    .replaceAll("'user-admin'", sqlString(actorIds.createdBy))
+    .replaceAll("'user-content-reviewer'", sqlString(actorIds.reviewedBy));
 }
 
 function assertProductionSeedApproval() {
@@ -193,6 +223,10 @@ function resolvePostgresSeedUrl() {
 function argValue(prefix) {
   const arg = process.argv.find((value) => value.startsWith(prefix));
   return arg?.slice(prefix.length);
+}
+
+function sqlString(value) {
+  return `'${String(value).replaceAll("'", "''")}'`;
 }
 
 function runProcess(executable, args) {

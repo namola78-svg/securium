@@ -64,6 +64,9 @@ test("postgres question seed commands require explicit production approval", () 
     /SECURIUM_CONFIRM_INFORMATION_SECURITY_GENERAL_QUESTION_SEED/,
   );
   assert.match(operationsDoc, /SECURIUM_CONFIRM_MANAGEMENT_LAW_QUESTION_SEED/);
+  assert.match(operationsDoc, /SECURIUM_QUESTION_SEED_ACTOR_USER_ID/);
+  assert.match(operationsDoc, /created_by/);
+  assert.match(operationsDoc, /reviewed_by/);
 
   for (const command of guardedScripts) {
     assert.equal(typeof command, "string");

@@ -21,6 +21,7 @@ import {
 } from "../lib/data/security-certification-information-security-general-questions.mjs";
 
 const CONFIRM_FLAG = "--confirm-production-seed";
+const QUESTION_SEED_ACTOR_ENV_NAME = "SECURIUM_QUESTION_SEED_ACTOR_USER_ID";
 const domains = {
   "application-security": {
     label: "APPLICATION_SECURITY",
@@ -130,8 +131,10 @@ async function runPostgresSeed(config) {
   const sql = connectPostgres(config, "seed");
 
   try {
-    await assertPostgresPrerequisites(sql, config);
-    await sql.unsafe(config.seedSql({ dialect: "postgres" }));
+    const actorIds = await assertPostgresPrerequisites(sql, config);
+    await sql.unsafe(
+      applyPostgresActorOverride(config.seedSql({ dialect: "postgres" }), actorIds),
+    );
   } catch (error) {
     fail(`${config.label}_QUESTION_SEED_POSTGRES_FAILED`, safeErrorCode(error));
   } finally {
@@ -231,7 +234,8 @@ async function assertPostgresPrerequisites(sql, config) {
     );
   }
 
-  const requiredUsers = ["user-admin", "user-content-reviewer"];
+  const actorIds = resolveQuestionSeedActorIds();
+  const requiredUsers = [...new Set([actorIds.createdBy, actorIds.reviewedBy])];
   const userRows = await sql`
     SELECT id FROM users WHERE id IN ${sql(requiredUsers)}
   `;
@@ -240,9 +244,32 @@ async function assertPostgresPrerequisites(sql, config) {
   if (missingUsers.length) {
     fail(
       `${config.label}_QUESTION_SEED_USER_MISSING:${missingUsers.join(",")}`,
-      "Apply or verify the base development administrator seed before running this seed.",
+      `Apply or verify the base development administrator seed, or set ${QUESTION_SEED_ACTOR_ENV_NAME} to an existing operating user id.`,
     );
   }
+
+  return actorIds;
+}
+
+function resolveQuestionSeedActorIds() {
+  const actorUserId = process.env[QUESTION_SEED_ACTOR_ENV_NAME]?.trim();
+  if (actorUserId) {
+    return {
+      createdBy: actorUserId,
+      reviewedBy: actorUserId,
+    };
+  }
+
+  return {
+    createdBy: "user-admin",
+    reviewedBy: "user-content-reviewer",
+  };
+}
+
+function applyPostgresActorOverride(seedSql, actorIds) {
+  return seedSql
+    .replaceAll("'user-admin'", sqlString(actorIds.createdBy))
+    .replaceAll("'user-content-reviewer'", sqlString(actorIds.reviewedBy));
 }
 
 function assertProductionSeedApproval(config) {

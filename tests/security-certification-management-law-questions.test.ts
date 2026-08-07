@@ -152,6 +152,10 @@ test("management law question seed generates additive SQL for D1 and Postgres", 
   assert.match(postgresSql, /INSERT INTO "questions"/);
   assert.match(postgresSql, /ON CONFLICT \("id"\) DO UPDATE SET/);
   assert.match(postgresSql, /seed_management_law_questions_2027_2029/);
+  assert.match(postgresSql, /INSERT INTO "app_schema_migrations" \("id", "checksum"\)/);
+  assert.doesNotMatch(postgresSql, /INSERT INTO "schema_migrations"/);
+  assert.doesNotMatch(postgresSql, /"answer_config"/);
+  assert.doesNotMatch(postgresSql, /INTO "question_courses" \("id"/);
   assert.doesNotMatch(postgresSql, /course-isie/);
 
   for (const forbidden of [/\bDROP\b/i, /\bDELETE\b/i, /\bTRUNCATE\b/i]) {
