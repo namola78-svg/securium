@@ -2,6 +2,7 @@
 
 Date: 2026-08-07  
 Candidate commit: `c12f26b`  
+Evidence documentation commit: `99fd68a`  
 Environment under review: `https://securium.vercel.app`  
 Decision owner: Owner approval pending
 
@@ -95,7 +96,8 @@ Reason:
 No open P0/P1 remains after the 2026-08-07 production smoke on commit c12f26b.
 Typecheck, lint, unit tests, E2E tests, production build, Vercel deployment, learner
 smoke, admin smoke, and mobile smoke passed. Release still needs owner assignment
-for rollback and monitoring, plus final owner approval.
+for rollback and monitoring, plus final owner approval. Documentation-only evidence
+commit 99fd68a was also deployed and verified without changing application behavior.
 ```
 
 ## Release notes draft

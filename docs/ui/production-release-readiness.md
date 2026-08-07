@@ -17,7 +17,7 @@ Production Release begins only after Preview Beta Freeze, QA, and user testing a
 - [x] Production DB migration approval recorded separately if needed.
 - [x] Production seed approval recorded separately if needed.
 
-Current gate status: CONDITIONAL GO. `PROD-QA-001` and `PROD-QA-002` were rechecked on 2026-08-07 and are no longer reproducible on candidate commit `c12f26b`. Final release still needs release, rollback, and monitoring owner assignment.
+Current gate status: CONDITIONAL GO. `PROD-QA-001` and `PROD-QA-002` were rechecked on 2026-08-07 and are no longer reproducible on candidate commit `c12f26b`. Documentation-only evidence commit `99fd68a` was deployed after the candidate smoke and did not change application behavior. Final release still needs release, rollback, and monitoring owner assignment.
 
 Freeze record: `docs/ui/preview-beta-freeze.md`.
 QA record: `docs/ui/preview-beta-qa-results.md`.

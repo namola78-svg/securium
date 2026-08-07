@@ -11,7 +11,9 @@ Production URL:
 | Item | Value |
 | --- | --- |
 | Candidate commit | `c12f26b` |
-| Vercel deployment URL | `https://securium-2ffwathha-namola78-svgs-projects.vercel.app` |
+| Candidate Vercel deployment URL | `https://securium-2ffwathha-namola78-svgs-projects.vercel.app` |
+| Evidence documentation commit | `99fd68a` |
+| Evidence documentation deployment URL | `https://securium-ppc8gs33r-namola78-svgs-projects.vercel.app` |
 | Production alias | `https://securium.vercel.app` |
 | Release window | 2026-08-07 |
 | Tester | Codex browser + local test suite |
@@ -39,6 +41,8 @@ Environment:
 - URL: `https://securium.vercel.app`
 - Candidate commit: `c12f26b`
 - Vercel deployment: `https://securium-2ffwathha-namola78-svgs-projects.vercel.app`
+- Evidence documentation commit: `99fd68a`
+- Latest production deployment after evidence update: `https://securium-ppc8gs33r-namola78-svgs-projects.vercel.app`
 - Browser surface: Codex in-app browser
 - Session state: authenticated administrator session was already present
 - Secret/cookie inspection: not performed
