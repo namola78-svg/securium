@@ -14,20 +14,20 @@ import {
 test("information security general question bank covers current auto-graded types", () => {
   const readiness = getInformationSecurityGeneralQuestionBankReadiness();
 
-  assert.equal(readiness.questionCount, 8);
+  assert.equal(readiness.questionCount, 13);
   assert.equal(readiness.allPublished, true);
   assert.equal(readiness.allSampleOnly, true);
   assert.equal(readiness.allIndependentlyAuthored, true);
   assert.equal(readiness.allLinkedToBothCourses, true);
   assert.equal(readiness.allLinkedToGeneralContent, true);
-  assert.equal(readiness.subItemContentLinkedCount, 8);
+  assert.equal(readiness.subItemContentLinkedCount, 13);
   assert.deepEqual(readiness.courseCounts, {
-    "course-ise": 8,
-    "course-isie": 8,
+    "course-ise": 13,
+    "course-isie": 13,
   });
   assert.deepEqual(readiness.typeCounts, {
     TRUE_FALSE: 2,
-    SINGLE_CHOICE: 3,
+    SINGLE_CHOICE: 8,
     MULTIPLE_CHOICE: 2,
     SHORT_ANSWER: 1,
   });

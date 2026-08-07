@@ -15,20 +15,20 @@ import {
 test("network security question bank covers current auto-graded types", () => {
   const readiness = getNetworkSecurityQuestionBankReadiness();
 
-  assert.equal(readiness.questionCount, 11);
+  assert.equal(readiness.questionCount, 16);
   assert.equal(readiness.allPublished, true);
   assert.equal(readiness.allSampleOnly, true);
   assert.equal(readiness.allIndependentlyAuthored, true);
   assert.equal(readiness.allLinkedToBothCourses, true);
   assert.equal(readiness.allLinkedToNetworkContent, true);
   assert.deepEqual(readiness.courseCounts, {
-    "course-ise": 11,
-    "course-isie": 11,
+    "course-ise": 16,
+    "course-isie": 16,
   });
   assert.deepEqual(readiness.typeCounts, {
-    TRUE_FALSE: 2,
-    SINGLE_CHOICE: 5,
-    MULTIPLE_CHOICE: 2,
+    TRUE_FALSE: 4,
+    SINGLE_CHOICE: 7,
+    MULTIPLE_CHOICE: 3,
     SHORT_ANSWER: 2,
   });
 });
@@ -81,6 +81,46 @@ test("network security questions remain course scoped and content linked", () =>
     [
       "network-security-official-sample-q09",
       [NETWORK_SECURITY_CONTENT_IDS.securityProtocols],
+    ],
+    [
+      "network-security-arp-spoofing-slice-q01",
+      [
+        NETWORK_SECURITY_CONTENT_IDS.overview,
+        NETWORK_SECURITY_CONTENT_IDS.spoofing,
+        NETWORK_SECURITY_CONTENT_IDS.arpSpoofingVerticalSlice,
+      ],
+    ],
+    [
+      "network-security-arp-spoofing-slice-q02",
+      [
+        NETWORK_SECURITY_CONTENT_IDS.overview,
+        NETWORK_SECURITY_CONTENT_IDS.spoofing,
+        NETWORK_SECURITY_CONTENT_IDS.arpSpoofingVerticalSlice,
+      ],
+    ],
+    [
+      "network-security-arp-spoofing-slice-q03",
+      [
+        NETWORK_SECURITY_CONTENT_IDS.overview,
+        NETWORK_SECURITY_CONTENT_IDS.spoofing,
+        NETWORK_SECURITY_CONTENT_IDS.arpSpoofingVerticalSlice,
+      ],
+    ],
+    [
+      "network-security-arp-spoofing-slice-q04",
+      [
+        NETWORK_SECURITY_CONTENT_IDS.overview,
+        NETWORK_SECURITY_CONTENT_IDS.spoofing,
+        NETWORK_SECURITY_CONTENT_IDS.arpSpoofingVerticalSlice,
+      ],
+    ],
+    [
+      "network-security-arp-spoofing-slice-q05",
+      [
+        NETWORK_SECURITY_CONTENT_IDS.overview,
+        NETWORK_SECURITY_CONTENT_IDS.spoofing,
+        NETWORK_SECURITY_CONTENT_IDS.arpSpoofingVerticalSlice,
+      ],
     ],
   ]);
 

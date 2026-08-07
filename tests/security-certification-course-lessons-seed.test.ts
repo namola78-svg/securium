@@ -15,11 +15,11 @@ import {
 test("security certification course lesson seed reuses shared contents across engineer tracks", () => {
   const stats = getSecurityCertificationCourseLessonSeedStats();
 
-  assert.equal(stats.contentCount, 77);
-  assert.equal(stats.courseLessonCount, 139);
-  assert.equal(stats.courseLessonExtensionCount, 2);
-  assert.equal(stats.linkedContentCount, 77);
-  assert.equal(stats.reusedContentCount, 62);
+  assert.equal(stats.contentCount, 80);
+  assert.equal(stats.courseLessonCount, 145);
+  assert.equal(stats.courseLessonExtensionCount, 8);
+  assert.equal(stats.linkedContentCount, 80);
+  assert.equal(stats.reusedContentCount, 65);
   assert.equal(stats.allLessonsHaveKnownContent, true);
   assert.equal(stats.expectedTopLevelNodeCount, 11);
   assert.equal(stats.mappedTopLevelNodeCount, 11);
@@ -34,8 +34,8 @@ test("security certification course lesson seed keeps course progress separated"
     (lesson) => lesson.courseId === "course-isie",
   );
 
-  assert.equal(engineerLessons.length, 77);
-  assert.equal(industrialLessons.length, 62);
+  assert.equal(engineerLessons.length, 80);
+  assert.equal(industrialLessons.length, 65);
 
   const courseLessonIds = new Set(
     officialSecurityCertificationCourseLessons.map((lesson) => lesson.id),
@@ -52,6 +52,81 @@ test("security certification course lesson seed keeps course progress separated"
     reusedSystemContentLessons.map((lesson) => lesson.courseId).sort(),
     ["course-ise", "course-isie"],
   );
+});
+
+test("Sprint G vertical slice keeps shared official content draft and course-scoped", () => {
+  const verticalSliceContents = [
+    {
+      contentId: "content-official-security-cert-general-cia-core-properties",
+      title: "CIA 정보보호 핵심 속성",
+      nodeSuffix: "01-04-01",
+      concepts: ["CIA", "기밀성", "무결성", "가용성"],
+    },
+    {
+      contentId:
+        "content-official-security-cert-network-arp-spoofing-vertical-slice",
+      title: "ARP와 ARP Spoofing",
+      nodeSuffix: "01-02-02-03",
+      concepts: ["ARP", "ARP Spoofing", "MAC 주소"],
+    },
+    {
+      contentId: "content-official-security-cert-system-linux-file-permissions",
+      title: "Linux 파일 권한",
+      nodeSuffix: "01-01-01-02",
+      concepts: ["Linux", "파일 권한", "chmod"],
+    },
+  ];
+
+  for (const expected of verticalSliceContents) {
+    const content = officialSecurityCertificationContents.find(
+      (candidate) => candidate.id === expected.contentId,
+    );
+    assert.ok(content, `${expected.contentId} content should exist`);
+    const verticalSliceContent = content as typeof content & {
+      diagrams?: unknown[];
+      status?: string;
+    };
+    assert.equal(content.title, expected.title);
+    assert.equal(verticalSliceContent.status, "DRAFT");
+    assert.equal((verticalSliceContent.diagrams?.length ?? 0) >= 1, true);
+    assert.equal(content.body.includes("placeholder"), false);
+    assert.equal(
+      expected.concepts.every((concept) => content.coreConcepts.includes(concept)),
+      true,
+    );
+
+    const lessons = officialSecurityCertificationCourseLessons.filter(
+      (lesson) => lesson.contentId === expected.contentId,
+    );
+    assert.deepEqual(
+      lessons.map((lesson) => lesson.courseId).sort(),
+      ["course-ise", "course-isie"],
+    );
+    assert.equal(new Set(lessons.map((lesson) => lesson.id)).size, 2);
+    assert.equal(
+      lessons.every(
+        (lesson) =>
+          (lesson as typeof lesson & { status?: string }).status === "DRAFT",
+      ),
+      true,
+    );
+    assert.deepEqual(
+      lessons
+        .map((lesson) => lesson.curriculumNodeId)
+        .sort(),
+      [
+        `curriculum-node-ise-2027-2029-${expected.nodeSuffix}`,
+        `curriculum-node-isie-2027-2029-${expected.nodeSuffix}`,
+      ].sort(),
+    );
+
+    const extensions = officialSecurityCertificationCourseLessonExtensions.filter(
+      (extension) => lessons.some((lesson) => lesson.id === extension.courseLessonId),
+    );
+    assert.equal(extensions.length, 2);
+    assert.equal(extensions.every((extension) => extension.status === "DRAFT"), true);
+    assert.notEqual(extensions[0]?.additionalBody, extensions[1]?.additionalBody);
+  }
 });
 
 test("practical official items are split into shared and engineer-only CourseLessons", () => {
@@ -735,7 +810,14 @@ test("network security flow is ready for course-specific progress and practice r
 });
 
 test("network security course lesson extensions differentiate engineer and industrial tracks", () => {
-  assert.equal(officialSecurityCertificationCourseLessonExtensions.length, 2);
+  const networkOverviewExtensions =
+    officialSecurityCertificationCourseLessonExtensions.filter((extension) =>
+      [
+        "course-lesson-ise-official-network-security-overview",
+        "course-lesson-isie-official-network-security-overview",
+      ].includes(extension.courseLessonId),
+    );
+  assert.equal(networkOverviewExtensions.length, 2);
 
   const engineerExtension = officialSecurityCertificationCourseLessonExtensions.find(
     (extension) =>
