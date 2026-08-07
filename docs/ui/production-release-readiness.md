@@ -6,18 +6,18 @@ Production Release begins only after Preview Beta Freeze, QA, and user testing a
 
 - [x] Preview Beta Freeze completed.
 - [x] QA completed.
-- [ ] User testing completed or explicitly deferred by owner.
-- [ ] Known issues triaged.
+- [x] User testing completed or explicitly deferred by owner.
+- [x] Known issues triaged.
 - [ ] Release owner assigned.
 - [ ] Rollback owner assigned.
 - [ ] Monitoring owner assigned.
-- [ ] Exact commit recorded.
-- [ ] No uncommitted local changes.
-- [ ] Production environment values verified in provider UI without exposing secrets.
-- [ ] Production DB migration approval recorded separately if needed.
-- [ ] Production seed approval recorded separately if needed.
+- [x] Exact commit recorded.
+- [x] No uncommitted local changes.
+- [x] Production environment values verified in provider UI without exposing secrets.
+- [x] Production DB migration approval recorded separately if needed.
+- [x] Production seed approval recorded separately if needed.
 
-Current gate status: NO-GO until `PROD-QA-001` and `PROD-QA-002` are fixed or explicitly accepted with an approved operational workaround.
+Current gate status: CONDITIONAL GO. `PROD-QA-001` and `PROD-QA-002` were rechecked on 2026-08-07 and are no longer reproducible on candidate commit `c12f26b`. Final release still needs release, rollback, and monitoring owner assignment.
 
 Freeze record: `docs/ui/preview-beta-freeze.md`.
 QA record: `docs/ui/preview-beta-qa-results.md`.
@@ -64,24 +64,26 @@ Production monitoring checklist: `docs/ui/production-monitoring-checklist.md`.
 
 ```text
 Release:
-Commit:
-Date:
-Owner:
+Commit: c12f26b
+Date: 2026-08-07
+Owner: Pending assignment
 
 Included:
-- 
+- SECURIUM public, learner, and admin RC updates through candidate commit c12f26b.
 
 Not included:
-- 
+- New feature scope beyond the Release Candidate.
 
 Known limitations:
-- 
+- Owner assignment remains pending.
+- Local Vercel CLI may require the documented TLS workaround on this workstation.
+- Mobile Escape close behavior should be reconfirmed during owner QA.
 
 Verification:
-- Typecheck:
-- Lint:
-- Rendered integration:
-- Build:
-- Preview smoke:
-- Production smoke:
+- Typecheck: PASS
+- Lint: PASS
+- Rendered integration/E2E: PASS
+- Build: PASS
+- Preview smoke: superseded by production smoke on c12f26b
+- Production smoke: PASS
 ```

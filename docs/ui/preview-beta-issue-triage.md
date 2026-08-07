@@ -26,8 +26,8 @@ This board translates Preview Beta QA and user testing findings into release dec
 | BETA-001 | QA | P3 | Learner | `/analytics` | Initial loading state can remain visible for a few seconds before sparse analytics content appears. | Yes | TBD | Accepted for beta |
 | BETA-002 | QA | P3 | Mobile | Global | Mobile menu Escape close needs real-browser keyboard confirmation. | Needs manual check | TBD | Open |
 | BETA-003 | Ops | P2 | Operator | Local CLI | Vercel CLI status check can fail locally because of network/TLS `EACCES`. | Yes | TBD | Workaround: use Vercel dashboard |
-| PROD-QA-001 | Browser QA | P1 | Admin | `/admin/curriculum` | Production renders the global error state and logs `SECURIUM_PAGE_ERROR`; likely production data, schema, or runtime mismatch needs server log confirmation. | Yes | TBD | Open |
-| PROD-QA-002 | Browser QA | P1 | Admin | `/admin/audit-logs` | Production renders the global error state and logs `SECURIUM_PAGE_ERROR`; audit repository or production audit table availability should be checked. | Yes | TBD | Open |
+| PROD-QA-001 | Browser QA | P1 | Admin | `/admin/curriculum` | Production previously rendered the global error state. Rechecked on 2026-08-07 after fixes and deployment `c12f26b`; page renders Console Shell without error. | No longer reproducible | Codex | Resolved |
+| PROD-QA-002 | Browser QA | P1 | Admin | `/admin/audit-logs` | Production previously rendered the global error state. Rechecked on 2026-08-07 after repository timeout fix and deployment `c12f26b`; page renders without `DATABASE_TIMEOUT`. | No longer reproducible | Codex | Resolved |
 
 ## Decision matrix
 
@@ -63,10 +63,10 @@ Before release, record:
 
 ```text
 Open P0:
-Open P1:
-Open P2:
-Open P3:
-Accepted risks:
-Owner approval:
-Release commit:
+Open P1: none
+Open P2: BETA-003 local Vercel CLI TLS/network workaround
+Open P3: BETA-001 sparse-data loading perception, BETA-002 mobile Escape confirmation
+Accepted risks: P2/P3 only; no open P0/P1 after 2026-08-07 production smoke
+Owner approval: pending
+Release commit: c12f26b
 ```

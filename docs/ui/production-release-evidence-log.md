@@ -10,13 +10,13 @@ Production URL:
 
 | Item | Value |
 | --- | --- |
-| Candidate commit | TBD |
-| Vercel deployment URL | TBD |
+| Candidate commit | `c12f26b` |
+| Vercel deployment URL | `https://securium-2ffwathha-namola78-svgs-projects.vercel.app` |
 | Production alias | `https://securium.vercel.app` |
-| Release window | TBD |
-| Tester | TBD |
-| Decision owner | TBD |
-| Rollback owner | TBD |
+| Release window | 2026-08-07 |
+| Tester | Codex browser + local test suite |
+| Decision owner | Owner approval pending |
+| Rollback owner | Pending assignment |
 
 ## Environment confirmation
 
@@ -31,6 +31,55 @@ Record only names, presence, and configuration status. Do not paste secret value
 | Database provider | Intended provider selected. | TBD | TBD |
 | Migration status | Approved and applied, deferred, or not required. | TBD | TBD |
 | Seed status | Approved and applied, deferred, or not required. | TBD | TBD |
+
+## Browser QA evidence — 2026-08-07
+
+Environment:
+
+- URL: `https://securium.vercel.app`
+- Candidate commit: `c12f26b`
+- Vercel deployment: `https://securium-2ffwathha-namola78-svgs-projects.vercel.app`
+- Browser surface: Codex in-app browser
+- Session state: authenticated administrator session was already present
+- Secret/cookie inspection: not performed
+
+| Scenario | Evidence | Result | Notes |
+| --- | --- | --- | --- |
+| `/` while authenticated | Redirected to `/dashboard`; dashboard heading rendered. | PASS | Logged-out landing still requires clean-session owner QA if needed. |
+| `/courses` | Course comparison page rendered without error. | PASS | |
+| `/dashboard` | Learner dashboard rendered next action and course summary. | PASS | |
+| `/my-courses` | Enrolled courses rendered with separated progress. | PASS | |
+| `/learn/information-security-engineer` | Course learning path rendered. | PASS | |
+| `/practice/information-security-engineer?random=1&count=10` | Engineer practice page rendered. | PASS | |
+| `/practice/information-security-industrial-engineer?random=1&count=10` | Industrial engineer practice page rendered. | PASS | |
+| `/wrong-notes` | Empty wrong-note state rendered safely. | PASS | |
+| `/reviews` | Empty review state rendered safely. | PASS | |
+| `/analytics` | Sparse analytics state rendered without error. | PASS | |
+| `/admin` | Admin Console Shell rendered after loading. | PASS | |
+| `/admin/curriculum` | Admin Console Shell and curriculum route rendered without global error. | PASS | Resolves `PROD-QA-001`. |
+| `/admin/audit-logs` | Audit logs route rendered without `DATABASE_TIMEOUT` or global error. | PASS | Resolves `PROD-QA-002`. |
+| `/admin/coverage` | Coverage console rendered. | PASS | |
+| `/admin/ontology` | Ontology console rendered. | PASS | |
+| `/admin/ai-reviews` | AI review console rendered. | PASS | |
+| `/admin/content-revisions` | Content revisions console rendered. | PASS | |
+
+## Automated verification — 2026-08-07
+
+| Command | Result | Notes |
+| --- | --- | --- |
+| `npm.cmd run typecheck` | PASS | No TypeScript errors. |
+| `npm.cmd run lint` | PASS | No ESLint failures. |
+| `npm.cmd run test:unit` | PASS | 307 tests passed. |
+| `npm.cmd run test:e2e` | PASS | 80 tests passed; includes production build. |
+| `npm.cmd run build` | PASS | Verified before deployment; `test:e2e` also rebuilt successfully. |
+
+## Mobile evidence — 2026-08-07
+
+| Viewport | Evidence | Result | Notes |
+| --- | --- | --- | --- |
+| 360 × 800 | `/`, `/courses`, `/dashboard` rendered with no horizontal overflow. | PASS | Dashboard review CTA touch target improved to 44px. |
+| 390 × 844 | `/`, `/courses`, `/dashboard`, `/practice/information-security-engineer` rendered with no horizontal overflow. | PASS | |
+| 768 × 1024 | `/`, `/courses`, `/dashboard`, `/practice/information-security-engineer` rendered with no horizontal overflow. | PASS | |
 
 ## Smoke test evidence
 
@@ -100,8 +149,8 @@ Environment:
 
 | ID | Severity | Area | Summary | Decision |
 | --- | --- | --- | --- | --- |
-| PROD-QA-001 | P1 | Admin Curriculum | `/admin/curriculum` fails in production with global error state. | NO-GO until fixed or explicitly accepted with workaround. |
-| PROD-QA-002 | P1 | Admin Audit Logs | `/admin/audit-logs` fails in production with global error state. | NO-GO until fixed or explicitly accepted with workaround. |
+| PROD-QA-001 | P1 | Admin Curriculum | `/admin/curriculum` previously failed in production with global error state. | RESOLVED on 2026-08-07; production smoke PASS on `c12f26b`. |
+| PROD-QA-002 | P1 | Admin Audit Logs | `/admin/audit-logs` previously failed in production with global error state. | RESOLVED on 2026-08-07; production smoke PASS on `c12f26b`. |
 
 Severity guide:
 
@@ -114,14 +163,13 @@ Severity guide:
 
 Decision:
 
-- GO
 - CONDITIONAL GO
-- NO-GO
 
 Rationale:
 
-TBD
+No open P0/P1 remains after 2026-08-07 production smoke. Remaining items are
+owner assignments and accepted P2/P3 operational or polish risks.
 
 Follow-up owner:
 
-TBD
+Owner approval pending
