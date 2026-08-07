@@ -3,6 +3,7 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { loadLocalEnvIfPresent } from "./load-local-env.mjs";
 import {
   APPLICATION_SECURITY_CONTENT_ID,
   APPLICATION_SECURITY_COURSE_IDS,
@@ -22,6 +23,7 @@ import {
 
 const CONFIRM_FLAG = "--confirm-production-seed";
 const QUESTION_SEED_ACTOR_ENV_NAME = "SECURIUM_QUESTION_SEED_ACTOR_USER_ID";
+loadLocalEnvIfPresent();
 const domains = {
   "application-security": {
     label: "APPLICATION_SECURITY",

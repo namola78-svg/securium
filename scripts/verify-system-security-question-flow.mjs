@@ -1,5 +1,6 @@
 import postgres from "postgres";
 import { spawn } from "node:child_process";
+import { loadLocalEnvIfPresent } from "./load-local-env.mjs";
 import {
   SYSTEM_SECURITY_CONTENT_ID,
   SYSTEM_SECURITY_COURSE_IDS,
@@ -7,6 +8,7 @@ import {
 } from "../lib/data/security-certification-system-security-questions.mjs";
 
 const VALID_TARGETS = new Set(["d1-local", "postgres"]);
+loadLocalEnvIfPresent();
 const target = process.argv[2] ?? "d1-local";
 
 if (!VALID_TARGETS.has(target)) {

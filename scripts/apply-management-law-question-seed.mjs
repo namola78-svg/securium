@@ -3,6 +3,7 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { loadLocalEnvIfPresent } from "./load-local-env.mjs";
 import {
   MANAGEMENT_LAW_CONTENT_ID,
   SECURITY_CERTIFICATION_MANAGEMENT_LAW_QUESTION_CONFIRM_ENV_NAME,
@@ -13,6 +14,7 @@ import {
 
 const CONFIRM_FLAG = "--confirm-production-seed";
 const QUESTION_SEED_ACTOR_ENV_NAME = "SECURIUM_QUESTION_SEED_ACTOR_USER_ID";
+loadLocalEnvIfPresent();
 const VALID_TARGETS = new Set(["stats", "d1-local", "postgres"]);
 
 const target = process.argv[2] ?? "stats";
