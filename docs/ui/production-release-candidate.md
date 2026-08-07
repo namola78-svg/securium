@@ -4,7 +4,7 @@ Date: 2026-08-07
 Candidate commit: `c12f26b`  
 Evidence documentation commit: `99fd68a`  
 Environment under review: `https://securium.vercel.app`  
-Decision owner: Owner approval pending
+Decision owner: `namola78-svg`
 
 This document is used after Preview Beta user testing to decide whether SECURIUM can move to Production Release.
 
@@ -68,8 +68,8 @@ A release candidate can be declared only when:
 - [x] Environment variables are confirmed in provider UI without exposing values.
 - [x] Production DB migration decision is recorded.
 - [x] Production seed decision is recorded.
-- [ ] Rollback owner is assigned.
-- [ ] Monitoring owner is assigned.
+- [x] Rollback owner is assigned.
+- [x] Monitoring owner is assigned.
 - [x] Release notes are prepared.
 
 ## Known candidate risks
@@ -95,9 +95,9 @@ Reason:
 ```text
 No open P0/P1 remains after the 2026-08-07 production smoke on commit c12f26b.
 Typecheck, lint, unit tests, E2E tests, production build, Vercel deployment, learner
-smoke, admin smoke, and mobile smoke passed. Release still needs owner assignment
-for rollback and monitoring, plus final owner approval. Documentation-only evidence
-commit 99fd68a was also deployed and verified without changing application behavior.
+smoke, admin smoke, and mobile smoke passed. Release, rollback, and monitoring
+ownership were assigned by owner approval. Documentation-only evidence commit
+99fd68a was also deployed and verified without changing application behavior.
 ```
 
 ## Release notes draft
@@ -106,7 +106,7 @@ commit 99fd68a was also deployed and verified without changing application behav
 Release: SECURIUM Preview Beta to Production
 Commit: c12f26b
 Date: 2026-08-07
-Owner: Pending owner approval
+Owner: namola78-svg
 
 Included:
 - SECURIUM brand and public learning experience.

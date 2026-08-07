@@ -8,16 +8,16 @@ Production Release begins only after Preview Beta Freeze, QA, and user testing a
 - [x] QA completed.
 - [x] User testing completed or explicitly deferred by owner.
 - [x] Known issues triaged.
-- [ ] Release owner assigned.
-- [ ] Rollback owner assigned.
-- [ ] Monitoring owner assigned.
+- [x] Release owner assigned.
+- [x] Rollback owner assigned.
+- [x] Monitoring owner assigned.
 - [x] Exact commit recorded.
 - [x] No uncommitted local changes.
 - [x] Production environment values verified in provider UI without exposing secrets.
 - [x] Production DB migration approval recorded separately if needed.
 - [x] Production seed approval recorded separately if needed.
 
-Current gate status: CONDITIONAL GO. `PROD-QA-001` and `PROD-QA-002` were rechecked on 2026-08-07 and are no longer reproducible on candidate commit `c12f26b`. Documentation-only evidence commit `99fd68a` was deployed after the candidate smoke and did not change application behavior. Final release still needs release, rollback, and monitoring owner assignment.
+Current gate status: CONDITIONAL GO. `PROD-QA-001` and `PROD-QA-002` were rechecked on 2026-08-07 and are no longer reproducible on candidate commit `c12f26b`. Documentation-only evidence commit `99fd68a` was deployed after the candidate smoke and did not change application behavior. Release, rollback, and monitoring ownership are assigned to `namola78-svg` by owner approval.
 
 Freeze record: `docs/ui/preview-beta-freeze.md`.
 QA record: `docs/ui/preview-beta-qa-results.md`.
@@ -66,7 +66,7 @@ Production monitoring checklist: `docs/ui/production-monitoring-checklist.md`.
 Release:
 Commit: c12f26b
 Date: 2026-08-07
-Owner: Pending assignment
+Owner: namola78-svg
 
 Included:
 - SECURIUM public, learner, and admin RC updates through candidate commit c12f26b.
@@ -75,7 +75,7 @@ Not included:
 - New feature scope beyond the Release Candidate.
 
 Known limitations:
-- Owner assignment remains pending.
+- Release, rollback, and monitoring ownership are assigned to `namola78-svg`.
 - Local Vercel CLI may require the documented TLS workaround on this workstation.
 - Mobile Escape close behavior should be reconfirmed during owner QA.
 

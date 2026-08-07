@@ -6,9 +6,9 @@ This checklist defines what to watch after a SECURIUM production release. It doe
 
 | Window | Goal | Owner | Result |
 | --- | --- | --- | --- |
-| First 5 minutes | Confirm the release is reachable and authentication still works. | TBD | TBD |
-| First 30 minutes | Confirm learner and admin core flows remain stable. | TBD | TBD |
-| First 24 hours | Watch for delayed auth, DB, AI, and analytics issues. | TBD | TBD |
+| First 5 minutes | Confirm the release is reachable and authentication still works. | `namola78-svg` | Pending monitoring window |
+| First 30 minutes | Confirm learner and admin core flows remain stable. | `namola78-svg` | Pending monitoring window |
+| First 24 hours | Watch for delayed auth, DB, AI, and analytics issues. | `namola78-svg` | Pending monitoring window |
 
 ## First 5 minutes
 
@@ -85,6 +85,8 @@ Release:
 Commit:
 Deployment:
 Monitoring owner:
+
+`namola78-svg`
 
 5-minute result:
 - 

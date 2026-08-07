@@ -17,8 +17,9 @@ Production URL:
 | Production alias | `https://securium.vercel.app` |
 | Release window | 2026-08-07 |
 | Tester | Codex browser + local test suite |
-| Decision owner | Owner approval pending |
-| Rollback owner | Pending assignment |
+| Decision owner | `namola78-svg` |
+| Rollback owner | `namola78-svg` |
+| Monitoring owner | `namola78-svg` |
 
 ## Environment confirmation
 
@@ -176,4 +177,4 @@ owner assignments and accepted P2/P3 operational or polish risks.
 
 Follow-up owner:
 
-Owner approval pending
+`namola78-svg`

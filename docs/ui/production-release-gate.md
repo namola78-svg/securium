@@ -74,3 +74,30 @@ Conditions or blockers:
 Follow-up:
 - 
 ```
+
+## Approved decision - 2026-08-07
+
+```text
+Decision: CONDITIONAL GO
+
+Candidate commit: c12f26b
+Production deployment: https://securium.vercel.app
+Decision owner: namola78-svg
+Rollback owner: namola78-svg
+Monitoring owner: namola78-svg
+
+Passed gates:
+- No open P0/P1 blockers remain after production smoke.
+- GitHub main is clean and pushed.
+- Latest production deployment is ready.
+- Protected routes redirect correctly when logged out.
+- Learner and admin core routes render without global error cards.
+
+Conditions or blockers:
+- BETA-001 sparse-data loading polish is accepted for beta monitoring.
+- BETA-002 mobile Escape close needs real-browser owner QA follow-up.
+- BETA-003 local Vercel CLI TLS issue is accepted with documented workaround.
+
+Follow-up:
+- Monitor first 5 minutes, first 30 minutes, and first 24 hours after release.
+```

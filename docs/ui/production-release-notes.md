@@ -6,7 +6,7 @@ SECURIUM Preview Beta to Production
 
 Candidate commit:
 
-TBD
+`c12f26b`
 
 Production URL:
 
@@ -14,11 +14,11 @@ Production URL:
 
 Release owner:
 
-TBD
+`namola78-svg`
 
 Date:
 
-TBD
+2026-08-07
 
 ## Summary
 
@@ -83,25 +83,25 @@ The following require separate approval and evidence:
 
 | ID | Severity | Limitation | Release decision |
 | --- | --- | --- | --- |
-| BETA-001 | P3 | Some sparse-data pages may briefly show loading before final empty state. | TBD |
-| BETA-002 | P3 | Mobile Escape close behavior should be reconfirmed in a real browser. | TBD |
-| BETA-003 | P2 | Local Vercel CLI can fail in this environment due to TLS/network restrictions. | TBD |
+| BETA-001 | P3 | Some sparse-data pages may briefly show loading before final empty state. | Accepted for beta monitoring |
+| BETA-002 | P3 | Mobile Escape close behavior should be reconfirmed in a real browser. | Accepted; owner QA follow-up |
+| BETA-003 | P2 | Local Vercel CLI can fail in this environment due to TLS/network restrictions. | Accepted with documented CLI workaround |
 
 ## Required verification before GO
 
 | Check | Required result | Status |
 | --- | --- | --- |
-| Candidate commit | Exact commit recorded. | TBD |
-| Working tree | No unintended local changes. | TBD |
-| Typecheck | Pass. | TBD |
-| Lint | Pass or documented accepted warnings only. | TBD |
-| Rendered integration test | Pass. | TBD |
-| Production build | Pass. | TBD |
-| Preview smoke | Pass or explicitly deferred by owner. | TBD |
-| Production smoke | Pass after deployment. | TBD |
-| Supabase Auth settings | Site URL and redirect URLs confirmed. | TBD |
-| Rollback owner | Assigned. | TBD |
-| Monitoring owner | Assigned. | TBD |
+| Candidate commit | Exact commit recorded. | PASS |
+| Working tree | No unintended local changes. | PASS |
+| Typecheck | Pass. | PASS |
+| Lint | Pass or documented accepted warnings only. | PASS |
+| Rendered integration test | Pass. | PASS |
+| Production build | Pass. | PASS |
+| Preview smoke | Pass or explicitly deferred by owner. | PASS |
+| Production smoke | Pass after deployment. | PASS |
+| Supabase Auth settings | Site URL and redirect URLs confirmed. | Owner confirmed |
+| Rollback owner | Assigned. | `namola78-svg` |
+| Monitoring owner | Assigned. | `namola78-svg` |
 
 ## Smoke test links
 
@@ -125,14 +125,14 @@ AI-generated explanations are provided as reference material and should be revie
 
 Decision:
 
-- GO
-- CONDITIONAL GO
-- NO-GO
+CONDITIONAL GO - approved
 
 Rationale:
 
-TBD
+No open P0/P1 blocker remains after production smoke. Known P2/P3 items are accepted for monitoring and follow-up.
 
 Conditions or follow-up:
 
-TBD
+- Monitor sparse-data loading states.
+- Reconfirm mobile Escape close behavior in a real browser during owner QA.
+- Use the documented Vercel CLI TLS workaround on this workstation if needed.

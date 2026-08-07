@@ -18,10 +18,10 @@ Rollback must be boring, fast, and explicit. If a production release causes auth
 
 | Role | Responsibility | Assigned |
 | --- | --- | --- |
-| Release owner | Makes GO / CONDITIONAL GO / NO-GO decision. | TBD |
-| Rollback owner | Executes approved rollback action. | TBD |
-| Verification owner | Runs smoke checks after rollback. | TBD |
-| Communication owner | Records user-facing and internal status. | TBD |
+| Release owner | Makes GO / CONDITIONAL GO / NO-GO decision. | `namola78-svg` |
+| Rollback owner | Executes approved rollback action. | `namola78-svg` |
+| Verification owner | Runs smoke checks after rollback. | `namola78-svg` |
+| Communication owner | Records user-facing and internal status. | `namola78-svg` |
 
 ## Rollback trigger matrix
 

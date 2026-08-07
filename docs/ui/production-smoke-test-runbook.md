@@ -27,8 +27,8 @@ Target production URL:
 | Production env values | Names confirmed in provider UI without exposing values. | TBD |
 | DB migration decision | Approved, deferred, or not required. | TBD |
 | Seed decision | Approved, deferred, or not required. | TBD |
-| Rollback owner | Assigned. | TBD |
-| Monitoring owner | Assigned. | TBD |
+| Rollback owner | Assigned. | `namola78-svg` |
+| Monitoring owner | Assigned. | `namola78-svg` |
 
 ## Public smoke tests
 
@@ -131,4 +131,3 @@ Open P3:
 Decision:
 Notes:
 ```
-
