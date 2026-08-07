@@ -63,6 +63,17 @@ test("question AI explanation retrieval avoids broad empty scans", () => {
   assert.match(generationSource, /return \[\]/);
 });
 
+test("question AI similar-question lookup keeps PostgreSQL DISTINCT ordering safe", () => {
+  const source = readFileSync("db/ai-repositories.ts", "utf8");
+  const similarSource =
+    source.match(
+      /async function listSimilarQuestions[\s\S]*?function deduplicateContexts/,
+    )?.[0] ?? "";
+
+  assert.match(similarSource, /selectDistinct\(\{[\s\S]*id:\s*questions\.id,[\s\S]*title:\s*questions\.title,[\s\S]*publishedAt:\s*questions\.publishedAt/);
+  assert.match(similarSource, /orderBy\(desc\(questions\.publishedAt\)\)/);
+});
+
 const now = "2026-07-27 10:00:00";
 const rowsByRepository = {
   users: {

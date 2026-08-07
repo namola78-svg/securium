@@ -1032,7 +1032,11 @@ async function listSimilarQuestions(input: {
   topicId: string | null;
 }) {
   return getDb()
-    .selectDistinct({ id: questions.id, title: questions.title })
+    .selectDistinct({
+      id: questions.id,
+      title: questions.title,
+      publishedAt: questions.publishedAt,
+    })
     .from(questions)
     .innerJoin(
       questionCourses,
