@@ -168,6 +168,8 @@ export async function listQuestionFilterSubjectsForCourse(courseId: string) {
     .where(
       and(
         eq(questionCourses.courseId, courseId),
+        eq(subjects.courseId, courseId),
+        eq(subjects.active, true),
         eq(questions.status, "PUBLISHED"),
         eq(courses.active, true),
         eq(courses.published, true),
@@ -191,6 +193,7 @@ export async function listQuestionFilterTopicsForSubject(
     })
     .from(topics)
     .innerJoin(questionTopics, eq(questionTopics.topicId, topics.id))
+    .innerJoin(subjects, eq(topics.subjectId, subjects.id))
     .innerJoin(questions, eq(questionTopics.questionId, questions.id))
     .innerJoin(questionCourses, eq(questionCourses.questionId, questions.id))
     .innerJoin(courses, eq(questionCourses.courseId, courses.id))
@@ -198,10 +201,13 @@ export async function listQuestionFilterTopicsForSubject(
       and(
         eq(questionCourses.courseId, courseId),
         eq(topics.subjectId, subjectId),
+        eq(subjects.courseId, courseId),
+        eq(subjects.active, true),
         eq(questions.status, "PUBLISHED"),
         eq(courses.active, true),
         eq(courses.published, true),
         isNull(courses.deletedAt),
+        isNull(subjects.deletedAt),
         isNull(topics.deletedAt),
       ),
     )

@@ -31,6 +31,25 @@ test("public question listing keeps PostgreSQL DISTINCT ordering safe", () => {
   assert.doesNotMatch(listPublicQuestionsSource, /sql`random\(\)`/);
 });
 
+test("practice question filter subjects remain isolated by course", () => {
+  const source = readFileSync("db/question-repositories.ts", "utf8");
+  const subjectFilterSource =
+    source.match(
+      /export async function listQuestionFilterSubjectsForCourse[\s\S]*?export async function listQuestionFilterTopicsForSubject/,
+    )?.[0] ?? "";
+  const topicFilterSource =
+    source.match(
+      /export async function listQuestionFilterTopicsForSubject[\s\S]*?export async function getQuestionForGrading/,
+    )?.[0] ?? "";
+
+  assert.match(subjectFilterSource, /eq\(questionCourses\.courseId,\s*courseId\)/);
+  assert.match(subjectFilterSource, /eq\(subjects\.courseId,\s*courseId\)/);
+  assert.match(subjectFilterSource, /eq\(subjects\.active,\s*true\)/);
+  assert.match(topicFilterSource, /innerJoin\(subjects,\s*eq\(topics\.subjectId,\s*subjects\.id\)\)/);
+  assert.match(topicFilterSource, /eq\(subjects\.courseId,\s*courseId\)/);
+  assert.match(topicFilterSource, /isNull\(subjects\.deletedAt\)/);
+});
+
 const now = "2026-07-27 10:00:00";
 const rowsByRepository = {
   users: {
