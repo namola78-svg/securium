@@ -912,6 +912,11 @@ kbd {
   color: var(--ink);
 }
 
+.site-header .ds-button.variant-ghost {
+  border-color: rgb(255 255 255 / 0.25);
+  color: var(--color-text-inverse);
+}
+
 .ds-button.variant-danger {
   background: var(--color-danger);
   border-color: var(--color-danger);
@@ -3847,6 +3852,41 @@ button:disabled {
 .hero-panel .today-card-title strong {
   max-width: 420px;
   font-size: clamp(25px, 3vw, 36px);
+}
+
+.hero .ds-button.variant-outline {
+  border-color: rgb(255 255 255 / 0.48);
+  background: rgb(255 255 255 / 0.02);
+  color: var(--color-text-inverse);
+}
+
+.hero-panel .ai-result-card {
+  color: var(--color-text-primary);
+}
+
+.hero-panel .ai-result-card .eyebrow {
+  color: var(--color-text-secondary);
+}
+
+.hero-panel .ai-result-card h3 {
+  color: var(--color-text-primary);
+}
+
+.hero-panel .ai-result-card > p:not(.eyebrow) {
+  color: var(--color-text-secondary);
+}
+
+.hero-panel .ai-result-card .preview-outcome-grid > div {
+  border-color: var(--color-line);
+  background: var(--color-surface-overlay);
+}
+
+.hero-panel .ai-result-card .preview-outcome-grid span {
+  color: var(--color-info);
+}
+
+.hero-panel .ai-result-card .preview-outcome-grid strong {
+  color: var(--color-text-primary);
 }
 
 .preview-question {

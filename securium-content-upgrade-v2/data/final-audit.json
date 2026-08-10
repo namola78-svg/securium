@@ -1,0 +1,32 @@
+{
+  "baselineSourceFiles": 50,
+  "currentFilesystemFiles": 60,
+  "generatedArtifactFiles": 10,
+  "discoveredTotalFiles": 50,
+  "pdfAnalyzed": 38,
+  "pdfTextExtracted": 37,
+  "pdfVisuallyReviewed": 1,
+  "txtAnalyzed": 1,
+  "duplicateMaterials": 0,
+  "processingFailures": 0,
+  "reviewRequired": 0,
+  "uniqueConcepts": 32,
+  "integratedExistingConcepts": 4,
+  "newConcepts": 28,
+  "lessonsEnriched": 32,
+  "originalWrittenQuestions": 2194,
+  "newWrittenQuestions": 19,
+  "originalPracticalQuestions": 671,
+  "newPracticalQuestions": 12,
+  "unprocessedFiles": 0,
+  "missingBaselineFiles": [],
+  "unclassifiedCurrentFiles": [],
+  "statusCounts": {
+    "PROCESSED": 44,
+    "DUPLICATE": 0,
+    "REFERENCE_ONLY": 6,
+    "UNSUPPORTED": 0,
+    "REVIEW_REQUIRED": 0
+  },
+  "generatedAt": "2026-08-10T08:00:23.926513+00:00"
+}

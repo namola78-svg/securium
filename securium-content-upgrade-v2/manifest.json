@@ -23,19 +23,29 @@
     }
   ],
   "inventory_counts": {
-    "theory_topics": 108,
-    "written_questions": 300,
-    "practical_pdf_questions": 54,
-    "practical_txt_section_markers": {
-      "단답형": 18,
-      "서술형": 17,
-      "실무형": 18
-    }
+    "generatedAt": "2026-08-10T07:52:56.756983+00:00",
+    "sourceRoot": "C:\\Users\\user\\Documents\\Codex\\2026-07-24\\1-2-3-4-5-6\\securium-content-upgrade-v2",
+    "totalFiles": 51,
+    "pdfFiles": 38,
+    "txtFiles": 1,
+    "jsonFiles": 7,
+    "otherContentFiles": 5,
+    "processableFiles": 50,
+    "reviewRequired": 1,
+    "duplicateFiles": 0,
+    "unprocessedFiles": 0,
+    "originalWrittenQuestions": 2094,
+    "originalPracticalQuestions": 671,
+    "uniqueConcepts": 32,
+    "integratedExistingConcepts": 4,
+    "newConcepts": 28
   },
   "output_policy": {
     "copy_source_text": false,
     "simple_paraphrase": false,
     "source_material_role": "concept_and_learning_objective_reference_only",
     "publish_state": "DRAFT_UNTIL_REVIEW"
-  }
+  },
+  "filesystem_inventory": "data/source-file-inventory.json",
+  "canonical_concepts": "data/canonical-concepts.json"
 }
