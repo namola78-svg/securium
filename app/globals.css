@@ -389,6 +389,7 @@ a {
 .mobile-drawer-header,
 .mobile-account-summary,
 .mobile-nav-section-title,
+.mobile-nav-utility,
 .mobile-header-error {
   display: none;
 }
@@ -8722,6 +8723,10 @@ textarea {
     font-size: 12px;
     font-weight: 900;
     letter-spacing: 0.08em;
+  }
+
+  .mobile-nav-utility {
+    display: contents;
   }
 
   .mobile-header-error {

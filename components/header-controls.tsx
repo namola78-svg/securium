@@ -321,7 +321,7 @@ export function HeaderControls({ user }: HeaderControlsProps) {
           />
         ))}
         {isSignedIn ? (
-          <>
+          <div className="mobile-nav-utility">
             <div className="mobile-nav-section-title">추가 학습</div>
             {learnerUtilityNavItems.map((item) => (
               <HeaderNavItem
@@ -331,7 +331,7 @@ export function HeaderControls({ user }: HeaderControlsProps) {
                 onClick={closeMenus}
               />
             ))}
-          </>
+          </div>
         ) : null}        <div className="mobile-nav-actions" aria-label="계정 메뉴">
           {!isSignedIn ? (
             <>

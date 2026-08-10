@@ -724,3 +724,10 @@
 - Added responsive refinements for 320–1440px ranges, touch-sized actions, mobile stacking, focus-visible preservation, and reduced-motion transition handling in `app/globals.css`.
 - Validation: `npm run test:unit` 312/312, lint, typecheck, production build (63 routes), and `git diff --check` passed.
 - Browser screenshot/console inspection remains unavailable because no browser session is available. Changes are local and not pushed or deployed; no backend, DB, auth, API, or OpenAI Sites deployment configuration was changed.
+## BATCH 146 (Header navigation duplicate rendering fix)
+- Root cause: authenticated utility links were rendered unconditionally inside the desktop-visible `.main-nav` for the mobile drawer, while `header-actions` also rendered the first three utility links on desktop. This caused duplicate utility labels after the primary navigation.
+- `SiteNav` is not mounted anywhere; `app/layout.tsx` mounts only `SiteHeader`, which mounts one `HeaderControls` instance.
+- Wrapped the mobile-only utility map in `.mobile-nav-utility`, hidden by default and exposed with `display: contents` only inside the existing `max-width: 960px` mobile drawer breakpoint.
+- Desktop routing, active state, authentication conditions, primary navigation, desktop utility links, mobile drawer, and mobile bottom navigation were otherwise preserved.
+- Static verification: one `SiteHeader` mount, no `SiteNav` mount, utility render sites are limited to the mobile drawer and desktop header-actions paths; `북마크`, `오답노트`, `복습`, and `학습 분석` each remain single entries in `lib/ui-nav.ts`.
+- Validation: unit 312/312, lint, typecheck, production build (63 routes), and `git diff --check` passed. No browser session was available for live screenshot inspection.
