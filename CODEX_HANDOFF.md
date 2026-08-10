@@ -709,3 +709,10 @@
 - Re-ran `npm run test:e2e` with a bounded timeout; it again stalled during Vinext/Vite test-server readiness and timed out after 74 seconds.
 - Cleaned only the spawned E2E/test-server processes; unrelated Codex and MCP processes were preserved.
 - E2E remains externally/runtime blocked; unit, build, typecheck, lint, DB, migration, and diff checks remain the available passing validation set.
+## BATCH 144 (Vercel Production deployment)
+- Confirmed the official Production provider is the existing Vercel project `securium`, with GitHub remote `https://github.com/namola78-svg/securium` and `main` as the synchronized branch.
+- OpenAI Sites was not used as a deployment condition. `.openai/hosting.json` remains only as repository metadata from the prior workflow; no application source, database schema, UI, or feature code was changed for deployment.
+- `npm run test:unit` passed 312/312, lint passed, typecheck passed, and `npm run build` passed with 63 routes.
+- Pushed commit `bf2200f14b5655919a50c8fea4fd567442c1e2ef` to GitHub `main`; Vercel Git Integration produced Production deployment `dpl_DCCWaN1bmQSTTvgN61mfUyApkZ54` with Ready status and the `https://securium.vercel.app` alias.
+- HTTP smoke checks passed for `/`, `/courses`, `/login`, `/api/health`, and `/api/auth/session`; health reported database `ok`.
+- Browser console/runtime inspection remains unavailable because no browser session is available.
