@@ -779,3 +779,11 @@
 - Existing Vercel project `securium` created Production deployment `dpl_6wLywsVJoGG2LFgo9MgpkHrvHJDz`, which reached `Ready` and aliased to `https://securium.vercel.app`.
 - Production smoke checks returned HTTP 200 for `/`, `/courses`, `/login`, `/api/health`, and `/api/auth/session`.
 - OpenAI Sites was not used; no new Vercel project or production environment change was made.
+
+## BATCH 155 (Rendered HTML contract cleanup and production verification)
+- Updated `tests/rendered-html.test.mjs` to match the current landing, practice, curriculum, shared-content, login, dashboard, wrong-note, and review copy/contracts while preserving security and data-isolation assertions.
+- Validation passed: integration 23/23, unit 312/312, lint, typecheck, `npm run build`, `npm run build:cloudflare`, `npm run db:check`, `npm run db:postgres:validate`, and `git diff --check`.
+- Committed as `bc603fb` and pushed to GitHub `main`.
+- Vercel Production deployment `securium-4f2ve9r81-namola78-svgs-projects.vercel.app` reached `Ready` and aliases to `https://securium.vercel.app`.
+- Production smoke checks for `/`, `/api/health`, and `/api/auth/session` returned HTTP 200; recent Vercel logs showed only expected info-level requests.
+- `.playwright-mcp/` remains an existing untracked local directory and was not included.
