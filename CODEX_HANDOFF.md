@@ -742,3 +742,9 @@
 - Replaced placeholder values with semantic icon names and added a reusable `components/navigation-icon.tsx` inline SVG set: home, book-open, file-question, briefcase, and graduation-cap.
 - Preserved the existing routes, labels, active route mapping, mobile breakpoint, safe-area padding, touch target, and desktop duplicate-navigation fix.
 - Validation: unit 312/312, lint, typecheck, production build (63 routes), and `git diff --check` passed.
+
+## BATCH 149 (Remaining verification retry)
+- Re-ran `npm run test:e2e` with a 120-second command limit; it again produced no test output and timed out during Vinext/Vite test-server readiness (observed command duration: 124 seconds).
+- Confirmed the timeout left only the test-runner/npm/Vinext processes it spawned; those exact processes were terminated. Unrelated Codex and MCP processes were preserved.
+- Confirmed the worktree remains clean on `main`, synchronized with `origin/main`, at commit `7da9a23` (`Replace mobile navigation placeholder icons`); `git diff --check` passed.
+- Live browser screenshot, console, authenticated navigation interaction, and fixed-viewport rendering checks remain unavailable because the browser runtime reports `No browser is available`.
