@@ -748,3 +748,9 @@
 - Confirmed the timeout left only the test-runner/npm/Vinext processes it spawned; those exact processes were terminated. Unrelated Codex and MCP processes were preserved.
 - Confirmed the worktree remains clean on `main`, synchronized with `origin/main`, at commit `7da9a23` (`Replace mobile navigation placeholder icons`); `git diff --check` passed.
 - Live browser screenshot, console, authenticated navigation interaction, and fixed-viewport rendering checks remain unavailable because the browser runtime reports `No browser is available`.
+
+## BATCH 150 (E2E root-cause isolation)
+- Ran `npm run test:integration` separately to isolate the E2E readiness timeout.
+- The test server did start; the suite completed in about 50 seconds and reported 21 failures rather than hanging.
+- Primary failure: local D1-backed authenticated operations return `INTERNAL_ERROR` while querying the `users` table, causing enrollment, admin, and authenticated rendered-page assertions to fail. Landing HTML assertions also include stale text expectations unrelated to the navigation fix.
+- No application, database schema, auth, API, or navigation code was changed. The E2E blocker is local test-fixture/runtime configuration and pre-existing assertion drift, not a production navigation regression.
