@@ -5,7 +5,7 @@ import {
   supabaseSessionCookieSpecs,
   SUPABASE_OAUTH_RETURN_COOKIE,
 } from "@/lib/auth-provider";
-import { safeAuthReturnPath } from "@/lib/auth-routing";
+import { buildSafeRedirectQuery, safeAuthReturnPath } from "@/lib/auth-routing";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -20,11 +20,16 @@ export async function GET(request: NextRequest) {
   const code = url.searchParams.get("code");
   const providerError = url.searchParams.get("error");
   if (!code || providerError) {
-    const params = new URLSearchParams({
-      error: providerError === "access_denied" ? "oauth_cancelled" : "oauth_callback_failed",
+    const query = buildSafeRedirectQuery({
+      error:
+        providerError === "access_denied"
+          ? "oauth_cancelled"
+          : "oauth_callback_failed",
       return_to: returnTo,
     });
-    return NextResponse.redirect(new URL(`/login?${params.toString()}`, request.url));
+    const response = NextResponse.redirect(new URL(`/login?${query}`, request.url));
+    response.cookies.delete(SUPABASE_OAUTH_RETURN_COOKIE);
+    return response;
   }
 
   const cookiesToSet: Array<{
@@ -55,14 +60,15 @@ export async function GET(request: NextRequest) {
         status: error?.status,
       });
     }
-    const params = new URLSearchParams({
+    const query = buildSafeRedirectQuery({
       error: "oauth_callback_failed",
       return_to: returnTo,
     });
     const response = NextResponse.redirect(
-      new URL(`/login?${params.toString()}`, request.url),
+      new URL(`/login?${query}`, request.url),
     );
     applySupabaseSsrCookies(response, cookiesToSet);
+    response.cookies.delete(SUPABASE_OAUTH_RETURN_COOKIE);
     return response;
   }
 

@@ -5,7 +5,10 @@ import {
   signInWithSupabasePassword,
   validateAuthForm,
 } from "@/lib/auth-provider";
-import { safeAuthReturnPath } from "@/lib/auth-routing";
+import {
+  buildSafeRedirectQuery,
+  safeAuthReturnPath,
+} from "@/lib/auth-routing";
 import { AppError } from "@/lib/errors";
 
 export const dynamic = "force-dynamic";
@@ -30,19 +33,35 @@ export async function POST(request: Request) {
 }
 
 function loginFailurePath(returnTo: string, error: unknown) {
-  const params = new URLSearchParams({ return_to: returnTo });
+  const params: Record<string, string | undefined> = { return_to: returnTo };
   if (error instanceof AppError) {
     if (error.code === "AUTH_EMAIL_INVALID") {
-      params.set("error", "email_invalid");
+      params.error = "email_invalid";
     } else if (error.code === "AUTH_PASSWORD_INVALID") {
-      params.set("error", "password_invalid");
+      params.error = "password_invalid";
+    } else if (error.code === "CSRF_REJECTED") {
+      params.error = "credentials_invalid";
+    } else if (error.code === "AUTH_PROVIDER_INVALID") {
+      params.error = "credentials_invalid";
+    } else if (error.code === "SUPABASE_AUTH_NOT_CONFIGURED") {
+      params.error = "network";
+    } else if (error.code === "SUPABASE_AUTH_NETWORK_ERROR") {
+      params.error = "network";
+    } else if (error.code === "SUPABASE_SIGNIN_FAILED") {
+      if (error.status >= 500) {
+        params.error = "network";
+      } else {
+        params.error = "credentials_invalid";
+      }
+    } else if (error.code === "SUPABASE_SESSION_INVALID") {
+      params.error = "credentials_invalid";
     } else if (error.status >= 500) {
-      params.set("error", "network");
+      params.error = "network";
     } else {
-      params.set("error", "credentials_invalid");
+      params.error = "credentials_invalid";
     }
   } else {
-    params.set("error", "credentials_invalid");
+    params.error = "credentials_invalid";
   }
-  return `/login?${params.toString()}`;
+  return `/login?${buildSafeRedirectQuery(params).toString()}`;
 }

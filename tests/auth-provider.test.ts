@@ -9,7 +9,12 @@ import {
   supabaseSessionCookieNamesForLogout,
   validateAuthForm,
 } from "../lib/auth-provider.ts";
-import { safeAuthReturnPath } from "../lib/auth-routing.ts";
+import {
+  authApiRedirectHref,
+  authRedirectHref,
+  buildSafeRedirectQuery,
+  safeAuthReturnPath,
+} from "../lib/auth-routing.ts";
 
 test("auth provider defaults to Sites and accepts Supabase explicitly", () => {
   assert.equal(resolveAuthProvider({}), "sites");
@@ -67,6 +72,29 @@ test("auth return paths reject external and reserved targets", () => {
     safeAuthReturnPath("/api/auth/supabase/oauth/google"),
     "/dashboard",
   );
+  assert.equal(authRedirectHref("/login", "/admin"), "/login?return_to=%2Fadmin");
+  assert.equal(
+    authApiRedirectHref("/api/auth/supabase/oauth/google", "/admin"),
+    "/api/auth/supabase/oauth/google?return_to=%2Fadmin",
+  );
+  assert.equal(
+    authApiRedirectHref("/api/auth/supabase/logout", "/admin"),
+    "/api/auth/supabase/logout?return_to=%2Fadmin",
+  );
+});
+
+test("redirect query builder strips unsafe return_to while preserving other params", () => {
+  const safe = buildSafeRedirectQuery({ return_to: "/dashboard", error: "network" });
+  assert.equal(safe.get("return_to"), "/dashboard");
+  assert.equal(safe.get("error"), "network");
+
+  const blocked = buildSafeRedirectQuery({
+    return_to: "https://evil.example",
+    error: "oauth_callback_failed",
+  });
+  assert.equal(blocked.get("return_to"), null);
+  assert.equal(blocked.get("error"), "oauth_callback_failed");
+  assert.equal(blocked.toString(), "error=oauth_callback_failed");
 });
 
 test("supabase access token fallback extracts non-expired identity only", () => {

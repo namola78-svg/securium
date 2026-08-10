@@ -1,5 +1,4 @@
 import type { NextConfig } from "next";
-import { resolve } from "node:path";
 import {
   createSecurityHeaders,
   parseAllowedHttpsOrigins,
@@ -50,13 +49,6 @@ const nextConfig: NextConfig = {
             "cloudflare:workers":
               "./lib/runtime/cloudflare-workers-node.ts",
           },
-        },
-        webpack(config) {
-          config.resolve.alias["cloudflare:workers"] = resolve(
-            process.cwd(),
-            "lib/runtime/cloudflare-workers-node.ts",
-          );
-          return config;
         },
       }),
 };

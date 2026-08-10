@@ -1,0 +1,268 @@
+﻿import Link from "next/link";
+import { Suspense } from "react";
+import { ProgressBar } from "@/components/progress-bar";
+import { getIntegratedStatistics } from "@/db/phase3-repositories";
+import { requireCurrentAppUser } from "@/lib/auth";
+import { ActionButton } from "@/components/design-system-primitives";
+
+export const dynamic = "force-dynamic";
+
+export default async function IntegratedAnalyticsPage() {
+  const user = await requireCurrentAppUser("/analytics");
+  const analyticsPromise = getIntegratedStatistics(user.id);
+  return (
+    <main className="page-main dashboard-page">
+      <div className="shell">
+        <header className="dashboard-intro">
+          <div>
+            <p className="eyebrow">?숈뒿遺꾩꽍</p>
+            <h1>?듯빀 ?숈뒿遺꾩꽍</h1>
+            <p>
+              怨쇱젙蹂?臾몄젣??? ?대줎 吏꾨룄, 蹂듭뒿 湲곕줉??紐⑥븘 ?ㅼ쓬 ?숈뒿 寃곗젙??
+              ?뺤뒿?덈떎.
+            </p>
+          </div>
+          <ActionButton href="/practice" variant="dark">
+            臾몄젣????쒖옉
+          </ActionButton>
+        </header>
+        <Suspense fallback={<AnalyticsMetricsFallback />}>
+          <AnalyticsOverview analyticsPromise={analyticsPromise} />
+        </Suspense>
+        <Suspense fallback={<AnalyticsCourseActionsFallback />}>
+          <AnalyticsCourseActions analyticsPromise={analyticsPromise} />
+        </Suspense>
+      </div>
+    </main>
+  );
+}
+
+type IntegratedAnalytics = Awaited<ReturnType<typeof getIntegratedStatistics>>;
+
+async function AnalyticsOverview({
+  analyticsPromise,
+}: {
+  analyticsPromise: Promise<IntegratedAnalytics>;
+}) {
+  const analytics = await analyticsPromise;
+  const topCourse = analytics.courses
+    .slice()
+    .sort((a, b) => a.stats.overallAccuracy - b.stats.overallAccuracy)[0];
+
+  return (
+    <>
+      <section className="analytics-overview-panel" aria-label="?듯빀 ?숈뒿遺꾩꽍 ?붿빟">
+        <div>
+          <p className="eyebrow">?숈뒿 寃곌낵</p>
+          <h2>
+            {analytics.totalQuestions
+              ? `?꾩껜 ?뺣떟瑜?${analytics.overallAccuracy}%`
+              : "臾몄젣瑜??硫??숈뒿 寃곌낵媛 諛붾줈 ?뺣━?⑸땲??}
+          </h2>
+          <p>
+            遺꾩꽍? 怨쇱젙蹂꾨줈 遺꾨━?????湲곕줉???ъ슜?⑸땲?? 痍⑥빟 ?곸뿭??蹂댁씠硫?
+            諛붾줈 臾몄젣??댁? 蹂듭뒿?쇰줈 ?댁뼱媛????덉뒿?덈떎.
+          </p>
+        </div>
+        <dl>
+          <div>
+            <dt>?섍컯 怨쇱젙</dt>
+            <dd>{analytics.enrolledCourses}媛?/dd>
+          </div>
+          <div>
+            <dt>?꾩쟻 ?숈뒿??/dt>
+            <dd>{analytics.cumulativeStudyDays}??/dd>
+          </div>
+          <div>
+            <dt>?꾩쟻 臾몄젣</dt>
+            <dd>{analytics.totalQuestions}媛?/dd>
+          </div>
+          <div>
+            <dt>?곗냽 ?숈뒿</dt>
+            <dd>{analytics.studyStreak}??/dd>
+          </div>
+        </dl>
+      </section>
+      <section className="analytics-action-panel" aria-label="異붿쿇 遺꾩꽍 ?됰룞">
+        <div>
+          <p className="eyebrow">?ㅼ쓬 異붿쿇 ?됰룞</p>
+          <h2>媛??癒쇱? ?뺤씤???곸뿭</h2>
+          {topCourse ? (
+            <p>
+              {topCourse.courseName}???뺣떟瑜좉낵 ?대줎 吏꾨룄瑜??뺤씤?섍퀬 ?ㅼ쓬
+              臾몄젣??대줈 ?댁뼱媛?몄슂.
+            </p>
+          ) : (
+            <p>怨쇱젙???섍컯?섍퀬 臾몄젣瑜??硫??곗꽑 ?뺤씤???곸뿭??蹂댁뿬以띾땲??</p>
+          )}
+          <ol className="analytics-decision-flow" aria-label="?숈뒿遺꾩꽍 ?먮떒 湲곗?">
+            <li>
+              <span>01</span>
+              <strong>?대뵒源뚯? ?덉??</strong>
+            </li>
+            <li>
+              <span>02</span>
+              <strong>?ㅼ쓬? 萸??섏??</strong>
+            </li>
+            <li>
+              <span>03</span>
+              <strong>?쇰쭏???⑥븯吏?</strong>
+            </li>
+            <li>
+              <span>04</span>
+              <strong>?대뵒媛 ?쏀븯吏?</strong>
+            </li>
+          </ol>
+        </div>
+        {topCourse ? (
+          <div className="analytics-action-buttons">
+            <ActionButton
+              variant="dark"
+              href={`/analytics/${topCourse.courseId}`}
+            >
+              怨쇱젙 遺꾩꽍 蹂닿린
+            </ActionButton>
+            <ActionButton
+              variant="ghost"
+              href={`/practice/${topCourse.courseSlug}?count=10`}
+            >
+              臾몄젣 10媛??湲?
+            </ActionButton>
+          </div>
+        ) : (
+          <ActionButton href="/courses" variant="dark">
+            怨쇱젙 ?섎윭蹂닿린
+          </ActionButton>
+        )}
+      </section>
+      <section className="analytics-action-strip section-block" aria-label="?숈뒿遺꾩꽍 ?ㅼ쓬 ?됰룞">
+        <Link
+          className="analytics-action-card analytics-action-card-primary"
+          href={topCourse ? `/analytics/${topCourse.courseId}` : "/courses"}
+        >
+          <span>01 쨌 痍⑥빟 怨쇱젙</span>
+          <strong>{topCourse ? topCourse.courseName : "怨쇱젙 ?좏깮"}</strong>
+          <p>
+            {topCourse
+              ? "?뺣떟瑜좉낵 ?대줎 吏꾨룄瑜?癒쇱? ?뺤씤??怨쇱젙?낅땲??"
+              : "?숈뒿??怨쇱젙???깅줉?섎㈃ 遺꾩꽍???쒖옉?⑸땲??"}
+          </p>
+        </Link>
+        <Link
+          className="analytics-action-card"
+          href={topCourse ? `/practice/${topCourse.courseSlug}?count=10` : "/practice"}
+        >
+          <span>02 쨌 臾몄젣???/span>
+          <strong>10臾명빆?쇰줈 痍⑥빟 ?곸뿭 李얘린</strong>
+          <p>??臾몄젣瑜??硫?痍⑥빟 ?곸뿭 異붿쿇????援ъ껜?곸쑝濡??뺣━?⑸땲??</p>
+        </Link>
+        <Link className="analytics-action-card" href="/reviews">
+          <span>03 쨌 蹂듭뒿</span>
+          <strong>?ㅻ떟怨??곗껜 蹂듭뒿 ?뺤씤</strong>
+          <p>遺꾩꽍?먯꽌 諛쒓껄??痍⑥빟 ?곸뿭??蹂듭뒿 猷⑦떞?쇰줈 ?댁뼱媛묐땲??</p>
+        </Link>
+      </section>
+    </>
+  );
+}
+
+function AnalyticsMetricsFallback() {
+  return (
+    <section className="analytics-overview-panel" aria-live="polite">
+      <div>
+        <p className="eyebrow">?숈뒿 寃곌낵</p>
+        <h2>?숈뒿遺꾩꽍 ?뺣낫瑜?遺덈윭?ㅺ퀬 ?덉뒿?덈떎</h2>
+        <p>怨쇱젙蹂??숈뒿 寃곌낵瑜??뺣━?섎뒗 以묒엯?덈떎.</p>
+      </div>
+      <dl aria-hidden="true">
+        {[0, 1, 2, 3].map((item) => (
+          <div key={item}>
+            <dt>遺덈윭?ㅻ뒗 以?/dt>
+            <dd>-</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
+async function AnalyticsCourseActions({
+  analyticsPromise,
+}: {
+  analyticsPromise: Promise<IntegratedAnalytics>;
+}) {
+  const analytics = await analyticsPromise;
+  return (
+    <section className="section-block learner-analytics-panel">
+      <div className="section-heading compact">
+        <div>
+          <p className="eyebrow">怨쇱젙蹂??ㅼ쓬 ?됰룞</p>
+          <h2>怨쇱젙蹂??숈뒿 ?곹깭</h2>
+          <p>
+            ?뺣떟瑜? ?④퀎 ?꾨즺?? ?대줎 吏꾨룄?⑥쓣 鍮꾧탳?섍퀬 怨쇱젙蹂?遺꾩꽍 ?먮뒗
+            臾몄젣??대줈 ?대룞?⑸땲??
+          </p>
+        </div>
+        <span className="count-label">?곗냽 ?숈뒿 {analytics.studyStreak}??/span>
+      </div>
+      {analytics.courses.length ? (
+        <div className="analytics-course-list">
+          {analytics.courses.map((course) => (
+            <article className="analytics-course-row" key={course.courseId}>
+              <Link href={`/analytics/${course.courseId}`}>
+                <strong>{course.courseName}</strong>
+                <small>{course.stats.totalQuestions}臾몄젣 ???/small>
+              </Link>
+              <ProgressBar value={course.stats.overallAccuracy} label="?뺣떟瑜? />
+              <span>{course.stats.levelCompletionRate}% ?④퀎 ?꾨즺</span>
+              <span>{course.stats.theoryProgressPercent}% ?대줎 ?숈뒿</span>
+              <div className="analytics-row-actions">
+                <ActionButton
+                  variant="ghost"
+                  href={`/analytics/${course.courseId}`}
+                >
+                  ?먯꽭??蹂닿린
+                </ActionButton>
+                <ActionButton
+                  variant="dark"
+                  href={`/practice/${course.courseSlug}?count=10`}
+                >
+                  臾몄젣 ?湲?
+                </ActionButton>
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div className="empty-state">
+          <strong>?꾩쭅 遺꾩꽍???숈뒿 湲곕줉???놁뒿?덈떎.</strong>
+          <p>愿???덈뒗 怨쇱젙???깅줉?섍퀬 臾몄젣??대? ?쒖옉?대낫?몄슂.</p>
+          <ActionButton href="/courses" variant="dark">
+            怨쇱젙 ?섎윭蹂닿린
+          </ActionButton>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function AnalyticsCourseActionsFallback() {
+  return (
+    <section className="section-block learner-analytics-panel" aria-live="polite">
+      <div className="section-heading compact">
+        <div>
+          <p className="eyebrow">怨쇱젙蹂??ㅼ쓬 ?됰룞</p>
+          <h2>怨쇱젙蹂??숈뒿 ?곹깭瑜?遺덈윭?ㅺ퀬 ?덉뒿?덈떎</h2>
+          <p>理쒓렐 ?숈뒿 湲곕줉怨?怨쇱젙蹂?吏꾨룄瑜??뺤씤?섍퀬 ?덉뒿?덈떎.</p>
+        </div>
+      </div>
+      <div className="analytics-course-list" aria-hidden="true">
+        {[0, 1, 2].map((item) => (
+          <article className="analytics-course-row" key={item}>
+            <div className="card-skeleton" />
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}

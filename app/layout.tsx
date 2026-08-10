@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { Suspense } from "react";
 import { CommandPalette } from "@/components/command-palette";
 import { SiteHeader } from "@/components/site-header";
+import { FooterLegalLinks } from "@/components/footer-legal-links";
 import { BRAND } from "@/lib/brand";
 import "./globals.css";
 
@@ -79,13 +81,17 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
+        <a className="skip-link" href="#main-content">본문으로 건너뛰기</a>
         <SiteHeader />
         <CommandPalette />
-        {children}
+        <div id="main-content" tabIndex={-1}>{children}</div>
         <footer className="site-footer">
           <div className="shell footer-inner">
             <strong>{BRAND.officialName}</strong>
             <span>{BRAND.shortDescription}</span>
+            <Suspense fallback={null}>
+              <FooterLegalLinks />
+            </Suspense>
           </div>
         </footer>
       </body>

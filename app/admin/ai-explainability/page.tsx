@@ -454,7 +454,7 @@ export default async function AdminAIExplainabilityPage({
                 tone: selectedTrace ? "info" : "warning",
               },
               {
-                label: selectedTrace?.generationStatus ?? "No status",
+                label: selectedTrace?.generationStatus ?? "상태 없음",
                 tone:
                   !selectedTrace
                     ? "warning"
@@ -464,10 +464,10 @@ export default async function AdminAIExplainabilityPage({
               },
             ]}
             meta={[
-              { label: "Visible traces", value: traces.length },
-              { label: "Failed traces", value: failedTraceCount },
-              { label: "Reviewed traces", value: reviewedTraceCount },
-              { label: "Feedback", value: feedbackTotal },
+              { label: "표시 추적", value: traces.length },
+              { label: "실패 추적", value: failedTraceCount },
+              { label: "검수 추적", value: reviewedTraceCount },
+              { label: "피드백", value: feedbackTotal },
             ]}
             actions={
               <>

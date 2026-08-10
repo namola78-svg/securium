@@ -112,7 +112,7 @@ export default async function ContentRevisionsAdminPage({
         secondary={
           <>
             <StatusBadge compact tone={latestRevision ? "success" : "warning"}>
-              {latestRevision ? "LATEST READY" : "NO LATEST"}
+              {latestRevision ? "최신 버전 준비됨" : "최신 버전 없음"}
             </StatusBadge>
             <StatusBadge compact tone={reviewCount ? "warning" : "neutral"}>
               REVIEW {reviewCount}
@@ -372,7 +372,7 @@ export default async function ContentRevisionsAdminPage({
                 tone: "brand",
               },
               {
-                label: latestRevision?.revisionStatus ?? "NO LATEST",
+                label: latestRevision?.revisionStatus ?? "최신 버전 없음",
                 tone: latestRevision ? "success" : "warning",
               },
             ]}

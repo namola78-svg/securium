@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SECURIUM transformed learning content",
+  "type": "object",
+  "required": [
+    "id",
+    "subject",
+    "concepts",
+    "source_refs"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "subject": {
+      "type": "string"
+    },
+    "concepts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "difficulty": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "type": {
+      "type": "string"
+    }
+  }
+}

@@ -54,7 +54,7 @@ test("security certification course lesson seed keeps course progress separated"
   );
 });
 
-test("Sprint G vertical slice keeps shared official content draft and course-scoped", () => {
+test("Sprint G vertical slice keeps shared official content published and course-scoped", () => {
   const verticalSliceContents = [
     {
       contentId: "content-official-security-cert-general-cia-core-properties",
@@ -87,7 +87,7 @@ test("Sprint G vertical slice keeps shared official content draft and course-sco
       status?: string;
     };
     assert.equal(content.title, expected.title);
-    assert.equal(verticalSliceContent.status, "DRAFT");
+    assert.equal(verticalSliceContent.status, "PUBLISHED");
     assert.equal((verticalSliceContent.diagrams?.length ?? 0) >= 1, true);
     assert.equal(content.body.includes("placeholder"), false);
     assert.equal(
@@ -105,8 +105,8 @@ test("Sprint G vertical slice keeps shared official content draft and course-sco
     assert.equal(new Set(lessons.map((lesson) => lesson.id)).size, 2);
     assert.equal(
       lessons.every(
-        (lesson) =>
-          (lesson as typeof lesson & { status?: string }).status === "DRAFT",
+          (lesson) =>
+          (lesson as typeof lesson & { status?: string }).status === "PUBLISHED",
       ),
       true,
     );
@@ -124,7 +124,10 @@ test("Sprint G vertical slice keeps shared official content draft and course-sco
       (extension) => lessons.some((lesson) => lesson.id === extension.courseLessonId),
     );
     assert.equal(extensions.length, 2);
-    assert.equal(extensions.every((extension) => extension.status === "DRAFT"), true);
+    assert.equal(
+      extensions.every((extension) => extension.status === "PUBLISHED"),
+      true,
+    );
     assert.notEqual(extensions[0]?.additionalBody, extensions[1]?.additionalBody);
   }
 });

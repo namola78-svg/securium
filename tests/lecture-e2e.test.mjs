@@ -3,7 +3,7 @@ import { spawn } from "node:child_process";
 import { after, before, test } from "node:test";
 
 const port = 33107;
-const baseUrl = `http://localhost:${port}`;
+const baseUrl = `http://127.0.0.1:${port}`;
 const user1 = {
   "content-type": "application/json",
   origin: baseUrl,

@@ -298,7 +298,7 @@ export default async function AuditLogsPage({
             }
             badges={[
               {
-                label: detail?.result ?? "No selection",
+                label: detail?.result ?? "선택 없음",
                 tone:
                   detail?.result === "SUCCESS"
                     ? "success"

@@ -1,0 +1,313 @@
+﻿import Link from "next/link";
+import { notFound } from "next/navigation";
+import { getCourseStatistics } from "@/db/phase3-repositories";
+import {
+import { ActionButton } from "@/components/design-system-primitives";
+  getCourseById,
+  getEnrollmentForCourse,
+  listCurriculum,
+} from "@/db/repositories";
+import { requireCurrentAppUser } from "@/lib/auth";
+
+export const dynamic = "force-dynamic";
+
+export default async function CourseAnalyticsPage({
+  params,
+}: {
+  params: Promise<{ courseId: string }>;
+}) {
+  const { courseId } = await params;
+  const user = await requireCurrentAppUser(`/analytics/${courseId}`);
+  const [course, enrollment, curriculum] = await Promise.all([
+    getCourseById(courseId),
+    getEnrollmentForCourse(user.id, courseId),
+    listCurriculum(courseId),
+  ]);
+  if (!course || !enrollment) notFound();
+
+  const stats = await getCourseStatistics(user.id, courseId);
+  const subjectNameById = new Map(
+    curriculum.map((subject) => [subject.id, subject.name]),
+  );
+  const topicMetaById = new Map(
+    curriculum.flatMap((subject) =>
+      subject.topics.map((topic) => [
+        topic.id,
+        { name: topic.name, subjectId: subject.id },
+      ] as const),
+    ),
+  );
+  const weakTopics = [...stats.byTopic]
+    .filter((item) => item.id !== "UNMAPPED")
+    .sort((a, b) => a.accuracy - b.accuracy);
+  const weakestTopic = weakTopics[0];
+  const weakestTopicMeta = weakestTopic
+    ? topicMetaById.get(weakestTopic.id)
+    : undefined;
+  const weakestTopicLabel = weakestTopic
+    ? (weakestTopicMeta?.name ?? "?뺤씤??二쇱젣")
+    : null;
+  const weakestTopicParams = weakestTopic
+    ? new URLSearchParams({ topicId: weakestTopic.id, count: "10" })
+    : undefined;
+  if (weakestTopicParams && weakestTopicMeta?.subjectId) {
+    weakestTopicParams.set("subjectId", weakestTopicMeta.subjectId);
+  }
+
+  return (
+    <main className="page-main dashboard-page">
+      <div className="shell">
+        <header className="dashboard-intro">
+          <div>
+            <p className="eyebrow">怨쇱젙 ?숈뒿遺꾩꽍</p>
+            <h1>{course.name} ?숈뒿遺꾩꽍</h1>
+            <p>
+              ?뺣떟瑜? 理쒓렐 ?숈뒿?? 諛섎났 ?ㅻ떟, 蹂듭뒿 ?깃났瑜좎쓣 怨쇱젙 踰붿쐞 ?덉뿉??
+              遺꾩꽍?⑸땲??
+            </p>
+          </div>
+          <ActionButton
+            variant="dark"
+            href={`/practice/${course.slug}?count=10`}
+          >
+            臾몄젣????쒖옉
+          </ActionButton>
+        </header>
+
+        <section className="analytics-overview-panel" aria-label="怨쇱젙 遺꾩꽍 ?붿빟">
+          <div>
+            <p className="eyebrow">怨쇱젙 ?숈뒿 寃곌낵</p>
+            <h2>
+              {stats.totalQuestions
+                ? `?꾩옱 ?뺣떟瑜?${stats.overallAccuracy}%`
+                : "??怨쇱젙???숈뒿 湲곕줉???꾩쭅 ?놁뒿?덈떎"}
+            </h2>
+            <p>
+              ?꾩쭅 ??닿? ?녿뒗 吏?쒕뒗 0?쇰줈 ?쒖떆?⑸땲?? 臾몄젣瑜??硫?痍⑥빟
+              怨쇰ぉ怨?二쇱젣瑜?諛붾줈 ?뺤씤?????덉뒿?덈떎.
+            </p>
+          </div>
+          <dl>
+            <div>
+              <dt>?꾩껜 ?뺣떟瑜?/dt>
+              <dd>{stats.overallAccuracy}%</dd>
+            </div>
+            <div>
+              <dt>理쒓렐 7??/dt>
+              <dd>{stats.recent7Days}臾몄젣</dd>
+            </div>
+            <div>
+              <dt>諛섎났 ?ㅻ떟</dt>
+              <dd>{stats.repeatedWrongCount}臾몄젣</dd>
+            </div>
+            <div>
+              <dt>?④퀎 ?꾨즺</dt>
+              <dd>{stats.levelCompletionRate}%</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section className="analytics-action-panel" aria-label="怨쇱젙 遺꾩꽍 異붿쿇 ?됰룞">
+          <div>
+            <p className="eyebrow">?곗꽑 ?뺤씤 ?곸뿭</p>
+            <h2>?곗꽑 ?뺤씤??痍⑥빟 ?곸뿭</h2>
+            {weakestTopic ? (
+              <p>
+                {weakestTopicLabel} ?뺣떟瑜좎씠{" "}
+                {weakestTopic.accuracy}%?낅땲?? ?대떦 二쇱젣 臾몄젣瑜?癒쇱? ??대낫?몄슂.
+              </p>
+            ) : (
+              <p>臾몄젣瑜??硫?二쇱젣蹂?痍⑥빟 ?곸뿭???쒖떆?⑸땲??</p>
+            )}
+          </div>
+          {weakestTopic && weakestTopicParams ? (
+            <ActionButton
+              variant="dark"
+              href={`/practice/${course.slug}?${weakestTopicParams.toString()}`}
+            >
+              痍⑥빟 二쇱젣 ?湲?
+            </ActionButton>
+          ) : (
+            <ActionButton href={`/practice/${course.slug}?count=10`} variant="dark">
+              臾몄젣 10媛??湲?
+            </ActionButton>
+          )}
+        </section>
+
+        <section className="analytics-learner-answer-panel section-block" aria-label="?숈뒿 ?곹깭 ?듭떖 吏덈Ц">
+          <div>
+            <span>01</span>
+            <strong>?대뵒源뚯? ?덉??</strong>
+            <p>?④퀎 ?꾨즺??{stats.levelCompletionRate}% 쨌 理쒓렐 7??{stats.recent7Days}臾몄젣</p>
+          </div>
+          <div>
+            <span>02</span>
+            <strong>?ㅼ쓬? 萸??섏??</strong>
+            <p>
+              {weakestTopic
+                ? `${weakestTopicLabel} 臾몄젣遺??蹂댁셿`
+                : "怨쇱젙 臾몄젣 10媛쒕? ???痍⑥빟 ?곸뿭 李얘린"}
+            </p>
+          </div>
+          <div>
+            <span>03</span>
+            <strong>?쇰쭏???⑥븯吏?</strong>
+            <p>?꾩껜 ?뺣떟瑜?{stats.overallAccuracy}% 쨌 ??怨쇱젙 湲곗??쇰줈 怨꾩냽 吏묎퀎</p>
+          </div>
+          <div>
+            <span>04</span>
+            <strong>?대뵒媛 ?쏀븯吏?</strong>
+            <p>
+              {weakestTopic
+                ? `理쒖? ?뺣떟瑜?${weakestTopic.accuracy}% ?곸뿭 ?곗꽑`
+                : `諛섎났 ?ㅻ떟 ${stats.repeatedWrongCount}臾몄젣 ?뺤씤`}
+            </p>
+          </div>
+        </section>
+
+        <section className="analytics-action-strip section-block" aria-label="怨쇱젙 遺꾩꽍 ?ㅼ쓬 ?됰룞">
+          <Link
+            className="analytics-action-card analytics-action-card-primary"
+            href={
+              weakestTopic && weakestTopicParams
+                ? `/practice/${course.slug}?${weakestTopicParams.toString()}`
+                : `/practice/${course.slug}?count=10`
+            }
+          >
+            <span>01 쨌 痍⑥빟 ?곸뿭</span>
+            <strong>
+              {weakestTopic
+                ? weakestTopicLabel
+                : "?숈뒿 湲곕줉?????꾩슂?댁슂"}
+            </strong>
+            <p>
+              {weakestTopic
+                ? `?뺣떟瑜?${weakestTopic.accuracy}% ?곸뿭??癒쇱? 蹂댁셿?섏꽭??`
+                : "臾몄젣瑜??硫??곗꽑 蹂댁셿???곸뿭??異붿쿇?⑸땲??"}
+            </p>
+          </Link>
+          <Link
+            className="analytics-action-card"
+            href={`/practice/${course.slug}?count=10`}
+          >
+            <span>02 쨌 異붽? ???/span>
+            <strong>怨쇱젙 臾몄젣 10媛??湲?/strong>
+            <p>?????湲곕줉?쇰줈 怨쇰ぉ쨌二쇱젣蹂?遺꾩꽍 ?뺥솗?꾨? ?믪엯?덈떎.</p>
+          </Link>
+          <Link className="analytics-action-card" href="/reviews">
+            <span>03 쨌 蹂듭뒿 ?곌껐</span>
+            <strong>?ㅻ뒛??蹂듭뒿?쇰줈 ?대룞</strong>
+            <p>諛섎났 ?ㅻ떟怨??덉젙 蹂듭뒿???뺣━??痍⑥빟 ?곸뿭??以꾩엯?덈떎.</p>
+          </Link>
+        </section>
+
+        <section className="analytics-grid section-block">
+          <Breakdown title="?쒖씠?꾨퀎 ?뺣떟瑜? rows={stats.byDifficulty} />
+          <Breakdown title="臾몄젣 ?좏삎蹂??뺣떟瑜? rows={stats.byType} />
+          <Breakdown
+            title="怨쇰ぉ蹂??뺣떟瑜?
+            rows={stats.bySubject.map((row) => ({
+              ...row,
+              label: subjectNameById.get(row.id) ?? "怨쇰ぉ ?뺣낫 ?뺤씤 以?,
+              href:
+                row.id === "UNMAPPED"
+                  ? undefined
+                  : `/practice/${course.slug}?subjectId=${row.id}&count=10`,
+            }))}
+          />
+          <Breakdown
+            title="二쇱젣蹂??곗꽑 蹂듭뒿 ?곸뿭"
+            rows={weakTopics.map((row) => {
+              const topic = topicMetaById.get(row.id);
+              const practiceParams = new URLSearchParams({
+                topicId: row.id,
+                count: "10",
+              });
+              if (topic?.subjectId) practiceParams.set("subjectId", topic.subjectId);
+              return {
+                ...row,
+                label: topic?.name ?? "二쇱젣 ?뺣낫 ?뺤씤 以?,
+                href: `/practice/${course.slug}?${practiceParams.toString()}`,
+              };
+            })}
+            weakFirst
+          />
+        </section>
+
+        <section className="stats-grid section-block">
+          <Metric label="理쒓렐 30?? value={stats.recent30Days} unit="臾몄젣" />
+          <Metric
+            label="?됯퇏 ?묐떟"
+            value={Math.round(stats.averageResponseTime / 1000)}
+            unit="珥?
+          />
+          <Metric label="蹂듭뒿 ?깃났瑜? value={stats.reviewSuccessRate} unit="%" />
+          <Metric label="紐⑥쓽怨좎궗 ?됯퇏" value={stats.mockExamAverageScore} unit="?? />
+        </section>
+      </div>
+    </main>
+  );
+}
+
+function Metric({
+  label,
+  value,
+  unit,
+}: {
+  label: string;
+  value: number;
+  unit: string;
+}) {
+  return (
+    <div className="stat-card">
+      <span>{label}</span>
+      <strong>{value}</strong>
+      <small>{unit}</small>
+    </div>
+  );
+}
+
+function Breakdown({
+  title,
+  rows,
+  weakFirst = false,
+}: {
+  title: string;
+  rows: Array<{
+    id: string;
+    total: number;
+    accuracy: number;
+    label?: string;
+    href?: string;
+  }>;
+  weakFirst?: boolean;
+}) {
+  return (
+    <section className="learner-analytics-panel analytics-panel">
+      <h2>{title}</h2>
+      {rows.length ? (
+        rows.map((row) => (
+          <div className="bar-row analytics-action-row" key={row.id}>
+            <div>
+              <strong>{row.label ?? "?숈뒿 ?곸뿭"}</strong>
+              <span>
+                {row.total}臾몄젣 쨌 {row.accuracy}%
+                {weakFirst && row.accuracy < 70 ? " 쨌 ?곗꽑 蹂듭뒿 沅뚯옣" : ""}
+              </span>
+            </div>
+            <div className="progress-track">
+              <span style={{ width: `${row.accuracy}%` }} />
+            </div>
+            {row.href ? (
+              <ActionButton href={row.href} variant="ghost">
+                臾몄젣 ?湲?
+              </ActionButton>
+            ) : null}
+          </div>
+        ))
+      ) : (
+        <p>吏묎퀎???숈뒿 湲곕줉???놁뒿?덈떎.</p>
+      )}
+    </section>
+  );
+}

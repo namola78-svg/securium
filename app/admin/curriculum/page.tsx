@@ -5,7 +5,6 @@ import {
   InspectorPanel,
   PageToolbar,
   SectionHeader,
-  StatusBadge,
   WorkspaceLayout,
 } from "@/components/design-system-primitives";
 import { CardSkeleton } from "@/components/state-ui";
@@ -181,14 +180,14 @@ export default async function AdminCurriculumPage({
     selectedTree?.courseId && selectedTree.courseId in securityCertificationDeepCoverage.byCourse
       ? securityCertificationDeepCoverage.byCourse[selectedTree.courseId]
       : null;
-  const staticCertificationCoverageReady =
+  const staticCertificationCoverage준비됨 =
     securityCertificationDeepCoverage.uncoveredRows.length === 0 &&
     securityCertificationDeepCoverage.questionGapRows.length === 0;
   const selectedTreeActive = selectedTree?.status === "ACTIVE";
-  const operationalCoverageReady =
+  const operationalCoverage준비됨 =
     Boolean(coverage) && Number(coverage?.unlinkedCourseLessonCount ?? 0) === 0;
   const activationReadinessReady =
-    selectedTreeActive && operationalCoverageReady && staticCertificationCoverageReady;
+    selectedTreeActive && operationalCoverage준비됨 && staticCertificationCoverage준비됨;
   const sharedContentRecommendationSources = sharedContents.map((content, index) => ({
     type: "CONTENT" as const,
     id: content.id,
@@ -264,8 +263,9 @@ export default async function AdminCurriculumPage({
     ...(!selectedTreeActive && selectedTree
       ? [
           {
+            type: "TREE_STATUS",
             id: `tree-status:${selectedTree.id}`,
-            badge: "TREE_STATUS",
+            badge: "트리 상태",
             title: selectedTree.title,
             detail:
               "공식 커리큘럼 트리가 아직 ACTIVE가 아닙니다. 읽기 전용 체크가 clean이면 별도 승인 후 운영 전환을 요청하세요.",
@@ -282,7 +282,7 @@ export default async function AdminCurriculumPage({
       });
       return {
         id: `course-lesson:${lesson.id}`,
-        badge: "CourseLesson gap",
+        badge: "CourseLesson 공백",
         title: lesson.displayTitle,
         detail: `공개 레슨이지만 공식 CurriculumNode가 비어 있습니다. Content: ${lesson.contentTitle}`,
         href: `/admin/shared-content?${params.toString()}`,
@@ -291,7 +291,7 @@ export default async function AdminCurriculumPage({
     }),
     ...uncoveredCertificationRows.slice(0, 3).map((row) => ({
       id: `content:${row.curriculumNodeId}`,
-      badge: "Content gap",
+      badge: "콘텐츠 공백",
       title: row.title,
       detail: `${row.courseCode} · ${row.nodeType} · 추천 후보 ${row.contentRecommendations.length}개`,
       href: row.contentRecommendations.length
@@ -301,7 +301,7 @@ export default async function AdminCurriculumPage({
     })),
     ...questionGapCertificationRows.slice(0, 3).map((row) => ({
       id: `question:${row.curriculumNodeId}`,
-      badge: "Question gap",
+      badge: "문항 공백",
       title: row.title,
       detail: `${row.courseCode} · 연결 Content ${row.contentIds.length}개 · 추천 후보 ${row.contentRecommendations.length}개`,
       href: row.contentRecommendations.length
@@ -326,7 +326,7 @@ export default async function AdminCurriculumPage({
   );
   const coverageReadinessChecklist = [
     {
-      label: "TREE_STATUS",
+      label: "트리 상태",
       ready: selectedTreeActive,
       detail: selectedTree
         ? selectedTreeActive
@@ -335,15 +335,15 @@ export default async function AdminCurriculumPage({
         : "Select an operational curriculum tree before activation review.",
     },
     {
-      label: "COURSELESSON_LINK_GAP",
-      ready: operationalCoverageReady,
-      detail: operationalCoverageReady
+      label: "CourseLesson 연결 공백",
+      ready: operationalCoverage준비됨,
+      detail: operationalCoverage준비됨
         ? "Published CourseLessons are linked to CurriculumNodes."
         : `${coverage?.unlinkedCourseLessonCount ?? 0} published CourseLesson links still need review.`,
     },
     {
-      label: "CONTENT_METADATA_GAP",
-      ready: staticCertificationCoverageReady,
+      label: "콘텐츠 메타데이터 공백",
+      ready: staticCertificationCoverage준비됨,
       detail:
         "Check curriculum_nodes.metadata.linkedContent separately from the static content map.",
     },
@@ -581,8 +581,8 @@ export default async function AdminCurriculumPage({
             <strong>{activationReadinessReady ? "OK" : "Check"}</strong>
             <small>
               Tree {selectedTreeActive ? "ACTIVE" : "Check"} · Static map{" "}
-              {staticCertificationCoverageReady ? "OK" : "Check"} ·
-              CourseLesson gaps {coverage?.unlinkedCourseLessonCount ?? 0}
+              {staticCertificationCoverage준비됨 ? "OK" : "Check"} ·
+              CourseLesson 공백s {coverage?.unlinkedCourseLessonCount ?? 0}
             </small>
           </div>
           {selectedCertificationCoverage ? (
@@ -649,9 +649,9 @@ export default async function AdminCurriculumPage({
           <article className="admin-record">
             <div className="admin-record-summary">
               <span>
-                <strong>Operational coverage checklist</strong>
+                <strong>운영 커버리지 체크리스트</strong>
                 <small>
-                  Review these read-only signals before requesting production activation.
+                  검토 these read-only signals before requesting production activation.
                 </small>
               </span>
               <span className="status-badge compact">
@@ -669,7 +669,7 @@ export default async function AdminCurriculumPage({
                         : "status-badge compact"
                     }
                   >
-                    {item.ready ? "Ready" : "Review"}
+                    {item.ready ? "준비됨" : "검토"}
                   </span>
                   <strong>{item.label}</strong>
                   <small>{item.detail}</small>
@@ -827,6 +827,7 @@ export default async function AdminCurriculumPage({
           </details>
         </div>
       </section>
+      </ClientMounted>
       <WorkspaceLayout
         main={
           <AdminCurriculumManager
@@ -850,61 +851,28 @@ export default async function AdminCurriculumPage({
           <InspectorPanel
             eyebrow="CURRICULUM INSPECTOR"
             title={selectedTree?.title ?? "선택된 트리 없음"}
-            description={
-              selectedTree
-                ? "선택한 커리큘럼 트리의 운영 준비 상태와 연결 상태를 확인합니다."
-                : "먼저 관리할 커리큘럼 트리를 선택하세요."
-            }
+            description="선택한 커리큘럼 트리의 상태, 노드 수, 연결 공백을 확인합니다."
             badges={[
-              {
-                label: selectedTree?.status ?? "NO TREE",
-                tone: selectedTreeActive ? "success" : "warning",
-              },
-              {
-                label: activationReadinessReady ? "운영 준비" : "검수 필요",
-                tone: activationReadinessReady ? "success" : "info",
-              },
+              { label: selectedTree?.status ?? "트리 없음", tone: selectedTreeActive ? "success" : "warning" },
+              { label: activationReadinessReady ? "운영 준비됨" : "검토 필요", tone: activationReadinessReady ? "success" : "info" },
             ]}
             meta={[
               { label: "노드", value: nodes.length },
-              {
-                label: "연결 가능 콘텐츠",
-                value: linkableContent.length,
-              },
-              {
-                label: "CourseLesson gap",
-                value: coverage?.unlinkedCourseLessonCount ?? 0,
-              },
-              {
-                label: "Ontology gap",
-                value: selectedOntologyGaps.length,
-              },
+              { label: "연결 가능 콘텐츠", value: linkableContent.length },
+              { label: "CourseLesson 공백", value: coverage?.unlinkedCourseLessonCount ?? 0 },
+              { label: "Ontology 공백", value: selectedOntologyGaps.length },
             ]}
             actions={
               <>
-                <Link className="button button-primary" href={selectedSharedContentHref}>
-                  콘텐츠 연결
-                </Link>
-                <Link className="button button-ghost" href="/admin/ontology">
-                  Ontology
-                </Link>
+                <Link className="button button-primary" href={selectedSharedContentHref}>콘텐츠 연결</Link>
+                <Link className="button button-ghost" href="/admin/ontology">Ontology 보기</Link>
               </>
             }
           >
-            <div>
-              <StatusBadge compact tone={operationalCoverageReady ? "success" : "warning"}>
-                {operationalCoverageReady ? "CourseLesson 연결 완료" : "CourseLesson 연결 검수"}
-              </StatusBadge>
-            </div>
-            <p>
-              이 패널은 앞으로 선택한 CurriculumNode의 공식 순번, stable key, 출처,
-              콘텐츠 연결, 문제 연결, 온톨로지 커버리지를 보여주는 우측 Inspector로
-              확장됩니다.
-            </p>
+            <p>운영 전에는 트리 활성화, CourseLesson 연결, 콘텐츠 메타데이터 상태를 모두 확인하세요.</p>
           </InspectorPanel>
         }
       />
-      </ClientMounted>
     </>
   );
 }

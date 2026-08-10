@@ -1,6 +1,5 @@
 "use client";
-
-import Link from "next/link";
+import { ActionButton } from "@/components/design-system-primitives";
 
 type StateAction = {
   href?: string;
@@ -79,7 +78,7 @@ export function EmptyState({
       <span className="state-icon" aria-hidden="true">
         *
       </span>
-      <strong>{title}</strong>
+      <strong role="heading" aria-level={2}>{title}</strong>
       <p>{description}</p>
       <StateActions action={action} secondaryAction={secondaryAction} />
     </div>
@@ -97,7 +96,7 @@ export function ErrorState({
       <span className="state-icon" aria-hidden="true">
         !
       </span>
-      <strong>{title}</strong>
+      <strong role="heading" aria-level={2}>{title}</strong>
       <p>{description}</p>
       {onRetry ? <RetryButton label={retryLabel} onRetry={onRetry} /> : null}
     </div>
@@ -124,8 +123,8 @@ export function RetryButton({
   onRetry?: () => void;
 }) {
   return (
-    <button
-      className="button button-dark"
+    <ActionButton
+      variant="secondary"
       type="button"
       onClick={() => {
         if (onRetry) {
@@ -136,7 +135,7 @@ export function RetryButton({
       }}
     >
       {label}
-    </button>
+    </ActionButton>
   );
 }
 
@@ -163,17 +162,13 @@ function StateActionLink({
   action: StateAction;
   primary?: boolean;
 }) {
-  const className = `button ${primary ? "button-dark" : "button-ghost"}`;
+  const variant = primary ? "outline" : "ghost";
   if (action.href) {
-    return (
-      <Link className={className} href={action.href}>
-        {action.label}
-      </Link>
-    );
+    return <ActionButton variant={variant} href={action.href}>{action.label}</ActionButton>;
   }
   return (
-    <button className={className} type="button" onClick={action.onClick}>
+    <ActionButton variant={variant} type="button" onClick={action.onClick}>
       {action.label}
-    </button>
+    </ActionButton>
   );
 }

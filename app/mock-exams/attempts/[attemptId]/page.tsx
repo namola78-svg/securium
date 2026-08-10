@@ -1,4 +1,10 @@
+import type { Metadata } from "next";
 import { MockExamSession } from "@/components/mock-exam-session";
+export const metadata: Metadata = {
+  title: "모의시험 응시 | Securium",
+  description: "모의시험을 응시하고 제출 전 답안을 점검하세요.",
+  robots: { index: false, follow: false },
+};
 import { getMockExamAttempt } from "@/db/phase3-repositories";
 import { requireCurrentAppUser } from "@/lib/auth";
 import { AppError } from "@/lib/errors";

@@ -1,0 +1,3601 @@
+{
+  "theory": [
+    {
+      "source_id": "THEORY-001",
+      "source_no": 1,
+      "title": "기밀성(Confidentiality)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-002",
+      "source_no": 2,
+      "title": "무결성(Integrity)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-003",
+      "source_no": 3,
+      "title": "가용성(Availability)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-004",
+      "source_no": 4,
+      "title": "대칭키(Symmetric Key)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-005",
+      "source_no": 5,
+      "title": "비대칭키(Public Key)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-006",
+      "source_no": 6,
+      "title": "NIST 표준(National Institute of Standards and Technology)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-007",
+      "source_no": 7,
+      "title": "타원곡선군(Elliptic Curve Cryptosystem)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-008",
+      "source_no": 8,
+      "title": "인증서 발행기관(Certificate Authority)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-009",
+      "source_no": 9,
+      "title": "ACK(Acknowledgment)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-010",
+      "source_no": 10,
+      "title": "부인 봉쇄(Non-Repudiation)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-011",
+      "source_no": 11,
+      "title": "디렉터리 서비스(Directory Service)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-012",
+      "source_no": 12,
+      "title": "OCSP(Online Certificate Status Protocol)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-013",
+      "source_no": 13,
+      "title": "X.509 인증서",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-014",
+      "source_no": 14,
+      "title": "메시지 다이제스트(Message Digest)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-015",
+      "source_no": 15,
+      "title": "해시함수(Hash Function)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-016",
+      "source_no": 16,
+      "title": "인증(Authentication)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-017",
+      "source_no": 17,
+      "title": "허가(Authorization)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-018",
+      "source_no": 18,
+      "title": "감사(Audit)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-019",
+      "source_no": 19,
+      "title": "감사추적(Audit Trail)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-020",
+      "source_no": 20,
+      "title": "AAA(Authentication, Authorization, Accounting)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-021",
+      "source_no": 21,
+      "title": "접근 제어(Access Control)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-022",
+      "source_no": 22,
+      "title": "다단계 보안 정책(Multi Level Policy)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-023",
+      "source_no": 23,
+      "title": "EAM(Enterprise Access Management)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-024",
+      "source_no": 24,
+      "title": "DRM(Digital Rights Management)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-025",
+      "source_no": 25,
+      "title": "MIB(Management Information Base)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-026",
+      "source_no": 26,
+      "title": "IDEA",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-027",
+      "source_no": 27,
+      "title": "보안 커널(Secirity Kernel)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-028",
+      "source_no": 28,
+      "title": "컴퓨터 포렌식(Computer Forensics)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-029",
+      "source_no": 29,
+      "title": "오용탐지(Misuse Detection)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-030",
+      "source_no": 30,
+      "title": "이상 탐지(Anomaly Detection)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-031",
+      "source_no": 31,
+      "title": "스크링 라우터(Screening Router)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-032",
+      "source_no": 32,
+      "title": "버스천 호스트(Bastion Host)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-033",
+      "source_no": 33,
+      "title": "듀얼 홈 게이트웨어(Dual Home Gateway)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-034",
+      "source_no": 34,
+      "title": "CCRA(Common Criteria Recognition Arrangement)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-035",
+      "source_no": 35,
+      "title": "TCSEC(Trusted Computer System Evaluation Criteria)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-036",
+      "source_no": 36,
+      "title": "ITSEC(Information Technology Security Evaluation Criteria)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-037",
+      "source_no": 37,
+      "title": "RTO(Recovery Time Objective)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-038",
+      "source_no": 38,
+      "title": "RPO(Recovery Point Objective)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-039",
+      "source_no": 39,
+      "title": "DRP(Disaster Recovery Planning)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-040",
+      "source_no": 40,
+      "title": "BCP(Business Continuity Planning)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-041",
+      "source_no": 41,
+      "title": "DRS(Disaster Recovery System)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-042",
+      "source_no": 42,
+      "title": "PIMS 인증(Personal Information Management System)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-043",
+      "source_no": 43,
+      "title": "ISMS 인증(Information Security Management System)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-044",
+      "source_no": 44,
+      "title": "IPS(Intrustion Prevention System)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-045",
+      "source_no": 45,
+      "title": "IDS(Intrusion Detection System)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-046",
+      "source_no": 46,
+      "title": "ISO38500",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-047",
+      "source_no": 47,
+      "title": "ISO 27000",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-048",
+      "source_no": 48,
+      "title": "전자상거래 보안 프로토콜(Electronic Security Protocol)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-049",
+      "source_no": 49,
+      "title": "이중 서명(Dual Signature)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-050",
+      "source_no": 50,
+      "title": "커버로스(Kerberose)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-051",
+      "source_no": 51,
+      "title": "AES(Advanced Encryption Standard)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-052",
+      "source_no": 52,
+      "title": "DES(Data Encryption Standard)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-053",
+      "source_no": 53,
+      "title": "CC(Common 제공자 등)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-054",
+      "source_no": 54,
+      "title": "CERT(Computer Emergency Response Team)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-055",
+      "source_no": 55,
+      "title": "전자서명(Digital Signature)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-056",
+      "source_no": 56,
+      "title": "전자인증서(Digital Certificate)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-057",
+      "source_no": 57,
+      "title": "적극적 공격(Active Attack)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-058",
+      "source_no": 58,
+      "title": "사전공격(Dictionary Attack)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-059",
+      "source_no": 59,
+      "title": "DNS Spoofing",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-060",
+      "source_no": 60,
+      "title": "트로이 목마(Trojan Horse)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-061",
+      "source_no": 61,
+      "title": "Packet Sniffing",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-062",
+      "source_no": 62,
+      "title": "IP Spoofing",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-063",
+      "source_no": 63,
+      "title": "Trap Door",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-064",
+      "source_no": 64,
+      "title": "DDoS(Distributed Denial of Service)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-065",
+      "source_no": 65,
+      "title": "Asynchronous Attacks",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-066",
+      "source_no": 66,
+      "title": "옵트 인(Opt in)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-067",
+      "source_no": 67,
+      "title": "옵트 아웃(Opt out)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-068",
+      "source_no": 68,
+      "title": "무작위(무차별) 공격(Brute Force Attack)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-069",
+      "source_no": 69,
+      "title": "크래킹(Cracking)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-070",
+      "source_no": 70,
+      "title": "백도어(Back Door)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-071",
+      "source_no": 71,
+      "title": "백오리피스(Back Orifice)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-072",
+      "source_no": 72,
+      "title": "UTM(United Treat Management)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-073",
+      "source_no": 73,
+      "title": "KMI(Key Management Infrastructure)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-074",
+      "source_no": 74,
+      "title": "평판 기반 보안 탐지(Reputation Base)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-075",
+      "source_no": 75,
+      "title": "P3P(Privacy Preferences Platform)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-076",
+      "source_no": 76,
+      "title": "HTTP Pipeline 공격",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-077",
+      "source_no": 77,
+      "title": "Permanent DOS",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-078",
+      "source_no": 78,
+      "title": "SET(Secure Electronic Transaction)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-079",
+      "source_no": 79,
+      "title": "IPSEC(IP Security)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-080",
+      "source_no": 80,
+      "title": "SSL(Secure Socket Layer)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-081",
+      "source_no": 81,
+      "title": "I-PIN",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-082",
+      "source_no": 82,
+      "title": "TCP Sync Flooding",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-083",
+      "source_no": 83,
+      "title": "ICMP Flooding(Smurfing)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-084",
+      "source_no": 84,
+      "title": "방화벽(Firewall)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-085",
+      "source_no": 85,
+      "title": "부 채널 공격(Side-Channel Attacks)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-086",
+      "source_no": 86,
+      "title": "PKI(Public Key Infrastructure)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-087",
+      "source_no": 87,
+      "title": "PMI(Privilege Management Infrastructure)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-088",
+      "source_no": 88,
+      "title": "SSO(Single Sign On)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-089",
+      "source_no": 89,
+      "title": "ESM(Enterprise Security Management)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-090",
+      "source_no": 90,
+      "title": "생체인식(Biometrics)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-091",
+      "source_no": 91,
+      "title": "E-Mail 보안",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-092",
+      "source_no": 92,
+      "title": "WPKI(Wireless Public Key Infrastructure)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-093",
+      "source_no": 93,
+      "title": "S-HTTP(Secure Hypertext Transport Protocol)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-094",
+      "source_no": 94,
+      "title": "Drive by download",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-095",
+      "source_no": 95,
+      "title": "모바일 멜웨어(Mobile Malware)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-096",
+      "source_no": 96,
+      "title": "스턱스넷(Stuxnet)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-097",
+      "source_no": 97,
+      "title": "FDS(Fraud Detection System)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-098",
+      "source_no": 98,
+      "title": "BYOD(Bring Your Own Device)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-099",
+      "source_no": 99,
+      "title": "MDM(Mobile Device Management)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-100",
+      "source_no": 100,
+      "title": "VDI(Virtual Desktop Infrastrure)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-101",
+      "source_no": 101,
+      "title": "EnCase",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-102",
+      "source_no": 102,
+      "title": "슬랙 공간(Slack Space)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-103",
+      "source_no": 103,
+      "title": "루티킷(Rootkit)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-104",
+      "source_no": 104,
+      "title": "3월 20일 MBR(Master Boot Record) 공격",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-105",
+      "source_no": 105,
+      "title": "OpenSSL 취약점",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-106",
+      "source_no": 106,
+      "title": "모바일 가상화",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-107",
+      "source_no": 107,
+      "title": "SIEM(Security Information Event Management)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    },
+    {
+      "source_id": "THEORY-108",
+      "source_no": 108,
+      "title": "DoA(Degree of Assurance)",
+      "target": "theory",
+      "status": "QUEUED_FOR_REWRITE"
+    }
+  ],
+  "written": [
+    {
+      "source_id": "WRITTEN-01-001",
+      "exam_round": 1,
+      "source_no": 1,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-002",
+      "exam_round": 1,
+      "source_no": 2,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-003",
+      "exam_round": 1,
+      "source_no": 3,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-004",
+      "exam_round": 1,
+      "source_no": 4,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-005",
+      "exam_round": 1,
+      "source_no": 5,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-006",
+      "exam_round": 1,
+      "source_no": 6,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-007",
+      "exam_round": 1,
+      "source_no": 7,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-008",
+      "exam_round": 1,
+      "source_no": 8,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-009",
+      "exam_round": 1,
+      "source_no": 9,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-010",
+      "exam_round": 1,
+      "source_no": 10,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-011",
+      "exam_round": 1,
+      "source_no": 11,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-012",
+      "exam_round": 1,
+      "source_no": 12,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-013",
+      "exam_round": 1,
+      "source_no": 13,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-014",
+      "exam_round": 1,
+      "source_no": 14,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-015",
+      "exam_round": 1,
+      "source_no": 15,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-016",
+      "exam_round": 1,
+      "source_no": 16,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-017",
+      "exam_round": 1,
+      "source_no": 17,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-018",
+      "exam_round": 1,
+      "source_no": 18,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-019",
+      "exam_round": 1,
+      "source_no": 19,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-020",
+      "exam_round": 1,
+      "source_no": 20,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-021",
+      "exam_round": 1,
+      "source_no": 21,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-022",
+      "exam_round": 1,
+      "source_no": 22,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-023",
+      "exam_round": 1,
+      "source_no": 23,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-024",
+      "exam_round": 1,
+      "source_no": 24,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-025",
+      "exam_round": 1,
+      "source_no": 25,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-026",
+      "exam_round": 1,
+      "source_no": 26,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-027",
+      "exam_round": 1,
+      "source_no": 27,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-028",
+      "exam_round": 1,
+      "source_no": 28,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-029",
+      "exam_round": 1,
+      "source_no": 29,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-030",
+      "exam_round": 1,
+      "source_no": 30,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-031",
+      "exam_round": 1,
+      "source_no": 31,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-032",
+      "exam_round": 1,
+      "source_no": 32,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-033",
+      "exam_round": 1,
+      "source_no": 33,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-034",
+      "exam_round": 1,
+      "source_no": 34,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-035",
+      "exam_round": 1,
+      "source_no": 35,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-036",
+      "exam_round": 1,
+      "source_no": 36,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-037",
+      "exam_round": 1,
+      "source_no": 37,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-038",
+      "exam_round": 1,
+      "source_no": 38,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-039",
+      "exam_round": 1,
+      "source_no": 39,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-040",
+      "exam_round": 1,
+      "source_no": 40,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-041",
+      "exam_round": 1,
+      "source_no": 41,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-042",
+      "exam_round": 1,
+      "source_no": 42,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-043",
+      "exam_round": 1,
+      "source_no": 43,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-044",
+      "exam_round": 1,
+      "source_no": 44,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-045",
+      "exam_round": 1,
+      "source_no": 45,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-046",
+      "exam_round": 1,
+      "source_no": 46,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-047",
+      "exam_round": 1,
+      "source_no": 47,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-048",
+      "exam_round": 1,
+      "source_no": 48,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-049",
+      "exam_round": 1,
+      "source_no": 49,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-050",
+      "exam_round": 1,
+      "source_no": 50,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-051",
+      "exam_round": 1,
+      "source_no": 51,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-052",
+      "exam_round": 1,
+      "source_no": 52,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-053",
+      "exam_round": 1,
+      "source_no": 53,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-054",
+      "exam_round": 1,
+      "source_no": 54,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-055",
+      "exam_round": 1,
+      "source_no": 55,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-056",
+      "exam_round": 1,
+      "source_no": 56,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-057",
+      "exam_round": 1,
+      "source_no": 57,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-058",
+      "exam_round": 1,
+      "source_no": 58,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-059",
+      "exam_round": 1,
+      "source_no": 59,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-060",
+      "exam_round": 1,
+      "source_no": 60,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-061",
+      "exam_round": 1,
+      "source_no": 61,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-062",
+      "exam_round": 1,
+      "source_no": 62,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-063",
+      "exam_round": 1,
+      "source_no": 63,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-064",
+      "exam_round": 1,
+      "source_no": 64,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-065",
+      "exam_round": 1,
+      "source_no": 65,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-066",
+      "exam_round": 1,
+      "source_no": 66,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-067",
+      "exam_round": 1,
+      "source_no": 67,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-068",
+      "exam_round": 1,
+      "source_no": 68,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-069",
+      "exam_round": 1,
+      "source_no": 69,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-070",
+      "exam_round": 1,
+      "source_no": 70,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-071",
+      "exam_round": 1,
+      "source_no": 71,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-072",
+      "exam_round": 1,
+      "source_no": 72,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-073",
+      "exam_round": 1,
+      "source_no": 73,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-074",
+      "exam_round": 1,
+      "source_no": 74,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-075",
+      "exam_round": 1,
+      "source_no": 75,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-076",
+      "exam_round": 1,
+      "source_no": 76,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-077",
+      "exam_round": 1,
+      "source_no": 77,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-078",
+      "exam_round": 1,
+      "source_no": 78,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-079",
+      "exam_round": 1,
+      "source_no": 79,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-080",
+      "exam_round": 1,
+      "source_no": 80,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-081",
+      "exam_round": 1,
+      "source_no": 81,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-082",
+      "exam_round": 1,
+      "source_no": 82,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-083",
+      "exam_round": 1,
+      "source_no": 83,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-084",
+      "exam_round": 1,
+      "source_no": 84,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-085",
+      "exam_round": 1,
+      "source_no": 85,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-086",
+      "exam_round": 1,
+      "source_no": 86,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-087",
+      "exam_round": 1,
+      "source_no": 87,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-088",
+      "exam_round": 1,
+      "source_no": 88,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-089",
+      "exam_round": 1,
+      "source_no": 89,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-090",
+      "exam_round": 1,
+      "source_no": 90,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-091",
+      "exam_round": 1,
+      "source_no": 91,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-092",
+      "exam_round": 1,
+      "source_no": 92,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-093",
+      "exam_round": 1,
+      "source_no": 93,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-094",
+      "exam_round": 1,
+      "source_no": 94,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-095",
+      "exam_round": 1,
+      "source_no": 95,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-096",
+      "exam_round": 1,
+      "source_no": 96,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-097",
+      "exam_round": 1,
+      "source_no": 97,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-098",
+      "exam_round": 1,
+      "source_no": 98,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-099",
+      "exam_round": 1,
+      "source_no": 99,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-01-100",
+      "exam_round": 1,
+      "source_no": 100,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-001",
+      "exam_round": 2,
+      "source_no": 1,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-002",
+      "exam_round": 2,
+      "source_no": 2,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-003",
+      "exam_round": 2,
+      "source_no": 3,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-004",
+      "exam_round": 2,
+      "source_no": 4,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-005",
+      "exam_round": 2,
+      "source_no": 5,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-006",
+      "exam_round": 2,
+      "source_no": 6,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-007",
+      "exam_round": 2,
+      "source_no": 7,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-008",
+      "exam_round": 2,
+      "source_no": 8,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-009",
+      "exam_round": 2,
+      "source_no": 9,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-010",
+      "exam_round": 2,
+      "source_no": 10,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-011",
+      "exam_round": 2,
+      "source_no": 11,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-012",
+      "exam_round": 2,
+      "source_no": 12,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-013",
+      "exam_round": 2,
+      "source_no": 13,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-014",
+      "exam_round": 2,
+      "source_no": 14,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-015",
+      "exam_round": 2,
+      "source_no": 15,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-016",
+      "exam_round": 2,
+      "source_no": 16,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-017",
+      "exam_round": 2,
+      "source_no": 17,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-018",
+      "exam_round": 2,
+      "source_no": 18,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-019",
+      "exam_round": 2,
+      "source_no": 19,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-020",
+      "exam_round": 2,
+      "source_no": 20,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-021",
+      "exam_round": 2,
+      "source_no": 21,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-022",
+      "exam_round": 2,
+      "source_no": 22,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-023",
+      "exam_round": 2,
+      "source_no": 23,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-024",
+      "exam_round": 2,
+      "source_no": 24,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-025",
+      "exam_round": 2,
+      "source_no": 25,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-026",
+      "exam_round": 2,
+      "source_no": 26,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-027",
+      "exam_round": 2,
+      "source_no": 27,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-028",
+      "exam_round": 2,
+      "source_no": 28,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-029",
+      "exam_round": 2,
+      "source_no": 29,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-030",
+      "exam_round": 2,
+      "source_no": 30,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-031",
+      "exam_round": 2,
+      "source_no": 31,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-032",
+      "exam_round": 2,
+      "source_no": 32,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-033",
+      "exam_round": 2,
+      "source_no": 33,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-034",
+      "exam_round": 2,
+      "source_no": 34,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-035",
+      "exam_round": 2,
+      "source_no": 35,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-036",
+      "exam_round": 2,
+      "source_no": 36,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-037",
+      "exam_round": 2,
+      "source_no": 37,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-038",
+      "exam_round": 2,
+      "source_no": 38,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-039",
+      "exam_round": 2,
+      "source_no": 39,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-040",
+      "exam_round": 2,
+      "source_no": 40,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-041",
+      "exam_round": 2,
+      "source_no": 41,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-042",
+      "exam_round": 2,
+      "source_no": 42,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-043",
+      "exam_round": 2,
+      "source_no": 43,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-044",
+      "exam_round": 2,
+      "source_no": 44,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-045",
+      "exam_round": 2,
+      "source_no": 45,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-046",
+      "exam_round": 2,
+      "source_no": 46,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-047",
+      "exam_round": 2,
+      "source_no": 47,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-048",
+      "exam_round": 2,
+      "source_no": 48,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-049",
+      "exam_round": 2,
+      "source_no": 49,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-050",
+      "exam_round": 2,
+      "source_no": 50,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-051",
+      "exam_round": 2,
+      "source_no": 51,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-052",
+      "exam_round": 2,
+      "source_no": 52,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-053",
+      "exam_round": 2,
+      "source_no": 53,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-054",
+      "exam_round": 2,
+      "source_no": 54,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-055",
+      "exam_round": 2,
+      "source_no": 55,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-056",
+      "exam_round": 2,
+      "source_no": 56,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-057",
+      "exam_round": 2,
+      "source_no": 57,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-058",
+      "exam_round": 2,
+      "source_no": 58,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-059",
+      "exam_round": 2,
+      "source_no": 59,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-060",
+      "exam_round": 2,
+      "source_no": 60,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-061",
+      "exam_round": 2,
+      "source_no": 61,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-062",
+      "exam_round": 2,
+      "source_no": 62,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-063",
+      "exam_round": 2,
+      "source_no": 63,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-064",
+      "exam_round": 2,
+      "source_no": 64,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-065",
+      "exam_round": 2,
+      "source_no": 65,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-066",
+      "exam_round": 2,
+      "source_no": 66,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-067",
+      "exam_round": 2,
+      "source_no": 67,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-068",
+      "exam_round": 2,
+      "source_no": 68,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-069",
+      "exam_round": 2,
+      "source_no": 69,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-070",
+      "exam_round": 2,
+      "source_no": 70,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-071",
+      "exam_round": 2,
+      "source_no": 71,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-072",
+      "exam_round": 2,
+      "source_no": 72,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-073",
+      "exam_round": 2,
+      "source_no": 73,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-074",
+      "exam_round": 2,
+      "source_no": 74,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-075",
+      "exam_round": 2,
+      "source_no": 75,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-076",
+      "exam_round": 2,
+      "source_no": 76,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-077",
+      "exam_round": 2,
+      "source_no": 77,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-078",
+      "exam_round": 2,
+      "source_no": 78,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-079",
+      "exam_round": 2,
+      "source_no": 79,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-080",
+      "exam_round": 2,
+      "source_no": 80,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-081",
+      "exam_round": 2,
+      "source_no": 81,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-082",
+      "exam_round": 2,
+      "source_no": 82,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-083",
+      "exam_round": 2,
+      "source_no": 83,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-084",
+      "exam_round": 2,
+      "source_no": 84,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-085",
+      "exam_round": 2,
+      "source_no": 85,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-086",
+      "exam_round": 2,
+      "source_no": 86,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-087",
+      "exam_round": 2,
+      "source_no": 87,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-088",
+      "exam_round": 2,
+      "source_no": 88,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-089",
+      "exam_round": 2,
+      "source_no": 89,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-090",
+      "exam_round": 2,
+      "source_no": 90,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-091",
+      "exam_round": 2,
+      "source_no": 91,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-092",
+      "exam_round": 2,
+      "source_no": 92,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-093",
+      "exam_round": 2,
+      "source_no": 93,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-094",
+      "exam_round": 2,
+      "source_no": 94,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-095",
+      "exam_round": 2,
+      "source_no": 95,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-096",
+      "exam_round": 2,
+      "source_no": 96,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-097",
+      "exam_round": 2,
+      "source_no": 97,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-098",
+      "exam_round": 2,
+      "source_no": 98,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-099",
+      "exam_round": 2,
+      "source_no": 99,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-02-100",
+      "exam_round": 2,
+      "source_no": 100,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-001",
+      "exam_round": 3,
+      "source_no": 1,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-002",
+      "exam_round": 3,
+      "source_no": 2,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-003",
+      "exam_round": 3,
+      "source_no": 3,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-004",
+      "exam_round": 3,
+      "source_no": 4,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-005",
+      "exam_round": 3,
+      "source_no": 5,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-006",
+      "exam_round": 3,
+      "source_no": 6,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-007",
+      "exam_round": 3,
+      "source_no": 7,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-008",
+      "exam_round": 3,
+      "source_no": 8,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-009",
+      "exam_round": 3,
+      "source_no": 9,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-010",
+      "exam_round": 3,
+      "source_no": 10,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-011",
+      "exam_round": 3,
+      "source_no": 11,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-012",
+      "exam_round": 3,
+      "source_no": 12,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-013",
+      "exam_round": 3,
+      "source_no": 13,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-014",
+      "exam_round": 3,
+      "source_no": 14,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-015",
+      "exam_round": 3,
+      "source_no": 15,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-016",
+      "exam_round": 3,
+      "source_no": 16,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-017",
+      "exam_round": 3,
+      "source_no": 17,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-018",
+      "exam_round": 3,
+      "source_no": 18,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-019",
+      "exam_round": 3,
+      "source_no": 19,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-020",
+      "exam_round": 3,
+      "source_no": 20,
+      "subject": "시스템 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-021",
+      "exam_round": 3,
+      "source_no": 21,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-022",
+      "exam_round": 3,
+      "source_no": 22,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-023",
+      "exam_round": 3,
+      "source_no": 23,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-024",
+      "exam_round": 3,
+      "source_no": 24,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-025",
+      "exam_round": 3,
+      "source_no": 25,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-026",
+      "exam_round": 3,
+      "source_no": 26,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-027",
+      "exam_round": 3,
+      "source_no": 27,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-028",
+      "exam_round": 3,
+      "source_no": 28,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-029",
+      "exam_round": 3,
+      "source_no": 29,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-030",
+      "exam_round": 3,
+      "source_no": 30,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-031",
+      "exam_round": 3,
+      "source_no": 31,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-032",
+      "exam_round": 3,
+      "source_no": 32,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-033",
+      "exam_round": 3,
+      "source_no": 33,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-034",
+      "exam_round": 3,
+      "source_no": 34,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-035",
+      "exam_round": 3,
+      "source_no": 35,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-036",
+      "exam_round": 3,
+      "source_no": 36,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-037",
+      "exam_round": 3,
+      "source_no": 37,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-038",
+      "exam_round": 3,
+      "source_no": 38,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-039",
+      "exam_round": 3,
+      "source_no": 39,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-040",
+      "exam_round": 3,
+      "source_no": 40,
+      "subject": "네트워크 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-041",
+      "exam_round": 3,
+      "source_no": 41,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-042",
+      "exam_round": 3,
+      "source_no": 42,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-043",
+      "exam_round": 3,
+      "source_no": 43,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-044",
+      "exam_round": 3,
+      "source_no": 44,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-045",
+      "exam_round": 3,
+      "source_no": 45,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-046",
+      "exam_round": 3,
+      "source_no": 46,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-047",
+      "exam_round": 3,
+      "source_no": 47,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-048",
+      "exam_round": 3,
+      "source_no": 48,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-049",
+      "exam_round": 3,
+      "source_no": 49,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-050",
+      "exam_round": 3,
+      "source_no": 50,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-051",
+      "exam_round": 3,
+      "source_no": 51,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-052",
+      "exam_round": 3,
+      "source_no": 52,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-053",
+      "exam_round": 3,
+      "source_no": 53,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-054",
+      "exam_round": 3,
+      "source_no": 54,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-055",
+      "exam_round": 3,
+      "source_no": 55,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-056",
+      "exam_round": 3,
+      "source_no": 56,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-057",
+      "exam_round": 3,
+      "source_no": 57,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-058",
+      "exam_round": 3,
+      "source_no": 58,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-059",
+      "exam_round": 3,
+      "source_no": 59,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-060",
+      "exam_round": 3,
+      "source_no": 60,
+      "subject": "애플리케이션 보안",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-061",
+      "exam_round": 3,
+      "source_no": 61,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-062",
+      "exam_round": 3,
+      "source_no": 62,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-063",
+      "exam_round": 3,
+      "source_no": 63,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-064",
+      "exam_round": 3,
+      "source_no": 64,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-065",
+      "exam_round": 3,
+      "source_no": 65,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-066",
+      "exam_round": 3,
+      "source_no": 66,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-067",
+      "exam_round": 3,
+      "source_no": 67,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-068",
+      "exam_round": 3,
+      "source_no": 68,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-069",
+      "exam_round": 3,
+      "source_no": 69,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-070",
+      "exam_round": 3,
+      "source_no": 70,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-071",
+      "exam_round": 3,
+      "source_no": 71,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-072",
+      "exam_round": 3,
+      "source_no": 72,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-073",
+      "exam_round": 3,
+      "source_no": 73,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-074",
+      "exam_round": 3,
+      "source_no": 74,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-075",
+      "exam_round": 3,
+      "source_no": 75,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-076",
+      "exam_round": 3,
+      "source_no": 76,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-077",
+      "exam_round": 3,
+      "source_no": 77,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-078",
+      "exam_round": 3,
+      "source_no": 78,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-079",
+      "exam_round": 3,
+      "source_no": 79,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-080",
+      "exam_round": 3,
+      "source_no": 80,
+      "subject": "정보보안 일반",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-081",
+      "exam_round": 3,
+      "source_no": 81,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-082",
+      "exam_round": 3,
+      "source_no": 82,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-083",
+      "exam_round": 3,
+      "source_no": 83,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-084",
+      "exam_round": 3,
+      "source_no": 84,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-085",
+      "exam_round": 3,
+      "source_no": 85,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-086",
+      "exam_round": 3,
+      "source_no": 86,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-087",
+      "exam_round": 3,
+      "source_no": 87,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-088",
+      "exam_round": 3,
+      "source_no": 88,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-089",
+      "exam_round": 3,
+      "source_no": 89,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-090",
+      "exam_round": 3,
+      "source_no": 90,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-091",
+      "exam_round": 3,
+      "source_no": 91,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-092",
+      "exam_round": 3,
+      "source_no": 92,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-093",
+      "exam_round": 3,
+      "source_no": 93,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-094",
+      "exam_round": 3,
+      "source_no": 94,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-095",
+      "exam_round": 3,
+      "source_no": 95,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-096",
+      "exam_round": 3,
+      "source_no": 96,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-097",
+      "exam_round": 3,
+      "source_no": 97,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-098",
+      "exam_round": 3,
+      "source_no": 98,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-099",
+      "exam_round": 3,
+      "source_no": 99,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "WRITTEN-03-100",
+      "exam_round": 3,
+      "source_no": 100,
+      "subject": "정보보안 관리 및 법규",
+      "target": "written",
+      "status": "QUEUED_FOR_REDESIGN"
+    }
+  ],
+  "practical_pdf": [
+    {
+      "source_id": "PRACTICAL-PDF-01-01",
+      "exam_round": 1,
+      "source_no": 1,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-01-02",
+      "exam_round": 1,
+      "source_no": 2,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-01-03",
+      "exam_round": 1,
+      "source_no": 3,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-01-04",
+      "exam_round": 1,
+      "source_no": 4,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-01-05",
+      "exam_round": 1,
+      "source_no": 5,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-01-06",
+      "exam_round": 1,
+      "source_no": 6,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-01-07",
+      "exam_round": 1,
+      "source_no": 7,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-01-08",
+      "exam_round": 1,
+      "source_no": 8,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-01-09",
+      "exam_round": 1,
+      "source_no": 9,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-01-10",
+      "exam_round": 1,
+      "source_no": 10,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-01-11",
+      "exam_round": 1,
+      "source_no": 11,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-01-12",
+      "exam_round": 1,
+      "source_no": 12,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-01-13",
+      "exam_round": 1,
+      "source_no": 13,
+      "source_type": "work_type",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-01-14",
+      "exam_round": 1,
+      "source_no": 14,
+      "source_type": "work_type",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-01-15",
+      "exam_round": 1,
+      "source_no": 15,
+      "source_type": "work_type",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-01-16",
+      "exam_round": 1,
+      "source_no": 16,
+      "source_type": "work_type",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-01-17",
+      "exam_round": 1,
+      "source_no": 17,
+      "source_type": "work_type",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-01-18",
+      "exam_round": 1,
+      "source_no": 18,
+      "source_type": "work_type",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-02-01",
+      "exam_round": 2,
+      "source_no": 1,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-02-02",
+      "exam_round": 2,
+      "source_no": 2,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-02-03",
+      "exam_round": 2,
+      "source_no": 3,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-02-04",
+      "exam_round": 2,
+      "source_no": 4,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-02-05",
+      "exam_round": 2,
+      "source_no": 5,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-02-06",
+      "exam_round": 2,
+      "source_no": 6,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-02-07",
+      "exam_round": 2,
+      "source_no": 7,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-02-08",
+      "exam_round": 2,
+      "source_no": 8,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-02-09",
+      "exam_round": 2,
+      "source_no": 9,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-02-10",
+      "exam_round": 2,
+      "source_no": 10,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-02-11",
+      "exam_round": 2,
+      "source_no": 11,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-02-12",
+      "exam_round": 2,
+      "source_no": 12,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-02-13",
+      "exam_round": 2,
+      "source_no": 13,
+      "source_type": "work_type",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-02-14",
+      "exam_round": 2,
+      "source_no": 14,
+      "source_type": "work_type",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-02-15",
+      "exam_round": 2,
+      "source_no": 15,
+      "source_type": "work_type",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-02-16",
+      "exam_round": 2,
+      "source_no": 16,
+      "source_type": "work_type",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-02-17",
+      "exam_round": 2,
+      "source_no": 17,
+      "source_type": "work_type",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-02-18",
+      "exam_round": 2,
+      "source_no": 18,
+      "source_type": "work_type",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-03-01",
+      "exam_round": 3,
+      "source_no": 1,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-03-02",
+      "exam_round": 3,
+      "source_no": 2,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-03-03",
+      "exam_round": 3,
+      "source_no": 3,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-03-04",
+      "exam_round": 3,
+      "source_no": 4,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-03-05",
+      "exam_round": 3,
+      "source_no": 5,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-03-06",
+      "exam_round": 3,
+      "source_no": 6,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-03-07",
+      "exam_round": 3,
+      "source_no": 7,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-03-08",
+      "exam_round": 3,
+      "source_no": 8,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-03-09",
+      "exam_round": 3,
+      "source_no": 9,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-03-10",
+      "exam_round": 3,
+      "source_no": 10,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-03-11",
+      "exam_round": 3,
+      "source_no": 11,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-03-12",
+      "exam_round": 3,
+      "source_no": 12,
+      "source_type": "short_answer",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-03-13",
+      "exam_round": 3,
+      "source_no": 13,
+      "source_type": "work_type",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-03-14",
+      "exam_round": 3,
+      "source_no": 14,
+      "source_type": "work_type",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-03-15",
+      "exam_round": 3,
+      "source_no": 15,
+      "source_type": "work_type",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-03-16",
+      "exam_round": 3,
+      "source_no": 16,
+      "source_type": "work_type",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-03-17",
+      "exam_round": 3,
+      "source_no": 17,
+      "source_type": "work_type",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    },
+    {
+      "source_id": "PRACTICAL-PDF-03-18",
+      "exam_round": 3,
+      "source_no": 18,
+      "source_type": "work_type",
+      "target": "practical",
+      "status": "QUEUED_FOR_REDESIGN"
+    }
+  ],
+  "practical_txt_section_counts": {
+    "단답형": 18,
+    "서술형": 17,
+    "실무형": 18
+  }
+}

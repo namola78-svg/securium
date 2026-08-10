@@ -1,0 +1,91 @@
+﻿import type { Metadata } from "next";
+import Link from "next/link";
+import { BRAND } from "@/lib/brand";
+import { ActionButton } from "@/components/design-system-primitives";
+
+export const metadata: Metadata = {
+  title: "?쒗걧由ъ? ?뚭컻",
+  description:
+    "?쒗걧由ъ? | SECURIUM? ?뺣낫蹂댄샇쨌媛쒖씤?뺣낫蹂댄샇 ?꾨Ц媛瑜??꾪븳 AI ?듯빀 ?숈뒿 ?뚮옯?쇱엯?덈떎.",
+};
+
+const principles = [
+  {
+    title: "?꾨Ц怨쇱젙 ?듯빀",
+    description:
+      "?뺣낫蹂댄샇? 媛쒖씤?뺣낫蹂댄샇 遺꾩빞???щ윭 ?꾨Ц 怨쇱젙???섎굹???뚮옯?쇱뿉???좏깮?섍퀬 ?댁뼱???숈뒿?????덈룄濡??ㅺ퀎?덉뒿?덈떎.",
+  },
+  {
+    title: "怨쇱젙蹂??낅┰ 吏꾨룄",
+    description:
+      "?숈떆???щ윭 怨쇱젙???섍컯?섎뜑?쇰룄 吏꾨룄, 臾몄젣??? ?ㅻ떟, ?듦퀎媛 怨쇱젙蹂꾨줈 遺꾨━?섏뼱 愿由щ맗?덈떎.",
+  },
+  {
+    title: "AI 蹂댁“ ?숈뒿",
+    description:
+      "AI ?쒗꽣???숈뒿 ?댄빐瑜??뺣뒗 ?ㅻ챸怨?蹂듭뒿 諛⑺뼢???쒖븞?⑸땲?? 怨듭떇 湲곗??대굹 梨꾩젏 寃곌낵???援щ텇???쒓났?⑸땲??",
+  },
+];
+
+export default function AboutPage() {
+  return (
+    <main className="page-main">
+      <section className="page-hero">
+        <div className="shell">
+          <p className="eyebrow">?쒗걧由ъ? ?뚭컻</p>
+          <h1>?쒗걧由ъ? | SECURIUM</h1>
+          <p>{BRAND.shortDescription}</p>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="shell narrow">
+          <article className="course-detail-section">
+            <p className="eyebrow">?쒕퉬??紐⑺몴</p>
+            <h2>?⑹뼱吏?蹂댁븞 ?숈뒿???섎굹??泥닿퀎濡??곌껐?⑸땲??/h2>
+            <p>
+              ?쒗걧由ъ?? ?먭꺽?쒗뿕 以鍮? ?ㅻТ ?щ? ?숈뒿, 臾몄젣??? ?ㅻ떟 蹂듭뒿,
+              AI ?ㅻ챸???섎굹???먮쫫?쇰줈 ?곌껐???뺣낫蹂댄샇쨌媛쒖씤?뺣낫蹂댄샇 ??웾??              泥닿퀎?곸쑝濡??깆옣?쒗궎??寃껋쓣 紐⑺몴濡??⑸땲??
+            </p>
+          </article>
+
+          <article className="course-detail-section">
+            <p className="eyebrow">?숈뒿 ?ㅺ퀎 ?먯튃</p>
+            <h2>?숈뒿 ?ㅺ퀎 ?먯튃</h2>
+            <div className="value-grid">
+              {principles.map((principle) => (
+                <article className="value-card" key={principle.title}>
+                  <h3>{principle.title}</h3>
+                  <p>{principle.description}</p>
+                </article>
+              ))}
+            </div>
+          </article>
+
+          <article className="course-detail-section">
+            <p className="eyebrow">?숈뒿?먮? ?꾪빐</p>
+            <h2>?대윴 ?숈뒿?먮? ?꾪빐 留뚮뱾?덉뒿?덈떎</h2>
+            <ul className="feature-list">
+              <li>?뺣낫蹂댄샇쨌媛쒖씤?뺣낫蹂댄샇 ?먭꺽?쒗뿕??以鍮꾪븯???숈뒿??/li>
+              <li>ISMS-P, CPPG, ?뺣낫蹂댁븞湲곗궗 ???꾨Ц 怨쇱젙??鍮꾧탳?섍퀬 ?띠? ?숈뒿??/li>
+              <li>?ㅻ떟怨?痍⑥빟 ?곸뿭??湲곗??쇰줈 諛섎났 ?숈뒿?섍퀬 ?띠? ?ㅻТ??/li>
+              <li>AI ?ㅻ챸??蹂댁“ ?꾧뎄濡??쒖슜??媛쒕뀗 ?댄빐瑜??볧엳怨??띠? ?숈뒿??/li>
+            </ul>
+          </article>
+
+          <article className="course-detail-section course-detail-bottom-cta">
+            <div>
+              <p className="eyebrow">?숈뒿 ?쒖옉</p>
+              <h2>???숈뒿 ?ъ젙???쒖옉?섏꽭??/h2>
+              <p>
+                怨듦컻??怨쇱젙 紐⑸줉?먯꽌 ?꾩옱 紐⑺몴??留욌뒗 怨쇱젙???좏깮?섍퀬, 怨쇱젙蹂?                吏꾨룄瑜?遺꾨━??愿由ы빐 蹂댁꽭??
+              </p>
+            </div>
+            <ActionButton href="/courses" variant="dark" className="full-width">
+              怨쇱젙 蹂대윭媛湲?            </ActionButton>
+          </article>
+        </div>
+      </section>
+    </main>
+  );
+}

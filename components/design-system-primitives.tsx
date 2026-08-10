@@ -1,6 +1,42 @@
-import type { ReactNode } from "react";
+"use client";
+
+import type {
+  AnchorHTMLAttributes,
+  ButtonHTMLAttributes,
+  MouseEvent,
+  ReactNode,
+} from "react";
+import Link from "next/link";
 
 export type Tone = "neutral" | "success" | "warning" | "danger" | "info" | "brand";
+export type ActionTone =
+  | "primary"
+  | "secondary"
+  | "outline"
+  | "ghost"
+  | "danger"
+  | "dark";
+
+type ActionButtonBaseProps = {
+  children: ReactNode;
+  variant?: ActionTone;
+  size?: "sm" | "md" | "lg";
+  href?: string;
+  className?: string;
+  type?: "button" | "submit" | "reset";
+  disabled?: boolean;
+  loading?: boolean;
+};
+
+type ActionButtonProps =
+  | (ActionButtonBaseProps &
+      Omit<ButtonHTMLAttributes<HTMLButtonElement>, keyof ActionButtonBaseProps | "type" | "href"> & {
+        href?: undefined;
+      })
+  | (ActionButtonBaseProps &
+      Omit<AnchorHTMLAttributes<HTMLAnchorElement>, keyof ActionButtonBaseProps | "href"> & {
+        href: string;
+      });
 
 type BreadcrumbItem = {
   label: ReactNode;
@@ -23,7 +59,71 @@ export function StatusBadge({
     </span>
   );
 }
+export function ActionButton({
+  children,
+  variant = "primary",
+  size = "md",
+  href,
+  className = "",
+  type = "button",
+  disabled = false,
+  loading = false,
+  ...rest
+}: ActionButtonProps) {
+  const toneClass = `variant-${variant}`;
+  const sizeClass = size === "md" ? "" : `size-${size}`;
+  const baseClass = ["ds-button", toneClass, sizeClass, className]
+    .filter(Boolean)
+    .join(" ");
+  const isDisabled = Boolean(disabled || loading);
+  const content = children;
 
+  if (href) {
+    const { onClick, tabIndex, ...linkProps } = rest as Omit<
+      AnchorHTMLAttributes<HTMLAnchorElement>,
+      "href"
+    >;
+    const handleLinkClick = (event: MouseEvent<HTMLAnchorElement>) => {
+      if (isDisabled) {
+        event.preventDefault();
+        return;
+      }
+      onClick?.(event);
+    };
+
+    return (
+      <Link
+        href={href}
+        className={baseClass}
+        aria-disabled={isDisabled ? true : undefined}
+        aria-busy={loading || undefined}
+        tabIndex={isDisabled ? -1 : tabIndex}
+        onClick={handleLinkClick}
+        {...linkProps}
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  const { onClick, ...buttonProps } = rest as Omit<
+    ButtonHTMLAttributes<HTMLButtonElement>,
+    "type"
+  >;
+
+  return (
+    <button
+      type={type}
+      className={baseClass}
+      disabled={isDisabled}
+      onClick={onClick}
+      aria-busy={loading || undefined}
+      {...buttonProps}
+    >
+      {content}
+    </button>
+  );
+}
 export function EnvironmentBadge() {
   const label = process.env.NEXT_PUBLIC_APP_ENV ?? process.env.NODE_ENV ?? "local";
   const normalized = label.toLowerCase();
@@ -40,7 +140,6 @@ export function EnvironmentBadge() {
     </StatusBadge>
   );
 }
-
 export function MetricCard({
   label,
   value,

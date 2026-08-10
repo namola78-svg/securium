@@ -1,0 +1,41 @@
+{
+  "package": "securium-content-upgrade-v2",
+  "version": "2.0.0",
+  "purpose": "첨부 자료 전체(이론+필기+실기)를 SECURIUM 고유 콘텐츠로 재구성하기 위한 전수 변환 패키지",
+  "sources": [
+    {
+      "name": "2026 정보보안기사 올인원_구매인증 이벤트 자료.pdf",
+      "parts": [
+        "핵심 용어 108선",
+        "필기 최신 기출문제 3회",
+        "필기 정답/해설",
+        "실기 최신 기출문제 3회"
+      ]
+    },
+    {
+      "name": "정보보안기사 실기 기출.txt",
+      "parts": [
+        "단답형",
+        "서술형",
+        "실무형/작업형",
+        "정답/해설 혼합 자료"
+      ]
+    }
+  ],
+  "inventory_counts": {
+    "theory_topics": 108,
+    "written_questions": 300,
+    "practical_pdf_questions": 54,
+    "practical_txt_section_markers": {
+      "단답형": 18,
+      "서술형": 17,
+      "실무형": 18
+    }
+  },
+  "output_policy": {
+    "copy_source_text": false,
+    "simple_paraphrase": false,
+    "source_material_role": "concept_and_learning_objective_reference_only",
+    "publish_state": "DRAFT_UNTIL_REVIEW"
+  }
+}

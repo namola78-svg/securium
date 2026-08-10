@@ -1,10 +1,20 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { ActionButton } from "@/components/design-system-primitives";
+import { authRedirectHref, safeAuthReturnPath } from "@/lib/auth-routing";
 
+
+import {
+  learnerPrimaryNavItems,
+  learnerUtilityNavItems,
+  mobileBottomNavItems,
+  publicNavItems,
+  type MobileBottomNavItem as ConfigMobileBottomNavItem,
+} from "@/lib/ui-nav";
 type HeaderUser = {
   displayName: string;
   roles: string[];
@@ -20,33 +30,8 @@ type NavItem = {
   disabled?: boolean;
 };
 
-const publicItems: NavItem[] = [
-  { href: "/courses", label: "과정" },
-  { href: "/guide", label: "학습 가이드" },
-  { href: "/about", label: "시큐리움 소개" },
-];
 
-const signedInItems: NavItem[] = [
-  { href: "/dashboard", label: "학습 시작" },
-  { href: "/my-courses", label: "이론 학습" },
-  { href: "/practice", label: "문제 풀이" },
-  { href: "/reviews", label: "복습" },
-  { href: "/analytics", label: "분석" },
-  { href: "/ai-tutor", label: "AI 튜터" },
-];
-
-type MobileBottomNavItem = NavItem & {
-  icon: string;
-  activeHrefs: string[];
-};
-
-const mobileBottomItems: MobileBottomNavItem[] = [
-  { href: "/dashboard", label: "홈", icon: "⌂", activeHrefs: ["/dashboard"] },
-  { href: "/my-courses", label: "학습", icon: "□", activeHrefs: ["/my-courses", "/learn", "/courses"] },
-  { href: "/practice", label: "문제", icon: "✓", activeHrefs: ["/practice", "/questions"] },
-  { href: "/reviews", label: "복습", icon: "↻", activeHrefs: ["/reviews", "/wrong-notes"] },
-  { href: "/profile", label: "마이", icon: "◦", activeHrefs: ["/profile", "/settings"] },
-];
+type MobileBottomNavItem = ConfigMobileBottomNavItem;
 
 export function HeaderControls({ user }: HeaderControlsProps) {
   const pathname = usePathname() || "/";
@@ -76,7 +61,16 @@ export function HeaderControls({ user }: HeaderControlsProps) {
       ].includes(role),
     ),
   );
-  const navItems = isSignedIn ? signedInItems : publicItems;
+  const navItems = isSignedIn ? learnerPrimaryNavItems : publicNavItems;
+  const mobileBottomItems = mobileBottomNavItems;
+  const currentSearch = searchParams.toString();
+  const loginReturnTo = safeAuthReturnPath(
+    `${pathname}${currentSearch ? `?${currentSearch}` : ""}`,
+  );
+  const logoutReturnTo = safeAuthReturnPath(loginReturnTo);
+  const loginHref = authRedirectHref("/login", loginReturnTo);
+  const signupHref = authRedirectHref("/signup", loginReturnTo);
+  const loginAfterLogoutHref = authRedirectHref("/login", logoutReturnTo);
 
   useEffect(() => {
     if (!mobileOpen) return;
@@ -240,7 +234,7 @@ export function HeaderControls({ user }: HeaderControlsProps) {
         headers: {
           "content-type": "application/x-www-form-urlencoded",
         },
-        body: new URLSearchParams({ returnTo: "/login" }),
+        body: new URLSearchParams({ returnTo: logoutReturnTo }),
         redirect: "manual",
       });
 
@@ -249,7 +243,7 @@ export function HeaderControls({ user }: HeaderControlsProps) {
       }
 
       setSignedOutLocally(true);
-      router.replace("/login");
+      router.replace(loginAfterLogoutHref);
       router.refresh();
 
       if (browserSignOutFailed) {
@@ -326,15 +320,37 @@ export function HeaderControls({ user }: HeaderControlsProps) {
             onClick={closeMenus}
           />
         ))}
-        <div className="mobile-nav-actions" aria-label="계정 메뉴">
+        {isSignedIn ? (
+          <>
+            <div className="mobile-nav-section-title">추가 학습</div>
+            {learnerUtilityNavItems.map((item) => (
+              <HeaderNavItem
+                activePath={activePath}
+                item={item}
+                key={item.label}
+                onClick={closeMenus}
+              />
+            ))}
+          </>
+        ) : null}        <div className="mobile-nav-actions" aria-label="계정 메뉴">
           {!isSignedIn ? (
             <>
-              <Link className="button button-ghost full-width" href="/login" onClick={closeMenus}>
+              <ActionButton
+                className="full-width"
+                href={loginHref}
+                variant="ghost"
+                onClick={closeMenus}
+              >
                 로그인
-              </Link>
-              <Link className="button button-lime full-width" href="/signup" onClick={closeMenus}>
+              </ActionButton>
+              <ActionButton
+                className="full-width"
+                href={signupHref}
+                variant="dark"
+                onClick={closeMenus}
+              >
                 무료로 시작하기
-              </Link>
+              </ActionButton>
             </>
           ) : (
             <>
@@ -347,15 +363,15 @@ export function HeaderControls({ user }: HeaderControlsProps) {
                   onClick={closeMenus}
                 />
               ))}
-              <button
+              <ActionButton
                 className="profile-menu-item danger"
-                type="button"
-                disabled={signingOut}
-                aria-busy={signingOut}
+                variant="danger"
                 onClick={handleLogout}
+                disabled={signingOut}
+                loading={signingOut}
               >
                 {signingOut ? "로그아웃 중" : "로그아웃"}
-              </button>
+              </ActionButton>
             </>
           )}
         </div>
@@ -367,6 +383,18 @@ export function HeaderControls({ user }: HeaderControlsProps) {
       </nav>
 
       <div className="header-actions">
+        {isSignedIn && currentUser ? (
+          <nav className="header-utility-nav" aria-label="추가 학습 링크">
+            {learnerUtilityNavItems.slice(0, 3).map((item) => (
+              <HeaderNavItem
+                activePath={activePath}
+                item={item}
+                key={item.label}
+                onClick={closeMenus}
+              />
+            ))}
+          </nav>
+        ) : null}
         {isSignedIn && currentUser ? (
           <div className="profile-menu" ref={profileRef}>
             <button
@@ -397,16 +425,15 @@ export function HeaderControls({ user }: HeaderControlsProps) {
                     role="menuitem"
                   />
                 ))}
-                <button
+                <ActionButton
                   className="profile-menu-item danger"
-                  type="button"
-                  role="menuitem"
-                  disabled={signingOut}
-                  aria-busy={signingOut}
+                  variant="danger"
                   onClick={handleLogout}
+                  disabled={signingOut}
+                  loading={signingOut}
                 >
                   {signingOut ? "로그아웃 중" : "로그아웃"}
-                </button>
+                </ActionButton>
               </div>
             ) : null}
             {logoutError ? (
@@ -417,12 +444,22 @@ export function HeaderControls({ user }: HeaderControlsProps) {
           </div>
         ) : (
           <>
-            <Link className="button button-ghost button-small" href="/login">
+            <ActionButton
+              href={loginHref}
+              size="sm"
+              variant="ghost"
+              className="button-small"
+            >
               로그인
-            </Link>
-            <Link className="button button-lime button-small" href="/signup">
+            </ActionButton>
+            <ActionButton
+              href={signupHref}
+              size="sm"
+              variant="dark"
+              className="button-small"
+            >
               무료로 시작하기
-            </Link>
+            </ActionButton>
           </>
         )}
       </div>
@@ -503,20 +540,7 @@ function resolveActivePath(
   searchParams: ReturnType<typeof useSearchParams>,
 ) {
   if (pathname !== "/login" && pathname !== "/signup") return pathname;
-  return safeReturnPath(searchParams.get("return_to")) ?? pathname;
-}
-
-function safeReturnPath(value: string | null) {
-  if (!value?.startsWith("/") || value.startsWith("//")) return null;
-
-  try {
-    const url = new URL(value, "https://app.local");
-    if (url.origin !== "https://app.local") return null;
-    if (url.pathname === "/login" || url.pathname === "/signup") return null;
-    return `${url.pathname}${url.search}${url.hash}`;
-  } catch {
-    return null;
-  }
+  return safeAuthReturnPath(searchParams.get("return_to"), pathname);
 }
 
 function isActivePath(pathname: string, href: string) {

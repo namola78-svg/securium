@@ -1,20 +1,10 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-
-const publicNavItems = [{ href: "/courses", label: "과정" }];
-
-const userNavItems = [
-  { href: "/dashboard", label: "학습 시작" },
-  { href: "/my-courses", label: "이론 학습" },
-  { href: "/practice", label: "문제 풀이" },
-  { href: "/reviews", label: "복습" },
-  { href: "/analytics", label: "분석" },
-  { href: "/ai-tutor", label: "AI 튜터" },
-  { href: "/profile", label: "프로필" },
-];
+import { safeAuthReturnPath } from "@/lib/auth-routing";
+import { learnerPrimaryNavItems, learnerUtilityNavItems, publicNavItems } from "@/lib/ui-nav";
 
 export function SiteNav({ signedIn }: { signedIn: boolean }) {
   const pathname = usePathname() || "/";
@@ -22,9 +12,8 @@ export function SiteNav({ signedIn }: { signedIn: boolean }) {
   const searchParams = useSearchParams();
   const activePath = resolveActivePath(pathname, searchParams);
   const authReturnPath = resolveAuthReturnPath(pathname, searchParams);
-  const navItems = signedIn
-    ? [...publicNavItems, ...userNavItems]
-    : publicNavItems;
+  const navItems = signedIn ? [...publicNavItems, ...learnerPrimaryNavItems] : publicNavItems;
+  const utilityNavItems = signedIn ? learnerUtilityNavItems : [];
 
   useEffect(() => {
     if (!signedIn || !authReturnPath) return;
@@ -32,53 +21,33 @@ export function SiteNav({ signedIn }: { signedIn: boolean }) {
   }, [authReturnPath, router, signedIn]);
 
   return (
-    <nav className="main-nav" aria-label="주요 메뉴">
-      {navItems.map((item) => {
-        const active = isActivePath(activePath, item.href);
-        return (
-          <Link
-            aria-current={active ? "page" : undefined}
-            className={active ? "active" : undefined}
-            href={item.href}
-            key={item.href}
-            title={active ? `현재 위치: ${item.label}` : item.label}
-          >
-            {item.label}
-          </Link>
-        );
-      })}
+    <nav className="main-nav" aria-label="주요 내비게이션">
+      {navItems.map((item) => <NavLink key={item.href} href={item.href} label={item.label} active={isActivePath(activePath, item.href)} />)}
+      {utilityNavItems.length ? (
+        <div className="header-utility-nav" aria-label="보조 기능 메뉴">
+          {utilityNavItems.map((item) => <NavLink key={item.href} href={item.href} label={item.label} active={isActivePath(activePath, item.href)} utility />)}
+        </div>
+      ) : null}
     </nav>
   );
 }
 
-function resolveAuthReturnPath(
-  pathname: string,
-  searchParams: ReturnType<typeof useSearchParams>,
-) {
+function NavLink({ href, label, active, utility = false }: { href: string; label: string; active: boolean; utility?: boolean }) {
+  return <Link aria-current={active ? "page" : undefined} className={utility ? `header-utility-link${active ? " active" : ""}` : active ? "active" : undefined} href={href} title={active ? `현재 위치: ${label}` : label}>{label}</Link>;
+}
+
+function resolveAuthReturnPath(pathname: string, searchParams: ReturnType<typeof useSearchParams>) {
   if (pathname !== "/login" && pathname !== "/signup") return null;
-  return safeReturnPath(searchParams.get("return_to")) ?? "/dashboard";
+  const returnTo = searchParams.get("return_to");
+  if (!returnTo) return null;
+  const safePath = safeAuthReturnPath(returnTo, "__invalid__");
+  return safePath.startsWith("/") ? safePath : null;
 }
 
-function resolveActivePath(
-  pathname: string,
-  searchParams: ReturnType<typeof useSearchParams>,
-) {
+function resolveActivePath(pathname: string, searchParams: ReturnType<typeof useSearchParams>) {
   if (pathname !== "/login" && pathname !== "/signup") return pathname;
-
-  return safeReturnPath(searchParams.get("return_to")) ?? pathname;
-}
-
-function safeReturnPath(value: string | null) {
-  if (!value?.startsWith("/") || value.startsWith("//")) return null;
-
-  try {
-    const url = new URL(value, "https://app.local");
-    if (url.origin !== "https://app.local") return null;
-    if (url.pathname === "/login" || url.pathname === "/signup") return null;
-    return `${url.pathname}${url.search}${url.hash}`;
-  } catch {
-    return null;
-  }
+  const returnTo = searchParams.get("return_to");
+  return returnTo ? safeAuthReturnPath(returnTo, pathname) : pathname;
 }
 
 function isActivePath(pathname: string, href: string) {

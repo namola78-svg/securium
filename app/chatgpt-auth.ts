@@ -5,6 +5,7 @@ import {
   getSupabaseSessionCookieIdentity,
   resolveAuthProvider,
 } from "@/lib/auth-provider";
+import { authApiRedirectHref, authRedirectHref, safeAuthReturnPath } from "@/lib/auth-routing";
 
 export type ChatGPTUser = {
   displayName: string;
@@ -19,7 +20,6 @@ const USER_FULL_NAME_ENCODING_HEADER =
 const PERCENT_ENCODED_UTF8 = "percent-encoded-utf-8";
 const SIGN_IN_PATH = "/signin-with-chatgpt";
 const SIGN_OUT_PATH = "/signout-with-chatgpt";
-const CALLBACK_PATH = "/callback";
 
 export async function getChatGPTUser(): Promise<ChatGPTUser | null> {
   if (resolveAuthProvider() === "supabase") {
@@ -62,44 +62,19 @@ export async function requireChatGPTUser(
 }
 
 export function chatGPTSignInPath(returnTo: string): string {
-  const safeReturnTo = safeRelativeReturnPath(returnTo);
+  const safeReturnTo = safeAuthReturnPath(returnTo, "/");
   if (resolveAuthProvider() === "supabase") {
-    return `/login?return_to=${encodeURIComponent(safeReturnTo)}`;
+    return authRedirectHref("/login", safeReturnTo);
   }
-  return `${SIGN_IN_PATH}?return_to=${encodeURIComponent(safeReturnTo)}`;
+  return authApiRedirectHref(SIGN_IN_PATH, safeReturnTo, "/");
 }
 
 export function chatGPTSignOutPath(returnTo = "/"): string {
-  const safeReturnTo = safeRelativeReturnPath(returnTo);
+  const safeReturnTo = safeAuthReturnPath(returnTo, "/");
   if (resolveAuthProvider() === "supabase") {
-    return `/api/auth/supabase/logout?return_to=${encodeURIComponent(safeReturnTo)}`;
+    return authApiRedirectHref("/api/auth/supabase/logout", safeReturnTo, "/");
   }
-  return `${SIGN_OUT_PATH}?return_to=${encodeURIComponent(safeReturnTo)}`;
-}
-
-function safeRelativeReturnPath(value: string): string {
-  if (!value.startsWith("/") || value.startsWith("//")) return "/";
-
-  let url: URL;
-  try {
-    url = new URL(value, "https://app.local");
-  } catch {
-    return "/";
-  }
-  if (url.origin !== "https://app.local") return "/";
-  if (isReservedAuthPath(url.pathname)) return "/";
-
-  return `${url.pathname}${url.search}${url.hash}`;
-}
-
-function isReservedAuthPath(pathname: string): boolean {
-  return (
-    pathname === "/login" ||
-    pathname === "/signup" ||
-    pathname === SIGN_IN_PATH ||
-    pathname === SIGN_OUT_PATH ||
-    pathname === CALLBACK_PATH
-  );
+  return authApiRedirectHref(SIGN_OUT_PATH, safeReturnTo, "/");
 }
 
 function safeDecodeURIComponent(value: string): string | null {

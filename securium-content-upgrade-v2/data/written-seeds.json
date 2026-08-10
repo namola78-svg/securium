@@ -1,0 +1,132 @@
+[
+  {
+    "id": "sec-written-sam-001",
+    "subject": "시스템 보안",
+    "difficulty": 2,
+    "type": "single_choice",
+    "concepts": [
+      "SAM",
+      "Windows 계정 보안"
+    ],
+    "prompt": "보안 담당자가 Windows 서버의 로컬 계정 자격정보 보호 상태를 점검하고 있다. 다음 조치 중 SAM 관련 위험을 낮추는 방향과 가장 거리가 먼 것은?",
+    "choices": [
+      "불필요한 로컬 관리자 계정을 줄인다.",
+      "오프라인 자격정보 탈취에 대비해 시스템 접근을 통제한다.",
+      "일반 사용자가 레지스트리의 민감 영역을 자유롭게 읽도록 권한을 완화한다.",
+      "복구·관리 계정의 사용 이력을 점검한다."
+    ],
+    "answer_index": 2,
+    "explanation": "SAM과 같은 자격정보 저장 영역의 접근권한을 완화하는 것은 보호 수준을 떨어뜨린다. 나머지는 계정과 자격정보 노출 위험을 줄이는 운영 통제에 해당한다.",
+    "source_refs": [
+      "WRITTEN-03-001"
+    ]
+  },
+  {
+    "id": "sec-written-edr-001",
+    "subject": "시스템 보안",
+    "difficulty": 2,
+    "type": "single_choice",
+    "concepts": [
+      "EDR"
+    ],
+    "prompt": "한 단말에서 의심스러운 프로세스가 외부 서버와 반복 통신한 뒤 다른 PC로 확산을 시도했다. EDR이 수행할 수 있는 대응으로 가장 적절한 것은?",
+    "choices": [
+      "디스크 스케줄링 알고리즘 변경",
+      "단말 행위 수집과 의심 프로세스 격리",
+      "DNS 존의 SOA 레코드 변경",
+      "물리 출입통제 카드 재발급"
+    ],
+    "answer_index": 1,
+    "explanation": "EDR은 엔드포인트 행위를 관찰하고 위협을 탐지·조사하며 필요 시 프로세스 종료나 단말 격리 같은 대응을 수행하는 데 사용된다.",
+    "source_refs": [
+      "WRITTEN-03-004"
+    ]
+  },
+  {
+    "id": "sec-written-https-001",
+    "subject": "네트워크 보안",
+    "difficulty": 2,
+    "type": "single_choice",
+    "concepts": [
+      "HTTPS",
+      "TLS"
+    ],
+    "prompt": "웹 서비스가 HTTP에서 HTTPS로 전환되었다. 이 변경으로 직접 기대하기 어려운 효과는 무엇인가?",
+    "choices": [
+      "전송 데이터의 기밀성 향상",
+      "전송 중 변조 탐지에 도움",
+      "서버 신원 확인에 인증서 활용",
+      "애플리케이션의 모든 취약점 자동 제거"
+    ],
+    "answer_index": 3,
+    "explanation": "HTTPS/TLS는 통신 보호를 제공하지만 SQL Injection, 접근통제 오류 같은 애플리케이션 취약점 자체를 제거하지는 않는다.",
+    "source_refs": [
+      "WRITTEN-01-033"
+    ]
+  },
+  {
+    "id": "sec-written-snort-001",
+    "subject": "네트워크 보안",
+    "difficulty": 2,
+    "type": "single_choice",
+    "concepts": [
+      "Snort",
+      "IDS"
+    ],
+    "prompt": "조직이 네트워크 패킷을 복제해 센서로 보내고, 자체 공격 패턴을 룰로 작성해 경보를 발생시키려 한다. 이 요구에 가장 잘 맞는 도구 범주는?",
+    "choices": [
+      "호스트 기반 백업 도구",
+      "시그니처 기반 네트워크 IDS",
+      "디스크 암호화 도구",
+      "PKI 인증기관"
+    ],
+    "answer_index": 1,
+    "explanation": "패킷을 관찰하고 룰 기반 시그니처를 사용해 탐지하는 요구는 네트워크 IDS의 전형적인 사용 방식이다.",
+    "source_refs": [
+      "WRITTEN-01-034"
+    ]
+  },
+  {
+    "id": "sec-written-hash-001",
+    "subject": "정보보안 일반",
+    "difficulty": 3,
+    "type": "single_choice",
+    "concepts": [
+      "해시함수",
+      "충돌저항성"
+    ],
+    "prompt": "공격자가 서로 다른 두 입력을 자유롭게 선택한 뒤 동일한 해시값을 갖는 쌍을 찾기 어렵게 만드는 성질은?",
+    "choices": [
+      "선이미지 저항성",
+      "제2 선이미지 저항성",
+      "강한 충돌 저항성",
+      "가용성"
+    ],
+    "answer_index": 2,
+    "explanation": "서로 다른 임의의 두 메시지가 같은 해시값을 갖는 쌍을 찾기 어렵게 하는 요구는 강한 충돌 저항성과 연결된다.",
+    "source_refs": [
+      "WRITTEN-02-062"
+    ]
+  },
+  {
+    "id": "sec-written-risk-001",
+    "subject": "정보보안 관리 및 법규",
+    "difficulty": 3,
+    "type": "single_choice",
+    "concepts": [
+      "위험처리"
+    ],
+    "prompt": "회사가 노후 시스템의 보안위험이 지나치게 크다고 판단해 해당 시스템을 이용한 서비스를 완전히 종료했다. 가장 가까운 위험처리 방식은?",
+    "choices": [
+      "위험감소",
+      "위험전가",
+      "위험회피",
+      "위험수용"
+    ],
+    "answer_index": 2,
+    "explanation": "위험을 만드는 활동이나 프로세스 자체를 수행하지 않는 선택은 위험회피에 해당한다.",
+    "source_refs": [
+      "PRACTICAL-TXT-RISK"
+    ]
+  }
+]

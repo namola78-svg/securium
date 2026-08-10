@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+﻿import type { ReactNode } from "react";
 import { publicCopy } from "@/lib/public-copy";
 
 function safeReferenceUrl(value: string) {
@@ -11,7 +11,6 @@ function safeReferenceUrl(value: string) {
     return null;
   }
 }
-
 function inlineContent(text: string, keyPrefix: string): ReactNode[] {
   const pattern =
     /(!?\[[^\]]+\]\([^)]+\)|\*\*[^*]+\*\*|__[^_]+__|\*[^*]+\*|_[^_]+_|`[^`]+`)/g;
@@ -27,13 +26,9 @@ function inlineContent(text: string, keyPrefix: string): ReactNode[] {
       const href = parts ? safeReferenceUrl(parts[2]) : null;
       nodes.push(
         href ? (
-          <a className="lesson-attachment" href={href} key={key} rel="noreferrer">
-            이미지 참조 · {parts?.[1]}
-          </a>
+          <a className="lesson-attachment" href={href} key={key} rel="noreferrer">`r`n            이미지 참고 · {parts?.[1]}`r`n          </a>
         ) : (
-          <span className="lesson-invalid-reference" key={key}>
-            차단된 이미지 참조
-          </span>
+          <span className="lesson-invalid-reference" key={key}>`r`n            이미지 참조를 표시할 수 없습니다.`r`n          </span>
         ),
       );
     } else if (token.startsWith("[")) {
@@ -45,9 +40,7 @@ function inlineContent(text: string, keyPrefix: string): ReactNode[] {
             {parts?.[1]}
           </a>
         ) : (
-          <span className="lesson-invalid-reference" key={key}>
-            {parts?.[1] ?? "차단된 첨부 참조"}
-          </span>
+          <span className="lesson-invalid-reference" key={key}>`r`n            이미지 참조를 표시할 수 없습니다.`r`n          </span>
         ),
       );
     } else if (

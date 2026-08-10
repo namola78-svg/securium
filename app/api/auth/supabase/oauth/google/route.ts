@@ -4,7 +4,7 @@ import {
   resolveSupabaseAuthConfig,
   SUPABASE_OAUTH_RETURN_COOKIE,
 } from "@/lib/auth-provider";
-import { safeAuthReturnPath } from "@/lib/auth-routing";
+import { buildSafeRedirectQuery, safeAuthReturnPath } from "@/lib/auth-routing";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -44,13 +44,14 @@ export async function GET(request: NextRequest) {
   });
 
   if (error || !data.url) {
-    const params = new URLSearchParams({
+    const query = buildSafeRedirectQuery({
       error: "oauth_provider_failed",
       return_to: returnTo,
     });
     const response = NextResponse.redirect(
-      new URL(`/login?${params.toString()}`, request.url),
+      new URL(`/login?${query}`, request.url),
     );
+    response.cookies.delete(SUPABASE_OAUTH_RETURN_COOKIE);
     applySupabaseSsrCookies(response, cookiesToSet);
     return response;
   }

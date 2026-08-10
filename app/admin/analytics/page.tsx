@@ -170,11 +170,11 @@ export default async function AdminAnalyticsPage({
             description="Analytics Inspector는 선택된 과정 범위, 산식, 원천 데이터, 신뢰도 조건을 요약합니다."
             badges={[
               {
-                label: courseId ? "Course scoped" : "Global scope",
+                label: courseId ? "과정 범위" : "전체 범위",
                 tone: courseId ? "info" : "brand",
               },
               {
-                label: stats.attemptCount ? "Data available" : "No attempts",
+                label: stats.attemptCount ? "데이터 있음" : "응시 기록 없음",
                 tone: stats.attemptCount ? "success" : "warning",
               },
             ]}

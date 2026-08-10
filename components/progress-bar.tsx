@@ -19,6 +19,7 @@ export function ProgressBar({
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={safeValue}
+        aria-valuetext={`${safeValue}% 완료`}
       >
         <span style={{ width: `${safeValue}%` }} />
       </div>

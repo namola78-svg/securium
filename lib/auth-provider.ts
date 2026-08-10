@@ -201,18 +201,27 @@ export async function signInWithSupabasePassword(input: {
   password: string;
 }): Promise<SupabaseAuthSession> {
   const config = resolveSupabaseAuthConfig();
-  const response = await fetch(`${config.authUrl}/token?grant_type=password`, {
-    method: "POST",
-    headers: {
-      apikey: config.anonKey,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      email: input.email.trim().toLowerCase(),
-      password: input.password,
-    }),
-    cache: "no-store",
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${config.authUrl}/token?grant_type=password`, {
+      method: "POST",
+      headers: {
+        apikey: config.anonKey,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        email: input.email.trim().toLowerCase(),
+        password: input.password,
+      }),
+      cache: "no-store",
+    });
+  } catch {
+    throw new AppError(
+      "Unable to reach auth service for sign in.",
+      503,
+      "SUPABASE_AUTH_NETWORK_ERROR",
+    );
+  }
 
   return parseSupabaseSessionResponse(response);
 }
@@ -223,23 +232,64 @@ export async function signUpWithSupabasePassword(input: {
   displayName?: string;
 }): Promise<SupabaseAuthSession | null> {
   const config = resolveSupabaseAuthConfig();
-  const response = await fetch(`${config.authUrl}/signup`, {
-    method: "POST",
-    headers: {
-      apikey: config.anonKey,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      email: input.email.trim().toLowerCase(),
-      password: input.password,
-      data: input.displayName?.trim()
-        ? { full_name: input.displayName.trim() }
-        : undefined,
-    }),
-    cache: "no-store",
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${config.authUrl}/signup`, {
+      method: "POST",
+      headers: {
+        apikey: config.anonKey,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        email: input.email.trim().toLowerCase(),
+        password: input.password,
+        data: input.displayName?.trim()
+          ? { full_name: input.displayName.trim() }
+          : undefined,
+      }),
+      cache: "no-store",
+    });
+  } catch {
+    throw new AppError(
+      "Unable to reach auth service for sign up.",
+      503,
+      "SUPABASE_AUTH_NETWORK_ERROR",
+    );
+  }
 
   if (!response.ok) {
+    try {
+      const payload = (await response.json()) as Partial<{
+        message: string;
+        error: string | { message: string; code?: string };
+        code: string;
+      }>;
+      const errorCode =
+        payload.code ??
+        (typeof payload.error === "object" ? payload.error.code : undefined);
+      const message =
+        payload.message ??
+        (typeof payload.error === "string" ? payload.error : payload.error?.message) ??
+        "";
+      if (typeof message === "string") {
+        if (
+          errorCode === "user_already_exists" ||
+          errorCode === "user_already_exists_error" ||
+          message.toLowerCase().includes("already exists") ||
+          message.toLowerCase().includes("already registered") ||
+          message.toLowerCase().includes("already signed")
+        ) {
+          throw new AppError(
+            message,
+            response.status >= 500 ? 502 : 400,
+            "SUPABASE_SIGNUP_EMAIL_EXISTS",
+          );
+        }
+      }
+    } catch (bodyError) {
+      if (bodyError instanceof AppError) throw bodyError;
+    }
+
     throw new AppError(
       "Supabase signup failed.",
       response.status >= 500 ? 502 : 400,
@@ -349,6 +399,7 @@ export function validateAuthForm(input: {
   email: unknown;
   password: unknown;
   displayName?: unknown;
+  requireDisplayName?: boolean;
 }) {
   const email = String(input.email ?? "").trim().toLowerCase();
   const password = String(input.password ?? "");
@@ -363,6 +414,9 @@ export function validateAuthForm(input: {
       400,
       "AUTH_PASSWORD_INVALID",
     );
+  }
+  if (input.requireDisplayName && !displayName) {
+    throw new AppError("Display name is required.", 400, "AUTH_NAME_INVALID");
   }
   if (displayName.length > 80) {
     throw new AppError("Display name is too long.", 400, "AUTH_NAME_INVALID");

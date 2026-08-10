@@ -1,9 +1,10 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { authRedirectHref, safeAuthReturnPath } from "@/lib/auth-routing";
 
 type AccountDrawerProps = {
   user: {
@@ -14,12 +15,26 @@ type AccountDrawerProps = {
 
 export function AccountDrawer({ user }: AccountDrawerProps) {
   const router = useRouter();
+  const pathname = usePathname() || "/";
+  const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [error, setError] = useState("");
   const triggerRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const currentSearch = searchParams.toString();
+  const returnTo = safeAuthReturnPath(
+    `${pathname}${currentSearch ? `?${currentSearch}` : ""}`,
+  );
+  const loginAfterLogoutHref = authRedirectHref("/login", returnTo);
+  const isAdmin =
+    user.roles.includes("ADMIN") ||
+    user.roles.includes("SUPER_ADMIN") ||
+    user.roles.includes("COURSE_MANAGER") ||
+    user.roles.includes("CONTENT_EDITOR") ||
+    user.roles.includes("CONTENT_REVIEWER");
+  const roleLabel = isAdmin ? "관리자" : "학습자";
 
   useEffect(() => {
     if (!open) return;
@@ -79,7 +94,7 @@ export function AccountDrawer({ user }: AccountDrawerProps) {
         const supabase = createSupabaseBrowserClient();
         await supabase.auth.signOut();
       } catch {
-        // HttpOnly session cookies are cleared by the server endpoint below.
+        // HttpOnly session cookies는 서버 logout API에서 정리됩니다.
       }
 
       const response = await fetch("/api/auth/supabase/logout", {
@@ -88,7 +103,7 @@ export function AccountDrawer({ user }: AccountDrawerProps) {
         headers: {
           "content-type": "application/x-www-form-urlencoded",
         },
-        body: new URLSearchParams({ returnTo: "/login" }),
+        body: new URLSearchParams({ returnTo }),
         redirect: "manual",
       });
 
@@ -97,16 +112,18 @@ export function AccountDrawer({ user }: AccountDrawerProps) {
       }
 
       setOpen(false);
-      router.replace("/login");
+      router.replace(loginAfterLogoutHref);
       router.refresh();
     } catch {
-      setError("로그아웃하지 못했습니다. 잠시 후 다시 시도해주세요.");
+      setError("로그아웃하지 못했습니다. 잠시 후 다시 시도해 주세요.");
       setSigningOut(false);
     }
   }
 
-  const initials = user.displayName.slice(0, 1).toUpperCase();
-  const visibleRoles = user.roles.length ? user.roles.join(" · ") : "관리자";
+  const initials = user.displayName.trim().slice(0, 1).toUpperCase() || "S";
+  const visibleRoles = user.roles.length
+    ? user.roles.map(formatRoleLabel).join(" / ")
+    : "일반 사용자";
 
   return (
     <div className="account-drawer-shell">
@@ -124,7 +141,7 @@ export function AccountDrawer({ user }: AccountDrawerProps) {
         </span>
         <span className="account-trigger-copy">
           <strong>{user.displayName}</strong>
-          <small>계정</small>
+          <small>{roleLabel}</small>
         </span>
       </button>
 
@@ -147,7 +164,7 @@ export function AccountDrawer({ user }: AccountDrawerProps) {
               <p>{visibleRoles}</p>
             </div>
             <button
-              aria-label="계정 메뉴 닫기"
+              aria-label="드로어 닫기"
               className="account-drawer-close"
               onClick={() => {
                 setOpen(false);
@@ -156,7 +173,7 @@ export function AccountDrawer({ user }: AccountDrawerProps) {
               ref={closeButtonRef}
               type="button"
             >
-              ×
+              ✕
             </button>
           </header>
 
@@ -168,7 +185,7 @@ export function AccountDrawer({ user }: AccountDrawerProps) {
               학습 설정
             </Link>
             <Link href="/admin" onClick={() => setOpen(false)}>
-              관리자 홈
+              관리자
             </Link>
           </div>
 
@@ -191,4 +208,16 @@ export function AccountDrawer({ user }: AccountDrawerProps) {
       ) : null}
     </div>
   );
+}
+
+function formatRoleLabel(role: string) {
+  const labels: Record<string, string> = {
+    ADMIN: "관리자",
+    SUPER_ADMIN: "최고 관리자",
+    COURSE_MANAGER: "과정 관리자",
+    CONTENT_EDITOR: "콘텐츠 편집자",
+    CONTENT_REVIEWER: "콘텐츠 검수자",
+    USER: "학습자",
+  };
+  return labels[role] ?? "추가 권한";
 }

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useRef, useState } from "react";
 import {
@@ -35,7 +35,7 @@ export function AudioLearningPlayer({
           <p className="eyebrow">AUDIO LEARNING</p>
           <h2 id="audio-heading">오디오 학습</h2>
         </div>
-        <p>재생 위치는 계정별로 저장되며 15초 간격으로 제한합니다.</p>
+        <p>재생 위치는 계정별로 저장되며 15초 간격으로 업데이트됩니다.</p>
       </div>
       <div className="audio-learning-list">
         {items.map((item) => (
@@ -106,7 +106,7 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
       error?: string;
     };
     if (!response.ok) {
-      setMessage(payload.error ?? "오디오 진도를 저장하지 못했습니다.");
+      setMessage(payload.error ?? "오디오 진행도를 저장하지 못했습니다.");
       return;
     }
     if (payload.result) {
@@ -114,7 +114,7 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
       setMessage(
         payload.result.completed
           ? "오디오 학습 완료를 저장했습니다."
-          : "마지막 재생 위치를 저장했습니다.",
+          : "재생 위치를 저장했습니다.",
       );
     }
   }
@@ -166,14 +166,14 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
   }
 
   async function play() {
-    setMessage("");
+    setMessage("오디오 학습 상태를 업데이트했습니다.");
     if (audioRef.current) {
       audioRef.current.playbackRate = speed;
       try {
         await audioRef.current.play();
         setPlaying(true);
       } catch {
-        setMessage("브라우저에서 오디오 재생을 시작하지 못했습니다.");
+        setMessage("오디오 학습 상태를 업데이트했습니다.");
       }
       return;
     }
@@ -183,7 +183,7 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
       )
     ) {
       setSpeechAvailable(false);
-      setMessage("이 브라우저는 음성 합성을 지원하지 않습니다.");
+      setMessage("오디오 학습 상태를 업데이트했습니다.");
       return;
     }
     setSpeechAvailable(true);
@@ -201,7 +201,7 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
       ? remainingSegments.map((segment) => segment.text).join(" ")
       : safeTranscript;
     if (!speechText.trim()) {
-      setMessage("재생할 스크립트가 없습니다.");
+      setMessage("오디오 학습 상태를 업데이트했습니다.");
       return;
     }
     const utterance = new SpeechSynthesisUtterance(speechText);
@@ -215,7 +215,7 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
     utterance.onerror = () => {
       stopSpeechTimer();
       setPlaying(false);
-      setMessage("브라우저 음성 재생 중 오류가 발생했습니다.");
+      setMessage("오디오 학습 상태를 업데이트했습니다.");
     };
     speechUtteranceRef.current = utterance;
     window.speechSynthesis.speak(utterance);
@@ -327,11 +327,9 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
       ) : (
         <div className="browser-voice-notice">
           <strong>브라우저 제공 음성</strong>
-          <span>
-            실제 강사 또는 공식 기관 음성이 아닌 기기 내 음성 합성입니다.
-          </span>
+          <span>실제 강사 음성이 아닌 기기 내 음성 합성으로 재생합니다.</span>
           {speechAvailable === false ? (
-            <span role="status">현재 브라우저에서는 사용할 수 없습니다.</span>
+            <span role="status">현재 브라우저에서는 음성 재생을 사용할 수 없습니다.</span>
           ) : null}
         </div>
       )}
@@ -351,11 +349,11 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
           disabled={loading && Boolean(item.audioUrl)}
         >
           {loading && item.audioUrl
-            ? "불러오는 중…"
+            ? "불러오는 중..."
             : playing
               ? "일시정지"
               : position > 0
-                ? "이어 듣기"
+                ? "이어서 듣기"
                 : "재생"}
         </button>
         <button
@@ -366,8 +364,7 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
           10초 이후
         </button>
         <label>
-          재생 속도
-          <select
+          재생 속도<select
             value={speed}
             onChange={(event) => {
               const next = Number(event.target.value);
@@ -375,15 +372,15 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
               if (audioRef.current) audioRef.current.playbackRate = next;
               if (speechUtteranceRef.current) {
                 setMessage(
-                  "브라우저 음성의 배속 변경은 다음 재생부터 적용됩니다.",
+                  "브라우저 음성 배속 변경은 다음 재생부터 적용됩니다.",
                 );
               }
             }}
           >
             {item.speedOptions.map((option) => (
-              <option key={option} value={option}>
-                {option}배
-              </option>
+            <option key={option} value={option}>
+              {option}배속
+            </option>
             ))}
           </select>
         </label>

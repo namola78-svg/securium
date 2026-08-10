@@ -1,8 +1,9 @@
 "use client";
 
-import Link from "next/link";
+import { authRedirectHref } from "@/lib/auth-routing";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { ActionButton } from "@/components/design-system-primitives";
 import { CardSkeleton, InlineError, RetryButton } from "@/components/state-ui";
 
 type EnrollmentStatus = "ACTIVE" | "PAUSED" | "COMPLETED" | "CANCELLED";
@@ -150,12 +151,13 @@ export function CourseEnrollAction({
   if (status === "anonymous") {
     return (
       <div className="enroll-action">
-        <Link
-          className="button button-dark full-width"
-          href={`/login?return_to=${encodeURIComponent(`/courses/${courseSlug}`)}`}
+        <ActionButton
+          href={authRedirectHref("/login", `/courses/${courseSlug}`)}
+          variant="dark"
+          className="full-width"
         >
           {TEXT.loginAndAdd}
-        </Link>
+        </ActionButton>
       </div>
     );
   }
@@ -163,9 +165,9 @@ export function CourseEnrollAction({
   if (status === "enrolled") {
     return (
       <div className="enroll-action">
-        <Link className="button button-dark full-width" href={`/learn/${courseSlug}`}>
+        <ActionButton href={`/learn/${courseSlug}`} variant="dark" className="full-width">
           {TEXT.continueLearning}
-        </Link>
+        </ActionButton>
         {message ? <p className="enroll-message success">{message}</p> : null}
       </div>
     );
@@ -174,12 +176,13 @@ export function CourseEnrollAction({
   if (status === "completed") {
     return (
       <div className="enroll-action">
-        <Link
-          className="button button-dark full-width"
+        <ActionButton
           href={`/practice/${courseSlug}?mode=review`}
+          variant="dark"
+          className="full-width"
         >
           {TEXT.review}
-        </Link>
+        </ActionButton>
       </div>
     );
   }
@@ -195,15 +198,17 @@ export function CourseEnrollAction({
 
   return (
     <div className="enroll-action">
-      <button
-        className="button button-dark full-width"
+      <ActionButton
+        variant="dark"
+        className="full-width"
         type="button"
         onClick={handleEnroll}
         disabled={status === "enrolling"}
+        loading={status === "enrolling"}
         aria-busy={status === "enrolling"}
       >
         {status === "enrolling" ? TEXT.enrolling : TEXT.addToLearning}
-      </button>
+      </ActionButton>
     </div>
   );
 }

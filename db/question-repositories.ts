@@ -525,6 +525,7 @@ export async function listQuestionBookmarks(userId: string, courseId?: string) {
     .select({
       id: bookmarks.id,
       courseId: bookmarks.courseId,
+      courseSlug: courses.slug,
       questionId: questions.id,
       title: questions.title,
       content: questions.content,
@@ -539,6 +540,7 @@ export async function listQuestionBookmarks(userId: string, courseId?: string) {
         eq(bookmarks.targetId, questions.id),
       ),
     )
+    .innerJoin(courses, eq(bookmarks.courseId, courses.id))
     .where(
       courseId
         ? and(eq(bookmarks.userId, userId), eq(bookmarks.courseId, courseId))

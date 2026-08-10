@@ -324,7 +324,7 @@ export default async function AdminOntologyPage({ searchParams }: PageProps) {
             inspector={
               <InspectorPanel
                 eyebrow="ONTOLOGY INSPECTOR"
-                title={firstConcept?.label ?? firstEdge?.relation ?? "No selection"}
+            title={firstConcept?.label ?? firstEdge?.relation ?? "선택된 항목 없음"}
                 description={
                   firstConcept
                     ? "The first visible concept is used as the current preview until row selection is introduced."
