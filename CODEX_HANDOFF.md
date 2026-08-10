@@ -731,3 +731,8 @@
 - Desktop routing, active state, authentication conditions, primary navigation, desktop utility links, mobile drawer, and mobile bottom navigation were otherwise preserved.
 - Static verification: one `SiteHeader` mount, no `SiteNav` mount, utility render sites are limited to the mobile drawer and desktop header-actions paths; `북마크`, `오답노트`, `복습`, and `학습 분석` each remain single entries in `lib/ui-nav.ts`.
 - Validation: unit 312/312, lint, typecheck, production build (63 routes), and `git diff --check` passed. No browser session was available for live screenshot inspection.
+## BATCH 147 (Header fix Vercel deployment)
+- Pushed commit `b2b8df9f9877982d4a8140f14d4c936c48a1b1a7` to GitHub `main`.
+- Existing Vercel project `securium` deployed the change successfully as `dpl_39o4npFKCtXZPhxDqtDg7VDpTnct` with `Ready` status.
+- `https://securium.vercel.app/`, `/api/health`, and `/api/auth/session` returned HTTP 200 after deployment.
+- OpenAI Sites was not used. No backend, DB, auth, API, or production environment configuration was changed.
