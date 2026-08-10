@@ -754,3 +754,9 @@
 - The test server did start; the suite completed in about 50 seconds and reported 21 failures rather than hanging.
 - Primary failure: local D1-backed authenticated operations return `INTERNAL_ERROR` while querying the `users` table, causing enrollment, admin, and authenticated rendered-page assertions to fail. Landing HTML assertions also include stale text expectations unrelated to the navigation fix.
 - No application, database schema, auth, API, or navigation code was changed. The E2E blocker is local test-fixture/runtime configuration and pre-existing assertion drift, not a production navigation regression.
+
+## BATCH 151 (Local D1 verification)
+- Applied `npm run db:migrate` against the local `wrangler.local.jsonc` database; Wrangler reported `No migrations to apply`.
+- Read-only local D1 inspection confirmed `users`, `roles`, and `courses` tables exist, and `users` contains the queried `id`, `email`, `display_name`, and `status` columns.
+- Re-ran `npm run test:integration`; the same 21 authenticated/database failures reproduced. The evidence points to the Vinext test server using a different or uninitialized D1 binding at request time, not a missing repository migration.
+- No application, schema, auth, API, or navigation changes were made; test processes exited cleanly.
