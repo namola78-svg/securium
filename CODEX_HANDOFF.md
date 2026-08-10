@@ -773,3 +773,9 @@
 - After `npm run db:setup`, integration tests improved from 2/23 passing to 14/23 passing. Database-backed course, admin, lesson, and API checks now pass; 9 failures remain from stale content assertions and specific practice/review expectations.
 - `npm run lint`, `npm run typecheck`, `npm run test:unit` (312/312), `npm run build`, and `npm run build:cloudflare` passed.
 - Full `npm run test:e2e` no longer stopped at the first D1 readiness failure, but exceeded the 180-second limit while running `ai-specialized-e2e.test.mjs`; spawned test processes were cleaned afterward.
+
+## BATCH 154 (Production deployment after D1 test alignment)
+- Pushed `0e329b6` to the existing GitHub remote `https://github.com/namola78-svg/securium.git` on `main`.
+- Existing Vercel project `securium` created Production deployment `dpl_6wLywsVJoGG2LFgo9MgpkHrvHJDz`, which reached `Ready` and aliased to `https://securium.vercel.app`.
+- Production smoke checks returned HTTP 200 for `/`, `/courses`, `/login`, `/api/health`, and `/api/auth/session`.
+- OpenAI Sites was not used; no new Vercel project or production environment change was made.
