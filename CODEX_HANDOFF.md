@@ -760,3 +760,9 @@
 - Read-only local D1 inspection confirmed `users`, `roles`, and `courses` tables exist, and `users` contains the queried `id`, `email`, `display_name`, and `status` columns.
 - Re-ran `npm run test:integration`; the same 21 authenticated/database failures reproduced. The evidence points to the Vinext test server using a different or uninitialized D1 binding at request time, not a missing repository migration.
 - No application, schema, auth, API, or navigation changes were made; test processes exited cleanly.
+
+## BATCH 152 (CI-equivalent D1 setup retry)
+- Ran the repository-standard `npm run db:setup` (migration plus `db/seed.sql`) against local D1; both completed successfully.
+- Re-ran `npm run test:integration`; the same 21 authenticated/database failures remained, while the two unauthenticated/security tests passed.
+- Local migration and seed omission are ruled out. Remaining E2E/integration failure is isolated to the Vinext test request runtime's D1 binding or prepared-statement behavior, plus stale landing text assertions.
+- No production configuration or application code was changed.
