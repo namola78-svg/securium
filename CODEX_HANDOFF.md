@@ -766,3 +766,10 @@
 - Re-ran `npm run test:integration`; the same 21 authenticated/database failures remained, while the two unauthenticated/security tests passed.
 - Local migration and seed omission are ruled out. Remaining E2E/integration failure is isolated to the Vinext test request runtime's D1 binding or prepared-statement behavior, plus stale landing text assertions.
 - No production configuration or application code was changed.
+
+## BATCH 153 (D1 test binding alignment)
+- Root cause confirmed in `vite.config.ts`: `D1_TEST_MODE` used a separate `site-creator-d1` database name with `persistState: false`, while `db:setup` prepared `shield-academy-local` under `.wrangler/state`.
+- Updated only the test-mode Cloudflare binding to use `shield-academy-local` and persistent `.wrangler/state`; production/non-test configuration remains unchanged.
+- After `npm run db:setup`, integration tests improved from 2/23 passing to 14/23 passing. Database-backed course, admin, lesson, and API checks now pass; 9 failures remain from stale content assertions and specific practice/review expectations.
+- `npm run lint`, `npm run typecheck`, `npm run test:unit` (312/312), `npm run build`, and `npm run build:cloudflare` passed.
+- Full `npm run test:e2e` no longer stopped at the first D1 readiness failure, but exceeded the 180-second limit while running `ai-specialized-e2e.test.mjs`; spawned test processes were cleaned afterward.

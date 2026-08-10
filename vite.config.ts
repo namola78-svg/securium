@@ -6,6 +6,7 @@ import { sites } from "./build/sites-vite-plugin";
 
 const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
   "00000000-0000-4000-8000-000000000000";
+const LOCAL_D1_TEST_DATABASE_NAME = "shield-academy-local";
 
 const { d1, r2 } = hostingConfig;
 const isD1TestMode = process.env.D1_TEST_MODE === "1";
@@ -23,7 +24,11 @@ const localBindingConfig = {
     ? [
         {
           binding: d1,
-          database_name: "site-creator-d1",
+          // Match wrangler.local.jsonc so db:setup fixtures are visible to
+          // the Vinext test worker instead of creating a second empty D1.
+          database_name: isD1TestMode
+            ? LOCAL_D1_TEST_DATABASE_NAME
+            : "site-creator-d1",
           database_id: SITE_CREATOR_PLACEHOLDER_DATABASE_ID,
         },
       ]
@@ -55,7 +60,8 @@ export default defineConfig(async () => {
       cloudflare({
         viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
         config: localBindingConfig,
-        persistState: isD1TestMode ? false : undefined,
+        // E2E setup uses the same project-local D1 state as Wrangler.
+        persistState: isD1TestMode ? { path: ".wrangler/state" } : undefined,
       }),
     ],
   };
