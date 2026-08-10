@@ -7,9 +7,11 @@
 export type MobileBottomNavItem = {
   href: string;
   label: string;
-  icon: string;
+  icon: MobileNavIcon;
   activeHrefs: readonly string[];
 };
+
+export type MobileNavIcon = "home" | "book-open" | "file-question" | "briefcase" | "graduation-cap";
 
 export const publicNavItems: NavItem[] = [
   { href: '/courses', label: '과정' },
@@ -37,31 +39,31 @@ export const mobileBottomNavItems = [
   {
     href: '/dashboard',
     label: '홈',
-    icon: 'H',
+    icon: 'home',
     activeHrefs: ['/dashboard'],
   },
   {
     href: '/my-courses',
     label: '학습',
-    icon: 'L',
+    icon: 'book-open',
     activeHrefs: ['/my-courses', '/learn', '/courses'],
   },
   {
     href: '/practice',
     label: '문제',
-    icon: 'Q',
+    icon: 'file-question',
     activeHrefs: ['/practice', '/questions'],
   },
   {
     href: '/practical',
     label: '실무',
-    icon: 'P',
+    icon: 'briefcase',
     activeHrefs: ['/practical'],
   },
   {
     href: '/my-learning',
     label: '내 학습',
-    icon: 'M',
+    icon: 'graduation-cap',
     activeHrefs: ['/my-learning', '/reviews', '/analytics', '/bookmarks', '/wrong-notes'],
   },
 ] as const;

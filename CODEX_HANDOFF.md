@@ -736,3 +736,9 @@
 - Existing Vercel project `securium` deployed the change successfully as `dpl_39o4npFKCtXZPhxDqtDg7VDpTnct` with `Ready` status.
 - `https://securium.vercel.app/`, `/api/health`, and `/api/auth/session` returned HTTP 200 after deployment.
 - OpenAI Sites was not used. No backend, DB, auth, API, or production environment configuration was changed.
+## BATCH 148 (Bottom navigation icon placeholder fix)
+- Root cause: `lib/ui-nav.ts` stored bottom navigation icons as literal strings `H`, `L`, `Q`, `P`, `M`, and `HeaderControls` rendered them directly inside a text `<span>`.
+- No existing icon package was installed or used by the repository; no new dependency was added.
+- Replaced placeholder values with semantic icon names and added a reusable `components/navigation-icon.tsx` inline SVG set: home, book-open, file-question, briefcase, and graduation-cap.
+- Preserved the existing routes, labels, active route mapping, mobile breakpoint, safe-area padding, touch target, and desktop duplicate-navigation fix.
+- Validation: unit 312/312, lint, typecheck, production build (63 routes), and `git diff --check` passed.

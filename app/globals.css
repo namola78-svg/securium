@@ -540,6 +540,12 @@ a {
     line-height: 1;
   }
 
+  .mobile-bottom-nav svg {
+    display: block;
+    width: 20px;
+    height: 20px;
+  }
+
   .mobile-bottom-nav strong {
     overflow: hidden;
     max-width: 100%;

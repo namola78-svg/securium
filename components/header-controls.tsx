@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { ActionButton } from "@/components/design-system-primitives";
+import { NavigationIcon } from "@/components/navigation-icon";
 import { authRedirectHref, safeAuthReturnPath } from "@/lib/auth-routing";
 
 
@@ -485,7 +486,7 @@ export function HeaderControls({ user }: HeaderControlsProps) {
                 key={item.label}
                 title={active ? `현재 위치: ${item.label}` : item.label}
               >
-                <span aria-hidden="true">{item.icon}</span>
+                <span aria-hidden="true"><NavigationIcon name={item.icon} /></span>
                 <strong>{item.label}</strong>
               </Link>
             );
