@@ -526,6 +526,7 @@ async function ensureCourseLessonSeed() {
 async function ensureEnrollment(email, courseId) {
   const response = await fetch(`${baseUrl}/api/enrollments`, {
     method: "POST",
+    redirect: "manual",
     headers: {
       "content-type": "application/json",
       origin: baseUrl,
@@ -535,12 +536,14 @@ async function ensureEnrollment(email, courseId) {
       courseId,
     }),
   });
+  if (response.status === 303) {
+    const location = response.headers.get("location");
+    assert.equal(new URL(location ?? "", baseUrl).pathname, "/dashboard");
+    return;
+  }
   const payload = await readJsonResponse(response);
-  assert.ok(
-    response.status === 201 ||
-      (response.status === 409 && payload.code === "DUPLICATE_ENROLLMENT"),
-    JSON.stringify(payload),
-  );
+  assert.equal(response.status, 409, JSON.stringify(payload));
+  assert.equal(payload.code, "DUPLICATE_ENROLLMENT");
 }
 
 function runCommand(executable, args) {
