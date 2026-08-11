@@ -510,6 +510,7 @@ async function ensureNetworkQuestionSeed() {
 
 async function ensureCourseLessonSeed() {
   if (courseLessonSeedApplied) return;
+  await ensureSecurityCertificationCurriculumSeed();
   const result = await runCommand(process.execPath, [
     "scripts/apply-security-certification-course-lessons-seed.mjs",
     "d1-local",
@@ -532,7 +533,6 @@ async function ensureEnrollment(email, courseId) {
     },
     body: JSON.stringify({
       courseId,
-      returnTo: "/my-courses",
     }),
   });
   const payload = await readJsonResponse(response);
