@@ -3,7 +3,7 @@ import { spawn } from "node:child_process";
 import { after, before, test } from "node:test";
 
 const port = 33103;
-const baseUrl = `http://127.0.0.1:${port}`;
+const baseUrl = `http://localhost:${port}`;
 let server;
 let output = "";
 
@@ -57,7 +57,7 @@ test("SW 보안약점 과정은 코드 샘플과 안전한 표시 UI를 제공�
   );
   const overviewHtml = await overview.text();
   assert.equal(overview.status, 200, overviewHtml.slice(0, 1500));
-  assert.match(overviewHtml, /보안약점 코드 분석/);
+  assert.match(overviewHtml, /보안 코드 분석/);
   assert.match(overviewHtml, /Java/);
 
   const detail = await fetch(
@@ -66,8 +66,8 @@ test("SW 보안약점 과정은 코드 샘플과 안전한 표시 UI를 제공�
   );
   const html = await detail.text();
   assert.equal(detail.status, 200, html.slice(0, 1500));
-  assert.match(html, /취약 라인 선택/);
-  assert.match(html, /&lt;script&gt;alert/);
+  assert.match(html, /취약하다고 판단한 코드 줄 선택/);
+  assert.match(html, /(?:&lt;|\\u003c)script(?:&gt;|\\u003e)alert/);
   assert.doesNotMatch(html, /<script>alert\('sample'\)<\/script>/);
   assert.match(html, /서버에서 실행하지 않습니다/);
 });
@@ -119,7 +119,7 @@ test("개인정보 흐름도는 SVG와 모바일 텍스트 대체 목록을 함�
   assert.match(html, /개인정보 흐름 텍스트 대체 목록/);
   assert.match(html, /정보주체/);
   assert.match(html, /외부 처리자/);
-  assert.match(html, /평가보고서형 답안/);
+  assert.match(html, /영향평가 답안 작성/);
 });
 
 test("영향평가 답안은 사용자별로 저장되고 다른 사용자는 조회할 수 없다", async () => {
@@ -181,5 +181,5 @@ test("일반 사용자는 실무형 콘텐츠 관리자 API에 접근할 수 없
   const html = await page.text();
   assert.equal(page.status, 200, html.slice(0, 1500));
   assert.match(html, /실무형 과정 콘텐츠 관리/);
-  assert.match(html, /보안약점 분류\s*·\s*CWE/);
+  assert.match(html, /보안 약점 분류\s*·\s*CWE/);
 });

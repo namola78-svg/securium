@@ -19,6 +19,7 @@ env:
   CI: "true"
   APP_ENV: development
   DEV_AUTH_EMAIL: dev-super-admin@example.invalid
+  NODE_OPTIONS: "--experimental-strip-types"
   STORAGE_PROVIDER: local
 
 jobs:

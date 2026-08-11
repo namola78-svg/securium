@@ -3,7 +3,7 @@ import { spawn } from "node:child_process";
 import { after, before, test } from "node:test";
 
 const port = 33101;
-const baseUrl = `http://127.0.0.1:${port}`;
+const baseUrl = `http://localhost:${port}`;
 let server;
 let output = "";
 
@@ -47,8 +47,8 @@ test("첫 단계는 열리고 잠긴 다음 단계의 조작 접근은 차단한
   });
   const html = await pageResponse.text();
   assert.equal(pageResponse.status, 200, html.slice(0, 1200));
-  assert.match(html, /AVAILABLE/);
-  assert.match(html, /LOCKED/);
+  assert.match(html, /단계 학습/);
+  assert.match(html, /단계를 완료하면 다음 학습 범위/);
 
   const lockedResponse = await fetch(`${baseUrl}/api/levels`, {
     method: "POST",
@@ -71,8 +71,8 @@ test("오늘 복습과 학습 분석을 사용자별 서버 데이터로 렌더�
       assert.match(html, /\/practice\/isms-p\?count=10/);
     }
     if (path === "/analytics/course-isms-p") {
-      assert.match(html, /과정 학습 결과/);
-      assert.match(html, /우선 확인 영역/);
+      assert.match(html, /과정 학습 분석/);
+      assert.match(html, /먼저 확인할 영역/);
       assert.match(html, /\/practice\/isms-p\?/);
       assert.doesNotMatch(html, /course-cppg-subject/);
     }

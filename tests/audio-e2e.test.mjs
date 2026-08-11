@@ -3,7 +3,7 @@ import { spawn } from "node:child_process";
 import { after, before, test } from "node:test";
 
 const port = 33124;
-const baseUrl = `http://127.0.0.1:${port}`;
+const baseUrl = `http://localhost:${port}`;
 const user1 = {
   "content-type": "application/json",
   origin: baseUrl,
@@ -105,7 +105,7 @@ test("오디오 재생 위치를 저장하고 레슨에서 이어 듣기를 표�
   assert.equal(page.status, 200);
   assert.match(html, /오디오 학습/);
   assert.match(html, /브라우저 제공 음성/);
-  assert.match(html, /이어 듣기/);
+  assert.match(html, /이어서 듣기/);
   assert.doesNotMatch(html, /실제 강사 음성입니다/);
 });
 

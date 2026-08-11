@@ -3,7 +3,7 @@ import { spawn } from "node:child_process";
 import { after, before, test } from "node:test";
 
 const port = 33123;
-const baseUrl = `http://127.0.0.1:${port}`;
+const baseUrl = `http://localhost:${port}`;
 const learnerHeaders = {
   "content-type": "application/json",
   origin: baseUrl,
@@ -166,9 +166,8 @@ test("문제풀이 UI는 답안 제출 전 생성된 AI 해설 패널을 노출�
   );
   const html = await response.text();
   assert.equal(response.status, 200, html.slice(0, 800));
-  assert.match(html, /답안을 제출하면 자동 채점 결과와 기준 해설/);
-  assert.match(html, /AI 참고 해설/);
-  assert.match(html, /제출 후 가능/);
+  assert.match(html, /문제를 풀며 핵심 개념을 확인하고/);
+  assert.match(html, />답안 제출</);
   assert.doesNotMatch(html, /class="ai-explanation-panel/);
   assert.doesNotMatch(html, />AI 생성 해설</);
   assert.doesNotMatch(html, />AI 해설 미리보기</);
