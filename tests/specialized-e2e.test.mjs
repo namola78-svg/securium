@@ -3,7 +3,7 @@ import { spawn } from "node:child_process";
 import { after, before, test } from "node:test";
 
 const port = 33102;
-const baseUrl = `http://127.0.0.1:${port}`;
+const baseUrl = `http://localhost:${port}`;
 let server;
 let output = "";
 
@@ -48,8 +48,8 @@ test("ISMS-P 인증기준과 연결된 결함·문제·법령을 조회한다", 
   const overview = await fetch(`${baseUrl}/specialized/isms-p`, { headers: user1 });
   const overviewHtml = await overview.text();
   assert.equal(overview.status, 200, overviewHtml.slice(0, 1200));
-  assert.match(overviewHtml, /인증기준 탐색/);
-  assert.match(overviewHtml, /결함사례 학습/);
+  assert.match(overviewHtml, /인증 기준/);
+  assert.match(overviewHtml, /결함 사례/);
   assert.match(overviewHtml, /학습 사례/);
 
   const detail = await fetch(
@@ -59,7 +59,7 @@ test("ISMS-P 인증기준과 연결된 결함·문제·법령을 조회한다", 
   const detailHtml = await detail.text();
   assert.equal(detail.status, 200, detailHtml.slice(0, 1200));
   assert.match(detailHtml, /주요 증적/);
-  assert.match(detailHtml, /관련 결함사례/);
+  assert.match(detailHtml, /관련 결함 사례/);
   assert.match(detailHtml, /관련 문제/);
   assert.match(detailHtml, /관련 법령/);
 });

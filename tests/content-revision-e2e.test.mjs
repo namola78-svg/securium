@@ -3,7 +3,7 @@ import { spawn } from "node:child_process";
 import { after, before, test } from "node:test";
 
 const port = 33122;
-const baseUrl = `http://127.0.0.1:${port}`;
+const baseUrl = `http://localhost:${port}`;
 const lessonId = "course-isms-p-subject-foundation-topic-core-lesson-01";
 const user = {
   "content-type": "application/json",
@@ -107,7 +107,7 @@ test("버전 게시 시 이전 버전을 superseded 처리하고 최신 단일�
   });
   const latestHtml = await latestPage.text();
   assert.equal(latestPage.status, 200, latestHtml.slice(0, 1000));
-  assert.match(latestHtml, /최신 확인 버전/);
+  assert.match(latestHtml, /최신 검수 버전/);
 
   const successor = await post(admin, {
     operation: "CREATE_DRAFT",
@@ -134,7 +134,7 @@ test("버전 게시 시 이전 버전을 superseded 처리하고 최신 단일�
   });
   const oldHtml = await oldPage.text();
   assert.equal(oldPage.status, 200, oldHtml.slice(0, 1000));
-  assert.match(oldHtml, /구버전/);
+  assert.match(oldHtml, /이 화면은 이전 버전입니다/);
 
   const secondPublish = await post(admin, {
     operation: "PUBLISH",
