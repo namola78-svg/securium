@@ -1,0 +1,391 @@
+{
+  "generatedAt": "2026-08-11T05:09:59.039Z",
+  "sourceRoot": "C:\\Users\\user\\Documents\\Codex\\2026-07-24\\1-2-3-4-5-6\\securium-content-upgrade-v2",
+  "policy": "READ_ONLY_HASH_REVALIDATION",
+  "summary": {
+    "total": 63,
+    "unchanged": 63,
+    "mismatched": 0,
+    "readFailed": 0
+  },
+  "files": [
+    {
+      "source_file": "2022 2회차 산업기사 필기.pdf",
+      "expected_sha256": "9f2635a355c98e62862d110d4519d2dfdd61c5b721635f8ef6231a1f70fbdfa9",
+      "actual_sha256": "9f2635a355c98e62862d110d4519d2dfdd61c5b721635f8ef6231a1f70fbdfa9",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "2022 4회차 보안기사 필기.pdf",
+      "expected_sha256": "ece91484f047349ae43aa265233037485d2872c05c61ea861d4aa4a3318a195f",
+      "actual_sha256": "ece91484f047349ae43aa265233037485d2872c05c61ea861d4aa4a3318a195f",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "2026 정보보안기사 올인원_구매인증 이벤트 자료.pdf",
+      "expected_sha256": "a84e3032dbe2528695c3d8e17426b36865ab1c0f8682b40e6cbe279b8de2f892",
+      "actual_sha256": "a84e3032dbe2528695c3d8e17426b36865ab1c0f8682b40e6cbe279b8de2f892",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사 실기 기출.txt",
+      "expected_sha256": "0eefba68272c1c6a8cc1dfcd4491d87d0360178d51e1babba190464b95c04a87",
+      "actual_sha256": "0eefba68272c1c6a8cc1dfcd4491d87d0360178d51e1babba190464b95c04a87",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사 필기-2023년도 제4회_2023.10.07_babayetu.tistory.com.pdf",
+      "expected_sha256": "3c5bb345ff126de012f87cc400c0d401e2d81f8ef225e32cc6642995f04d7adc",
+      "actual_sha256": "3c5bb345ff126de012f87cc400c0d401e2d81f8ef225e32cc6642995f04d7adc",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사_01회_필기_기출문제.pdf",
+      "expected_sha256": "66f6197d4025264502b161a065ec9c9162006ab1b93d1d2d1c7dad401cb2daf1",
+      "actual_sha256": "66f6197d4025264502b161a065ec9c9162006ab1b93d1d2d1c7dad401cb2daf1",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사_02회_필기_기출문제.pdf",
+      "expected_sha256": "5cafbd8ee58ebb77d72e729c0ca2b24789fd9ed765aa3bdd06a9bcc9bb5c995f",
+      "actual_sha256": "5cafbd8ee58ebb77d72e729c0ca2b24789fd9ed765aa3bdd06a9bcc9bb5c995f",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사_03회_필기_기출문제.pdf",
+      "expected_sha256": "9579847a62bd7170c26d921919f3f8828f19515ee183e8031939bd3a71d654d9",
+      "actual_sha256": "9579847a62bd7170c26d921919f3f8828f19515ee183e8031939bd3a71d654d9",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사_04회_필기_기출문제.pdf",
+      "expected_sha256": "f3863abd6d96f10088b2f7153eb98cc348483662a95a177b8ea4cb706d094b8e",
+      "actual_sha256": "f3863abd6d96f10088b2f7153eb98cc348483662a95a177b8ea4cb706d094b8e",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사_05회_필기_기출문제.pdf",
+      "expected_sha256": "28a11e7a59859dc19087c6e6d61cf5502b7a425361d31318137e9319363ee683",
+      "actual_sha256": "28a11e7a59859dc19087c6e6d61cf5502b7a425361d31318137e9319363ee683",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사_06회_필기_기출문제.pdf",
+      "expected_sha256": "d70f6473ba612db7641e898d4ce08054c1bc173ac36e165c5b49cd8c98915f28",
+      "actual_sha256": "d70f6473ba612db7641e898d4ce08054c1bc173ac36e165c5b49cd8c98915f28",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사_07회_필기_기출문제.pdf",
+      "expected_sha256": "e3f77c462d8dfb7f5a5c4b8e8aaa895a3fcfe44e976f71a92d763e6dec588e09",
+      "actual_sha256": "e3f77c462d8dfb7f5a5c4b8e8aaa895a3fcfe44e976f71a92d763e6dec588e09",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사_08회_필기_기출문제.pdf",
+      "expected_sha256": "e0b698f8ed5e71cc5f0f348a6bfa75160a59482954981d829153bbfd7654745f",
+      "actual_sha256": "e0b698f8ed5e71cc5f0f348a6bfa75160a59482954981d829153bbfd7654745f",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사_09회_필기_기출문제.pdf",
+      "expected_sha256": "0fb89ac189746a11b3d44543f122bd2993a101e6c81dcfada7bc4f26656eff7a",
+      "actual_sha256": "0fb89ac189746a11b3d44543f122bd2993a101e6c81dcfada7bc4f26656eff7a",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사_10회_필기_기출문제.pdf",
+      "expected_sha256": "34cd3bf1d68fd05182a73b94013a31d1040c6780dc55206757c1adce94eb283b",
+      "actual_sha256": "34cd3bf1d68fd05182a73b94013a31d1040c6780dc55206757c1adce94eb283b",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사_11회_필기_기출문제.pdf",
+      "expected_sha256": "54eaed521c07f71061c471fd4a88e3598abb104e2188f8b5d1321eb0669bb865",
+      "actual_sha256": "54eaed521c07f71061c471fd4a88e3598abb104e2188f8b5d1321eb0669bb865",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사_12회_필기_기출문제.pdf",
+      "expected_sha256": "4655fdd28cabc59cd098052262b3a0bec50601cc4a63a27daa5b26ebfe057b84",
+      "actual_sha256": "4655fdd28cabc59cd098052262b3a0bec50601cc4a63a27daa5b26ebfe057b84",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사_14회_필기_기출문제.pdf",
+      "expected_sha256": "3208624fbf2874f1b2bcb71a80af80fb09eb3572b8c50107f50d75e1b6f08aa9",
+      "actual_sha256": "3208624fbf2874f1b2bcb71a80af80fb09eb3572b8c50107f50d75e1b6f08aa9",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사20130706(교사용).pdf",
+      "expected_sha256": "127faf9ef41361c386305e3bd4233ec62732d688c75c8b87fdde822262773323",
+      "actual_sha256": "127faf9ef41361c386305e3bd4233ec62732d688c75c8b87fdde822262773323",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사20131026(교사용).pdf",
+      "expected_sha256": "392be668914140d96b5cb4867d0b6f53f3c38c87442f2c05338298e26fe061fb",
+      "actual_sha256": "392be668914140d96b5cb4867d0b6f53f3c38c87442f2c05338298e26fe061fb",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사20140405(교사용).pdf",
+      "expected_sha256": "4124620e4fe690b58342412b60a87378b4032890e4f991c0f4c9c4ff0d50d0f7",
+      "actual_sha256": "4124620e4fe690b58342412b60a87378b4032890e4f991c0f4c9c4ff0d50d0f7",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사20140927(교사용).pdf",
+      "expected_sha256": "5ac83a19ef1c04add166a8d89e48323dfcecf08da317c54889f413f799b4ce57",
+      "actual_sha256": "5ac83a19ef1c04add166a8d89e48323dfcecf08da317c54889f413f799b4ce57",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사20150328(교사용).pdf",
+      "expected_sha256": "ea08609917788ddab47e5dd3b0bc3712719c3322690311e39f8127db8ef4f6da",
+      "actual_sha256": "ea08609917788ddab47e5dd3b0bc3712719c3322690311e39f8127db8ef4f6da",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사20150919(교사용).pdf",
+      "expected_sha256": "3c53c2c6310e422a2cf804b252624c8d036112a62261be94679b71202ae45c7b",
+      "actual_sha256": "3c53c2c6310e422a2cf804b252624c8d036112a62261be94679b71202ae45c7b",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사20160402(교사용).pdf",
+      "expected_sha256": "7b5e745139a1c60411ef8272ba8235caf6467fee8f44f40e1d17721a4619313e",
+      "actual_sha256": "7b5e745139a1c60411ef8272ba8235caf6467fee8f44f40e1d17721a4619313e",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사20160924(교사용).pdf",
+      "expected_sha256": "787d544e0166bd6ce69ddef3bcfde3f51f6f6d0cb8f33e7c2047b0e1e22c237c",
+      "actual_sha256": "787d544e0166bd6ce69ddef3bcfde3f51f6f6d0cb8f33e7c2047b0e1e22c237c",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사20170325(교사용).pdf",
+      "expected_sha256": "ca934d2e8f35dc7b9f7881f7373450653409220e284af6b5429f398af379ba18",
+      "actual_sha256": "ca934d2e8f35dc7b9f7881f7373450653409220e284af6b5429f398af379ba18",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사20170909(교사용).pdf",
+      "expected_sha256": "e44513ef41146a409a479dbf36973f8d00920d94b972cd3e399f2664b6cc27ab",
+      "actual_sha256": "e44513ef41146a409a479dbf36973f8d00920d94b972cd3e399f2664b6cc27ab",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사20180331(교사용).pdf",
+      "expected_sha256": "2d6fbbb5ed356b1a48929b513ef3cfda5ad6a5723c65a658539591ae8bdfbf81",
+      "actual_sha256": "2d6fbbb5ed356b1a48929b513ef3cfda5ad6a5723c65a658539591ae8bdfbf81",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사20180908(교사용).pdf",
+      "expected_sha256": "92701aec8b21509c4726e71cc8b0614e6616db04b4d174f7948af2c7764b6525",
+      "actual_sha256": "92701aec8b21509c4726e71cc8b0614e6616db04b4d174f7948af2c7764b6525",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사20190323(교사용).pdf",
+      "expected_sha256": "311d00d3d10b8cfc52aa1e0c30b28e715bf2fcc684c94a33245cc260081159e9",
+      "actual_sha256": "311d00d3d10b8cfc52aa1e0c30b28e715bf2fcc684c94a33245cc260081159e9",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사20190907(교사용).pdf",
+      "expected_sha256": "c08ec924f0d50b32170e96321960dd731fb9855238bde0335209548630ebc74a",
+      "actual_sha256": "c08ec924f0d50b32170e96321960dd731fb9855238bde0335209548630ebc74a",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사20200530(교사용).pdf",
+      "expected_sha256": "b557f37f9e1af7e3fd13ec06f3157227edef885543c9dda26cce5186ffa8e5df",
+      "actual_sha256": "b557f37f9e1af7e3fd13ec06f3157227edef885543c9dda26cce5186ffa8e5df",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사20200905(교사용).pdf",
+      "expected_sha256": "e73a69db273c05f084784755007b920d30407a13d8dc28f4143786c6cb9aa062",
+      "actual_sha256": "e73a69db273c05f084784755007b920d30407a13d8dc28f4143786c6cb9aa062",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사20210327(교사용).pdf",
+      "expected_sha256": "3fe3976c7fffcee90bd72696a6d1138de6f4249b6e6315be7c6af89feadbe5ed",
+      "actual_sha256": "3fe3976c7fffcee90bd72696a6d1138de6f4249b6e6315be7c6af89feadbe5ed",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사20210904(교사용).pdf",
+      "expected_sha256": "c2d7b05d61c491ea4f56c333aa43bab00ce45abf1c732d1ced06bf16d7c92025",
+      "actual_sha256": "c2d7b05d61c491ea4f56c333aa43bab00ce45abf1c732d1ced06bf16d7c92025",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사20220313(교사용).pdf",
+      "expected_sha256": "36950b87d03f3fe1bf4879a49c5aa7cb03157addf51a3226e6d05f6f4a17e025",
+      "actual_sha256": "36950b87d03f3fe1bf4879a49c5aa7cb03157addf51a3226e6d05f6f4a17e025",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사20220625(교사용).pdf",
+      "expected_sha256": "b7eb3be55691cf9518a3201ce21e8948a1f9879e6761eeaf632ab34205d30d49",
+      "actual_sha256": "b7eb3be55691cf9518a3201ce21e8948a1f9879e6761eeaf632ab34205d30d49",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "정보보안기사20230311(교사용).pdf",
+      "expected_sha256": "f5c2b1c4a565a39bb35332f048018aa5e94480ad1efb0b19ef45078ff34a9bad",
+      "actual_sha256": "f5c2b1c4a565a39bb35332f048018aa5e94480ad1efb0b19ef45078ff34a9bad",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "CODEX_TASK.md",
+      "expected_sha256": "65ca5357d645eafa7d30901a6cbd949e36799e0ee1ce11dd510c9eebde2edd43",
+      "actual_sha256": "65ca5357d645eafa7d30901a6cbd949e36799e0ee1ce11dd510c9eebde2edd43",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "content-policy.ts",
+      "expected_sha256": "705ee01d7210bca0c6707f919ae2d2b8b6a177579b67fe3e946f36d460e55ee3",
+      "actual_sha256": "705ee01d7210bca0c6707f919ae2d2b8b6a177579b67fe3e946f36d460e55ee3",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "content.schema.json",
+      "expected_sha256": "29e14296e45d1522571ad0a5796a3d60ce1a05373bf00698c46d431f6bdc1117",
+      "actual_sha256": "29e14296e45d1522571ad0a5796a3d60ce1a05373bf00698c46d431f6bdc1117",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "data/canonical-concepts.json",
+      "expected_sha256": "7e7dcd96a026072e5b2bb610bfd5988b6fe64732db1d8b5817545ef25ac5b275",
+      "actual_sha256": "7e7dcd96a026072e5b2bb610bfd5988b6fe64732db1d8b5817545ef25ac5b275",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "data/final-audit.json",
+      "expected_sha256": "744f084f0ad74cdd8869c43fc0572e85d73daf4c62ea48d4f4c02f8939362b98",
+      "actual_sha256": "744f084f0ad74cdd8869c43fc0572e85d73daf4c62ea48d4f4c02f8939362b98",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "data/normalized-kb-import-plan.json",
+      "expected_sha256": "6d280574b37354cb18aa57a380d3d82c7a023734e8396b514d1b0ba32760b7cf",
+      "actual_sha256": "6d280574b37354cb18aa57a380d3d82c7a023734e8396b514d1b0ba32760b7cf",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "data/normalized-knowledge-base.json",
+      "expected_sha256": "5e13bb2fbd7975ab288adee03d5f80baa0ea21de4bc05397581b46b1faa0f8d1",
+      "actual_sha256": "5e13bb2fbd7975ab288adee03d5f80baa0ea21de4bc05397581b46b1faa0f8d1",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "data/practical-seeds.json",
+      "expected_sha256": "245dc3c29e87d7f6f8f78495d31e3fb8cc36e037704e39d83502ec827b61c281",
+      "actual_sha256": "245dc3c29e87d7f6f8f78495d31e3fb8cc36e037704e39d83502ec827b61c281",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "data/provenance-template.json",
+      "expected_sha256": "1f1969f35d21bd45e18171910c9d9f03bd648079b9dcd36c243c157e89c6d592",
+      "actual_sha256": "1f1969f35d21bd45e18171910c9d9f03bd648079b9dcd36c243c157e89c6d592",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "data/source-file-inventory.json",
+      "expected_sha256": "db411081d9afa6f7029ea78fd51144589e809d4d3a1dafc8798dfb89bad6e8e3",
+      "actual_sha256": "db411081d9afa6f7029ea78fd51144589e809d4d3a1dafc8798dfb89bad6e8e3",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "data/source-inventory.json",
+      "expected_sha256": "e6e8a07dcbbd5ce7378b1a8b4015800f2faff92dcd41d2737e6135692ec19dff",
+      "actual_sha256": "e6e8a07dcbbd5ce7378b1a8b4015800f2faff92dcd41d2737e6135692ec19dff",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "data/theory-seeds.json",
+      "expected_sha256": "b96f9632187bfec547cfc8340499a4d987a8ca89696d78c8c1d57bee87eb5cfa",
+      "actual_sha256": "b96f9632187bfec547cfc8340499a4d987a8ca89696d78c8c1d57bee87eb5cfa",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "data/written-seeds.json",
+      "expected_sha256": "3ec96842fe1734eabc46f26c322e3585b702e08e231b6bf63035119da0a9776e",
+      "actual_sha256": "3ec96842fe1734eabc46f26c322e3585b702e08e231b6bf63035119da0a9776e",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "manifest.json",
+      "expected_sha256": "9a3e721c4bace4d5227720bf76945fe9dc411eeb1237a8727ec6d588ee72bd8d",
+      "actual_sha256": "9a3e721c4bace4d5227720bf76945fe9dc411eeb1237a8727ec6d588ee72bd8d",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "README.md",
+      "expected_sha256": "eed6778586787d45ec5a445bb45a681c6371fb6cfde178cbef6f40d3c1a426f4",
+      "actual_sha256": "eed6778586787d45ec5a445bb45a681c6371fb6cfde178cbef6f40d3c1a426f4",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "reports/content-import-report.md",
+      "expected_sha256": "1af43df65c3966b89e679de3349626c430c76c18de5ed8d8b6ed9bbaa9ab176b",
+      "actual_sha256": "1af43df65c3966b89e679de3349626c430c76c18de5ed8d8b6ed9bbaa9ab176b",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "reports/final-content-import-report.md",
+      "expected_sha256": "e30e66e5f8eae26725c8b0831389a7a8e3b8a46d73b9e935d168d8456a238366",
+      "actual_sha256": "e30e66e5f8eae26725c8b0831389a7a8e3b8a46d73b9e935d168d8456a238366",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "reports/source-text-extraction.json",
+      "expected_sha256": "85d5e1a1b2e065171797d60b9428fc7a6afe73e9889c6f01fb19d03f914f77c6",
+      "actual_sha256": "85d5e1a1b2e065171797d60b9428fc7a6afe73e9889c6f01fb19d03f914f77c6",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "scripts/analyze-source-corpus.py",
+      "expected_sha256": "fabb55de1dcfb1fe6b08ae3e3ced4578cbfb26c4019d1868cbdfcd87fdb6987c",
+      "actual_sha256": "fabb55de1dcfb1fe6b08ae3e3ced4578cbfb26c4019d1868cbdfcd87fdb6987c",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "scripts/build-normalized-kb.py",
+      "expected_sha256": "d29f2f701f46b824eda88f611975bebfab51a5e94d477c0ea5154d6a3da2ef28",
+      "actual_sha256": "d29f2f701f46b824eda88f611975bebfab51a5e94d477c0ea5154d6a3da2ef28",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "scripts/finalize-report.py",
+      "expected_sha256": "83f30c460c0daf8448d7e8fd4f3baf0925bef4c44b6c85541198f64ddf360a8a",
+      "actual_sha256": "83f30c460c0daf8448d7e8fd4f3baf0925bef4c44b6c85541198f64ddf360a8a",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "scripts/generate-local-draft-import-sql.py",
+      "expected_sha256": "0117cc60d6b7974ead59d1ac29fa84bfff8a9af9a08f35860975e996b30f955e",
+      "actual_sha256": "0117cc60d6b7974ead59d1ac29fa84bfff8a9af9a08f35860975e996b30f955e",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "scripts/prepare-import-plan.py",
+      "expected_sha256": "054cc654e8e900a663df71301a57f97a5069cba0acc8162c6cdfd37f72900078",
+      "actual_sha256": "054cc654e8e900a663df71301a57f97a5069cba0acc8162c6cdfd37f72900078",
+      "status": "UNCHANGED"
+    },
+    {
+      "source_file": "scripts/validate.py",
+      "expected_sha256": "176b0c729b8267eb93e32a418fa2cdedad7d0bfc565c28e3c2792c5c074e0095",
+      "actual_sha256": "176b0c729b8267eb93e32a418fa2cdedad7d0bfc565c28e3c2792c5c074e0095",
+      "status": "UNCHANGED"
+    }
+  ]
+}

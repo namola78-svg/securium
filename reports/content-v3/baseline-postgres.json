@@ -1,0 +1,9 @@
+{
+  "generatedAt": "2026-08-11T03:36:38.148Z",
+  "database": "POSTGRES_SUPABASE",
+  "status": "UNAVAILABLE_NO_CONNECTION_URL",
+  "counts": null,
+  "synchronizationAttempted": false,
+  "writeAttempted": false,
+  "note": "D1 and PostgreSQL baselines are intentionally independent. Production apply requires explicit approval."
+}

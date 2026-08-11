@@ -1,0 +1,30 @@
+{
+  "generatedAt": "2026-08-11T04:45:43.658Z",
+  "target": "D1_LOCAL",
+  "status": "PASS",
+  "metrics": {
+    "impossible_guard": 0,
+    "contents": 18,
+    "questions": 27,
+    "course_ise_contents": 10,
+    "course_isie_contents": 8,
+    "course_ise_questions": 15,
+    "course_isie_questions": 12,
+    "written": 18,
+    "practical": 9,
+    "course_lessons": 18,
+    "content_links": 27,
+    "question_versions": 27,
+    "ontology_edges": 194,
+    "orphan_questions": 0,
+    "orphan_contents": 0,
+    "course_subject_mismatch": 0,
+    "subject_topic_mismatch": 0,
+    "content_course_mismatch": 0,
+    "broken_concept_relation": 0,
+    "missing_question_provenance": 0,
+    "missing_content_provenance": 0,
+    "invalid_answer": 0,
+    "placeholder_content": 0
+  }
+}

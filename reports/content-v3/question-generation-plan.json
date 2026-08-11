@@ -1,0 +1,540 @@
+{
+  "generatedAt": "2026-08-11T03:36:40.555Z",
+  "derivation": "one focused theory unit per official subject/practical area, plus only uncovered reasoning patterns identified from source and current D1 coverage",
+  "summary": {
+    "plannedTheoryContents": 18,
+    "plannedQuestions": 27,
+    "courseIseTheory": 10,
+    "courseIsieTheory": 8,
+    "courseIseQuestions": 15,
+    "courseIsieQuestions": 12,
+    "reviewQueue": 13
+  },
+  "theory_plan": [
+    {
+      "target_course": "course-ise",
+      "track": "WRITTEN",
+      "subject_code": "SYSTEM_SECURITY",
+      "title": "시스템 권한·감사 증거 기반 판단",
+      "concepts": [
+        "Linux 보안",
+        "Windows 보안",
+        "감사 및 책임추적성"
+      ],
+      "action": "CREATE_COURSE_TRACK_SPECIFIC_CONTENT"
+    },
+    {
+      "target_course": "course-ise",
+      "track": "WRITTEN",
+      "subject_code": "NETWORK_SECURITY",
+      "title": "프로토콜·경계 장비 복합 판단",
+      "concepts": [
+        "TLS",
+        "IDS/IPS",
+        "방화벽 및 WAF"
+      ],
+      "action": "CREATE_COURSE_TRACK_SPECIFIC_CONTENT"
+    },
+    {
+      "target_course": "course-ise",
+      "track": "WRITTEN",
+      "subject_code": "APPLICATION_SECURITY",
+      "title": "웹·API 입력 및 세션 보안 판단",
+      "concepts": [
+        "SQL Injection",
+        "XSS/CSRF",
+        "웹 및 API 보안"
+      ],
+      "action": "CREATE_COURSE_TRACK_SPECIFIC_CONTENT"
+    },
+    {
+      "target_course": "course-ise",
+      "track": "WRITTEN",
+      "subject_code": "SECURITY_FOUNDATION",
+      "title": "암호·인증·접근통제 비교 판단",
+      "concepts": [
+        "암호 알고리즘",
+        "인증",
+        "접근통제"
+      ],
+      "action": "CREATE_COURSE_TRACK_SPECIFIC_CONTENT"
+    },
+    {
+      "target_course": "course-ise",
+      "track": "WRITTEN",
+      "subject_code": "SECURITY_LAW",
+      "title": "위험·거버넌스·사고대응 근거 판단",
+      "concepts": [
+        "위험관리",
+        "정보보호 관리 및 법규",
+        "BCP 및 재해복구"
+      ],
+      "action": "CREATE_COURSE_TRACK_SPECIFIC_CONTENT"
+    },
+    {
+      "target_course": "course-isie",
+      "track": "WRITTEN",
+      "subject_code": "SYSTEM_SECURITY",
+      "title": "기본 계정·권한·로그 점검",
+      "concepts": [
+        "Linux 보안",
+        "Windows 보안"
+      ],
+      "action": "CREATE_COURSE_TRACK_SPECIFIC_CONTENT"
+    },
+    {
+      "target_course": "course-isie",
+      "track": "WRITTEN",
+      "subject_code": "NETWORK_SECURITY",
+      "title": "기본 네트워크 공격과 보안장비 구분",
+      "concepts": [
+        "서비스 거부",
+        "ARP Spoofing",
+        "IDS/IPS"
+      ],
+      "action": "CREATE_COURSE_TRACK_SPECIFIC_CONTENT"
+    },
+    {
+      "target_course": "course-isie",
+      "track": "WRITTEN",
+      "subject_code": "APPLICATION_SECURITY",
+      "title": "기본 서비스·입력값 보안",
+      "concepts": [
+        "DNS",
+        "SQL Injection",
+        "XSS/CSRF"
+      ],
+      "action": "CREATE_COURSE_TRACK_SPECIFIC_CONTENT"
+    },
+    {
+      "target_course": "course-isie",
+      "track": "WRITTEN",
+      "subject_code": "SECURITY_FOUNDATION",
+      "title": "기본 암호·인증·해시 적용",
+      "concepts": [
+        "인증",
+        "해시함수",
+        "디지털서명 및 PKI"
+      ],
+      "action": "CREATE_COURSE_TRACK_SPECIFIC_CONTENT"
+    },
+    {
+      "target_course": "course-ise",
+      "track": "PRACTICAL",
+      "curriculum_node_suffix": "02-01-01",
+      "title": "복합 시스템·네트워크 보안특성 분석",
+      "concepts": [
+        "네트워크 구조와 OSI",
+        "가상화 및 클라우드 보안"
+      ],
+      "action": "CREATE_COURSE_TRACK_SPECIFIC_CONTENT"
+    },
+    {
+      "target_course": "course-ise",
+      "track": "PRACTICAL",
+      "curriculum_node_suffix": "02-01-02",
+      "title": "취약 코드·설정 진단과 보완",
+      "concepts": [
+        "취약점 관리",
+        "SQL Injection",
+        "명령어 및 코드 인젝션"
+      ],
+      "action": "CREATE_COURSE_TRACK_SPECIFIC_CONTENT"
+    },
+    {
+      "target_course": "course-ise",
+      "track": "PRACTICAL",
+      "curriculum_node_suffix": "02-01-03",
+      "title": "로그 타임라인·침해사고 대응",
+      "concepts": [
+        "로그 분석 및 침해 대응",
+        "디지털 포렌식"
+      ],
+      "action": "CREATE_COURSE_TRACK_SPECIFIC_CONTENT"
+    },
+    {
+      "target_course": "course-ise",
+      "track": "PRACTICAL",
+      "curriculum_node_suffix": "02-01-04",
+      "title": "위험평가와 보호대책 이행계획",
+      "concepts": [
+        "위험관리",
+        "감사 및 책임추적성"
+      ],
+      "action": "CREATE_COURSE_TRACK_SPECIFIC_CONTENT"
+    },
+    {
+      "target_course": "course-ise",
+      "track": "PRACTICAL",
+      "curriculum_node_suffix": "02-01-05",
+      "title": "최신 위협의 운영 영향 평가",
+      "concepts": [
+        "EDR",
+        "악성코드 및 랜섬웨어"
+      ],
+      "action": "CREATE_COURSE_TRACK_SPECIFIC_CONTENT"
+    },
+    {
+      "target_course": "course-isie",
+      "track": "PRACTICAL",
+      "curriculum_node_suffix": "02-01-01",
+      "title": "기본 시스템·프로토콜 보안특성 확인",
+      "concepts": [
+        "Linux 보안",
+        "TLS",
+        "DNS"
+      ],
+      "action": "CREATE_COURSE_TRACK_SPECIFIC_CONTENT"
+    },
+    {
+      "target_course": "course-isie",
+      "track": "PRACTICAL",
+      "curriculum_node_suffix": "02-01-02",
+      "title": "기본 보안설정 점검과 보완",
+      "concepts": [
+        "취약점 관리",
+        "방화벽 및 WAF"
+      ],
+      "action": "CREATE_COURSE_TRACK_SPECIFIC_CONTENT"
+    },
+    {
+      "target_course": "course-isie",
+      "track": "PRACTICAL",
+      "curriculum_node_suffix": "02-01-03",
+      "title": "기본 로그 판별과 초동 대응",
+      "concepts": [
+        "로그 분석 및 침해 대응",
+        "IDS/IPS"
+      ],
+      "action": "CREATE_COURSE_TRACK_SPECIFIC_CONTENT"
+    },
+    {
+      "target_course": "course-isie",
+      "track": "PRACTICAL",
+      "curriculum_node_suffix": "02-01-04",
+      "title": "최신 보안 동향의 기본 적용",
+      "concepts": [
+        "EDR",
+        "이메일 인증"
+      ],
+      "action": "CREATE_COURSE_TRACK_SPECIFIC_CONTENT"
+    }
+  ],
+  "question_plan": [
+    {
+      "target_course": "course-ise",
+      "track": "WRITTEN",
+      "subject_code": "SYSTEM_SECURITY",
+      "pattern": "CONCEPT_COMPARISON",
+      "difficulty": "HARD",
+      "concepts": [
+        "Linux 보안",
+        "Windows 보안",
+        "감사 및 책임추적성"
+      ]
+    },
+    {
+      "target_course": "course-ise",
+      "track": "WRITTEN",
+      "subject_code": "SYSTEM_SECURITY",
+      "pattern": "SCENARIO_DECISION",
+      "difficulty": "HARD",
+      "concepts": [
+        "Linux 보안",
+        "Windows 보안",
+        "감사 및 책임추적성"
+      ]
+    },
+    {
+      "target_course": "course-ise",
+      "track": "WRITTEN",
+      "subject_code": "NETWORK_SECURITY",
+      "pattern": "CONCEPT_COMPARISON",
+      "difficulty": "HARD",
+      "concepts": [
+        "TLS",
+        "IDS/IPS",
+        "방화벽 및 WAF"
+      ]
+    },
+    {
+      "target_course": "course-ise",
+      "track": "WRITTEN",
+      "subject_code": "NETWORK_SECURITY",
+      "pattern": "SCENARIO_DECISION",
+      "difficulty": "HARD",
+      "concepts": [
+        "TLS",
+        "IDS/IPS",
+        "방화벽 및 WAF"
+      ]
+    },
+    {
+      "target_course": "course-ise",
+      "track": "WRITTEN",
+      "subject_code": "APPLICATION_SECURITY",
+      "pattern": "CONCEPT_COMPARISON",
+      "difficulty": "HARD",
+      "concepts": [
+        "SQL Injection",
+        "XSS/CSRF",
+        "웹 및 API 보안"
+      ]
+    },
+    {
+      "target_course": "course-ise",
+      "track": "WRITTEN",
+      "subject_code": "APPLICATION_SECURITY",
+      "pattern": "SCENARIO_DECISION",
+      "difficulty": "HARD",
+      "concepts": [
+        "SQL Injection",
+        "XSS/CSRF",
+        "웹 및 API 보안"
+      ]
+    },
+    {
+      "target_course": "course-ise",
+      "track": "WRITTEN",
+      "subject_code": "SECURITY_FOUNDATION",
+      "pattern": "CONCEPT_COMPARISON",
+      "difficulty": "HARD",
+      "concepts": [
+        "암호 알고리즘",
+        "인증",
+        "접근통제"
+      ]
+    },
+    {
+      "target_course": "course-ise",
+      "track": "WRITTEN",
+      "subject_code": "SECURITY_FOUNDATION",
+      "pattern": "SCENARIO_DECISION",
+      "difficulty": "HARD",
+      "concepts": [
+        "암호 알고리즘",
+        "인증",
+        "접근통제"
+      ]
+    },
+    {
+      "target_course": "course-ise",
+      "track": "WRITTEN",
+      "subject_code": "SECURITY_LAW",
+      "pattern": "CONCEPT_COMPARISON",
+      "difficulty": "HARD",
+      "concepts": [
+        "위험관리",
+        "정보보호 관리 및 법규",
+        "BCP 및 재해복구"
+      ]
+    },
+    {
+      "target_course": "course-ise",
+      "track": "WRITTEN",
+      "subject_code": "SECURITY_LAW",
+      "pattern": "SCENARIO_DECISION",
+      "difficulty": "HARD",
+      "concepts": [
+        "위험관리",
+        "정보보호 관리 및 법규",
+        "BCP 및 재해복구"
+      ]
+    },
+    {
+      "target_course": "course-isie",
+      "track": "WRITTEN",
+      "subject_code": "SYSTEM_SECURITY",
+      "pattern": "CONCEPT_COMPARISON",
+      "difficulty": "MEDIUM",
+      "concepts": [
+        "Linux 보안",
+        "Windows 보안"
+      ]
+    },
+    {
+      "target_course": "course-isie",
+      "track": "WRITTEN",
+      "subject_code": "SYSTEM_SECURITY",
+      "pattern": "SCENARIO_DECISION",
+      "difficulty": "MEDIUM",
+      "concepts": [
+        "Linux 보안",
+        "Windows 보안"
+      ]
+    },
+    {
+      "target_course": "course-isie",
+      "track": "WRITTEN",
+      "subject_code": "NETWORK_SECURITY",
+      "pattern": "CONCEPT_COMPARISON",
+      "difficulty": "MEDIUM",
+      "concepts": [
+        "서비스 거부",
+        "ARP Spoofing",
+        "IDS/IPS"
+      ]
+    },
+    {
+      "target_course": "course-isie",
+      "track": "WRITTEN",
+      "subject_code": "NETWORK_SECURITY",
+      "pattern": "SCENARIO_DECISION",
+      "difficulty": "MEDIUM",
+      "concepts": [
+        "서비스 거부",
+        "ARP Spoofing",
+        "IDS/IPS"
+      ]
+    },
+    {
+      "target_course": "course-isie",
+      "track": "WRITTEN",
+      "subject_code": "APPLICATION_SECURITY",
+      "pattern": "CONCEPT_COMPARISON",
+      "difficulty": "MEDIUM",
+      "concepts": [
+        "DNS",
+        "SQL Injection",
+        "XSS/CSRF"
+      ]
+    },
+    {
+      "target_course": "course-isie",
+      "track": "WRITTEN",
+      "subject_code": "APPLICATION_SECURITY",
+      "pattern": "SCENARIO_DECISION",
+      "difficulty": "MEDIUM",
+      "concepts": [
+        "DNS",
+        "SQL Injection",
+        "XSS/CSRF"
+      ]
+    },
+    {
+      "target_course": "course-isie",
+      "track": "WRITTEN",
+      "subject_code": "SECURITY_FOUNDATION",
+      "pattern": "CONCEPT_COMPARISON",
+      "difficulty": "MEDIUM",
+      "concepts": [
+        "인증",
+        "해시함수",
+        "디지털서명 및 PKI"
+      ]
+    },
+    {
+      "target_course": "course-isie",
+      "track": "WRITTEN",
+      "subject_code": "SECURITY_FOUNDATION",
+      "pattern": "SCENARIO_DECISION",
+      "difficulty": "MEDIUM",
+      "concepts": [
+        "인증",
+        "해시함수",
+        "디지털서명 및 PKI"
+      ]
+    },
+    {
+      "target_course": "course-ise",
+      "track": "PRACTICAL",
+      "curriculum_node_suffix": "02-01-01",
+      "pattern": "ARCHITECTURE_AND_PROTOCOL_ANALYSIS",
+      "difficulty": "HARD",
+      "concepts": [
+        "네트워크 구조와 OSI",
+        "가상화 및 클라우드 보안"
+      ]
+    },
+    {
+      "target_course": "course-ise",
+      "track": "PRACTICAL",
+      "curriculum_node_suffix": "02-01-02",
+      "pattern": "CONFIG_OR_CODE_ANALYSIS",
+      "difficulty": "HARD",
+      "concepts": [
+        "취약점 관리",
+        "SQL Injection",
+        "명령어 및 코드 인젝션"
+      ]
+    },
+    {
+      "target_course": "course-ise",
+      "track": "PRACTICAL",
+      "curriculum_node_suffix": "02-01-03",
+      "pattern": "LOG_AND_INCIDENT_ANALYSIS",
+      "difficulty": "HARD",
+      "concepts": [
+        "로그 분석 및 침해 대응",
+        "디지털 포렌식"
+      ]
+    },
+    {
+      "target_course": "course-ise",
+      "track": "PRACTICAL",
+      "curriculum_node_suffix": "02-01-04",
+      "pattern": "RISK_OR_TREND_DECISION",
+      "difficulty": "HARD",
+      "concepts": [
+        "위험관리",
+        "감사 및 책임추적성"
+      ]
+    },
+    {
+      "target_course": "course-ise",
+      "track": "PRACTICAL",
+      "curriculum_node_suffix": "02-01-05",
+      "pattern": "THREAT_TREND_OPERATION_DECISION",
+      "difficulty": "HARD",
+      "concepts": [
+        "EDR",
+        "악성코드 및 랜섬웨어"
+      ]
+    },
+    {
+      "target_course": "course-isie",
+      "track": "PRACTICAL",
+      "curriculum_node_suffix": "02-01-01",
+      "pattern": "ARCHITECTURE_AND_PROTOCOL_ANALYSIS",
+      "difficulty": "MEDIUM",
+      "concepts": [
+        "Linux 보안",
+        "TLS",
+        "DNS"
+      ]
+    },
+    {
+      "target_course": "course-isie",
+      "track": "PRACTICAL",
+      "curriculum_node_suffix": "02-01-02",
+      "pattern": "CONFIG_OR_CODE_ANALYSIS",
+      "difficulty": "MEDIUM",
+      "concepts": [
+        "취약점 관리",
+        "방화벽 및 WAF"
+      ]
+    },
+    {
+      "target_course": "course-isie",
+      "track": "PRACTICAL",
+      "curriculum_node_suffix": "02-01-03",
+      "pattern": "LOG_AND_INCIDENT_ANALYSIS",
+      "difficulty": "MEDIUM",
+      "concepts": [
+        "로그 분석 및 침해 대응",
+        "IDS/IPS"
+      ]
+    },
+    {
+      "target_course": "course-isie",
+      "track": "PRACTICAL",
+      "curriculum_node_suffix": "02-01-04",
+      "pattern": "RISK_OR_TREND_DECISION",
+      "difficulty": "MEDIUM",
+      "concepts": [
+        "EDR",
+        "이메일 인증"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "generatedAt": "2026-08-11T03:36:38.146Z",
+  "database": "D1_LOCAL",
+  "status": "CAPTURED",
+  "branch": "agent/security-content-upgrade-v3",
+  "baseCommit": "34a4007d21063d2fae12fffe5db2805303c545b8",
+  "targetCourses": [
+    {
+      "course_id": "course-ise",
+      "subject_count": 5,
+      "topic_count": 5,
+      "learning_unit_count": 5,
+      "lesson_count": 5,
+      "content_count": 286,
+      "question_count": 130,
+      "written_question_count": 19,
+      "practical_question_count": 12,
+      "ontology_edge_count": 158,
+      "user_history_count": 231
+    },
+    {
+      "course_id": "course-isie",
+      "subject_count": 4,
+      "topic_count": 4,
+      "learning_unit_count": 4,
+      "lesson_count": 4,
+      "content_count": 77,
+      "question_count": 85,
+      "written_question_count": 0,
+      "practical_question_count": 0,
+      "ontology_edge_count": 0,
+      "user_history_count": 229
+    }
+  ],
+  "integrity": {
+    "orphan_questions": 0,
+    "orphan_contents": 0,
+    "course_subject_mismatch": 100,
+    "subject_topic_mismatch": 100,
+    "content_course_mismatch": 0
+  },
+  "protectedCourses": [
+    {
+      "course_id": "course-cppg",
+      "subjects": 3,
+      "topics": 3,
+      "learning_units": 3,
+      "lessons": 3,
+      "contents": 6,
+      "questions": 36
+    },
+    {
+      "course_id": "course-isms-p",
+      "subjects": 3,
+      "topics": 3,
+      "learning_units": 360,
+      "lessons": 360,
+      "contents": 88,
+      "questions": 394
+    },
+    {
+      "course_id": "course-isrm",
+      "subjects": 3,
+      "topics": 3,
+      "learning_units": 3,
+      "lessons": 3,
+      "contents": 4,
+      "questions": 30
+    },
+    {
+      "course_id": "course-pia",
+      "subjects": 3,
+      "topics": 3,
+      "learning_units": 3,
+      "lessons": 3,
+      "contents": 7,
+      "questions": 40
+    },
+    {
+      "course_id": "course-sw-vuln",
+      "subjects": 3,
+      "topics": 3,
+      "learning_units": 3,
+      "lessons": 3,
+      "contents": 5,
+      "questions": 45
+    }
+  ]
+}
