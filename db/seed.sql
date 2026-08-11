@@ -30,8 +30,8 @@ INSERT OR IGNORE INTO courses
   (id, course_group_id, code, slug, name, short_name, description, total_levels, passing_score, difficulty, active, published, display_order, is_sample)
 VALUES
   ('course-isms-p', 'group-independent', 'ISMS_P', 'isms-p', 'ISMS-P', 'ISMS-P', '[개발용 샘플] 정보보호 및 개인정보보호 관리체계 학습 과정', 100, 70, 'INTERMEDIATE', 1, 1, 1, 1),
-  ('course-ise', 'group-national-security', 'ISE', 'information-security-engineer', '정보보안기사', '정보보안기사', '[개발용 샘플] 정보보안기사 필기·실기 공통 기반 과정', 100, 60, 'INTERMEDIATE', 1, 1, 2, 1),
-  ('course-isie', 'group-national-security', 'ISIE', 'information-security-industrial-engineer', '정보보안산업기사', '정보보안산업기사', '[개발용 샘플] 정보보안산업기사 필기·실기 공통 기반 과정', 100, 60, 'BEGINNER', 1, 1, 3, 1),
+  ('course-ise', 'group-national-security', 'ISE', 'information-security-engineer', '정보보안기사', '정보보안기사', '정보보안기사 필기·실기 공식 출제기준 기반 학습 과정', 100, 60, 'INTERMEDIATE', 1, 1, 2, 0),
+  ('course-isie', 'group-national-security', 'ISIE', 'information-security-industrial-engineer', '정보보안산업기사', '정보보안산업기사', '정보보안산업기사 필기·실기 공식 출제기준 기반 학습 과정', 100, 60, 'BEGINNER', 1, 1, 3, 0),
   ('course-isrm', 'group-independent', 'ISRM', 'isrm', '정보보호위험관리사(ISRM)', 'ISRM', '[개발용 샘플] 정보보호 위험 식별·분석·대응 과정', 100, 70, 'ADVANCED', 1, 1, 4, 1),
   ('course-sw-vuln', 'group-independent', 'SW_VULN_DIAG', 'sw-vulnerability-diagnostician', 'SW 보안약점 진단원', 'SW 보안약점', '[개발용 샘플] 소프트웨어 보안약점 진단 실무 과정', 100, 70, 'ADVANCED', 1, 1, 5, 1),
   ('course-cppg', 'group-independent', 'CPPG', 'cppg', 'CPPG 개인정보관리사', 'CPPG', '[개발용 샘플] 개인정보보호 법·제도 및 관리 실무 과정', 100, 70, 'INTERMEDIATE', 1, 1, 6, 1),
@@ -562,13 +562,13 @@ VALUES
   ('spec-isrm-risk', 'course-isrm', 'RISK_SCENARIO', '위험 시나리오와 위험등록부', '[개발용 샘플] 자산·위협·취약점 매핑과 위험평가', '{"referenceDate":"2026-07-27"}', 1, 1);
 
 -- Five shared security domains are stored separately for Engineer and Industrial Engineer.
-WITH security_domains(code, name, display_order) AS (
+WITH security_domains(code, name, description, display_order) AS (
   VALUES
-    ('SYSTEM_SECURITY', '시스템 보안', 10),
-    ('NETWORK_SECURITY', '네트워크 보안', 11),
-    ('APPLICATION_SECURITY', '애플리케이션 보안', 12),
-    ('SECURITY_FOUNDATION', '정보보안 일반', 13),
-    ('SECURITY_LAW', '정보보안 관리 및 법규', 14)
+    ('SYSTEM_SECURITY', '시스템보안', '운영체제·서버·클라이언트 환경의 위협과 보안 통제를 학습합니다.', 1),
+    ('NETWORK_SECURITY', '네트워크보안', '네트워크 원리, 공격기술과 보안기술을 학습합니다.', 2),
+    ('APPLICATION_SECURITY', '애플리케이션보안', '웹·애플리케이션 위협과 안전한 구현·운영 방법을 학습합니다.', 3),
+    ('SECURITY_FOUNDATION', '정보보안일반', '암호, 인증, 접근통제와 정보보호 일반 원리를 학습합니다.', 4),
+    ('SECURITY_LAW', '정보보안관리 및 법규', '정보보호 관리체계, 위험관리와 관련 법규를 학습합니다.', 5)
 )
 INSERT OR IGNORE INTO subjects
   (id, course_id, code, name, description, display_order, active, is_sample)
@@ -576,14 +576,15 @@ SELECT
   c.id || '-subject-' || lower(d.code),
   c.id,
   d.code,
-  c.short_name || ' · ' || d.name,
-  '[개발용 샘플] 기사·산업기사 공통 분야를 과정별 진도와 난이도로 분리 관리합니다.',
+  d.name,
+  d.description,
   d.display_order,
   1,
-  1
+  0
 FROM courses c
 CROSS JOIN security_domains d
-WHERE c.id IN ('course-ise', 'course-isie');
+WHERE c.id IN ('course-ise', 'course-isie')
+  AND NOT (c.id = 'course-isie' AND d.code = 'SECURITY_LAW');
 
 INSERT OR IGNORE INTO topics
   (id, subject_id, parent_topic_id, code, name, description, display_order, active, is_sample)
@@ -592,14 +593,66 @@ SELECT
   s.id,
   NULL,
   'CORE',
-  s.name || ' 핵심 실무',
-  '[개발용 샘플] 공통 분야별 독립 제작 학습 주제',
+  s.name || ' 핵심 주제',
+  '공식 출제기준의 주요 항목과 연결되는 과목별 학습 주제입니다.',
   1,
   1,
-  1
+  0
 FROM subjects s
 WHERE s.course_id IN ('course-ise', 'course-isie')
-  AND s.display_order BETWEEN 10 AND 14;
+  AND s.code IN ('SYSTEM_SECURITY', 'NETWORK_SECURITY', 'APPLICATION_SECURITY', 'SECURITY_FOUNDATION', 'SECURITY_LAW');
+
+INSERT OR IGNORE INTO learning_units
+  (id, course_id, subject_id, topic_id, code, title, description,
+   display_order, active, published, completion_policy,
+   minimum_progress_percent, minimum_study_seconds, is_sample)
+SELECT
+  t.id || '-unit',
+  s.course_id,
+  s.id,
+  t.id,
+  'UNIT_' || t.code,
+  t.name || ' 학습단위',
+  '과목별 이론과 문제 학습을 연결하는 학습단위입니다.',
+  s.display_order,
+  1,
+  1,
+  'MANUAL',
+  100,
+  0,
+  0
+FROM topics t
+JOIN subjects s ON s.id = t.subject_id
+WHERE s.course_id IN ('course-ise', 'course-isie')
+  AND s.code IN ('SYSTEM_SECURITY', 'NETWORK_SECURITY', 'APPLICATION_SECURITY', 'SECURITY_FOUNDATION', 'SECURITY_LAW');
+
+INSERT OR IGNORE INTO lessons
+  (id, learning_unit_id, course_id, subject_id, topic_id, code, title, summary,
+   content, content_format, estimated_minutes, display_order, active, published,
+   is_sample)
+SELECT
+  t.id || '-lesson-01',
+  t.id || '-unit',
+  s.course_id,
+  s.id,
+  t.id,
+  'LESSON_01',
+  s.name || ' 핵심 이론',
+  s.name || '의 핵심 개념과 시험 적용 관점을 정리합니다.',
+  '# ' || s.name || char(10) || char(10) ||
+  '공식 출제기준의 주요 항목을 기준으로 핵심 개념, 대표 위협, 대응 원리와 문제 적용 관점을 학습합니다.' ||
+  char(10) || char(10) ||
+  '세부 이론과 문제는 공식 CurriculumNode에 연결된 CourseLesson에서 이어서 학습합니다.',
+  'MARKDOWN',
+  10,
+  1,
+  1,
+  1,
+  0
+FROM topics t
+JOIN subjects s ON s.id = t.subject_id
+WHERE s.course_id IN ('course-ise', 'course-isie')
+  AND s.code IN ('SYSTEM_SECURITY', 'NETWORK_SECURITY', 'APPLICATION_SECURITY', 'SECURITY_FOUNDATION', 'SECURITY_LAW');
 
 -- ISMS-P standards: independent development samples, not official text.
 WITH RECURSIVE numbers(n) AS (
@@ -864,7 +917,7 @@ INSERT OR IGNORE INTO question_subjects (question_id, subject_id)
 SELECT
   q.id,
   CASE
-    WHEN qc.course_id IN ('course-ise', 'course-isie')
+    WHEN qc.course_id = 'course-ise'
     THEN qc.course_id || '-subject-' ||
       CASE ((CAST(substr(q.id, -2) AS INTEGER) - 1) % 5)
         WHEN 0 THEN 'system_security'
@@ -872,6 +925,14 @@ SELECT
         WHEN 2 THEN 'application_security'
         WHEN 3 THEN 'security_foundation'
         ELSE 'security_law'
+      END
+    WHEN qc.course_id = 'course-isie'
+    THEN qc.course_id || '-subject-' ||
+      CASE ((CAST(substr(q.id, -2) AS INTEGER) - 1) % 4)
+        WHEN 0 THEN 'system_security'
+        WHEN 1 THEN 'network_security'
+        WHEN 2 THEN 'application_security'
+        ELSE 'security_foundation'
       END
     ELSE qc.course_id || '-subject-foundation'
   END

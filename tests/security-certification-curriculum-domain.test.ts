@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   flattenOfficialCurriculumTree,
@@ -151,4 +152,67 @@ test("공식 커리큘럼 flatten 결과는 stableKey와 path가 중복되지 �
       true,
     );
   }
+});
+
+test("taxonomy cleanup migrations are explicitly scoped to the two security certification courses", async () => {
+  const migrations = await Promise.all([
+    readFile("drizzle/0020_security_certification_taxonomy_cleanup.sql", "utf8"),
+    readFile("drizzle/0021_security_certification_taxonomy_validation_fixes.sql", "utf8"),
+    readFile("db/postgres/migrations/0009_security_certification_taxonomy_cleanup.sql", "utf8"),
+  ]);
+  const forbiddenCourseIds = [
+    "course-isms-p",
+    "course-isrm",
+    "course-sw-vuln",
+    "course-cppg",
+    "course-pia",
+  ];
+
+  for (const [index, migration] of migrations.entries()) {
+    assert.match(migration, /course-ise/);
+    assert.match(migration, /course-isie/);
+    const writeScope =
+      index === 2
+        ? migration.replace(
+            /CREATE TEMP TABLE taxonomy_cleanup_protected_(?:snapshot|current)[\s\S]*?WHERE c\.id IN \([^;]+\);/g,
+            "",
+          )
+        : migration;
+    for (const courseId of forbiddenCourseIds) {
+      assert.equal(writeScope.includes(courseId), false);
+    }
+  }
+});
+
+test("SECURIUM_CONTENT_UPGRADE_V2 practical material keeps its 정보보안기사 provenance", async () => {
+  const prepareScript = await readFile(
+    "securium-content-upgrade-v2/scripts/prepare-import-plan.py",
+    "utf8",
+  );
+  const generatedPlan = JSON.parse(
+    await readFile(
+      "securium-content-upgrade-v2/data/normalized-kb-import-plan.json",
+      "utf8",
+    ),
+  ) as {
+    bindings: { practicalCourseId: string };
+    courseLinks: Array<{ questionId: string; courseId: string }>;
+  };
+
+  assert.match(prepareScript, /\("practicalQuestions", "course-ise"\)/);
+  assert.equal(generatedPlan.bindings.practicalCourseId, "course-ise");
+  assert.equal(
+    generatedPlan.courseLinks
+      .filter((link) => link.questionId.startsWith("sec-upgrade-practical-"))
+      .every((link) => link.courseId === "course-ise"),
+    true,
+  );
+});
+
+test("information security course UI uses written/practical as the primary taxonomy", async () => {
+  const page = await readFile("app/learn/[courseSlug]/page.tsx", "utf8");
+
+  assert.match(page, /course\.id === "course-ise" \|\| course\.id === "course-isie"/);
+  assert.match(page, /"필기·실기 선택"/);
+  assert.match(page, /curriculum\.length && !isSecurityCertificationCourse/);
 });

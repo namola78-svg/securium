@@ -40,15 +40,10 @@ for row in plan["courseLessonRows"]:
         concepts = json.loads(concept["coreConceptsJson"])
         if concepts: subject_for[concepts[0]] = (row["subjectId"], row["topicId"])
 for row in plan["questionRows"]:
-    # Practical questions use the practice subject; written questions use the matching lesson subject.
-    if row["id"].startswith("sec-upgrade-practical-"):
-        subject_id = "course-isie-subject-practice"
-        topic_id = "course-isie-subject-practice-topic-core"
-    else:
-        concept = row["id"]
-        # The import plan preserves source refs and titles; use the question title's concept prefix.
-        label = row["title"].removesuffix(" 적용 판단")
-        subject_id, topic_id = subject_for.get(label, ("course-ise-subject-security_foundation", "course-ise-subject-security_foundation-topic-core"))
+    # Both written and practical materials in this package target 정보보안기사.
+    # Reuse the concept-derived real exam subject instead of a placeholder practice subject.
+    label = row["title"].removesuffix(" 적용 판단")
+    subject_id, topic_id = subject_for.get(label, ("course-ise-subject-security_foundation", "course-ise-subject-security_foundation-topic-core"))
     lines.append(f"INSERT INTO question_subjects (question_id, subject_id) VALUES ({q(row['id'])}, {q(subject_id)});")
     lines.append(f"INSERT INTO question_topics (question_id, topic_id) VALUES ({q(row['id'])}, {q(topic_id)});")
 lines.append("COMMIT;")
