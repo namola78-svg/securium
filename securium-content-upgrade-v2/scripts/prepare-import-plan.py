@@ -57,7 +57,7 @@ for lesson in kb["lessons"]:
 question_rows = []
 choice_rows = []
 course_links = []
-for group, course_id in (("writtenQuestions", "course-ise"), ("practicalQuestions", "course-isie")):
+for group, course_id in (("writtenQuestions", "course-ise"), ("practicalQuestions", "course-ise")):
     for q in kb[group]:
         qtype = "SINGLE_CHOICE" if q["type"] == "single_choice" else q["type"]
         if qtype in {"PRACTICAL", "NETWORK_ANALYSIS", "CONFIG_ANALYSIS"}: qtype = "CASE_ANALYSIS"
@@ -91,7 +91,7 @@ plan = {
     "mode": "DRY_RUN_DRAFT_ONLY",
     "publish": False,
     "targetTables": ["contents", "questions", "question_choices", "question_courses"],
-    "bindings": {"contentCreatedBy": "user-content-editor", "questionCreatedBy": "user-content-editor", "questionReviewer": "user-content-reviewer", "writtenCourseId": "course-ise", "practicalCourseId": "course-isie", "bindingSource": "local D1 read-only discovery"},
+    "bindings": {"contentCreatedBy": "user-content-editor", "questionCreatedBy": "user-content-editor", "questionReviewer": "user-content-reviewer", "writtenCourseId": "course-ise", "practicalCourseId": "course-ise", "bindingSource": "SECURIUM_CONTENT_UPGRADE_V2 source package targets 정보보안기사 theory, written, and practical material"},
     "requiresBindings": [],
     "contentRows": content_rows,
     "questionRows": question_rows,

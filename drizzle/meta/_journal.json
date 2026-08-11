@@ -113,6 +113,48 @@
       "when": 1785395952451,
       "tag": "0015_slippery_joystick",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "6",
+      "when": 1785401188506,
+      "tag": "0016_course_lesson_lesson_bridge",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "6",
+      "when": 1785463640303,
+      "tag": "0017_question_attempt_lookup_index",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "6",
+      "when": 1785801861904,
+      "tag": "0018_ai_explainability_feedback",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "6",
+      "when": 1785803240248,
+      "tag": "0019_ontology_graph_storage",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "6",
+      "when": 1786405041261,
+      "tag": "0020_security_certification_taxonomy_cleanup",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "6",
+      "when": 1786405163443,
+      "tag": "0021_security_certification_taxonomy_validation_fixes",
+      "breakpoints": true
     }
   ]
 }

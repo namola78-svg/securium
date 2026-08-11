@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-10T08:04:57.444624+00:00",
+  "generatedAt": "2026-08-10T23:41:07.894538+00:00",
   "mode": "DRY_RUN_DRAFT_ONLY",
   "publish": false,
   "targetTables": [
@@ -13,8 +13,8 @@
     "questionCreatedBy": "user-content-editor",
     "questionReviewer": "user-content-reviewer",
     "writtenCourseId": "course-ise",
-    "practicalCourseId": "course-isie",
-    "bindingSource": "local D1 read-only discovery"
+    "practicalCourseId": "course-ise",
+    "bindingSource": "SECURIUM_CONTENT_UPGRADE_V2 source package targets 정보보안기사 theory, written, and practical material"
   },
   "requiresBindings": [],
   "contentRows": [
@@ -2555,62 +2555,62 @@
     },
     {
       "questionId": "sec-upgrade-practical-001",
-      "courseId": "course-isie",
+      "courseId": "course-ise",
       "weight": 100
     },
     {
       "questionId": "sec-upgrade-practical-002",
-      "courseId": "course-isie",
+      "courseId": "course-ise",
       "weight": 100
     },
     {
       "questionId": "sec-upgrade-practical-003",
-      "courseId": "course-isie",
+      "courseId": "course-ise",
       "weight": 100
     },
     {
       "questionId": "sec-upgrade-practical-004",
-      "courseId": "course-isie",
+      "courseId": "course-ise",
       "weight": 100
     },
     {
       "questionId": "sec-upgrade-practical-005",
-      "courseId": "course-isie",
+      "courseId": "course-ise",
       "weight": 100
     },
     {
       "questionId": "sec-upgrade-practical-006",
-      "courseId": "course-isie",
+      "courseId": "course-ise",
       "weight": 100
     },
     {
       "questionId": "sec-upgrade-practical-007",
-      "courseId": "course-isie",
+      "courseId": "course-ise",
       "weight": 100
     },
     {
       "questionId": "sec-upgrade-practical-008",
-      "courseId": "course-isie",
+      "courseId": "course-ise",
       "weight": 100
     },
     {
       "questionId": "sec-upgrade-practical-009",
-      "courseId": "course-isie",
+      "courseId": "course-ise",
       "weight": 100
     },
     {
       "questionId": "sec-upgrade-practical-010",
-      "courseId": "course-isie",
+      "courseId": "course-ise",
       "weight": 100
     },
     {
       "questionId": "sec-upgrade-practical-011",
-      "courseId": "course-isie",
+      "courseId": "course-ise",
       "weight": 100
     },
     {
       "questionId": "sec-upgrade-practical-012",
-      "courseId": "course-isie",
+      "courseId": "course-ise",
       "weight": 100
     }
   ],
