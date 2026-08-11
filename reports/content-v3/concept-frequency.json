@@ -1,0 +1,3875 @@
+{
+  "generatedAt": "2026-08-11T03:36:38.203Z",
+  "method": "case-insensitive alias occurrence count over extracted source text; mixed documents are reported separately",
+  "sourceFileCount": 39,
+  "concepts": [
+    {
+      "concept": "DNS",
+      "source_concept": "DNS security",
+      "aliases": [
+        "DNS security",
+        "DNS",
+        "DNS Security",
+        "Domain Name System"
+      ],
+      "subject_code": "APPLICATION_SECURITY",
+      "occurrence_count": 280,
+      "source_file_count": 33,
+      "written_occurrence_count": 169,
+      "practical_occurrence_count": 35,
+      "mixed_occurrence_count": 76,
+      "course_ise_occurrence_count": 274,
+      "course_isie_occurrence_count": 6,
+      "latest_year": 2026,
+      "recent": true,
+      "source_occurrences": [
+        {
+          "source_file": "2022 2회차 산업기사 필기.pdf",
+          "target_course": "course-isie",
+          "track": "written",
+          "year": 2022,
+          "count": 6
+        },
+        {
+          "source_file": "2022 4회차 보안기사 필기.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 2
+        },
+        {
+          "source_file": "2026 정보보안기사 올인원_구매인증 이벤트 자료.pdf",
+          "target_course": "course-ise",
+          "track": "mixed",
+          "year": 2026,
+          "count": 76
+        },
+        {
+          "source_file": "정보보안기사 실기 기출.txt",
+          "target_course": "course-ise",
+          "track": "practical",
+          "year": null,
+          "count": 35
+        },
+        {
+          "source_file": "정보보안기사_01회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 7
+        },
+        {
+          "source_file": "정보보안기사_02회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_03회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 7
+        },
+        {
+          "source_file": "정보보안기사_05회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_06회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 6
+        },
+        {
+          "source_file": "정보보안기사_08회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_09회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 5
+        },
+        {
+          "source_file": "정보보안기사_10회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_11회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 5
+        },
+        {
+          "source_file": "정보보안기사_12회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 6
+        },
+        {
+          "source_file": "정보보안기사_14회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20130706(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2013,
+          "count": 7
+        },
+        {
+          "source_file": "정보보안기사20131026(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2013,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20140405(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2014,
+          "count": 5
+        },
+        {
+          "source_file": "정보보안기사20150328(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2015,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20150919(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2015,
+          "count": 6
+        },
+        {
+          "source_file": "정보보안기사20160924(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2016,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20170325(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2017,
+          "count": 5
+        },
+        {
+          "source_file": "정보보안기사20170909(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2017,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20180331(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2018,
+          "count": 5
+        },
+        {
+          "source_file": "정보보안기사20180908(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2018,
+          "count": 6
+        },
+        {
+          "source_file": "정보보안기사20190323(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2019,
+          "count": 7
+        },
+        {
+          "source_file": "정보보안기사20200530(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2020,
+          "count": 13
+        },
+        {
+          "source_file": "정보보안기사20200905(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2020,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20210327(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2021,
+          "count": 6
+        },
+        {
+          "source_file": "정보보안기사20210904(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2021,
+          "count": 11
+        },
+        {
+          "source_file": "정보보안기사20220313(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 4
+        },
+        {
+          "source_file": "정보보안기사20220625(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 20
+        },
+        {
+          "source_file": "정보보안기사20230311(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2023,
+          "count": 14
+        }
+      ]
+    },
+    {
+      "concept": "서비스 거부",
+      "source_concept": "DoS and DDoS",
+      "aliases": [
+        "DoS and DDoS",
+        "서비스 거부",
+        "DoS",
+        "DDoS",
+        "Denial of Service"
+      ],
+      "subject_code": "NETWORK_SECURITY",
+      "occurrence_count": 268,
+      "source_file_count": 35,
+      "written_occurrence_count": 188,
+      "practical_occurrence_count": 20,
+      "mixed_occurrence_count": 60,
+      "course_ise_occurrence_count": 258,
+      "course_isie_occurrence_count": 10,
+      "latest_year": 2026,
+      "recent": true,
+      "source_occurrences": [
+        {
+          "source_file": "2022 2회차 산업기사 필기.pdf",
+          "target_course": "course-isie",
+          "track": "written",
+          "year": 2022,
+          "count": 10
+        },
+        {
+          "source_file": "2022 4회차 보안기사 필기.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 5
+        },
+        {
+          "source_file": "2026 정보보안기사 올인원_구매인증 이벤트 자료.pdf",
+          "target_course": "course-ise",
+          "track": "mixed",
+          "year": 2026,
+          "count": 60
+        },
+        {
+          "source_file": "정보보안기사 실기 기출.txt",
+          "target_course": "course-ise",
+          "track": "practical",
+          "year": null,
+          "count": 20
+        },
+        {
+          "source_file": "정보보안기사_01회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_02회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_03회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_04회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 8
+        },
+        {
+          "source_file": "정보보안기사_05회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 10
+        },
+        {
+          "source_file": "정보보안기사_06회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 4
+        },
+        {
+          "source_file": "정보보안기사_07회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 5
+        },
+        {
+          "source_file": "정보보안기사_08회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 7
+        },
+        {
+          "source_file": "정보보안기사_09회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 6
+        },
+        {
+          "source_file": "정보보안기사_11회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 8
+        },
+        {
+          "source_file": "정보보안기사_12회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 6
+        },
+        {
+          "source_file": "정보보안기사_14회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 9
+        },
+        {
+          "source_file": "정보보안기사20130706(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2013,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20131026(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2013,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20140405(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2014,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20140927(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2014,
+          "count": 6
+        },
+        {
+          "source_file": "정보보안기사20150328(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2015,
+          "count": 8
+        },
+        {
+          "source_file": "정보보안기사20150919(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2015,
+          "count": 4
+        },
+        {
+          "source_file": "정보보안기사20160402(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2016,
+          "count": 5
+        },
+        {
+          "source_file": "정보보안기사20160924(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2016,
+          "count": 7
+        },
+        {
+          "source_file": "정보보안기사20170325(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2017,
+          "count": 4
+        },
+        {
+          "source_file": "정보보안기사20180331(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2018,
+          "count": 7
+        },
+        {
+          "source_file": "정보보안기사20180908(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2018,
+          "count": 6
+        },
+        {
+          "source_file": "정보보안기사20190323(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2019,
+          "count": 12
+        },
+        {
+          "source_file": "정보보안기사20190907(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2019,
+          "count": 6
+        },
+        {
+          "source_file": "정보보안기사20200905(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2020,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사20210327(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2021,
+          "count": 4
+        },
+        {
+          "source_file": "정보보안기사20210904(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2021,
+          "count": 10
+        },
+        {
+          "source_file": "정보보안기사20220313(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 5
+        },
+        {
+          "source_file": "정보보안기사20220625(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 5
+        },
+        {
+          "source_file": "정보보안기사20230311(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2023,
+          "count": 6
+        }
+      ]
+    },
+    {
+      "concept": "디지털서명 및 PKI",
+      "source_concept": "Digital signature and PKI",
+      "aliases": [
+        "Digital signature and PKI",
+        "디지털서명 및 PKI",
+        "Digital Signature",
+        "Public Key Infrastructure",
+        "전자서명"
+      ],
+      "subject_code": "SECURITY_FOUNDATION",
+      "occurrence_count": 247,
+      "source_file_count": 36,
+      "written_occurrence_count": 209,
+      "practical_occurrence_count": 3,
+      "mixed_occurrence_count": 35,
+      "course_ise_occurrence_count": 247,
+      "course_isie_occurrence_count": 0,
+      "latest_year": 2026,
+      "recent": true,
+      "source_occurrences": [
+        {
+          "source_file": "2026 정보보안기사 올인원_구매인증 이벤트 자료.pdf",
+          "target_course": "course-ise",
+          "track": "mixed",
+          "year": 2026,
+          "count": 35
+        },
+        {
+          "source_file": "정보보안기사 실기 기출.txt",
+          "target_course": "course-ise",
+          "track": "practical",
+          "year": null,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사_01회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 14
+        },
+        {
+          "source_file": "정보보안기사_02회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_03회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_04회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 14
+        },
+        {
+          "source_file": "정보보안기사_05회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 4
+        },
+        {
+          "source_file": "정보보안기사_06회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 7
+        },
+        {
+          "source_file": "정보보안기사_07회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 7
+        },
+        {
+          "source_file": "정보보안기사_08회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 6
+        },
+        {
+          "source_file": "정보보안기사_09회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 11
+        },
+        {
+          "source_file": "정보보안기사_10회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 4
+        },
+        {
+          "source_file": "정보보안기사_11회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사_12회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사_14회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 6
+        },
+        {
+          "source_file": "정보보안기사20130706(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2013,
+          "count": 14
+        },
+        {
+          "source_file": "정보보안기사20131026(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2013,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사20140405(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2014,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20140927(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2014,
+          "count": 14
+        },
+        {
+          "source_file": "정보보안기사20150328(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2015,
+          "count": 4
+        },
+        {
+          "source_file": "정보보안기사20150919(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2015,
+          "count": 7
+        },
+        {
+          "source_file": "정보보안기사20160402(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2016,
+          "count": 6
+        },
+        {
+          "source_file": "정보보안기사20160924(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2016,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사20170325(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2017,
+          "count": 11
+        },
+        {
+          "source_file": "정보보안기사20170909(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2017,
+          "count": 4
+        },
+        {
+          "source_file": "정보보안기사20180331(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2018,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사20180908(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2018,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사20190323(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2019,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사20190907(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2019,
+          "count": 10
+        },
+        {
+          "source_file": "정보보안기사20200530(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2020,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20200905(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2020,
+          "count": 10
+        },
+        {
+          "source_file": "정보보안기사20210327(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2021,
+          "count": 12
+        },
+        {
+          "source_file": "정보보안기사20210904(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2021,
+          "count": 6
+        },
+        {
+          "source_file": "정보보안기사20220313(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20220625(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 7
+        },
+        {
+          "source_file": "정보보안기사20230311(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2023,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "concept": "접근통제",
+      "source_concept": "Authorization and access control",
+      "aliases": [
+        "Authorization and access control",
+        "접근통제",
+        "Authorization",
+        "Access Control",
+        "인가"
+      ],
+      "subject_code": "SECURITY_FOUNDATION",
+      "occurrence_count": 220,
+      "source_file_count": 33,
+      "written_occurrence_count": 196,
+      "practical_occurrence_count": 3,
+      "mixed_occurrence_count": 21,
+      "course_ise_occurrence_count": 219,
+      "course_isie_occurrence_count": 1,
+      "latest_year": 2026,
+      "recent": true,
+      "source_occurrences": [
+        {
+          "source_file": "2022 2회차 산업기사 필기.pdf",
+          "target_course": "course-isie",
+          "track": "written",
+          "year": 2022,
+          "count": 1
+        },
+        {
+          "source_file": "2026 정보보안기사 올인원_구매인증 이벤트 자료.pdf",
+          "target_course": "course-ise",
+          "track": "mixed",
+          "year": 2026,
+          "count": 21
+        },
+        {
+          "source_file": "정보보안기사 실기 기출.txt",
+          "target_course": "course-ise",
+          "track": "practical",
+          "year": null,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사_01회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사_02회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 14
+        },
+        {
+          "source_file": "정보보안기사_03회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 8
+        },
+        {
+          "source_file": "정보보안기사_04회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_06회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_07회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 4
+        },
+        {
+          "source_file": "정보보안기사_08회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 10
+        },
+        {
+          "source_file": "정보보안기사_09회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 10
+        },
+        {
+          "source_file": "정보보안기사_10회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 7
+        },
+        {
+          "source_file": "정보보안기사_12회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 16
+        },
+        {
+          "source_file": "정보보안기사_14회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 5
+        },
+        {
+          "source_file": "정보보안기사20130706(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2013,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사20131026(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2013,
+          "count": 14
+        },
+        {
+          "source_file": "정보보안기사20140405(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2014,
+          "count": 8
+        },
+        {
+          "source_file": "정보보안기사20140927(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2014,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20150919(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2015,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20160402(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2016,
+          "count": 5
+        },
+        {
+          "source_file": "정보보안기사20160924(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2016,
+          "count": 10
+        },
+        {
+          "source_file": "정보보안기사20170325(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2017,
+          "count": 5
+        },
+        {
+          "source_file": "정보보안기사20170909(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2017,
+          "count": 7
+        },
+        {
+          "source_file": "정보보안기사20180908(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2018,
+          "count": 16
+        },
+        {
+          "source_file": "정보보안기사20190323(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2019,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20190907(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2019,
+          "count": 4
+        },
+        {
+          "source_file": "정보보안기사20200530(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2020,
+          "count": 9
+        },
+        {
+          "source_file": "정보보안기사20200905(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2020,
+          "count": 7
+        },
+        {
+          "source_file": "정보보안기사20210327(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2021,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20210904(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2021,
+          "count": 6
+        },
+        {
+          "source_file": "정보보안기사20220313(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 5
+        },
+        {
+          "source_file": "정보보안기사20220625(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 8
+        },
+        {
+          "source_file": "정보보안기사20230311(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2023,
+          "count": 2
+        }
+      ]
+    },
+    {
+      "concept": "SQL Injection",
+      "source_concept": "SQL injection",
+      "aliases": [
+        "SQL injection",
+        "SQL Injection",
+        "SQL 삽입",
+        "SQL 인젝션"
+      ],
+      "subject_code": "APPLICATION_SECURITY",
+      "occurrence_count": 161,
+      "source_file_count": 28,
+      "written_occurrence_count": 131,
+      "practical_occurrence_count": 14,
+      "mixed_occurrence_count": 16,
+      "course_ise_occurrence_count": 161,
+      "course_isie_occurrence_count": 0,
+      "latest_year": 2026,
+      "recent": true,
+      "source_occurrences": [
+        {
+          "source_file": "2026 정보보안기사 올인원_구매인증 이벤트 자료.pdf",
+          "target_course": "course-ise",
+          "track": "mixed",
+          "year": 2026,
+          "count": 16
+        },
+        {
+          "source_file": "정보보안기사 실기 기출.txt",
+          "target_course": "course-ise",
+          "track": "practical",
+          "year": null,
+          "count": 14
+        },
+        {
+          "source_file": "정보보안기사_01회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 12
+        },
+        {
+          "source_file": "정보보안기사_05회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 9
+        },
+        {
+          "source_file": "정보보안기사_06회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_07회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 7
+        },
+        {
+          "source_file": "정보보안기사_08회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 4
+        },
+        {
+          "source_file": "정보보안기사_09회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_10회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 4
+        },
+        {
+          "source_file": "정보보안기사_11회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 8
+        },
+        {
+          "source_file": "정보보안기사_12회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_14회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 8
+        },
+        {
+          "source_file": "정보보안기사20130706(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2013,
+          "count": 10
+        },
+        {
+          "source_file": "정보보안기사20131026(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2013,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20150328(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2015,
+          "count": 8
+        },
+        {
+          "source_file": "정보보안기사20150919(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2015,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20160402(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2016,
+          "count": 7
+        },
+        {
+          "source_file": "정보보안기사20160924(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2016,
+          "count": 4
+        },
+        {
+          "source_file": "정보보안기사20170325(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2017,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20170909(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2017,
+          "count": 4
+        },
+        {
+          "source_file": "정보보안기사20180331(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2018,
+          "count": 8
+        },
+        {
+          "source_file": "정보보안기사20180908(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2018,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20190323(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2019,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사20190907(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2019,
+          "count": 10
+        },
+        {
+          "source_file": "정보보안기사20200530(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2020,
+          "count": 7
+        },
+        {
+          "source_file": "정보보안기사20210904(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2021,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20220313(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 6
+        },
+        {
+          "source_file": "정보보안기사20230311(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2023,
+          "count": 2
+        }
+      ]
+    },
+    {
+      "concept": "위험관리",
+      "source_concept": "Risk management",
+      "aliases": [
+        "Risk management",
+        "위험관리",
+        "Risk Management",
+        "위험평가"
+      ],
+      "subject_code": "SECURITY_LAW",
+      "occurrence_count": 129,
+      "source_file_count": 27,
+      "written_occurrence_count": 75,
+      "practical_occurrence_count": 18,
+      "mixed_occurrence_count": 36,
+      "course_ise_occurrence_count": 129,
+      "course_isie_occurrence_count": 0,
+      "latest_year": 2026,
+      "recent": true,
+      "source_occurrences": [
+        {
+          "source_file": "2026 정보보안기사 올인원_구매인증 이벤트 자료.pdf",
+          "target_course": "course-ise",
+          "track": "mixed",
+          "year": 2026,
+          "count": 36
+        },
+        {
+          "source_file": "정보보안기사 실기 기출.txt",
+          "target_course": "course-ise",
+          "track": "practical",
+          "year": null,
+          "count": 18
+        },
+        {
+          "source_file": "정보보안기사_01회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 6
+        },
+        {
+          "source_file": "정보보안기사_02회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 4
+        },
+        {
+          "source_file": "정보보안기사_03회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_04회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_06회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_07회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_08회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사_10회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 5
+        },
+        {
+          "source_file": "정보보안기사_11회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_14회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20130706(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2013,
+          "count": 6
+        },
+        {
+          "source_file": "정보보안기사20131026(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2013,
+          "count": 4
+        },
+        {
+          "source_file": "정보보안기사20140405(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2014,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20140927(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2014,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20160402(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2016,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20160924(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2016,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사20170909(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2017,
+          "count": 7
+        },
+        {
+          "source_file": "정보보안기사20180331(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2018,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20190323(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2019,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사20190907(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2019,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20200905(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2020,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20210327(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2021,
+          "count": 11
+        },
+        {
+          "source_file": "정보보안기사20210904(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2021,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20220313(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 4
+        },
+        {
+          "source_file": "정보보안기사20220625(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "concept": "암호 알고리즘",
+      "source_concept": "Cryptographic algorithms",
+      "aliases": [
+        "Cryptographic algorithms",
+        "암호 알고리즘",
+        "Cryptographic Algorithm",
+        "Encryption Algorithm"
+      ],
+      "subject_code": "SECURITY_FOUNDATION",
+      "occurrence_count": 100,
+      "source_file_count": 32,
+      "written_occurrence_count": 88,
+      "practical_occurrence_count": 2,
+      "mixed_occurrence_count": 10,
+      "course_ise_occurrence_count": 100,
+      "course_isie_occurrence_count": 0,
+      "latest_year": 2026,
+      "recent": true,
+      "source_occurrences": [
+        {
+          "source_file": "2026 정보보안기사 올인원_구매인증 이벤트 자료.pdf",
+          "target_course": "course-ise",
+          "track": "mixed",
+          "year": 2026,
+          "count": 10
+        },
+        {
+          "source_file": "정보보안기사 실기 기출.txt",
+          "target_course": "course-ise",
+          "track": "practical",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_01회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 4
+        },
+        {
+          "source_file": "정보보안기사_02회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_04회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_05회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 5
+        },
+        {
+          "source_file": "정보보안기사_06회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사_07회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_08회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_09회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 12
+        },
+        {
+          "source_file": "정보보안기사_11회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 4
+        },
+        {
+          "source_file": "정보보안기사_12회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사_14회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20130706(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2013,
+          "count": 4
+        },
+        {
+          "source_file": "정보보안기사20131026(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2013,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20140927(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2014,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20150328(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2015,
+          "count": 5
+        },
+        {
+          "source_file": "정보보안기사20150919(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2015,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사20160402(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2016,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20160924(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2016,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20170325(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2017,
+          "count": 13
+        },
+        {
+          "source_file": "정보보안기사20180331(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2018,
+          "count": 4
+        },
+        {
+          "source_file": "정보보안기사20180908(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2018,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20190323(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2019,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20190907(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2019,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20200530(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2020,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20200905(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2020,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20210327(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2021,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20210904(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2021,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20220313(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20220625(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20230311(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2023,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "concept": "TLS",
+      "source_concept": "TLS and secure protocols",
+      "aliases": [
+        "TLS and secure protocols",
+        "TLS",
+        "Transport Layer Security",
+        "보안 프로토콜"
+      ],
+      "subject_code": "NETWORK_SECURITY",
+      "occurrence_count": 89,
+      "source_file_count": 30,
+      "written_occurrence_count": 59,
+      "practical_occurrence_count": 6,
+      "mixed_occurrence_count": 24,
+      "course_ise_occurrence_count": 88,
+      "course_isie_occurrence_count": 1,
+      "latest_year": 2026,
+      "recent": true,
+      "source_occurrences": [
+        {
+          "source_file": "2022 2회차 산업기사 필기.pdf",
+          "target_course": "course-isie",
+          "track": "written",
+          "year": 2022,
+          "count": 1
+        },
+        {
+          "source_file": "2026 정보보안기사 올인원_구매인증 이벤트 자료.pdf",
+          "target_course": "course-ise",
+          "track": "mixed",
+          "year": 2026,
+          "count": 24
+        },
+        {
+          "source_file": "정보보안기사 실기 기출.txt",
+          "target_course": "course-ise",
+          "track": "practical",
+          "year": null,
+          "count": 6
+        },
+        {
+          "source_file": "정보보안기사_01회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_02회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_05회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_06회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_07회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_08회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_09회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사_10회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_11회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_12회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20130706(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2013,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20131026(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2013,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20150919(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2015,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20160402(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2016,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20160924(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2016,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20170325(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2017,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사20170909(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2017,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20180331(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2018,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20180908(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2018,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20190323(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2019,
+          "count": 4
+        },
+        {
+          "source_file": "정보보안기사20190907(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2019,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20200530(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2020,
+          "count": 5
+        },
+        {
+          "source_file": "정보보안기사20200905(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2020,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사20210327(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2021,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20210904(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2021,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사20220625(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사20230311(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2023,
+          "count": 7
+        }
+      ]
+    },
+    {
+      "concept": "해시함수",
+      "source_concept": "Hash and message digest",
+      "aliases": [
+        "Hash and message digest",
+        "해시함수",
+        "Hash Function",
+        "Message Digest"
+      ],
+      "subject_code": "SECURITY_FOUNDATION",
+      "occurrence_count": 86,
+      "source_file_count": 23,
+      "written_occurrence_count": 57,
+      "practical_occurrence_count": 0,
+      "mixed_occurrence_count": 29,
+      "course_ise_occurrence_count": 86,
+      "course_isie_occurrence_count": 0,
+      "latest_year": 2026,
+      "recent": true,
+      "source_occurrences": [
+        {
+          "source_file": "2026 정보보안기사 올인원_구매인증 이벤트 자료.pdf",
+          "target_course": "course-ise",
+          "track": "mixed",
+          "year": 2026,
+          "count": 29
+        },
+        {
+          "source_file": "정보보안기사_03회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사_07회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_08회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_09회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_11회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_12회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_14회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20140405(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2014,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사20160402(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2016,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20160924(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2016,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20170325(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2017,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20180331(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2018,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20180908(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2018,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20190323(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2019,
+          "count": 5
+        },
+        {
+          "source_file": "정보보안기사20190907(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2019,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20200530(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2020,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20200905(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2020,
+          "count": 7
+        },
+        {
+          "source_file": "정보보안기사20210327(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2021,
+          "count": 9
+        },
+        {
+          "source_file": "정보보안기사20210904(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2021,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20220313(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 5
+        },
+        {
+          "source_file": "정보보안기사20220625(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 4
+        },
+        {
+          "source_file": "정보보안기사20230311(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2023,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "concept": "ISMS 및 개인정보 거버넌스",
+      "source_concept": "ISMS and privacy governance",
+      "aliases": [
+        "ISMS and privacy governance",
+        "ISMS 및 개인정보 거버넌스",
+        "ISMS",
+        "Privacy Governance"
+      ],
+      "subject_code": "SECURITY_LAW",
+      "occurrence_count": 82,
+      "source_file_count": 27,
+      "written_occurrence_count": 51,
+      "practical_occurrence_count": 5,
+      "mixed_occurrence_count": 26,
+      "course_ise_occurrence_count": 80,
+      "course_isie_occurrence_count": 2,
+      "latest_year": 2026,
+      "recent": true,
+      "source_occurrences": [
+        {
+          "source_file": "2022 2회차 산업기사 필기.pdf",
+          "target_course": "course-isie",
+          "track": "written",
+          "year": 2022,
+          "count": 2
+        },
+        {
+          "source_file": "2022 4회차 보안기사 필기.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 2
+        },
+        {
+          "source_file": "2026 정보보안기사 올인원_구매인증 이벤트 자료.pdf",
+          "target_course": "course-ise",
+          "track": "mixed",
+          "year": 2026,
+          "count": 26
+        },
+        {
+          "source_file": "정보보안기사 실기 기출.txt",
+          "target_course": "course-ise",
+          "track": "practical",
+          "year": null,
+          "count": 5
+        },
+        {
+          "source_file": "정보보안기사_02회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_04회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_05회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_06회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_07회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_08회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_09회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_11회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 5
+        },
+        {
+          "source_file": "정보보안기사_12회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_14회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사20131026(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2013,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20140927(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2014,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20150328(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2015,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20150919(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2015,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20160402(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2016,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20160924(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2016,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20170325(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2017,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20180331(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2018,
+          "count": 5
+        },
+        {
+          "source_file": "정보보안기사20180908(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2018,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20190323(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2019,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20190907(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2019,
+          "count": 4
+        },
+        {
+          "source_file": "정보보안기사20200530(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2020,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사20230311(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2023,
+          "count": 3
+        }
+      ]
+    },
+    {
+      "concept": "인증",
+      "source_concept": "Authentication",
+      "aliases": [
+        "Authentication",
+        "인증"
+      ],
+      "subject_code": "SECURITY_FOUNDATION",
+      "occurrence_count": 57,
+      "source_file_count": 18,
+      "written_occurrence_count": 32,
+      "practical_occurrence_count": 3,
+      "mixed_occurrence_count": 22,
+      "course_ise_occurrence_count": 57,
+      "course_isie_occurrence_count": 0,
+      "latest_year": 2026,
+      "recent": true,
+      "source_occurrences": [
+        {
+          "source_file": "2022 4회차 보안기사 필기.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 2
+        },
+        {
+          "source_file": "2026 정보보안기사 올인원_구매인증 이벤트 자료.pdf",
+          "target_course": "course-ise",
+          "track": "mixed",
+          "year": 2026,
+          "count": 22
+        },
+        {
+          "source_file": "정보보안기사 실기 기출.txt",
+          "target_course": "course-ise",
+          "track": "practical",
+          "year": null,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사_02회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_05회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_10회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_11회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20131026(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2013,
+          "count": 4
+        },
+        {
+          "source_file": "정보보안기사20150328(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2015,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20170909(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2017,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20180331(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2018,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20190323(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2019,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20200530(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2020,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20210327(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2021,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20210904(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2021,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사20220313(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20220625(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20230311(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2023,
+          "count": 5
+        }
+      ]
+    },
+    {
+      "concept": "ARP Spoofing",
+      "source_concept": "ARP spoofing",
+      "aliases": [
+        "ARP spoofing",
+        "ARP Spoofing",
+        "ARP 스푸핑",
+        "ARP Cache Poisoning"
+      ],
+      "subject_code": "NETWORK_SECURITY",
+      "occurrence_count": 56,
+      "source_file_count": 22,
+      "written_occurrence_count": 46,
+      "practical_occurrence_count": 0,
+      "mixed_occurrence_count": 10,
+      "course_ise_occurrence_count": 56,
+      "course_isie_occurrence_count": 0,
+      "latest_year": 2026,
+      "recent": true,
+      "source_occurrences": [
+        {
+          "source_file": "2026 정보보안기사 올인원_구매인증 이벤트 자료.pdf",
+          "target_course": "course-ise",
+          "track": "mixed",
+          "year": 2026,
+          "count": 10
+        },
+        {
+          "source_file": "정보보안기사_02회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 5
+        },
+        {
+          "source_file": "정보보안기사_03회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_04회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_06회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_07회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_09회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_10회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_12회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20131026(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2013,
+          "count": 5
+        },
+        {
+          "source_file": "정보보안기사20140405(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2014,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20150919(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2015,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20160402(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2016,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20170325(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2017,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20170909(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2017,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20180908(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2018,
+          "count": 4
+        },
+        {
+          "source_file": "정보보안기사20190323(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2019,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20190907(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2019,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20200530(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2020,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사20200905(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2020,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20210904(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2021,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20230311(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2023,
+          "count": 2
+        }
+      ]
+    },
+    {
+      "concept": "방화벽 및 WAF",
+      "source_concept": "Firewall and WAF",
+      "aliases": [
+        "Firewall and WAF",
+        "방화벽 및 WAF",
+        "Firewall",
+        "Web Application Firewall"
+      ],
+      "subject_code": "NETWORK_SECURITY",
+      "occurrence_count": 42,
+      "source_file_count": 16,
+      "written_occurrence_count": 29,
+      "practical_occurrence_count": 2,
+      "mixed_occurrence_count": 11,
+      "course_ise_occurrence_count": 41,
+      "course_isie_occurrence_count": 1,
+      "latest_year": 2026,
+      "recent": true,
+      "source_occurrences": [
+        {
+          "source_file": "2022 2회차 산업기사 필기.pdf",
+          "target_course": "course-isie",
+          "track": "written",
+          "year": 2022,
+          "count": 1
+        },
+        {
+          "source_file": "2022 4회차 보안기사 필기.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 1
+        },
+        {
+          "source_file": "2026 정보보안기사 올인원_구매인증 이벤트 자료.pdf",
+          "target_course": "course-ise",
+          "track": "mixed",
+          "year": 2026,
+          "count": 11
+        },
+        {
+          "source_file": "정보보안기사 실기 기출.txt",
+          "target_course": "course-ise",
+          "track": "practical",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_07회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 5
+        },
+        {
+          "source_file": "정보보안기사_10회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_11회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_12회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20160402(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2016,
+          "count": 5
+        },
+        {
+          "source_file": "정보보안기사20170909(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2017,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20180331(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2018,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20180908(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2018,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20190323(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2019,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20200530(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2020,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20200905(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2020,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20210904(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2021,
+          "count": 4
+        }
+      ]
+    },
+    {
+      "concept": "이메일 인증",
+      "source_concept": "Email authentication",
+      "aliases": [
+        "Email authentication",
+        "이메일 인증",
+        "Email Authentication",
+        "SPF",
+        "DKIM",
+        "DMARC"
+      ],
+      "subject_code": "APPLICATION_SECURITY",
+      "occurrence_count": 41,
+      "source_file_count": 12,
+      "written_occurrence_count": 12,
+      "practical_occurrence_count": 23,
+      "mixed_occurrence_count": 6,
+      "course_ise_occurrence_count": 41,
+      "course_isie_occurrence_count": 0,
+      "latest_year": 2026,
+      "recent": true,
+      "source_occurrences": [
+        {
+          "source_file": "2022 4회차 보안기사 필기.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 1
+        },
+        {
+          "source_file": "2026 정보보안기사 올인원_구매인증 이벤트 자료.pdf",
+          "target_course": "course-ise",
+          "track": "mixed",
+          "year": 2026,
+          "count": 6
+        },
+        {
+          "source_file": "정보보안기사 실기 기출.txt",
+          "target_course": "course-ise",
+          "track": "practical",
+          "year": null,
+          "count": 23
+        },
+        {
+          "source_file": "정보보안기사_03회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_04회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_09회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_14회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20140405(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2014,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20140927(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2014,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20170325(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2017,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20210904(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2021,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사20220625(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "concept": "네트워크 구조와 OSI",
+      "source_concept": "Network architecture and OSI",
+      "aliases": [
+        "Network architecture and OSI",
+        "네트워크 구조와 OSI",
+        "OSI",
+        "Network Architecture"
+      ],
+      "subject_code": "NETWORK_SECURITY",
+      "occurrence_count": 35,
+      "source_file_count": 15,
+      "written_occurrence_count": 28,
+      "practical_occurrence_count": 2,
+      "mixed_occurrence_count": 5,
+      "course_ise_occurrence_count": 35,
+      "course_isie_occurrence_count": 0,
+      "latest_year": 2026,
+      "recent": true,
+      "source_occurrences": [
+        {
+          "source_file": "2026 정보보안기사 올인원_구매인증 이벤트 자료.pdf",
+          "target_course": "course-ise",
+          "track": "mixed",
+          "year": 2026,
+          "count": 5
+        },
+        {
+          "source_file": "정보보안기사 실기 기출.txt",
+          "target_course": "course-ise",
+          "track": "practical",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_01회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사_06회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_10회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_11회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20130706(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2013,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20150919(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2015,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20170909(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2017,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20180331(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2018,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20200530(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2020,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20210327(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2021,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20210904(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2021,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20220313(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 6
+        },
+        {
+          "source_file": "정보보안기사20230311(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2023,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "concept": "취약점 관리",
+      "source_concept": "Vulnerability management",
+      "aliases": [
+        "Vulnerability management",
+        "취약점 관리",
+        "Vulnerability Management",
+        "취약점 점검"
+      ],
+      "subject_code": "SYSTEM_SECURITY",
+      "occurrence_count": 26,
+      "source_file_count": 13,
+      "written_occurrence_count": 16,
+      "practical_occurrence_count": 1,
+      "mixed_occurrence_count": 9,
+      "course_ise_occurrence_count": 26,
+      "course_isie_occurrence_count": 0,
+      "latest_year": 2026,
+      "recent": true,
+      "source_occurrences": [
+        {
+          "source_file": "2026 정보보안기사 올인원_구매인증 이벤트 자료.pdf",
+          "target_course": "course-ise",
+          "track": "mixed",
+          "year": 2026,
+          "count": 9
+        },
+        {
+          "source_file": "정보보안기사 실기 기출.txt",
+          "target_course": "course-ise",
+          "track": "practical",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_07회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_08회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_09회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_10회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_11회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 4
+        },
+        {
+          "source_file": "정보보안기사20160402(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2016,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20160924(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2016,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20170325(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2017,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20170909(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2017,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20180331(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2018,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20220313(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 2
+        }
+      ]
+    },
+    {
+      "concept": "감사 및 책임추적성",
+      "source_concept": "Audit and accountability",
+      "aliases": [
+        "Audit and accountability",
+        "감사 및 책임추적성",
+        "Audit",
+        "Accountability"
+      ],
+      "subject_code": "SECURITY_LAW",
+      "occurrence_count": 24,
+      "source_file_count": 11,
+      "written_occurrence_count": 14,
+      "practical_occurrence_count": 0,
+      "mixed_occurrence_count": 10,
+      "course_ise_occurrence_count": 23,
+      "course_isie_occurrence_count": 1,
+      "latest_year": 2026,
+      "recent": true,
+      "source_occurrences": [
+        {
+          "source_file": "2022 2회차 산업기사 필기.pdf",
+          "target_course": "course-isie",
+          "track": "written",
+          "year": 2022,
+          "count": 1
+        },
+        {
+          "source_file": "2026 정보보안기사 올인원_구매인증 이벤트 자료.pdf",
+          "target_course": "course-ise",
+          "track": "mixed",
+          "year": 2026,
+          "count": 10
+        },
+        {
+          "source_file": "정보보안기사_03회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_06회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20131026(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2013,
+          "count": 3
+        },
+        {
+          "source_file": "정보보안기사20140405(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2014,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20150919(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2015,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20200530(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2020,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20210904(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2021,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20220625(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20230311(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2023,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "concept": "XSS/CSRF",
+      "source_concept": "XSS and CSRF",
+      "aliases": [
+        "XSS and CSRF",
+        "XSS/CSRF",
+        "Cross-Site Scripting",
+        "Cross-Site Request Forgery"
+      ],
+      "subject_code": "APPLICATION_SECURITY",
+      "occurrence_count": 14,
+      "source_file_count": 11,
+      "written_occurrence_count": 13,
+      "practical_occurrence_count": 0,
+      "mixed_occurrence_count": 1,
+      "course_ise_occurrence_count": 14,
+      "course_isie_occurrence_count": 0,
+      "latest_year": 2026,
+      "recent": true,
+      "source_occurrences": [
+        {
+          "source_file": "2026 정보보안기사 올인원_구매인증 이벤트 자료.pdf",
+          "target_course": "course-ise",
+          "track": "mixed",
+          "year": 2026,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_02회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_10회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_12회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_14회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20131026(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2013,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20170909(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2017,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20180908(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2018,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20190907(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2019,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20220625(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사20230311(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2023,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "concept": "IDS/IPS",
+      "source_concept": "IDS and IPS",
+      "aliases": [
+        "IDS and IPS",
+        "IDS/IPS",
+        "Intrusion Detection System",
+        "Intrusion Prevention System"
+      ],
+      "subject_code": "NETWORK_SECURITY",
+      "occurrence_count": 11,
+      "source_file_count": 10,
+      "written_occurrence_count": 8,
+      "practical_occurrence_count": 2,
+      "mixed_occurrence_count": 1,
+      "course_ise_occurrence_count": 11,
+      "course_isie_occurrence_count": 0,
+      "latest_year": 2026,
+      "recent": true,
+      "source_occurrences": [
+        {
+          "source_file": "2026 정보보안기사 올인원_구매인증 이벤트 자료.pdf",
+          "target_course": "course-ise",
+          "track": "mixed",
+          "year": 2026,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사 실기 기출.txt",
+          "target_course": "course-ise",
+          "track": "practical",
+          "year": null,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_11회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20180331(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2018,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20200530(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2020,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20200905(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2020,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20210904(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2021,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20220313(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20220625(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20230311(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2023,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "concept": "디지털 포렌식",
+      "source_concept": "Forensics",
+      "aliases": [
+        "Forensics",
+        "디지털 포렌식",
+        "Digital Forensics"
+      ],
+      "subject_code": "SYSTEM_SECURITY",
+      "occurrence_count": 10,
+      "source_file_count": 6,
+      "written_occurrence_count": 4,
+      "practical_occurrence_count": 1,
+      "mixed_occurrence_count": 5,
+      "course_ise_occurrence_count": 10,
+      "course_isie_occurrence_count": 0,
+      "latest_year": 2026,
+      "recent": true,
+      "source_occurrences": [
+        {
+          "source_file": "2026 정보보안기사 올인원_구매인증 이벤트 자료.pdf",
+          "target_course": "course-ise",
+          "track": "mixed",
+          "year": 2026,
+          "count": 5
+        },
+        {
+          "source_file": "정보보안기사 실기 기출.txt",
+          "target_course": "course-ise",
+          "track": "practical",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_08회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사_14회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20200905(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2020,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20210904(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2021,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "concept": "EDR",
+      "source_concept": "Endpoint detection and response",
+      "aliases": [
+        "Endpoint detection and response",
+        "EDR",
+        "Endpoint Detection and Response"
+      ],
+      "subject_code": "SYSTEM_SECURITY",
+      "occurrence_count": 10,
+      "source_file_count": 3,
+      "written_occurrence_count": 2,
+      "practical_occurrence_count": 0,
+      "mixed_occurrence_count": 8,
+      "course_ise_occurrence_count": 10,
+      "course_isie_occurrence_count": 0,
+      "latest_year": 2026,
+      "recent": true,
+      "source_occurrences": [
+        {
+          "source_file": "2026 정보보안기사 올인원_구매인증 이벤트 자료.pdf",
+          "target_course": "course-ise",
+          "track": "mixed",
+          "year": 2026,
+          "count": 8
+        },
+        {
+          "source_file": "정보보안기사20210327(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2021,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20230311(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2023,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "concept": "보안 평가 기준",
+      "source_concept": "Security evaluation criteria",
+      "aliases": [
+        "Security evaluation criteria",
+        "보안 평가 기준",
+        "Security Evaluation Criteria",
+        "CC"
+      ],
+      "subject_code": "SECURITY_LAW",
+      "occurrence_count": 8,
+      "source_file_count": 4,
+      "written_occurrence_count": 4,
+      "practical_occurrence_count": 0,
+      "mixed_occurrence_count": 4,
+      "course_ise_occurrence_count": 8,
+      "course_isie_occurrence_count": 0,
+      "latest_year": 2026,
+      "recent": true,
+      "source_occurrences": [
+        {
+          "source_file": "2026 정보보안기사 올인원_구매인증 이벤트 자료.pdf",
+          "target_course": "course-ise",
+          "track": "mixed",
+          "year": 2026,
+          "count": 4
+        },
+        {
+          "source_file": "정보보안기사_05회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20150328(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2015,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20210904(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2021,
+          "count": 2
+        }
+      ]
+    },
+    {
+      "concept": "악성코드 및 랜섬웨어",
+      "source_concept": "Malware and ransomware",
+      "aliases": [
+        "Malware and ransomware",
+        "악성코드 및 랜섬웨어",
+        "Malware",
+        "Ransomware"
+      ],
+      "subject_code": "SYSTEM_SECURITY",
+      "occurrence_count": 4,
+      "source_file_count": 3,
+      "written_occurrence_count": 2,
+      "practical_occurrence_count": 0,
+      "mixed_occurrence_count": 2,
+      "course_ise_occurrence_count": 4,
+      "course_isie_occurrence_count": 0,
+      "latest_year": 2026,
+      "recent": true,
+      "source_occurrences": [
+        {
+          "source_file": "2026 정보보안기사 올인원_구매인증 이벤트 자료.pdf",
+          "target_course": "course-ise",
+          "track": "mixed",
+          "year": 2026,
+          "count": 2
+        },
+        {
+          "source_file": "정보보안기사_09회_필기_기출문제.pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": null,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20170325(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2017,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "concept": "BCP 및 재해복구",
+      "source_concept": "BCP and disaster recovery",
+      "aliases": [
+        "BCP and disaster recovery",
+        "BCP 및 재해복구",
+        "Business Continuity Planning",
+        "Disaster Recovery"
+      ],
+      "subject_code": "SECURITY_LAW",
+      "occurrence_count": 3,
+      "source_file_count": 1,
+      "written_occurrence_count": 0,
+      "practical_occurrence_count": 0,
+      "mixed_occurrence_count": 3,
+      "course_ise_occurrence_count": 3,
+      "course_isie_occurrence_count": 0,
+      "latest_year": 2026,
+      "recent": true,
+      "source_occurrences": [
+        {
+          "source_file": "2026 정보보안기사 올인원_구매인증 이벤트 자료.pdf",
+          "target_course": "course-ise",
+          "track": "mixed",
+          "year": 2026,
+          "count": 3
+        }
+      ]
+    },
+    {
+      "concept": "정보보호 관리 및 법규",
+      "source_concept": "Security governance and law",
+      "aliases": [
+        "Security governance and law",
+        "정보보호 관리 및 법규",
+        "Security Governance",
+        "정보보호 거버넌스"
+      ],
+      "subject_code": "SECURITY_LAW",
+      "occurrence_count": 2,
+      "source_file_count": 2,
+      "written_occurrence_count": 1,
+      "practical_occurrence_count": 0,
+      "mixed_occurrence_count": 1,
+      "course_ise_occurrence_count": 2,
+      "course_isie_occurrence_count": 0,
+      "latest_year": 2026,
+      "recent": true,
+      "source_occurrences": [
+        {
+          "source_file": "2026 정보보안기사 올인원_구매인증 이벤트 자료.pdf",
+          "target_course": "course-ise",
+          "track": "mixed",
+          "year": 2026,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20220625(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "concept": "명령어 및 코드 인젝션",
+      "source_concept": "Command and code injection",
+      "aliases": [
+        "Command and code injection",
+        "명령어 및 코드 인젝션",
+        "Command Injection",
+        "Code Injection"
+      ],
+      "subject_code": "APPLICATION_SECURITY",
+      "occurrence_count": 2,
+      "source_file_count": 2,
+      "written_occurrence_count": 1,
+      "practical_occurrence_count": 0,
+      "mixed_occurrence_count": 1,
+      "course_ise_occurrence_count": 2,
+      "course_isie_occurrence_count": 0,
+      "latest_year": 2026,
+      "recent": true,
+      "source_occurrences": [
+        {
+          "source_file": "2026 정보보안기사 올인원_구매인증 이벤트 자료.pdf",
+          "target_course": "course-ise",
+          "track": "mixed",
+          "year": 2026,
+          "count": 1
+        },
+        {
+          "source_file": "정보보안기사20220625(교사용).pdf",
+          "target_course": "course-ise",
+          "track": "written",
+          "year": 2022,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "concept": "로그 분석 및 침해 대응",
+      "source_concept": "Logging and incident response",
+      "aliases": [
+        "Logging and incident response",
+        "로그 분석 및 침해 대응",
+        "Log Analysis",
+        "Incident Response"
+      ],
+      "subject_code": "SYSTEM_SECURITY",
+      "occurrence_count": 0,
+      "source_file_count": 0,
+      "written_occurrence_count": 0,
+      "practical_occurrence_count": 0,
+      "mixed_occurrence_count": 0,
+      "course_ise_occurrence_count": 0,
+      "course_isie_occurrence_count": 0,
+      "latest_year": null,
+      "recent": false,
+      "source_occurrences": []
+    },
+    {
+      "concept": "CIA 3요소",
+      "source_concept": "CIA triad",
+      "aliases": [
+        "CIA triad",
+        "CIA 3요소",
+        "Confidentiality Integrity Availability",
+        "기밀성 무결성 가용성"
+      ],
+      "subject_code": "SECURITY_FOUNDATION",
+      "occurrence_count": 0,
+      "source_file_count": 0,
+      "written_occurrence_count": 0,
+      "practical_occurrence_count": 0,
+      "mixed_occurrence_count": 0,
+      "course_ise_occurrence_count": 0,
+      "course_isie_occurrence_count": 0,
+      "latest_year": null,
+      "recent": false,
+      "source_occurrences": []
+    },
+    {
+      "concept": "Windows 보안",
+      "source_concept": "Windows security",
+      "aliases": [
+        "Windows security",
+        "Windows 보안",
+        "윈도우 보안"
+      ],
+      "subject_code": "SYSTEM_SECURITY",
+      "occurrence_count": 0,
+      "source_file_count": 0,
+      "written_occurrence_count": 0,
+      "practical_occurrence_count": 0,
+      "mixed_occurrence_count": 0,
+      "course_ise_occurrence_count": 0,
+      "course_isie_occurrence_count": 0,
+      "latest_year": null,
+      "recent": false,
+      "source_occurrences": []
+    },
+    {
+      "concept": "Linux 보안",
+      "source_concept": "Linux security",
+      "aliases": [
+        "Linux security",
+        "Linux 보안",
+        "리눅스 보안"
+      ],
+      "subject_code": "SYSTEM_SECURITY",
+      "occurrence_count": 0,
+      "source_file_count": 0,
+      "written_occurrence_count": 0,
+      "practical_occurrence_count": 0,
+      "mixed_occurrence_count": 0,
+      "course_ise_occurrence_count": 0,
+      "course_isie_occurrence_count": 0,
+      "latest_year": null,
+      "recent": false,
+      "source_occurrences": []
+    },
+    {
+      "concept": "가상화 및 클라우드 보안",
+      "source_concept": "Virtualization and cloud security",
+      "aliases": [
+        "Virtualization and cloud security",
+        "가상화 및 클라우드 보안",
+        "Virtualization Security",
+        "Cloud Security"
+      ],
+      "subject_code": "SYSTEM_SECURITY",
+      "occurrence_count": 0,
+      "source_file_count": 0,
+      "written_occurrence_count": 0,
+      "practical_occurrence_count": 0,
+      "mixed_occurrence_count": 0,
+      "course_ise_occurrence_count": 0,
+      "course_isie_occurrence_count": 0,
+      "latest_year": null,
+      "recent": false,
+      "source_occurrences": []
+    },
+    {
+      "concept": "웹 및 API 보안",
+      "source_concept": "Web and API security",
+      "aliases": [
+        "Web and API security",
+        "웹 및 API 보안",
+        "Web Security",
+        "API Security"
+      ],
+      "subject_code": "APPLICATION_SECURITY",
+      "occurrence_count": 0,
+      "source_file_count": 0,
+      "written_occurrence_count": 0,
+      "practical_occurrence_count": 0,
+      "mixed_occurrence_count": 0,
+      "course_ise_occurrence_count": 0,
+      "course_isie_occurrence_count": 0,
+      "latest_year": null,
+      "recent": false,
+      "source_occurrences": []
+    }
+  ]
+}

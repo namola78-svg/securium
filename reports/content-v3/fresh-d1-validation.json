@@ -1,0 +1,37 @@
+{
+  "generatedAt": "2026-08-11T04:00:38.923Z",
+  "status": "PASS",
+  "isolatedPersistPath": "TEMPORARY_REMOVED",
+  "steps": [
+    {
+      "name": "migrations",
+      "exitCode": 0,
+      "durationMs": 8413
+    },
+    {
+      "name": "base-seed",
+      "exitCode": 0,
+      "durationMs": 1712
+    },
+    {
+      "name": "official-security-curriculum",
+      "exitCode": 0,
+      "durationMs": 1319
+    },
+    {
+      "name": "v2-adapter",
+      "exitCode": 0,
+      "durationMs": 7537
+    },
+    {
+      "name": "v3-intelligence",
+      "exitCode": 0,
+      "durationMs": 12403
+    },
+    {
+      "name": "v3-idempotency",
+      "exitCode": 0,
+      "durationMs": 12437
+    }
+  ]
+}

@@ -1,0 +1,776 @@
+{
+  "generatedAt": "2026-08-11T04:34:18.948Z",
+  "policy": "ALL_AUTOMATIC_GATES_MUST_PASS_BEFORE_DB_INSERT",
+  "summary": {
+    "reviewed": 27,
+    "passed": 27,
+    "failed": 0,
+    "written": 18,
+    "practical": 9
+  },
+  "questions": [
+    {
+      "question_id": "question-v3-course-ise-written-system-compare",
+      "target_course": "course-ise",
+      "written_or_practical": "WRITTEN",
+      "question_type": "SINGLE_CHOICE",
+      "validation_status": "PASS",
+      "checks": {
+        "target_course": true,
+        "subject_course_match": true,
+        "topic_subject_match": true,
+        "track_valid": true,
+        "concept_linked": true,
+        "explanation_substantive": true,
+        "provenance_present": true,
+        "deterministic_identity": true,
+        "written_answer_valid": true,
+        "distractor_rationale_present": true,
+        "practical_scoring_present": true
+      }
+    },
+    {
+      "question_id": "question-v3-course-ise-written-system-scenario",
+      "target_course": "course-ise",
+      "written_or_practical": "WRITTEN",
+      "question_type": "SINGLE_CHOICE",
+      "validation_status": "PASS",
+      "checks": {
+        "target_course": true,
+        "subject_course_match": true,
+        "topic_subject_match": true,
+        "track_valid": true,
+        "concept_linked": true,
+        "explanation_substantive": true,
+        "provenance_present": true,
+        "deterministic_identity": true,
+        "written_answer_valid": true,
+        "distractor_rationale_present": true,
+        "practical_scoring_present": true
+      }
+    },
+    {
+      "question_id": "question-v3-course-ise-written-network-compare",
+      "target_course": "course-ise",
+      "written_or_practical": "WRITTEN",
+      "question_type": "SINGLE_CHOICE",
+      "validation_status": "PASS",
+      "checks": {
+        "target_course": true,
+        "subject_course_match": true,
+        "topic_subject_match": true,
+        "track_valid": true,
+        "concept_linked": true,
+        "explanation_substantive": true,
+        "provenance_present": true,
+        "deterministic_identity": true,
+        "written_answer_valid": true,
+        "distractor_rationale_present": true,
+        "practical_scoring_present": true
+      }
+    },
+    {
+      "question_id": "question-v3-course-ise-written-network-scenario",
+      "target_course": "course-ise",
+      "written_or_practical": "WRITTEN",
+      "question_type": "SINGLE_CHOICE",
+      "validation_status": "PASS",
+      "checks": {
+        "target_course": true,
+        "subject_course_match": true,
+        "topic_subject_match": true,
+        "track_valid": true,
+        "concept_linked": true,
+        "explanation_substantive": true,
+        "provenance_present": true,
+        "deterministic_identity": true,
+        "written_answer_valid": true,
+        "distractor_rationale_present": true,
+        "practical_scoring_present": true
+      }
+    },
+    {
+      "question_id": "question-v3-course-ise-written-application-compare",
+      "target_course": "course-ise",
+      "written_or_practical": "WRITTEN",
+      "question_type": "SINGLE_CHOICE",
+      "validation_status": "PASS",
+      "checks": {
+        "target_course": true,
+        "subject_course_match": true,
+        "topic_subject_match": true,
+        "track_valid": true,
+        "concept_linked": true,
+        "explanation_substantive": true,
+        "provenance_present": true,
+        "deterministic_identity": true,
+        "written_answer_valid": true,
+        "distractor_rationale_present": true,
+        "practical_scoring_present": true
+      }
+    },
+    {
+      "question_id": "question-v3-course-ise-written-application-scenario",
+      "target_course": "course-ise",
+      "written_or_practical": "WRITTEN",
+      "question_type": "SINGLE_CHOICE",
+      "validation_status": "PASS",
+      "checks": {
+        "target_course": true,
+        "subject_course_match": true,
+        "topic_subject_match": true,
+        "track_valid": true,
+        "concept_linked": true,
+        "explanation_substantive": true,
+        "provenance_present": true,
+        "deterministic_identity": true,
+        "written_answer_valid": true,
+        "distractor_rationale_present": true,
+        "practical_scoring_present": true
+      }
+    },
+    {
+      "question_id": "question-v3-course-ise-written-foundation-compare",
+      "target_course": "course-ise",
+      "written_or_practical": "WRITTEN",
+      "question_type": "SINGLE_CHOICE",
+      "validation_status": "PASS",
+      "checks": {
+        "target_course": true,
+        "subject_course_match": true,
+        "topic_subject_match": true,
+        "track_valid": true,
+        "concept_linked": true,
+        "explanation_substantive": true,
+        "provenance_present": true,
+        "deterministic_identity": true,
+        "written_answer_valid": true,
+        "distractor_rationale_present": true,
+        "practical_scoring_present": true
+      }
+    },
+    {
+      "question_id": "question-v3-course-ise-written-foundation-scenario",
+      "target_course": "course-ise",
+      "written_or_practical": "WRITTEN",
+      "question_type": "SINGLE_CHOICE",
+      "validation_status": "PASS",
+      "checks": {
+        "target_course": true,
+        "subject_course_match": true,
+        "topic_subject_match": true,
+        "track_valid": true,
+        "concept_linked": true,
+        "explanation_substantive": true,
+        "provenance_present": true,
+        "deterministic_identity": true,
+        "written_answer_valid": true,
+        "distractor_rationale_present": true,
+        "practical_scoring_present": true
+      }
+    },
+    {
+      "question_id": "question-v3-course-ise-written-law-compare",
+      "target_course": "course-ise",
+      "written_or_practical": "WRITTEN",
+      "question_type": "SINGLE_CHOICE",
+      "validation_status": "PASS",
+      "checks": {
+        "target_course": true,
+        "subject_course_match": true,
+        "topic_subject_match": true,
+        "track_valid": true,
+        "concept_linked": true,
+        "explanation_substantive": true,
+        "provenance_present": true,
+        "deterministic_identity": true,
+        "written_answer_valid": true,
+        "distractor_rationale_present": true,
+        "practical_scoring_present": true
+      }
+    },
+    {
+      "question_id": "question-v3-course-ise-written-law-scenario",
+      "target_course": "course-ise",
+      "written_or_practical": "WRITTEN",
+      "question_type": "SINGLE_CHOICE",
+      "validation_status": "PASS",
+      "checks": {
+        "target_course": true,
+        "subject_course_match": true,
+        "topic_subject_match": true,
+        "track_valid": true,
+        "concept_linked": true,
+        "explanation_substantive": true,
+        "provenance_present": true,
+        "deterministic_identity": true,
+        "written_answer_valid": true,
+        "distractor_rationale_present": true,
+        "practical_scoring_present": true
+      }
+    },
+    {
+      "question_id": "question-v3-course-isie-written-system-compare",
+      "target_course": "course-isie",
+      "written_or_practical": "WRITTEN",
+      "question_type": "SINGLE_CHOICE",
+      "validation_status": "PASS",
+      "checks": {
+        "target_course": true,
+        "subject_course_match": true,
+        "topic_subject_match": true,
+        "track_valid": true,
+        "concept_linked": true,
+        "explanation_substantive": true,
+        "provenance_present": true,
+        "deterministic_identity": true,
+        "written_answer_valid": true,
+        "distractor_rationale_present": true,
+        "practical_scoring_present": true
+      }
+    },
+    {
+      "question_id": "question-v3-course-isie-written-system-scenario",
+      "target_course": "course-isie",
+      "written_or_practical": "WRITTEN",
+      "question_type": "SINGLE_CHOICE",
+      "validation_status": "PASS",
+      "checks": {
+        "target_course": true,
+        "subject_course_match": true,
+        "topic_subject_match": true,
+        "track_valid": true,
+        "concept_linked": true,
+        "explanation_substantive": true,
+        "provenance_present": true,
+        "deterministic_identity": true,
+        "written_answer_valid": true,
+        "distractor_rationale_present": true,
+        "practical_scoring_present": true
+      }
+    },
+    {
+      "question_id": "question-v3-course-isie-written-network-compare",
+      "target_course": "course-isie",
+      "written_or_practical": "WRITTEN",
+      "question_type": "SINGLE_CHOICE",
+      "validation_status": "PASS",
+      "checks": {
+        "target_course": true,
+        "subject_course_match": true,
+        "topic_subject_match": true,
+        "track_valid": true,
+        "concept_linked": true,
+        "explanation_substantive": true,
+        "provenance_present": true,
+        "deterministic_identity": true,
+        "written_answer_valid": true,
+        "distractor_rationale_present": true,
+        "practical_scoring_present": true
+      }
+    },
+    {
+      "question_id": "question-v3-course-isie-written-network-scenario",
+      "target_course": "course-isie",
+      "written_or_practical": "WRITTEN",
+      "question_type": "SINGLE_CHOICE",
+      "validation_status": "PASS",
+      "checks": {
+        "target_course": true,
+        "subject_course_match": true,
+        "topic_subject_match": true,
+        "track_valid": true,
+        "concept_linked": true,
+        "explanation_substantive": true,
+        "provenance_present": true,
+        "deterministic_identity": true,
+        "written_answer_valid": true,
+        "distractor_rationale_present": true,
+        "practical_scoring_present": true
+      }
+    },
+    {
+      "question_id": "question-v3-course-isie-written-application-compare",
+      "target_course": "course-isie",
+      "written_or_practical": "WRITTEN",
+      "question_type": "SINGLE_CHOICE",
+      "validation_status": "PASS",
+      "checks": {
+        "target_course": true,
+        "subject_course_match": true,
+        "topic_subject_match": true,
+        "track_valid": true,
+        "concept_linked": true,
+        "explanation_substantive": true,
+        "provenance_present": true,
+        "deterministic_identity": true,
+        "written_answer_valid": true,
+        "distractor_rationale_present": true,
+        "practical_scoring_present": true
+      }
+    },
+    {
+      "question_id": "question-v3-course-isie-written-application-scenario",
+      "target_course": "course-isie",
+      "written_or_practical": "WRITTEN",
+      "question_type": "SINGLE_CHOICE",
+      "validation_status": "PASS",
+      "checks": {
+        "target_course": true,
+        "subject_course_match": true,
+        "topic_subject_match": true,
+        "track_valid": true,
+        "concept_linked": true,
+        "explanation_substantive": true,
+        "provenance_present": true,
+        "deterministic_identity": true,
+        "written_answer_valid": true,
+        "distractor_rationale_present": true,
+        "practical_scoring_present": true
+      }
+    },
+    {
+      "question_id": "question-v3-course-isie-written-foundation-compare",
+      "target_course": "course-isie",
+      "written_or_practical": "WRITTEN",
+      "question_type": "SINGLE_CHOICE",
+      "validation_status": "PASS",
+      "checks": {
+        "target_course": true,
+        "subject_course_match": true,
+        "topic_subject_match": true,
+        "track_valid": true,
+        "concept_linked": true,
+        "explanation_substantive": true,
+        "provenance_present": true,
+        "deterministic_identity": true,
+        "written_answer_valid": true,
+        "distractor_rationale_present": true,
+        "practical_scoring_present": true
+      }
+    },
+    {
+      "question_id": "question-v3-course-isie-written-foundation-scenario",
+      "target_course": "course-isie",
+      "written_or_practical": "WRITTEN",
+      "question_type": "SINGLE_CHOICE",
+      "validation_status": "PASS",
+      "checks": {
+        "target_course": true,
+        "subject_course_match": true,
+        "topic_subject_match": true,
+        "track_valid": true,
+        "concept_linked": true,
+        "explanation_substantive": true,
+        "provenance_present": true,
+        "deterministic_identity": true,
+        "written_answer_valid": true,
+        "distractor_rationale_present": true,
+        "practical_scoring_present": true
+      }
+    },
+    {
+      "question_id": "question-v3-course-ise-practical-architecture-analysis",
+      "target_course": "course-ise",
+      "written_or_practical": "PRACTICAL",
+      "question_type": "CASE_ANALYSIS",
+      "validation_status": "PASS",
+      "checks": {
+        "target_course": true,
+        "subject_course_match": true,
+        "topic_subject_match": true,
+        "track_valid": true,
+        "concept_linked": true,
+        "explanation_substantive": true,
+        "provenance_present": true,
+        "deterministic_identity": true,
+        "written_answer_valid": true,
+        "distractor_rationale_present": true,
+        "practical_scoring_present": true
+      }
+    },
+    {
+      "question_id": "question-v3-course-ise-practical-code-remediation",
+      "target_course": "course-ise",
+      "written_or_practical": "PRACTICAL",
+      "question_type": "CODE_ANALYSIS",
+      "validation_status": "PASS",
+      "checks": {
+        "target_course": true,
+        "subject_course_match": true,
+        "topic_subject_match": true,
+        "track_valid": true,
+        "concept_linked": true,
+        "explanation_substantive": true,
+        "provenance_present": true,
+        "deterministic_identity": true,
+        "written_answer_valid": true,
+        "distractor_rationale_present": true,
+        "practical_scoring_present": true
+      }
+    },
+    {
+      "question_id": "question-v3-course-ise-practical-incident-timeline",
+      "target_course": "course-ise",
+      "written_or_practical": "PRACTICAL",
+      "question_type": "LOG_ANALYSIS",
+      "validation_status": "PASS",
+      "checks": {
+        "target_course": true,
+        "subject_course_match": true,
+        "topic_subject_match": true,
+        "track_valid": true,
+        "concept_linked": true,
+        "explanation_substantive": true,
+        "provenance_present": true,
+        "deterministic_identity": true,
+        "written_answer_valid": true,
+        "distractor_rationale_present": true,
+        "practical_scoring_present": true
+      }
+    },
+    {
+      "question_id": "question-v3-course-ise-practical-risk-treatment",
+      "target_course": "course-ise",
+      "written_or_practical": "PRACTICAL",
+      "question_type": "CASE_ANALYSIS",
+      "validation_status": "PASS",
+      "checks": {
+        "target_course": true,
+        "subject_course_match": true,
+        "topic_subject_match": true,
+        "track_valid": true,
+        "concept_linked": true,
+        "explanation_substantive": true,
+        "provenance_present": true,
+        "deterministic_identity": true,
+        "written_answer_valid": true,
+        "distractor_rationale_present": true,
+        "practical_scoring_present": true
+      }
+    },
+    {
+      "question_id": "question-v3-course-ise-practical-ransomware-operations",
+      "target_course": "course-ise",
+      "written_or_practical": "PRACTICAL",
+      "question_type": "CASE_ANALYSIS",
+      "validation_status": "PASS",
+      "checks": {
+        "target_course": true,
+        "subject_course_match": true,
+        "topic_subject_match": true,
+        "track_valid": true,
+        "concept_linked": true,
+        "explanation_substantive": true,
+        "provenance_present": true,
+        "deterministic_identity": true,
+        "written_answer_valid": true,
+        "distractor_rationale_present": true,
+        "practical_scoring_present": true
+      }
+    },
+    {
+      "question_id": "question-v3-course-isie-practical-protocol-check",
+      "target_course": "course-isie",
+      "written_or_practical": "PRACTICAL",
+      "question_type": "CASE_ANALYSIS",
+      "validation_status": "PASS",
+      "checks": {
+        "target_course": true,
+        "subject_course_match": true,
+        "topic_subject_match": true,
+        "track_valid": true,
+        "concept_linked": true,
+        "explanation_substantive": true,
+        "provenance_present": true,
+        "deterministic_identity": true,
+        "written_answer_valid": true,
+        "distractor_rationale_present": true,
+        "practical_scoring_present": true
+      }
+    },
+    {
+      "question_id": "question-v3-course-isie-practical-firewall-remediation",
+      "target_course": "course-isie",
+      "written_or_practical": "PRACTICAL",
+      "question_type": "CASE_ANALYSIS",
+      "validation_status": "PASS",
+      "checks": {
+        "target_course": true,
+        "subject_course_match": true,
+        "topic_subject_match": true,
+        "track_valid": true,
+        "concept_linked": true,
+        "explanation_substantive": true,
+        "provenance_present": true,
+        "deterministic_identity": true,
+        "written_answer_valid": true,
+        "distractor_rationale_present": true,
+        "practical_scoring_present": true
+      }
+    },
+    {
+      "question_id": "question-v3-course-isie-practical-login-log-response",
+      "target_course": "course-isie",
+      "written_or_practical": "PRACTICAL",
+      "question_type": "LOG_ANALYSIS",
+      "validation_status": "PASS",
+      "checks": {
+        "target_course": true,
+        "subject_course_match": true,
+        "topic_subject_match": true,
+        "track_valid": true,
+        "concept_linked": true,
+        "explanation_substantive": true,
+        "provenance_present": true,
+        "deterministic_identity": true,
+        "written_answer_valid": true,
+        "distractor_rationale_present": true,
+        "practical_scoring_present": true
+      }
+    },
+    {
+      "question_id": "question-v3-course-isie-practical-mail-edr-basics",
+      "target_course": "course-isie",
+      "written_or_practical": "PRACTICAL",
+      "question_type": "CASE_ANALYSIS",
+      "validation_status": "PASS",
+      "checks": {
+        "target_course": true,
+        "subject_course_match": true,
+        "topic_subject_match": true,
+        "track_valid": true,
+        "concept_linked": true,
+        "explanation_substantive": true,
+        "provenance_present": true,
+        "deterministic_identity": true,
+        "written_answer_valid": true,
+        "distractor_rationale_present": true,
+        "practical_scoring_present": true
+      }
+    }
+  ],
+  "contentQuality": {
+    "reviewed": 18,
+    "passed": 18,
+    "failed": 0,
+    "contents": [
+      {
+        "content_id": "content-v3-course-ise-written-privilege-audit-evidence",
+        "validation_status": "PASS",
+        "checks": {
+          "deterministic_identity": true,
+          "substantive_length": true,
+          "required_sections": true,
+          "concepts_linked": true,
+          "provenance_present": true,
+          "no_placeholder": true
+        }
+      },
+      {
+        "content_id": "content-v3-course-ise-written-protocol-boundary-control",
+        "validation_status": "PASS",
+        "checks": {
+          "deterministic_identity": true,
+          "substantive_length": true,
+          "required_sections": true,
+          "concepts_linked": true,
+          "provenance_present": true,
+          "no_placeholder": true
+        }
+      },
+      {
+        "content_id": "content-v3-course-ise-written-web-api-input-session",
+        "validation_status": "PASS",
+        "checks": {
+          "deterministic_identity": true,
+          "substantive_length": true,
+          "required_sections": true,
+          "concepts_linked": true,
+          "provenance_present": true,
+          "no_placeholder": true
+        }
+      },
+      {
+        "content_id": "content-v3-course-ise-written-crypto-auth-access",
+        "validation_status": "PASS",
+        "checks": {
+          "deterministic_identity": true,
+          "substantive_length": true,
+          "required_sections": true,
+          "concepts_linked": true,
+          "provenance_present": true,
+          "no_placeholder": true
+        }
+      },
+      {
+        "content_id": "content-v3-course-ise-written-risk-governance-continuity",
+        "validation_status": "PASS",
+        "checks": {
+          "deterministic_identity": true,
+          "substantive_length": true,
+          "required_sections": true,
+          "concepts_linked": true,
+          "provenance_present": true,
+          "no_placeholder": true
+        }
+      },
+      {
+        "content_id": "content-v3-course-isie-written-account-permission-log-basics",
+        "validation_status": "PASS",
+        "checks": {
+          "deterministic_identity": true,
+          "substantive_length": true,
+          "required_sections": true,
+          "concepts_linked": true,
+          "provenance_present": true,
+          "no_placeholder": true
+        }
+      },
+      {
+        "content_id": "content-v3-course-isie-written-basic-attacks-devices",
+        "validation_status": "PASS",
+        "checks": {
+          "deterministic_identity": true,
+          "substantive_length": true,
+          "required_sections": true,
+          "concepts_linked": true,
+          "provenance_present": true,
+          "no_placeholder": true
+        }
+      },
+      {
+        "content_id": "content-v3-course-isie-written-service-input-basics",
+        "validation_status": "PASS",
+        "checks": {
+          "deterministic_identity": true,
+          "substantive_length": true,
+          "required_sections": true,
+          "concepts_linked": true,
+          "provenance_present": true,
+          "no_placeholder": true
+        }
+      },
+      {
+        "content_id": "content-v3-course-isie-written-crypto-auth-hash-basics",
+        "validation_status": "PASS",
+        "checks": {
+          "deterministic_identity": true,
+          "substantive_length": true,
+          "required_sections": true,
+          "concepts_linked": true,
+          "provenance_present": true,
+          "no_placeholder": true
+        }
+      },
+      {
+        "content_id": "content-v3-course-ise-practical-architecture-protocol-analysis",
+        "validation_status": "PASS",
+        "checks": {
+          "deterministic_identity": true,
+          "substantive_length": true,
+          "required_sections": true,
+          "concepts_linked": true,
+          "provenance_present": true,
+          "no_placeholder": true
+        }
+      },
+      {
+        "content_id": "content-v3-course-ise-practical-code-config-remediation",
+        "validation_status": "PASS",
+        "checks": {
+          "deterministic_identity": true,
+          "substantive_length": true,
+          "required_sections": true,
+          "concepts_linked": true,
+          "provenance_present": true,
+          "no_placeholder": true
+        }
+      },
+      {
+        "content_id": "content-v3-course-ise-practical-timeline-incident-response",
+        "validation_status": "PASS",
+        "checks": {
+          "deterministic_identity": true,
+          "substantive_length": true,
+          "required_sections": true,
+          "concepts_linked": true,
+          "provenance_present": true,
+          "no_placeholder": true
+        }
+      },
+      {
+        "content_id": "content-v3-course-ise-practical-risk-treatment-plan",
+        "validation_status": "PASS",
+        "checks": {
+          "deterministic_identity": true,
+          "substantive_length": true,
+          "required_sections": true,
+          "concepts_linked": true,
+          "provenance_present": true,
+          "no_placeholder": true
+        }
+      },
+      {
+        "content_id": "content-v3-course-ise-practical-modern-threat-operations",
+        "validation_status": "PASS",
+        "checks": {
+          "deterministic_identity": true,
+          "substantive_length": true,
+          "required_sections": true,
+          "concepts_linked": true,
+          "provenance_present": true,
+          "no_placeholder": true
+        }
+      },
+      {
+        "content_id": "content-v3-course-isie-practical-basic-system-protocol-check",
+        "validation_status": "PASS",
+        "checks": {
+          "deterministic_identity": true,
+          "substantive_length": true,
+          "required_sections": true,
+          "concepts_linked": true,
+          "provenance_present": true,
+          "no_placeholder": true
+        }
+      },
+      {
+        "content_id": "content-v3-course-isie-practical-basic-config-remediation",
+        "validation_status": "PASS",
+        "checks": {
+          "deterministic_identity": true,
+          "substantive_length": true,
+          "required_sections": true,
+          "concepts_linked": true,
+          "provenance_present": true,
+          "no_placeholder": true
+        }
+      },
+      {
+        "content_id": "content-v3-course-isie-practical-basic-log-first-response",
+        "validation_status": "PASS",
+        "checks": {
+          "deterministic_identity": true,
+          "substantive_length": true,
+          "required_sections": true,
+          "concepts_linked": true,
+          "provenance_present": true,
+          "no_placeholder": true
+        }
+      },
+      {
+        "content_id": "content-v3-course-isie-practical-modern-security-basics",
+        "validation_status": "PASS",
+        "checks": {
+          "deterministic_identity": true,
+          "substantive_length": true,
+          "required_sections": true,
+          "concepts_linked": true,
+          "provenance_present": true,
+          "no_placeholder": true
+        }
+      }
+    ]
+  }
+}

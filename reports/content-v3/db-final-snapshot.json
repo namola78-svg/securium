@@ -1,0 +1,107 @@
+{
+  "generatedAt": "2026-08-11T05:12:21.568Z",
+  "courses": [
+    {
+      "course_id": "course-ise",
+      "subject_count": 5,
+      "topic_count": 5,
+      "learning_unit_count": 5,
+      "lesson_count": 5,
+      "content_count": 296,
+      "question_count": 145,
+      "written_question_count": 128,
+      "practical_question_count": 17,
+      "new_content_count": 10,
+      "new_question_count": 15,
+      "new_written_question_count": 10,
+      "new_practical_question_count": 5,
+      "new_written_theory_count": 5,
+      "new_practical_theory_count": 5,
+      "ontology_edge_count": 270,
+      "v3_provenance_edges": 112,
+      "user_history_count": 231,
+      "is_sample_subject_count": 0,
+      "placeholder_string_count": 0
+    },
+    {
+      "course_id": "course-isie",
+      "subject_count": 4,
+      "topic_count": 4,
+      "learning_unit_count": 4,
+      "lesson_count": 4,
+      "content_count": 85,
+      "question_count": 97,
+      "written_question_count": 93,
+      "practical_question_count": 4,
+      "new_content_count": 8,
+      "new_question_count": 12,
+      "new_written_question_count": 8,
+      "new_practical_question_count": 4,
+      "new_written_theory_count": 4,
+      "new_practical_theory_count": 4,
+      "ontology_edge_count": 82,
+      "v3_provenance_edges": 82,
+      "user_history_count": 229,
+      "is_sample_subject_count": 0,
+      "placeholder_string_count": 0
+    }
+  ],
+  "integrity": {
+    "orphan_questions": 0,
+    "orphan_contents": 0,
+    "course_subject_mismatch": 0,
+    "subject_topic_mismatch": 0,
+    "content_course_mismatch": 0,
+    "broken_concept_relation": 0,
+    "missing_provenance": 0,
+    "invalid_answer": 0
+  },
+  "protectedCourses": [
+    {
+      "course_id": "course-cppg",
+      "subjects": 3,
+      "topics": 3,
+      "learning_units": 3,
+      "lessons": 3,
+      "contents": 6,
+      "questions": 36
+    },
+    {
+      "course_id": "course-isms-p",
+      "subjects": 3,
+      "topics": 3,
+      "learning_units": 360,
+      "lessons": 360,
+      "contents": 88,
+      "questions": 394
+    },
+    {
+      "course_id": "course-isrm",
+      "subjects": 3,
+      "topics": 3,
+      "learning_units": 3,
+      "lessons": 3,
+      "contents": 4,
+      "questions": 30
+    },
+    {
+      "course_id": "course-pia",
+      "subjects": 3,
+      "topics": 3,
+      "learning_units": 3,
+      "lessons": 3,
+      "contents": 7,
+      "questions": 40
+    },
+    {
+      "course_id": "course-sw-vuln",
+      "subjects": 3,
+      "topics": 3,
+      "learning_units": 3,
+      "lessons": 3,
+      "contents": 5,
+      "questions": 45
+    }
+  ],
+  "foreignKeyViolations": []
+}

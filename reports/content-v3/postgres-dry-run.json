@@ -1,0 +1,59 @@
+{
+  "generatedAt": "2026-08-11T05:00:36.131Z",
+  "status": "PASS_STATIC_DRY_RUN",
+  "transactionApplyAttempted": false,
+  "productionWriteAttempted": false,
+  "connectionStatus": "NOT_USED_STATIC_ONLY",
+  "sqlSha256": "4767aa3077e1559f5f08f8cc70f316d4cec6ec96b46a9da487a268b3b8490080",
+  "sqlBytes": 385119,
+  "statementCount": 469,
+  "plan": {
+    "status": "SECURITY_CONTENT_INTELLIGENCE_V3_PLAN_OK",
+    "targetCourseIds": [
+      "course-ise",
+      "course-isie"
+    ],
+    "readOnlySource": true,
+    "contentCount": 18,
+    "questionCount": 27,
+    "writtenQuestionCount": 18,
+    "practicalQuestionCount": 9,
+    "courseIseContentCount": 10,
+    "courseIsieContentCount": 8,
+    "ontologyConceptsReused": 32,
+    "ontologyEdges": 194
+  },
+  "checks": {
+    "transaction_wrapped": true,
+    "target_courses_only": true,
+    "no_global_update": true,
+    "no_global_delete": true,
+    "deterministic_question_scope": true,
+    "canonical_concepts_not_mutated": true,
+    "user_tables_not_mutated": true
+  },
+  "connectedDryRunPolicy": {
+    "action": "dry-run:postgres-connected",
+    "explicitCliConfirmationRequired": true,
+    "explicitEnvironmentConfirmationRequired": true,
+    "alwaysRollback": true,
+    "protectedCourseSnapshotComparedAfterRollback": true,
+    "userDataSnapshotComparedAfterRollback": true,
+    "canonicalBootstrapAndIntelligenceInOneTransaction": true
+  },
+  "productionApplyPolicy": {
+    "action": "apply:postgres",
+    "explicitCliConfirmationRequired": true,
+    "explicitEnvironmentConfirmationRequired": true,
+    "exactSqlSha256Required": true,
+    "explicitExistingActorIdRequired": true,
+    "matchingConnectedDryRunRequired": true,
+    "connectedDryRunMaximumAgeHours": 24,
+    "writeConnectionVariables": [
+      "POSTGRES_MIGRATION_URL",
+      "DIRECT_URL",
+      "POSTGRES_SEED_URL"
+    ]
+  },
+  "note": "PostgreSQL and D1 are intentionally not synchronized. A connected transaction dry-run remains required before any separately approved production apply."
+}
