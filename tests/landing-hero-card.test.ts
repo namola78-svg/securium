@@ -1,47 +1,116 @@
-﻿import assert from "node:assert/strict";
+import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const source = () => readFileSync("app/page.tsx", "utf8");
-const expectIncludes = (value: string, expected: string[]) => {
-  for (const item of expected) assert.ok(value.includes(item), `missing: ${item}`);
-};
+const styles = () =>
+  readFileSync("components/v2/public-landing.module.css", "utf8");
+const buttonSource = () =>
+  readFileSync("components/v2/v2-button.tsx", "utf8");
 
-test("public landing hero card explains knowledge-linked AI outcomes", () => {
+function expectIncludes(value: string, expected: string[]) {
+  for (const item of expected) {
+    assert.ok(value.includes(item), `missing: ${item}`);
+  }
+}
+
+test("public landing explicitly opts into the isolated V2 foundation", () => {
   const value = source();
-  const hero = value.slice(value.indexOf('className="hero-panel"'), value.indexOf('className="landing-learning-chain"'));
-  expectIncludes(hero, ["공식 기준 기반 학습 흐름", "기준 · 이론 · 문제 · 복습", "검증 가능한 설명", "AI 보조 설명 예시", "출처와 참고 범위를 표시", "오답과 취약 영역 연결"]);
+  expectIncludes(value, [
+    "V2Foundation",
+    "PublicLandingHeader",
+    'data-public-v2=""',
+    "V2Button",
+  ]);
+  assert.equal(value.includes("ActionButton"), false);
 });
 
-test("public landing ends with product value CTA instead of course count summary", () => {
-  const value = source();
-  const cta = value.slice(value.indexOf('className="landing-final-cta"'));
-  expectIncludes(cta, ["SECURIUM 시작하기", "공식 기준으로 배우고, 기록으로 복습하세요", "무료로 학습 시작", "과정 먼저 둘러보기"]);
-  assert.equal(value.includes("landing-course-summary"), false);
+test("interactive V2 link buttons stay inside a client component boundary", () => {
+  const value = buttonSource();
+  assert.match(value, /^"use client";/);
+  assert.match(value, /onClick={handleClick}/);
 });
 
-test("public landing course spotlight presents learner goal comparison facts", () => {
+test("public landing hero presents an educational product promise", () => {
   const value = source();
-  const spotlight = value.slice(value.indexOf('className="landing-course-spotlight"'));
-  expectIncludes(spotlight, ["목표별 학습 경로", "지금 준비할 목표를 선택하세요", "실제 공개된 과목·주제·문제 수", "추천 대상", "난이도", "학습 구성", "과정 상세 보기"]);
-  assert.equal(spotlight.includes("COURSE CATALOG"), false);
+  expectIncludes(value, [
+    "정보보호·개인정보보호 자격증 전문 학습 플랫폼",
+    "보안 전문가로 가는",
+    "가장 확실한 학습 경로",
+    "공식 기준에 맞춘 커리큘럼과 문제풀이, 오답 복습",
+    "무료로 시작하기",
+    "과정 둘러보기",
+  ]);
 });
 
-test("public landing dashboard preview emphasizes next learner actions", () => {
+test("product preview is clearly identified as non-account example data", () => {
   const value = source();
-  const preview = value.slice(value.indexOf("landing-dashboard-preview"), value.indexOf('className="landing-course-spotlight"'));
-  expectIncludes(preview, ["로그인하면 오늘 할 일을 먼저 보여줍니다", "이어서 학습, 오늘 문제, 예정 복습, 취약 영역", "지금 할 일", "01 · 이어서 학습", "02 · 복습"]);
-  assert.equal(preview.includes("통계 수를 먼저"), false);
+  const preview = value.slice(
+    value.indexOf("productPreview"),
+    value.indexOf("valueGrid"),
+  );
+  expectIncludes(preview, [
+    "학습 화면 예시",
+    "실제 계정 데이터 아님",
+    "공식 근거",
+    "취약 개념",
+    "AI",
+    "보조 설명",
+  ]);
+  assert.doesNotMatch(preview, /\b(?:45|68|95)%\b|50,000|24\/7/);
 });
 
-test("public landing learning chain presents the SECURIUM knowledge engine", () => {
+test("learning flow connects official scope to review in five concise steps", () => {
   const value = source();
-  const chain = value.slice(value.indexOf('className="section landing-learning-chain"'), value.indexOf('className="section landing-knowledge-platform"'));
-  expectIncludes(chain, ["학습 연결 구조", "공식 기준에서 복습까지 이어집니다", "AI 보조", "핵심 이론", "오답과 취약 영역 다시 학습"]);
+  expectIncludes(value, [
+    "문제를 외우기보다 지식을 연결합니다",
+    "공식 기준",
+    "핵심 이론",
+    "문제풀이",
+    "해설과 AI 보조",
+    "오답과 복습",
+  ]);
 });
 
-test("public landing AI result card shows explainable answer outcomes", () => {
+test("course spotlight uses published catalog facts without learner progress", () => {
   const value = source();
-  const card = value.slice(value.indexOf('className="ai-result-card"'), value.indexOf('className="landing-learning-chain"'));
-  expectIncludes(card, ["답만 제시하지 않고 왜 그런지 확인합니다", "관련 기준과 핵심 개념을 연결", "01 · 질문", "02 · 설명", "03 · 근거", "04 · 다음 행동", "학습용 참고 설명"]);
+  expectIncludes(value, [
+    "listPublishedCoursesCached",
+    "공개 과정",
+    "과목",
+    "주제",
+    "문제",
+    "과정 상세 보기",
+    "catalogFallback",
+  ]);
+  assert.doesNotMatch(value, /학습 중|진행률|합격률|학습자 수/);
+});
+
+test("trust and footer content use evidence language and real routes", () => {
+  const value = source();
+  expectIncludes(value, [
+    "AI보다 먼저, 기준과 근거를 확인합니다",
+    "공식 답안을 AI로 대체하지 않습니다",
+    "검수 상태 확인",
+    "개념과 문제 연결",
+    'href="/courses"',
+    'href="/guide"',
+    'href="/about"',
+    'href="/legal/privacy"',
+    'href="/legal/terms"',
+  ]);
+  assert.equal(value.includes("/community"), false);
+});
+
+test("landing responsive CSS keeps V2 scoped and avoids tiny new type", () => {
+  const css = styles();
+  expectIncludes(css, [
+    "[data-public-v2]",
+    "max-width: 1023px",
+    "max-width: 767px",
+    "max-width: 389px",
+    "min-height: var(--v2-control-min-size)",
+  ]);
+  assert.doesNotMatch(css, /font-size:\s*(?:10|11)px/);
+  assert.doesNotMatch(css, /lime|aqua|linear-gradient|radial-gradient/);
 });

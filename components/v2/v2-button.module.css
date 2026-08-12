@@ -1,0 +1,85 @@
+.button {
+  display: inline-flex;
+  min-height: var(--v2-control-min-size);
+  align-items: center;
+  justify-content: center;
+  gap: var(--v2-space-2);
+  padding: 0.625rem var(--v2-space-4);
+  border: 1px solid transparent;
+  border-radius: var(--v2-radius-control);
+  font-family: var(--v2-font-family-sans);
+  font-size: var(--v2-font-size-label);
+  font-weight: var(--v2-font-weight-semibold);
+  line-height: var(--v2-line-height-label);
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color var(--v2-motion-duration-fast) var(--v2-motion-ease-standard),
+    border-color var(--v2-motion-duration-fast) var(--v2-motion-ease-standard),
+    color var(--v2-motion-duration-fast) var(--v2-motion-ease-standard),
+    transform var(--v2-motion-duration-fast) var(--v2-motion-ease-standard);
+}
+
+.button:focus-visible {
+  outline: var(--v2-focus-width) solid var(--v2-color-focus);
+  outline-offset: var(--v2-focus-offset);
+}
+
+.button:disabled,
+.button[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.primary {
+  background: var(--v2-color-action-primary);
+  color: var(--v2-color-action-primary-text);
+}
+
+.primary:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--v2-color-action-primary-hover);
+}
+
+.secondary {
+  border-color: var(--v2-color-border-strong);
+  background: var(--v2-color-action-secondary);
+  color: var(--v2-color-action-secondary-text);
+}
+
+.secondary:hover:not(:disabled):not([aria-disabled="true"]) {
+  border-color: var(--v2-color-text-muted);
+  background: var(--v2-color-action-secondary-hover);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--v2-color-text-secondary);
+}
+
+.ghost:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--v2-color-action-secondary-hover);
+  color: var(--v2-color-text-primary);
+}
+
+.large {
+  min-height: 3rem;
+  padding-inline: var(--v2-space-5);
+  font-size: var(--v2-font-size-body);
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .button:hover:not(:disabled):not([aria-disabled="true"]) {
+    transform: translateY(-1px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+}

@@ -1,276 +1,63 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import styles from "@/components/v2/mock-exam-v2.module.css";
 
-type ExamQuestion = {
-  id: string;
-  title: string;
-  content: string;
-  type: string;
-  difficulty: string;
-  answerData: string;
-  isCorrect?: boolean | null;
-  earnedScore?: number | null;
-  possibleScore: number;
-  explanation?: string;
-  wrongAnswerExplanation?: string;
-  correctAnswer?: string[];
-  choices: Array<{ id: string; content: string }>;
-};
-
-type ExamAttempt = {
-  id: string;
-  title: string;
-  expiresAt: string;
-  status: string;
-  resultsAvailable: boolean;
-  score: number;
-  correctCount: number;
-  wrongCount: number;
-  unansweredCount: number;
-  analysis?: {
-    bySubject: Array<{ id: string; name: string; total: number; accuracy: number }>;
-    byTopic: Array<{ id: string; name: string; total: number; accuracy: number }>;
-  };
-  questions: ExamQuestion[];
-};
+type ExamQuestion = { id: string; title: string; content: string; type: string; difficulty: string; answerData: string; isCorrect?: boolean | null; earnedScore?: number | null; possibleScore: number; explanation?: string; wrongAnswerExplanation?: string; correctAnswer?: string[]; choices: Array<{ id: string; content: string }> };
+type ExamAttempt = { id: string; title: string; expiresAt: string; status: string; resultsAvailable: boolean; score: number; correctCount: number; wrongCount: number; unansweredCount: number; analysis?: { bySubject: Array<{ id: string; name: string; total: number; accuracy: number }>; byTopic: Array<{ id: string; name: string; total: number; accuracy: number }> }; questions: ExamQuestion[] };
 
 export function MockExamSession({ attempt }: { attempt: ExamAttempt }) {
   const [index, setIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, string[]>>(() =>
-    Object.fromEntries(
-      attempt.questions.map((question) => {
-        try {
-          const value = JSON.parse(question.answerData || '""');
-          return [question.id, Array.isArray(value) ? value : value ? [value] : []];
-        } catch {
-          return [question.id, []];
-        }
-      }),
-    ),
-  );
-  const [remaining, setRemaining] = useState(() =>
-    Math.max(0, Math.floor((new Date(attempt.expiresAt).getTime() - Date.now()) / 1000)),
-  );
+  const [answers, setAnswers] = useState<Record<string, string[]>>(() => Object.fromEntries(attempt.questions.map((question) => { try { const value = JSON.parse(question.answerData || '""'); return [question.id, Array.isArray(value) ? value : value ? [value] : []]; } catch { return [question.id, []]; } })));
+  const [remaining, setRemaining] = useState(() => Math.max(0, Math.floor((new Date(attempt.expiresAt).getTime() - Date.now()) / 1000)));
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const submittingRef = useRef(false);
+  const submitRef = useRef<(auto?: boolean) => Promise<void>>(async () => {});
+  const questionTitleRef = useRef<HTMLHeadingElement>(null);
+  const resultTitleRef = useRef<HTMLHeadingElement>(null);
+  const confirmRef = useRef<HTMLDivElement>(null);
+  const submitTriggerRef = useRef<HTMLButtonElement>(null);
   const submitted = attempt.status !== "IN_PROGRESS";
   const question = attempt.questions[index];
-  const answeredCount = useMemo(
-    () => Object.values(answers).filter((value) => value.length > 0).length,
-    [answers],
+  const answeredCount = useMemo(() => Object.values(answers).filter((value) => value.length > 0).length, [answers]);
+  const unansweredCount = attempt.questions.length - answeredCount;
+  useEffect(() => { submitRef.current = submit; });
+
+  useEffect(() => { if (submitted) return; const timer = window.setInterval(() => setRemaining((value) => Math.max(0, value - 1)), 1000); return () => window.clearInterval(timer); }, [submitted]);
+  useEffect(() => { if (!submitted && remaining === 0) void submitRef.current(true); }, [remaining, submitted]);
+  useEffect(() => { if (submitted) resultTitleRef.current?.focus(); else questionTitleRef.current?.focus(); }, [index, submitted]);
+  useEffect(() => { if (!confirmOpen) return; confirmRef.current?.focus(); const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") { setConfirmOpen(false); submitTriggerRef.current?.focus(); return; } if (event.key !== "Tab") return; const controls = Array.from(confirmRef.current?.querySelectorAll<HTMLElement>("button:not(:disabled), a[href], input:not(:disabled), [tabindex]:not([tabindex='-1'])") ?? []); const first = controls[0], last = controls.at(-1); if (!first || !last) return; if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); } else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); } }; window.addEventListener("keydown", onKey); return () => window.removeEventListener("keydown", onKey); }, [confirmOpen]);
+
+  async function save(next: string[]) { if (submitted || !question) return; setAnswers((current) => ({ ...current, [question.id]: next })); try { const response = await fetch("/api/mock-exams/answer", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ attemptId: attempt.id, questionId: question.id, answer: question.type === "MULTIPLE_CHOICE" ? next : (next[0] ?? "") }) }); setMessage(response.ok ? "답안이 저장되었습니다." : "답안을 저장하지 못했습니다."); } catch { setMessage("네트워크 오류로 답안을 저장하지 못했습니다."); } }
+  async function submit(auto = false) { if (submittingRef.current || submitted) return; submittingRef.current = true; setSubmitting(true); try { const response = await fetch("/api/mock-exams/submit", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ attemptId: attempt.id }) }); if (!response.ok && !auto) { const payload = (await response.json()) as { error?: string }; setMessage(payload.error || "시험을 제출하지 못했습니다. 잠시 후 다시 시도해주세요."); return; } window.location.reload(); } catch { if (!auto) setMessage("네트워크 오류로 시험을 제출하지 못했습니다."); } finally { submittingRef.current = false; setSubmitting(false); } }
+
+  if (!question) return <section className={styles.emptyState} role="status"><h1>시험 문제를 불러오지 못했습니다.</h1><p>시험 구성이 비어 있습니다. 다른 학습을 선택해주세요.</p><Link className={styles.primaryAction} href="/mock-exams">모의고사 목록</Link></section>;
+  const selected = answers[question.id] ?? [];
+  const minutes = String(Math.floor(remaining / 60)).padStart(2, "0"), seconds = String(remaining % 60).padStart(2, "0");
+
+  if (submitted) return (
+    <section className={styles.resultShell} data-mock-exam-result-v2="">
+      <header className={styles.resultHeader}><p className={styles.eyebrow}>모의고사 결과</p><h1 ref={resultTitleRef} tabIndex={-1}>{attempt.title}</h1>{attempt.resultsAvailable ? <><div className={styles.score} aria-label={`총점 ${attempt.score}점`}><strong>{attempt.score}</strong><span>점</span></div><p>응시 결과가 저장되었습니다. 과목별 결과와 틀린 문제를 확인하세요.</p></> : <p>결과 공개 전입니다. 공개 후 점수와 해설을 확인할 수 있습니다.</p>}</header>
+      {attempt.resultsAvailable ? <><dl className={styles.resultMetrics}><div><dt>총점</dt><dd>{attempt.score}점</dd></div><div><dt>정답</dt><dd>{attempt.correctCount}개</dd></div><div><dt>오답</dt><dd>{attempt.wrongCount}개</dd></div><div><dt>미응답</dt><dd>{attempt.unansweredCount}개</dd></div></dl>{attempt.analysis ? <section className={styles.breakdownSection} aria-labelledby="subject-result-title"><ExamBreakdown id="subject-result-title" title="과목별 결과" rows={attempt.analysis.bySubject} /><ExamBreakdown id="topic-result-title" title="주제별 결과" rows={attempt.analysis.byTopic} /></section> : null}<section className={styles.reviewActions} aria-labelledby="wrong-review-title"><div><p className={styles.eyebrow}>다음 학습</p><h2 id="wrong-review-title">틀린 문제를 바로 복습하세요</h2><p>모의고사 오답은 기존 복습 일정에 연결됩니다.</p></div><div><Link className={styles.primaryAction} href="/reviews">오답 복습 시작</Link><Link className={styles.secondaryAction} href="/wrong-notes">오답노트 보기</Link><Link className={styles.secondaryAction} href="/mock-exams">다른 시험 보기</Link></div></section><section className={styles.answerReview} aria-labelledby="answer-review-title"><h2 id="answer-review-title">문항별 결과</h2><ol>{attempt.questions.map((item, itemIndex) => <li key={item.id}><button type="button" className={itemIndex === index ? styles.currentReview : undefined} aria-current={itemIndex === index ? "true" : undefined} onClick={() => setIndex(itemIndex)}><span>{itemIndex + 1}번</span><strong>{item.isCorrect ? "정답" : item.answerData ? "오답" : "미응답"}</strong></button></li>)}</ol><article className={styles.resultExplanation}><p className={styles.eyebrow}>{index + 1}번 문항</p><h3>{question.title}</h3><p>{question.content}</p><div className={question.isCorrect ? styles.correctResult : styles.wrongResult} role="status"><strong>{question.isCorrect ? "정답" : question.answerData ? "오답" : "미응답"}</strong><span>{question.earnedScore ?? 0} / {question.possibleScore}점</span></div>{question.correctAnswer?.length ? <p><strong>정답:</strong> {question.correctAnswer.join(", ")}</p> : null}{question.explanation ? <section><h4>공식 해설</h4><p>{question.explanation}</p></section> : null}{!question.isCorrect && question.wrongAnswerExplanation ? <section><h4>오답 해설</h4><p>{question.wrongAnswerExplanation}</p></section> : null}</article></section></> : null}
+    </section>
   );
 
-  useEffect(() => {
-    if (submitted) return;
-    const timer = window.setInterval(() => setRemaining((value) => Math.max(0, value - 1)), 1000);
-    return () => window.clearInterval(timer);
-  }, [submitted]);
-
-  useEffect(() => {
-    if (!submitted && remaining === 0) void submit(true);
-    // The timer is derived from the server expiration and submits only at zero.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [remaining, submitted]);
-
-  async function save(next: string[]) {
-    if (submitted || !question) return;
-    setAnswers((current) => ({ ...current, [question.id]: next }));
-    try {
-      const response = await fetch("/api/mock-exams/answer", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          attemptId: attempt.id,
-          questionId: question.id,
-          answer: question.type === "MULTIPLE_CHOICE" ? next : (next[0] ?? ""),
-        }),
-      });
-      setMessage(response.ok ? "답안이 저장되었습니다." : "답안을 저장하지 못했습니다.");
-    } catch {
-      setMessage("네트워크 오류로 답안을 저장하지 못했습니다.");
-    }
-  }
-
-  async function submit(auto = false) {
-    if (submittingRef.current || submitted) return;
-    if (!auto && !window.confirm("시험을 제출할까요? 제출 후에는 답안을 변경할 수 없습니다.")) return;
-    submittingRef.current = true;
-    setSubmitting(true);
-    try {
-      const response = await fetch("/api/mock-exams/submit", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ attemptId: attempt.id }),
-      });
-      if (!response.ok && !auto) {
-        const payload = (await response.json()) as { error?: string };
-        setMessage(payload.error || "시험을 제출하지 못했습니다. 잠시 후 다시 시도해주세요.");
-        return;
-      }
-      window.location.reload();
-    } catch {
-      if (!auto) setMessage("네트워크 오류로 시험을 제출하지 못했습니다.");
-    } finally {
-      submittingRef.current = false;
-      setSubmitting(false);
-    }
-  }
-
-  if (!question) {
-    return (
-      <section className="empty-state" role="status">
-        <h1>시험 문제를 불러오지 못했습니다.</h1>
-        <p>시험 구성이 비어 있습니다. 관리자에게 문의하거나 다른 학습을 선택해주세요.</p>
-      </section>
-    );
-  }
-
-  const selected = answers[question.id] ?? [];
-  const minutes = String(Math.floor(remaining / 60)).padStart(2, "0");
-  const seconds = String(remaining % 60).padStart(2, "0");
-  const typeLabel = {
-    TRUE_FALSE: "참·거짓",
-    SINGLE_CHOICE: "단일 선택",
-    MULTIPLE_CHOICE: "복수 선택",
-    SHORT_ANSWER: "서술형",
-  }[question.type] ?? question.type;
-
   return (
-    <section className="exam-shell" aria-labelledby="exam-session-title">
-      <header className="exam-header">
-        <div>
-          <p className="eyebrow">모의시험</p>
-          <h1 id="exam-session-title">{attempt.title}</h1>
-          <p className="muted">{submitted ? "제출된 시험" : "답안은 선택할 때마다 자동 저장됩니다."}</p>
-        </div>
-        {submitted && attempt.resultsAvailable ? (
-          <div className="exam-score" aria-label={`총점 ${attempt.score}점`}>
-            <strong>{attempt.score}점</strong>
-            <span>정답 {attempt.correctCount} · 오답 {attempt.wrongCount} · 미응답 {attempt.unansweredCount}</span>
-          </div>
-        ) : (
-          <div className="exam-timer" aria-label="남은 시간">{minutes}:{seconds}</div>
-        )}
-      </header>
-
-      <nav className="exam-question-nav" aria-label="시험 문제 이동">
-        {attempt.questions.map((item, itemIndex) => (
-          <button
-            key={item.id}
-            type="button"
-            className={`${itemIndex === index ? "current" : ""} ${answers[item.id]?.length ? "answered" : ""}`}
-            aria-label={`${itemIndex + 1}번 문제${answers[item.id]?.length ? ", 답안 작성됨" : ", 미응답"}`}
-            aria-current={itemIndex === index ? "step" : undefined}
-            onClick={() => setIndex(itemIndex)}
-          >
-            {itemIndex + 1}
-          </button>
-        ))}
-      </nav>
-
-      <article className="practice-card">
-        <div className="practice-toolbar">
-          <span>{index + 1} / {attempt.questions.length}</span>
-          <span>{question.difficulty}</span>
-        </div>
-        <p className="eyebrow">{typeLabel}</p>
-        <h2>{question.title}</h2>
-        <p className="question-content">{question.content}</p>
-        {question.type === "SHORT_ANSWER" ? (
-          <>
-            <label className="sr-only" htmlFor={`answer-${question.id}`}>답안 입력</label>
-            <input
-              id={`answer-${question.id}`}
-              value={selected[0] ?? ""}
-              disabled={submitted}
-              onChange={(event) => setAnswers((current) => ({ ...current, [question.id]: [event.target.value] }))}
-              onBlur={() => void save(selected)}
-            />
-          </>
-        ) : (
-          <div className="answer-choices" role="group" aria-label="답안 선택">
-            {question.choices.map((choice) => {
-              const multiple = question.type === "MULTIPLE_CHOICE";
-              return (
-                <label key={choice.id}>
-                  <input
-                    type={multiple ? "checkbox" : "radio"}
-                    name={`exam-${question.id}`}
-                    checked={selected.includes(choice.id)}
-                    disabled={submitted}
-                    onChange={() => void save(multiple
-                      ? selected.includes(choice.id)
-                        ? selected.filter((id) => id !== choice.id)
-                        : [...selected, choice.id]
-                      : [choice.id])}
-                  />
-                  <span>{choice.content}</span>
-                </label>
-              );
-            })}
-          </div>
-        )}
-
-        {submitted && attempt.resultsAvailable ? (
-          <div className={question.isCorrect ? "grade-panel grade-correct" : "grade-panel grade-wrong"} role="status">
-            <strong>{question.isCorrect ? "정답" : question.answerData ? "오답" : "미응답"}</strong>
-            <p>{question.earnedScore ?? 0} / {question.possibleScore}점</p>
-            {question.explanation ? <p>{question.explanation}</p> : null}
-            {!question.isCorrect && question.wrongAnswerExplanation ? <p>{question.wrongAnswerExplanation}</p> : null}
-            {question.correctAnswer?.length ? <p>정답: {question.correctAnswer.join(", ")}</p> : null}
-          </div>
-        ) : submitted ? (
-          <div className="grade-panel" role="status">
-            <strong>결과 공개 전</strong>
-            <p>결과가 공개되면 점수와 해설을 확인할 수 있습니다.</p>
-          </div>
-        ) : null}
-
-        <div className="practice-actions">
-          <button className="button button-ghost" type="button" disabled={index === 0} onClick={() => setIndex((value) => Math.max(0, value - 1))}>이전 문제</button>
-          <button className="button button-ghost" type="button" disabled={index === attempt.questions.length - 1} onClick={() => setIndex((value) => Math.min(attempt.questions.length - 1, value + 1))}>다음 문제</button>
-        </div>
-      </article>
-
-      <footer className="exam-footer">
-        <span aria-live="polite">작성 {answeredCount} / {attempt.questions.length}</span>
-        {!submitted ? (
-          <button className="button button-dark" type="button" disabled={submitting} aria-busy={submitting} onClick={() => void submit(false)}>
-            {submitting ? "제출 중..." : "시험 제출"}
-          </button>
-        ) : null}
-        {message ? <span className="form-message" role="status">{message}</span> : null}
-      </footer>
-
-      {submitted && attempt.resultsAvailable && attempt.analysis ? (
-        <section className="analytics-grid section-block" aria-label="시험 분석">
-          <ExamBreakdown title="과목별 분석" rows={attempt.analysis.bySubject} />
-          <ExamBreakdown title="주제별 분석" rows={attempt.analysis.byTopic} />
-        </section>
-      ) : null}
+    <section className={styles.sessionShell} aria-labelledby="exam-session-title" data-mock-exam-session-v2="">
+      <header className={styles.focusHeader}><Link href="/mock-exams" aria-label="시험을 나가고 모의고사 목록으로 이동">← 나가기</Link><div><span>모의고사</span><strong id="exam-session-title">{attempt.title}</strong></div><div className={styles.timer} role="timer" aria-label={`남은 시간 ${minutes}분 ${seconds}초`}><span>남은 시간</span><strong>{minutes}:{seconds}</strong></div></header>
+      <div className={styles.sessionProgress}><div><strong>{index + 1} / {attempt.questions.length}</strong><span>답변 완료 {answeredCount}개</span></div><div role="progressbar" aria-label="시험 진행률" aria-valuemin={0} aria-valuemax={attempt.questions.length} aria-valuenow={index + 1}><i style={{ width: `${((index + 1) / attempt.questions.length) * 100}%` }} /></div></div>
+      <details className={styles.mobileNavigator}><summary>문항 목록 <span>{answeredCount}/{attempt.questions.length} 답변</span></summary><QuestionNavigator questions={attempt.questions} answers={answers} index={index} onSelect={setIndex} /></details>
+      <div className={styles.sessionLayout}><aside className={styles.desktopNavigator}><h2>문항 목록</h2><p>답변 완료 {answeredCount} · 미답변 {unansweredCount}</p><QuestionNavigator questions={attempt.questions} answers={answers} index={index} onSelect={setIndex} /></aside><article className={styles.questionCard}><div className={styles.questionMeta}><span>문제 {index + 1}</span><span>{formatDifficulty(question.difficulty)}</span><span>{formatQuestionType(question.type)}</span></div><h2 ref={questionTitleRef} tabIndex={-1}>{question.title}</h2><p className={styles.questionContent}>{question.content}</p>{question.type === "SHORT_ANSWER" ? <label className={styles.shortAnswer}>답안 입력<input value={selected[0] ?? ""} onChange={(event) => setAnswers((current) => ({ ...current, [question.id]: [event.target.value] }))} onBlur={() => void save(selected)} /></label> : <fieldset className={styles.choices}><legend>답안 선택</legend>{question.choices.map((choice, choiceIndex) => { const multiple = question.type === "MULTIPLE_CHOICE"; return <label key={choice.id}><input type={multiple ? "checkbox" : "radio"} name={`exam-${question.id}`} checked={selected.includes(choice.id)} onChange={() => void save(multiple ? selected.includes(choice.id) ? selected.filter((id) => id !== choice.id) : [...selected, choice.id] : [choice.id])} /><span className={styles.choiceKey} aria-hidden="true">{String.fromCharCode(65 + choiceIndex)}</span><span>{choice.content}</span></label>; })}</fieldset>}<div className={styles.questionActions}><button type="button" disabled={index === 0} onClick={() => setIndex((value) => Math.max(0, value - 1))}>이전 문제</button><button type="button" disabled={index === attempt.questions.length - 1} onClick={() => setIndex((value) => Math.min(attempt.questions.length - 1, value + 1))}>다음 문제</button></div></article></div>
+      <footer className={styles.submitBar}><p aria-live="polite">{message || `답변 완료 ${answeredCount}개 · 미답변 ${unansweredCount}개`}</p><button ref={submitTriggerRef} type="button" onClick={() => setConfirmOpen(true)}>시험 제출</button></footer>
+      {confirmOpen ? <div className={styles.dialogBackdrop} onMouseDown={(event) => { if (event.target === event.currentTarget) setConfirmOpen(false); }}><div className={styles.submitDialog} role="dialog" aria-modal="true" aria-labelledby="submit-dialog-title" tabIndex={-1} ref={confirmRef}><p className={styles.eyebrow}>최종 제출</p><h2 id="submit-dialog-title">시험을 제출할까요?</h2><p>제출 후에는 답안을 변경할 수 없습니다.</p><dl><div><dt>전체 문항</dt><dd>{attempt.questions.length}개</dd></div><div><dt>답변 완료</dt><dd>{answeredCount}개</dd></div><div><dt>미답변</dt><dd>{unansweredCount}개</dd></div><div><dt>남은 시간</dt><dd>{minutes}:{seconds}</dd></div></dl><div><button type="button" onClick={() => { setConfirmOpen(false); submitTriggerRef.current?.focus(); }}>계속 풀기</button><button type="button" disabled={submitting} aria-busy={submitting} onClick={() => void submit(false)}>{submitting ? "제출 중..." : "제출하기"}</button></div></div></div> : null}
     </section>
   );
 }
 
-function ExamBreakdown({
-  title,
-  rows,
-}: {
-  title: string;
-  rows: Array<{ id: string; name: string; total: number; accuracy: number }>;
-}) {
-  return (
-    <article className="exam-breakdown-panel">
-      <h2>{title}</h2>
-      {rows.length ? rows.map((row) => (
-        <div className="analytics-row" key={row.id}>
-          <span>{row.name}</span>
-          <div className="analytics-bar" aria-hidden="true"><i style={{ width: `${row.accuracy}%` }} /></div>
-          <strong>{row.accuracy}%</strong>
-        </div>
-      )) : <p>분석에 필요한 학습 기록이 아직 충분하지 않습니다.</p>}
-    </article>
-  );
-}
+function QuestionNavigator({ questions, answers, index, onSelect }: { questions: ExamQuestion[]; answers: Record<string, string[]>; index: number; onSelect: (index: number) => void }) { return <ol className={styles.navigatorGrid}>{questions.map((item, itemIndex) => { const answered = Boolean(answers[item.id]?.length); return <li key={item.id}><button type="button" className={itemIndex === index ? styles.currentQuestion : answered ? styles.answeredQuestion : undefined} aria-label={`${itemIndex + 1}번 문제, ${itemIndex === index ? "현재 문제, " : ""}${answered ? "답변 완료" : "미답변"}`} aria-current={itemIndex === index ? "step" : undefined} onClick={() => onSelect(itemIndex)}><span>{itemIndex + 1}</span><small>{itemIndex === index ? "현재" : answered ? "완료" : "미답변"}</small></button></li>; })}</ol>; }
+function ExamBreakdown({ id, title, rows }: { id: string; title: string; rows: Array<{ id: string; name: string; total: number; accuracy: number }> }) { return <article className={styles.breakdown}><h2 id={id}>{title}</h2>{rows.length ? <ul>{rows.map((row) => <li key={row.id}><div><strong>{row.name}</strong><span>{row.total}문항</span></div><div className={styles.resultBar} role="progressbar" aria-label={`${row.name} 정답률`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={row.accuracy}><i style={{ width: `${row.accuracy}%` }} /></div><strong>{row.accuracy}%</strong></li>)}</ul> : <p>분석할 학습 기록이 아직 충분하지 않습니다.</p>}</article>; }
+function formatDifficulty(value: string) { return ({ EASY: "쉬움", MEDIUM: "보통", HARD: "어려움" } as Record<string, string>)[value] ?? value; }
+function formatQuestionType(value: string) { return ({ TRUE_FALSE: "참·거짓", SINGLE_CHOICE: "단일 선택", MULTIPLE_CHOICE: "복수 선택", SHORT_ANSWER: "서술형" } as Record<string, string>)[value] ?? value; }

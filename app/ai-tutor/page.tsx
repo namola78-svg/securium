@@ -1,13 +1,14 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
-import { EmptyState } from "@/components/state-ui";
+import { ActionButton } from "@/components/design-system-primitives";
 import { getReviewSummary } from "@/db/phase3-repositories";
 import { listUserEnrollments } from "@/db/repositories";
 import { requireCurrentAppUser } from "@/lib/auth";
+import styles from "@/components/v2/phase11-v2.module.css";
 
 export const metadata: Metadata = {
   title: "AI 튜터",
-  description: "문제 해설과 맞춤 복습을 돕는 SECURIUM AI 튜터 안내입니다.",
+  description: "공식 해설과 근거를 보완하는 SECURIUM AI 학습 지원 안내입니다.",
 };
 export const dynamic = "force-dynamic";
 
@@ -17,98 +18,103 @@ export default async function AiTutorPage() {
     listUserEnrollments(user.id),
     getReviewSummary(user.id),
   ]);
-  const availableEnrollments = enrollments.filter(
-    (enrollment) => enrollment.status !== "CANCELLED",
-  );
+  const availableEnrollments = enrollments.filter((item) => item.status !== "CANCELLED");
+  const currentCourse = availableEnrollments[0];
 
   return (
-    <main className="page-main">
-      <section className="page-hero">
-        <div className="shell">
-          <p className="eyebrow">AI 튜터</p>
-          <h1>공식 기준과 근거로 이해를 넓혀보세요</h1>
-          <p>
-            문제를 푼 뒤 정답과 오답의 이유, 관련 기준과 복습 방향을 확인하세요.
-            AI 설명은 참고용이며 공식 채점 결과를 대신하지 않습니다.
-          </p>
-        </div>
-      </section>
+    <main className={`page-main dashboard-page ${styles.page}`}>
+      <div className="shell">
+        <header className={`dashboard-intro ${styles.pageHeader}`}>
+          <div>
+            <p className="eyebrow">AI LEARNING SUPPORT</p>
+            <h1>AI 튜터</h1>
+            <p>학습 중 궁금한 개념을 공식 해설과 근거에 이어서 이해해보세요.</p>
+          </div>
+          <span className={styles.assistBadge}>AI 보조 설명</span>
+        </header>
 
-      <section className="section">
-        <div className="shell narrow">
-          <article className="course-detail-section">
-            <p className="eyebrow">작동 방식</p>
-            <h2>AI 튜터가 이어주는 학습 흐름</h2>
-            <ol className="ai-tutor-flow" aria-label="AI 튜터 학습 흐름">
-              <li><span>01</span><strong>문제를 풉니다</strong><p>먼저 자신의 답을 제출하고 공식 채점 결과를 확인합니다.</p></li>
-              <li><span>02</span><strong>AI 해설을 확인합니다</strong><p>정답과 오답의 이유를 참고 설명으로 확인합니다.</p></li>
-              <li><span>03</span><strong>근거를 확인합니다</strong><p>관련 기준과 연결 콘텐츠가 있으면 함께 확인합니다.</p></li>
-              <li><span>04</span><strong>복습으로 이어갑니다</strong><p>반복 오답과 취약 주제를 다음 학습 행동으로 연결합니다.</p></li>
-            </ol>
-            <ul className="feature-list">
-              <li>채점 결과를 바꾸지 않고 이해를 돕는 설명만 제공합니다.</li>
-              <li>공식 기준과 연결된 근거가 있을 때 함께 표시합니다.</li>
-              <li>AI 설명과 공식 콘텐츠·채점 결과를 구분해 보여줍니다.</li>
-              <li>AI 기능이 제공되지 않는 문제도 일반 해설로 학습할 수 있습니다.</li>
-            </ul>
-          </article>
-
-          <article className="course-detail-section">
-            <div className="section-heading compact">
+        <section className={styles.aiWorkspace} aria-label="AI 튜터 학습 시작">
+          <div className={styles.aiMain}>
+            <section className={styles.aiIntro} aria-labelledby="ai-start-title">
+              <div className={styles.aiIdentity} aria-hidden="true">AI</div>
               <div>
-                <p className="eyebrow">시작 지점</p>
-                <h2>AI 해설을 확인할 수 있는 과정</h2>
+                <p className="eyebrow">새 AI 설명 시작</p>
+                <h2 id="ai-start-title">무엇이 궁금한가요?</h2>
+                <p>현재 AI 설명은 문제를 먼저 풀고 채점 결과를 확인한 뒤 요청할 수 있습니다. 독립적인 자유 대화나 정답 대행 기능은 제공하지 않습니다.</p>
               </div>
-              <Link className="text-link" href="/courses">과정 둘러보기 →</Link>
-            </div>
-            {availableEnrollments.length ? (
-              <div className="recommendation-list">
-                {availableEnrollments.slice(0, 4).map((enrollment) => (
-                  <Link
-                    className="recommendation-card"
-                    href={`/practice/${enrollment.courseSlug}?random=1&count=5`}
-                    key={enrollment.id}
-                  >
-                    <span className="badge">{enrollment.groupName}</span>
-                    <div>
-                      <strong>{enrollment.courseName}</strong>
-                      <p>문제를 풀고 채점 후 AI 해설을 확인하세요.</p>
-                    </div>
-                    <small>5문제</small>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <EmptyState
-                title="AI 해설을 시작할 수 있는 수강 과정이 없습니다"
-                description="먼저 과정을 추가한 뒤 문제풀이에서 AI 해설을 확인해보세요."
-                action={{ href: "/courses", label: "과정 둘러보기" }}
-              />
-            )}
-          </article>
+            </section>
 
-          <article className="course-detail-section">
-            <p className="eyebrow">학습 데이터 연결</p>
-            <h2>현재 학습 기록에서 다음 행동을 찾습니다</h2>
-            {reviewSummary.dueCount > 0 ? (
-              <div className="review-context-card">
-                <div>
-                  <p className="eyebrow">오늘의 복습</p>
-                  <h3>{reviewSummary.dueCount}개 항목을 먼저 확인하세요</h3>
-                  <p>오래 미룬 복습과 반복 오답을 우선순위로 정리했습니다. AI 해설과 함께 다시 풀어보세요.</p>
-                </div>
-                <Link className="button button-dark" href="/reviews">복습 계획 보기</Link>
+            <div className={styles.suggestionGrid} aria-label="AI 설명으로 확인할 수 있는 내용">
+              <Link href={currentCourse ? `/practice/${currentCourse.courseSlug}?random=1&count=5` : "/practice"}>
+                <span>개념 이해</span><strong>핵심을 쉽게 정리하기</strong><small>문제를 푼 뒤 관련 개념을 다시 확인합니다.</small>
+              </Link>
+              <Link href={currentCourse ? `/practice/${currentCourse.courseSlug}?random=1&count=5` : "/practice"}>
+                <span>오답 이해</span><strong>왜 틀렸는지 확인하기</strong><small>공식 채점 결과를 먼저 보고 AI 보조 설명을 요청합니다.</small>
+              </Link>
+              <Link href={currentCourse ? `/practice/${currentCourse.courseSlug}?random=1&count=5` : "/practice"}>
+                <span>근거 확인</span><strong>출처와 함께 살펴보기</strong><small>연결된 공식 콘텐츠가 있을 때 근거와 함께 표시합니다.</small>
+              </Link>
+            </div>
+
+            <div className={styles.entryComposer} aria-labelledby="ai-entry-label">
+              <div>
+                <span id="ai-entry-label">질문할 문제 선택</span>
+                <strong>{currentCourse ? `${currentCourse.shortName} 문제에서 시작` : "수강 과정을 선택한 뒤 시작"}</strong>
               </div>
+              <ActionButton href={currentCourse ? `/practice/${currentCourse.courseSlug}?random=1&count=5` : "/courses"} variant="dark">
+                {currentCourse ? "문제 풀고 질문하기" : "과정 둘러보기"}
+              </ActionButton>
+            </div>
+            <p className={styles.aiNotice}>AI 설명은 학습 보조용입니다. 공식 해설과 검수된 근거를 먼저 확인하세요.</p>
+          </div>
+
+          <aside className={styles.contextPanel} aria-labelledby="ai-context-title">
+            <p className="eyebrow">LEARNING CONTEXT</p>
+            <h2 id="ai-context-title">현재 학습 맥락</h2>
+            {currentCourse ? (
+              <dl>
+                <div><dt>현재 과정</dt><dd>{currentCourse.courseName}</dd></div>
+                <div><dt>과정 진도</dt><dd>{currentCourse.progressPercent}%</dd></div>
+                <div><dt>선택된 문제</dt><dd>아직 선택되지 않음</dd></div>
+              </dl>
             ) : (
-              <EmptyState
-                title="아직 예정된 복습이 없습니다"
-                description="새 문제를 풀면 정답 여부와 학습 기록을 바탕으로 다음 복습 일정이 만들어집니다."
-                action={{ href: "/practice", label: "문제풀이 시작" }}
-              />
+              <div className={styles.localEmpty}><strong>연결된 학습 맥락이 없습니다.</strong><p>과정을 선택하고 문제를 풀면 해당 문제의 맥락에서 AI 설명을 요청할 수 있습니다.</p></div>
             )}
-          </article>
-        </div>
-      </section>
+            <div className={styles.contextActions}>
+              {reviewSummary.dueCount > 0 ? <Link href="/reviews">예정된 복습 {reviewSummary.dueCount}개 확인</Link> : <Link href="/practice">문제풀이 시작</Link>}
+              <Link href="/wrong-notes">반복 오답 확인</Link>
+            </div>
+          </aside>
+        </section>
+
+        <section className={styles.sourceSection} aria-labelledby="ai-source-title">
+          <div className={styles.sectionHeading}>
+            <div><p className="eyebrow">SOURCE &amp; VERIFICATION</p><h2 id="ai-source-title">공식 결과와 AI 설명을 구분합니다</h2></div>
+            <p>AI 응답이 제공되는 문제에서는 현재 backend가 반환한 출처와 검수 상태를 그대로 표시합니다.</p>
+          </div>
+          <ol className={styles.authorityList}>
+            <li><span>1</span><div><strong>공식 채점 결과와 해설</strong><p>정답 여부와 공식 해설이 학습 판단의 기준입니다.</p></div></li>
+            <li><span>2</span><div><strong>연결된 근거와 학습 콘텐츠</strong><p>실제 연결 정보가 있을 때만 출처를 함께 표시합니다.</p></div></li>
+            <li><span>3</span><div><strong>AI 보조 설명</strong><p>이해를 돕는 참고 설명이며 공식 결과를 변경하지 않습니다.</p></div></li>
+          </ol>
+        </section>
+
+        <section className={styles.courseSection} aria-labelledby="ai-course-title">
+          <div className={styles.sectionHeading}>
+            <div><p className="eyebrow">학습 과정</p><h2 id="ai-course-title">과정에서 AI 설명 시작하기</h2></div>
+            <p>실제 수강 과정의 문제풀이로 이동합니다.</p>
+          </div>
+          {availableEnrollments.length ? (
+            <ul className={styles.compactCourseList}>
+              {availableEnrollments.slice(0, 4).map((item) => (
+                <li key={item.id}><div><strong>{item.courseName}</strong><span>진도 {item.progressPercent}% · 문제풀이 후 AI 설명 제공</span></div><ActionButton href={`/practice/${item.courseSlug}?random=1&count=5`} variant="ghost">5문제 풀기</ActionButton></li>
+              ))}
+            </ul>
+          ) : (
+            <div className={styles.localEmpty}><strong>아직 학습 중인 과정이 없습니다.</strong><p>과정을 선택하면 학습 맥락에 맞는 문제에서 AI 설명을 시작할 수 있습니다.</p><ActionButton href="/courses" variant="dark">과정 둘러보기</ActionButton></div>
+          )}
+        </section>
+      </div>
     </main>
   );
 }

@@ -1,0 +1,548 @@
+.page {
+  padding-bottom: calc(72px + env(safe-area-inset-bottom));
+}
+
+.header {
+  margin-bottom: 28px;
+}
+
+.header h1 {
+  font-size: clamp(30px, 4vw, 36px);
+  letter-spacing: -0.045em;
+}
+
+.page :global(.ds-button.variant-dark) {
+  color: var(--white);
+}
+
+.backLink {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.backLink:hover {
+  color: var(--ink);
+}
+
+.backLink:focus-visible,
+.primaryAction a:focus-visible,
+.nextPanel a:focus-visible,
+.courseIdentity a:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--lime) 65%, transparent);
+  outline-offset: 3px;
+}
+
+.summarySection,
+.courseSection,
+.secondarySection,
+.emptyState {
+  margin-bottom: 24px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--white);
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+
+.sectionHeading h2,
+.panelHeading h2,
+.nextPanel h2,
+.emptyState h2 {
+  margin: 4px 0 0;
+  font-size: clamp(20px, 2.4vw, 24px);
+  letter-spacing: -0.035em;
+}
+
+.sectionHeading > p,
+.emptyState > p,
+.weaknessPanel > p {
+  max-width: 620px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.metrics,
+.detailMetrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--line);
+}
+
+.metrics > div,
+.detailMetrics > div {
+  min-width: 0;
+  padding: 18px;
+  background: color-mix(in srgb, var(--white) 94%, var(--lime));
+}
+
+.metrics dt,
+.detailMetrics dt,
+.courseFacts dt {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.metrics dd,
+.detailMetrics dd,
+.courseFacts dd {
+  margin: 7px 0 0;
+  color: var(--ink);
+  font-size: clamp(22px, 2.5vw, 28px);
+  font-weight: 900;
+  letter-spacing: -0.035em;
+}
+
+.primaryGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.75fr);
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.weaknessPanel,
+.nextPanel {
+  position: relative;
+  min-width: 0;
+  padding: 26px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--white);
+}
+
+.weaknessPanel {
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--lime) 42%, var(--line));
+  background:
+    radial-gradient(circle at 94% 8%, color-mix(in srgb, var(--lime) 17%, transparent), transparent 34%),
+    var(--white);
+}
+
+.panelLabel {
+  position: absolute;
+  top: 0;
+  right: 22px;
+  padding: 7px 12px;
+  border-radius: 0 0 10px 10px;
+  background: var(--ink);
+  color: var(--white);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.panelHeading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 18px;
+  padding-right: 70px;
+}
+
+.accuracyBadge {
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  border: 1px solid color-mix(in srgb, var(--lime) 45%, var(--line));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--lime) 12%, var(--white));
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.weaknessPanel > p {
+  margin-top: 14px;
+}
+
+.primaryAction {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.primaryAction > a:not([class*="button"]) {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.nextPanel h2 {
+  margin-bottom: 14px;
+}
+
+.nextPanel nav {
+  display: grid;
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--line);
+}
+
+.nextPanel nav a {
+  display: grid;
+  min-height: 58px;
+  align-content: center;
+  gap: 2px;
+  padding: 10px 14px;
+  background: var(--white);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.nextPanel nav a:hover {
+  background: color-mix(in srgb, var(--lime) 7%, var(--white));
+}
+
+.nextPanel nav span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.nextPanel nav strong {
+  font-size: 14px;
+}
+
+.courseList,
+.breakdown ul {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.courseList > li {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.25fr) minmax(170px, 1fr) auto auto;
+  gap: 20px;
+  align-items: center;
+  padding: 18px 0;
+  border-top: 1px solid var(--line);
+}
+
+.courseList > li:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.courseIdentity {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.courseIdentity a {
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.courseIdentity span,
+.breakdownLabel span {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.courseProgress {
+  display: grid;
+  gap: 8px;
+}
+
+.courseProgress > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.courseFacts {
+  display: flex;
+  gap: 18px;
+  margin: 0;
+}
+
+.courseFacts > div {
+  min-width: 76px;
+}
+
+.courseFacts dd {
+  font-size: 16px;
+}
+
+.rowActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.performanceGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.secondarySection .performanceGrid {
+  margin-bottom: 18px;
+}
+
+.breakdown {
+  min-width: 0;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--white);
+}
+
+.secondarySection .breakdown {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+}
+
+.breakdown > header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.breakdown h2 {
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: -0.025em;
+}
+
+.breakdown header p,
+.breakdown header > span {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.breakdown li {
+  display: grid;
+  grid-template-columns: minmax(130px, 0.9fr) minmax(150px, 1.1fr) auto;
+  gap: 14px;
+  align-items: center;
+  min-width: 0;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+}
+
+.breakdownLabel {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.breakdownLabel strong {
+  overflow-wrap: anywhere;
+  font-size: 14px;
+}
+
+.progressLine {
+  display: grid;
+  grid-template-columns: minmax(80px, 1fr) 42px;
+  gap: 10px;
+  align-items: center;
+}
+
+.progressLine > div {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--line) 75%, var(--white));
+}
+
+.progressLine > div > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--lime-strong);
+}
+
+.progressLine > strong {
+  font-size: 14px;
+  text-align: right;
+}
+
+.detailMetrics {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.detailMetrics dd {
+  font-size: 20px;
+}
+
+.emptyState {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  padding-block: 40px;
+}
+
+.localEmpty {
+  margin: 0;
+  padding: 20px 0;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 14px;
+}
+
+@media (max-width: 1100px) {
+  .courseList > li {
+    grid-template-columns: minmax(180px, 1fr) minmax(170px, 1fr);
+  }
+
+  .rowActions {
+    justify-content: flex-start;
+  }
+
+  .detailMetrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 820px) {
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .primaryGrid,
+  .performanceGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .courseList > li {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+}
+
+@media (max-width: 680px) {
+  .page {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+
+  .header {
+    margin-bottom: 20px;
+  }
+
+  .header h1 {
+    font-size: clamp(26px, 8vw, 30px);
+  }
+
+  .header :global(.ds-button) {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .summarySection,
+  .courseSection,
+  .secondarySection,
+  .weaknessPanel,
+  .nextPanel,
+  .breakdown,
+  .emptyState {
+    padding: 20px 16px;
+    border-radius: 16px;
+  }
+
+  .sectionHeading,
+  .panelHeading {
+    align-items: start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .panelHeading {
+    padding-right: 0;
+  }
+
+  .panelLabel {
+    right: 16px;
+  }
+
+  .metrics,
+  .detailMetrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .metrics > div,
+  .detailMetrics > div {
+    padding: 15px 12px;
+  }
+
+  .metrics dd {
+    font-size: 22px;
+  }
+
+  .primaryAction {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .primaryAction :global(.ds-button),
+  .rowActions :global(.ds-button) {
+    min-height: 44px;
+  }
+
+  .primaryAction > a:not([class*="button"]) {
+    justify-content: center;
+  }
+
+  .courseFacts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rowActions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .breakdown li {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .breakdown li :global(.ds-button) {
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page * {
+    scroll-behavior: auto;
+  }
+}

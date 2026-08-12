@@ -1,33 +1,112 @@
 import type { Metadata } from "next";
-import { ActionButton } from "@/components/design-system-primitives";
+import Link from "next/link";
 import { WrongNoteCard } from "@/components/wrong-note-card";
+import styles from "@/components/v2/review-v2.module.css";
 import { listPublishedCourses, listSubjectsForCourse, listTopicsForSubject } from "@/db/repositories";
 import { listWrongNotes } from "@/db/question-repositories";
 import { requireCurrentAppUser } from "@/lib/auth";
-import { formatDifficultyLabel } from "@/lib/question-display";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "오답노트 | SECURIUM", description: "반복 오답과 미완료 문제를 과정별로 확인하고 다시 학습합니다." };
+export const metadata: Metadata = {
+  title: "오답노트 | SECURIUM",
+  description: "틀린 문제와 다시 확인할 개념을 한곳에서 관리합니다.",
+};
 
 export default async function WrongNotesPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const user = await requireCurrentAppUser("/wrong-notes");
   const query = await searchParams;
   const raw = (key: string) => typeof query[key] === "string" ? query[key] : undefined;
-  const courseId = raw("courseId"); const subjectId = raw("subjectId"); const topicId = raw("topicId"); const difficulty = raw("difficulty"); const repeated = query.repeated === "1"; const mastered = query.mastered === "1" ? true : query.mastered === "0" ? false : undefined;
-  const courses = await listPublishedCourses();
+  const courseId = raw("courseId");
+  const subjectId = raw("subjectId");
+  const topicId = raw("topicId");
+  const difficulty = raw("difficulty");
+  const repeated = query.repeated === "1";
+  const mastered = query.mastered === "1" ? true : query.mastered === "0" ? false : undefined;
+  const [courses, allNotes] = await Promise.all([
+    listPublishedCourses(),
+    listWrongNotes(user.id, {}),
+  ]);
   const validCourseId = courses.some((course) => course.id === courseId) ? courseId : undefined;
   const subjects = validCourseId ? await listSubjectsForCourse(validCourseId) : [];
   const validSubjectId = subjects.some((subject) => subject.id === subjectId) ? subjectId : undefined;
   const topics = validSubjectId ? await listTopicsForSubject(validSubjectId) : [];
   const validTopicId = topics.some((topic) => topic.id === topicId) ? topicId : undefined;
-  const notes = await listWrongNotes(user.id, { courseId: validCourseId, subjectId: validSubjectId, topicId: validTopicId, difficulty, mastered, repeated });
-  const selectedCourse = courses.find((course) => course.id === validCourseId); const selectedSubject = subjects.find((subject) => subject.id === validSubjectId); const selectedTopic = topics.find((topic) => topic.id === validTopicId);
-  const repeatedCount = notes.filter((note) => note.wrongCount > 1).length; const unresolvedCount = notes.filter((note) => !note.mastered).length; const highestWrongCount = notes.reduce((max, note) => Math.max(max, note.wrongCount), 0);
-  return <main className="page-main dashboard-page"><div className="shell"><header className="dashboard-intro"><div><p className="eyebrow">오답 복습</p><h1>오답노트</h1><p>반복해서 틀린 문제와 아직 익히지 못한 개념을 과정별로 확인하세요.</p></div><ActionButton href="/my-courses" variant="dark">내 과정 보기</ActionButton></header><section className="review-overview-panel" aria-label="오답노트 요약"><div><p className="eyebrow">현재 오답 현황</p><h2>{notes.length ? `${notes.length}개의 오답 기록` : "저장된 오답이 없습니다."}</h2><p>반복 횟수와 학습 상태를 기준으로 다시 풀어볼 문제를 찾을 수 있습니다.</p></div><dl><div><dt>전체 오답</dt><dd>{notes.length}개</dd></div><div><dt>반복 오답</dt><dd>{repeatedCount}개</dd></div><div><dt>미완료</dt><dd>{unresolvedCount}개</dd></div></dl></section><form className="filter-row wrong-note-filter" method="get"><label>과정<select name="courseId" defaultValue={courseId ?? ""}><option value="">전체 과정</option>{courses.map((course) => <option key={course.id} value={course.id}>{course.shortName}</option>)}</select></label><label>과목<select name="subjectId" defaultValue={subjectId ?? ""}><option value="">전체 과목</option>{subjects.map((subject) => <option key={subject.id} value={subject.id}>{subject.name}</option>)}</select></label><label>주제<select name="topicId" defaultValue={topicId ?? ""}><option value="">전체 주제</option>{topics.map((topic) => <option key={topic.id} value={topic.id}>{topic.name}</option>)}</select></label><label>난이도<select name="difficulty" defaultValue={difficulty ?? ""}><option value="">전체 난이도</option><option value="EASY">쉬움</option><option value="MEDIUM">보통</option><option value="HARD">어려움</option></select></label><label className="check-label"><input name="repeated" type="checkbox" value="1" defaultChecked={repeated} />반복 오답만</label><label>학습 상태<select name="mastered" defaultValue={typeof query.mastered === "string" ? query.mastered : ""}><option value="">전체 상태</option><option value="0">미완료</option><option value="1">학습 완료</option></select></label><ActionButton variant="ghost" type="submit">필터 적용</ActionButton></form><WrongNoteFilterSummary courseSlug={selectedCourse?.slug} difficulty={difficulty} highestWrongCount={highestWrongCount} mastered={formatMastered(mastered)} noteCount={notes.length} repeated={repeated} repeatedCount={repeatedCount} selectedCourseName={selectedCourse?.shortName ?? selectedCourse?.name} selectedSubjectName={selectedSubject?.name} selectedTopicName={selectedTopic?.name} unresolvedCount={unresolvedCount} />{notes.length ? <div className="review-grid wrong-note-grid">{notes.map((note) => <WrongNoteCard key={note.id} note={note} />)}</div> : <div className="empty-state"><strong>저장된 오답이 없습니다.</strong><p>문제를 풀고 틀린 항목을 만들면 오답노트에서 다시 복습할 수 있습니다.</p><ActionButton href="/practice" variant="dark">문제 풀기</ActionButton></div>}</div></main>;
+  const hasFilters = Boolean(validCourseId || validSubjectId || validTopicId || difficulty || repeated || mastered !== undefined);
+  const notes = hasFilters
+    ? await listWrongNotes(user.id, { courseId: validCourseId, subjectId: validSubjectId, topicId: validTopicId, difficulty, mastered, repeated })
+    : allNotes;
+  const selectedCourse = courses.find((course) => course.id === validCourseId);
+  const repeatedCount = allNotes.filter((note) => note.wrongCount > 1).length;
+  const recentCount = allNotes.filter((note) => isRecent(note.updatedAt)).length;
+
+  return (
+    <main className={styles.page} data-wrong-notes-v2="">
+      <div className={styles.container}>
+        <header className={styles.pageHeader}>
+          <div>
+            <p className={styles.eyebrow}>학습 기록</p>
+            <h1>오답노트</h1>
+            <p>틀린 문제와 다시 확인할 개념을 한곳에서 관리하세요.</p>
+          </div>
+          <Link className={styles.secondaryAction} href="/reviews">오늘의 복습 보기</Link>
+        </header>
+
+        <section className={styles.notesSummary} aria-labelledby="wrong-notes-summary-title">
+          <div>
+            <p className={styles.eyebrow}>오답 요약</p>
+            <h2 id="wrong-notes-summary-title">{allNotes.length ? "반복해서 틀린 문제부터 확인하세요." : "저장된 오답이 없습니다."}</h2>
+            <p>{allNotes.length ? "틀린 기록을 확인하고 필요한 문제를 바로 다시 풀 수 있습니다." : "문제를 풀고 틀린 항목이 생기면 이곳에 기록됩니다."}</p>
+          </div>
+          <dl className={styles.summaryMetrics} aria-label="오답 기록 요약">
+            <div><dt>전체 오답</dt><dd>{allNotes.length}개</dd></div>
+            <div><dt>반복 오답</dt><dd>{repeatedCount}개</dd></div>
+            <div><dt>최근 추가</dt><dd>{recentCount}개</dd></div>
+          </dl>
+        </section>
+
+        {allNotes.length ? (
+          <>
+            <details className={styles.filterDisclosure} open={hasFilters}>
+              <summary><span><b>오답 필터</b><small>{hasFilters ? "선택한 조건이 적용되어 있습니다." : "과정과 학습 상태로 범위를 좁혀보세요."}</small></span><span aria-hidden="true">＋</span></summary>
+              <form className={styles.filterForm} method="get">
+                <label>과정<select name="courseId" defaultValue={courseId ?? ""}><option value="">전체 과정</option>{courses.map((course) => <option key={course.id} value={course.id}>{course.shortName}</option>)}</select></label>
+                <label>과목<select name="subjectId" defaultValue={subjectId ?? ""} disabled={!validCourseId}><option value="">전체 과목</option>{subjects.map((subject) => <option key={subject.id} value={subject.id}>{subject.name}</option>)}</select></label>
+                <label>주제<select name="topicId" defaultValue={topicId ?? ""} disabled={!validSubjectId}><option value="">전체 주제</option>{topics.map((topic) => <option key={topic.id} value={topic.id}>{topic.name}</option>)}</select></label>
+                <label>난이도<select name="difficulty" defaultValue={difficulty ?? ""}><option value="">전체 난이도</option><option value="EASY">쉬움</option><option value="MEDIUM">보통</option><option value="HARD">어려움</option></select></label>
+                <label>학습 상태<select name="mastered" defaultValue={typeof query.mastered === "string" ? query.mastered : ""}><option value="">전체 상태</option><option value="0">다시 확인</option><option value="1">학습 완료</option></select></label>
+                <label className={styles.checkbox}><input name="repeated" type="checkbox" value="1" defaultChecked={repeated} /><span>반복 오답만</span></label>
+                <button type="submit">필터 적용</button>
+                {hasFilters ? <Link className={styles.resetAction} href="/wrong-notes">초기화</Link> : null}
+              </form>
+            </details>
+
+            <section className={styles.section} aria-labelledby="wrong-note-list-title">
+              <header className={styles.sectionHeader}>
+                <div><p className={styles.eyebrow}>오답 목록</p><h2 id="wrong-note-list-title">{hasFilters ? `선택한 범위 ${notes.length}개` : `전체 ${notes.length}개`}</h2></div>
+                {selectedCourse && notes.length ? <Link className={styles.primaryAction} href={`/practice/${selectedCourse.slug}?wrongOnly=1&count=50`}>선택한 오답 다시 풀기<span aria-hidden="true">→</span></Link> : null}
+              </header>
+              {notes.length ? (
+                <ul className={styles.noteList}>
+                  {notes.map((note) => <li key={note.id}><WrongNoteCard note={note} /></li>)}
+                </ul>
+              ) : (
+                <div className={styles.inlineEmpty}><strong>선택한 조건의 오답이 없습니다.</strong><p>필터를 초기화해 다른 오답 기록을 확인하세요.</p><Link className={styles.resetAction} href="/wrong-notes">필터 초기화</Link></div>
+              )}
+            </section>
+          </>
+        ) : (
+          <section className={styles.emptyState} aria-labelledby="wrong-note-empty-title">
+            <span className={styles.emptyMark} aria-hidden="true">?</span>
+            <h2 id="wrong-note-empty-title">아직 저장된 오답이 없습니다.</h2>
+            <p>문제를 풀고 결과를 확인하면 틀린 문제를 이곳에서 다시 확인할 수 있습니다.</p>
+            <Link className={styles.primaryAction} href="/practice">문제 풀기<span aria-hidden="true">→</span></Link>
+          </section>
+        )}
+      </div>
+    </main>
+  );
 }
 
-function WrongNoteFilterSummary({ courseSlug, difficulty, highestWrongCount, mastered, noteCount, repeated, repeatedCount, selectedCourseName, selectedSubjectName, selectedTopicName, unresolvedCount }: { courseSlug?: string; difficulty?: string; highestWrongCount: number; mastered?: string; noteCount: number; repeated: boolean; repeatedCount: number; selectedCourseName?: string; selectedSubjectName?: string; selectedTopicName?: string; unresolvedCount: number }) {
-  const filters = [selectedCourseName ? `과정: ${selectedCourseName}` : "전체 과정", selectedSubjectName ? `과목: ${selectedSubjectName}` : "전체 과목", selectedTopicName ? `주제: ${selectedTopicName}` : "전체 주제", difficulty ? `난이도: ${formatDifficultyLabel(difficulty)}` : "전체 난이도", repeated ? "반복 오답" : null, mastered ? `상태: ${mastered}` : "전체 학습 상태"].filter((item): item is string => Boolean(item));
-  return <section className="review-context-card" aria-label="현재 오답 범위"><div><p className="eyebrow">현재 필터</p><h2>{noteCount}개의 오답 기록</h2><p>반복 오답과 미완료 항목을 먼저 확인하고 필요한 문제만 다시 풀어보세요.</p></div><div className="practice-context-tags" aria-label="적용된 오답 필터">{filters.map((filter) => <span key={filter}>{filter}</span>)}</div><div className="card-actions">{courseSlug ? <ActionButton href={`/practice/${courseSlug}?wrongOnly=1&count=50`} variant="dark">이 조건으로 다시 풀기</ActionButton> : null}<ActionButton href="/wrong-notes" variant="ghost">필터 초기화</ActionButton></div><div className="wrong-note-insight-grid" aria-label="오답 우선순위 요약"><div><span>반복 오답</span><strong>{repeatedCount}개</strong><p>두 번 이상 틀린 문제입니다.</p></div><div><span>미완료</span><strong>{unresolvedCount}개</strong><p>아직 학습 완료로 표시되지 않은 항목입니다.</p></div><div><span>최다 오답 횟수</span><strong>{highestWrongCount}회</strong><p>가장 자주 틀린 문제부터 확인하세요.</p></div></div></section>;
+function isRecent(value: string) {
+  return Date.now() - new Date(value).getTime() <= 7 * 86_400_000;
 }
-function formatMastered(value?: boolean) { if (value === true) return "학습 완료"; if (value === false) return "미완료"; return undefined; }

@@ -1,8 +1,9 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { FormEvent, useRef, useState } from "react";
-import { ActionButton } from "@/components/design-system-primitives";
+import { AuthV2Card, authV2Styles as styles } from "@/components/v2/auth-v2";
+import { V2Button } from "@/components/v2/v2-button";
 import { authApiRedirectHref, authRedirectHref, legalPrivacyHref, legalTermsHref } from "@/lib/auth-routing";
 
 type Props = { returnTo: string; error?: string; notice?: string };
@@ -33,26 +34,49 @@ export function LoginPanel({ returnTo, error = "", notice = "" }: Props) {
   }
 
   return (
-    <section className="auth-card auth-card-polished" aria-labelledby="login-title">
-      <div className="auth-brand-lockup"><span className="auth-logo-mark" aria-hidden="true">S</span><div><strong>SECURIUM</strong><span>보안 학습 플랫폼</span></div></div>
-      <p className="eyebrow">SECURE SIGN IN</p>
-      <h1 id="login-title">로그인</h1>
-      <p className="auth-description">학습 진도와 오답노트를 이어서 확인하세요.</p>
-      {serverMessage ? <div className="notice notice-warning" role="alert">{serverMessage}</div> : null}
-      {notice === "confirm_email" ? <div className="notice" role="status">이메일 인증을 완료한 뒤 로그인해주세요.</div> : null}
-      <a className={`google-auth-button ${googleLoading ? "is-loading" : ""}`} href={googleHref} onClick={(event) => { if (submitting || googleLoading) event.preventDefault(); else setGoogleLoading(true); }} aria-busy={googleLoading}>
-        <span aria-hidden="true">G</span>{googleLoading ? "Google 로그인 중..." : "Google로 로그인"}
+    <AuthV2Card
+      description="학습을 이어서 시작하세요."
+      eyebrow="계정 로그인"
+      headingId="login-title"
+      title="다시 만나서 반가워요"
+    >
+      {serverMessage ? <div className={`${styles.notice} ${styles.noticeError}`} role="alert">{serverMessage}</div> : null}
+      {notice === "confirm_email" ? <div className={styles.notice} role="status">이메일 인증을 완료한 뒤 로그인해주세요.</div> : null}
+      <a
+        className={styles.oauthButton}
+        href={googleHref}
+        onClick={(event) => {
+          if (submitting || googleLoading) event.preventDefault();
+          else setGoogleLoading(true);
+        }}
+        aria-busy={googleLoading}
+      >
+        <span className={styles.oauthMark} aria-hidden="true">G</span>
+        {googleLoading ? "Google 로그인 중..." : "Google로 로그인"}
       </a>
-      <div className="auth-divider" aria-hidden="true"><span>또는</span></div>
-      <form ref={formRef} className="form-stack login-form" action="/api/auth/supabase/login" method="post" noValidate onSubmit={submit}>
+      <div className={styles.divider} aria-hidden="true"><span>또는</span></div>
+      <form ref={formRef} className={styles.form} action="/api/auth/supabase/login" method="post" noValidate onSubmit={submit}>
         <input type="hidden" name="returnTo" value={returnTo} />
-        <div className="field-group"><label htmlFor="login-email">이메일</label><input id="login-email" name="email" type="email" autoComplete="email" required aria-invalid={Boolean(emailError)} aria-describedby={emailError ? "login-email-error" : undefined} />{emailError ? <p id="login-email-error" className="field-error" role="alert">{emailError}</p> : null}</div>
-        <div className="field-group"><label htmlFor="login-password">비밀번호</label><div className="password-field"><input id="login-password" name="password" type={showPassword ? "text" : "password"} autoComplete="current-password" minLength={8} maxLength={128} required aria-invalid={Boolean(passwordError)} aria-describedby={passwordError ? "login-password-error" : undefined} /><button className="password-toggle" type="button" onClick={() => setShowPassword((value) => !value)} aria-pressed={showPassword} aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 표시"}>{showPassword ? "숨기기" : "보기"}</button></div>{passwordError ? <p id="login-password-error" className="field-error" role="alert">{passwordError}</p> : null}</div>
-        <ActionButton type="submit" variant="dark" className="full-width auth-submit-button" disabled={submitting || googleLoading} aria-busy={submitting}>{submitting ? "로그인 중..." : "로그인"}</ActionButton>
+        <div className={styles.field}>
+          <label htmlFor="login-email">이메일</label>
+          <input id="login-email" name="email" type="email" autoComplete="email" required aria-invalid={Boolean(emailError)} aria-describedby={emailError ? "login-email-error" : undefined} />
+          {emailError ? <p id="login-email-error" className={styles.fieldError} role="alert">{emailError}</p> : null}
+        </div>
+        <div className={styles.field}>
+          <label htmlFor="login-password">비밀번호</label>
+          <div className={styles.passwordField}>
+            <input id="login-password" name="password" type={showPassword ? "text" : "password"} autoComplete="current-password" minLength={8} maxLength={128} required aria-invalid={Boolean(passwordError)} aria-describedby={passwordError ? "login-password-error" : undefined} />
+            <button className={styles.passwordToggle} type="button" onClick={() => setShowPassword((value) => !value)} aria-pressed={showPassword} aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}>{showPassword ? "숨기기" : "보기"}</button>
+          </div>
+          {passwordError ? <p id="login-password-error" className={styles.fieldError} role="alert">{passwordError}</p> : null}
+        </div>
+        <V2Button type="submit" size="lg" fullWidth className={styles.submit} disabled={submitting || googleLoading} aria-busy={submitting}>
+          {submitting ? "로그인 중..." : "로그인"}
+        </V2Button>
       </form>
-      <p className="auth-switch-copy">계정이 없으신가요? <Link href={signupHref} className="text-link">회원가입</Link></p>
-      <p className="auth-legal-copy">로그인하면 <Link href={legalTermsHref(returnTo)} className="text-link">이용약관</Link>과 <Link href={legalPrivacyHref(returnTo)} className="text-link">개인정보 처리방침</Link>에 동의한 것으로 간주합니다.</p>
-    </section>
+      <p className={styles.switchCopy}>아직 계정이 없나요? <Link href={signupHref} className={styles.textLink}>회원가입</Link></p>
+      <p className={styles.legalCopy}>로그인하면 <Link href={legalTermsHref(returnTo)} className={styles.textLink}>이용약관</Link>과 <Link href={legalPrivacyHref(returnTo)} className={styles.textLink}>개인정보 처리방침</Link>에 동의한 것으로 간주합니다.</p>
+    </AuthV2Card>
   );
 }
 

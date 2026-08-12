@@ -3,23 +3,225 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { LearnCurriculumPathTree } from "@/components/learn-curriculum-path-tree";
 import { ProgressBar } from "@/components/progress-bar";
+import styles from "@/components/v2/learn-experience.module.css";
 import { getPublishedCurriculumPathOverviewForCourse } from "@/db/curriculum-repositories";
-import { getLearnCourseAccessBySlug, listCurriculumForLearnOverview } from "@/db/repositories";
-import { getLearnCourseActivitySummary, listCourseLevelsForOverview } from "@/db/phase3-repositories";
 import { getCourseTheoryProgress } from "@/db/lesson-repositories";
+import { getLearnCourseActivitySummary } from "@/db/phase3-repositories";
+import { getLearnCourseAccessBySlug, listCurriculumForLearnOverview } from "@/db/repositories";
 import { getPublishedCourseLessonProgressSummary } from "@/db/shared-content-repositories";
-import { listCourseSpecializations } from "@/db/specialized-repositories";
 import { requireCurrentAppUser } from "@/lib/auth";
 import { publicCopy } from "@/lib/public-copy";
 import { hasPrimaryCurriculumPath } from "@/lib/services/learn-overview-service";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "학습 개요 | Securium", description: "과정 커리큘럼과 학습 진도를 확인하고 다음 레슨을 이어가세요." };
+export const metadata: Metadata = {
+  title: "학습 개요 | Securium",
+  description: "현재 과정과 다음 학습을 확인하고 핵심 레슨을 이어가세요.",
+};
 
-export default async function LearnCoursePage({ params }: { params: Promise<{ courseSlug: string }> }) {
-  const { courseSlug } = await params; const user = await requireCurrentAppUser(`/learn/${courseSlug}`); const { course, enrollment } = await getLearnCourseAccessBySlug(user.id, courseSlug); if (!course) notFound(); if (!enrollment) redirect(`/courses/${course.slug}`);
-  const [activity, levels, curriculum, curriculumPath, lessonSummary, specializations, legacyTheory] = await Promise.all([getLearnCourseActivitySummary(user.id, course.id), listCourseLevelsForOverview(user.id, course.id), listCurriculumForLearnOverview(course.id), getPublishedCurriculumPathOverviewForCourse(course.id, user.id), getPublishedCourseLessonProgressSummary(user.id, course.id), listCourseSpecializations(course.id), getCourseTheoryProgress(user.id, course.id)]);
-  const theory = lessonSummary.totalLessons ? lessonSummary : legacyTheory; const nextLesson = lessonSummary.nextLesson ?? legacyTheory?.nextLesson ?? null; const continueHref = nextLesson ? lessonSummary.nextLesson ? `/learn/${course.slug}/course-lessons/${nextLesson.id}` : `/learn/${course.slug}/lessons/${nextLesson.id}` : `/practice/${course.slug}?random=1&count=10`; const continueTitle = nextLesson ? publicCopy(nextLesson.title) : "10문제로 오늘 학습 시작"; const levelCompletion = levels.length ? Math.round((levels.filter((level) => ["COMPLETED", "MASTERED"].includes(level.status)).length / levels.length) * 100) : 0;
-  const isSecurityCertificationCourse = course.id === "course-ise" || course.id === "course-isie";
-  return <main className="page-main"><section className="learn-hero"><div className="shell"><Link className="breadcrumb" href="/dashboard">← 대시보드로 돌아가기</Link><div className="learn-hero-grid"><div><p className="eyebrow light">{course.groupName}</p><h1>{course.name}</h1><p>공식 커리큘럼에 따라 이론을 익히고 문제풀이와 복습으로 학습을 이어가세요.</p><div className="button-row"><Link className="button button-primary" href="#today-learning-board">오늘 학습 보기</Link><Link className="button button-outline-light" href={`/practice/${course.slug}?random=1&count=10`}>10문제 풀기</Link></div></div><div className="learn-progress-panel"><ProgressBar value={levelCompletion} label="단계 완료율" /><dl className="metric-list"><div><dt>전체 정답률</dt><dd>{activity.stats.overallAccuracy}%</dd></div><div><dt>복습 예정</dt><dd>{activity.dueReviewCount}개</dd></div><div><dt>이론 진도</dt><dd>{theory.completedLessons}/{theory.totalLessons}</dd></div></dl></div></div></div></section><div className="shell section-stack"><section className="learn-action-board section-block" id="today-learning-board"><div className="section-heading compact"><div><p className="eyebrow">오늘의 학습</p><h2>다음 행동을 바로 선택하세요</h2><p>이어서 학습, 문제풀이, 복습 중 하나를 선택하면 됩니다.</p></div><span className="count-label">단계 완료 {levelCompletion}%</span></div><div className="learn-action-grid"><Link className="learn-action-card learn-action-card-primary" href={continueHref}><span>01 · 이어서 학습</span><strong>{continueTitle}</strong><p>이론 진도 {theory.completedLessons}/{theory.totalLessons} 완료</p><small>학습 계속하기 →</small></Link><Link className="learn-action-card" href={`/practice/${course.slug}?random=1&count=10`}><span>02 · 문제풀이</span><strong>10문제로 실력 확인</strong><p>최근 7일 {activity.stats.recent7Days}문제를 풀었습니다.</p><small>문제 시작 →</small></Link><Link className="learn-action-card" href={`/practice/${course.slug}?reviewOnly=1&count=50`}><span>03 · 복습</span><strong>{activity.dueReviewCount}개 복습 예정</strong><p>오답과 취약 영역을 먼저 정리합니다.</p><small>복습 시작 →</small></Link><Link className="learn-action-card" href={`/analytics/${course.id}`}><span>04 · 학습 분석</span><strong>현재 학습 상태 확인</strong><p>정답률 {activity.stats.overallAccuracy}% · 반복 오답 {activity.stats.repeatedWrongCount}개</p><small>분석 보기 →</small></Link></div></section>{curriculumPath ? <section className="curriculum-path-section section-block"><div className="section-heading compact"><div><p className="eyebrow">{isSecurityCertificationCourse ? "시험 구분" : "공식 커리큘럼"}</p><h2>{isSecurityCertificationCourse ? "필기·실기 선택" : publicCopy(curriculumPath.tree.title)}</h2><p>{isSecurityCertificationCourse ? "필기 또는 실기를 먼저 선택한 뒤 실제 시험 과목과 주제에서 이론·문제를 학습하세요." : `공식 기준과 연결된 학습 범위를 확인하세요. 버전 ${curriculumPath.tree.version}`}</p></div><span className="count-label">{curriculumPath.nodeCount}개 항목</span></div>{hasPrimaryCurriculumPath(curriculumPath) ? <ProgressBar value={curriculumPath.progressPercent} label={`커리큘럼 진도 ${curriculumPath.completedLinkedLessons}/${curriculumPath.linkedLessonCount} 완료`} /> : null}<LearnCurriculumPathTree courseSlug={course.slug} nodes={curriculumPath.nodes} /></section> : null}{lessonSummary.totalLessons ? <section className="section-block"><div className="section-heading compact"><div><p className="eyebrow">이론 학습</p><h2>공식 학습 콘텐츠</h2><p>완료한 레슨과 다음 레슨을 과정별 진도로 관리합니다.</p></div><span className="count-label">{lessonSummary.completedLessons}/{lessonSummary.totalLessons} 완료</span></div><ProgressBar value={lessonSummary.progressPercent} label="이론 학습 진도" /><div className="course-lesson-grid">{lessonSummary.lessons.map((lesson) => <Link className="course-lesson-card" href={`/learn/${course.slug}/course-lessons/${lesson.id}`} key={lesson.id}><div className="course-card-top"><span className="badge">{lesson.status === "COMPLETED" ? "완료" : lesson.status === "IN_PROGRESS" ? "학습 중" : "시작 전"}</span><span>{lesson.estimatedMinutes}분</span></div><h3>{publicCopy(lesson.title)}</h3><p>{publicCopy(lesson.summary)}</p><div className="course-lesson-meta"><span>{lesson.isRequired ? "필수" : "선택"}</span>{lesson.difficulty ? <span>{lesson.difficulty}</span> : null}</div></Link>)}</div></section> : null}{curriculum.length && !isSecurityCertificationCourse ? <section className="section-block"><div className="section-heading compact"><div><p className="eyebrow">과목별 학습</p><h2>필요한 범위부터 선택</h2><p>과목과 주제별 진도를 확인하고 원하는 영역으로 이동하세요.</p></div><span className="count-label">{curriculum.length}개 과목</span></div><div className="subject-list">{curriculum.map((subject, index) => <Link className="subject-row" href={`/learn/${course.slug}/subjects/${subject.id}`} key={subject.id}><span>{String(index + 1).padStart(2, "0")}</span><div><h3>{subject.name}</h3><p>{publicCopy(subject.description)}</p></div><strong>{subject.theoryProgress.progressPercent}% · {subject.topics.length}개 주제</strong></Link>)}</div></section> : null}<section className="dashboard-layout section-block"><div className="side-card"><span className="eyebrow">단계 학습</span><h3>{levels.length ? `${levels.length}단계 학습 경로` : "단계 콘텐츠 준비 중"}</h3><p>단계를 완료하면 다음 학습 범위가 순서대로 열립니다.</p></div>{specializations.length ? <div className="side-card specialization-callout"><span className="eyebrow">추가 학습</span><h3>과정 특화 실무</h3><p>{specializations.map((item) => item.displayName).join(" · ")}</p><Link className="button button-dark full-width" href={`/practical/${course.slug}`}>실무 학습 보기</Link></div> : null}<div className="side-card"><span className="eyebrow">모의고사</span><h3>{activity.mockExamCount}개 시험 이용 가능</h3><p>학습한 범위를 시험 형식으로 점검할 수 있습니다.</p><Link className="button button-ghost full-width" href="/mock-exams">모의고사 보기</Link></div></section></div></main>;
+export default async function LearnCoursePage({
+  params,
+}: {
+  params: Promise<{ courseSlug: string }>;
+}) {
+  const { courseSlug } = await params;
+  const user = await requireCurrentAppUser(`/learn/${courseSlug}`);
+  const { course, enrollment } = await getLearnCourseAccessBySlug(user.id, courseSlug);
+
+  if (!course) notFound();
+  if (!enrollment) redirect(`/courses/${course.slug}`);
+
+  const [activity, curriculum, curriculumPath, lessonSummary, legacyTheory] =
+    await Promise.all([
+      getLearnCourseActivitySummary(user.id, course.id),
+      listCurriculumForLearnOverview(course.id),
+      getPublishedCurriculumPathOverviewForCourse(course.id, user.id),
+      getPublishedCourseLessonProgressSummary(user.id, course.id),
+      getCourseTheoryProgress(user.id, course.id),
+    ]);
+
+  const theory = lessonSummary.totalLessons ? lessonSummary : legacyTheory;
+  const nextLesson = lessonSummary.nextLesson ?? legacyTheory?.nextLesson ?? null;
+  const continueHref = nextLesson
+    ? lessonSummary.nextLesson
+      ? `/learn/${course.slug}/course-lessons/${nextLesson.id}`
+      : `/learn/${course.slug}/lessons/${nextLesson.id}`
+    : `/practice/${course.slug}?random=1&count=10`;
+  const isSecurityCertificationCourse =
+    course.id === "course-ise" || course.id === "course-isie";
+
+  return (
+    <main className={styles.page} data-learn-overview-v2="">
+      <div className={styles.container}>
+        <nav className={styles.breadcrumbs} aria-label="현재 위치">
+          <Link href="/dashboard">대시보드</Link>
+          <span aria-hidden="true">/</span>
+          <span aria-current="page">{course.shortName}</span>
+        </nav>
+
+        <header className={styles.courseHeader}>
+          <p className={styles.eyebrow}>{course.groupName}</p>
+          <h1>{course.name}</h1>
+          <p>복잡한 과정 구조보다 지금 배울 내용부터 확인하세요.</p>
+        </header>
+
+        <section className={styles.overviewGrid} aria-label="현재 과정 학습 상태">
+          <article className={styles.nextLearning} data-learn-primary="">
+            <p className={styles.eyebrow}>다음 학습</p>
+            <h2>{nextLesson ? publicCopy(nextLesson.title) : "문제로 학습 시작하기"}</h2>
+            <p>
+              {nextLesson
+                ? "최근 학습 흐름을 이어서 핵심 개념을 확인합니다."
+                : "공개된 다음 레슨이 없어 문제 연습으로 이동합니다."}
+            </p>
+            <div className={styles.nextMeta}>
+              <span>{theory.completedLessons}/{theory.totalLessons} 레슨 완료</span>
+              {activity.dueReviewCount > 0 ? (
+                <span>오늘 복습 {activity.dueReviewCount}개</span>
+              ) : null}
+            </div>
+            <Link className={styles.primaryButton} href={continueHref}>
+              {nextLesson ? "이어서 학습" : "문제 연습하기"}
+              <span aria-hidden="true">→</span>
+            </Link>
+          </article>
+
+          <aside className={styles.progressCard} aria-labelledby="course-progress-title">
+            <div className={styles.progressTitle}>
+              <div>
+                <p className={styles.eyebrow}>학습 상태</p>
+                <h2 id="course-progress-title">전체 이론 진도</h2>
+              </div>
+              <strong>{theory.progressPercent}%</strong>
+            </div>
+            <ProgressBar value={theory.progressPercent} label="전체 이론 학습 진도" />
+            <p>완료한 레슨 {theory.completedLessons}개 · 전체 {theory.totalLessons}개</p>
+          </aside>
+        </section>
+
+        <nav className={styles.secondaryActions} aria-label="과정 보조 학습">
+          <Link href={`/practice/${course.slug}?random=1&count=10`}>문제 풀기</Link>
+          <Link href={`/practice/${course.slug}?reviewOnly=1&count=50`}>
+            {activity.dueReviewCount > 0
+              ? `예정된 복습 ${activity.dueReviewCount}개`
+              : "복습 확인"}
+          </Link>
+          <Link href={`/analytics/${course.id}`}>학습 분석 보기</Link>
+        </nav>
+
+        {lessonSummary.totalLessons ? (
+          <section className={styles.section} aria-labelledby="course-lessons-title">
+            <SectionHeading
+              eyebrow="과정 구성"
+              title="순서대로 배우는 핵심 레슨"
+              description="현재 위치와 완료 상태를 확인하고 다음 레슨으로 이동하세요."
+              id="course-lessons-title"
+              aside={`${lessonSummary.completedLessons}/${lessonSummary.totalLessons} 완료`}
+            />
+            <div className={styles.lessonList}>
+              {lessonSummary.lessons.map((lesson, index) => (
+                <Link
+                  className={styles.lessonRow}
+                  href={`/learn/${course.slug}/course-lessons/${lesson.id}`}
+                  key={lesson.id}
+                  aria-current={lesson.id === nextLesson?.id ? "step" : undefined}
+                >
+                  <span className={styles.lessonNumber}>{String(index + 1).padStart(2, "0")}</span>
+                  <div>
+                    <div className={styles.statusLine}>
+                      <span data-status={lesson.status}>
+                        {lesson.status === "COMPLETED"
+                          ? "완료"
+                          : lesson.status === "IN_PROGRESS"
+                            ? "학습 중"
+                            : "시작 전"}
+                      </span>
+                      {lesson.id === nextLesson?.id ? <b>현재 학습</b> : null}
+                    </div>
+                    <h3>{publicCopy(lesson.title)}</h3>
+                    <p>{publicCopy(lesson.summary)}</p>
+                  </div>
+                  <span className={styles.lessonMeta}>{lesson.estimatedMinutes}분</span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {curriculum.length && !isSecurityCertificationCourse ? (
+          <section className={styles.section} aria-labelledby="subjects-title">
+            <SectionHeading
+              eyebrow="과목별 학습"
+              title="과목과 주제 살펴보기"
+              description="필요한 과목을 선택해 주제와 레슨을 확인하세요."
+              id="subjects-title"
+              aside={`${curriculum.length}개 과목`}
+            />
+            <div className={styles.subjectList}>
+              {curriculum.map((subject, index) => (
+                <Link
+                  className={styles.subjectRow}
+                  href={`/learn/${course.slug}/subjects/${subject.id}`}
+                  key={subject.id}
+                >
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <div>
+                    <h3>{subject.name}</h3>
+                    <p>{publicCopy(subject.description)}</p>
+                  </div>
+                  <strong>{subject.theoryProgress.progressPercent}%</strong>
+                </Link>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {curriculumPath ? (
+          <details className={styles.curriculumDisclosure} data-learn-curriculum="">
+            <summary>
+              <span>
+                <b>{isSecurityCertificationCourse ? "필기·실기 과정 구성" : "전체 커리큘럼"}</b>
+                <small>필요할 때 전체 학습 범위를 펼쳐볼 수 있습니다.</small>
+              </span>
+              <strong>{curriculumPath.nodeCount}개 항목</strong>
+            </summary>
+            <div className={styles.curriculumBody}>
+              {hasPrimaryCurriculumPath(curriculumPath) ? (
+                <ProgressBar
+                  value={curriculumPath.progressPercent}
+                  label={`커리큘럼 진도 ${curriculumPath.completedLinkedLessons}/${curriculumPath.linkedLessonCount} 완료`}
+                />
+              ) : null}
+              <LearnCurriculumPathTree courseSlug={course.slug} nodes={curriculumPath.nodes} />
+            </div>
+          </details>
+        ) : null}
+      </div>
+    </main>
+  );
+}
+
+function SectionHeading({
+  aside,
+  description,
+  eyebrow,
+  id,
+  title,
+}: {
+  aside?: string;
+  description: string;
+  eyebrow: string;
+  id: string;
+  title: string;
+}) {
+  return (
+    <header className={styles.sectionHeading}>
+      <div>
+        <p className={styles.eyebrow}>{eyebrow}</p>
+        <h2 id={id}>{title}</h2>
+        <span>{description}</span>
+      </div>
+      {aside ? <strong>{aside}</strong> : null}
+    </header>
+  );
 }

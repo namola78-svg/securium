@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import styles from "@/components/v2/mock-exam-v2.module.css";
 
 export function MockExamStart({ mockExamId }: { mockExamId: string }) {
   const [message, setMessage] = useState("");
@@ -33,11 +34,11 @@ export function MockExamStart({ mockExamId }: { mockExamId: string }) {
   }
 
   return (
-    <div>
-      <button className="button button-dark" type="button" disabled={starting} aria-busy={starting} onClick={start}>
+    <div className={styles.startControl}>
+      <button className={styles.primaryButton} type="button" disabled={starting} aria-busy={starting} onClick={start}>
         {starting ? "시험 준비 중..." : "시험 시작"}
       </button>
-      {message ? <p className="form-message" role="alert">{message}</p> : null}
+      {message ? <p className={styles.errorMessage} role="alert">{message}</p> : null}
     </div>
   );
 }
