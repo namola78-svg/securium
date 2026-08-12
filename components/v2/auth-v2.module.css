@@ -294,6 +294,8 @@
 
 .field input:focus-visible {
   border-color: var(--v2-color-action-primary);
+  outline: var(--v2-focus-width) solid var(--v2-color-focus);
+  outline-offset: var(--v2-focus-offset);
   box-shadow: var(--v2-focus-ring);
 }
 
@@ -321,7 +323,7 @@
   top: 50%;
   right: 0.375rem;
   min-width: 4.25rem;
-  min-height: 2.25rem;
+  min-height: var(--v2-control-min-size);
   border: 0;
   border-radius: calc(var(--v2-radius-control) - 0.125rem);
   background: var(--v2-color-bg-subtle);
@@ -407,6 +409,14 @@
   color: var(--v2-color-action-primary-hover);
   font-weight: var(--v2-font-weight-semibold);
   text-underline-offset: 0.2em;
+}
+
+.switchCopy .textLink,
+.legalCopy .textLink {
+  display: inline-flex;
+  min-height: var(--v2-control-min-size);
+  align-items: center;
+  padding-inline: var(--v2-space-1);
 }
 
 @media (max-width: 1023px) {

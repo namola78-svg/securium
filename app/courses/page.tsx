@@ -14,7 +14,7 @@ export default async function CoursesPage() {
   const grouped = Map.groupBy(courses, (course) => course.groupName);
 
   return (
-    <main className="page-main">
+    <main className="page-main catalog-page">
       <section className="page-hero">
         <div className="shell">
           <p className="eyebrow">학습 경로 선택</p>

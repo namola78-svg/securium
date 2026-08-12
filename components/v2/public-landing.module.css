@@ -57,6 +57,7 @@
 
 .brand {
   display: inline-flex;
+  min-width: max-content;
   min-height: var(--v2-control-min-size);
   align-items: center;
   gap: var(--v2-space-3);
@@ -88,6 +89,7 @@
 .brandText {
   display: grid;
   line-height: 1.2;
+  white-space: nowrap;
 }
 
 .brandText strong {
@@ -927,17 +929,16 @@
   }
 
   .desktopNav,
-  .desktopLogin,
-  .desktopSignup {
+  .headerActions .desktopLogin,
+  .headerActions .desktopSignup {
     display: none;
   }
 
-  .mobileSignup,
-  .menuButton {
+  .headerActions .mobileSignup {
     display: inline-flex;
   }
 
-  .menuButton {
+  .headerActions .menuButton {
     display: block;
   }
 

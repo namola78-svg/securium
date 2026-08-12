@@ -114,3 +114,11 @@ test("landing responsive CSS keeps V2 scoped and avoids tiny new type", () => {
   assert.doesNotMatch(css, /font-size:\s*(?:10|11)px/);
   assert.doesNotMatch(css, /lime|aqua|linear-gradient|radial-gradient/);
 });
+
+test("mobile landing brand resists intrinsic-width collapse", () => {
+  const css = styles();
+  assert.match(css, /\.brand\s*\{[\s\S]*?min-width:\s*max-content/);
+  assert.match(css, /\.brandText\s*\{[\s\S]*?white-space:\s*nowrap/);
+  assert.match(css, /\.headerActions \.desktopLogin,[\s\S]*?display:\s*none/);
+  assert.match(css, /\.headerActions \.menuButton\s*\{\s*display:\s*block/);
+});
