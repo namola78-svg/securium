@@ -787,3 +787,69 @@
 - Vercel Production deployment `securium-4f2ve9r81-namola78-svgs-projects.vercel.app` reached `Ready` and aliases to `https://securium.vercel.app`.
 - Production smoke checks for `/`, `/api/health`, and `/api/auth/session` returned HTTP 200; recent Vercel logs showed only expected info-level requests.
 - `.playwright-mcp/` remains an existing untracked local directory and was not included.
+
+## BATCH 156 (V2 Phase 3 authentication completion)
+- Completed the isolated V2 presentation for `/login` and `/signup` across Sites and Supabase provider modes while preserving authentication actions, safe `return_to` routing, session behavior, field contracts, legal links, and provider availability.
+- Added the shared `AuthV2Shell`/`AuthV2Card` presentation, scoped responsive styles, accessible field errors and password controls, and provider-specific actions without changing global CSS or unrelated routes.
+- Corrected `reports/ui-v2/phase3/auth-qa.mjs` so presentation QA uses the stable Next development runtime without forcing the Cloudflare-only build target; readiness failures now print captured server logs.
+- Validation: auth presentation contract tests passed 5/5; browser QA passed 16/16 across Sites/Supabase, login/signup, and 390/768/1024/1440 viewports with HTTP 200, no overflow, no console warnings/errors, and no page errors.
+- Flow checks passed for `/dashboard` `return_to` preservation, Supabase password visibility and empty-submit errors, and protected-route redirect behavior.
+- Evidence: `reports/ui-v2/phase3/qa-results.json`, 16 full-page screenshots, and `docs/securium-v2-phase3-report.md`.
+- The full unit suite, lint, typecheck, production build, and Cloudflare build were not rerun in this continuation.
+
+## BATCH 157 (V2 Phase 4 learner shell and dashboard completion)
+- Added the authenticated V2 learner application shell with desktop sidebar, tablet modal drawer, mobile five-item bottom navigation, page context, profile actions, and learner/admin route isolation.
+- Refined `/dashboard` around the next recommended action, today's learning goal, scheduled review, active courses, and summary metrics while preserving repository and route contracts.
+- Prevented closed drawer content from remaining keyboard-focusable, unified drawer close/focus restoration behavior, and added modal semantics.
+- Corrected `reports/ui-v2/phase4/learner-shell-qa.mjs` to use the Vinext/Cloudflare D1 runtime, retain diagnostics on missing controls, respect established V2 landing/auth header behavior, and detect the actual admin shell.
+- Validation: browser QA passed 28/28 learner route/viewport cases at 390/768/1024/1440 with HTTP 200, no overflow, no console warnings/errors, correct active navigation, responsive sidebar/bottom-nav behavior, drawer/profile focus checks, public/auth isolation, and admin isolation.
+- Evidence: `reports/ui-v2/phase4/qa-results.json`, four dashboard screenshots, and `docs/securium-v2-phase4-report.md`.
+- The full unit suite, lint, typecheck, production build, and Cloudflare build were not rerun in this continuation.
+
+## BATCH 158 (V2 Phase 5 learning overview)
+- Migrated `/learn/[courseSlug]` to a scoped V2 presentation organized around course status, the primary next action, official curriculum, theory content, subject navigation, and extension learning.
+- Preserved course access, enrollment redirects, all repository queries, curriculum interactions, lesson routes, practice parameters, analytics links, and Phase 4 learner-shell behavior.
+- Added `components/v2/learn-overview.module.css` without changing global CSS and brought curriculum controls and mobile actions to the 44px target minimum.
+- Added a Vinext/D1 browser QA harness covering `/learn/isms-p` at 390/768/1024/1440 and the Sites-provider unauthenticated redirect contract.
+- Validation: browser QA passed 4/4 viewport cases with HTTP 200, correct responsive shell navigation, one H1, four core actions, curriculum rendering, no horizontal overflow, no undersized mobile controls, no console warnings/errors, and no page errors; unauthenticated access returned the expected 307 redirect.
+- Evidence: `reports/ui-v2/phase5/qa-results.json`, four full-page screenshots, and `docs/securium-v2-phase5-learn-overview-report.md`.
+- The full unit suite, lint, typecheck, production build, and Cloudflare build were not rerun in this increment.
+
+## BATCH 159 (V2 Phase 5 learner dashboard)
+- Re-scoped Phase 5 to the user-specified `/dashboard`-only migration and preserved all internal learner, public, auth, and admin screens.
+- Verified the Phase 4 learner shell before implementation: 28/28 learner route/viewport cases passed with correct desktop/sidebar, tablet drawer, mobile header/bottom navigation, active route, auth protection, and shell separation.
+- Rebuilt the Dashboard hierarchy around one recommended action, current course progress, today's plan, active-course progress, recent learning, and an explicit analysis-ready empty state.
+- Reused only `listDashboardUserEnrollments` and `getTodayLearningPlan`; no readiness, weakness, accuracy, activity, streak, study-time, or subject-progress calculation was added.
+- Added a route-scoped static loading state, Dashboard CSS Module, focused source contracts, and a Vinext/D1 browser QA harness.
+- Validation: focused tests 10/10, typecheck, and lint passed. Browser QA passed at 390/768/1024/1440 with HTTP 200, one H1, one Primary CTA, accessible progress, correct responsive shell behavior, no overflow, no undersized mobile targets, no console warnings/errors, and no page errors. Sites unauthenticated access returned the expected 307 redirect.
+- Evidence: `reports/ui-v2/phase5/dashboard-qa-results.json`, four Dashboard screenshots, and `docs/securium-v2-phase5-dashboard-report.md`.
+# Batch 160 - Phase 5 Dashboard final validation
+
+- Dashboard/Learner Shell focused tests passed: 11/11.
+- Dashboard browser QA passed at 390/768/1024/1440: 4/4; unauthenticated `/dashboard` still redirects with 307.
+- Integration tests passed: 23/23.
+- Next.js production build passed with 63 static-generation routes.
+- Cloudflare/Vinext build passed.
+- Full unit suite remains blocked by one pre-existing, out-of-scope Learn copy contract: expected `필기·실기 선택`, current Learn copy is `필기·실기 학습 경로`. No Learn implementation or test was changed for Phase 5.
+# Batch 161 - Phase 6 Learn Experience V2
+
+- Rebuilt all `/learn/**` presentation surfaces around course, next learning, core concept, actual exam points/evidence, practice confirmation, and next lesson.
+- Preserved auth, enrollment, repositories, progress APIs, curriculum/domain data, Content V3 rendering, and legacy fallback.
+- Simplified curriculum exploration behind a disclosure with shallow default expansion and learner-facing labels.
+- Added scoped responsive Learn styling and accessible progress, disclosure, breadcrumb, current-state, focus, and 44px touch contracts.
+- Validation passed: diff check, typecheck, lint, full unit suite, Learn focused 7/7, integration 23/23, Next build, Cloudflare build, and browser QA 4/4 at 390/768/1024/1440.
+- Visual QA passed for mobile and desktop overview/lesson. Mobile outline was moved behind content, practice CTA, and next-learning navigation after inspection.
+- Phase 4/5 preflight rerun hit local Vinext/D1 runner instability, not a product assertion failure; prior Phase 4 28/28 and Phase 5 4/4 evidence remains valid.
+- No DB, migration, taxonomy, curriculum data, ontology, SKOS, provenance, or Content V3 change.
+
+
+## Batch 162 - SECURIUM V2 Phase 7 Practice + Explanation
+
+- Completed route-scoped Practice Focus Mode for /practice/[courseSlug].
+- Reworked question, choice, submit, result, official explanation, evidence, Wrong Notes entry, AI secondary entry, and next-question hierarchy.
+- Preserved scoring, selection, persistence, idempotency, reviewOnly, random/count, and backend contracts.
+- Fixed presentation compatibility for correctAnswer values returned as existing display strings or choice IDs.
+- Validation: diff check, typecheck, lint, unit 341/341, focused 7/7, integration 23/23, Next build, Cloudflare build, browser QA 4/4.
+- Browser QA: 390/768/1024/1440, no horizontal overflow or console/page errors; reviewOnly 200; unauthenticated 307.
+- Report: docs/securium-v2-phase7-report.md.
+- Stop condition observed. Phase 8 was not started.

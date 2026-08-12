@@ -213,6 +213,6 @@ test("information security course UI uses written/practical as the primary taxon
   const page = await readFile("app/learn/[courseSlug]/page.tsx", "utf8");
 
   assert.match(page, /course\.id === "course-ise" \|\| course\.id === "course-isie"/);
-  assert.match(page, /"필기·실기 선택"/);
+  assert.match(page, /"필기·실기 과정 구성"/);
   assert.match(page, /curriculum\.length && !isSecurityCertificationCourse/);
 });

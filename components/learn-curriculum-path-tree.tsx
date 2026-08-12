@@ -24,451 +24,138 @@ type CurriculumPathNode = {
   linkedLessonProgressPercent: number;
   linkedLessons: Array<{ id: string; title: string; status: string }>;
   linkedLesson: { id: string; title: string } | null;
-  questionStats: {
-    questionCount: number;
-    attemptCount: number;
-    correctAttempts: number;
-    accuracy: number;
-    wrongQuestionCount: number;
-    wrongAttemptCount: number;
-    dueReviewCount: number;
-  };
+  questionStats: { questionCount: number; attemptCount: number; correctAttempts: number; accuracy: number; wrongQuestionCount: number; wrongAttemptCount: number; dueReviewCount: number };
   children: CurriculumPathNode[];
 };
 
-type VisibleNode = {
-  node: CurriculumPathNode;
-  hasChildren: boolean;
-};
+type DepthStyle = CSSProperties & { "--node-depth": number };
 
-type NodeDepthStyle = CSSProperties & {
-  "--node-depth": number;
-};
-
-export function LearnCurriculumPathTree({
-  courseSlug,
-  nodes,
-}: {
-  courseSlug: string;
-  nodes: CurriculumPathNode[];
-}) {
-  const allExpandableIds = useMemo(() => collectExpandableNodeIds(nodes), [nodes]);
+export function LearnCurriculumPathTree({ courseSlug, nodes }: { courseSlug: string; nodes: CurriculumPathNode[] }) {
   const allNodes = useMemo(() => flattenAllNodes(nodes), [nodes]);
-  const [expandedNodeIds, setExpandedNodeIds] = useState<Set<string>>(
-    () => defaultExpandedNodeIds(nodes),
-  );
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(
-    () => allNodes[0]?.id ?? null,
-  );
-  const visibleNodes = useMemo(
-    () => flattenVisibleNodes(nodes, expandedNodeIds),
-    [expandedNodeIds, nodes],
-  );
-  const summary = useMemo(() => summarizeCurriculumPath(nodes), [nodes]);
-  const selectedNode =
-    allNodes.find((node) => node.id === selectedNodeId) ?? visibleNodes[0]?.node ?? null;
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(() => defaultExpandedIds(nodes));
+  const [selectedId, setSelectedId] = useState<string | null>(() => allNodes[0]?.id ?? null);
+  const visibleNodes = useMemo(() => flattenVisibleNodes(nodes, expandedIds), [nodes, expandedIds]);
+  const selected = allNodes.find((node) => node.id === selectedId) ?? null;
+  const summary = useMemo(() => summarize(nodes), [nodes]);
 
-  function toggleNode(nodeId: string) {
-    setExpandedNodeIds((current) => {
+  function toggle(id: string) {
+    setExpandedIds((current) => {
       const next = new Set(current);
-      if (next.has(nodeId)) {
-        next.delete(nodeId);
-      } else {
-        next.add(nodeId);
-      }
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   }
 
   return (
-    <div className="learn-curriculum-compact learn-curriculum-path-tree">
-      <div className="learn-curriculum-summary" aria-label="공식 커리큘럼 학습 요약">
-        <div>
-          <p className="eyebrow">공식 커리큘럼 경로</p>
-          <strong>공식 출제기준을 따라 핵심 이론과 문제로 바로 이동합니다.</strong>
-          <span>
-            현재 선택: {selectedNode ? selectedNode.officialTitle || selectedNode.title : "없음"}
-          </span>
-        </div>
-        <dl>
-          <div>
-            <dt>학습 항목</dt>
-            <dd>{summary.totalNodes}개</dd>
-          </div>
-          <div>
-            <dt>학습 자료</dt>
-            <dd>{summary.linkedLessons}개</dd>
-          </div>
-          <div>
-            <dt>완료 자료</dt>
-            <dd>{summary.completedLessons}개</dd>
-          </div>
-          <div>
-            <dt>문제</dt>
-            <dd>{summary.questionCount}개</dd>
-          </div>
-        </dl>
-      </div>
+    <div className="learn-curriculum-path-tree">
+      <dl className="learn-curriculum-summary" aria-label="전체 과정 구성 요약">
+        <div><dt>학습 항목</dt><dd>{summary.totalNodes}개</dd></div>
+        <div><dt>학습 자료</dt><dd>{summary.linkedLessons}개</dd></div>
+        <div><dt>완료</dt><dd>{summary.completedLessons}개</dd></div>
+        <div><dt>관련 문제</dt><dd>{summary.questionCount}개</dd></div>
+      </dl>
 
-      <div className="learn-curriculum-toolbar" aria-label="커리큘럼 표시 옵션">
-        <button
-          className="button button-ghost"
-          type="button"
-          onClick={() => setExpandedNodeIds(new Set(allExpandableIds))}
-        >
-          전체 펼치기
-        </button>
-        <button
-          className="button button-ghost"
-          type="button"
-          onClick={() => setExpandedNodeIds(defaultExpandedNodeIds(nodes))}
-        >
-          과목까지만 보기
-        </button>
-        <button
-          className="button button-ghost"
-          type="button"
-          onClick={() => setExpandedNodeIds(new Set())}
-        >
-          전체 접기
-        </button>
+      <div className="learn-curriculum-toolbar" aria-label="과정 구성 표시 옵션">
+        <button type="button" onClick={() => setExpandedIds(defaultExpandedIds(nodes))}>기본 보기</button>
+        <button type="button" onClick={() => setExpandedIds(new Set(allNodes.filter((node) => node.children.length).map((node) => node.id)))}>모두 펼치기</button>
       </div>
 
       <div className="learn-curriculum-layout">
-        <div className="learn-curriculum-list" role="tree">
-          {visibleNodes.map(({ node, hasChildren }) => (
-            <LearnCurriculumPathRow
-              courseSlug={courseSlug}
-              expanded={expandedNodeIds.has(node.id)}
-              hasChildren={hasChildren}
-              key={node.id}
-              node={node}
-              onSelect={() => setSelectedNodeId(node.id)}
-              onToggle={() => toggleNode(node.id)}
-              selected={selectedNode?.id === node.id}
-            />
-          ))}
-        </div>
-        {selectedNode ? (
-          <LearnCurriculumNodeDetail courseSlug={courseSlug} node={selectedNode} />
-        ) : null}
+        <ul className="learn-curriculum-list">
+          {visibleNodes.map((node) => {
+            const title = node.officialTitle || node.title;
+            const hasChildren = node.children.length > 0;
+            return (
+              <li className={selected?.id === node.id ? "is-selected" : ""} key={node.id} style={{ "--node-depth": Math.min(node.depth, 3) } as DepthStyle}>
+                {hasChildren ? (
+                  <button className="learn-curriculum-toggle" type="button" aria-expanded={expandedIds.has(node.id)} aria-label={`${title} ${expandedIds.has(node.id) ? "접기" : "펼치기"}`} onClick={() => toggle(node.id)}>
+                    {expandedIds.has(node.id) ? "−" : "+"}
+                  </button>
+                ) : <span className="learn-curriculum-leaf" aria-hidden="true" />}
+                <button className="learn-curriculum-select" type="button" aria-pressed={selected?.id === node.id} onClick={() => setSelectedId(node.id)}>
+                  <span>{getCurriculumNodeLabel(node.nodeType)}</span>
+                  <strong>{title}</strong>
+                  <small>{node.linkedLessonCount ? `학습 자료 ${node.completedLinkedLessons}/${node.linkedLessonCount} 완료` : "학습 자료 준비 중"}</small>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+
+        {selected ? <CurriculumDetail courseSlug={courseSlug} node={selected} /> : null}
       </div>
     </div>
   );
 }
 
-function LearnCurriculumPathRow({
-  courseSlug,
-  expanded,
-  hasChildren,
-  node,
-  onSelect,
-  onToggle,
-  selected,
-}: {
-  courseSlug: string;
-  expanded: boolean;
-  hasChildren: boolean;
-  node: CurriculumPathNode;
-  onSelect: () => void;
-  onToggle: () => void;
-  selected: boolean;
-}) {
-  const nodeTitle = node.officialTitle || node.title;
-  const practiceHref = getCurriculumPracticeHref(courseSlug, node);
-  const sourcePage = getSourcePageLabel(node.metadata);
-  const progressLabel = node.linkedLessonCount
-    ? `${node.completedLinkedLessons}/${node.linkedLessonCount} 완료`
-    : "학습 자료 추가 예정";
-
-  return (
-    <article
-      aria-expanded={hasChildren ? expanded : undefined}
-      aria-selected={selected}
-      className={`learn-curriculum-row${selected ? " is-selected" : ""}`}
-      role="treeitem"
-      tabIndex={0}
-      style={{ "--node-depth": node.depth } as NodeDepthStyle}
-      onClick={onSelect}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          onSelect();
-        }
-      }}
-    >
-      {hasChildren ? (
-        <button
-          aria-label={`${nodeTitle} ${expanded ? "접기" : "펼치기"}`}
-          className="learn-curriculum-toggle"
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation();
-            onToggle();
-          }}
-        >
-          {expanded ? "−" : "+"}
-        </button>
-      ) : (
-        <span className="learn-curriculum-leaf" aria-hidden="true" />
-      )}
-      <div className="learn-curriculum-main">
-        <div className="learn-curriculum-title-line">
-          <strong>{nodeTitle}</strong>
-          {node.officialCode ? (
-            <span className="learn-curriculum-code">공식 순번 {node.officialCode}</span>
-          ) : null}
-          <span className="badge">{getCurriculumNodeLabel(node.nodeType)}</span>
-          <span className="badge">{progressLabel}</span>
-        </div>
-        <div className="learn-curriculum-meta-line">
-          <span>{node.isRequired ? "필수" : "선택"}</span>
-          {node.isPractical ? <span>실무</span> : null}
-          {sourcePage ? <span>{sourcePage}</span> : null}
-          {node.linkedLessonCount ? (
-            <span>
-              학습 자료 {node.completedLinkedLessons}/{node.linkedLessonCount} 완료 ·{" "}
-              {node.linkedLessonProgressPercent}%
-            </span>
-          ) : (
-            <span>학습 자료 추가 예정</span>
-          )}
-          {node.questionStats.questionCount ? (
-            <span>문제 {node.questionStats.questionCount}개</span>
-          ) : null}
-          {node.importance !== null ? <span>중요도 {node.importance}</span> : null}
-        </div>
-        {node.description ? (
-          <p className="learn-curriculum-description">{node.description}</p>
-        ) : null}
-      </div>
-      <div className="learn-curriculum-actions">
-        {node.linkedLesson ? (
-          <Link
-            className="button button-ghost"
-            href={`/learn/${courseSlug}/course-lessons/${node.linkedLesson.id}`}
-            onClick={(event) => event.stopPropagation()}
-          >
-            이론 보기
-          </Link>
-        ) : null}
-        {practiceHref ? (
-          <Link
-            className="button button-dark"
-            href={practiceHref}
-            onClick={(event) => event.stopPropagation()}
-          >
-            문제 풀기
-          </Link>
-        ) : null}
-      </div>
-    </article>
-  );
-}
-
-function LearnCurriculumNodeDetail({
-  courseSlug,
-  node,
-}: {
-  courseSlug: string;
-  node: CurriculumPathNode;
-}) {
+function CurriculumDetail({ courseSlug, node }: { courseSlug: string; node: CurriculumPathNode }) {
   const title = node.officialTitle || node.title;
-  const sourcePage = getSourcePageLabel(node.metadata);
-  const practiceHref = getCurriculumPracticeHref(courseSlug, node);
-  const nextAction = getCurriculumNodeNextAction(courseSlug, node, practiceHref);
-
+  const practiceHref = getPracticeHref(courseSlug, node);
+  const source = getSourceLabel(node.metadata);
   return (
-    <aside className="learn-curriculum-detail" aria-label="선택한 커리큘럼 상세">
-      <p className="eyebrow">커리큘럼 상세</p>
+    <aside className="learn-curriculum-detail" aria-label="선택한 학습 항목">
+      <p>현재 선택</p>
       <h3>{title}</h3>
-      <div className="learn-curriculum-next-card">
-        <span className="badge">다음 학습</span>
-        <strong>{nextAction.label}</strong>
-        <p>{nextAction.description}</p>
-        {nextAction.href ? (
-          <Link className="button button-dark" href={nextAction.href}>
-            바로 이동
-          </Link>
-        ) : (
-          <button className="button button-disabled" type="button" disabled>
-            학습 자료 추가 예정
-          </button>
-        )}
-      </div>
-      <dl>
-        <div>
-          <dt>계층</dt>
-          <dd>{getCurriculumNodeLabel(node.nodeType)}</dd>
-        </div>
-        {node.officialCode ? (
-          <div>
-            <dt>공식 순번</dt>
-            <dd>{node.officialCode}</dd>
-          </div>
-        ) : null}
-        {sourcePage ? (
-          <div>
-            <dt>출처</dt>
-            <dd>{sourcePage}</dd>
-          </div>
-        ) : null}
-        <div>
-          <dt>학습 자료</dt>
-          <dd>
-            {node.linkedLessonCount
-              ? `${node.completedLinkedLessons}/${node.linkedLessonCount} 완료`
-              : "학습 자료 추가 예정"}
-          </dd>
-        </div>
-        <div>
-          <dt>문제</dt>
-          <dd>{node.questionStats.questionCount}개</dd>
-        </div>
-      </dl>
       {node.description ? <p>{node.description}</p> : null}
+      <dl>
+        <div><dt>구분</dt><dd>{getCurriculumNodeLabel(node.nodeType)}</dd></div>
+        <div><dt>학습 상태</dt><dd>{node.linkedLessonCount ? `${node.completedLinkedLessons}/${node.linkedLessonCount} 완료` : "자료 준비 중"}</dd></div>
+        {source ? <div><dt>참고 기준</dt><dd>{source}</dd></div> : null}
+        {node.questionStats.questionCount ? <div><dt>관련 문제</dt><dd>{node.questionStats.questionCount}개</dd></div> : null}
+      </dl>
       <div className="learn-curriculum-detail-actions">
-        {node.linkedLesson ? (
-          <Link
-            className="button button-ghost"
-            href={`/learn/${courseSlug}/course-lessons/${node.linkedLesson.id}`}
-          >
-            이론 보기
-          </Link>
-        ) : null}
-        {practiceHref ? (
-          <Link className="button button-dark" href={practiceHref}>
-            문제 풀기
-          </Link>
-        ) : null}
+        {node.linkedLesson ? <Link href={`/learn/${courseSlug}/course-lessons/${node.linkedLesson.id}`}>핵심 이론 보기</Link> : null}
+        {practiceHref ? <Link href={practiceHref}>문제 풀기</Link> : null}
       </div>
     </aside>
   );
 }
 
-function defaultExpandedNodeIds(nodes: CurriculumPathNode[]) {
-  return new Set(
-    flattenAllNodes(nodes)
-      .filter((node) => node.children.length > 0 && node.depth === 0)
-      .map((node) => node.id),
-  );
-}
-
-function collectExpandableNodeIds(nodes: CurriculumPathNode[]) {
-  return flattenAllNodes(nodes)
-    .filter((node) => node.children.length > 0)
-    .map((node) => node.id);
-}
-
 function flattenAllNodes(nodes: CurriculumPathNode[]) {
   const result: CurriculumPathNode[] = [];
-  const visit = (node: CurriculumPathNode) => {
-    result.push(node);
-    for (const child of node.children) visit(child);
-  };
-  for (const node of nodes) visit(node);
+  const visit = (node: CurriculumPathNode) => { result.push(node); node.children.forEach(visit); };
+  nodes.forEach(visit);
   return result;
 }
 
-function flattenVisibleNodes(
-  nodes: CurriculumPathNode[],
-  expandedNodeIds: Set<string>,
-) {
-  const result: VisibleNode[] = [];
-  const visit = (node: CurriculumPathNode) => {
-    result.push({ node, hasChildren: node.children.length > 0 });
-    if (!expandedNodeIds.has(node.id)) return;
-    for (const child of node.children) visit(child);
-  };
-  for (const node of nodes) visit(node);
+function flattenVisibleNodes(nodes: CurriculumPathNode[], expanded: Set<string>) {
+  const result: CurriculumPathNode[] = [];
+  const visit = (node: CurriculumPathNode) => { result.push(node); if (expanded.has(node.id)) node.children.forEach(visit); };
+  nodes.forEach(visit);
   return result;
 }
 
-function summarizeCurriculumPath(nodes: CurriculumPathNode[]) {
-  const allNodes = flattenAllNodes(nodes);
-  return allNodes.reduce(
-    (summary, node) => ({
-      totalNodes: summary.totalNodes + 1,
-      linkedLessons: summary.linkedLessons + node.linkedLessonCount,
-      completedLessons: summary.completedLessons + node.completedLinkedLessons,
-      questionCount: summary.questionCount + node.questionStats.questionCount,
-    }),
-    {
-      totalNodes: 0,
-      linkedLessons: 0,
-      completedLessons: 0,
-      questionCount: 0,
-    },
-  );
+function defaultExpandedIds(nodes: CurriculumPathNode[]) {
+  return new Set(flattenAllNodes(nodes).filter((node) => node.depth === 0 && node.children.length).map((node) => node.id));
 }
 
-function getCurriculumPracticeHref(
-  courseSlug: string,
-  node: CurriculumPathNode,
-) {
+function summarize(nodes: CurriculumPathNode[]) {
+  return flattenAllNodes(nodes).reduce((result, node) => ({
+    totalNodes: result.totalNodes + 1,
+    linkedLessons: result.linkedLessons + node.linkedLessonCount,
+    completedLessons: result.completedLessons + node.completedLinkedLessons,
+    questionCount: result.questionCount + node.questionStats.questionCount,
+  }), { totalNodes: 0, linkedLessons: 0, completedLessons: 0, questionCount: 0 });
+}
+
+function getPracticeHref(courseSlug: string, node: CurriculumPathNode) {
   if (!node.questionStats.questionCount) return null;
-  const topicLink = node.linkedContent.find((link) => link.type === "TOPIC");
-  const subjectLink = node.linkedContent.find(
-    (link) => link.type === "SUBJECT",
-  );
-  if (!subjectLink && !topicLink) return null;
-
+  const topic = node.linkedContent.find((link) => link.type === "TOPIC");
+  const subject = node.linkedContent.find((link) => link.type === "SUBJECT");
+  if (!topic && !subject) return null;
   const params = new URLSearchParams({ count: "10" });
-  if (subjectLink) params.set("subjectId", subjectLink.id);
-  if (topicLink) params.set("topicId", topicLink.id);
+  if (subject) params.set("subjectId", subject.id);
+  if (topic) params.set("topicId", topic.id);
   return `/practice/${courseSlug}?${params.toString()}`;
 }
 
-function getCurriculumNodeNextAction(
-  courseSlug: string,
-  node: CurriculumPathNode,
-  practiceHref: string | null,
-) {
-  if (node.linkedLesson) {
-    return {
-      href: `/learn/${courseSlug}/course-lessons/${node.linkedLesson.id}`,
-      label: "이론부터 학습하세요",
-      description: `${node.linkedLesson.title} 이론으로 이동합니다.`,
-    };
-  }
-
-  if (practiceHref) {
-    return {
-      href: practiceHref,
-      label: "문제로 이해도를 확인하세요",
-      description: `${node.questionStats.questionCount}개 문제 중 일부를 풀어봅니다.`,
-    };
-  }
-
-  return {
-    href: null,
-    label: "연결된 학습 자료가 곧 제공됩니다",
-    description:
-      "공식 커리큘럼 위치는 확인할 수 있으며, 이론과 문제는 차례대로 제공됩니다.",
-  };
-}
-
-function getSourcePageLabel(metadata: string | null) {
+function getSourceLabel(metadata: string | null) {
   if (!metadata) return null;
   try {
-    const parsed = JSON.parse(metadata) as {
-      sourcePages?: Array<number | string>;
-      sourcePage?: number | string;
-      pdfPage?: number | string;
-      pageNumber?: number | string;
-    };
-    const values =
-      parsed.sourcePages ??
-      [parsed.sourcePage ?? parsed.pdfPage ?? parsed.pageNumber].filter(
-        Boolean,
-      );
-    const pages = values
-      .map((value) => String(value).trim())
-      .filter(Boolean)
-      .slice(0, 3);
-    if (!pages.length) return null;
-    return `PDF p.${pages.join(", ")}`;
-  } catch {
-    return null;
-  }
+    const parsed = JSON.parse(metadata) as { sourcePages?: Array<number | string>; sourcePage?: number | string; pdfPage?: number | string; pageNumber?: number | string };
+    const values = parsed.sourcePages ?? [parsed.sourcePage ?? parsed.pdfPage ?? parsed.pageNumber].filter(Boolean);
+    const pages = values.map(String).map((value) => value.trim()).filter(Boolean).slice(0, 3);
+    return pages.length ? `공식 문서 ${pages.join(", ")}쪽` : null;
+  } catch { return null; }
 }

@@ -47,8 +47,9 @@ test("첫 단계는 열리고 잠긴 다음 단계의 조작 접근은 차단한
   });
   const html = await pageResponse.text();
   assert.equal(pageResponse.status, 200, html.slice(0, 1200));
-  assert.match(html, /단계 학습/);
-  assert.match(html, /단계를 완료하면 다음 학습 범위/);
+  assert.match(html, /data-learn-overview-v2/);
+  assert.match(html, /과정 구성/);
+  assert.match(html, /href="\/practice\/isms-p\?random=1&amp;count=10"/);
 
   const lockedResponse = await fetch(`${baseUrl}/api/levels`, {
     method: "POST",
@@ -65,14 +66,17 @@ test("오늘 복습과 학습 분석을 사용자별 서버 데이터로 렌더�
     assert.equal(response.status, 200, `${path}: ${html.slice(0, 800)}`);
     if (path === "/reviews") assert.match(html, /ISMS-P/);
     if (path === "/analytics") {
-      assert.match(html, /학습 결과/);
-      assert.match(html, /다음 추천 행동/);
-      assert.match(html, /과정별 다음 행동/);
+      assert.match(html, /학습 결과 요약/);
+      assert.match(html, /취약 영역과 다음 학습 행동/);
+      assert.match(html, /과정별 성과/);
       assert.match(html, /\/practice\/isms-p\?count=10/);
+      assert.match(html, /href="\/reviews"/);
+      assert.match(html, /href="\/wrong-notes"/);
     }
     if (path === "/analytics/course-isms-p") {
       assert.match(html, /과정 학습 분석/);
-      assert.match(html, /먼저 확인할 영역/);
+      assert.match(html, /가장 취약한 영역/);
+      assert.match(html, /과목별 성과/);
       assert.match(html, /\/practice\/isms-p\?/);
       assert.doesNotMatch(html, /course-cppg-subject/);
     }
@@ -148,7 +152,8 @@ test("모의고사는 동시 제출 하나만 반영하고 실패 요청의 부�
   );
   const resultHtml = await resultResponse.text();
   assert.equal(resultResponse.status, 200, resultHtml.slice(0, 1200));
-  assert.match(resultHtml, /과목별 분석/);
+  assert.match(resultHtml, /data-mock-exam-result-v2/);
+  assert.match(resultHtml, /과목별 결과/);
 
   const duplicateResponse = await submitRequest();
   assert.equal(duplicateResponse.status, 409);

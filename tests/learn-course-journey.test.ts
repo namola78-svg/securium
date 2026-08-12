@@ -2,80 +2,46 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-test("course learn page prioritizes learner action board before curriculum sections", () => {
-  const source = readFileSync("app/learn/[courseSlug]/page.tsx", "utf8");
-  const actionBoardIndex = source.indexOf("<LearnActionBoard");
-  const levelPathIndex = source.indexOf("<LearnLevelPathLoader");
-  const curriculumPathIndex = source.indexOf("<CurriculumPathLoader");
+const overview = readFileSync("app/learn/[courseSlug]/page.tsx", "utf8");
+const subject = readFileSync("app/learn/[courseSlug]/subjects/[subjectId]/page.tsx", "utf8");
+const legacyLesson = readFileSync("app/learn/[courseSlug]/lessons/[lessonId]/page.tsx", "utf8");
+const courseLesson = readFileSync("app/learn/[courseSlug]/course-lessons/[courseLessonId]/page.tsx", "utf8");
+const styles = readFileSync("components/v2/learn-experience.module.css", "utf8");
 
-  assert.ok(actionBoardIndex > -1);
-  assert.ok(levelPathIndex > -1);
-  assert.ok(curriculumPathIndex > -1);
-  assert.ok(actionBoardIndex < levelPathIndex);
-  assert.ok(levelPathIndex < curriculumPathIndex);
+test("course overview prioritizes one next-learning action before curriculum", () => {
+  const nextIndex = overview.indexOf("data-learn-primary");
+  const curriculumIndex = overview.indexOf("data-learn-curriculum");
+  assert.ok(nextIndex > -1);
+  assert.ok(curriculumIndex > nextIndex);
+  assert.equal((overview.match(/className=\{styles\.primaryButton\}/g) ?? []).length, 1);
+  assert.match(overview, /이어서 학습/);
+  assert.match(overview, /필기·실기 과정 구성/);
 });
 
-test("course learn action board exposes the core learner journey", () => {
-  const source = readFileSync("app/learn/[courseSlug]/page.tsx", "utf8");
-  const styles = readFileSync("app/globals.css", "utf8");
-
-  assert.match(source, /이 과정에서 지금 할 일/);
-  assert.match(source, /이어서 학습/);
-  assert.match(source, /문제풀이/);
-  assert.match(source, /복습/);
-  assert.match(source, /분석/);
-  assert.match(source, /어디까지 했지\?/);
-  assert.match(source, /다음은\?/);
-  assert.match(source, /오늘 풀 문제는\?/);
-  assert.match(source, /약한 부분은\?/);
-  assert.match(source, /learn-action-rail/);
-  assert.match(source, /today-learning-board/);
-  assert.match(styles, /\.learn-action-grid/);
-  assert.match(styles, /\.learn-action-rail/);
-  assert.match(styles, /\.learn-action-card:focus-visible/);
-  assert.match(styles, /@media \(max-width: 680px\)[\s\S]*?\.learn-action-grid/);
+test("subject page presents current lesson before topic inventory", () => {
+  assert.ok(subject.indexOf("지금 배울 내용") < subject.indexOf("이 과목에서 다루는 주제"));
+  assert.match(subject, /aria-current=\{lesson\.id === nextLesson\?\.id \? "step"/);
+  assert.match(subject, /과목 이론 진도/);
 });
 
-test("course learn page uses user-facing labels for level statuses", () => {
-  const overviewSource = readFileSync("app/learn/[courseSlug]/page.tsx", "utf8");
-  const levelSource = readFileSync(
-    "app/learn/[courseSlug]/levels/[levelId]/page.tsx",
-    "utf8",
-  );
-  const serviceSource = readFileSync("lib/services/level-service.ts", "utf8");
-
-  assert.match(overviewSource, /levelStatusLabel\(level\.status\)/);
-  assert.match(levelSource, /levelStatusLabel\(level\.status\)/);
-  assert.match(serviceSource, /case "AVAILABLE":[\s\S]*?return "학습 가능"/);
-  assert.match(serviceSource, /case "LOCKED":[\s\S]*?return "잠김"/);
-  assert.doesNotMatch(overviewSource, /<span className="badge">\{level\.status\}<\/span>/);
+test("lesson pages follow learning, evidence, question, next-learning flow", () => {
+  for (const source of [legacyLesson, courseLesson]) {
+    assert.ok(source.indexOf('id="learning-content"') > -1);
+    assert.ok(source.indexOf("문제 확인") > source.indexOf('id="learning-content"'));
+    assert.match(source, /5문제로 확인하기/);
+    assert.match(source, /다음 학습/);
+    assert.match(source, /data-learn-lesson-v2/);
+  }
+  assert.match(courseLesson, /시험 포인트/);
+  assert.match(courseLesson, /헷갈리기 쉬운 포인트/);
+  assert.match(courseLesson, /공식 근거 보기/);
+  assert.match(legacyLesson, /공식 근거와 검수 정보/);
 });
 
-test("course learn pages use learner-friendly section labels", () => {
-  const overviewSource = readFileSync("app/learn/[courseSlug]/page.tsx", "utf8");
-  const treeSource = readFileSync("components/learn-curriculum-path-tree.tsx", "utf8");
-  const sharedLessonSource = readFileSync(
-    "app/learn/[courseSlug]/course-lessons/[courseLessonId]/page.tsx",
-    "utf8",
-  );
-  const lessonSource = readFileSync(
-    "app/learn/[courseSlug]/lessons/[lessonId]/page.tsx",
-    "utf8",
-  );
-  const subjectSource = readFileSync(
-    "app/learn/[courseSlug]/subjects/[subjectId]/page.tsx",
-    "utf8",
-  );
-
-  assert.match(overviewSource, /오늘의 학습/);
-  assert.match(overviewSource, /단계 학습/);
-  assert.match(overviewSource, /공식 커리큘럼/);
-  assert.doesNotMatch(overviewSource, /TODAY LEARNING|LEVEL PATH|THEORY FALLBACK/);
-  assert.match(treeSource, /공식 커리큘럼 경로/);
-  assert.match(treeSource, /커리큘럼 상세/);
-  assert.match(sharedLessonSource, /핵심 이론/);
-  assert.match(sharedLessonSource, /학습 맥락/);
-  assert.match(lessonSource, /핵심 이론/);
-  assert.match(subjectSource, /과목 학습/);
-  assert.match(subjectSource, /주제 목록/);
+test("Learn V2 keeps responsive reading and accessibility contracts", () => {
+  assert.match(styles, /grid-template-columns: minmax\(0, 800px\)/);
+  assert.match(styles, /line-height: 1\.78/);
+  assert.match(styles, /@media \(max-width: 767px\)/);
+  assert.match(styles, /min-height: 44px/);
+  assert.doesNotMatch(styles, /font-size:\s*(10|11)px/);
 });

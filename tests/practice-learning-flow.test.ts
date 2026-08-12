@@ -1,59 +1,57 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import {
-  formatAIExplanationStatusLabel,
-  formatDifficultyLabel,
-  formatQuestionTypeLabel,
-} from "../lib/question-display.ts";
 
-test("practice session explains the learner flow before AI explanation is available", () => {
-  const source = readFileSync("components/practice-session.tsx", "utf8");
+const page = readFileSync("app/practice/[courseSlug]/page.tsx", "utf8");
+const session = readFileSync("components/practice-session.tsx", "utf8");
+const styles = readFileSync("components/v2/practice-v2.module.css", "utf8");
+const learnerShell = readFileSync("components/learner-app-shell.tsx", "utf8");
 
-  assert.match(source, /답안 선택 → 서버 채점 → 검수 해설 → AI 근거/);
-  assert.match(source, /practice-learning-flow/);
-  assert.match(source, /답안 선택/);
-  assert.match(source, /서버 채점/);
-  assert.match(source, /검수 해설/);
-  assert.match(source, /AI 근거/);
-  assert.match(
-    source,
-    /AI 참고\s+해설은 채점 이후 요청할 수 있으며 공식 채점 결과가 아닙니다/,
-  );
+test("Practice V2 uses a route-scoped focus mode", () => {
+  assert.match(page, /data-practice-focus-v2/);
+  assert.match(page, /학습으로 돌아가기/);
+  assert.match(styles, /data-practice-focus-shell/);
+  assert.match(learnerShell, /pathname\.startsWith\("\/practice\/"\)/);
+  assert.match(learnerShell, /practiceFocusMode \? null : <MobileBottomNavigation/);
 });
 
-test("practice page frames AI explanation as post-grading evidence support", () => {
-  const source = readFileSync("app/practice/[courseSlug]/page.tsx", "utf8");
-  const styles = readFileSync("app/globals.css", "utf8");
-
-  assert.match(source, /검수된 해설과 AI 참고 해설/);
-  assert.match(source, /다음 복습 방향/);
-  assert.match(source, /선택한 과목과 주제에 맞춰\s+지금 풀 문제를 구성했습니다/);
-  assert.doesNotMatch(source, /커리큘럼에서 진입한 경우 연결된/);
-  assert.match(source, /관리자 검수 해설을 먼저 확인/);
-  assert.match(source, /AI 근거\s+해설로 관련 기준과 개념/);
-  assert.match(styles, /\.practice-context-card \.practice-context-note/);
+test("Practice V2 preserves selection modes and submission safety", () => {
+  assert.match(session, /MULTIPLE_CHOICE/);
+  assert.match(session, /SHORT_ANSWER/);
+  assert.match(session, /submittingRef\.current/);
+  assert.match(session, /idempotencyKey/);
+  assert.match(session, /answer === choice\.id \|\| publicCopy\(answer\) === publicCopy\(choice\.content\)/);
+  assert.match(session, /disabled=\{submitting \|\| !selected\.length\}/);
+  assert.match(session, /정답 확인/);
 });
 
-test("practice result separates reviewed explanation from AI reference explanation", () => {
-  const source = readFileSync("components/practice-session.tsx", "utf8");
-  const styles = readFileSync("app/globals.css", "utf8");
-
-  assert.match(source, /관리자 검수 해설/);
-  assert.match(source, /AI 참고 해설은 이 해설을\s+대체하지 않고/);
-  assert.match(source, /AI 근거 해설 보기/);
-  assert.match(styles, /\.practice-learning-flow/);
-  assert.match(styles, /\.grade-panel-heading/);
-  assert.match(styles, /@media \(max-width: 900px\)[\s\S]*?\.practice-learning-flow/);
-  assert.match(styles, /@media \(max-width: 680px\)[\s\S]*?\.practice-learning-flow/);
+test("choices expose accessible and non-color-only result states", () => {
+  assert.match(session, /<fieldset/);
+  assert.match(session, /<legend>답안 선택<\/legend>/);
+  assert.match(session, /data-state=\{state\}/);
+  assert.match(session, /선택한 오답/);
+  assert.match(session, /<strong>정답<\/strong>/);
+  assert.match(styles, /min-height: 44px/);
+  assert.doesNotMatch(styles, /font-size:\s*(10|11)px/);
 });
 
-test("practice learner labels do not expose internal enum names", () => {
-  assert.equal(formatQuestionTypeLabel("TRUE_FALSE"), "OX");
-  assert.equal(formatQuestionTypeLabel("MULTIPLE_CHOICE"), "복수 선택");
-  assert.equal(formatQuestionTypeLabel("UNKNOWN_INTERNAL_TYPE"), "문제 유형");
-  assert.equal(formatDifficultyLabel("MEDIUM"), "보통");
-  assert.equal(formatDifficultyLabel("UNKNOWN_INTERNAL_DIFFICULTY"), "난이도");
-  assert.equal(formatAIExplanationStatusLabel("insufficient_context"), "근거 부족");
-  assert.equal(formatAIExplanationStatusLabel("generated"), "생성됨");
+test("submitted answers flow through official explanation to next question", () => {
+  const gradePanelIndex = session.indexOf("<GradePanel");
+  const secondaryActionIndex = session.indexOf("styles.explanationActions");
+  const nextActionIndex = session.indexOf("styles.nextButton");
+  assert.ok(gradePanelIndex > -1);
+  assert.ok(secondaryActionIndex > gradePanelIndex);
+  assert.ok(nextActionIndex > secondaryActionIndex);
+  assert.match(session, /채점 결과/);
+  assert.match(session, /공식 해설/);
+  assert.match(session, /공식 근거와 검수 정보/);
+  assert.match(session, /role="status"/);
+  assert.match(session, /tabIndex=\{-1\}/);
+});
+
+test("query contracts remain available", () => {
+  assert.match(page, /query\.reviewOnly === "1"/);
+  assert.match(page, /query\.wrongOnly === "1"/);
+  assert.match(page, /query\.random === "1"/);
+  assert.match(page, /typeof query\.count === "string"/);
 });

@@ -2,83 +2,72 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-test("integrated analytics exposes learner next-action cards", () => {
-  const source = readFileSync("app/analytics/page.tsx", "utf8");
-  const overviewIndex = source.indexOf("analytics-overview-panel");
-  const nextActionIndex = source.indexOf("analytics-action-panel");
-  const stripIndex = source.indexOf("analytics-action-strip");
+const overview = readFileSync("app/analytics/page.tsx", "utf8");
+const course = readFileSync("app/analytics/[courseId]/page.tsx", "utf8");
+const styles = readFileSync("app/analytics/analytics-v2.module.css", "utf8");
 
-  assert.ok(overviewIndex > -1);
-  assert.ok(nextActionIndex > -1);
-  assert.ok(stripIndex > -1);
-  assert.ok(overviewIndex < nextActionIndex);
-  assert.ok(nextActionIndex < stripIndex);
-  assert.match(source, /취약 과정/);
-  assert.match(source, /문제풀이/);
-  assert.match(source, /복습/);
-  assert.match(source, /어디까지 했지\?/);
-  assert.match(source, /다음은 뭘 하지\?/);
-  assert.match(source, /얼마나 남았지\?/);
-  assert.match(source, /어디가 약하지\?/);
-  assert.match(source, /analytics-decision-flow/);
+test("analytics overview prioritizes real summary, weakness, and next actions", () => {
+  const summaryIndex = overview.indexOf("analytics-summary-title");
+  const weaknessIndex = overview.indexOf("top-weakness-title");
+  const courseIndex = overview.indexOf("course-performance-title");
+
+  assert.ok(summaryIndex > -1);
+  assert.ok(weaknessIndex > summaryIndex);
+  assert.ok(courseIndex > weaknessIndex);
+  assert.match(overview, /analytics\.overallAccuracy/);
+  assert.match(overview, /analytics\.totalQuestions/);
+  assert.match(overview, /analytics\.cumulativeStudyDays/);
+  assert.match(overview, /취약 영역 확인/);
+  assert.match(overview, /href="\/reviews"/);
+  assert.match(overview, /href="\/wrong-notes"/);
+  assert.match(overview, /`\/practice\/\$\{topCourse\.courseSlug\}\?count=10`/);
+  assert.doesNotMatch(overview, /readiness|passProbability|예상 합격률/);
 });
 
-test("course analytics connects weak areas to practice and review", () => {
-  const source = readFileSync("app/analytics/[courseId]/page.tsx", "utf8");
-  const styles = readFileSync("app/globals.css", "utf8");
-
-  assert.match(source, /analytics-learner-answer-panel/);
-  assert.match(source, /어디까지 했지\?/);
-  assert.match(source, /다음은 뭘 하지\?/);
-  assert.match(source, /얼마나 남았지\?/);
-  assert.match(source, /어디가 약하지\?/);
-  assert.match(source, /단계 완료율/);
-  assert.match(source, /문제부터 보완/);
-  assert.match(source, /취약 영역/);
-  assert.match(source, /학습 기록이 더 필요해요/);
-  assert.match(source, /추가 풀이/);
-  assert.match(source, /복습 연결/);
-  assert.doesNotMatch(source, /분석 데이터 준비 중/);
-  assert.match(source, /analytics-action-strip/);
-  assert.match(styles, /\.analytics-learner-answer-panel/);
-  assert.match(styles, /\.analytics-action-strip/);
-  assert.match(styles, /\.analytics-action-card:focus-visible/);
-  assert.match(styles, /@media \(max-width: 680px\)[\s\S]*?\.analytics-learner-answer-panel/);
-  assert.match(styles, /@media \(max-width: 680px\)[\s\S]*?\.analytics-action-strip/);
+test("course analytics connects existing subject and topic results to practice", () => {
+  assert.match(course, /stats\.bySubject/);
+  assert.match(course, /stats\.byTopic/);
+  assert.match(course, /stats\.repeatedWrongCount/);
+  assert.match(course, /subjectId=\$\{row\.id\}&count=10/);
+  assert.match(course, /new URLSearchParams\(\{ topicId, count: "10" \}\)/);
+  assert.match(course, /role="progressbar"/);
+  assert.match(course, /aria-valuemin=\{0\}/);
+  assert.match(course, /aria-valuemax=\{100\}/);
+  assert.match(course, /aria-valuenow=\{value\}/);
+  assert.match(course, /const value = row\.accuracy/);
+  assert.doesNotMatch(course, /Math\.min\(100|Math\.max\(0/);
+  assert.match(course, /집중 복습/);
+  assert.match(course, /href="\/wrong-notes"/);
+  assert.match(course, /href="\/reviews"/);
 });
 
-test("analytics loading copy explains that learner records are being checked", () => {
-  const source = readFileSync("app/analytics/page.tsx", "utf8");
+test("analytics handles no, partial, loading, and error data explicitly", () => {
+  const loading = readFileSync("app/analytics/loading.tsx", "utf8");
+  const error = readFileSync("app/analytics/error.tsx", "utf8");
+  const combined = `${overview}\n${course}`;
 
-  assert.match(source, /최근 학습 기록과 과정별 진도를 확인하고 있습니다/);
-  assert.doesNotMatch(source, /학습분석 정보를 준비하고 있습니다/);
+  assert.match(overview, /아직 학습 기록이 충분하지 않습니다/);
+  assert.match(course, /아직 문제 풀이 기록이 없습니다/);
+  assert.match(combined, /아직 확인된 취약 영역이 없습니다/);
+  assert.match(overview, /hasLearningData/);
+  assert.match(overview, /hasQuestionData/);
+  assert.match(overview, /\{course\.stats\.totalQuestions\}문제 풀이/);
+  assert.match(course, /hasQuestionData/);
+  assert.match(loading, /최근 학습 기록과 과정별 진도를 확인하고 있습니다/);
+  assert.match(error, /학습 분석을 불러오지 못했습니다/);
+  assert.match(error, /onClick=\{reset\}/);
+  assert.doesNotMatch(combined, /NaN|Infinity|null%|undefined%|-0%|10000%/);
 });
 
-test("analytics empty and low-data copy stays action oriented", () => {
-  const combined = [
-    "app/analytics/page.tsx",
-    "app/analytics/[courseId]/page.tsx",
-  ]
-    .map((file) => readFileSync(file, "utf8"))
-    .join("\n");
-
-  assert.match(combined, /문제를 풀면 학습 결과가 바로 정리됩니다/);
-  assert.match(combined, /문제를 풀면 주제별 취약 영역이 표시됩니다/);
-  assert.match(combined, /문제를 풀면 우선 보완할 영역을 추천합니다/);
-  assert.doesNotMatch(combined, /학습 기록이 쌓이면/);
-  assert.doesNotMatch(combined, /문제풀이 기록이 쌓이면/);
-});
-
-test("learner analytics panels do not reuse admin panel shell classes", () => {
-  const combined = [
-    "app/analytics/page.tsx",
-    "app/analytics/[courseId]/page.tsx",
-  ]
-    .map((file) => readFileSync(file, "utf8"))
-    .join("\n");
-  const styles = readFileSync("app/globals.css", "utf8");
-
-  assert.match(combined, /learner-analytics-panel/);
-  assert.doesNotMatch(combined, /className="[^"]*admin-panel/);
-  assert.match(styles, /\.learner-analytics-panel/);
+test("analytics presentation is scoped, responsive, and touch accessible", () => {
+  assert.match(overview, /analytics-v2\.module\.css/);
+  assert.match(course, /analytics-v2\.module\.css/);
+  assert.match(styles, /@media \(max-width: 820px\)/);
+  assert.match(styles, /@media \(max-width: 680px\)/);
+  assert.match(styles, /env\(safe-area-inset-bottom\)/);
+  assert.match(styles, /min-height: 44px/);
+  assert.match(styles, /:focus-visible/);
+  assert.match(styles, /\.ds-button\.variant-dark[\s\S]*?color: var\(--white\)/);
+  assert.match(styles, /grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.doesNotMatch(`${overview}\n${course}`, /className="[^"]*admin-panel/);
 });

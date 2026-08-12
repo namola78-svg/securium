@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { Suspense } from "react";
 import { CommandPalette } from "@/components/command-palette";
+import { LearnerAppShell } from "@/components/learner-app-shell";
 import { SiteHeader } from "@/components/site-header";
 import { FooterLegalLinks } from "@/components/footer-legal-links";
+import { getOptionalCurrentAppUser } from "@/lib/auth";
 import { BRAND } from "@/lib/brand";
 import "./globals.css";
 
@@ -73,18 +75,23 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const user = await getOptionalCurrentAppUser();
+  const shellUser = user
+    ? { displayName: user.displayName, roles: user.roles }
+    : null;
+
   return (
     <html lang="ko">
       <body>
         <a className="skip-link" href="#main-content">본문으로 건너뛰기</a>
         <SiteHeader />
         <CommandPalette />
-        <div id="main-content" tabIndex={-1}>{children}</div>
+        <LearnerAppShell user={shellUser}>{children}</LearnerAppShell>
         <footer className="site-footer">
           <div className="shell footer-inner">
             <strong>{BRAND.officialName}</strong>

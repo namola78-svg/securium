@@ -2,74 +2,52 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-test("learner dashboard prioritizes today actions before summary metrics", () => {
-  const source = readFileSync("app/dashboard/page.tsx", "utf8");
-  const todayPlanIndex = source.indexOf("<TodayPlanSection");
-  const activeCoursesIndex = source.indexOf("<ActiveCoursesSection");
-  const summaryIndex = source.indexOf("dashboard-summary-section");
+const source = readFileSync("app/dashboard/page.tsx", "utf8");
+const styles = readFileSync("components/v2/dashboard-v2.module.css", "utf8");
+const loading = readFileSync("app/dashboard/loading.tsx", "utf8");
 
-  assert.ok(todayPlanIndex > -1);
-  assert.ok(activeCoursesIndex > -1);
-  assert.ok(summaryIndex > -1);
-  assert.ok(todayPlanIndex < activeCoursesIndex);
-  assert.ok(activeCoursesIndex < summaryIndex);
+test("dashboard prioritizes one recommended action before supporting information", () => {
+  const recommendationIndex = source.indexOf('data-dashboard-recommendation=""');
+  const progressIndex = source.indexOf('data-dashboard-progress=""');
+  const planIndex = source.indexOf('data-dashboard-plan=""');
+  assert.ok(recommendationIndex > -1);
+  assert.ok(progressIndex > recommendationIndex);
+  assert.ok(planIndex > progressIndex);
+  assert.equal(source.match(/className=\{styles\.primaryAction\}/g)?.length, 1);
 });
 
-test("today plan uses learner cards for goal, AI recommendation, review, and settings", () => {
-  const source = readFileSync("app/dashboard/page.tsx", "utf8");
-  const styles = readFileSync("app/globals.css", "utf8");
-
-  assert.match(source, /today-plan-card today-plan-card-primary/);
-  assert.match(source, /오늘 목표/);
-  assert.match(source, /다음 추천/);
-  assert.match(source, /복습/);
-  assert.match(source, /학습 설정/);
-  assert.match(source, /추천 학습/);
-  assert.match(source, /바로 이어갈 학습/);
-  assert.match(styles, /\.today-plan-card/);
-  assert.match(styles, /@media \(max-width: 1024px\)[\s\S]*?\.today-plan-grid/);
+test("dashboard reuses existing aggregates without adding readiness or weakness scoring", () => {
+  assert.match(source, /listDashboardUserEnrollments\(user\.id\)/);
+  assert.match(source, /getTodayLearningPlan\(user\.id\)/);
+  assert.match(source, /plan\.recommendations\[0\]/);
+  assert.match(source, /plan\.reviewSummary\.dueCount/);
+  assert.match(source, /currentCourse\.progressPercent/);
+  assert.doesNotMatch(source, /readinessScore|weaknessScore|passProbability|streak/);
+  assert.doesNotMatch(source, /시험 준비도|합격 가능성/);
+  assert.doesNotMatch(source, /activeCourses\.slice/);
 });
 
-test("learner dashboard avoids admin-style English section labels", () => {
-  const source = readFileSync("app/dashboard/page.tsx", "utf8");
-
-  assert.match(source, /오늘의 학습 홈/);
-  assert.match(source, /오늘의 학습 계획/);
-  assert.match(source, /이어서 학습/);
-  assert.match(source, /기록 요약/);
-  assert.doesNotMatch(
-    source,
-    /LEARNING SUMMARY|TODAY START|TODAY PLAN|NEXT ACTIONS|CONTINUE LEARNING/,
-  );
+test("dashboard provides explicit new-user and no-data states", () => {
+  assert.match(source, /학습할 과정을 선택해보세요/);
+  assert.match(source, /학습 기록 없음/);
+  assert.match(source, /예정된 복습 없음/);
+  assert.match(source, /문제를 풀면 실제 학습 기록/);
+  assert.match(source, /학습을 시작하면 최근 활동/);
 });
 
-test("learner dashboard answers the four core learner questions before metrics", () => {
-  const source = readFileSync("app/dashboard/page.tsx", "utf8");
-  const styles = readFileSync("app/globals.css", "utf8");
-  const actionRailIndex = source.indexOf("dashboard-action-rail");
-  const nextActionIndex = source.indexOf("dashboard-next-action");
-
-  assert.ok(actionRailIndex > -1);
-  assert.ok(nextActionIndex > -1);
-  assert.ok(actionRailIndex < nextActionIndex);
-  assert.match(source, /어디까지 했지\?/);
-  assert.match(source, /다음은\?/);
-  assert.match(source, /시험 준비는\?/);
-  assert.match(source, /약한 부분은\?/);
-  assert.match(source, /오늘 할 일만 모았습니다/);
-  assert.match(source, /지금 해야 할 일/);
-  assert.match(source, /오늘 바로 할 일/);
-  assert.match(styles, /\.dashboard-action-rail/);
+test("dashboard preserves course-scoped learn and practice actions", () => {
+  assert.match(source, /`\/learn\/\$\{course\.courseSlug\}`/);
+  assert.match(source, /`\/practice\/\$\{course\.courseSlug\}\?random=1&count=10`/);
 });
 
-test("learner dashboard maps internal enrollment status and empty values to user-facing labels", () => {
-  const source = readFileSync("app/dashboard/page.tsx", "utf8");
+test("dashboard responsive order keeps the recommendation first on mobile", () => {
+  assert.match(styles, /grid-template-areas: "recommendation progress"/);
+  assert.match(styles, /@media \(max-width: 680px\)[\s\S]*?grid-template-areas: "recommendation" "progress" "plan" "courses" "weakness" "recent"/);
+  assert.match(styles, /\.primaryAction \{[^}]*min-height: 3\.25rem/);
+});
 
-  assert.match(source, /getEnrollmentStatusLabel\(enrollment\.status\)/);
-  assert.match(source, /case "ACTIVE":[\s\S]*?return "학습 중"/);
-  assert.match(source, /case "COMPLETED":[\s\S]*?return "완료"/);
-  assert.match(source, /풀이 기록 없음/);
-  assert.match(source, /시작 전/);
-  assert.match(source, /과정별로 따로 관리/);
-  assert.doesNotMatch(source, /<span className="badge">\{enrollment\.status\}<\/span>/);
+test("dashboard has a route-scoped stable loading state", () => {
+  assert.match(loading, /aria-busy="true"/);
+  assert.match(loading, /role="status"/);
+  assert.doesNotMatch(styles, /shimmer|animation:/);
 });

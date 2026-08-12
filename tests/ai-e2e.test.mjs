@@ -166,8 +166,10 @@ test("문제풀이 UI는 답안 제출 전 생성된 AI 해설 패널을 노출�
   );
   const html = await response.text();
   assert.equal(response.status, 200, html.slice(0, 800));
-  assert.match(html, /문제를 풀며 핵심 개념을 확인하고/);
-  assert.match(html, />답안 제출</);
+  assert.match(html, /data-practice-focus-v2/);
+  assert.match(html, /data-practice-session-v2/);
+  assert.match(html, /aria-label="문제 진행률"/);
+  assert.match(html, />정답 확인</);
   assert.doesNotMatch(html, /class="ai-explanation-panel/);
   assert.doesNotMatch(html, />AI 생성 해설</);
   assert.doesNotMatch(html, />AI 해설 미리보기</);

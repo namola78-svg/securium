@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { MockExamSession } from "@/components/mock-exam-session";
+import styles from "@/components/v2/mock-exam-v2.module.css";
 export const metadata: Metadata = {
   title: "모의시험 응시 | Securium",
   description: "모의시험을 응시하고 제출 전 답안을 점검하세요.",
@@ -34,8 +35,8 @@ export default async function MockExamAttemptPage({
     throw error;
   }
   return (
-    <main className="page-main exam-page">
-      <div className="shell">
+    <main className={styles.focusPage} data-mock-exam-focus-v2="">
+      <div className={styles.focusContainer}>
         <MockExamSession attempt={attempt} />
       </div>
     </main>

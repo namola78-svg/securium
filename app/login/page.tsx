@@ -3,6 +3,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { chatGPTSignInPath } from "@/app/chatgpt-auth";
 import { LoginPanel } from "@/components/login-panel";
+import { AuthV2Card, AuthV2Shell, authV2Styles as styles } from "@/components/v2/auth-v2";
+import { V2Button } from "@/components/v2/v2-button";
 import { getOptionalCurrentAppUser } from "@/lib/auth";
 import { resolveAuthProvider } from "@/lib/auth-provider";
 import { buildSafeRedirectQuery, safeAuthReturnPath } from "@/lib/auth-routing";
@@ -19,7 +21,25 @@ export default async function LoginPage({ searchParams }: { searchParams?: Promi
   const user = await getOptionalCurrentAppUser();
   if (requestedReturnTo && requestedReturnTo !== returnTo) redirect(`/login?${buildSafeRedirectQuery({ return_to: returnTo, error, notice })}`);
   if (user) redirect(returnTo);
-  if (resolveAuthProvider() === "supabase") return <main className="auth-main"><LoginPanel returnTo={returnTo} error={error} notice={notice} /></main>;
-  return <main className="auth-main"><section className="auth-card auth-card-polished"><p className="eyebrow">SECURE SIGN IN</p><h1>로그인</h1><p className="auth-description">현재 환경에서는 Google 계정으로 바로 학습을 시작할 수 있습니다.</p><Link className="button button-dark full-width" href={chatGPTSignInPath(returnTo)}>Google 계정으로 로그인</Link><p className="auth-note">계정이 없으면 로그인 과정에서 새 계정을 만들 수 있습니다.</p></section></main>;
+  return (
+    <AuthV2Shell mode="login">
+      {resolveAuthProvider() === "supabase" ? (
+        <LoginPanel returnTo={returnTo} error={error} notice={notice} />
+      ) : (
+        <AuthV2Card
+          description="학습을 이어서 시작하세요."
+          eyebrow="계정 로그인"
+          headingId="login-title"
+          title="다시 만나서 반가워요"
+        >
+          <V2Button href={chatGPTSignInPath(returnTo)} size="lg" fullWidth>
+            Google 계정으로 로그인
+          </V2Button>
+          <p className={styles.providerNote}>계정이 없으면 로그인 과정에서 새 계정을 만들 수 있습니다.</p>
+          <p className={styles.switchCopy}>처음 방문하셨나요? <Link href={`/signup?return_to=${encodeURIComponent(returnTo)}`} className={styles.textLink}>회원가입 안내</Link></p>
+        </AuthV2Card>
+      )}
+    </AuthV2Shell>
+  );
 }
 function firstParam(value: string | string[] | undefined) { return Array.isArray(value) ? value[0] ?? "" : value ?? ""; }

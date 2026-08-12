@@ -409,6 +409,20 @@ Description
 - 오류: 정보를 불러오지 못했습니다
 - 버튼: 다시 시도
 
+Implementation details:
+
+- `PageLoading`: status role + polite aria-live + skeleton placeholders.
+- `EmptyState`: title/description + action button row.
+- `ErrorState`: alert role + optional retry CTA.
+- `InlineError`: lightweight inline alert row.
+- `RetryButton`: callback 기반 재시도, 미지정 시 reload.
+
+Style 규칙:
+
+- 공통 상태 블록은 `app/globals.css`의 `state-card`, `state-icon`, `card-skeleton`, `state-actions` 계열 클래스를 사용.
+- `error-state-panel`은 경고 대비 색상, `state-loading`은 spin/placeholder 최소 동작을 유지한다.
+- 모든 액션 CTA는 `ActionButton`으로 통일.
+
 ## 7. Screen Inventory
 
 화면은 다음 기준으로 분류한다.
