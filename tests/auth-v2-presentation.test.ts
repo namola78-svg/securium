@@ -51,6 +51,18 @@ test("auth V2 avoids global selectors, legacy accent colors, and tiny new type",
   assert.match(authStyles, /min-height:\s*3rem/);
 });
 
+test("auth keyboard focus and secondary actions use V2 accessibility tokens", () => {
+  assert.match(authStyles, /\.field input:focus-visible[\s\S]*?outline:\s*var\(--v2-focus-width\)/);
+  assert.match(authStyles, /\.passwordToggle[\s\S]*?min-height:\s*var\(--v2-control-min-size\)/);
+  assert.match(authStyles, /\.switchCopy \.textLink,[\s\S]*?min-height:\s*var\(--v2-control-min-size\)/);
+});
+
+test("courses hotfix stays page-scoped with readable type and touch targets", () => {
+  assert.match(read("app/courses/page.tsx"), /className="page-main catalog-page"/);
+  assert.match(globalStyles, /\.catalog-page \.eyebrow,[\s\S]*?font-size:\s*12px/);
+  assert.match(globalStyles, /\.catalog-page \.course-card-cta\s*\{[\s\S]*?min-height:\s*44px/);
+});
+
 test("provider-specific UI only presents authentication methods that already exist", () => {
   const combined = [loginPage, signupPage, loginPanel, signupPanel].join("\n");
   assert.doesNotMatch(combined, /비밀번호 찾기|Apple|Kakao|Naver/);

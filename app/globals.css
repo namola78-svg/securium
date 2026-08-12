@@ -2273,9 +2273,21 @@ button:disabled {
   word-break: keep-all;
 }
 
-.course-card-cta {
+.catalog-page .course-card-cta {
   justify-content: center;
+  min-height: 44px;
   margin-top: auto;
+}
+
+.catalog-page .eyebrow,
+.catalog-page .course-code,
+.catalog-page .course-status,
+.catalog-page .badge,
+.catalog-page .sample-label,
+.catalog-page .count-label,
+body:has(.catalog-page) .brand small,
+body:has(.catalog-page) .command-palette-trigger kbd {
+  font-size: 12px;
 }
 
 .course-card .text-link {
