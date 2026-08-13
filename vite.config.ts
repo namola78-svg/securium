@@ -61,7 +61,9 @@ export default defineConfig(async () => {
         viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
         config: localBindingConfig,
         // E2E setup uses the same project-local D1 state as Wrangler.
-        persistState: isD1TestMode ? { path: ".wrangler/state" } : undefined,
+        persistState: isD1TestMode
+          ? { path: process.env.D1_TEST_PERSIST_PATH ?? ".wrangler/state" }
+          : undefined,
       }),
     ],
   };

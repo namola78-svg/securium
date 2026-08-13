@@ -1,0 +1,111 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-08-13T04:33:19.441542Z",
+  "status": "RUNTIME_LINK_FINAL_QA_PASS_COMMIT_READY",
+  "baseline": {
+    "branch": "feature/isms-p-batch1-runtime-link",
+    "main_sha": "fecebeca2b67da658d3aa72da7370f7b63bc3ad9",
+    "content_commit_ancestry": "dcf24df753644f0b50fc9f123d9546cfa146a78b",
+    "production_diff_input_sha256": "d4e77eecb6eb3d65432ca24f627536ec84b6170168f00eea821c0d20c69996d4",
+    "canonical_plan_sha256": "1bd7baa3580739dd6ffee51a6876bec75386b92c2cc5452613cc1957bbb5540c",
+    "materialization_manifest_sha256": "5cf77a020bdc66038bd4844f718b6bc94f516d403d2554aff040821f898b9e74"
+  },
+  "scope": {
+    "approved": 12,
+    "hold": 3,
+    "hold_operations": 0,
+    "schema_migration": false,
+    "question_link_changes": 0
+  },
+  "d1": {
+    "environment": "TEMPORARY_LOCAL_D1",
+    "plan": { "create": 36, "noop": 0, "conflict": 0 },
+    "first_apply_created": 36,
+    "verify": { "content": 12, "course_lesson": 12, "extension": 12 },
+    "reapply": { "create": 0, "noop": 36, "conflict": 0 },
+    "conflict_simulation": "PASS_FAIL_CLOSED_ZERO_BATCH_WRITES",
+    "rollback_pre_user": "PASS_36_REMOVED",
+    "rollback_post_user": "PASS_HARD_DELETE_REFUSED",
+    "published_denominator_delta": 12,
+    "existing_progress_updates": 0,
+    "existing_progress_deletes": 0
+  },
+  "postgres_disposable": {
+    "available": true,
+    "environment": "GITHUB_ACTIONS_EPHEMERAL_POSTGRESQL",
+    "image": "postgres:17.6-alpine",
+    "server_version_num": 170006,
+    "database": "securium_test",
+    "user": "test",
+    "non_production": true,
+    "production_secret_referenced": false,
+    "run_id": 31666854624,
+    "run_result": "PASS",
+    "artifact": "postgres-runtime-link-parity-31666854624",
+    "plan": { "create": 36, "noop": 0, "conflict": 0 },
+    "first_apply_created": 36,
+    "verify": { "content": 12, "course_lesson": 12, "extension": 12 },
+    "reapply": { "create": 0, "noop": 36, "conflict": 0 },
+    "conflict": "PASS_FAIL_CLOSED_ZERO_BATCH_WRITES",
+    "rollback_pre_user": "PASS_36_REMOVED",
+    "rollback_post_user": "PASS_HARD_DELETE_REFUSED",
+    "hold_operations": 0,
+    "d1_parity": "FULL_PARITY_PASS"
+  },
+  "production_guard": {
+    "apply_refused_in_production_like_context": true,
+    "rollback_refused_in_production_like_context": true,
+    "write_statement_count": 0,
+    "mutation_count": 0
+  },
+  "tests": {
+    "focused": "6/6 PASS",
+    "unit": "358/358 PASS",
+    "integration": "23/23 PASS",
+    "full_e2e": "80/80 PASS",
+    "typecheck": "PASS",
+    "lint": "PASS_NEW_WARNINGS_0",
+    "next_build": "PASS",
+    "cloudflare_build": "PASS"
+  },
+  "browser_qa": {
+    "method": "CACHED_PLAYWRIGHT_CHROMIUM_ISOLATED_D1",
+    "desktop_1440": "PASS",
+    "mobile_390": "PASS",
+    "representative_details": "3/3 PASS",
+    "accessibility": "PASS_VISIBLE_ACTIONS_MINIMUM_44PX",
+    "console": "PASS_ERRORS_0_WARNINGS_0",
+    "network": "PASS_UNEXPECTED_FAILURES_0",
+    "favicon": "PASS_LOCAL_HTTP_REQUEST",
+    "overflow": "0"
+  },
+  "production_fresh_read_only_diff": {
+    "snapshot_timestamp": "2026-08-13T04:33:19.441542Z",
+    "provider": "Supabase PostgreSQL",
+    "transaction_read_only": "on",
+    "transaction_isolation": "repeatable read",
+    "course_valid": true,
+    "content": { "create": 12, "noop": 0, "conflict": 0 },
+    "course_lesson": { "create": 12, "noop": 0, "conflict": 0 },
+    "extension": { "create": 12, "noop": 0, "conflict": 0 },
+    "total": { "create": 36, "noop": 0, "conflict": 0 },
+    "operation_slots": 36,
+    "hold_operations": 0,
+    "current_published_course_lessons": 8,
+    "expected_published_after_materialization": 20,
+    "conflict_gate": "PASS",
+    "production_write_performed": false
+  },
+  "commit_ready": true,
+  "production_write_ready": false,
+  "write_ready_blockers": [
+    "PRODUCTION_WRITE_NOT_AUTHORIZED"
+  ],
+  "git": {
+    "commit": true,
+    "postgres_parity_head": "96c1af33a57a9449f89506a3dc48de8ed6926e25",
+    "push": true,
+    "force_push": false,
+    "pr": false
+  }
+}

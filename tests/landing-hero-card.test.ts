@@ -7,6 +7,7 @@ const styles = () =>
   readFileSync("components/v2/public-landing.module.css", "utf8");
 const buttonSource = () =>
   readFileSync("components/v2/v2-button.tsx", "utf8");
+const layoutSource = () => readFileSync("app/layout.tsx", "utf8");
 
 function expectIncludes(value: string, expected: string[]) {
   for (const item of expected) {
@@ -121,4 +122,11 @@ test("mobile landing brand resists intrinsic-width collapse", () => {
   assert.match(css, /\.brandText\s*\{[\s\S]*?white-space:\s*nowrap/);
   assert.match(css, /\.headerActions \.desktopLogin,[\s\S]*?display:\s*none/);
   assert.match(css, /\.headerActions \.menuButton\s*\{\s*display:\s*block/);
+});
+
+test("local metadata keeps favicon requests on the local HTTP origin", () => {
+  const value = layoutSource();
+  assert.match(value, /localhost\|127\\\.0\\\.0\\\.1\|\\\[::1\\\]/);
+  assert.match(value, /localRequest[\s\S]*?\? "http"[\s\S]*?: "https"/);
+  assert.match(value, /icon: "\/favicon\.svg"/);
 });
