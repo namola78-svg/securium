@@ -233,7 +233,15 @@ async function applyTrackedPostgresMigrations() {
     IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN CREATE ROLE authenticated NOLOGIN; END IF;
   END $$;`);
   const directory = resolve("db/postgres/migrations");
-  const migrations = (await readdir(directory)).filter((name) => /^\d{4}_.+\.sql$/.test(name)).sort();
+  const discovered = (await readdir(directory))
+    .filter((name) => /^\d{4}_.+\.sql$/.test(name))
+    .sort();
+  const lockdown = "0002_server_only_rls_lockdown.sql";
+  assert.equal(discovered.includes(lockdown), true);
+  const migrations = [
+    ...discovered.filter((name) => name !== lockdown),
+    lockdown,
+  ];
   assert.ok(migrations.length > 0);
   for (const migration of migrations) {
     await rawClient.unsafe(await readFile(resolve(directory, migration), "utf8"));
