@@ -318,18 +318,18 @@ function createProductionLikeRunner(failAtInsert?: number) {
   return {
     readOnly<T>(callback: (database: PostgresDatabaseProvider) => Promise<T>) {
       return rawClient.begin("isolation level repeatable read read only", (transactionClient) =>
-        callback(sessionProvider(transactionClient)),
+        callback(sessionProvider(transactionClient as unknown as PostgresJsClient)),
       );
     },
     write<T>(callback: (database: PostgresDatabaseProvider) => Promise<T>) {
       return rawClient.begin("isolation level serializable", (transactionClient) =>
-        callback(sessionProvider(transactionClient, failAtInsert)),
+        callback(sessionProvider(transactionClient as unknown as PostgresJsClient, failAtInsert)),
       );
     },
   };
 }
 
-function sessionProvider(client: typeof rawClient, failAtInsert?: number) {
+function sessionProvider(client: PostgresJsClient, failAtInsert?: number) {
   let insertCount = 0;
   return new PostgresDatabaseProvider({
     async query<Row extends Record<string, unknown>>(sql: string, parameters: readonly (string | number | boolean | null | Uint8Array)[]) {
@@ -337,7 +337,7 @@ function sessionProvider(client: typeof rawClient, failAtInsert?: number) {
         insertCount += 1;
         if (insertCount === failAtInsert) throw new Error("INJECTED_TRANSACTION_FAILURE");
       }
-      const rows = await client.unsafe<Row[]>(sql, [...parameters]);
+      const rows = await client.unsafe<Row>(sql, [...parameters]);
       return { rows: Array.from(rows) as Row[], rowCount: typeof rows.count === "number" ? rows.count : rows.length };
     },
     async transaction() { throw new Error("NESTED_TRANSACTION_REFUSED"); },
