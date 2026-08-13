@@ -507,7 +507,8 @@ export async function getPublishedCourseLessonProgressSummary(
   userId: string,
   courseId: string,
 ) {
-  const [summaryRows, nextLessonRows, latestLessonRows] = await Promise.all([
+  const [summaryRows, nextLessonRows, latestLessonRows, lessonList] =
+    await Promise.all([
     getDb()
       .select({
         totalLessons: sql<number>`count(${courseLessons.id})`,
@@ -588,7 +589,8 @@ export async function getPublishedCourseLessonProgressSummary(
       )
       .orderBy(desc(userCourseLessonProgress.lastViewedAt))
       .limit(1),
-  ]);
+      listPublishedCourseLessonsForUser(userId, courseId),
+    ]);
   const summary = summaryRows[0];
   const nextLesson = nextLessonRows[0];
   const latestLesson = latestLessonRows[0];
@@ -615,16 +617,7 @@ export async function getPublishedCourseLessonProgressSummary(
           status: latestLesson.status ?? "NOT_STARTED",
         }
       : null,
-    lessons: [] as Array<{
-      id: string;
-      title: string;
-      summary: string | null;
-      estimatedMinutes: number;
-      status: string;
-      isRequired: boolean;
-      difficulty: string | null;
-      importance: number | null;
-    }>,
+    lessons: lessonList.lessons,
   };
 }
 
