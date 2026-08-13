@@ -1,5 +1,6 @@
 ﻿import type { ReactNode } from "react";
 import { publicCopy } from "@/lib/public-copy";
+import { parseStructuredLessonContent } from "@/lib/services/structured-content-service";
 
 function safeReferenceUrl(value: string) {
   const trimmed = value.trim();
@@ -79,6 +80,35 @@ export function SafeLessonContent({
   content: string;
   format: string;
 }) {
+  if (format === "STRUCTURED_JSON") {
+    const structured = parseStructuredLessonContent(content);
+    if (!structured) {
+      return (
+        <div className="lesson-prose" role="status">
+          <p>학습 본문을 표시할 수 없습니다.</p>
+        </div>
+      );
+    }
+    return (
+      <div className="lesson-prose" data-structured-content-v3="">
+        {structured.sections.map((section) => (
+          <section key={section.key} data-content-section={section.key}>
+            <h2>{section.label}</h2>
+            {section.items.length === 1 ? (
+              <p>{publicCopy(section.items[0])}</p>
+            ) : (
+              <ul>
+                {section.items.map((item, index) => (
+                  <li key={`${section.key}-${index}`}>{publicCopy(item)}</li>
+                ))}
+              </ul>
+            )}
+          </section>
+        ))}
+      </div>
+    );
+  }
+
   const safeContent = publicCopy(content);
 
   if (format === "PLAIN_TEXT") {

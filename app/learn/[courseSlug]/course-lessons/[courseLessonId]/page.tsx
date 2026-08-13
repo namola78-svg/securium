@@ -67,7 +67,7 @@ export default async function CourseLessonPage({
             <section id="learning-content" aria-labelledby="learning-content-title">
               <p className={styles.eyebrow}>학습</p>
               <h2 id="learning-content-title" className={styles.visuallyHidden}>레슨 본문</h2>
-              <SafeLessonContent content={publicCopy(lesson.body)} format={lesson.bodyFormat} />
+              <SafeLessonContent content={lesson.body} format={lesson.bodyFormat} />
             </section>
 
             {lesson.examPoints ? (
