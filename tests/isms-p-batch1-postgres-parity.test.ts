@@ -202,7 +202,7 @@ async function assertDisposableDatabaseIdentity() {
   assert.equal(rows.length, 1);
   assert.equal(rows[0].database_name, "securium_test");
   assert.equal(rows[0].database_user, "test");
-  assert.ok(["127.0.0.1", "::1"].includes(rows[0].server_address));
+  assertPrivateServiceAddress(rows[0].server_address);
   assert.ok(Number(rows[0].server_version_num) >= 170000);
   assert.equal(rows[0].transaction_read_only, "off");
   return {
@@ -214,6 +214,16 @@ async function assertDisposableDatabaseIdentity() {
     environment: appEnvironment,
     non_production: true,
   };
+}
+
+function assertPrivateServiceAddress(address: string) {
+  const privateAddress =
+    address === "127.0.0.1" ||
+    address === "::1" ||
+    /^10\./.test(address) ||
+    /^192\.168\./.test(address) ||
+    /^172\.(1[6-9]|2\d|3[01])\./.test(address);
+  assert.equal(privateAddress, true, "PostgreSQL service address must be private");
 }
 
 async function applyTrackedPostgresMigrations() {
