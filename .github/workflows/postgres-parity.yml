@@ -5,11 +5,13 @@ on:
   push:
     branches:
       - feature/isms-p-batch1-runtime-link
+      - feature/isms-p-batch1-production-executor
     paths:
       - ".github/workflows/postgres-parity.yml"
       - "db/postgres/**"
       - "db/provider/**"
       - "lib/data/isms-p-theory-batch1*.mjs"
+      - "scripts/isms-p-batch1-production-executor.mjs"
       - "reports/content-audit/batch1-*.json"
       - "tests/isms-p-batch1-postgres-parity.test.ts"
       - "package.json"
