@@ -7,6 +7,16 @@ if (!args.length) {
   process.exit(1);
 }
 
+const isolatedPersistPath = process.env.D1_TEST_PERSIST_PATH?.trim();
+if (
+  isolatedPersistPath &&
+  args[0] === "d1" &&
+  args.includes("--local") &&
+  !args.includes("--persist-to")
+) {
+  args.push("--persist-to", isolatedPersistPath);
+}
+
 const child = spawn(
   process.execPath,
   ["node_modules/wrangler/bin/wrangler.js", ...args],

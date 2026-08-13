@@ -41,8 +41,16 @@ export async function generateMetadata(): Promise<Metadata> {
   const requestHost =
     normalizeRequestHost(requestHeaders.get("x-forwarded-host")) ??
     normalizeRequestHost(requestHeaders.get("host"));
+  const forwardedProtocol = requestHeaders.get("x-forwarded-proto");
+  const localRequest = /^(?:localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/i.test(
+    requestHost ?? "",
+  );
   const protocol =
-    requestHeaders.get("x-forwarded-proto") === "http" ? "http" : "https";
+    forwardedProtocol === "http" || forwardedProtocol === "https"
+      ? forwardedProtocol
+      : localRequest
+        ? "http"
+        : "https";
   const metadataBase =
     configuredSiteUrl ??
     new URL(`${protocol}://${requestHost ?? "securium.vercel.app"}`);

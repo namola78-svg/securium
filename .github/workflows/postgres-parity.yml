@@ -1,0 +1,81 @@
+name: PostgreSQL runtime-link parity
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/isms-p-batch1-runtime-link
+    paths:
+      - ".github/workflows/postgres-parity.yml"
+      - "db/postgres/**"
+      - "db/provider/**"
+      - "lib/data/isms-p-theory-batch1*.mjs"
+      - "reports/content-audit/batch1-*.json"
+      - "tests/isms-p-batch1-postgres-parity.test.ts"
+      - "package.json"
+      - "package-lock.json"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: postgres-parity-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  postgres-parity:
+    name: PostgreSQL 17 parity
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:17.6-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: ci-runtime-link-only-2026
+          POSTGRES_DB: securium_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test -d securium_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    env:
+      APP_ENV: test
+      CI: "true"
+      NODE_OPTIONS: "--experimental-strip-types"
+      POSTGRES_PARITY_DATABASE_URL: postgresql://test:ci-runtime-link-only-2026@127.0.0.1:5432/securium_test
+      POSTGRES_PARITY_NON_PRODUCTION: "true"
+      POSTGRES_PARITY_RESULT_PATH: reports/content-audit/postgres-parity-ci-result.json
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22.13.0"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Validate tracked PostgreSQL migrations
+        run: npm run db:postgres:validate
+
+      - name: Run PostgreSQL runtime-link parity
+        run: npm run test:runtime-link:postgres
+
+      - name: Upload parity result
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: postgres-runtime-link-parity-${{ github.run_id }}
+          path: reports/content-audit/postgres-parity-ci-result.json
+          if-no-files-found: error
+          retention-days: 14

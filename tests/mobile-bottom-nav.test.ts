@@ -28,6 +28,7 @@ test("tablet drawer preserves focus, escape, backdrop, and scroll-lock contracts
 });
 
 test("mobile bottom navigation has five safe-area-aware 44px targets", () => {
+  assert.match(styles, /\.mobileBrand \{[^}]*min-height: 44px/);
   assert.match(nav, /label: "홈"/); assert.match(nav, /label: "학습"/); assert.match(nav, /label: "문제"/); assert.match(nav, /label: "모의고사"/); assert.match(nav, /label: "MY"/); assert.match(styles, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\)/); assert.match(styles, /min-height: 3\.25rem/); assert.match(styles, /env\(safe-area-inset-bottom\)/); assert.match(styles, /padding-bottom: calc\(5\.25rem \+ env\(safe-area-inset-bottom\)\)/);
 });
 
