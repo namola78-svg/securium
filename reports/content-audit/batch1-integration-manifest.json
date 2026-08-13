@@ -1,0 +1,308 @@
+{
+  "schema_version": "1.0.0-batch1-repository-integration",
+  "generated_at": "2026-08-13T09:03:31.371384+09:00",
+  "base_sha": "b67cd48d386f9a93b08726a4e95e6737503932e1",
+  "branch": "content/isms-p-theory-v1",
+  "approved_count": 12,
+  "expected_content_ids": [
+    "content-isms-p-theory-2-2-6",
+    "content-isms-p-theory-1-1-1",
+    "content-isms-p-theory-1-3-3",
+    "content-isms-p-theory-2-2-2",
+    "content-isms-p-theory-2-4-1",
+    "content-isms-p-theory-2-4-2",
+    "content-isms-p-theory-2-4-3",
+    "content-isms-p-theory-2-5-1",
+    "content-isms-p-theory-2-5-2",
+    "content-isms-p-theory-2-6-1",
+    "content-isms-p-theory-2-8-3",
+    "content-isms-p-theory-2-9-2"
+  ],
+  "hold_count": 3,
+  "hold_codes": [
+    "2.8.1",
+    "2.10.1",
+    "2.12.2"
+  ],
+  "integrated_count": 12,
+  "runtime_status": "REPOSITORY_CONTENT_READY_DB_LINK_PENDING",
+  "db_write_performed": false,
+  "records": [
+    {
+      "id": "lesson-2-2-6",
+      "code": "2.2.6",
+      "title": "보안 위반 시 조치",
+      "content_id": "content-isms-p-theory-2-2-6",
+      "course_lesson_id": "course-lesson-isms-p-theory-2-2-6",
+      "body_sha256": "74d04b33792f80075cd148294eea9540fc0d6f931e31200de09fc2ed92ea90ef",
+      "summary_sha256": "8747a55cbd1971761b6d70c267f9d1ffbf8960f293232496ce84d52a3ddb11d6",
+      "source": {
+        "title": "ISMS-P 인증기준 안내서(2023.11.23).pdf",
+        "version": "2023.11.23",
+        "tier": "TIER_1",
+        "pages": {
+          "start": 70,
+          "end": 70
+        },
+        "official": true
+      },
+      "curriculum_mapping": "EXACT",
+      "currentness": "CURRENT",
+      "example_sha256": "049f80a74f6cd50826d479371342a3e609aea51124d55e52b9c1d0ebc738142b",
+      "exam_point_sha256": "be21d38207f6a98e7b58bffdb6ba8699c84522bd4453ad04330b77290de94abd"
+    },
+    {
+      "id": "lesson-1-1-1",
+      "code": "1.1.1",
+      "title": "경영진의 참여",
+      "content_id": "content-isms-p-theory-1-1-1",
+      "course_lesson_id": "course-lesson-isms-p-theory-1-1-1",
+      "body_sha256": "00561c8ad1491ec3237e2eb45c6aa11f2b5621c02fba0e576a4156bf6b4fc6b8",
+      "summary_sha256": "99f70d553714fb10c215543da96ef35469066d1c3d5d7f183958d76f77d51457",
+      "source": {
+        "title": "ISMS-P 인증기준 안내서(2023.11.23).pdf",
+        "version": "2023.11.23",
+        "tier": "TIER_1",
+        "pages": {
+          "start": 14,
+          "end": 15
+        },
+        "official": true
+      },
+      "curriculum_mapping": "EXACT",
+      "currentness": "UNKNOWN",
+      "example_sha256": "b9dc12704f55accd720cb2a51b086ca96dac240b2e91c077a8588a77190f76e5",
+      "exam_point_sha256": "04aa6e703f2abdc90b193f8775f159adf695afd9d8a8e78991ee78ec88a50ce8"
+    },
+    {
+      "id": "lesson-1-3-3",
+      "code": "1.3.3",
+      "title": "운영현황 관리",
+      "content_id": "content-isms-p-theory-1-3-3",
+      "course_lesson_id": "course-lesson-isms-p-theory-1-3-3",
+      "body_sha256": "c4103ea9f34408dce155a367fca3a3cddafbb123e8abf46b2b47c367d7006357",
+      "summary_sha256": "066fbe19cc03dc0a28f36e531afd10d06de6034ddd3861743b508239eceb4765",
+      "source": {
+        "title": "ISMS-P 인증기준 안내서(2023.11.23).pdf",
+        "version": "2023.11.23",
+        "tier": "TIER_1",
+        "pages": {
+          "start": 44,
+          "end": 45
+        },
+        "official": true
+      },
+      "curriculum_mapping": "EXACT",
+      "currentness": "UNKNOWN",
+      "example_sha256": "8722fb5642faa10233b262ac708f32bc01b2efa03ca253303420841b87f8cba5",
+      "exam_point_sha256": "848371fd6a88fda9f9cc8986e9a04ad7411255310eb64b99270a208bdc5257f8"
+    },
+    {
+      "id": "lesson-2-2-2",
+      "code": "2.2.2",
+      "title": "직무 분리",
+      "content_id": "content-isms-p-theory-2-2-2",
+      "course_lesson_id": "course-lesson-isms-p-theory-2-2-2",
+      "body_sha256": "e919c0c9707ff7fc66dee958ac5f2080192b234796c797b1f3ebc5ca7a3ec4f8",
+      "summary_sha256": "08718d60d6530b751f047d0089d7a952fa4b32f741decc7208848723695e3d2c",
+      "source": {
+        "title": "ISMS-P 인증기준 안내서(2023.11.23).pdf",
+        "version": "2023.11.23",
+        "tier": "TIER_1",
+        "pages": {
+          "start": 61,
+          "end": 62
+        },
+        "official": true
+      },
+      "curriculum_mapping": "EXACT",
+      "currentness": "UNKNOWN",
+      "example_sha256": "e9081c3d5c08549e6a43165a2c0ba945020efdf9fcff8ce48330b2f98fd91ec8",
+      "exam_point_sha256": "c8fbf08b9ff393ec52c27e6edcf7ed15cd78b70ab2377d3ded2061c8ef68ee82"
+    },
+    {
+      "id": "lesson-2-4-1",
+      "code": "2.4.1",
+      "title": "보호구역 지정",
+      "content_id": "content-isms-p-theory-2-4-1",
+      "course_lesson_id": "course-lesson-isms-p-theory-2-4-1",
+      "body_sha256": "01c02d45910b5fb921e3a2b618b9ea248a39f52d6d5354bf76707e8a15de742e",
+      "summary_sha256": "8e44a67092f2789b76b6c12424d49e0c712f3631211699bc0f357a76f7d17266",
+      "source": {
+        "title": "ISMS-P 인증기준 안내서(2023.11.23).pdf",
+        "version": "2023.11.23",
+        "tier": "TIER_1",
+        "pages": {
+          "start": 79,
+          "end": 80
+        },
+        "official": true
+      },
+      "curriculum_mapping": "EXACT",
+      "currentness": "UNKNOWN",
+      "example_sha256": "d6b4bad194232720250ff8bdd9630e7e1ab06ab52236272b005e40d993f1fead",
+      "exam_point_sha256": "11f276e47f8be4b4af0bf0691c0444ac8538da13988c2e7d69075a8d2d56b622"
+    },
+    {
+      "id": "lesson-2-4-2",
+      "code": "2.4.2",
+      "title": "출입통제",
+      "content_id": "content-isms-p-theory-2-4-2",
+      "course_lesson_id": "course-lesson-isms-p-theory-2-4-2",
+      "body_sha256": "43f06785a1fc62f5fa0ab6a9f86fd03b98a1db88b6a1f348132b9530ea604382",
+      "summary_sha256": "dec4909c2e1a07a98e701c42c56b05715980076d5a57c2b0f587d6480b2377c9",
+      "source": {
+        "title": "ISMS-P 인증기준 안내서(2023.11.23).pdf",
+        "version": "2023.11.23",
+        "tier": "TIER_1",
+        "pages": {
+          "start": 81,
+          "end": 82
+        },
+        "official": true
+      },
+      "curriculum_mapping": "EXACT",
+      "currentness": "UNKNOWN",
+      "example_sha256": "d1fe24ea2f8d0351ad79e776070d7d5b0016b1e6985c0b8cd7a7b6fa55da2a97",
+      "exam_point_sha256": "f414d82fb0f2d36c4211fbd0b565d637eb6f1af06207552f9f02ab4f57d01cb5"
+    },
+    {
+      "id": "lesson-2-4-3",
+      "code": "2.4.3",
+      "title": "정보시스템 보호",
+      "content_id": "content-isms-p-theory-2-4-3",
+      "course_lesson_id": "course-lesson-isms-p-theory-2-4-3",
+      "body_sha256": "fde133f7334f239e61e3112d5a62b7cb9a57ba12ac289869db76ff81755b0189",
+      "summary_sha256": "9dd65c4a6e3d7ab996385b982a636c88febba671c4081ebb7a1ce8abd273dd73",
+      "source": {
+        "title": "ISMS-P 인증기준 안내서(2023.11.23).pdf",
+        "version": "2023.11.23",
+        "tier": "TIER_1",
+        "pages": {
+          "start": 83,
+          "end": 83
+        },
+        "official": true
+      },
+      "curriculum_mapping": "EXACT",
+      "currentness": "UNKNOWN",
+      "example_sha256": "892cf3149e67c11648aface967a2c2740578e6a5244b10de8263e8e6d4c2c64f",
+      "exam_point_sha256": "63950f5981d5c68bca379bacfd81072704ef3e4f89d2f92f304e21d282e9896f"
+    },
+    {
+      "id": "lesson-2-5-1",
+      "code": "2.5.1",
+      "title": "사용자 계정 관리",
+      "content_id": "content-isms-p-theory-2-5-1",
+      "course_lesson_id": "course-lesson-isms-p-theory-2-5-1",
+      "body_sha256": "451c83a90ad0206dd9f7a2e6a10c77b8d0043c072fdcb231746fb819648e5cd9",
+      "summary_sha256": "e8cdb6884d464349056300e317f8ad8c547b27f0f864c20da0ad32ed5f06d80a",
+      "source": {
+        "title": "ISMS-P 인증기준 안내서(2023.11.23).pdf",
+        "version": "2023.11.23",
+        "tier": "TIER_1",
+        "pages": {
+          "start": 91,
+          "end": 92
+        },
+        "official": true
+      },
+      "curriculum_mapping": "EXACT",
+      "currentness": "UNKNOWN",
+      "example_sha256": "39229efdc2f3633b51b3cb6572fd026462e8c83b39b989d0e4f54c02587ec174",
+      "exam_point_sha256": "2f66d44da657efb5521b32eb7f0c2bcfdda297047c1a3ed65026f018c3457a95"
+    },
+    {
+      "id": "lesson-2-5-2",
+      "code": "2.5.2",
+      "title": "사용자 식별",
+      "content_id": "content-isms-p-theory-2-5-2",
+      "course_lesson_id": "course-lesson-isms-p-theory-2-5-2",
+      "body_sha256": "96bb22d63532325c576405c2d25f0d477b25fe6ccbc9008fce62e5f6c0aee314",
+      "summary_sha256": "c26bef786b6308030279faa52641ee708afb8aea2f5649ce4287430b5fdb25f6",
+      "source": {
+        "title": "ISMS-P 인증기준 안내서(2023.11.23).pdf",
+        "version": "2023.11.23",
+        "tier": "TIER_1",
+        "pages": {
+          "start": 93,
+          "end": 94
+        },
+        "official": true
+      },
+      "curriculum_mapping": "EXACT",
+      "currentness": "UNKNOWN",
+      "example_sha256": "43ab70cc912ca63911404a1a911d86c5d47f9b788fb1b4f450e81fa667590f68",
+      "exam_point_sha256": "710abcfad53e371c27497f3a487882de2b109d910ed74b9f9ef1e908bfb5c5fe"
+    },
+    {
+      "id": "lesson-2-6-1",
+      "code": "2.6.1",
+      "title": "네트워크 접근",
+      "content_id": "content-isms-p-theory-2-6-1",
+      "course_lesson_id": "course-lesson-isms-p-theory-2-6-1",
+      "body_sha256": "80c450ff84ef7cce0ee98d95de3fbe14e4c68fb7b2c55147e28bd748c918653e",
+      "summary_sha256": "0a5f8019aa6fa7f97a9342de8896b2cbbe57f8917a1099ce18f7768e931151c0",
+      "source": {
+        "title": "ISMS-P 인증기준 안내서(2023.11.23).pdf",
+        "version": "2023.11.23",
+        "tier": "TIER_1",
+        "pages": {
+          "start": 104,
+          "end": 106
+        },
+        "official": true
+      },
+      "curriculum_mapping": "EXACT",
+      "currentness": "UNKNOWN",
+      "example_sha256": "2af3c209c87f55aa6e3bcaac1516ef35bc7a44c673bd7465d678d24b19dec9e5",
+      "exam_point_sha256": "0d19ffa61ab325cb3edd8b6b7e89818739007d654d3975dc66cc0aa663d1d043"
+    },
+    {
+      "id": "lesson-2-8-3",
+      "code": "2.8.3",
+      "title": "시험과 운영 환경 분리",
+      "content_id": "content-isms-p-theory-2-8-3",
+      "course_lesson_id": "course-lesson-isms-p-theory-2-8-3",
+      "body_sha256": "ed31264c610c029a14b53a2c12a097c5b8f9a8975b89a2df779e8d8e3c510aef",
+      "summary_sha256": "7026db01ce7ba294d3aff49e7d02fa5e991cc000cfb4a8d74038ac5d1ec0f69c",
+      "source": {
+        "title": "ISMS-P 인증기준 안내서(2023.11.23).pdf",
+        "version": "2023.11.23",
+        "tier": "TIER_1",
+        "pages": {
+          "start": 132,
+          "end": 132
+        },
+        "official": true
+      },
+      "curriculum_mapping": "EXACT",
+      "currentness": "UNKNOWN",
+      "example_sha256": "2d4c7516fd4c4e3a25d4392364648b0d1c2942aed0ecb3767d4419c73870bc9d",
+      "exam_point_sha256": "e6332b4e4205d26043c4e0ce9a1df119354bfcd7811b19dda9f7c5efb7bd8ae3"
+    },
+    {
+      "id": "lesson-2-9-2",
+      "code": "2.9.2",
+      "title": "성능 및 장애관리",
+      "content_id": "content-isms-p-theory-2-9-2",
+      "course_lesson_id": "course-lesson-isms-p-theory-2-9-2",
+      "body_sha256": "d873e03465e3e419ed996be1150c4ea13f2c4bd458bb41dd18d8db5f31861f62",
+      "summary_sha256": "5c137d792ba16a8fc63e502e0178a46e489852099b81f64d92c27106e3e2c126",
+      "source": {
+        "title": "ISMS-P 인증기준 안내서(2023.11.23).pdf",
+        "version": "2023.11.23",
+        "tier": "TIER_1",
+        "pages": {
+          "start": 140,
+          "end": 141
+        },
+        "official": true
+      },
+      "curriculum_mapping": "EXACT",
+      "currentness": "UNKNOWN",
+      "example_sha256": "03392685faa27e158ddeeb24792c345664052ad0c858e979a2afe2e1c6637f8c",
+      "exam_point_sha256": "088c5b08cc9f499fcac7a11dea3afc7c2771fecd304562a5d96a820a0ceed9c4"
+    }
+  ]
+}
