@@ -237,9 +237,14 @@ async function applyTrackedPostgresMigrations() {
     .filter((name) => /^\d{4}_.+\.sql$/.test(name))
     .sort();
   const lockdown = "0002_server_only_rls_lockdown.sql";
+  const unrelatedDataCleanup =
+    "0009_security_certification_taxonomy_cleanup.sql";
   assert.equal(discovered.includes(lockdown), true);
+  assert.equal(discovered.includes(unrelatedDataCleanup), true);
   const migrations = [
-    ...discovered.filter((name) => name !== lockdown),
+    ...discovered.filter(
+      (name) => name !== lockdown && name !== unrelatedDataCleanup,
+    ),
     lockdown,
   ];
   assert.ok(migrations.length > 0);
