@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0.0",
+  "status": "BATCH_1_POST_MATERIALIZATION_HOTFIX_READY_FOR_REVIEW",
+  "base_main_sha": "18ae22f436af07e8118323b0af9b6fd12cf4ccd4",
+  "production_impact": {
+    "mode": "REPEATABLE_READ_READ_ONLY",
+    "transaction_read_only": true,
+    "snapshot_timestamp": "2026-08-13T07:57:21.628199Z",
+    "progress_aggregate_before": 3,
+    "progress_aggregate_after": 6,
+    "aggregate_delta": 3,
+    "affected_lessons": {
+      "1.1.1": "IN_PROGRESS",
+      "2.2.6": "IN_PROGRESS",
+      "2.9.2": "IN_PROGRESS"
+    },
+    "completion_activity_count": 0,
+    "score_or_answer_impact": 0,
+    "select_statements": 5,
+    "write_statements": 0,
+    "remediation_performed": false
+  },
+  "fix": {
+    "structured_payloads_valid": 12,
+    "structured_payloads_total": 12,
+    "raw_json_fallbacks": 0,
+    "mount_progress_posts": 0,
+    "reload_mutations": 0,
+    "back_forward_mutations": 0,
+    "prefetch_business_mutations": 0,
+    "legacy_rendering_preserved": true,
+    "explicit_complete_preserved": true
+  },
+  "validation": {
+    "focused_tests": "5/5 PASS",
+    "unit": "364/364 PASS",
+    "integration": "23/23 PASS",
+    "full_e2e": "80/80 PASS",
+    "typecheck": "PASS",
+    "lint": "PASS_WITH_PRE_EXISTING_UNRELATED_WARNING",
+    "next_build": "PASS",
+    "cloudflare_build": "PASS",
+    "isolated_d1": "PASS",
+    "disposable_postgresql_17_6": "PASS",
+    "d1_postgresql_parity": "FULL_PASS",
+    "browser_desktop_1440": "PASS",
+    "browser_mobile_390": "PASS",
+    "horizontal_overflow": 0,
+    "console_errors": 0,
+    "failed_requests": 0
+  },
+  "production_safety": {
+    "database_writes_during_investigation": 0,
+    "progress_remediation": false,
+    "materializer_executed": false,
+    "rollback_performed": false,
+    "hotfix_deployed": false
+  },
+  "contains_secret_or_pii": false
+}
