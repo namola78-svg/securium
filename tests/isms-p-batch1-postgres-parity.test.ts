@@ -17,6 +17,13 @@ import {
   rollbackIsmsPBatch1Materialization,
   verifyIsmsPBatch1Materialization,
 } from "../lib/data/isms-p-theory-batch1-materializer.mjs";
+import {
+  ISMS_P_BATCH1_PRODUCTION_TARGET_CONFIRMATION,
+  createIsmsPBatch1ApprovalDigest,
+  createIsmsPBatch1ProductionPreflight,
+  executeApprovedIsmsPBatch1ProductionMaterialization,
+  validateIsmsPBatch1ProductionApproval,
+} from "../lib/data/isms-p-theory-batch1-production-executor.mjs";
 
 const databaseUrl = requiredEnvironment("POSTGRES_PARITY_DATABASE_URL");
 const nonProduction = requiredEnvironment("POSTGRES_PARITY_NON_PRODUCTION");
@@ -116,6 +123,80 @@ test("ephemeral PostgreSQL has full D1 runtime-link parity", async (context) => 
   assert.deepEqual(await batchRowCounts(manifest), { content: 0, courseLesson: 0, extension: 0 });
   assert.deepEqual(await fixtureSnapshot(), fixtureBefore);
 
+  const releaseSha = "a".repeat(40);
+  const targetFingerprint = "b".repeat(64);
+  const productionRunner = createProductionLikeRunner();
+  const productionPreflight = await productionRunner.readOnly((database) =>
+    createIsmsPBatch1ProductionPreflight(database, {
+      mainSha: releaseSha,
+      targetFingerprint,
+      capturedAt: "2026-08-13T00:00:00.000Z",
+    }),
+  );
+  const approvalString =
+    `APPROVE SECURIUM BATCH1 PRODUCTION MATERIALIZATION ${productionPreflight.operationCount}`;
+  const productionInput = {
+    approvalString,
+    expectedMainSha: releaseSha,
+    expectedPreflightSha: productionPreflight.preflightSha,
+    expectedOperationCount: 36,
+    expectedConflictCount: 0,
+    expectedHoldOperations: 0,
+    expectedFreshDiffHash: productionPreflight.freshDiffHash,
+    approvalDigest: createIsmsPBatch1ApprovalDigest({
+      approvalString,
+      mainSha: releaseSha,
+      preflightSha: productionPreflight.preflightSha,
+      operationCount: 36,
+      freshDiffHash: productionPreflight.freshDiffHash,
+    }),
+    confirmProductionTarget: ISMS_P_BATCH1_PRODUCTION_TARGET_CONFIRMATION,
+  };
+  assert.throws(
+    () => validateIsmsPBatch1ProductionApproval(productionPreflight, { ...productionInput, expectedMainSha: "c".repeat(40) }, { releaseSha, targetFingerprint }),
+    (error: { code?: string }) => error.code === "ISMS_P_BATCH1_PRODUCTION_APPROVAL_INVALIDATED",
+  );
+  await assert.rejects(
+    executeApprovedIsmsPBatch1ProductionMaterialization({
+      runner: createProductionLikeRunner(10),
+      input: productionInput,
+      releaseSha,
+      target: { provider: "supabase", environment: "production", confirmed: true, fingerprint: targetFingerprint },
+    }),
+  );
+  assert.deepEqual(await batchRowCounts(manifest), { content: 0, courseLesson: 0, extension: 0 });
+
+  const productionApply = await executeApprovedIsmsPBatch1ProductionMaterialization({
+    runner: productionRunner,
+    input: productionInput,
+    releaseSha,
+    target: { provider: "supabase", environment: "production", confirmed: true, fingerprint: targetFingerprint },
+  });
+  assert.equal(productionApply.status, "COMMITTED");
+  assert.equal(productionApply.transaction.insertCount, 36);
+  assert.equal(productionApply.transaction.updateCount, 0);
+  assert.equal(productionApply.transaction.deleteCount, 0);
+  assert.equal(productionApply.transaction.progressBefore, productionApply.transaction.progressAfter);
+  assert.equal(productionApply.readBack.verification.verified, true);
+  await assert.rejects(
+    executeApprovedIsmsPBatch1ProductionMaterialization({
+      runner: productionRunner,
+      input: productionInput,
+      releaseSha,
+      target: { provider: "supabase", environment: "production", confirmed: true, fingerprint: targetFingerprint },
+    }),
+    (error: { code?: string }) =>
+      error.code === "ISMS_P_BATCH1_PRODUCTION_APPROVAL_INVALIDATED" ||
+      error.code === "ISMS_P_BATCH1_PRODUCTION_NOOP",
+  );
+  const productionCleanup = await rollbackIsmsPBatch1Materialization(
+    provider,
+    isolatedContext,
+    productionApply.transaction.createdOperationIds,
+  );
+  assert.equal(productionCleanup.deleted, 36);
+  assert.deepEqual(await batchRowCounts(manifest), { content: 0, courseLesson: 0, extension: 0 });
+
   const first = manifest[0];
   await provider.execute({
     sql: "INSERT INTO contents (id, slug, canonical_key, title, summary, body, body_format, learning_objectives_json, core_concepts_json, practical_examples_json, diagrams_json, media_json, version, status) VALUES (?, ?, ?, ?, '', '{}', 'STRUCTURED_JSON', '[]', '[]', '[]', '[]', '[]', '3.0.0', 'PUBLISHED')",
@@ -182,6 +263,23 @@ test("ephemeral PostgreSQL has full D1 runtime-link parity", async (context) => 
       rollback_post_user: d1Reference.rollbackPostUser,
       hold_operation_count: freshPlan.holdOperationCount,
     },
+    production_executor: {
+      approval_binding: "PASS",
+      main_sha_binding: "PASS",
+      preflight_sha_binding: "PASS",
+      fresh_toctou_binding: "PASS",
+      exact_create_count: productionApply.transaction.insertCount,
+      update_count: productionApply.transaction.updateCount,
+      delete_count: productionApply.transaction.deleteCount,
+      atomic_failure_partial_writes: 0,
+      post_commit_readback: productionApply.readBack.verification.verified
+        ? "PASS"
+        : "FAIL",
+      progress_preserved:
+        productionApply.transaction.progressBefore ===
+        productionApply.transaction.progressAfter,
+      replay: "PASS_REFUSED",
+    },
     d1_reference: d1Reference,
     parity: "FULL_PARITY_PASS",
   };
@@ -214,6 +312,36 @@ async function assertDisposableDatabaseIdentity() {
     environment: appEnvironment,
     non_production: true,
   };
+}
+
+function createProductionLikeRunner(failAtInsert?: number) {
+  return {
+    readOnly<T>(callback: (database: PostgresDatabaseProvider) => Promise<T>) {
+      return rawClient.begin("isolation level repeatable read read only", (transactionClient) =>
+        callback(sessionProvider(transactionClient)),
+      );
+    },
+    write<T>(callback: (database: PostgresDatabaseProvider) => Promise<T>) {
+      return rawClient.begin("isolation level serializable", (transactionClient) =>
+        callback(sessionProvider(transactionClient, failAtInsert)),
+      );
+    },
+  };
+}
+
+function sessionProvider(client: typeof rawClient, failAtInsert?: number) {
+  let insertCount = 0;
+  return new PostgresDatabaseProvider({
+    async query<Row extends Record<string, unknown>>(sql: string, parameters: readonly (string | number | boolean | null | Uint8Array)[]) {
+      if (/^INSERT\b/i.test(sql.trimStart())) {
+        insertCount += 1;
+        if (insertCount === failAtInsert) throw new Error("INJECTED_TRANSACTION_FAILURE");
+      }
+      const rows = await client.unsafe<Row[]>(sql, [...parameters]);
+      return { rows: Array.from(rows) as Row[], rowCount: typeof rows.count === "number" ? rows.count : rows.length };
+    },
+    async transaction() { throw new Error("NESTED_TRANSACTION_REFUSED"); },
+  });
 }
 
 function assertPrivateServiceAddress(address: string) {

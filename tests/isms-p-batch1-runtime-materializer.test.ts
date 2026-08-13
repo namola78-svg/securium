@@ -18,6 +18,12 @@ import {
   rollbackIsmsPBatch1Materialization,
   verifyIsmsPBatch1Materialization,
 } from "../lib/data/isms-p-theory-batch1-materializer.mjs";
+import {
+  ISMS_P_BATCH1_PRODUCTION_TARGET_CONFIRMATION,
+  createIsmsPBatch1ApprovalDigest,
+  createIsmsPBatch1ProductionPreflight,
+  validateIsmsPBatch1ProductionApproval,
+} from "../lib/data/isms-p-theory-batch1-production-executor.mjs";
 
 const isolatedContext = {
   target: "isolated-d1",
@@ -60,6 +66,80 @@ test("production-like APPLY and ROLLBACK contexts fail closed without a write pr
         }),
       (error: { code?: string }) =>
         error.code === "ISMS_P_BATCH1_PRODUCTION_WRITE_REFUSED",
+    );
+  } finally {
+    await dispose();
+  }
+});
+
+test("isolated D1 validates the approval-bound Production executor contract without weakening its guard", async () => {
+  const { provider, dispose } = await createIsolatedD1();
+  const releaseSha = "a".repeat(40);
+  const targetFingerprint = "b".repeat(64);
+  try {
+    const preflight = await createIsmsPBatch1ProductionPreflight(provider, {
+      mainSha: releaseSha,
+      targetFingerprint,
+      capturedAt: "2026-08-13T00:00:00.000Z",
+    });
+    assert.deepEqual(preflight.plan.counts, { CREATE: 36, NOOP: 0, CONFLICT: 0 });
+    const approvalString =
+      `APPROVE SECURIUM BATCH1 PRODUCTION MATERIALIZATION ${preflight.operationCount}`;
+    const input = {
+      approvalString,
+      expectedMainSha: releaseSha,
+      expectedPreflightSha: preflight.preflightSha,
+      expectedOperationCount: 36,
+      expectedConflictCount: 0,
+      expectedHoldOperations: 0,
+      expectedFreshDiffHash: preflight.freshDiffHash,
+      approvalDigest: createIsmsPBatch1ApprovalDigest({
+        approvalString,
+        mainSha: releaseSha,
+        preflightSha: preflight.preflightSha,
+        operationCount: 36,
+        freshDiffHash: preflight.freshDiffHash,
+      }),
+      confirmProductionTarget: ISMS_P_BATCH1_PRODUCTION_TARGET_CONFIRMATION,
+    };
+    assert.equal(
+      validateIsmsPBatch1ProductionApproval(preflight, input, {
+        releaseSha,
+        targetFingerprint,
+      }).valid,
+      true,
+    );
+    for (const invalid of [
+      { ...input, approvalString: "" },
+      { ...input, approvalString: "APPROVE WRONG BATCH" },
+      { ...input, expectedMainSha: "c".repeat(40) },
+      { ...input, expectedPreflightSha: "d".repeat(64) },
+      { ...input, expectedOperationCount: 35 },
+      { ...input, expectedConflictCount: 1 },
+      { ...input, expectedHoldOperations: 1 },
+      { ...input, expectedFreshDiffHash: "e".repeat(64) },
+      { ...input, approvalDigest: "f".repeat(64) },
+    ]) {
+      assert.throws(() =>
+        validateIsmsPBatch1ProductionApproval(preflight, invalid, {
+          releaseSha,
+          targetFingerprint,
+        }),
+      );
+    }
+
+    const applied = await applyIsmsPBatch1Materialization(provider, isolatedContext);
+    assert.equal(applied.created, 36);
+    assert.equal(applied.verification.verified, true);
+    const replayPreflight = await createIsmsPBatch1ProductionPreflight(provider, {
+      mainSha: releaseSha,
+      targetFingerprint,
+    });
+    assert.throws(
+      () => validateIsmsPBatch1ProductionApproval(replayPreflight, input, { releaseSha, targetFingerprint }),
+      (error: { code?: string }) =>
+        error.code === "ISMS_P_BATCH1_PRODUCTION_APPROVAL_INVALIDATED" ||
+        error.code === "ISMS_P_BATCH1_PRODUCTION_NOOP",
     );
   } finally {
     await dispose();
