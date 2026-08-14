@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { promisify } from "node:util";
@@ -134,6 +135,31 @@ test("ontology coverage summaries expose linked nodes and remaining gaps per cou
   );
   assert.ok(summaries.every((summary) => summary.gapCount > 0));
   assert.ok(summaries.every((summary) => summary.topGapIds.length > 0));
+});
+
+test("network course isolation preserves course-scoped ontology edge identities", () => {
+  const targetNodeIds = new Set([
+    "curriculum-node-ise-2027-2029-01-02-03-02",
+    "curriculum-node-isie-2027-2029-01-02-03-02",
+  ]);
+  const edgeKeys = buildSecurityCertificationOntologyEdges()
+    .filter(
+      (edge) =>
+        edge.fromType === "CURRICULUM_NODE" &&
+        edge.toType === "COURSE_LESSON" &&
+        targetNodeIds.has(edge.fromId),
+    )
+    .map((edge) => edge.key)
+    .sort();
+
+  assert.deepEqual(edgeKeys, [
+    "course-ise:CURRICULUM_NODE:curriculum-node-ise-2027-2029-01-02-03-02:COVERS:COURSE_LESSON:course-lesson-ise-official-network-network-security-solutions",
+    "course-isie:CURRICULUM_NODE:curriculum-node-isie-2027-2029-01-02-03-02:COVERS:COURSE_LESSON:course-lesson-isie-official-network-network-security-solutions",
+  ]);
+  assert.equal(
+    createHash("sha256").update(JSON.stringify(edgeKeys)).digest("hex"),
+    "c400ef520b41cdcb6bfb597e9cd1f486b713230de4f8fb0b94de23aeee207bc7",
+  );
 });
 
 test("PR1 electronic-commerce concepts remain Engineer-only DRAFT ontology gaps", () => {

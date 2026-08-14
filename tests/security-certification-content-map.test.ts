@@ -1,10 +1,15 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import test from "node:test";
 import {
   getSecurityCertificationContentMap,
   getSecurityCertificationDeepNodeCoverageSummary,
   getSecurityCertificationContentMapSummary,
 } from "../lib/curriculum/security-certification-content-map.ts";
+import {
+  officialSecurityCertificationContents,
+  officialSecurityCertificationCourseLessons,
+} from "../lib/data/security-certification-course-lessons.mjs";
 
 test("security certification content map covers every top-level official curriculum node", () => {
   const summary = getSecurityCertificationContentMapSummary();
@@ -124,4 +129,33 @@ test("security certification deep node inventory exposes the two intentionally u
     ["ISE-2027-2029-01-03-EC", "ISE-2027-2029-01-03-EC-01"],
   );
   assert.equal(summary.questionGapRows.length, 0);
+});
+
+test("network course isolation preserves target Content and CourseLesson identities", () => {
+  const content = officialSecurityCertificationContents.find(
+    (item) => item.id === "content-official-security-cert-network-network-security-solutions",
+  );
+  const courseLessons = officialSecurityCertificationCourseLessons.filter((lesson) =>
+    [
+      "course-lesson-ise-official-network-network-security-solutions",
+      "course-lesson-isie-official-network-network-security-solutions",
+    ].includes(lesson.id),
+  );
+
+  assert.ok(content);
+  assert.equal(
+    createHash("sha256").update(JSON.stringify(content)).digest("hex"),
+    "eba6699d401ae55d9949d5f19d59d8e3deafa041e49ca7c03f1c080063818dd1",
+  );
+  assert.deepEqual(
+    courseLessons.map((lesson) => lesson.id),
+    [
+      "course-lesson-ise-official-network-network-security-solutions",
+      "course-lesson-isie-official-network-network-security-solutions",
+    ],
+  );
+  assert.equal(
+    createHash("sha256").update(JSON.stringify(courseLessons)).digest("hex"),
+    "4dc72e1c6de1480c1fcfacb72f68da9c5497dcce1130783544f3acd160e4ebfa",
+  );
 });
