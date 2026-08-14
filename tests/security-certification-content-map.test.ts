@@ -10,6 +10,7 @@ import {
   officialSecurityCertificationContents,
   officialSecurityCertificationCourseLessons,
 } from "../lib/data/security-certification-course-lessons.mjs";
+import { practicalSecurityQuestionSamples } from "../lib/data/security-certification-practical-questions.mjs";
 
 test("security certification content map covers every top-level official curriculum node", () => {
   const summary = getSecurityCertificationContentMapSummary();
@@ -157,5 +158,46 @@ test("network course isolation preserves target Content and CourseLesson identit
   assert.equal(
     createHash("sha256").update(JSON.stringify(courseLessons)).digest("hex"),
     "4dc72e1c6de1480c1fcfacb72f68da9c5497dcce1130783544f3acd160e4ebfa",
+  );
+});
+
+test("Engineer log-monitoring content map activation preserves Industrial legacy isolation", () => {
+  const targetContentId =
+    "content-official-security-cert-ise-practical-log-collection-monitoring";
+  const legacyContentId =
+    "content-official-security-cert-practical-security-objective-detection-response";
+  const questionId = "practical-security-official-engineer-log-monitoring-q01";
+  const engineerLessons = officialSecurityCertificationCourseLessons.filter(
+    (lesson) =>
+      lesson.curriculumNodeId === "curriculum-node-ise-2027-2029-02-01-03-01",
+  );
+  const industrialLessons = officialSecurityCertificationCourseLessons.filter(
+    (lesson) =>
+      lesson.curriculumNodeId === "curriculum-node-isie-2027-2029-02-01-03-01",
+  );
+  const questions = practicalSecurityQuestionSamples.filter(
+    (question) => question.id === questionId,
+  );
+
+  assert.equal(
+    officialSecurityCertificationContents.filter(
+      (content) => content.id === targetContentId,
+    ).length,
+    1,
+  );
+  assert.deepEqual(engineerLessons.map((lesson) => lesson.contentId), [targetContentId]);
+  assert.deepEqual(industrialLessons.map((lesson) => lesson.contentId), [legacyContentId]);
+  assert.equal(questions.length, 1);
+  assert.deepEqual(
+    questions[0]?.contentLinks.map((link: { contentId: string }) => link.contentId),
+    [targetContentId],
+  );
+  assert.deepEqual(
+    questions[0]?.courseLinks.map((link: { courseId: string }) => link.courseId),
+    ["course-ise"],
+  );
+  assert.equal(
+    industrialLessons.some((lesson) => lesson.contentId === targetContentId),
+    false,
   );
 });

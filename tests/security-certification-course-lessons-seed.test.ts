@@ -11,19 +11,68 @@ import {
   getSecurityCertificationNetworkSecurityFlowReadiness,
   getSecurityCertificationCourseLessonSeedStats,
 } from "../lib/data/security-certification-course-lessons.mjs";
+import { engineerPracticalLogMonitoringContent } from "../lib/data/security-certification-engineer-practical-log-monitoring-authoring.mjs";
 
 test("security certification course lesson seed reuses shared contents across engineer tracks", () => {
   const stats = getSecurityCertificationCourseLessonSeedStats();
 
-  assert.equal(stats.contentCount, 80);
+  assert.equal(stats.contentCount, 81);
   assert.equal(stats.courseLessonCount, 145);
   assert.equal(stats.courseLessonExtensionCount, 8);
-  assert.equal(stats.linkedContentCount, 80);
-  assert.equal(stats.reusedContentCount, 65);
+  assert.equal(stats.linkedContentCount, 81);
+  assert.equal(stats.reusedContentCount, 64);
   assert.equal(stats.allLessonsHaveKnownContent, true);
   assert.equal(stats.expectedTopLevelNodeCount, 11);
   assert.equal(stats.mappedTopLevelNodeCount, 11);
   assert.equal(stats.unmappedTopLevelNodeCount, 0);
+});
+
+test("Engineer log-monitoring activation preserves CourseLesson identity and Industrial legacy reuse", () => {
+  const targetContentId =
+    "content-official-security-cert-ise-practical-log-collection-monitoring";
+  const legacyContentId =
+    "content-official-security-cert-practical-security-objective-detection-response";
+  const targetLessonId =
+    "course-lesson-ise-official-practical-security-objective-detection-response";
+  const targetLessons = officialSecurityCertificationCourseLessons.filter(
+    (lesson) => lesson.id === targetLessonId,
+  );
+  const activeContent = officialSecurityCertificationContents.find(
+    (content) => content.id === targetContentId,
+  );
+  const industrialLesson = officialSecurityCertificationCourseLessons.find(
+    (lesson) =>
+      lesson.id ===
+      "course-lesson-isie-official-practical-security-objective-detection-response",
+  );
+
+  assert.equal(targetLessons.length, 1);
+  assert.equal(targetLessons[0]?.courseId, "course-ise");
+  assert.equal(
+    targetLessons[0]?.curriculumNodeId,
+    "curriculum-node-ise-2027-2029-02-01-03-01",
+  );
+  assert.equal(targetLessons[0]?.contentId, targetContentId);
+  assert.equal(
+    targetLessons[0]?.displayTitle,
+    "정보보안기사 실기 보안 로그 수집 및 모니터링",
+  );
+  assert.ok(activeContent);
+  assert.equal(activeContent.status, "PUBLISHED");
+  assert.equal(activeContent.body, engineerPracticalLogMonitoringContent.body);
+  assert.equal(industrialLesson?.contentId, legacyContentId);
+  assert.equal(
+    officialSecurityCertificationCourseLessons.filter(
+      (lesson) => lesson.contentId === legacyContentId,
+    ).length,
+    1,
+  );
+  assert.equal(
+    officialSecurityCertificationCourseLessons.filter(
+      (lesson) => lesson.contentId === targetContentId,
+    ).length,
+    1,
+  );
 });
 
 test("security certification course lesson seed keeps course progress separated", () => {
@@ -323,7 +372,10 @@ test("security certification course lesson seed generates additive SQL", () => {
 
 test("security certification course lesson content is marked as learning overview, not copied questions", () => {
   for (const content of officialSecurityCertificationContents) {
-    assert.match(content.body, /공식 문제나 유료 교재 내용을 복제하지 않습니다/);
+    assert.match(
+      content.body,
+      /공식 문제나 유료 교재 내용을 복제하지 않습니다|공식 기출문제나 원문을 복제하지 않습니다/,
+    );
   }
 });
 

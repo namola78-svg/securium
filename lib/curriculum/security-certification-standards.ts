@@ -399,6 +399,20 @@ const sharedPracticalBeforeEngineerOnly: OfficialCurriculumNodeDefinition[] = [
     },
 ];
 
+const engineerPracticalBeforeEngineerOnly = sharedPracticalBeforeEngineerOnly.map(
+  (item) =>
+    item.title === "보안 로그 수집·분석 및 침해 대응"
+      ? {
+          ...item,
+          children: item.children?.map((child) =>
+            child.title === "보안목표 수립 및 침해 탐지·대응"
+              ? { ...child, title: "보안 로그 수집 및 모니터링" }
+              : child,
+          ),
+        }
+      : item,
+);
+
 export const SECURITY_CERTIFICATION_ENGINEER_ONLY_PRACTICAL_ITEMS: OfficialCurriculumNodeDefinition[] = [
     {
       title: "위험분석 및 정보보호 대책 수립",
@@ -437,7 +451,7 @@ const engineerPractical: OfficialCurriculumNodeDefinition = {
   officialLevel: "PRACTICAL_DOMAIN",
   isPractical: true,
   children: [
-    ...sharedPracticalBeforeEngineerOnly,
+    ...engineerPracticalBeforeEngineerOnly,
     ...SECURITY_CERTIFICATION_ENGINEER_ONLY_PRACTICAL_ITEMS,
     ...sharedPracticalAfterEngineerOnly,
   ],
