@@ -9,6 +9,7 @@ export type OfficialCurriculumNodeType =
   | "STANDARD";
 
 export type OfficialCurriculumNodeDefinition = {
+  internalStableKey?: string;
   title: string;
   nodeType: OfficialCurriculumNodeType;
   officialLevel:
@@ -24,6 +25,16 @@ export type OfficialCurriculumNodeDefinition = {
   importance?: number;
   notes?: string;
   children?: OfficialCurriculumNodeDefinition[];
+};
+
+export type OfficialCurriculumSourceDescriptor = {
+  sourceUrl: string;
+  sourceSha256: string;
+  publication: string;
+  publishedAt: string;
+  effectiveFrom: string;
+  effectiveTo: string;
+  pageCount: number;
 };
 
 export type OfficialCurriculumExamTrackDefinition = {
@@ -43,9 +54,11 @@ export type OfficialCurriculumTreeDefinition = {
   title: string;
   sourceType: "OFFICIAL_EXAM_STANDARD";
   sourceDocument: string;
+  officialSource: OfficialCurriculumSourceDescriptor;
   effectiveFrom: string;
   effectiveTo: string;
   status: "DRAFT";
+  correctionStatus: "PARTIAL_OFFICIAL_REGISTRY_CORRECTION_PR1";
   examTracks: OfficialCurriculumExamTrackDefinition[];
   nodes: OfficialCurriculumNodeDefinition[];
 };
@@ -64,7 +77,7 @@ export type FlattenedOfficialCurriculumNode = {
   importance: number | null;
   notes: string | null;
   metadata: {
-    source: "USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES";
+    source: "AUTHENTICATED_CQ_OFFICIAL_PDF";
     courseCode: SecurityCertificationCourseCode;
     version: "2027-2029";
     officialLevel: OfficialCurriculumNodeDefinition["officialLevel"];
@@ -75,6 +88,29 @@ export type FlattenedOfficialCurriculumNode = {
     examTrack?: OfficialCurriculumExamTrackDefinition;
   };
 };
+
+export const SECURITY_CERTIFICATION_OFFICIAL_SOURCES = {
+  ISE: {
+    sourceUrl:
+      "https://www.cq.or.kr/ac_flecm02_001.do?atchFileId=53426c2c81474591bef0207cdf4b9562&fileSn=1",
+    sourceSha256: "23e78b2452db75e3a37c31b7e1aa263d890131c6e38d364a79eba1744ceb2352",
+    publication: "CQ syllabus list entry 68",
+    publishedAt: "2026-07-23",
+    effectiveFrom: "2027-01-01",
+    effectiveTo: "2029-12-31",
+    pageCount: 11,
+  },
+  ISIE: {
+    sourceUrl:
+      "https://www.cq.or.kr/ac_flecm02_001.do?atchFileId=53426c2c81474591bef0207cdf4b9562&fileSn=2",
+    sourceSha256: "23b2dbdf2c2234d9702f4a661a1392a0d89fda8ce04840b2cbd7eb8719826aa5",
+    publication: "CQ syllabus list entry 68",
+    publishedAt: "2026-07-23",
+    effectiveFrom: "2027-01-01",
+    effectiveTo: "2029-12-31",
+    pageCount: 8,
+  },
+} as const satisfies Record<SecurityCertificationCourseCode, OfficialCurriculumSourceDescriptor>;
 
 const systemSecurityWritten: OfficialCurriculumNodeDefinition = {
   title: "시스템보안",
@@ -132,7 +168,7 @@ const networkSecurityWritten: OfficialCurriculumNodeDefinition = {
       nodeType: "MAJOR_ITEM",
       officialLevel: "MAJOR_ITEM",
       children: [
-        { title: "서비스 거부 및 분산 서비스 거부 공격", nodeType: "SUB_ITEM", officialLevel: "SUB_ITEM" },
+        { title: "서비스 거부(DoS), 분산 서비스 거부(DDoS) 공격", nodeType: "SUB_ITEM", officialLevel: "SUB_ITEM" },
         { title: "스캐닝", nodeType: "SUB_ITEM", officialLevel: "SUB_ITEM" },
         { title: "스푸핑 공격", nodeType: "SUB_ITEM", officialLevel: "SUB_ITEM" },
         { title: "스니핑 공격", nodeType: "SUB_ITEM", officialLevel: "SUB_ITEM" },
@@ -173,8 +209,51 @@ const applicationSecurityWritten: OfficialCurriculumNodeDefinition = {
       nodeType: "MAJOR_ITEM",
       officialLevel: "MAJOR_ITEM",
       children: [
-        { title: "어플리케이션 보안취약 유형과 대응", nodeType: "SUB_ITEM", officialLevel: "SUB_ITEM" },
+        { title: "어플리케이션 보안 취약점 대응", nodeType: "SUB_ITEM", officialLevel: "SUB_ITEM" },
         { title: "어플리케이션 개발 보안 개요", nodeType: "SUB_ITEM", officialLevel: "SUB_ITEM" },
+      ],
+    },
+  ],
+};
+
+const engineerApplicationSecurityWritten: OfficialCurriculumNodeDefinition = {
+  title: "어플리케이션보안",
+  nodeType: "SUBJECT",
+  officialLevel: "SUBJECT",
+  children: [
+    applicationSecurityWritten.children?.[0] as OfficialCurriculumNodeDefinition,
+    {
+      internalStableKey: "ISE-2027-2029-01-03-EC",
+      title: "전자 상거래 보안",
+      nodeType: "MAJOR_ITEM",
+      officialLevel: "MAJOR_ITEM",
+      children: [
+        {
+          internalStableKey: "ISE-2027-2029-01-03-EC-01",
+          title: "전자상거래 보안 기술",
+          nodeType: "SUB_ITEM",
+          officialLevel: "SUB_ITEM",
+        },
+      ],
+    },
+    {
+      internalStableKey: "ISE-2027-2029-01-03-02",
+      title: "어플리케이션 보안 취약점",
+      nodeType: "MAJOR_ITEM",
+      officialLevel: "MAJOR_ITEM",
+      children: [
+        {
+          internalStableKey: "ISE-2027-2029-01-03-02-01",
+          title: "어플리케이션 보안 취약점 대응",
+          nodeType: "SUB_ITEM",
+          officialLevel: "SUB_ITEM",
+        },
+        {
+          internalStableKey: "ISE-2027-2029-01-03-02-02",
+          title: "어플리케이션 개발 보안 개요",
+          nodeType: "SUB_ITEM",
+          officialLevel: "SUB_ITEM",
+        },
       ],
     },
   ],
@@ -278,7 +357,7 @@ const sharedPracticalBeforeEngineerOnly: OfficialCurriculumNodeDefinition[] = [
         { title: "운영체제 보안설정 점검과 보완하기", nodeType: "SUB_ITEM", officialLevel: "SUB_ITEM", isPractical: true },
         { title: "서비스 보안설정 점검과 보완하기", nodeType: "SUB_ITEM", officialLevel: "SUB_ITEM", isPractical: true },
         { title: "네트워크 및 보안장비 설정 점검과 보완하기", nodeType: "SUB_ITEM", officialLevel: "SUB_ITEM", isPractical: true },
-        { title: "취약점 점검이력과 보안내용 관리하기", nodeType: "SUB_ITEM", officialLevel: "SUB_ITEM", isPractical: true },
+        { title: "취약점 점검이력과 보완 내용 관리하기", nodeType: "SUB_ITEM", officialLevel: "SUB_ITEM", isPractical: true },
       ],
     },
     {
@@ -354,9 +433,11 @@ export const SECURITY_CERTIFICATION_CURRICULUM_TREES: OfficialCurriculumTreeDefi
     title: "정보보안기사 2027~2029 공식 출제기준",
     sourceType: "OFFICIAL_EXAM_STANDARD",
     sourceDocument: "정보보안기사 필기·실기 출제기준",
+    officialSource: SECURITY_CERTIFICATION_OFFICIAL_SOURCES.ISE,
     effectiveFrom: "2027-01-01",
     effectiveTo: "2029-12-31",
     status: "DRAFT",
+    correctionStatus: "PARTIAL_OFFICIAL_REGISTRY_CORRECTION_PR1",
     examTracks: [
       {
         title: "필기",
@@ -379,7 +460,10 @@ export const SECURITY_CERTIFICATION_CURRICULUM_TREES: OfficialCurriculumTreeDefi
         nodeType: "TRACK",
         officialLevel: "EXAM_TRACK",
         children: [
-          ...SECURITY_CERTIFICATION_SHARED_WRITTEN_SUBJECTS,
+          systemSecurityWritten,
+          networkSecurityWritten,
+          engineerApplicationSecurityWritten,
+          informationSecurityGeneralWritten,
           ...SECURITY_CERTIFICATION_ENGINEER_ONLY_WRITTEN_SUBJECTS,
         ],
       },
@@ -400,9 +484,11 @@ export const SECURITY_CERTIFICATION_CURRICULUM_TREES: OfficialCurriculumTreeDefi
     title: "정보보안산업기사 2027~2029 공식 출제기준",
     sourceType: "OFFICIAL_EXAM_STANDARD",
     sourceDocument: "정보보안산업기사 필기·실기 출제기준",
+    officialSource: SECURITY_CERTIFICATION_OFFICIAL_SOURCES.ISIE,
     effectiveFrom: "2027-01-01",
     effectiveTo: "2029-12-31",
     status: "DRAFT",
+    correctionStatus: "PARTIAL_OFFICIAL_REGISTRY_CORRECTION_PR1",
     examTracks: [
       {
         title: "필기",
@@ -450,7 +536,15 @@ export function flattenOfficialCurriculumTree(
     indexes: number[],
   ) {
     const suffix = indexes.map((index) => String(index).padStart(2, "0")).join("-");
-    const stableKey = `${tree.courseCode}-${tree.version}-${suffix}`;
+    const positionalStableKey = `${tree.courseCode}-${tree.version}-${suffix}`;
+    const stableKey = definition.internalStableKey ?? positionalStableKey;
+    const expectedPrefix = `${tree.courseCode}-${tree.version}-`;
+    if (!stableKey.startsWith(expectedPrefix)) {
+      throw new Error(`Official curriculum internal stable key must start with ${expectedPrefix}`);
+    }
+    if (nodes.some((node) => node.stableKey === stableKey)) {
+      throw new Error(`Duplicate official curriculum stable key: ${stableKey}`);
+    }
     const path = `${parentPath}/${stableKey}`;
     const examTrack =
       depth === 0
@@ -471,7 +565,7 @@ export function flattenOfficialCurriculumTree(
       importance: definition.importance ?? null,
       notes: definition.notes ?? null,
       metadata: {
-        source: "USER_PROVIDED_OFFICIAL_STANDARD_PDF_IMAGES",
+        source: "AUTHENTICATED_CQ_OFFICIAL_PDF",
         courseCode: tree.courseCode,
         version: tree.version,
         officialLevel: definition.officialLevel,

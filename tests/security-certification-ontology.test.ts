@@ -136,6 +136,39 @@ test("ontology coverage summaries expose linked nodes and remaining gaps per cou
   assert.ok(summaries.every((summary) => summary.topGapIds.length > 0));
 });
 
+test("PR1 electronic-commerce concepts remain Engineer-only DRAFT ontology gaps", () => {
+  const concepts = buildSecurityCertificationOntologyConcepts();
+  const electronicCommerce = concepts.filter((concept) =>
+    concept.sourceId?.includes("-01-03-ec"),
+  );
+
+  assert.deepEqual(
+    electronicCommerce.map((concept) => concept.sourceId),
+    [
+      "curriculum-node-ise-2027-2029-01-03-ec",
+      "curriculum-node-ise-2027-2029-01-03-ec-01",
+    ],
+  );
+  assert.equal(
+    concepts.some((concept) => concept.sourceId?.includes("curriculum-node-isie-2027-2029-01-03-ec")),
+    false,
+  );
+
+  const engineerGaps = getSecurityCertificationOntologyGaps(
+    "curriculum-ise-2027-2029-official",
+  );
+  assert.equal(
+    engineerGaps.some((gap) => gap.id === "curriculum-node-ise-2027-2029-01-03-ec"),
+    true,
+  );
+  assert.equal(
+    engineerGaps.some(
+      (gap) => gap.id === "curriculum-node-ise-2027-2029-01-03-ec-01",
+    ),
+    true,
+  );
+});
+
 test("ontology gap ranking can be requested for a single official tree", () => {
   const gaps = getSecurityCertificationOntologyGaps(
     "curriculum-ise-2027-2029-official",

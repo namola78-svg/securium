@@ -23,7 +23,7 @@ export function AccountDrawer({ user }: AccountDrawerProps) {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const currentSearch = searchParams.toString();
+  const currentSearch = searchParams?.toString() ?? "";
   const returnTo = safeAuthReturnPath(
     `${pathname}${currentSearch ? `?${currentSearch}` : ""}`,
   );

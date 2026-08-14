@@ -64,7 +64,7 @@ export function HeaderControls({ user }: HeaderControlsProps) {
   );
   const navItems = isSignedIn ? learnerPrimaryNavItems : publicNavItems;
   const mobileBottomItems = mobileBottomNavItems;
-  const currentSearch = searchParams.toString();
+  const currentSearch = searchParams?.toString() ?? "";
   const loginReturnTo = safeAuthReturnPath(
     `${pathname}${currentSearch ? `?${currentSearch}` : ""}`,
   );
@@ -541,7 +541,7 @@ function resolveActivePath(
   searchParams: ReturnType<typeof useSearchParams>,
 ) {
   if (pathname !== "/login" && pathname !== "/signup") return pathname;
-  return safeAuthReturnPath(searchParams.get("return_to"), pathname);
+  return safeAuthReturnPath(searchParams?.get("return_to"), pathname);
 }
 
 function isActivePath(pathname: string, href: string) {

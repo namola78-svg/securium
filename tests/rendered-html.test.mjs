@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { after, before, test } from "node:test";
+import { getSecurityCertificationDeepNodeCoverageSummary } from "../lib/curriculum/security-certification-content-map.ts";
+import {
+  flattenOfficialCurriculumTree,
+  SECURITY_CERTIFICATION_CURRICULUM_TREES,
+} from "../lib/curriculum/security-certification-standards.ts";
 
 const port = 33120;
 const baseUrl = `http://localhost:${port}`;
@@ -218,6 +223,27 @@ test("learner curriculum overview renders compact path summary and inspector", a
 });
 
 test("admin curriculum and shared content pages expose network security coverage", async () => {
+  const partialCoverage = getSecurityCertificationDeepNodeCoverageSummary();
+  assert.deepEqual(
+    partialCoverage.uncoveredRows.map((row) => row.stableKey),
+    ["ISE-2027-2029-01-03-EC", "ISE-2027-2029-01-03-EC-01"],
+  );
+  assert.equal(partialCoverage.questionGapRows.length, 0);
+  assert.deepEqual(
+    SECURITY_CERTIFICATION_CURRICULUM_TREES.map((tree) => tree.correctionStatus),
+    ["PARTIAL_OFFICIAL_REGISTRY_CORRECTION_PR1", "PARTIAL_OFFICIAL_REGISTRY_CORRECTION_PR1"],
+  );
+  const industrialTree = SECURITY_CERTIFICATION_CURRICULUM_TREES.find(
+    (tree) => tree.courseCode === "ISIE",
+  );
+  assert.ok(industrialTree);
+  const industrialTitles = new Set(
+    flattenOfficialCurriculumTree(industrialTree).map((node) => node.title),
+  );
+  assert.equal(industrialTitles.has("시스템 보안 솔루션"), true);
+  assert.equal(industrialTitles.has("원격접속 공격"), true);
+  assert.equal(industrialTitles.has("어플리케이션 개발 보안 개요"), true);
+
   await ensureSecurityCertificationCurriculumSeed();
   await ensureCourseLessonSeed();
   await ensureNetworkQuestionSeed();
@@ -241,10 +267,24 @@ test("admin curriculum and shared content pages expose network security coverage
   assert.match(curriculumHtml, /기사·산업기사 공식 커리큘럼 커버리지/);
   assert.match(curriculumHtml, /전체 학습 노드/);
   assert.match(curriculumHtml, /문항 연결률/);
-  assert.match(curriculumHtml, /100% 준비/);
+  assert.doesNotMatch(curriculumHtml, /100% 준비/);
+  assert.match(curriculumHtml, /확인 필요/);
+  assert.match(curriculumHtml, /2개 노드 확인 필요/);
+  assert.match(curriculumHtml, /전자 상거래 보안/);
+  assert.match(curriculumHtml, /ISE-2027-2029-01-03-EC/);
+  assert.match(curriculumHtml, /전자상거래 보안 기술/);
+  assert.match(curriculumHtml, /ISE-2027-2029-01-03-EC-01/);
+  assert.match(curriculumHtml, /네트워크 보안기술 이해/);
+  assert.doesNotMatch(curriculumHtml, /네트워크 보안기술 및 적용/);
+  assert.match(curriculumHtml, /보안목표 수립 및 침해 탐지·대응/);
+  assert.doesNotMatch(curriculumHtml, /보안 로그 수집 및 모니터링/);
   assert.match(curriculumHtml, /Content 미연결 노드/);
   assert.match(curriculumHtml, /문항 공백 노드/);
-  assert.match(curriculumHtml, /미연결 Content 노드가 없습니다/);
+  assert.doesNotMatch(curriculumHtml, /미연결 Content 노드가 없습니다/);
+  assert.match(
+    curriculumHtml,
+    /Content가 연결된 노드에 샘플 문항이 모두 연결되었습니다/,
+  );
   assert.match(curriculumHtml, /문항 공백 노드가 없습니다/);
   assert.match(curriculumHtml, /공통 콘텐츠 관리로 이동/);
   assert.match(curriculumHtml, /\/admin\/shared-content\?courseId=course-ise/);

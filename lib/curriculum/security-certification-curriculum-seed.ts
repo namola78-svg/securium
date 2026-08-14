@@ -104,6 +104,8 @@ function buildNodeMetadata(
     ...node.metadata,
     treeId: tree.treeId,
     sourceDocument: tree.sourceDocument,
+    officialSource: tree.officialSource,
+    correctionStatus: tree.correctionStatus,
     notes: node.notes,
   });
 }
@@ -180,7 +182,7 @@ export function generateSecurityCertificationCurriculumSeedSql(
 
   const header = [
     "-- SECURIUM information security certification official curriculum seed.",
-    "-- Source: user-provided official 2027-2029 exam-standard images.",
+    "-- Source: authenticated CQ 2027-2029 official exam-standard PDFs.",
     "-- Safety: inserts curriculum trees as DRAFT; review in admin before activation.",
     "-- This file is generated for review/application by an operator; it is not auto-applied.",
   ];
