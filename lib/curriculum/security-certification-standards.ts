@@ -149,43 +149,71 @@ const systemSecurityWritten: OfficialCurriculumNodeDefinition = {
   ],
 };
 
-const networkSecurityWritten: OfficialCurriculumNodeDefinition = {
-  title: "네트워크보안",
-  nodeType: "SUBJECT",
-  officialLevel: "SUBJECT",
-  children: [
-    {
-      title: "네트워크 일반",
-      nodeType: "MAJOR_ITEM",
-      officialLevel: "MAJOR_ITEM",
-      children: [
-        { title: "네트워크 개념 이해", nodeType: "SUB_ITEM", officialLevel: "SUB_ITEM" },
-        { title: "네트워크의 활용", nodeType: "SUB_ITEM", officialLevel: "SUB_ITEM" },
-      ],
-    },
-    {
-      title: "네트워크 기반 공격기술의 이해 및 대응",
-      nodeType: "MAJOR_ITEM",
-      officialLevel: "MAJOR_ITEM",
-      children: [
-        { title: "서비스 거부(DoS), 분산 서비스 거부(DDoS) 공격", nodeType: "SUB_ITEM", officialLevel: "SUB_ITEM" },
-        { title: "스캐닝", nodeType: "SUB_ITEM", officialLevel: "SUB_ITEM" },
-        { title: "스푸핑 공격", nodeType: "SUB_ITEM", officialLevel: "SUB_ITEM" },
-        { title: "스니핑 공격", nodeType: "SUB_ITEM", officialLevel: "SUB_ITEM" },
-        { title: "원격접속 공격", nodeType: "SUB_ITEM", officialLevel: "SUB_ITEM" },
-      ],
-    },
-    {
-      title: "네트워크 보안 기술",
-      nodeType: "MAJOR_ITEM",
-      officialLevel: "MAJOR_ITEM",
-      children: [
-        { title: "보안 프로토콜 이해", nodeType: "SUB_ITEM", officialLevel: "SUB_ITEM" },
-        { title: "네트워크 보안기술 이해", nodeType: "SUB_ITEM", officialLevel: "SUB_ITEM" },
-      ],
-    },
+function createNetworkSecurityWritten({
+  technologyTitle,
+  attackSubItemTitles,
+}: {
+  technologyTitle: string;
+  attackSubItemTitles: readonly string[];
+}): OfficialCurriculumNodeDefinition {
+  return {
+    title: "네트워크보안",
+    nodeType: "SUBJECT",
+    officialLevel: "SUBJECT",
+    children: [
+      {
+        title: "네트워크 일반",
+        nodeType: "MAJOR_ITEM",
+        officialLevel: "MAJOR_ITEM",
+        children: [
+          { title: "네트워크 개념 이해", nodeType: "SUB_ITEM", officialLevel: "SUB_ITEM" },
+          { title: "네트워크의 활용", nodeType: "SUB_ITEM", officialLevel: "SUB_ITEM" },
+        ],
+      },
+      {
+        title: "네트워크 기반 공격기술의 이해 및 대응",
+        nodeType: "MAJOR_ITEM",
+        officialLevel: "MAJOR_ITEM",
+        children: attackSubItemTitles.map((title) => ({
+          title,
+          nodeType: "SUB_ITEM",
+          officialLevel: "SUB_ITEM",
+        })),
+      },
+      {
+        title: "네트워크 보안 기술",
+        nodeType: "MAJOR_ITEM",
+        officialLevel: "MAJOR_ITEM",
+        children: [
+          { title: "보안 프로토콜 이해", nodeType: "SUB_ITEM", officialLevel: "SUB_ITEM" },
+          { title: technologyTitle, nodeType: "SUB_ITEM", officialLevel: "SUB_ITEM" },
+        ],
+      },
+    ],
+  };
+}
+
+const engineerNetworkSecurityWritten = createNetworkSecurityWritten({
+  technologyTitle: "네트워크 보안기술 및 응용",
+  attackSubItemTitles: [
+    "서비스 거부(DoS), 분산 서비스 거부(DDoS) 공격",
+    "스캐닝",
+    "스푸핑 공격",
+    "스니핑 공격",
+    "원격접속 공격",
   ],
-};
+});
+
+const industrialNetworkSecurityWritten = createNetworkSecurityWritten({
+  technologyTitle: "네트워크 보안기술 이해",
+  attackSubItemTitles: [
+    "서비스 거부(DoS), 분산 서비스 거부(DDoS) 공격",
+    "스캐닝",
+    "스푸핑 공격",
+    "스니핑 공격",
+    "원격접속 공격",
+  ],
+});
 
 const applicationSecurityWritten: OfficialCurriculumNodeDefinition = {
   title: "어플리케이션보안",
@@ -326,7 +354,6 @@ const securityManagementLawWritten: OfficialCurriculumNodeDefinition = {
 
 export const SECURITY_CERTIFICATION_SHARED_WRITTEN_SUBJECTS = [
   systemSecurityWritten,
-  networkSecurityWritten,
   applicationSecurityWritten,
   informationSecurityGeneralWritten,
 ];
@@ -461,7 +488,7 @@ export const SECURITY_CERTIFICATION_CURRICULUM_TREES: OfficialCurriculumTreeDefi
         officialLevel: "EXAM_TRACK",
         children: [
           systemSecurityWritten,
-          networkSecurityWritten,
+          engineerNetworkSecurityWritten,
           engineerApplicationSecurityWritten,
           informationSecurityGeneralWritten,
           ...SECURITY_CERTIFICATION_ENGINEER_ONLY_WRITTEN_SUBJECTS,
@@ -510,7 +537,12 @@ export const SECURITY_CERTIFICATION_CURRICULUM_TREES: OfficialCurriculumTreeDefi
         title: "필기",
         nodeType: "TRACK",
         officialLevel: "EXAM_TRACK",
-        children: SECURITY_CERTIFICATION_SHARED_WRITTEN_SUBJECTS,
+        children: [
+          systemSecurityWritten,
+          industrialNetworkSecurityWritten,
+          applicationSecurityWritten,
+          informationSecurityGeneralWritten,
+        ],
       },
       {
         title: "실기",

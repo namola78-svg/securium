@@ -201,6 +201,7 @@ test("network security course lesson extensions render different course contexts
 
 test("learner curriculum overview renders compact path summary and inspector", async () => {
   await ensureSecurityCertificationCurriculumSeed();
+  await ensureNetworkCourseIsolationFixture();
   await ensureCourseLessonSeed();
   await ensureNetworkQuestionSeed();
   await ensureSecurityCertificationCurriculumActive();
@@ -243,8 +244,11 @@ test("admin curriculum and shared content pages expose network security coverage
   assert.equal(industrialTitles.has("시스템 보안 솔루션"), true);
   assert.equal(industrialTitles.has("원격접속 공격"), true);
   assert.equal(industrialTitles.has("어플리케이션 개발 보안 개요"), true);
+  assert.equal(industrialTitles.has("네트워크 보안기술 이해"), true);
+  assert.equal(industrialTitles.has("네트워크 보안기술 및 응용"), false);
 
   await ensureSecurityCertificationCurriculumSeed();
+  await ensureNetworkCourseIsolationFixture();
   await ensureCourseLessonSeed();
   await ensureNetworkQuestionSeed();
 
@@ -274,7 +278,7 @@ test("admin curriculum and shared content pages expose network security coverage
   assert.match(curriculumHtml, /ISE-2027-2029-01-03-EC/);
   assert.match(curriculumHtml, /전자상거래 보안 기술/);
   assert.match(curriculumHtml, /ISE-2027-2029-01-03-EC-01/);
-  assert.match(curriculumHtml, /네트워크 보안기술 이해/);
+  assert.match(curriculumHtml, /네트워크 보안기술 및 응용/);
   assert.doesNotMatch(curriculumHtml, /네트워크 보안기술 및 적용/);
   assert.match(curriculumHtml, /보안목표 수립 및 침해 탐지·대응/);
   assert.doesNotMatch(curriculumHtml, /보안 로그 수집 및 모니터링/);
@@ -498,6 +502,7 @@ let networkQuestionSeedApplied = false;
 let courseLessonSeedApplied = false;
 let securityCertificationCurriculumSeedApplied = false;
 let securityCertificationCurriculumActive = false;
+let networkCourseIsolationFixtureApplied = false;
 
 async function ensureSecurityCertificationCurriculumSeed() {
   if (securityCertificationCurriculumSeedApplied) return;
@@ -511,6 +516,30 @@ async function ensureSecurityCertificationCurriculumSeed() {
     /SECURITY_CERTIFICATION_CURRICULUM_SEED_D1_LOCAL_APPLIED/,
   );
   securityCertificationCurriculumSeedApplied = true;
+}
+
+async function ensureNetworkCourseIsolationFixture() {
+  if (networkCourseIsolationFixtureApplied) return;
+  await ensureSecurityCertificationCurriculumSeed();
+  const result = await runCommand(process.execPath, [
+    "scripts/run-wrangler.mjs",
+    "d1",
+    "execute",
+    "DB",
+    "--local",
+    "--config",
+    "wrangler.local.jsonc",
+    "--command",
+    [
+      "UPDATE curriculum_nodes",
+      "SET title = '네트워크 보안기술 및 응용',",
+      "official_title = '네트워크 보안기술 및 응용',",
+      "updated_at = CURRENT_TIMESTAMP",
+      "WHERE id = 'curriculum-node-ise-2027-2029-01-02-03-02';",
+    ].join(" "),
+  ]);
+  assert.equal(result.code, 0, result.output);
+  networkCourseIsolationFixtureApplied = true;
 }
 
 async function ensureSecurityCertificationCurriculumActive() {

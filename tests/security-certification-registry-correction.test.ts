@@ -92,7 +92,7 @@ test("does not leak Engineer electronic-commerce nodes into Industrial curriculu
   assert.equal(industrialTitles.includes("전자상거래 보안 기술"), false);
 });
 
-test("applies only the eight approved first-PR operations and leaves nine operations deferred", () => {
+test("applies the isolated Engineer network correction and leaves eight registry operations deferred", () => {
   const allTitles = [
     ...titles("curriculum-ise-2027-2029-official"),
     ...titles("curriculum-isie-2027-2029-official"),
@@ -108,8 +108,8 @@ test("applies only the eight approved first-PR operations and leaves nine operat
   assert.equal(count("전자 상거래 보안"), 1);
   assert.equal(count("전자상거래 보안 기술"), 1);
 
-  assert.equal(count("네트워크 보안기술 이해"), 2);
-  assert.equal(count("네트워크 보안기술 및 응용"), 0);
+  assert.equal(count("네트워크 보안기술 이해"), 1);
+  assert.equal(count("네트워크 보안기술 및 응용"), 1);
   assert.equal(count("어플리케이션 개발 보안 개요"), 2);
   assert.equal(count("어플리케이션 개발 보안"), 0);
   assert.equal(count("보안목표 수립 및 침해 탐지·대응"), 2);
@@ -123,6 +123,74 @@ test("applies only the eight approved first-PR operations and leaves nine operat
   assert.equal(industrialTitles.includes("시스템 보안 솔루션"), true);
   assert.equal(industrialTitles.includes("원격접속 공격"), true);
   assert.equal(industrialTitles.includes("어플리케이션 개발 보안 개요"), true);
+});
+
+test("network course isolation preserves target IDs and complete stable-key sequences", () => {
+  const expectations = [
+    {
+      treeId: "curriculum-ise-2027-2029-official",
+      targetStableKey: "ISE-2027-2029-01-02-03-02",
+      targetTitle: "네트워크 보안기술 및 응용",
+      nodeCount: 81,
+      sortOrder: 20,
+      sequenceSha256: "3addd031bbb1f0132ae66a3defcf928080088273674959f3a3067f9f0edcb9a8",
+    },
+    {
+      treeId: "curriculum-isie-2027-2029-official",
+      targetStableKey: "ISIE-2027-2029-01-02-03-02",
+      targetTitle: "네트워크 보안기술 이해",
+      nodeCount: 64,
+      sortOrder: 20,
+      sequenceSha256: "5ceb264be146485465c91d6df5f12090b8a6840853f86b42ca509bd044c4e015",
+    },
+  ];
+
+  for (const expectation of expectations) {
+    const tree = getOfficialCurriculumTree(expectation.treeId);
+    assert.ok(tree);
+    const nodes = flattenOfficialCurriculumTree(tree);
+    const target = nodes.find((node) => node.stableKey === expectation.targetStableKey);
+    assert.ok(target);
+    assert.equal(target.title, expectation.targetTitle);
+    assert.equal(target.parentStableKey, expectation.targetStableKey.replace(/-02$/, ""));
+    assert.equal(target.sortOrder, expectation.sortOrder);
+    assert.equal(nodeId(target.stableKey), `curriculum-node-${expectation.targetStableKey.toLowerCase()}`);
+    assert.equal(nodes.length, expectation.nodeCount);
+    assert.equal(
+      createHash("sha256")
+        .update(JSON.stringify(nodes.map((node) => node.stableKey)))
+        .digest("hex"),
+      expectation.sequenceSha256,
+    );
+  }
+
+  const industrialTitles = titles("curriculum-isie-2027-2029-official");
+  assert.equal(industrialTitles.includes("네트워크 보안기술 및 응용"), false);
+});
+
+test("network question payloads and course mappings remain unchanged", () => {
+  const questions = networkSecurityQuestionSamples.filter((question) =>
+    ["network-security-official-sample-q05", "network-security-official-sample-q06"].includes(
+      question.id,
+    ),
+  );
+
+  assert.deepEqual(
+    questions.map((question) => question.id),
+    ["network-security-official-sample-q05", "network-security-official-sample-q06"],
+  );
+  assert.equal(
+    createHash("sha256").update(JSON.stringify(questions)).digest("hex"),
+    "2d99d7e4636dcbdc298081d312a00157258684837c76b6c3758ffa68b93ede64",
+  );
+  assert.equal(
+    questions.every((question) =>
+      ["course-ise", "course-isie"].every((courseId) =>
+        question.courseLinks.some((link) => link.courseId === courseId),
+      ),
+    ),
+    true,
+  );
 });
 
 test("preserves seven Industrial question mappings until remap phase", () => {

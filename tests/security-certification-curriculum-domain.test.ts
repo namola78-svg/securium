@@ -92,15 +92,51 @@ test("정보보안산업기사 필기는 4과목이며 정보보안관리 및 �
   assert.equal(subjects.includes("정보보안관리 및 법규"), false);
 });
 
-test("기사와 산업기사의 공통 필기 과목은 shared taxonomy에서 한 번만 정의한다", () => {
+test("과정별 공식 정의가 동일한 필기 과목만 shared taxonomy에서 한 번 정의한다", () => {
   assert.deepEqual(
     SECURITY_CERTIFICATION_SHARED_WRITTEN_SUBJECTS.map((subject) => subject.title),
-    ["시스템보안", "네트워크보안", "어플리케이션보안", "정보보안일반"],
+    ["시스템보안", "어플리케이션보안", "정보보안일반"],
   );
   assert.deepEqual(
     SECURITY_CERTIFICATION_ENGINEER_ONLY_WRITTEN_SUBJECTS.map((subject) => subject.title),
     ["정보보안관리 및 법규"],
   );
+});
+
+test("기사와 산업기사 네트워크 공식 트리는 mutable object reference를 공유하지 않는다", () => {
+  const engineer = getOfficialCurriculumTree("curriculum-ise-2027-2029-official");
+  const industrial = getOfficialCurriculumTree("curriculum-isie-2027-2029-official");
+  assert.ok(engineer);
+  assert.ok(industrial);
+
+  const engineerNetwork = engineer.nodes
+    .find((node) => node.title === "필기")
+    ?.children?.find((node) => node.title === "네트워크보안");
+  const industrialNetwork = industrial.nodes
+    .find((node) => node.title === "필기")
+    ?.children?.find((node) => node.title === "네트워크보안");
+  assert.ok(engineerNetwork);
+  assert.ok(industrialNetwork);
+  assert.notEqual(engineerNetwork, industrialNetwork);
+
+  function collectMutableReferences(value: unknown, references = new Set<object>()) {
+    if (value === null || typeof value !== "object" || references.has(value)) {
+      return references;
+    }
+    references.add(value);
+    for (const child of Object.values(value)) {
+      collectMutableReferences(child, references);
+    }
+    return references;
+  }
+
+  const engineerReferences = collectMutableReferences(engineerNetwork);
+  const industrialReferences = collectMutableReferences(industrialNetwork);
+  const sharedReferences = [...engineerReferences].filter((reference) =>
+    industrialReferences.has(reference),
+  );
+
+  assert.equal(sharedReferences.length, 0);
 });
 
 test("기사 실기는 위험분석 및 정보보호 대책 수립을 포함하고 산업기사 실기는 포함하지 않는다", () => {
