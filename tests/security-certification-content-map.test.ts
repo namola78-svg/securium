@@ -80,41 +80,48 @@ test("security certification content map marks practical nodes as shared content
   }
 });
 
-test("security certification deep node coverage aggregates subitem questions into major items", () => {
+test("security certification deep node inventory exposes the two intentionally unmapped PR1 additions", () => {
   const summary = getSecurityCertificationDeepNodeCoverageSummary();
 
-  assert.equal(summary.nodeCount, 139);
+  assert.equal(summary.nodeCount, 141);
   assert.equal(summary.contentLinkedCount, 139);
   assert.equal(summary.questionLinkedCount, 139);
-  assert.equal(summary.contentCoveragePercent, 100);
-  assert.equal(summary.questionCoveragePercent, 100);
-  assert.deepEqual(summary.byCourse, {
-    "course-ise": {
-      nodeCount: 77,
-      contentLinkedCount: 77,
-      questionLinkedCount: 77,
-      contentCoveragePercent: 100,
-      questionCoveragePercent: 100,
+  assert.deepEqual(
+    Object.fromEntries(
+      Object.entries(summary.byCourse).map(([courseId, course]) => [
+        courseId,
+        {
+          nodeCount: course.nodeCount,
+          contentLinkedCount: course.contentLinkedCount,
+          questionLinkedCount: course.questionLinkedCount,
+        },
+      ]),
+    ),
+    {
+      "course-ise": {
+        nodeCount: 79,
+        contentLinkedCount: 77,
+        questionLinkedCount: 77,
+      },
+      "course-isie": {
+        nodeCount: 62,
+        contentLinkedCount: 62,
+        questionLinkedCount: 62,
+      },
     },
-    "course-isie": {
-      nodeCount: 62,
-      contentLinkedCount: 62,
-      questionLinkedCount: 62,
-      contentCoveragePercent: 100,
-      questionCoveragePercent: 100,
-    },
-  });
+  );
   assert.equal(summary.byNodeType.SUBJECT.nodeCount, 9);
   assert.equal(summary.byNodeType.SUBJECT.questionLinkedCount, 9);
   assert.equal(summary.byNodeType.PRACTICAL.nodeCount, 2);
-  assert.equal(summary.byNodeType.MAJOR_ITEM.nodeCount, 33);
-  assert.equal(summary.byNodeType.SUB_ITEM.nodeCount, 95);
+  assert.equal(summary.byNodeType.MAJOR_ITEM.nodeCount, 34);
+  assert.equal(summary.byNodeType.SUB_ITEM.nodeCount, 96);
   assert.equal(summary.byNodeType.MAJOR_ITEM.contentLinkedCount, 33);
   assert.equal(summary.byNodeType.MAJOR_ITEM.questionLinkedCount, 33);
-  assert.equal(summary.byNodeType.MAJOR_ITEM.contentCoveragePercent, 100);
-  assert.equal(summary.byNodeType.MAJOR_ITEM.questionCoveragePercent, 100);
   assert.equal(summary.byNodeType.SUB_ITEM.contentLinkedCount, 95);
   assert.equal(summary.byNodeType.SUB_ITEM.questionLinkedCount, 95);
-  assert.equal(summary.uncoveredRows.length, 0);
+  assert.deepEqual(
+    summary.uncoveredRows.map((row) => row.stableKey),
+    ["ISE-2027-2029-01-03-EC", "ISE-2027-2029-01-03-EC-01"],
+  );
   assert.equal(summary.questionGapRows.length, 0);
 });

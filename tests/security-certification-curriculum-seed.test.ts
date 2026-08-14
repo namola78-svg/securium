@@ -47,6 +47,15 @@ test("security certification curriculum seed marks PDF cross-check metadata as c
   assert.match(sql, /\"needsPdfVerification\":false/);
   assert.match(sql, /\"pdfCrossCheckedAt\":\"2026-08-01\"/);
   assert.match(sql, /\"examTrack\":/);
+  assert.match(
+    sql,
+    /\"sourceSha256\":\"23e78b2452db75e3a37c31b7e1aa263d890131c6e38d364a79eba1744ceb2352\"/,
+  );
+  assert.match(
+    sql,
+    /\"sourceSha256\":\"23b2dbdf2c2234d9702f4a661a1392a0d89fda8ce04840b2cbd7eb8719826aa5\"/,
+  );
+  assert.match(sql, /\"correctionStatus\":\"PARTIAL_OFFICIAL_REGISTRY_CORRECTION_PR1\"/);
   assert.doesNotMatch(sql, /\"needsPdfVerification\":true/);
 });
 
@@ -66,6 +75,11 @@ test("security certification curriculum seed creates stable node ids with parent
   assert.match(sql, /'curriculum-node-ise-2027-2029-01-01'/);
   assert.match(sql, /'curriculum-node-ise-2027-2029-01'/);
   assert.match(sql, /'curriculum-node-isie-2027-2029-02'/);
+  assert.match(sql, /'curriculum-node-ise-2027-2029-01-03-ec'/);
+  assert.match(sql, /'curriculum-node-ise-2027-2029-01-03-ec-01'/);
+  assert.match(sql, /'curriculum-node-ise-2027-2029-01-03-02'/);
+  assert.match(sql, /'curriculum-node-ise-2027-2029-01-03-02-01'/);
+  assert.match(sql, /'curriculum-node-ise-2027-2029-01-03-02-02'/);
 });
 
 test("security certification curriculum seed apply script gates remote data changes", () => {

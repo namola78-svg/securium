@@ -7,6 +7,7 @@ import {
   SECURITY_CERTIFICATION_ENGINEER_ONLY_PRACTICAL_ITEMS,
   SECURITY_CERTIFICATION_ENGINEER_ONLY_WRITTEN_SUBJECTS,
   SECURITY_CERTIFICATION_CURRICULUM_TREES,
+  SECURITY_CERTIFICATION_OFFICIAL_SOURCES,
   SECURITY_CERTIFICATION_SHARED_PRACTICAL_ITEMS,
   SECURITY_CERTIFICATION_SHARED_WRITTEN_SUBJECTS,
 } from "../lib/curriculum/security-certification-standards.ts";
@@ -20,6 +21,41 @@ test("2027~2029 정보보안 자격 공식 커리큘럼은 과정별 course/vers
     SECURITY_CERTIFICATION_CURRICULUM_TREES.map((tree) => tree.status),
     ["DRAFT", "DRAFT"],
   );
+  assert.deepEqual(
+    SECURITY_CERTIFICATION_CURRICULUM_TREES.map((tree) => tree.correctionStatus),
+    ["PARTIAL_OFFICIAL_REGISTRY_CORRECTION_PR1", "PARTIAL_OFFICIAL_REGISTRY_CORRECTION_PR1"],
+  );
+});
+
+test("2027~2029 공식 source metadata는 인증된 CQ PDF identity를 보존한다", () => {
+  assert.deepEqual(SECURITY_CERTIFICATION_OFFICIAL_SOURCES, {
+    ISE: {
+      sourceUrl:
+        "https://www.cq.or.kr/ac_flecm02_001.do?atchFileId=53426c2c81474591bef0207cdf4b9562&fileSn=1",
+      sourceSha256: "23e78b2452db75e3a37c31b7e1aa263d890131c6e38d364a79eba1744ceb2352",
+      publication: "CQ syllabus list entry 68",
+      publishedAt: "2026-07-23",
+      effectiveFrom: "2027-01-01",
+      effectiveTo: "2029-12-31",
+      pageCount: 11,
+    },
+    ISIE: {
+      sourceUrl:
+        "https://www.cq.or.kr/ac_flecm02_001.do?atchFileId=53426c2c81474591bef0207cdf4b9562&fileSn=2",
+      sourceSha256: "23b2dbdf2c2234d9702f4a661a1392a0d89fda8ce04840b2cbd7eb8719826aa5",
+      publication: "CQ syllabus list entry 68",
+      publishedAt: "2026-07-23",
+      effectiveFrom: "2027-01-01",
+      effectiveTo: "2029-12-31",
+      pageCount: 8,
+    },
+  });
+
+  for (const tree of SECURITY_CERTIFICATION_CURRICULUM_TREES) {
+    assert.equal(tree.officialSource, SECURITY_CERTIFICATION_OFFICIAL_SOURCES[tree.courseCode]);
+    assert.equal(tree.effectiveFrom, tree.officialSource.effectiveFrom);
+    assert.equal(tree.effectiveTo, tree.officialSource.effectiveTo);
+  }
 });
 
 test("정보보안기사 필기는 5과목이며 정보보안관리 및 법규를 포함한다", () => {
