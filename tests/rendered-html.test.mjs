@@ -246,6 +246,8 @@ test("admin curriculum and shared content pages expose network security coverage
   assert.equal(industrialTitles.has("어플리케이션 개발 보안 개요"), true);
   assert.equal(industrialTitles.has("네트워크 보안기술 이해"), true);
   assert.equal(industrialTitles.has("네트워크 보안기술 및 응용"), false);
+  assert.equal(industrialTitles.has("보안목표 수립 및 침해 탐지·대응"), true);
+  assert.equal(industrialTitles.has("보안 로그 수집 및 모니터링"), false);
 
   await ensureSecurityCertificationCurriculumSeed();
   await ensureNetworkCourseIsolationFixture();
@@ -280,8 +282,16 @@ test("admin curriculum and shared content pages expose network security coverage
   assert.match(curriculumHtml, /ISE-2027-2029-01-03-EC-01/);
   assert.match(curriculumHtml, /네트워크 보안기술 및 응용/);
   assert.doesNotMatch(curriculumHtml, /네트워크 보안기술 및 적용/);
-  assert.match(curriculumHtml, /보안목표 수립 및 침해 탐지·대응/);
-  assert.doesNotMatch(curriculumHtml, /보안 로그 수집 및 모니터링/);
+  assert.match(curriculumHtml, /보안 로그 수집 및 모니터링/);
+  assert.match(
+    curriculumHtml,
+    /보안목표 수립 및 침해 탐지·대응/,
+    "Industrial legacy title remains present in shared operational data",
+  );
+  assert.match(
+    curriculumHtml,
+    /content-official-security-cert-ise-practical-log-collection-monitoring/,
+  );
   assert.match(curriculumHtml, /Content 미연결 노드/);
   assert.match(curriculumHtml, /문항 공백 노드/);
   assert.doesNotMatch(curriculumHtml, /미연결 Content 노드가 없습니다/);

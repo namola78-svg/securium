@@ -81,6 +81,26 @@ function questionCorePayload(question: Record<string, unknown>) {
   };
 }
 
+function authoredQuestionCorePayload(question: Record<string, unknown>) {
+  return {
+    answerConfig: question.answerConfig,
+    authoringMetadata: question.authoringMetadata,
+    choices: question.choices,
+    content: question.content,
+    difficulty: question.difficulty,
+    explanation: question.explanation,
+    id: question.id,
+    sampleOnly: question.sampleOnly,
+    source: question.source,
+    sourceClass: question.sourceClass,
+    sourceDate: question.sourceDate,
+    tags: question.tags,
+    title: question.title,
+    type: question.type,
+    wrongAnswerExplanation: question.wrongAnswerExplanation,
+  };
+}
+
 async function listSourceFiles(directory: string): Promise<string[]> {
   const entries = await readdir(directory, { withFileTypes: true });
   const files = await Promise.all(
@@ -126,22 +146,21 @@ test("PR-A authored Content has the exact Engineer-owned identity and inert stat
   );
 });
 
-test("PR-A authored Content identity does not collide with active repository assets", () => {
-  assert.equal(
-    officialSecurityCertificationContents.some(
-      (content) =>
-        content.id === engineerPracticalLogMonitoringContent.id ||
-        content.slug === engineerPracticalLogMonitoringContent.slug ||
-        content.canonicalKey === engineerPracticalLogMonitoringContent.canonicalKey,
-    ),
-    false,
+test("PR-B activates one published Content projection without mutating the frozen source", () => {
+  const activeContents = officialSecurityCertificationContents.filter(
+    (content) => content.id === engineerPracticalLogMonitoringContent.id,
   );
-  assert.equal(
-    officialSecurityCertificationCourseLessons.some(
-      (lesson) => lesson.contentId === NEW_CONTENT_ID,
-    ),
-    false,
-  );
+
+  assert.equal(canonicalSha256(engineerPracticalLogMonitoringContent),
+    "1062cd16419fd86f0755b28db21ee6020b7c35bf9ee27055e7183aa0477f681a");
+  assert.equal(sha256(engineerPracticalLogMonitoringContent.body),
+    "90571bfe151e8444190b230a8097e81c8163a3bf771c8f3b55a2289428f7cada");
+  assert.equal(activeContents.length, 1);
+  assert.equal(activeContents[0]?.status, "PUBLISHED");
+  assert.equal(activeContents[0]?.authoringOnly, false);
+  assert.equal(activeContents[0]?.body, engineerPracticalLogMonitoringContent.body);
+  assert.equal(engineerPracticalLogMonitoringContent.status, "DRAFT");
+  assert.equal(engineerPracticalLogMonitoringContent.authoringOnly, true);
 });
 
 test("PR-A authoring provenance is authenticated, current, and page-specific", () => {
@@ -232,12 +251,10 @@ test("PR-A authored Question has exact identity, honest source, and no active li
     engineerPracticalLogMonitoringQuestion.source,
     /official past exam|공식 기출|KCA past|CQ past/i,
   );
-  assert.equal(
-    practicalSecurityQuestionSamples.some(
-      (question) => question.id === engineerPracticalLogMonitoringQuestion.id,
-    ),
-    false,
-  );
+  assert.equal(canonicalSha256(engineerPracticalLogMonitoringQuestion),
+    "1cee810f93bfdb6559ffe2a4b5efa390a18827cd265cbe8e302915700cfcef26");
+  assert.equal(canonicalSha256(authoredQuestionCorePayload(engineerPracticalLogMonitoringQuestion)),
+    "4c9a7a763fea4b6e3e931f6f8bde8030982c86aac2e00a7956a86024cb274dbf");
 });
 
 test("PR-A authored Question has an unambiguous answer and per-choice explanations", () => {
@@ -287,7 +304,7 @@ test("PR-A preserves the existing supplemental Question canonical and core hashe
   );
 });
 
-test("PR-A authoring module has no active source importer", async () => {
+test("PR-B activates the authoring module through only the two approved registries", async () => {
   const sourceRoots = ["app", "components", "db", "lib", "scripts"]
     .map((directory) => resolve(REPOSITORY_ROOT, directory));
   const sourceFiles = (
@@ -310,10 +327,13 @@ test("PR-A authoring module has no active source importer", async () => {
     }
   }
 
-  assert.deepEqual(importers, []);
+  assert.deepEqual(importers.sort(), [
+    "lib/data/security-certification-course-lessons.mjs",
+    "lib/data/security-certification-practical-questions.mjs",
+  ]);
 });
 
-test("PR-A leaves active curriculum, Learn, Practice, and seed populations unchanged", () => {
+test("PR-B activates the exact title, CourseLesson relation, and Question without identity drift", () => {
   const engineerTree = SECURITY_CERTIFICATION_CURRICULUM_TREES.find(
     (tree) => tree.courseId === "course-ise",
   );
@@ -327,38 +347,61 @@ test("PR-A leaves active curriculum, Learn, Practice, and seed populations uncha
       lesson.id ===
       "course-lesson-ise-official-practical-security-objective-detection-response",
   );
+  const activeQuestion = practicalSecurityQuestionSamples.find(
+    (question) => question.id === NEW_QUESTION_ID,
+  );
 
   assert.equal(engineerNodes.length, 81);
-  assert.equal(targetNode?.title, "보안목표 수립 및 침해 탐지·대응");
-  assert.equal(officialSecurityCertificationContents.length, 80);
+  assert.equal(targetNode?.title, "보안 로그 수집 및 모니터링");
+  assert.equal(targetNode?.stableKey, "ISE-2027-2029-02-01-03-01");
+  assert.equal(officialSecurityCertificationContents.length, 81);
   assert.equal(officialSecurityCertificationCourseLessons.length, 145);
-  assert.equal(practicalSecurityQuestionSamples.length, 21);
-  assert.equal(engineerLesson?.contentId, LEGACY_CONTENT_ID);
-  assert.equal(
-    sha256(generateSecurityCertificationCourseLessonSeedSql({ dialect: "d1" })),
-    "bb4a079ee5381e45410c9ff011b2ceb1e6d7f5f169d055d6019118c57cc19e94",
-  );
-  assert.equal(
-    sha256(generateSecurityCertificationCourseLessonSeedSql({ dialect: "postgres" })),
-    "991d0ea4127e8062b26a72af73563ab0411a421cd53f4e0d0ac55eff81396198",
-  );
+  assert.equal(practicalSecurityQuestionSamples.length, 22);
+  assert.equal(engineerLesson?.contentId, NEW_CONTENT_ID);
+  assert.equal(engineerLesson?.id,
+    "course-lesson-ise-official-practical-security-objective-detection-response");
+  assert.deepEqual(activeQuestion?.courseLinks, [{ courseId: "course-ise", weight: 110 }]);
+  assert.deepEqual(activeQuestion?.contentLinks, [{
+    contentType: "CONTENT",
+    contentId: NEW_CONTENT_ID,
+    relationType: "PRACTICE",
+  }]);
+  assert.match(generateSecurityCertificationCourseLessonSeedSql({ dialect: "d1" }),
+    new RegExp(NEW_CONTENT_ID));
+  assert.match(generateSecurityCertificationCourseLessonSeedSql({ dialect: "postgres" }),
+    new RegExp(NEW_CONTENT_ID));
 });
 
-test("PR-A assets are absent from content-map, ontology, and rendered-source inputs", () => {
-  const contentMapJson = JSON.stringify(getSecurityCertificationContentMap());
-  const ontologyJson = JSON.stringify({
-    concepts: buildSecurityCertificationOntologyConcepts(),
-    edges: buildSecurityCertificationOntologyEdges(),
-    questionEdges: buildSecurityCertificationQuestionOntologyEdges(),
-  });
-  const activeTitles = SECURITY_CERTIFICATION_CURRICULUM_TREES.flatMap((tree) =>
-    flattenOfficialCurriculumTree(tree).map((node) => node.title),
-  );
+test("PR-B derived mappings and ontology edges remain isolated to Engineer", () => {
+  assert.equal(getSecurityCertificationContentMap().length, 11);
+  assert.ok(buildSecurityCertificationOntologyConcepts().some(
+    (concept) => concept.sourceId === NEW_CONTENT_ID,
+  ));
 
-  assert.doesNotMatch(contentMapJson, new RegExp(NEW_CONTENT_ID));
-  assert.doesNotMatch(contentMapJson, new RegExp(NEW_QUESTION_ID));
-  assert.doesNotMatch(ontologyJson, new RegExp(NEW_CONTENT_ID));
-  assert.doesNotMatch(ontologyJson, new RegExp(NEW_QUESTION_ID));
-  assert.equal(activeTitles.includes("보안목표 수립 및 침해 탐지·대응"), true);
-  assert.equal(activeTitles.includes("보안 로그 수집 및 모니터링"), false);
+  const targetEdges = buildSecurityCertificationOntologyEdges().filter((edge) =>
+    [edge.fromId, edge.toId].includes(NEW_CONTENT_ID) ||
+    [edge.fromId, edge.toId].includes(NEW_QUESTION_ID),
+  );
+  const targetQuestionEdges = buildSecurityCertificationQuestionOntologyEdges().filter(
+    (edge) => edge.fromId === NEW_QUESTION_ID,
+  );
+  assert.ok(targetEdges.length > 0);
+  assert.ok(targetQuestionEdges.length > 0);
+  assert.equal(targetEdges.every((edge) => edge.courseId === "course-ise"), true);
+  assert.equal(targetQuestionEdges.every((edge) => edge.courseId === "course-ise"), true);
+
+  const engineerTree = SECURITY_CERTIFICATION_CURRICULUM_TREES.find(
+    (tree) => tree.courseId === "course-ise",
+  );
+  const industrialTree = SECURITY_CERTIFICATION_CURRICULUM_TREES.find(
+    (tree) => tree.courseId === "course-isie",
+  );
+  assert.ok(engineerTree);
+  assert.ok(industrialTree);
+  const engineerTitles = flattenOfficialCurriculumTree(engineerTree).map((node) => node.title);
+  const industrialTitles = flattenOfficialCurriculumTree(industrialTree).map((node) => node.title);
+  assert.equal(engineerTitles.includes("보안 로그 수집 및 모니터링"), true);
+  assert.equal(engineerTitles.includes("보안목표 수립 및 침해 탐지·대응"), false);
+  assert.equal(industrialTitles.includes("보안목표 수립 및 침해 탐지·대응"), true);
+  assert.equal(industrialTitles.includes("보안 로그 수집 및 모니터링"), false);
 });

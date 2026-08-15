@@ -92,7 +92,7 @@ test("does not leak Engineer electronic-commerce nodes into Industrial curriculu
   assert.equal(industrialTitles.includes("전자상거래 보안 기술"), false);
 });
 
-test("applies the isolated Engineer network correction and leaves eight registry operations deferred", () => {
+test("applies the Engineer log-monitoring correction and leaves seven registry operations deferred", () => {
   const allTitles = [
     ...titles("curriculum-ise-2027-2029-official"),
     ...titles("curriculum-isie-2027-2029-official"),
@@ -112,8 +112,8 @@ test("applies the isolated Engineer network correction and leaves eight registry
   assert.equal(count("네트워크 보안기술 및 응용"), 1);
   assert.equal(count("어플리케이션 개발 보안 개요"), 2);
   assert.equal(count("어플리케이션 개발 보안"), 0);
-  assert.equal(count("보안목표 수립 및 침해 탐지·대응"), 2);
-  assert.equal(count("보안 로그 수집 및 모니터링"), 0);
+  assert.equal(count("보안목표 수립 및 침해 탐지·대응"), 1);
+  assert.equal(count("보안 로그 수집 및 모니터링"), 1);
   assert.equal(count("IT 자산 위험 분석하기"), 1);
   assert.equal(count("IT 자산 위협 분석하기"), 0);
   assert.equal(count("조직의 정보자산 위험 및 취약점 분석·정리하기"), 1);
@@ -123,6 +123,16 @@ test("applies the isolated Engineer network correction and leaves eight registry
   assert.equal(industrialTitles.includes("시스템 보안 솔루션"), true);
   assert.equal(industrialTitles.includes("원격접속 공격"), true);
   assert.equal(industrialTitles.includes("어플리케이션 개발 보안 개요"), true);
+
+  const engineer = getOfficialCurriculumTree("curriculum-ise-2027-2029-official");
+  assert.ok(engineer);
+  const target = flattenOfficialCurriculumTree(engineer).find(
+    (node) => node.stableKey === "ISE-2027-2029-02-01-03-01",
+  );
+  assert.ok(target);
+  assert.equal(target.title, "보안 로그 수집 및 모니터링");
+  assert.equal(nodeId(target.stableKey), "curriculum-node-ise-2027-2029-02-01-03-01");
+  assert.equal(industrialTitles.includes("보안 로그 수집 및 모니터링"), false);
 });
 
 test("network course isolation preserves target IDs and complete stable-key sequences", () => {

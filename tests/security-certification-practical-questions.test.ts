@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import test from "node:test";
 import { gradeQuestion } from "../lib/services/grading-service.ts";
 import {
@@ -9,30 +10,114 @@ import {
   practicalSecurityQuestionSamples,
   toPracticalSecurityGradingQuestion,
 } from "../lib/data/security-certification-practical-questions.mjs";
+import { engineerPracticalLogMonitoringQuestion } from "../lib/data/security-certification-engineer-practical-log-monitoring-authoring.mjs";
+
+function canonicalJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value)
+      .sort()
+      .map(
+        (key) =>
+          `${JSON.stringify(key)}:${canonicalJson((value as Record<string, unknown>)[key])}`,
+      )
+      .join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function canonicalSha256(value: unknown): string {
+  return createHash("sha256").update(canonicalJson(value), "utf8").digest("hex");
+}
+
+function authoredQuestionCorePayload(question: Record<string, unknown>) {
+  return {
+    answerConfig: question.answerConfig,
+    authoringMetadata: question.authoringMetadata,
+    choices: question.choices,
+    content: question.content,
+    difficulty: question.difficulty,
+    explanation: question.explanation,
+    id: question.id,
+    sampleOnly: question.sampleOnly,
+    source: question.source,
+    sourceClass: question.sourceClass,
+    sourceDate: question.sourceDate,
+    tags: question.tags,
+    title: question.title,
+    type: question.type,
+    wrongAnswerExplanation: question.wrongAnswerExplanation,
+  };
+}
 
 test("practical security question bank is shared by engineer and industrial engineer", () => {
   const readiness = getPracticalSecurityQuestionBankReadiness();
 
-  assert.equal(readiness.questionCount, 21);
+  assert.equal(readiness.questionCount, 22);
   assert.deepEqual(PRACTICAL_SECURITY_COURSE_IDS, ["course-ise", "course-isie"]);
   assert.equal(readiness.allPublished, true);
   assert.equal(readiness.allSampleOnly, true);
   assert.equal(readiness.allIndependentlyAuthored, true);
   assert.equal(readiness.sharedQuestionCount, 17);
-  assert.equal(readiness.engineerOnlyQuestionCount, 4);
+  assert.equal(readiness.engineerOnlyQuestionCount, 5);
   assert.equal(readiness.allSharedQuestionsLinkedToBothCourses, true);
   assert.equal(readiness.allEngineerOnlyQuestionsScopedToEngineer, true);
   assert.equal(readiness.allLinkedToPracticalContent, true);
   assert.deepEqual(readiness.courseCounts, {
-    "course-ise": 21,
+    "course-ise": 22,
     "course-isie": 17,
   });
   assert.deepEqual(readiness.typeCounts, {
     SINGLE_CHOICE: 3,
     TRUE_FALSE: 7,
-    MULTIPLE_CHOICE: 7,
+    MULTIPLE_CHOICE: 8,
     SHORT_ANSWER: 4,
   });
+});
+
+test("Engineer log-monitoring Question activates once with exact source binding and relations", () => {
+  const questionId = "practical-security-official-engineer-log-monitoring-q01";
+  const contentId =
+    "content-official-security-cert-ise-practical-log-collection-monitoring";
+  const activeQuestions = practicalSecurityQuestionSamples.filter(
+    (question) => question.id === questionId,
+  );
+
+  assert.equal(
+    canonicalSha256(engineerPracticalLogMonitoringQuestion),
+    "1cee810f93bfdb6559ffe2a4b5efa390a18827cd265cbe8e302915700cfcef26",
+  );
+  assert.equal(
+    canonicalSha256(
+      authoredQuestionCorePayload(
+        engineerPracticalLogMonitoringQuestion as unknown as Record<string, unknown>,
+      ),
+    ),
+    "4c9a7a763fea4b6e3e931f6f8bde8030982c86aac2e00a7956a86024cb274dbf",
+  );
+  assert.equal(activeQuestions.length, 1);
+  assert.equal(activeQuestions[0]?.status, "PUBLISHED");
+  assert.deepEqual(activeQuestions[0]?.courseLinks, [
+    { courseId: "course-ise", weight: 110 },
+  ]);
+  assert.deepEqual(activeQuestions[0]?.contentLinks, [
+    { contentType: "CONTENT", contentId, relationType: "PRACTICE" },
+  ]);
+  assert.deepEqual(
+    activeQuestions[0]?.choices
+      .filter((choice: { isCorrect: boolean }) => choice.isCorrect)
+      .map((choice: { id: string }) => choice.id),
+    [
+      `${questionId}-choice-01`,
+      `${questionId}-choice-02`,
+    ],
+  );
+  assert.equal(
+    activeQuestions[0]?.courseLinks.some(
+      (link: { courseId: string }) => link.courseId === "course-isie",
+    ),
+    false,
+  );
 });
 
 test("practical security questions remain linked to practical content", () => {
