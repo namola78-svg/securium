@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import test from "node:test";
 import { gradeQuestion } from "../lib/services/grading-service.ts";
 import {
@@ -10,6 +11,36 @@ import {
   applicationSecurityQuestionSamples,
   toApplicationSecurityGradingQuestion,
 } from "../lib/data/security-certification-application-security-questions.mjs";
+
+function canonicalJson(value: unknown): string {
+  if (Array.isArray(value)) {
+    return `[${value.map(canonicalJson).join(",")}]`;
+  }
+  if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    return `{${Object.keys(record)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${canonicalJson(record[key])}`)
+      .join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function educationalPayloadHash(question: Record<string, unknown>) {
+  const educationalPayload = Object.fromEntries(
+    Object.entries(question).filter(
+      ([key]) =>
+        ![
+          "contentLinks",
+          "courseLinks",
+          "primaryCurriculumPlacements",
+        ].includes(key),
+    ),
+  );
+  return createHash("sha256")
+    .update(canonicalJson(educationalPayload), "utf8")
+    .digest("hex");
+}
 
 test("application security question bank covers current auto-graded types", () => {
   const readiness = getApplicationSecurityQuestionBankReadiness();
@@ -87,6 +118,43 @@ test("application security questions are shared while course weighting stays sep
       { courseId: "course-isie", weight: 100 },
     ],
   );
+});
+
+test("PR-C1A leaves future Q4-Q7 educational payload and mapping data unchanged", () => {
+  const expectedHashes = new Map([
+    [
+      "application-security-official-sample-q01",
+      "71b9b2906f6223f26d9b80129c457ac54a17cddbd5938fe2d8edfa153018af76",
+    ],
+    [
+      "application-security-official-sample-q02",
+      "caf71050be9d765267e87ae6456de37e9e03b631ae4e06141472ae0a18619955",
+    ],
+    [
+      "application-security-official-sample-q03",
+      "8fa67a8bc53d6cc07c3a6655ce2e5da0379994808a7b7ca4b4624645438c4691",
+    ],
+    [
+      "application-security-official-sample-q06",
+      "74867607da698ab896a1aad48ebebc37fdf87e0a94be2ec968bfffb675484fd6",
+    ],
+  ]);
+
+  for (const [questionId, expectedHash] of expectedHashes) {
+    const question = applicationSecurityQuestionSamples.find(
+      (candidate) => candidate.id === questionId,
+    );
+    assert.ok(question);
+    assert.equal(
+      "primaryCurriculumPlacements" in question,
+      false,
+      `${questionId} must remain a PR-C1B opt-in`,
+    );
+    assert.equal(
+      educationalPayloadHash(question as unknown as Record<string, unknown>),
+      expectedHash,
+    );
+  }
 });
 
 test("application security sample answers are graded by the shared grading engine", () => {

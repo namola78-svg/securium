@@ -22,6 +22,10 @@ import {
   type FlattenedOfficialCurriculumNode,
   type OfficialCurriculumTreeDefinition,
 } from "./security-certification-standards.ts";
+import {
+  getQuestionSupportingContentIds,
+  type SecurityCertificationQuestionPlacementSeed,
+} from "./security-certification-content-map.ts";
 
 type OfficialSecurityCertificationContent = {
   id: string;
@@ -38,15 +42,8 @@ type OfficialSecurityCertificationCourseLesson = {
   isRequired?: boolean;
 };
 
-type SecurityCertificationQuestionSeed = {
+type SecurityCertificationQuestionSeed = SecurityCertificationQuestionPlacementSeed & {
   id: string;
-  courseLinks: Array<{
-    courseId: string;
-  }>;
-  contentLinks?: Array<{
-    contentType: string;
-    contentId: string;
-  }>;
 };
 
 export type SecurityCertificationOntologyCoverageSummary = {
@@ -165,16 +162,16 @@ function buildSecurityCertificationCurriculumContentOntologyEdges(): OntologyEdg
   });
 }
 
-export function buildSecurityCertificationQuestionOntologyEdges(): OntologyEdge[] {
+export function buildSecurityCertificationQuestionOntologyEdges(
+  questionSamples: ReadonlyArray<SecurityCertificationQuestionSeed> =
+    officialQuestionSamples,
+): OntologyEdge[] {
   const contentById = new Map(officialContents.map((content) => [content.id, content]));
   const edges: OntologyEdge[] = [];
 
-  for (const question of officialQuestionSamples) {
-    const linkedContentIds = uniqueStrings(
-      (question.contentLinks ?? [])
-        .filter((link) => link.contentType === "CONTENT")
-        .map((link) => link.contentId)
-        .filter((contentId) => contentById.has(contentId)),
+  for (const question of questionSamples) {
+    const linkedContentIds = getQuestionSupportingContentIds(question).filter(
+      (contentId) => contentById.has(contentId),
     );
 
     for (const courseLink of question.courseLinks) {
@@ -316,10 +313,6 @@ function getSecurityCertificationConceptAliases(label: string) {
 
 function uniqueOntologyEdges(edges: OntologyEdge[]) {
   return [...new Map(edges.map((edge) => [edge.key, edge])).values()];
-}
-
-function uniqueStrings(values: string[]) {
-  return [...new Set(values)];
 }
 
 function toCoverageNode(

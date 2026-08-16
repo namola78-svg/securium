@@ -66,15 +66,33 @@ type CourseLessonExtensionSeedRecord = {
   courseLessonId: string;
 };
 
-type QuestionSeedRecord = {
-  courseLinks: Array<{
+export type SecurityCertificationQuestionPrimaryCurriculumPlacement = {
+  /** Course-owned placement provenance; this is not a supporting Content or Concept edge. */
+  courseId: string;
+  /** Keeps placements for different official curriculum versions independently addressable. */
+  curriculumTreeId: string;
+  curriculumNodeId: string;
+};
+
+export type SecurityCertificationQuestionPlacementSeed = {
+  courseLinks: ReadonlyArray<{
     courseId: string;
   }>;
-  contentLinks?: Array<{
+  contentLinks?: ReadonlyArray<{
     contentType: string;
     contentId: string;
   }>;
+  primaryCurriculumPlacements?: ReadonlyArray<SecurityCertificationQuestionPrimaryCurriculumPlacement>;
 };
+
+export type SecurityCertificationQuestionPlacementResolution = {
+  mode: "EXPLICIT_PRIMARY" | "LEGACY_CONTENT_DERIVED";
+  primaryPlacement: SecurityCertificationQuestionPrimaryCurriculumPlacement | null;
+  officialPlacementNodeIds: string[];
+  supportingContentIds: string[];
+};
+
+type QuestionSeedRecord = SecurityCertificationQuestionPlacementSeed;
 
 const contentSeedRecords =
   officialSecurityCertificationContents as ContentSeedRecord[];
@@ -298,6 +316,127 @@ function curriculumNodeIdFromStableKey(stableKey: string) {
   return `curriculum-node-${stableKey.toLowerCase()}`;
 }
 
+export function getQuestionSupportingContentIds(
+  question: SecurityCertificationQuestionPlacementSeed,
+) {
+  return unique(
+    (question.contentLinks ?? [])
+      .filter((link) => link.contentType === "CONTENT")
+      .map((link) => link.contentId),
+  );
+}
+
+/**
+ * Resolves official placement for one course/version context. Missing metadata
+ * retains the legacy Content-derived result; malformed explicit metadata throws
+ * instead of silently falling back to that ambiguous legacy path.
+ */
+export function resolveQuestionCurriculumPlacement(
+  question: SecurityCertificationQuestionPlacementSeed,
+  context: {
+    courseId: string;
+    curriculumTreeId: string;
+  },
+): SecurityCertificationQuestionPlacementResolution {
+  const tree = SECURITY_CERTIFICATION_CURRICULUM_TREES.find(
+    (candidate) => candidate.treeId === context.curriculumTreeId,
+  );
+  if (!tree || tree.courseId !== context.courseId) {
+    throw new Error(
+      `Invalid curriculum placement context: ${context.courseId}/${context.curriculumTreeId}`,
+    );
+  }
+  if (!question.courseLinks.some((link) => link.courseId === context.courseId)) {
+    throw new Error(
+      `Question is not linked to curriculum placement course: ${context.courseId}`,
+    );
+  }
+
+  const placements = question.primaryCurriculumPlacements ?? [];
+  validateQuestionPrimaryCurriculumPlacements(question, placements);
+  const matchingPlacements = placements.filter(
+    (placement) =>
+      placement.courseId === context.courseId &&
+      placement.curriculumTreeId === context.curriculumTreeId,
+  );
+  if (matchingPlacements.length > 1) {
+    throw new Error(
+      `Ambiguous explicit primary curriculum placement: ${context.courseId}/${context.curriculumTreeId}`,
+    );
+  }
+
+  const supportingContentIds = getQuestionSupportingContentIds(question);
+  const primaryPlacement = matchingPlacements[0] ?? null;
+  if (primaryPlacement) {
+    return {
+      mode: "EXPLICIT_PRIMARY",
+      primaryPlacement,
+      officialPlacementNodeIds: [primaryPlacement.curriculumNodeId],
+      supportingContentIds,
+    };
+  }
+
+  const knownNodeIds = new Set(
+    flattenOfficialCurriculumTree(tree).map((node) =>
+      curriculumNodeIdFromStableKey(node.stableKey),
+    ),
+  );
+  const officialPlacementNodeIds = unique(
+    courseLessonSeedRecords
+      .filter(
+        (lesson) =>
+          lesson.courseId === context.courseId &&
+          supportingContentIds.includes(lesson.contentId) &&
+          knownNodeIds.has(lesson.curriculumNodeId),
+      )
+      .map((lesson) => lesson.curriculumNodeId),
+  ).sort();
+
+  return {
+    mode: "LEGACY_CONTENT_DERIVED",
+    primaryPlacement: null,
+    officialPlacementNodeIds,
+    supportingContentIds,
+  };
+}
+
+function validateQuestionPrimaryCurriculumPlacements(
+  question: SecurityCertificationQuestionPlacementSeed,
+  placements: ReadonlyArray<SecurityCertificationQuestionPrimaryCurriculumPlacement>,
+) {
+  const placementKeys = new Set<string>();
+  for (const placement of placements) {
+    const placementKey = `${placement.courseId}:${placement.curriculumTreeId}`;
+    if (placementKeys.has(placementKey)) {
+      throw new Error(`Ambiguous explicit primary curriculum placement: ${placementKey}`);
+    }
+    placementKeys.add(placementKey);
+
+    if (!question.courseLinks.some((link) => link.courseId === placement.courseId)) {
+      throw new Error(
+        `Explicit primary curriculum placement has an unlinked course: ${placement.courseId}`,
+      );
+    }
+    const placementTree = SECURITY_CERTIFICATION_CURRICULUM_TREES.find(
+      (candidate) => candidate.treeId === placement.curriculumTreeId,
+    );
+    if (!placementTree || placementTree.courseId !== placement.courseId) {
+      throw new Error(
+        `Explicit primary curriculum placement has an invalid course/tree context: ${placementKey}`,
+      );
+    }
+    const nodeExists = flattenOfficialCurriculumTree(placementTree).some(
+      (node) =>
+        curriculumNodeIdFromStableKey(node.stableKey) === placement.curriculumNodeId,
+    );
+    if (!nodeExists) {
+      throw new Error(
+        `Explicit primary curriculum placement target is unresolved: ${placement.curriculumNodeId}`,
+      );
+    }
+  }
+}
+
 function buildQuestionSamplesByContentId(
   groups: Array<{
     fallbackContentId?: string;
@@ -309,9 +448,7 @@ function buildQuestionSamplesByContentId(
   for (const group of groups) {
     for (const question of group.questions) {
       const contentIds = question.contentLinks?.length
-        ? question.contentLinks
-            .filter((link) => link.contentType === "CONTENT")
-            .map((link) => link.contentId)
+        ? getQuestionSupportingContentIds(question)
         : group.fallbackContentId
           ? [group.fallbackContentId]
           : [];

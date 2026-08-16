@@ -88,6 +88,63 @@ test("security certification question ontology edges connect practice items to c
   assert.equal(new Set(edges.map((edge) => edge.key)).size, edges.length);
 });
 
+test("explicit primary placement preserves supporting ontology relations by course", () => {
+  const questionId = "pr-c1a-explicit-primary-fixture";
+  const supportingContentIds = [
+    "content-official-security-cert-application-security-overview",
+    "content-official-security-cert-application-web-app-security",
+    "content-official-security-cert-application-application-weakness-response",
+  ];
+  const edges = buildSecurityCertificationQuestionOntologyEdges([
+    {
+      id: questionId,
+      courseLinks: [{ courseId: "course-ise" }, { courseId: "course-isie" }],
+      contentLinks: supportingContentIds.map((contentId) => ({
+        contentType: "CONTENT",
+        contentId,
+      })),
+      primaryCurriculumPlacements: [
+        {
+          courseId: "course-ise",
+          curriculumTreeId: "curriculum-ise-2027-2029-official",
+          curriculumNodeId: "curriculum-node-ise-2027-2029-01-03-02-01",
+        },
+        {
+          courseId: "course-isie",
+          curriculumTreeId: "curriculum-isie-2027-2029-official",
+          curriculumNodeId: "curriculum-node-isie-2027-2029-01-03-02-01",
+        },
+      ],
+    },
+  ]);
+  const contentEdges = edges.filter(
+    (edge) =>
+      edge.fromId === questionId &&
+      edge.toType === "CONTENT" &&
+      edge.relation === "DERIVED_FROM",
+  );
+
+  assert.equal(contentEdges.length, supportingContentIds.length * 2);
+  for (const courseId of ["course-ise", "course-isie"]) {
+    assert.deepEqual(
+      contentEdges
+        .filter((edge) => edge.courseId === courseId)
+        .map((edge) => edge.toId)
+        .sort(),
+      [...supportingContentIds].sort(),
+    );
+  }
+  assert.equal(new Set(edges.map((edge) => edge.key)).size, edges.length);
+  assert.equal(
+    edges.some(
+      (edge) =>
+        edge.courseId === "course-ise" &&
+        edge.fromId.includes("curriculum-node-isie"),
+    ),
+    false,
+  );
+});
+
 test("shared content is reused while ontology edges keep engineer and industrial courses separate", () => {
   const networkContentEdges = buildSecurityCertificationOntologyEdges().filter(
     (edge) =>
