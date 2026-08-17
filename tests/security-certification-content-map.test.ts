@@ -384,17 +384,40 @@ test("invalid explicit primary placement fails closed without legacy fallback", 
   );
 });
 
-test("all 27 existing application, system and network multi-content questions preserve legacy placement", () => {
+test("PR-C1B changes only four of 54 multi-content course contexts", () => {
   const questions = [
     ...applicationSecurityQuestionSamples,
     ...systemSecurityQuestionSamples,
     ...networkSecurityQuestionSamples,
   ].filter((question) => question.contentLinks.length > 1);
+  const explicitIndustrialQuestionIds = new Set([
+    "application-security-official-sample-q01",
+    "application-security-official-sample-q02",
+    "application-security-official-sample-q03",
+    "application-security-official-sample-q06",
+  ]);
+  let contextCount = 0;
+  let explicitContextCount = 0;
 
   assert.equal(questions.length, 27);
   for (const question of questions) {
-    assert.equal("primaryCurriculumPlacements" in question, false);
+    if (explicitIndustrialQuestionIds.has(question.id)) {
+      assert.deepEqual(
+        (question as { primaryCurriculumPlacements?: unknown })
+          .primaryCurriculumPlacements,
+        [
+        {
+          courseId: "course-isie",
+          curriculumTreeId: "curriculum-isie-2027-2029-official",
+          curriculumNodeId: "curriculum-node-isie-2027-2029-01-03-02-01",
+        },
+        ],
+      );
+    } else {
+      assert.equal("primaryCurriculumPlacements" in question, false);
+    }
     for (const courseLink of question.courseLinks) {
+      contextCount += 1;
       const treeId = `curriculum-${courseLink.courseId.slice("course-".length)}-2027-2029-official`;
       const expectedNodeIds = [
         ...new Set(
@@ -414,11 +437,33 @@ test("all 27 existing application, system and network multi-content questions pr
         curriculumTreeId: treeId,
       });
 
-      assert.equal(resolution.mode, "LEGACY_CONTENT_DERIVED");
-      assert.equal(resolution.primaryPlacement, null);
-      assert.deepEqual(resolution.officialPlacementNodeIds, expectedNodeIds);
+      assert.deepEqual(
+        resolution.supportingContentIds,
+        getQuestionSupportingContentIds(question),
+      );
+      if (
+        explicitIndustrialQuestionIds.has(question.id) &&
+        courseLink.courseId === "course-isie"
+      ) {
+        explicitContextCount += 1;
+        assert.equal(resolution.mode, "EXPLICIT_PRIMARY");
+        assert.deepEqual(resolution.primaryPlacement, {
+          courseId: "course-isie",
+          curriculumTreeId: "curriculum-isie-2027-2029-official",
+          curriculumNodeId: "curriculum-node-isie-2027-2029-01-03-02-01",
+        });
+        assert.deepEqual(resolution.officialPlacementNodeIds, [
+          "curriculum-node-isie-2027-2029-01-03-02-01",
+        ]);
+      } else {
+        assert.equal(resolution.mode, "LEGACY_CONTENT_DERIVED");
+        assert.equal(resolution.primaryPlacement, null);
+        assert.deepEqual(resolution.officialPlacementNodeIds, expectedNodeIds);
+      }
     }
   }
+  assert.equal(contextCount, 54);
+  assert.equal(explicitContextCount, 4);
 });
 
 test("Industrial Q1-Q3 educational payload hashes remain unchanged", () => {
