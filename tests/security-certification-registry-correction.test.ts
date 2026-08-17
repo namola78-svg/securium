@@ -203,7 +203,7 @@ test("network question payloads and course mappings remain unchanged", () => {
   );
 });
 
-test("preserves seven Industrial question mappings until remap phase", () => {
+test("activates only the reviewed Q4-Q7 Industrial primary placements", () => {
   const allQuestions = [
     ...systemSecurityQuestionSamples,
     ...networkSecurityQuestionSamples,
@@ -213,11 +213,37 @@ test("preserves seven Industrial question mappings until remap phase", () => {
   assert.equal(questions.every(Boolean), true);
   assert.equal(
     createHash("sha256").update(JSON.stringify(questions)).digest("hex"),
-    "0b133ae9d671f30d746c3de9679b4ef1cc343bc9569a045640e15108e444ca81",
+    "7c0b380a2149288bcc60c33ac50d336fa6c31c3caa0b52c77d2c839a9a0cf284",
   );
-  for (const question of questions) {
+  const mappingContract = questions.map((question) => ({
+    questionId: question?.id,
+    primaryCurriculumPlacements:
+      question && "primaryCurriculumPlacements" in question
+        ? question.primaryCurriculumPlacements
+        : null,
+  }));
+  assert.equal(
+    createHash("sha256").update(JSON.stringify(mappingContract)).digest("hex"),
+    "1868f002273e586b1f413cad46518e666b4704c5db1d128a8afced15d892aa06",
+  );
+  for (const [index, question] of questions.entries()) {
     assert.ok(question);
     assert.equal(question.courseLinks.some((link) => link.courseId === "course-isie"), true);
     assert.equal(question.contentLinks.length > 0, true);
+    if (index < 3) {
+      assert.equal("primaryCurriculumPlacements" in question, false);
+    } else {
+      assert.deepEqual(
+        (question as { primaryCurriculumPlacements?: unknown })
+          .primaryCurriculumPlacements,
+        [
+          {
+            courseId: "course-isie",
+            curriculumTreeId: "curriculum-isie-2027-2029-official",
+            curriculumNodeId: "curriculum-node-isie-2027-2029-01-03-02-01",
+          },
+        ],
+      );
+    }
   }
 });

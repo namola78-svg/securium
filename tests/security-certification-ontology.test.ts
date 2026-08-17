@@ -18,6 +18,7 @@ import {
   SECURITY_CERTIFICATION_CURRICULUM_TREES,
 } from "../lib/curriculum/security-certification-standards.ts";
 import { expandRetrievalQueriesWithConceptAliases } from "../lib/ai/retrieval-provider.ts";
+import { applicationSecurityQuestionSamples } from "../lib/data/security-certification-application-security-questions.mjs";
 
 const execFileAsync = promisify(execFile);
 
@@ -142,6 +143,37 @@ test("explicit primary placement preserves supporting ontology relations by cour
         edge.fromId.includes("curriculum-node-isie"),
     ),
     false,
+  );
+});
+
+test("PR-C1B Q4-Q7 metadata leaves supporting ontology edges byte-equivalent", () => {
+  const targetQuestionIds = new Set([
+    "application-security-official-sample-q01",
+    "application-security-official-sample-q02",
+    "application-security-official-sample-q03",
+    "application-security-official-sample-q06",
+  ]);
+  const activatedQuestions = applicationSecurityQuestionSamples.filter((question) =>
+    targetQuestionIds.has(question.id),
+  );
+  const legacyProjection = activatedQuestions.map((question) => {
+    const projectedQuestion = { ...question };
+    delete (projectedQuestion as { primaryCurriculumPlacements?: unknown })
+      .primaryCurriculumPlacements;
+    return projectedQuestion;
+  });
+  const activatedEdges = buildSecurityCertificationQuestionOntologyEdges(
+    activatedQuestions,
+  );
+  const legacyEdges = buildSecurityCertificationQuestionOntologyEdges(legacyProjection);
+
+  assert.equal(activatedQuestions.length, 4);
+  assert.deepEqual(activatedEdges, legacyEdges);
+  assert.equal(new Set(activatedEdges.map((edge) => edge.key)).size, activatedEdges.length);
+  assert.ok(
+    activatedEdges.every(
+      (edge) => edge.toType === "CONTENT" || edge.toType === "CONCEPT",
+    ),
   );
 });
 

@@ -120,7 +120,7 @@ test("application security questions are shared while course weighting stays sep
   );
 });
 
-test("PR-C1A leaves future Q4-Q7 educational payload and mapping data unchanged", () => {
+test("PR-C1B activates only the reviewed Q4-Q7 Industrial placements", () => {
   const expectedHashes = new Map([
     [
       "application-security-official-sample-q01",
@@ -139,22 +139,53 @@ test("PR-C1A leaves future Q4-Q7 educational payload and mapping data unchanged"
       "74867607da698ab896a1aad48ebebc37fdf87e0a94be2ec968bfffb675484fd6",
     ],
   ]);
+  const expectedPlacement = {
+    courseId: "course-isie",
+    curriculumTreeId: "curriculum-isie-2027-2029-official",
+    curriculumNodeId: "curriculum-node-isie-2027-2029-01-03-02-01",
+  };
+  const expectedSubItemContentIds = [
+    "content-official-security-cert-application-web-app-security",
+    "content-official-security-cert-application-application-weakness-response",
+    "content-official-security-cert-application-secure-development-overview",
+  ];
+  const expectedContentIds = [
+    APPLICATION_SECURITY_CONTENT_ID,
+    ...expectedSubItemContentIds,
+  ];
 
   for (const [questionId, expectedHash] of expectedHashes) {
     const question = applicationSecurityQuestionSamples.find(
       (candidate) => candidate.id === questionId,
     );
     assert.ok(question);
-    assert.equal(
-      "primaryCurriculumPlacements" in question,
-      false,
-      `${questionId} must remain a PR-C1B opt-in`,
+    assert.deepEqual(question.primaryCurriculumPlacements, [expectedPlacement]);
+    assert.deepEqual(question.subItemContentIds, expectedSubItemContentIds);
+    assert.deepEqual(
+      question.contentLinks.map((link) => link.contentId),
+      expectedContentIds,
     );
+    assert.ok(
+      question.contentLinks.every(
+        (link) =>
+          link.contentType === "CONTENT" && link.relationType === "PRACTICE",
+      ),
+    );
+    assert.equal(question.status, "PUBLISHED");
+    assert.equal(question.sampleOnly, true);
     assert.equal(
       educationalPayloadHash(question as unknown as Record<string, unknown>),
       expectedHash,
     );
   }
+
+  const nonTargets = applicationSecurityQuestionSamples.filter(
+    (question) => !expectedHashes.has(question.id),
+  );
+  assert.equal(nonTargets.length, 4);
+  assert.ok(
+    nonTargets.every((question) => !("primaryCurriculumPlacements" in question)),
+  );
 });
 
 test("application security sample answers are graded by the shared grading engine", () => {
