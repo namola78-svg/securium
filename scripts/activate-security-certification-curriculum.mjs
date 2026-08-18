@@ -1,5 +1,6 @@
 import postgres from "postgres";
 import { spawn } from "node:child_process";
+import { evaluateCurrentEngineerBetaActivationEligibility } from "../lib/curriculum/security-certification-activation-eligibility.ts";
 import { officialSecurityCertificationCourseLessons } from "../lib/data/security-certification-course-lessons.mjs";
 
 const CONFIRM_FLAG = "--confirm-production-activation";
@@ -35,23 +36,43 @@ const expectedTrees = [
   },
 ];
 
+const engineerBetaActivationEligibility =
+  evaluateCurrentEngineerBetaActivationEligibility();
+
 const checkOnly = process.argv.includes(CHECK_ONLY_FLAG);
 const target = process.argv.includes("d1-local") ? "d1-local" : "postgres";
 
 if (process.argv.includes(HELP_FLAG)) {
   printHelp();
 } else if (checkOnly) {
+  assertEngineerBetaActivationEligibility();
   if (target === "d1-local") {
     await checkActivationReadinessWithD1Local();
   } else {
     await checkActivationReadinessWithPostgres();
   }
 } else {
+  assertEngineerBetaActivationEligibility();
   if (target !== "postgres") {
     fail("SECURITY_CERTIFICATION_CURRICULUM_ACTIVATION_TARGET_UNSUPPORTED", target);
   }
   assertProductionActivationApproval();
   await activateWithPostgres();
+}
+
+function assertEngineerBetaActivationEligibility() {
+  if (engineerBetaActivationEligibility.eligible) return;
+  console.error(
+    JSON.stringify(
+      {
+        code: "SECURITY_CERTIFICATION_ENGINEER_BETA_ACTIVATION_INELIGIBLE",
+        eligibility: engineerBetaActivationEligibility,
+      },
+      null,
+      2,
+    ),
+  );
+  fail("SECURITY_CERTIFICATION_ENGINEER_BETA_ACTIVATION_INELIGIBLE");
 }
 
 async function checkActivationReadinessWithD1Local() {
