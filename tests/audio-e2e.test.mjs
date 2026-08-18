@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
+import { createServer } from "node:net";
 import { after, before, test } from "node:test";
 
-const port = 33124;
-const baseUrl = `http://localhost:${port}`;
+const host = "127.0.0.1";
+const port = await getFreeLoopbackPort();
+const baseUrl = `http://${host}:${port}`;
 const user1 = {
   "content-type": "application/json",
   origin: baseUrl,
@@ -27,8 +29,8 @@ before(async () => {
     [
       "node_modules/vinext/dist/cli.js",
       "dev",
-      "--host",
-      "127.0.0.1",
+      "--hostname",
+      host,
       "--port",
       String(port),
     ],
@@ -48,24 +50,81 @@ before(async () => {
   server.stderr.on("data", (chunk) => {
     output += chunk.toString();
   });
-  for (let attempt = 0; attempt < 480; attempt += 1) {
-    if (server.exitCode !== null) {
-      throw new Error(`Audio E2E server stopped.\n${output}`);
+  try {
+    for (let attempt = 0; attempt < 480; attempt += 1) {
+      if (server.exitCode !== null) {
+        throw new Error(`Audio E2E server stopped.\n${output}`);
+      }
+      if (output.includes(`Port ${port} is in use, trying another one`)) {
+        throw new Error(
+          `Audio E2E server did not bind the allocated port ${port}.\n${output}`,
+        );
+      }
+      try {
+        const response = await fetch(baseUrl, {
+          signal: AbortSignal.timeout(1_000),
+        });
+        if (response.status > 0) return;
+      } catch {
+        // Server is still starting.
+      }
+      await new Promise((resolve) => setTimeout(resolve, 250));
     }
-    try {
-      const response = await fetch(baseUrl);
-      if (response.status > 0) return;
-    } catch {
-      // Server is still starting.
-    }
-    await new Promise((resolve) => setTimeout(resolve, 250));
+    throw new Error(`Audio E2E server did not start.\n${output}`);
+  } catch (error) {
+    await stopServer();
+    throw error;
   }
-  throw new Error(`Audio E2E server did not start.\n${output}`);
 });
 
-after(() => {
-  if (server?.exitCode === null) server.kill();
+after(async () => {
+  await stopServer();
 });
+
+function getFreeLoopbackPort() {
+  return new Promise((resolve, reject) => {
+    const probe = createServer();
+    probe.once("error", reject);
+    probe.listen(0, host, () => {
+      const address = probe.address();
+      if (!address || typeof address === "string") {
+        probe.close();
+        reject(new Error("Could not allocate an Audio E2E loopback port."));
+        return;
+      }
+      probe.close((error) => {
+        if (error) reject(error);
+        else resolve(address.port);
+      });
+    });
+  });
+}
+
+async function stopServer() {
+  if (!server || server.exitCode !== null) return;
+  const gracefulExit = waitForServerExit(5_000);
+  server.kill();
+  if (await gracefulExit) return;
+  const forcedExit = waitForServerExit(5_000);
+  server.kill("SIGKILL");
+  await forcedExit;
+}
+
+function waitForServerExit(timeoutMs) {
+  if (!server || server.exitCode !== null) return Promise.resolve(true);
+  return new Promise((resolve) => {
+    const timeout = setTimeout(() => {
+      server?.off("exit", handleExit);
+      resolve(false);
+    }, timeoutMs);
+    timeout.unref();
+    const handleExit = () => {
+      clearTimeout(timeout);
+      resolve(true);
+    };
+    server.once("exit", handleExit);
+  });
+}
 
 async function save(headers, body) {
   const response = await fetch(`${baseUrl}/api/audio/progress`, {
