@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { cp, mkdtemp, rm, symlink } from "node:fs/promises";
+import { cp, mkdtemp, readdir, rm, stat, symlink } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import net from "node:net";
 import { tmpdir } from "node:os";
@@ -60,11 +60,36 @@ const prepareIsolatedServerRoot = async () => {
       symlink(join(sourceRoot, name), join(serverRoot, name), linkType),
     ),
   );
+  const availableFiles = (
+    await Promise.all(
+      isolatedFiles.map(async (name) => {
+        try {
+          await stat(join(sourceRoot, name));
+          return name;
+        } catch {
+          return null;
+        }
+      }),
+    )
+  ).filter(Boolean);
   await Promise.all(
-    isolatedFiles.map((name) =>
+    availableFiles.map((name) =>
       cp(join(sourceRoot, name), join(serverRoot, name)),
     ),
   );
+};
+
+const removeIsolatedServerRoot = async () => {
+  if (!serverRoot) return;
+  for (const entry of await readdir(serverRoot)) {
+    await rm(join(serverRoot, entry), {
+      recursive: true,
+      force: true,
+      maxRetries: 3,
+      retryDelay: 100,
+    });
+  }
+  await rm(serverRoot, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
 };
 
 const appendOutput = (chunk) => {
@@ -792,9 +817,7 @@ async function readJsonResponse(response) {
 
 after(async () => {
   await stopServer();
-  if (serverRoot) {
-    await rm(serverRoot, { recursive: true, force: true });
-  }
+  await removeIsolatedServerRoot();
 });
 
 test("통합 학습 플랫폼 랜딩페이지를 서버 렌더링한다", async () => {
