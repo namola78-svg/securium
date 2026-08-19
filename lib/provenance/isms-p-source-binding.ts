@@ -1,3 +1,12 @@
+import type {
+  AuthorityClass as SharedAuthorityClass,
+  AuthenticationState as SharedAuthenticationState,
+  BindingRole as SharedBindingRole,
+  CopyrightReviewState as SharedCopyrightReviewState,
+  IndependenceState as SharedIndependenceState,
+  SourceLocator,
+  UsageClass as SharedUsageClass,
+} from "./source-taxonomy.ts";
 export const ISMS_P_SOURCE_BINDING_VERSION = "isms-p-source-foundation-v2" as const;
 
 export const ISMS_P_ORIGINAL_SOURCE_FOUNDATION_SHA256 =
@@ -68,14 +77,12 @@ export const SOURCE_CURRENTNESS_REVIEW_STATES = [
   "UNRESOLVED",
 ] as const;
 
-export type SourceAuthorityClass = (typeof SOURCE_AUTHORITY_CLASSES)[number];
-export type SourceUsageClass = (typeof SOURCE_USAGE_CLASSES)[number];
-export type SourceBindingRole = (typeof SOURCE_BINDING_ROLES)[number];
-export type SourceAuthenticationState = (typeof SOURCE_AUTHENTICATION_STATES)[number];
-export type SourceIndependenceDeclaration =
-  (typeof SOURCE_INDEPENDENCE_DECLARATIONS)[number];
-export type SourceCopyrightReviewState =
-  (typeof SOURCE_COPYRIGHT_REVIEW_STATES)[number];
+export type SourceAuthorityClass = SharedAuthorityClass;
+export type SourceUsageClass = SharedUsageClass;
+export type SourceBindingRole = SharedBindingRole;
+export type SourceAuthenticationState = SharedAuthenticationState;
+export type SourceIndependenceDeclaration = SharedIndependenceState;
+export type SourceCopyrightReviewState = SharedCopyrightReviewState;
 export type SourceBindingReviewDecision =
   (typeof SOURCE_BINDING_REVIEW_DECISIONS)[number];
 export type SourceCurrentnessReviewState =
@@ -122,13 +129,10 @@ export const ISMS_P_AUTHENTICATED_SOURCE_DOCUMENTS = {
   }
 >;
 
-export type IsmsPSourceScopeLocator = Readonly<{
-  criterionId: string;
-  sectionHeading: string;
-  pageStart: number;
-  pageEnd: number;
-  documentSubheading: string | null;
-}>;
+export type IsmsPSourceScopeLocator = Omit<
+  Extract<SourceLocator, { kind: "criterion" }>,
+  "kind"
+>;
 
 export type IsmsPSourceBinding = Readonly<{
   lessonId: string;

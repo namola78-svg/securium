@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+﻿import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
 import { ismsPTheoryBatch1Records } from "../lib/data/isms-p-theory-batch1.mjs";
@@ -14,6 +14,14 @@ import {
   type IsmsPSourceBinding,
   validateIsmsPSourceBinding,
 } from "../lib/provenance/isms-p-source-binding.ts";
+import type {
+  AuthorityClass,
+  BindingRole,
+  CopyrightReviewState,
+  IndependenceState,
+  SourceLocator,
+  UsageClass,
+} from "../lib/provenance/source-taxonomy.ts";
 
 const validBinding: IsmsPSourceBinding = {
   lessonId: "course-lesson-isms-p-theory-1-1-1",
@@ -251,4 +259,30 @@ test("W1-ISMSP-1A leaves all 12 educational payloads byte-semantically unchanged
   const hash = createHash("sha256").update(JSON.stringify(educationalPayload)).digest("hex");
   assert.equal(ismsPTheoryBatch1Records.length, 12);
   assert.equal(hash, "60dcf57e0831608eb518f89cb1b18ccf9375db7e8477071685f5f08855cc83a4");
+});
+
+test("ISMS-P shared fields use the source taxonomy type boundary", () => {
+  const authority: AuthorityClass = validBinding.authorityClass;
+  const usage: UsageClass = validBinding.usageClass[0];
+  const role: BindingRole = validBinding.bindingRole;
+  const copyrightReview: CopyrightReviewState = validBinding.copyrightReviewState;
+  const independence: IndependenceState = validBinding.independenceDeclaration;
+  assert.equal(authority, "OFFICIAL_PUBLIC");
+  assert.equal(usage, "CAN_USE_AS_AUTHORITY");
+  assert.equal(role, "PRIMARY_AUTHORITY");
+  assert.equal(copyrightReview, "LEGACY_REVIEW_REQUIRED");
+  assert.equal(independence, "REVIEW_REQUIRED");
+});
+
+test("ISMS-P scope locator remains compatible with the neutral locator shape", () => {
+  const locator: SourceLocator = {
+    kind: "criterion",
+    criterionId: validBinding.scopeLocator.criterionId,
+    sectionHeading: validBinding.scopeLocator.sectionHeading,
+    pageStart: validBinding.scopeLocator.pageStart,
+    pageEnd: validBinding.scopeLocator.pageEnd,
+    documentSubheading: validBinding.scopeLocator.documentSubheading,
+  };
+  assert.equal(locator.kind, "criterion");
+  assert.equal(locator.criterionId, "1.1.1");
 });
