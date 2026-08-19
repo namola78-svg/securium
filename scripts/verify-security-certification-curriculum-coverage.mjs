@@ -1,13 +1,14 @@
 import postgres from "postgres";
 import { spawn } from "node:child_process";
-import { officialSecurityCertificationCourseLessons } from "../lib/data/security-certification-course-lessons.mjs";
+import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
+import {
+  effectiveOfficialSecurityCertificationCourseLessons,
+  INDUSTRIAL_PRC2_DETACHED_COURSE_LESSON_IDS,
+  officialSecurityCertificationCourseLessons,
+} from "../lib/data/security-certification-course-lessons.mjs";
 
 const VALID_TARGETS = new Set(["d1-local", "postgres"]);
-if (process.argv.includes("--help") || process.argv.includes("-h")) {
-  printHelp();
-  process.exit(0);
-}
-
 const target = process.argv[2] ?? "d1-local";
 const requireCourseLessons = process.argv.includes("--require-course-lessons");
 const allowInactive = process.argv.includes("--allow-inactive");
@@ -28,31 +29,56 @@ const expectedTrees = [
     courseId: "course-ise",
     label: "information-security-engineer",
     minNodes: 79,
-    expectedOfficialCourseLessonCount:
+    physicalCourseLessonCount:
       officialSecurityCertificationCourseLessons.filter(
         (lesson) => lesson.courseId === "course-ise",
       ).length,
+    expectedOfficialCourseLessonCount:
+      effectiveOfficialSecurityCertificationCourseLessons.filter(
+        (lesson) => lesson.courseId === "course-ise",
+      ).length,
+    prc3DeferredCount: 0,
   },
   {
     id: "curriculum-isie-2027-2029-official",
     courseId: "course-isie",
     label: "information-security-industrial-engineer",
     minNodes: 64,
-    expectedOfficialCourseLessonCount:
+    physicalCourseLessonCount:
       officialSecurityCertificationCourseLessons.filter(
         (lesson) => lesson.courseId === "course-isie",
       ).length,
+    expectedOfficialCourseLessonCount:
+      effectiveOfficialSecurityCertificationCourseLessons.filter(
+        (lesson) => lesson.courseId === "course-isie",
+      ).length,
+    prc3DeferredCount: INDUSTRIAL_PRC2_DETACHED_COURSE_LESSON_IDS.length,
   },
 ];
 
-if (!VALID_TARGETS.has(target)) {
-  fail("SECURITY_CERTIFICATION_CURRICULUM_COVERAGE_TARGET_INVALID");
+const isDirectExecution =
+  Boolean(process.argv[1]) &&
+  import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
+
+if (isDirectExecution) {
+  await main();
 }
 
-if (target === "d1-local") {
-  await verifyWithD1Local();
-} else {
-  await verifyWithPostgres();
+async function main() {
+  if (process.argv.includes("--help") || process.argv.includes("-h")) {
+    printHelp();
+    return;
+  }
+
+  if (!VALID_TARGETS.has(target)) {
+    fail("SECURITY_CERTIFICATION_CURRICULUM_COVERAGE_TARGET_INVALID");
+  }
+
+  if (target === "d1-local") {
+    await verifyWithD1Local();
+  } else {
+    await verifyWithPostgres();
+  }
 }
 
 async function verifyWithD1Local() {
@@ -94,16 +120,26 @@ async function verifyWithPostgres() {
   console.log("SECURITY_CERTIFICATION_CURRICULUM_COVERAGE_POSTGRES_OK");
 }
 
-function buildCoverageSql(dialect) {
+export function buildCoverageSql(dialect) {
   const countCast = dialect === "postgres" ? "::int" : "";
   const treeIds = expectedTrees.map((tree) => sqlString(tree.id)).join(",");
   const courseIds = expectedTrees.map((tree) => sqlString(tree.courseId)).join(",");
-  const officialCourseLessonIds = officialSecurityCertificationCourseLessons
-    .map((lesson) => sqlString(lesson.id))
+  const physicalOfficialCourseLessonValues = officialSecurityCertificationCourseLessons
+    .map((lesson) => `(${sqlString(lesson.id)})`)
     .join(",");
+  const prc3DeferredCourseLessonValues =
+    INDUSTRIAL_PRC2_DETACHED_COURSE_LESSON_IDS.map(
+      (id) => `(${sqlString(id)})`,
+    ).join(",");
 
   return `
-WITH official_trees AS (
+WITH official_course_lesson_ids(id) AS (
+  VALUES ${physicalOfficialCourseLessonValues}
+),
+prc3_deferred_course_lesson_ids(id) AS (
+  VALUES ${prc3DeferredCourseLessonValues}
+),
+official_trees AS (
   SELECT id, course_id, title, status
   FROM curriculum_trees
   WHERE id IN (${treeIds})
@@ -119,20 +155,25 @@ tree_nodes AS (
     AND status <> 'ARCHIVED'
   GROUP BY curriculum_tree_id
 ),
-published_course_lessons AS (
+course_lesson_metrics AS (
   SELECT
-    course_id,
-    COUNT(*)${countCast} AS published_course_lesson_count,
-    COUNT(DISTINCT curriculum_node_id)${countCast} AS course_lesson_node_count,
-    SUM(CASE WHEN id IN (${officialCourseLessonIds}) THEN 1 ELSE 0 END)${countCast} AS official_seed_course_lesson_count,
-    COUNT(DISTINCT CASE WHEN id IN (${officialCourseLessonIds}) THEN curriculum_node_id ELSE NULL END)${countCast} AS official_seed_node_count,
-    SUM(CASE WHEN id IN (${officialCourseLessonIds}) AND (curriculum_node_id IS NULL OR curriculum_node_id = '') THEN 1 ELSE 0 END)${countCast} AS official_unlinked_course_lesson_count,
-    SUM(CASE WHEN curriculum_node_id IS NULL OR curriculum_node_id = '' THEN 1 ELSE 0 END)${countCast} AS unlinked_course_lesson_count
-  FROM course_lessons
-  WHERE course_id IN (${courseIds})
-    AND status = 'PUBLISHED'
-    AND deleted_at IS NULL
-  GROUP BY course_id
+    cl.course_id,
+    COUNT(*)${countCast} AS total_physical_course_lesson_count,
+    SUM(CASE WHEN official.id IS NOT NULL THEN 1 ELSE 0 END)${countCast} AS physical_course_lesson_count,
+    SUM(CASE WHEN official.id IS NULL THEN 1 ELSE 0 END)${countCast} AS non_official_physical_course_lesson_count,
+    SUM(CASE WHEN cl.status = 'PUBLISHED' THEN 1 ELSE 0 END)${countCast} AS published_course_lesson_count,
+    COUNT(DISTINCT CASE WHEN cl.status = 'PUBLISHED' THEN cl.curriculum_node_id ELSE NULL END)${countCast} AS course_lesson_node_count,
+    SUM(CASE WHEN official.id IS NOT NULL AND deferred.id IS NULL AND cl.status = 'PUBLISHED' THEN 1 ELSE 0 END)${countCast} AS effective_placement_count,
+    COUNT(DISTINCT CASE WHEN official.id IS NOT NULL AND deferred.id IS NULL AND cl.status = 'PUBLISHED' THEN cl.curriculum_node_id ELSE NULL END)${countCast} AS official_seed_node_count,
+    SUM(CASE WHEN official.id IS NOT NULL AND deferred.id IS NULL AND cl.status = 'PUBLISHED' AND (cl.curriculum_node_id IS NULL OR cl.curriculum_node_id = '') THEN 1 ELSE 0 END)${countCast} AS official_unlinked_course_lesson_count,
+    SUM(CASE WHEN cl.status = 'PUBLISHED' AND (cl.curriculum_node_id IS NULL OR cl.curriculum_node_id = '') THEN 1 ELSE 0 END)${countCast} AS unlinked_course_lesson_count,
+    SUM(CASE WHEN deferred.id IS NOT NULL AND cl.status = 'ARCHIVED' THEN 1 ELSE 0 END)${countCast} AS prc3_deferred_count
+  FROM course_lessons cl
+  LEFT JOIN official_course_lesson_ids official ON official.id = cl.id
+  LEFT JOIN prc3_deferred_course_lesson_ids deferred ON deferred.id = cl.id
+  WHERE cl.course_id IN (${courseIds})
+    AND cl.deleted_at IS NULL
+  GROUP BY cl.course_id
 ),
 published_course_questions AS (
   SELECT
@@ -152,16 +193,20 @@ SELECT
   COALESCE(n.node_count, 0) AS node_count,
   COALESCE(n.metadata_target_node_count, 0) AS metadata_target_node_count,
   COALESCE(n.metadata_linked_node_count, 0) AS metadata_linked_node_count,
+  COALESCE(cl.total_physical_course_lesson_count, 0) AS total_physical_course_lesson_count,
+  COALESCE(cl.physical_course_lesson_count, 0) AS physical_course_lesson_count,
+  COALESCE(cl.non_official_physical_course_lesson_count, 0) AS non_official_physical_course_lesson_count,
   COALESCE(cl.published_course_lesson_count, 0) AS published_course_lesson_count,
   COALESCE(cl.course_lesson_node_count, 0) AS course_lesson_node_count,
-  COALESCE(cl.official_seed_course_lesson_count, 0) AS official_seed_course_lesson_count,
+  COALESCE(cl.effective_placement_count, 0) AS effective_placement_count,
   COALESCE(cl.official_seed_node_count, 0) AS official_seed_node_count,
   COALESCE(cl.official_unlinked_course_lesson_count, 0) AS official_unlinked_course_lesson_count,
   COALESCE(cl.unlinked_course_lesson_count, 0) AS unlinked_course_lesson_count,
+  COALESCE(cl.prc3_deferred_count, 0) AS prc3_deferred_count,
   COALESCE(pq.published_question_count, 0) AS published_question_count
 FROM official_trees t
 LEFT JOIN tree_nodes n ON n.curriculum_tree_id = t.id
-LEFT JOIN published_course_lessons cl ON cl.course_id = t.course_id
+LEFT JOIN course_lesson_metrics cl ON cl.course_id = t.course_id
 LEFT JOIN published_course_questions pq ON pq.course_id = t.course_id
 ORDER BY t.id;`;
 }
@@ -181,15 +226,38 @@ function verifyCoverageRows(rows) {
     if (Number(row.node_count ?? row.nodeCount) < expected.minNodes) {
       fail("SECURITY_CERTIFICATION_CURRICULUM_COVERAGE_NODE_COUNT_LOW", expected.id);
     }
-    if (
-      requireCourseLessons &&
-      Number(row.official_seed_course_lesson_count ?? row.officialSeedCourseLessonCount) <
-        expected.expectedOfficialCourseLessonCount
-    ) {
-      fail(
-        "SECURITY_CERTIFICATION_CURRICULUM_COVERAGE_OFFICIAL_COURSE_LESSONS_LOW",
-        expected.id,
+    if (requireCourseLessons) {
+      const physicalCourseLessonCount = Number(
+        row.physical_course_lesson_count ?? row.physicalCourseLessonCount,
       );
+      const effectivePlacementCount = Number(
+        row.effective_placement_count ??
+          row.effectivePlacementCount ??
+          row.official_seed_course_lesson_count ??
+          row.officialSeedCourseLessonCount,
+      );
+      const prc3DeferredCount = Number(
+        row.prc3_deferred_count ?? row.prc3DeferredCount,
+      );
+
+      if (physicalCourseLessonCount !== expected.physicalCourseLessonCount) {
+        fail(
+          "SECURITY_CERTIFICATION_CURRICULUM_COVERAGE_PHYSICAL_COURSELESSON_MISMATCH",
+          expected.id,
+        );
+      }
+      if (effectivePlacementCount !== expected.expectedOfficialCourseLessonCount) {
+        fail(
+          "SECURITY_CERTIFICATION_CURRICULUM_COVERAGE_OFFICIAL_COURSE_LESSONS_LOW",
+          expected.id,
+        );
+      }
+      if (prc3DeferredCount !== expected.prc3DeferredCount) {
+        fail(
+          "SECURITY_CERTIFICATION_CURRICULUM_COVERAGE_PRC3_DEFERRED_MISMATCH",
+          expected.id,
+        );
+      }
     }
   }
 }
@@ -209,39 +277,68 @@ function printCoverage(rows) {
 }
 
 function normalizeCoverageRows(rows) {
-  return rows.map((row) => ({
-    id: row.id,
-    courseId: row.course_id ?? row.courseId,
-    status: row.status,
-    nodeCount: Number(row.node_count ?? row.nodeCount),
-    metadataTargetNodeCount: Number(
-      row.metadata_target_node_count ?? row.metadataTargetNodeCount ?? row.node_count ?? row.nodeCount,
-    ),
-    metadataLinkedNodeCount: Number(
-      row.metadata_linked_node_count ?? row.metadataLinkedNodeCount,
-    ),
-    publishedCourseLessonCount: Number(
-      row.published_course_lesson_count ?? row.publishedCourseLessonCount,
-    ),
-    courseLessonNodeCount: Number(
-      row.course_lesson_node_count ?? row.courseLessonNodeCount,
-    ),
-    officialSeedCourseLessonCount: Number(
-      row.official_seed_course_lesson_count ?? row.officialSeedCourseLessonCount,
-    ),
-    officialSeedNodeCount: Number(
-      row.official_seed_node_count ?? row.officialSeedNodeCount,
-    ),
-    officialUnlinkedCourseLessonCount: Number(
-      row.official_unlinked_course_lesson_count ?? row.officialUnlinkedCourseLessonCount,
-    ),
-    unlinkedCourseLessonCount: Number(
-      row.unlinked_course_lesson_count ?? row.unlinkedCourseLessonCount,
-    ),
-    publishedQuestionCount: Number(
-      row.published_question_count ?? row.publishedQuestionCount,
-    ),
-  }));
+  return rows.map((row) => {
+    const expected = expectedTrees.find((tree) => tree.id === row.id);
+    return {
+      id: row.id,
+      courseId: row.course_id ?? row.courseId,
+      status: row.status,
+      nodeCount: Number(row.node_count ?? row.nodeCount),
+      metadataTargetNodeCount: Number(
+        row.metadata_target_node_count ?? row.metadataTargetNodeCount ?? row.node_count ?? row.nodeCount,
+      ),
+      metadataLinkedNodeCount: Number(
+        row.metadata_linked_node_count ?? row.metadataLinkedNodeCount,
+      ),
+      totalPhysicalCourseLessonCount: Number(
+        row.total_physical_course_lesson_count ?? row.totalPhysicalCourseLessonCount,
+      ),
+      physicalCourseLessonCount: Number(
+        row.physical_course_lesson_count ?? row.physicalCourseLessonCount,
+      ),
+      nonOfficialPhysicalCourseLessonCount: Number(
+        row.non_official_physical_course_lesson_count ??
+          row.nonOfficialPhysicalCourseLessonCount,
+      ),
+      publishedCourseLessonCount: Number(
+        row.published_course_lesson_count ?? row.publishedCourseLessonCount,
+      ),
+      courseLessonNodeCount: Number(
+        row.course_lesson_node_count ?? row.courseLessonNodeCount,
+      ),
+      effectivePlacementCount: Number(
+        row.effective_placement_count ??
+          row.effectivePlacementCount ??
+          row.official_seed_course_lesson_count ??
+          row.officialSeedCourseLessonCount,
+      ),
+      officialSeedCourseLessonCount: Number(
+        row.effective_placement_count ??
+          row.effectivePlacementCount ??
+          row.official_seed_course_lesson_count ??
+          row.officialSeedCourseLessonCount,
+      ),
+      officialSeedNodeCount: Number(
+        row.official_seed_node_count ?? row.officialSeedNodeCount,
+      ),
+      officialUnlinkedCourseLessonCount: Number(
+        row.official_unlinked_course_lesson_count ?? row.officialUnlinkedCourseLessonCount,
+      ),
+      unlinkedCourseLessonCount: Number(
+        row.unlinked_course_lesson_count ?? row.unlinkedCourseLessonCount,
+      ),
+      prc3DeferredCount: Number(
+        row.prc3_deferred_count ?? row.prc3DeferredCount ?? expected?.prc3DeferredCount ?? 0,
+      ),
+      expectedPhysicalCourseLessonCount:
+        expected?.physicalCourseLessonCount ?? 0,
+      expectedEffectivePlacementCount:
+        expected?.expectedOfficialCourseLessonCount ?? 0,
+      publishedQuestionCount: Number(
+        row.published_question_count ?? row.publishedQuestionCount,
+      ),
+    };
+  });
 }
 
 function buildCoverageActionQueue(

@@ -10,6 +10,7 @@ import {
   type SecurityCertificationQuestionPlacementSeed,
 } from "../lib/curriculum/security-certification-content-map.ts";
 import {
+  effectiveOfficialSecurityCertificationCourseLessons,
   officialSecurityCertificationContents,
   officialSecurityCertificationCourseLessons,
 } from "../lib/data/security-certification-course-lessons.mjs";
@@ -421,7 +422,7 @@ test("PR-C1B changes only four of 54 multi-content course contexts", () => {
       const treeId = `curriculum-${courseLink.courseId.slice("course-".length)}-2027-2029-official`;
       const expectedNodeIds = [
         ...new Set(
-          officialSecurityCertificationCourseLessons
+          effectiveOfficialSecurityCertificationCourseLessons
             .filter(
               (lesson) =>
                 lesson.courseId === courseLink.courseId &&

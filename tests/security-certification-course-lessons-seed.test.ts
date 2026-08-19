@@ -2,6 +2,9 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import {
+  effectiveOfficialSecurityCertificationCourseLessons,
+  getIndustrialPrc2CourseLessonPlacementStats,
+  INDUSTRIAL_PRC2_DETACHED_COURSE_LESSON_IDS,
   SECURITY_CERTIFICATION_COURSE_LESSON_CONFIRM_ENV_VALUE,
   officialSecurityCertificationContents,
   officialSecurityCertificationCourseLessonExtensions,
@@ -18,6 +21,8 @@ test("security certification course lesson seed reuses shared contents across en
 
   assert.equal(stats.contentCount, 81);
   assert.equal(stats.courseLessonCount, 145);
+  assert.equal(stats.effectivePlacementCount, 142);
+  assert.equal(stats.prc3DeferredCount, 3);
   assert.equal(stats.courseLessonExtensionCount, 8);
   assert.equal(stats.linkedContentCount, 81);
   assert.equal(stats.reusedContentCount, 64);
@@ -25,6 +30,11 @@ test("security certification course lesson seed reuses shared contents across en
   assert.equal(stats.expectedTopLevelNodeCount, 11);
   assert.equal(stats.mappedTopLevelNodeCount, 11);
   assert.equal(stats.unmappedTopLevelNodeCount, 0);
+  assert.deepEqual(getIndustrialPrc2CourseLessonPlacementStats(), {
+    physicalCourseLessonCount: 65,
+    effectivePlacementCount: 62,
+    prc3DeferredCount: 3,
+  });
 });
 
 test("Engineer log-monitoring activation preserves CourseLesson identity and Industrial legacy reuse", () => {
@@ -153,11 +163,12 @@ test("Sprint G vertical slice keeps shared official content published and course
     );
     assert.equal(new Set(lessons.map((lesson) => lesson.id)).size, 2);
     assert.equal(
-      lessons.every(
-          (lesson) =>
-          (lesson as typeof lesson & { status?: string }).status === "PUBLISHED",
-      ),
-      true,
+      lessons.find((lesson) => lesson.courseId === "course-ise")?.status,
+      "PUBLISHED",
+    );
+    assert.equal(
+      lessons.find((lesson) => lesson.courseId === "course-isie")?.status,
+      "ARCHIVED",
     );
     assert.deepEqual(
       lessons
@@ -178,6 +189,33 @@ test("Sprint G vertical slice keeps shared official content published and course
       true,
     );
     assert.notEqual(extensions[0]?.additionalBody, extensions[1]?.additionalBody);
+  }
+});
+
+test("Industrial PR-C2 retains three physical identities outside the effective projection", () => {
+  const detachedIds = new Set(INDUSTRIAL_PRC2_DETACHED_COURSE_LESSON_IDS);
+  const retained = officialSecurityCertificationCourseLessons.filter((lesson) =>
+    detachedIds.has(lesson.id),
+  );
+
+  assert.equal(retained.length, 3);
+  assert.equal(retained.every((lesson) => lesson.status === "ARCHIVED"), true);
+  assert.equal(
+    effectiveOfficialSecurityCertificationCourseLessons.some((lesson) =>
+      detachedIds.has(lesson.id),
+    ),
+    false,
+  );
+
+  const d1Sql = generateSecurityCertificationCourseLessonSeedSql({ dialect: "d1" });
+  const postgresSql = generateSecurityCertificationCourseLessonSeedSql({
+    dialect: "postgres",
+  });
+  for (const sql of [d1Sql, postgresSql]) {
+    assert.match(sql, /SET "status" = 'ARCHIVED'/);
+    assert.equal((sql.match(/SET "status" = 'ARCHIVED'/g) ?? []).length, 1);
+    assert.doesNotMatch(sql, /DELETE\s+FROM\s+"course_lessons"/i);
+    for (const id of detachedIds) assert.match(sql, new RegExp(id));
   }
 });
 

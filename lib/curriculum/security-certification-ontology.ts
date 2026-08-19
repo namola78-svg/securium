@@ -1,4 +1,7 @@
-import { officialSecurityCertificationContents, officialSecurityCertificationCourseLessons } from "../data/security-certification-course-lessons.mjs";
+import {
+  effectiveOfficialSecurityCertificationCourseLessons,
+  officialSecurityCertificationContents,
+} from "../data/security-certification-course-lessons.mjs";
 import { applicationSecurityQuestionSamples } from "../data/security-certification-application-security-questions.mjs";
 import { securityCertificationInformationSecurityGeneralQuestionSamples } from "../data/security-certification-information-security-general-questions.mjs";
 import { managementLawQuestionSamples } from "../data/security-certification-management-law-questions.mjs";
@@ -64,7 +67,7 @@ const NAMESPACE = "security-certification";
 const officialContents =
   officialSecurityCertificationContents as OfficialSecurityCertificationContent[];
 const officialCourseLessons =
-  officialSecurityCertificationCourseLessons as OfficialSecurityCertificationCourseLesson[];
+  effectiveOfficialSecurityCertificationCourseLessons as OfficialSecurityCertificationCourseLesson[];
 const officialQuestionSamples = [
   ...networkSecurityQuestionSamples,
   ...systemSecurityQuestionSamples,

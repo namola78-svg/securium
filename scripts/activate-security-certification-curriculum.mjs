@@ -1,7 +1,7 @@
 import postgres from "postgres";
 import { spawn } from "node:child_process";
 import { evaluateCurrentEngineerBetaActivationEligibility } from "../lib/curriculum/security-certification-activation-eligibility.ts";
-import { officialSecurityCertificationCourseLessons } from "../lib/data/security-certification-course-lessons.mjs";
+import { effectiveOfficialSecurityCertificationCourseLessons } from "../lib/data/security-certification-course-lessons.mjs";
 
 const CONFIRM_FLAG = "--confirm-production-activation";
 const CONFIRM_ENV_NAME =
@@ -21,7 +21,7 @@ const expectedTrees = [
     courseId: "course-ise",
     minNodes: 79,
     expectedOfficialCourseLessonCount:
-      officialSecurityCertificationCourseLessons.filter(
+      effectiveOfficialSecurityCertificationCourseLessons.filter(
         (lesson) => lesson.courseId === "course-ise",
       ).length,
   },
@@ -30,7 +30,7 @@ const expectedTrees = [
     courseId: "course-isie",
     minNodes: 64,
     expectedOfficialCourseLessonCount:
-      officialSecurityCertificationCourseLessons.filter(
+      effectiveOfficialSecurityCertificationCourseLessons.filter(
         (lesson) => lesson.courseId === "course-isie",
       ).length,
   },
@@ -222,7 +222,7 @@ function buildPreActivationSql(dialect = "postgres") {
   const countCast = dialect === "postgres" ? "::int" : "";
   const treeIds = targetTreeIds.map(sqlString).join(",");
   const courseIds = targetCourseIds.map(sqlString).join(",");
-  const officialCourseLessonIds = officialSecurityCertificationCourseLessons
+  const officialCourseLessonIds = effectiveOfficialSecurityCertificationCourseLessons
     .map((lesson) => sqlString(lesson.id))
     .join(",");
 
