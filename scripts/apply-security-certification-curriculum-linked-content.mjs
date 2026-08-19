@@ -3,7 +3,11 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { officialSecurityCertificationCourseLessons } from "../lib/data/security-certification-course-lessons.mjs";
+import {
+  effectiveOfficialSecurityCertificationCourseLessons,
+  INDUSTRIAL_PRC2_DETACHED_COURSE_LESSON_IDS,
+  officialSecurityCertificationCourseLessons,
+} from "../lib/data/security-certification-course-lessons.mjs";
 
 const CONFIRM_FLAG = "--confirm-production-seed";
 const CONFIRM_ENV_NAME =
@@ -18,6 +22,7 @@ if (!VALID_TARGETS.has(target)) {
 }
 
 const nodeContentLinks = buildNodeContentLinks();
+const detachedNodeContentLinks = buildDetachedNodeContentLinks();
 
 if (target === "stats") {
   printStats();
@@ -43,6 +48,9 @@ function printStats() {
           0,
         ),
         courseLessonSourceCount: officialSecurityCertificationCourseLessons.length,
+        effectiveCourseLessonSourceCount:
+          effectiveOfficialSecurityCertificationCourseLessons.length,
+        prc3DeferredCount: INDUSTRIAL_PRC2_DETACHED_COURSE_LESSON_IDS.length,
       },
       null,
       2,
@@ -112,7 +120,7 @@ async function runPostgresBackfill() {
 function buildNodeContentLinks() {
   const byNodeId = new Map();
 
-  for (const lesson of officialSecurityCertificationCourseLessons) {
+  for (const lesson of effectiveOfficialSecurityCertificationCourseLessons) {
     const existing = byNodeId.get(lesson.curriculumNodeId) ?? [];
     byNodeId.set(lesson.curriculumNodeId, [
       ...existing,
@@ -128,9 +136,27 @@ function buildNodeContentLinks() {
     .sort((a, b) => a.curriculumNodeId.localeCompare(b.curriculumNodeId));
 }
 
+function buildDetachedNodeContentLinks() {
+  const detachedIds = new Set(INDUSTRIAL_PRC2_DETACHED_COURSE_LESSON_IDS);
+  return officialSecurityCertificationCourseLessons
+    .filter((lesson) => detachedIds.has(lesson.id))
+    .map((lesson) => ({
+      curriculumNodeId: lesson.curriculumNodeId,
+      linkedContent: [{ type: "CONTENT", id: lesson.contentId }],
+    }))
+    .sort((a, b) => a.curriculumNodeId.localeCompare(b.curriculumNodeId));
+}
+
 function buildSelectSql() {
-  const ids = nodeContentLinks
-    .map((item) => sqlString(item.curriculumNodeId))
+  const ids = [
+    ...new Set(
+      [...nodeContentLinks, ...detachedNodeContentLinks].map(
+        (item) => item.curriculumNodeId,
+      ),
+    ),
+  ]
+    .sort()
+    .map(sqlString)
     .join(",");
 
   return `
@@ -142,8 +168,14 @@ ORDER BY id;`.trim();
 
 function buildMergedUpdateStatements(rows, dialect) {
   const rowById = new Map(rows.map((row) => [row.id, row]));
-  const missingNodeIds = nodeContentLinks
-    .map((item) => item.curriculumNodeId)
+  const targetNodeIds = [
+    ...new Set(
+      [...nodeContentLinks, ...detachedNodeContentLinks].map(
+        (item) => item.curriculumNodeId,
+      ),
+    ),
+  ].sort();
+  const missingNodeIds = targetNodeIds
     .filter((id) => !rowById.has(id));
 
   if (missingNodeIds.length) {
@@ -153,23 +185,48 @@ function buildMergedUpdateStatements(rows, dialect) {
     );
   }
 
-  return nodeContentLinks.map((item) => {
-    const row = rowById.get(item.curriculumNodeId);
-    const metadata = mergeMetadata(row?.metadata, item.linkedContent);
+  const effectiveByNodeId = new Map(
+    nodeContentLinks.map((item) => [item.curriculumNodeId, item.linkedContent]),
+  );
+  const detachedByNodeId = new Map(
+    detachedNodeContentLinks.map((item) => [
+      item.curriculumNodeId,
+      item.linkedContent,
+    ]),
+  );
+
+  return targetNodeIds.map((curriculumNodeId) => {
+    const row = rowById.get(curriculumNodeId);
+    const metadata = mergeMetadata(
+      row?.metadata,
+      effectiveByNodeId.get(curriculumNodeId) ?? [],
+      detachedByNodeId.get(curriculumNodeId) ?? [],
+    );
     return `
 UPDATE "curriculum_nodes"
 SET "metadata" = ${sqlString(JSON.stringify(metadata))},
     "updated_at" = ${nowExpression(dialect)}
-WHERE "id" = ${sqlString(item.curriculumNodeId)};`.trim();
+WHERE "id" = ${sqlString(curriculumNodeId)};`.trim();
   });
 }
 
-function mergeMetadata(rawMetadata, linkedContent) {
+function mergeMetadata(rawMetadata, linkedContent, detachedContent) {
   const metadata = parseMetadata(rawMetadata);
+  const detachedKeys = new Set(
+    uniqueLinks(detachedContent).map((link) => `${link.type}:${link.id}`),
+  );
+  const retainedLinks = (
+    Array.isArray(metadata.linkedContent) ? metadata.linkedContent : []
+  ).filter(
+    (link) =>
+      !link ||
+      typeof link !== "object" ||
+      !detachedKeys.has(`${link.type}:${link.id}`),
+  );
   return {
     ...metadata,
     linkedContent: uniqueLinks([
-      ...(Array.isArray(metadata.linkedContent) ? metadata.linkedContent : []),
+      ...retainedLinks,
       ...linkedContent,
     ]),
   };

@@ -44,8 +44,8 @@ test("security certification ontology edges link CourseLesson, Content and Conce
     (edge) => edge.fromType === "CONTENT" && edge.toType === "CONCEPT",
   );
 
-  assert.equal(courseLessonEdges.length, 145);
-  assert.equal(contentReuseEdges.length, 145);
+  assert.equal(courseLessonEdges.length, 142);
+  assert.equal(contentReuseEdges.length, 142);
   assert.ok(conceptEdges.length > 20);
   assert.ok(edges.every((edge) => edge.courseId === "course-ise" || edge.courseId === "course-isie"));
   assert.ok(edges.every((edge) => edge.evidence.length > 0));

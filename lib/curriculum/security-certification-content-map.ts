@@ -4,8 +4,8 @@ import {
   type OfficialCurriculumNodeType,
 } from "./security-certification-standards.ts";
 import {
+  effectiveOfficialSecurityCertificationCourseLessons,
   officialSecurityCertificationContents,
-  officialSecurityCertificationCourseLessons,
   officialSecurityCertificationCourseLessonExtensions,
 } from "../data/security-certification-course-lessons.mjs";
 import {
@@ -97,7 +97,7 @@ type QuestionSeedRecord = SecurityCertificationQuestionPlacementSeed;
 const contentSeedRecords =
   officialSecurityCertificationContents as ContentSeedRecord[];
 const courseLessonSeedRecords =
-  officialSecurityCertificationCourseLessons as CourseLessonSeedRecord[];
+  effectiveOfficialSecurityCertificationCourseLessons as CourseLessonSeedRecord[];
 const courseLessonExtensionSeedRecords =
   officialSecurityCertificationCourseLessonExtensions as CourseLessonExtensionSeedRecord[];
 
