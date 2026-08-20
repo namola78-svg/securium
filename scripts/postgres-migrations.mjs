@@ -3,6 +3,11 @@ import { access, readdir, readFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import process from "node:process";
 import { resolve } from "node:path";
+import {
+  assertMigrationConnectionUrl,
+  deployMigrationOnReservedConnection,
+  MigrationGuardError,
+} from "./postgres-migration-guard.mjs";
 
 const migrationsDirectory = resolve("db/postgres/migrations");
 const command = process.argv[2] ?? "validate";
@@ -23,6 +28,12 @@ if (command === "validate") {
 
 const migrationUrls = resolveMigrationUrls();
 if (!migrationUrls.length) fail("DIRECT_URL_REQUIRED");
+if (
+  command === "deploy" &&
+  process.env.POSTGRES_MIGRATION_USE_PSQL === "1"
+) {
+  fail("MIGRATION_GUARD_SINGLE_SESSION_REQUIRED");
+}
 let runnerIndex = 0;
 let runner = await createPostgresMigrationRunner(migrationUrls[runnerIndex]);
 
@@ -61,14 +72,7 @@ if (
   fail("POSTGRES_MIGRATION_APPROVAL_REQUIRED");
 }
 for (const migration of migrations) {
-  const status = await queryWithConnectionFallback(
-    `SELECT id FROM app_schema_migrations WHERE id = '${migration.id.replaceAll("'", "''")}'`,
-  );
-  if (status.code !== 0 && status.errorCode !== "42P01") {
-    failWithDetail("POSTGRES_MIGRATION_STATUS_FAILED", status.errorCode);
-  }
-  if (status.stdout.trim() === migration.id) continue;
-  const result = await fileWithConnectionFallback(migration.path);
+  const result = await runner.deployMigration(migration);
   if (result.code !== 0) {
     failWithDetail("POSTGRES_MIGRATION_DEPLOY_FAILED", result.errorCode);
   }
@@ -79,22 +83,6 @@ console.log("POSTGRES_MIGRATIONS_DEPLOYED");
 async function queryWithConnectionFallback(statement) {
   while (true) {
     const result = await runner.query(statement);
-    if (
-      result.code === 0 ||
-      !isConnectionFallbackError(result.errorCode) ||
-      runnerIndex >= migrationUrls.length - 1
-    ) {
-      return result;
-    }
-    await runner.close();
-    runnerIndex += 1;
-    runner = await createPostgresMigrationRunner(migrationUrls[runnerIndex]);
-  }
-}
-
-async function fileWithConnectionFallback(path) {
-  while (true) {
-    const result = await runner.file(path);
     if (
       result.code === 0 ||
       !isConnectionFallbackError(result.errorCode) ||
@@ -203,6 +191,15 @@ function isConnectionFallbackError(code) {
 }
 
 async function createPostgresMigrationRunner(directUrl) {
+  let connectionPlan = null;
+  if (command === "deploy") {
+    try {
+      connectionPlan = assertMigrationConnectionUrl(directUrl);
+    } catch (error) {
+      if (error instanceof MigrationGuardError) fail(error.code);
+      fail("DIRECT_URL_INVALID");
+    }
+  }
   const preferPsql = process.env.POSTGRES_MIGRATION_USE_PSQL === "1";
   const connectionEnvironment = preferPsql
     ? createLibpqEnvironment(directUrl)
@@ -211,12 +208,12 @@ async function createPostgresMigrationRunner(directUrl) {
   if (psql) {
     return {
       close: async () => {},
-      file: (path) =>
-        runProcess(
-          psql,
-          ["-v", "ON_ERROR_STOP=1", "-f", path],
-          connectionEnvironment,
-        ),
+      deployMigration: async () => ({
+        code: 1,
+        stdout: "",
+        ddlStarted: false,
+        errorCode: "MIGRATION_GUARD_SINGLE_SESSION_REQUIRED",
+      }),
       query: (sql) =>
         runProcess(psql, ["-At", "-c", sql], connectionEnvironment),
     };
@@ -241,18 +238,17 @@ async function createPostgresMigrationRunner(directUrl) {
       application_name: "securium-postgres-migrations",
     },
   });
+  if (command === "deploy") {
+    console.log(
+      `MIGRATION_GUARD_CONNECTION mode=${connectionPlan?.mode} port=${connectionPlan?.port} driver=postgresjs`,
+    );
+  }
   return {
     close: async () => {
       await sql.end({ timeout: 5 });
     },
-    file: async (path) => {
-      try {
-        await sql.unsafe(await readFile(path, "utf8"));
-        return { code: 0, stdout: "" };
-      } catch (error) {
-        return { code: 1, errorCode: safeErrorCode(error), stdout: "" };
-      }
-    },
+    deployMigration: (migration) =>
+      deployMigrationOnReservedConnection({ sql, migration }),
     query: async (statement) => {
       try {
         const rows = await sql.unsafe(statement);
