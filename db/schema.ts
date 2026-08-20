@@ -4,6 +4,7 @@ import {
   foreignKey,
   index,
   integer,
+  real,
   sqliteTable,
   text,
   uniqueIndex,
@@ -2991,6 +2992,300 @@ export const adminAuditLogs = sqliteTable(
   ],
 );
 
+export const practicalRubricVersions = sqliteTable(
+  "practical_rubric_versions",
+  {
+    id: text("id").primaryKey(),
+    rubricId: text("rubric_id").notNull(),
+    version: integer("version").notNull(),
+    snapshotFormatVersion: integer("snapshot_format_version")
+      .notNull()
+      .default(1),
+    snapshotJson: text("snapshot_json").notNull(),
+    snapshotDigest: text("snapshot_digest").notNull(),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    effectiveFrom: text("effective_from"),
+    withdrawnAt: text("withdrawn_at"),
+  },
+  (table) => [
+    uniqueIndex("practical_rubric_versions_identity_unique").on(
+      table.rubricId,
+      table.version,
+    ),
+    check(
+      "practical_rubric_versions_version_check",
+      sql`${table.version} > 0`,
+    ),
+    check(
+      "practical_rubric_versions_format_check",
+      sql`${table.snapshotFormatVersion} > 0`,
+    ),
+    check(
+      "practical_rubric_versions_snapshot_length_check",
+      sql`length(${table.snapshotJson}) <= 100000`,
+    ),
+    check(
+      "practical_rubric_versions_digest_check",
+      sql`length(${table.snapshotDigest}) = 64 AND ${table.snapshotDigest} NOT GLOB '*[^0-9a-f]*'`,
+    ),
+  ],
+);
+
+export const practicalDefinitionVersions = sqliteTable(
+  "practical_definition_versions",
+  {
+    id: text("id").primaryKey(),
+    practicalId: text("practical_id").notNull(),
+    version: integer("version").notNull(),
+    rubricVersionId: text("rubric_version_id")
+      .notNull()
+      .references(() => practicalRubricVersions.id, { onDelete: "restrict" }),
+    snapshotFormatVersion: integer("snapshot_format_version")
+      .notNull()
+      .default(1),
+    snapshotJson: text("snapshot_json").notNull(),
+    snapshotDigest: text("snapshot_digest").notNull(),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    effectiveFrom: text("effective_from"),
+    withdrawnAt: text("withdrawn_at"),
+  },
+  (table) => [
+    uniqueIndex("practical_definition_versions_identity_unique").on(
+      table.practicalId,
+      table.version,
+    ),
+    uniqueIndex("practical_definition_versions_rubric_binding_unique").on(
+      table.id,
+      table.rubricVersionId,
+    ),
+    check(
+      "practical_definition_versions_version_check",
+      sql`${table.version} > 0`,
+    ),
+    check(
+      "practical_definition_versions_format_check",
+      sql`${table.snapshotFormatVersion} > 0`,
+    ),
+    check(
+      "practical_definition_versions_snapshot_length_check",
+      sql`length(${table.snapshotJson}) <= 100000`,
+    ),
+    check(
+      "practical_definition_versions_digest_check",
+      sql`length(${table.snapshotDigest}) = 64 AND ${table.snapshotDigest} NOT GLOB '*[^0-9a-f]*'`,
+    ),
+  ],
+);
+
+export const practicalAttempts = sqliteTable(
+  "practical_attempts",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    practicalId: text("practical_id").notNull(),
+    practicalDefinitionVersionId: text("practical_definition_version_id").notNull(),
+    rubricVersionId: text("rubric_version_id").notNull(),
+    courseId: text("course_id")
+      .notNull()
+      .references(() => courses.id, { onDelete: "restrict" }),
+    curriculumTreeId: text("curriculum_tree_id")
+      .notNull()
+      .references(() => curriculumTrees.id, { onDelete: "restrict" }),
+    curriculumTreeVersionReference: text("curriculum_tree_version_reference").notNull(),
+    curriculumNodeId: text("curriculum_node_id")
+      .notNull()
+      .references(() => curriculumNodes.id, { onDelete: "restrict" }),
+    objectivePlacementId: text("objective_placement_id").notNull(),
+    practicalPlacementId: text("practical_placement_id").notNull(),
+    state: text("state").notNull().default("IN_PROGRESS"),
+    responsesJson: text("responses_json").notNull().default("[]"),
+    artifactManifestJson: text("artifact_manifest_json").notNull().default("[]"),
+    submissionDigest: text("submission_digest"),
+    creationIdempotencyKey: text("creation_idempotency_key").notNull(),
+    submissionIdempotencyKey: text("submission_idempotency_key"),
+    draftRevision: integer("draft_revision").notNull().default(0),
+    startedAt: text("started_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    submittedAt: text("submitted_at"),
+    expiresAt: text("expires_at"),
+    expiredAt: text("expired_at"),
+    voidedAt: text("voided_at"),
+    voidReasonCode: text("void_reason_code"),
+    eligibilityDecisionReference: text("eligibility_decision_reference"),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    foreignKey({
+      name: "practical_attempts_definition_rubric_fk",
+      columns: [table.practicalDefinitionVersionId, table.rubricVersionId],
+      foreignColumns: [
+        practicalDefinitionVersions.id,
+        practicalDefinitionVersions.rubricVersionId,
+      ],
+    }).onDelete("restrict"),
+    uniqueIndex("practical_attempts_creation_idempotency_unique").on(
+      table.userId,
+      table.creationIdempotencyKey,
+    ),
+    uniqueIndex("practical_attempts_submission_idempotency_unique")
+      .on(table.userId, table.submissionIdempotencyKey)
+      .where(sql`${table.submissionIdempotencyKey} IS NOT NULL`),
+    uniqueIndex("practical_attempts_version_binding_unique").on(
+      table.id,
+      table.practicalDefinitionVersionId,
+      table.rubricVersionId,
+    ),
+    index("practical_attempts_user_history_idx").on(
+      table.userId,
+      table.practicalId,
+      table.startedAt,
+    ),
+    index("practical_attempts_user_state_idx").on(
+      table.userId,
+      table.state,
+      table.updatedAt,
+    ),
+    index("practical_attempts_expiration_idx").on(table.state, table.expiresAt),
+    check(
+      "practical_attempts_state_check",
+      sql`${table.state} IN ('IN_PROGRESS', 'SUBMITTED', 'EVALUATED', 'EXPIRED', 'VOIDED')`,
+    ),
+    check(
+      "practical_attempts_responses_length_check",
+      sql`length(${table.responsesJson}) <= 100000`,
+    ),
+    check(
+      "practical_attempts_artifact_manifest_length_check",
+      sql`length(${table.artifactManifestJson}) <= 20000`,
+    ),
+    check(
+      "practical_attempts_submission_digest_check",
+      sql`${table.submissionDigest} IS NULL OR (length(${table.submissionDigest}) = 64 AND ${table.submissionDigest} NOT GLOB '*[^0-9a-f]*')`,
+    ),
+    check(
+      "practical_attempts_draft_revision_check",
+      sql`${table.draftRevision} >= 0`,
+    ),
+    check(
+      "practical_attempts_void_reason_length_check",
+      sql`${table.voidReasonCode} IS NULL OR length(${table.voidReasonCode}) <= 200`,
+    ),
+  ],
+);
+
+export const practicalEvaluations = sqliteTable(
+  "practical_evaluations",
+  {
+    id: text("id").primaryKey(),
+    attemptId: text("attempt_id").notNull(),
+    sequence: integer("sequence").notNull(),
+    previousEvaluationId: text("previous_evaluation_id"),
+    practicalDefinitionVersionId: text("practical_definition_version_id").notNull(),
+    rubricVersionId: text("rubric_version_id").notNull(),
+    method: text("method").notNull(),
+    dimensionResultsJson: text("dimension_results_json").notNull(),
+    rawScore: real("raw_score"),
+    maximumScore: real("maximum_score"),
+    qualification: text("qualification").notNull(),
+    reviewStatus: text("review_status").notNull().default("NOT_REQUIRED"),
+    provenanceJson: text("provenance_json").notNull(),
+    reviewerId: text("reviewer_id").references(() => users.id, {
+      onDelete: "restrict",
+    }),
+    reviewedAt: text("reviewed_at"),
+    reviewReason: text("review_reason"),
+    evaluationPayloadDigest: text("evaluation_payload_digest").notNull(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    evaluatorJobId: text("evaluator_job_id"),
+    evaluatorResultId: text("evaluator_result_id"),
+    evaluatedAt: text("evaluated_at").notNull(),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    foreignKey({
+      name: "practical_evaluations_attempt_version_fk",
+      columns: [
+        table.attemptId,
+        table.practicalDefinitionVersionId,
+        table.rubricVersionId,
+      ],
+      foreignColumns: [
+        practicalAttempts.id,
+        practicalAttempts.practicalDefinitionVersionId,
+        practicalAttempts.rubricVersionId,
+      ],
+    }).onDelete("restrict"),
+    foreignKey({
+      name: "practical_evaluations_previous_fk",
+      columns: [table.previousEvaluationId],
+      foreignColumns: [table.id],
+    }).onDelete("restrict"),
+    uniqueIndex("practical_evaluations_sequence_unique").on(
+      table.attemptId,
+      table.sequence,
+    ),
+    uniqueIndex("practical_evaluations_operation_unique").on(
+      table.attemptId,
+      table.idempotencyKey,
+    ),
+    uniqueIndex("practical_evaluations_predecessor_unique")
+      .on(table.previousEvaluationId)
+      .where(sql`${table.previousEvaluationId} IS NOT NULL`),
+    uniqueIndex("practical_evaluations_evaluator_result_unique")
+      .on(table.attemptId, table.evaluatorJobId, table.evaluatorResultId)
+      .where(
+        sql`${table.evaluatorJobId} IS NOT NULL AND ${table.evaluatorResultId} IS NOT NULL`,
+      ),
+    index("practical_evaluations_review_queue_idx").on(
+      table.reviewStatus,
+      table.createdAt,
+    ),
+    check("practical_evaluations_sequence_check", sql`${table.sequence} >= 1`),
+    check(
+      "practical_evaluations_method_check",
+      sql`${table.method} IN ('DETERMINISTIC', 'RUBRIC', 'AI_ASSISTED', 'HUMAN_REVIEWED', 'HYBRID')`,
+    ),
+    check(
+      "practical_evaluations_qualification_check",
+      sql`${table.qualification} IN ('QUALIFIED', 'NOT_QUALIFIED', 'PENDING_REVIEW')`,
+    ),
+    check(
+      "practical_evaluations_review_status_check",
+      sql`${table.reviewStatus} IN ('NOT_REQUIRED', 'PENDING', 'COMPLETED')`,
+    ),
+    check(
+      "practical_evaluations_dimension_results_length_check",
+      sql`length(${table.dimensionResultsJson}) <= 100000`,
+    ),
+    check(
+      "practical_evaluations_provenance_length_check",
+      sql`length(${table.provenanceJson}) <= 10000`,
+    ),
+    check(
+      "practical_evaluations_review_reason_length_check",
+      sql`${table.reviewReason} IS NULL OR length(${table.reviewReason}) <= 2000`,
+    ),
+    check(
+      "practical_evaluations_score_pair_check",
+      sql`(${table.rawScore} IS NULL AND ${table.maximumScore} IS NULL) OR (${table.rawScore} IS NOT NULL AND ${table.maximumScore} IS NOT NULL AND ${table.rawScore} >= 0 AND ${table.maximumScore} > 0 AND ${table.rawScore} <= ${table.maximumScore} AND ${table.rawScore} <= 1.7976931348623157e308 AND ${table.maximumScore} <= 1.7976931348623157e308)`,
+    ),
+    check(
+      "practical_evaluations_ai_qualification_check",
+      sql`NOT (${table.method} = 'AI_ASSISTED' AND ${table.qualification} = 'QUALIFIED')`,
+    ),
+    check(
+      "practical_evaluations_evaluator_identity_check",
+      sql`(${table.evaluatorJobId} IS NULL AND ${table.evaluatorResultId} IS NULL) OR (${table.evaluatorJobId} IS NOT NULL AND ${table.evaluatorResultId} IS NOT NULL)`,
+    ),
+    check(
+      "practical_evaluations_digest_check",
+      sql`length(${table.evaluationPayloadDigest}) = 64 AND ${table.evaluationPayloadDigest} NOT GLOB '*[^0-9a-f]*'`,
+    ),
+  ],
+);
+
 export type User = typeof users.$inferSelect;
 export type CourseGroup = typeof courseGroups.$inferSelect;
 export type Course = typeof courses.$inferSelect;
@@ -3042,3 +3337,10 @@ export type OntologyConcept = typeof ontologyConcepts.$inferSelect;
 export type OntologyAlias = typeof ontologyAliases.$inferSelect;
 export type OntologyEdge = typeof ontologyEdges.$inferSelect;
 export type AuditLog = typeof adminAuditLogs.$inferSelect;
+export type PracticalRubricVersionRecord =
+  typeof practicalRubricVersions.$inferSelect;
+export type PracticalDefinitionVersionRecord =
+  typeof practicalDefinitionVersions.$inferSelect;
+export type PracticalAttemptRecord = typeof practicalAttempts.$inferSelect;
+export type PracticalEvaluationRecord =
+  typeof practicalEvaluations.$inferSelect;

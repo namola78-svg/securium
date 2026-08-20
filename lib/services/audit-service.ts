@@ -40,6 +40,28 @@ export const AUDIT_ACTION_METADATA_ALLOWLIST: Record<string, readonly string[]> 
     "evidenceCount",
   ],
   ONTOLOGY_ARCHIVED: ["targetType", "fromStatus", "toStatus", "summaryLength"],
+  PRACTICAL_ATTEMPT_CREATED: [
+    "practicalId",
+    "practicalDefinitionVersionId",
+    "rubricVersionId",
+  ],
+  PRACTICAL_ATTEMPT_SUBMITTED: ["submissionDigest", "draftRevision"],
+  PRACTICAL_ATTEMPT_EXPIRED: ["reasonCode"],
+  PRACTICAL_ATTEMPT_VOIDED: ["reasonCode"],
+  PRACTICAL_EVALUATION_CREATED: [
+    "sequence",
+    "method",
+    "qualification",
+    "evaluationPayloadDigest",
+  ],
+  PRACTICAL_EVALUATION_REVISED: [
+    "sequence",
+    "previousEvaluationId",
+    "method",
+    "qualification",
+    "evaluationPayloadDigest",
+  ],
+  PRACTICAL_EVALUATOR_FAILED: ["reasonCode", "evaluatorJobId"],
 };
 
 const SENSITIVE_KEY =
@@ -73,7 +95,7 @@ export function sanitizeAuditMetadata(
     if (!allowed.has(key) || SENSITIVE_KEY.test(key)) continue;
     if (
       typeof value === "string" ||
-      typeof value === "number" ||
+      (typeof value === "number" && Number.isFinite(value)) ||
       typeof value === "boolean"
     ) {
       safe[key] =
