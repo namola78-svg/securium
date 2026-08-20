@@ -3286,6 +3286,268 @@ export const practicalEvaluations = sqliteTable(
   ],
 );
 
+export const factIdentities = sqliteTable(
+  "fact_identities",
+  {
+    id: text("id").primaryKey(),
+    canonicalKey: text("canonical_key").notNull(),
+    domain: text("domain").notNull(),
+    canonicalLabel: text("canonical_label").notNull(),
+    normalizedSemanticIdentity: text("normalized_semantic_identity").notNull(),
+    scopeDiscriminator: text("scope_discriminator").notNull(),
+    lifecycleState: text("lifecycle_state").notNull().default("DRAFT"),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    retiredAt: text("retired_at"),
+  },
+  (table) => [
+    uniqueIndex("fact_identities_canonical_key_unique").on(table.canonicalKey),
+    index("fact_identities_domain_lifecycle_idx").on(
+      table.domain,
+      table.lifecycleState,
+      table.createdAt,
+    ),
+    check(
+      "fact_identities_scope_check",
+      sql`length(trim(${table.scopeDiscriminator})) > 0 AND length(${table.scopeDiscriminator}) <= 300`,
+    ),
+    check(
+      "fact_identities_lifecycle_check",
+      sql`${table.lifecycleState} IN ('DRAFT', 'PUBLISHED', 'RETIRED')`,
+    ),
+    check(
+      "fact_identities_semantic_identity_check",
+      sql`length(trim(${table.normalizedSemanticIdentity})) > 0 AND length(${table.normalizedSemanticIdentity}) <= 300`,
+    ),
+  ],
+);
+
+export const temporalAssertions = sqliteTable(
+  "temporal_assertions",
+  {
+    id: text("id").primaryKey(),
+    factIdentityId: text("fact_identity_id")
+      .notNull()
+      .references(() => factIdentities.id, { onDelete: "restrict" }),
+    normalizedProposition: text("normalized_proposition").notNull(),
+    effectiveFrom: text("effective_from").notNull(),
+    effectiveTo: text("effective_to"),
+    currentnessState: text("currentness_state").notNull(),
+    qualification: text("qualification").notNull().default(""),
+    normativeStrength: text("normative_strength").notNull(),
+    payloadJson: text("payload_json").notNull(),
+    provenanceJson: text("provenance_json").notNull(),
+    payloadHash: text("payload_hash").notNull(),
+    provenanceHash: text("provenance_hash").notNull(),
+    lifecycleState: text("lifecycle_state").notNull().default("DRAFT"),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    uniqueIndex("temporal_assertions_semantic_digest_unique").on(
+      table.factIdentityId,
+      table.payloadHash,
+      table.provenanceHash,
+    ),
+    index("temporal_assertions_fact_history_idx").on(
+      table.factIdentityId,
+      table.effectiveFrom,
+      table.createdAt,
+    ),
+    index("temporal_assertions_currentness_idx").on(
+      table.currentnessState,
+      table.effectiveFrom,
+      table.effectiveTo,
+    ),
+    index("temporal_assertions_lifecycle_idx").on(
+      table.lifecycleState,
+      table.createdAt,
+    ),
+    check(
+      "temporal_assertions_interval_check",
+      sql`${table.effectiveTo} IS NULL OR ${table.effectiveTo} > ${table.effectiveFrom}`,
+    ),
+    check(
+      "temporal_assertions_currentness_check",
+      sql`${table.currentnessState} IN ('CURRENT_VERIFIED', 'CURRENT_WITH_QUALIFICATION', 'FUTURE_CHANGE_PENDING', 'UNVERIFIED', 'SUPERSEDED', 'CONFLICTING')`,
+    ),
+    check(
+      "temporal_assertions_normative_strength_check",
+      sql`${table.normativeStrength} IN ('STATUTORY_REQUIREMENT', 'REGULATORY_REQUIREMENT', 'OFFICIAL_INTERPRETATION', 'OFFICIAL_GUIDANCE', 'BEST_PRACTICE_REFERENCE', 'EXAM_IDENTITY_FACT', 'NEUTRAL_DEFINITION')`,
+    ),
+    check(
+      "temporal_assertions_lifecycle_check",
+      sql`${table.lifecycleState} IN ('DRAFT', 'PUBLISHED', 'SUPERSEDED')`,
+    ),
+    check(
+      "temporal_assertions_payload_hash_check",
+      sql`length(${table.payloadHash}) = 64 AND ${table.payloadHash} NOT GLOB '*[^0-9a-f]*'`,
+    ),
+    check(
+      "temporal_assertions_provenance_hash_check",
+      sql`length(${table.provenanceHash}) = 64 AND ${table.provenanceHash} NOT GLOB '*[^0-9a-f]*'`,
+    ),
+    check(
+      "temporal_assertions_payload_length_check",
+      sql`length(${table.payloadJson}) <= 100000 AND length(${table.provenanceJson}) <= 100000 AND length(${table.qualification}) <= 2000`,
+    ),
+  ],
+);
+
+export const sourceIdentities = sqliteTable(
+  "source_identities",
+  {
+    id: text("id").primaryKey(),
+    canonicalKey: text("canonical_key").notNull(),
+    sourceType: text("source_type").notNull(),
+    canonicalLabel: text("canonical_label").notNull(),
+    normalizedIdentity: text("normalized_identity").notNull(),
+    publisher: text("publisher").notNull().default(""),
+    jurisdiction: text("jurisdiction").notNull().default(""),
+    lifecycleState: text("lifecycle_state").notNull().default("ACTIVE"),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    uniqueIndex("source_identities_canonical_key_unique").on(table.canonicalKey),
+    uniqueIndex("source_identities_normalized_unique").on(
+      table.sourceType,
+      table.normalizedIdentity,
+    ),
+    index("source_identities_type_lifecycle_idx").on(
+      table.sourceType,
+      table.lifecycleState,
+      table.createdAt,
+    ),
+    check(
+      "source_identities_lifecycle_check",
+      sql`${table.lifecycleState} IN ('ACTIVE', 'RETIRED')`,
+    ),
+    check(
+      "source_identities_identity_check",
+      sql`length(trim(${table.normalizedIdentity})) > 0 AND length(${table.normalizedIdentity}) <= 300`,
+    ),
+  ],
+);
+
+export const assertionSourceBindings = sqliteTable(
+  "assertion_source_bindings",
+  {
+    id: text("id").primaryKey(),
+    temporalAssertionId: text("temporal_assertion_id")
+      .notNull()
+      .references(() => temporalAssertions.id, { onDelete: "restrict" }),
+    sourceIdentityId: text("source_identity_id")
+      .notNull()
+      .references(() => sourceIdentities.id, { onDelete: "restrict" }),
+    sourceRole: text("source_role").notNull(),
+    sourceVersion: text("source_version").notNull().default(""),
+    sourceHash: text("source_hash").notNull().default(""),
+    locator: text("locator").notNull(),
+    verificationMetadataJson: text("verification_metadata_json")
+      .notNull()
+      .default("{}"),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => users.id),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    uniqueIndex("assertion_source_bindings_identity_unique").on(
+      table.temporalAssertionId,
+      table.sourceIdentityId,
+      table.sourceRole,
+      table.locator,
+    ),
+    uniqueIndex("assertion_source_bindings_primary_unique")
+      .on(table.temporalAssertionId)
+      .where(sql`${table.sourceRole} = 'PRIMARY_AUTHORITY'`),
+    index("assertion_source_bindings_assertion_role_idx").on(
+      table.temporalAssertionId,
+      table.sourceRole,
+      table.createdAt,
+    ),
+    index("assertion_source_bindings_source_idx").on(
+      table.sourceIdentityId,
+      table.createdAt,
+    ),
+    check(
+      "assertion_source_bindings_role_check",
+      sql`${table.sourceRole} IN ('PRIMARY_AUTHORITY', 'SUPPORTING_AUTHORITY', 'CONTEXT_SOURCE')`,
+    ),
+    check(
+      "assertion_source_bindings_hash_check",
+      sql`${table.sourceHash} = '' OR (length(${table.sourceHash}) = 64 AND ${table.sourceHash} NOT GLOB '*[^0-9a-f]*')`,
+    ),
+    check(
+      "assertion_source_bindings_metadata_length_check",
+      sql`length(${table.verificationMetadataJson}) <= 100000`,
+    ),
+  ],
+);
+
+export const factConceptBindings = sqliteTable(
+  "fact_concept_bindings",
+  {
+    id: text("id").primaryKey(),
+    factIdentityId: text("fact_identity_id")
+      .notNull()
+      .references(() => factIdentities.id, { onDelete: "restrict" }),
+    conceptId: text("concept_id")
+      .notNull()
+      .references(() => ontologyConcepts.id),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => users.id),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    uniqueIndex("fact_concept_bindings_identity_unique").on(
+      table.factIdentityId,
+      table.conceptId,
+    ),
+    index("fact_concept_bindings_concept_idx").on(
+      table.conceptId,
+      table.createdAt,
+    ),
+  ],
+);
+
+export const factTrackBindings = sqliteTable(
+  "fact_track_bindings",
+  {
+    id: text("id").primaryKey(),
+    factIdentityId: text("fact_identity_id")
+      .notNull()
+      .references(() => factIdentities.id, { onDelete: "restrict" }),
+    trackKey: text("track_key").notNull(),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => users.id),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    uniqueIndex("fact_track_bindings_identity_unique").on(
+      table.factIdentityId,
+      table.trackKey,
+    ),
+    index("fact_track_bindings_track_idx").on(
+      table.trackKey,
+      table.createdAt,
+    ),
+    check(
+      "fact_track_bindings_track_check",
+      sql`length(trim(${table.trackKey})) > 0 AND length(${table.trackKey}) <= 200`,
+    ),
+  ],
+);
+
 export type User = typeof users.$inferSelect;
 export type CourseGroup = typeof courseGroups.$inferSelect;
 export type Course = typeof courses.$inferSelect;
@@ -3344,3 +3606,10 @@ export type PracticalDefinitionVersionRecord =
 export type PracticalAttemptRecord = typeof practicalAttempts.$inferSelect;
 export type PracticalEvaluationRecord =
   typeof practicalEvaluations.$inferSelect;
+export type FactIdentityRecord = typeof factIdentities.$inferSelect;
+export type TemporalAssertionRecord = typeof temporalAssertions.$inferSelect;
+export type SourceIdentityRecord = typeof sourceIdentities.$inferSelect;
+export type AssertionSourceBindingRecord =
+  typeof assertionSourceBindings.$inferSelect;
+export type FactConceptBindingRecord = typeof factConceptBindings.$inferSelect;
+export type FactTrackBindingRecord = typeof factTrackBindings.$inferSelect;
