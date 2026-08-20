@@ -1,5 +1,12 @@
 import { z } from "zod";
 import { AppError } from "./errors.ts";
+import {
+  FACT_CURRENTNESS_STATES,
+  FACT_NORMATIVE_STRENGTHS,
+  createFactProvenanceManifest,
+  createFactProvenanceSource,
+} from "./facts/fact-domain.ts";
+import { FACT_SOURCE_ROLES } from "./provenance/fact-source-binding.ts";
 
 const code = z
   .string()
@@ -1029,6 +1036,100 @@ export const ontologyReviewStatusSchema = z.object({
   returnTo: safeInternalPath.optional(),
 });
 
+const canonicalFactIdSchema = z.string().refine(
+  (value) =>
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value) ||
+    /^[0-7][0-9A-HJKMNP-TV-Z]{25}$/.test(value),
+  "Stable UUID or ULID required",
+);
+
+const canonicalFactTimestampSchema = z.string().refine(
+  (value) => /^\d{4}-\d{2}-\d{2}T/.test(value) && !Number.isNaN(Date.parse(value)),
+  "ISO timestamp required",
+);
+
+export const factIdentityFoundationSchema = z.object({
+  id: canonicalFactIdSchema,
+  canonicalKey: z.string().min(3).max(200).regex(/^[a-z0-9][a-z0-9._:/-]+$/),
+  domain: z.string().trim().min(3).max(300),
+  canonicalLabel: z.string().trim().min(3).max(300),
+  normalizedSemanticIdentity: z.string().min(3).max(300).refine(
+    (value) => value === value.toLowerCase(),
+    "Normalized semantic identity must be lowercase",
+  ),
+  scopeDiscriminator: z.string().trim().min(3).max(300),
+  createdBy: canonicalFactIdSchema,
+  createdAt: canonicalFactTimestampSchema,
+});
+
+export const temporalAssertionFoundationSchema = z.object({
+  id: canonicalFactIdSchema,
+  factIdentityId: canonicalFactIdSchema,
+  normalizedProposition: z.string().trim().min(3).max(20_000),
+  effectiveFrom: canonicalFactTimestampSchema,
+  effectiveTo: canonicalFactTimestampSchema.nullable().optional(),
+  currentnessState: z.enum(FACT_CURRENTNESS_STATES),
+  qualification: z.string().max(2_000).optional(),
+  normativeStrength: z.enum(FACT_NORMATIVE_STRENGTHS),
+  provenance: z.custom((value) => {
+    try {
+      createFactProvenanceManifest(value);
+      return true;
+    } catch {
+      return false;
+    }
+  }, "Validated Fact provenance manifest required"),
+  createdBy: canonicalFactIdSchema,
+  createdAt: canonicalFactTimestampSchema,
+}).strict().refine(
+  (value) =>
+    value.effectiveTo == null ||
+    Date.parse(value.effectiveTo) > Date.parse(value.effectiveFrom),
+  { message: "Effective interval must be half-open with end after start" },
+);
+
+export const sourceIdentityFoundationSchema = z.object({
+  id: canonicalFactIdSchema,
+  logicalSourceDocumentId: z.string().trim().min(3).max(300),
+  sourceKind: z.string().trim().min(3).max(300),
+  officialTitle: z.string().trim().min(3).max(300),
+  normalizedIdentity: z.string().min(3).max(300).refine(
+    (value) => value === value.toLowerCase(),
+    "Normalized source identity must be lowercase",
+  ),
+  issuer: z.string().trim().max(300).optional(),
+  jurisdiction: z.string().trim().max(300).optional(),
+  createdBy: canonicalFactIdSchema,
+  createdAt: canonicalFactTimestampSchema,
+}).strict();
+
+export const assertionSourceBindingFoundationSchema = z.object({
+  id: canonicalFactIdSchema,
+  temporalAssertionId: canonicalFactIdSchema,
+  sourceIdentityId: canonicalFactIdSchema,
+  sourceRole: z.enum(FACT_SOURCE_ROLES),
+  sourceVersion: z.string().trim().max(300).optional(),
+  sourceHash: z.string().regex(/^[0-9a-f]{64}$/).optional(),
+  locator: z.string().trim().min(3).max(2_000),
+  verification: z.custom((value) => {
+    try {
+      createFactProvenanceSource({
+        sourceIdentityId: "00000000-0000-4000-8000-000000000000",
+        sourceRole: "CONTEXT_SOURCE",
+        sourceVersion: "",
+        sourceHash: "",
+        locator: "validation-locator",
+        verification: value,
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }, "Validated source verification metadata required"),
+  createdBy: canonicalFactIdSchema,
+  createdAt: canonicalFactTimestampSchema,
+}).strict();
+
 export type CourseGroupInput = z.infer<typeof courseGroupSchema>;
 export type CourseInput = z.infer<typeof courseSchema>;
 export type SubjectInput = z.infer<typeof subjectSchema>;
@@ -1036,6 +1137,11 @@ export type TopicInput = z.infer<typeof topicSchema>;
 export type LearningUnitInput = z.infer<typeof learningUnitSchema>;
 export type LessonInput = z.infer<typeof lessonSchema>;
 export type QuestionInput = z.infer<typeof questionSchema>;
+export type FactIdentityFoundationInput = z.infer<typeof factIdentityFoundationSchema>;
+export type TemporalAssertionFoundationInput = z.infer<typeof temporalAssertionFoundationSchema>;
+export type SourceIdentityFoundationInput = z.infer<typeof sourceIdentityFoundationSchema>;
+export type AssertionSourceBindingFoundationInput =
+  z.infer<typeof assertionSourceBindingFoundationSchema>;
 
 export function parseInput<T>(schema: z.ZodType<T>, value: unknown): T {
   const result = schema.safeParse(value);
