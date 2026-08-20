@@ -31,6 +31,24 @@ export const EVALUATION_METHODS = [
 ] as const;
 export type EvaluationMethod = (typeof EVALUATION_METHODS)[number];
 
+export type PracticalJsonPrimitive = string | number | boolean | null;
+export type PracticalJsonValue =
+  | PracticalJsonPrimitive
+  | readonly PracticalJsonValue[]
+  | Readonly<{ [key: string]: PracticalJsonValue }>;
+
+export const PRACTICAL_JSON_LIMITS = Object.freeze({
+  maximumDepth: 8,
+  maximumNodes: 2_048,
+  maximumArrayLength: 256,
+  maximumObjectKeys: 128,
+  maximumStringLength: 10_000,
+  maximumSnapshotLength: 100_000,
+  maximumArtifactManifestLength: 20_000,
+  maximumProvenanceLength: 10_000,
+  maximumReviewReasonLength: 2_000,
+});
+
 export type PracticalAttempt = Readonly<{
   attemptId: string;
   learnerReference: string;
@@ -53,6 +71,7 @@ export type EvaluationProvenance = Readonly<{
   evaluatedAt: string;
   evaluatorReference?: string;
   aiModel?: Readonly<{ provider: string; model: string; version?: string }>;
+  metadata?: PracticalJsonValue;
 }>;
 
 export type PracticalEvaluation = Readonly<{
@@ -89,6 +108,122 @@ const VERSION_ID = /^(practical-version:practical:[a-z0-9][a-z0-9._-]*:[a-z0-9][
 
 function fail(code: string): never {
   throw new TypeError(code);
+}
+
+const FORBIDDEN_JSON_KEYS = new Set(["__proto__", "prototype", "constructor"]);
+
+export function canonicalizePracticalJson(
+  value: unknown,
+  maximumLength: number = PRACTICAL_JSON_LIMITS.maximumSnapshotLength,
+): string {
+  let nodes = 0;
+  const visit = (candidate: unknown, depth: number): string => {
+    nodes += 1;
+    if (nodes > PRACTICAL_JSON_LIMITS.maximumNodes) {
+      fail("PRACTICAL_JSON_NODE_LIMIT_EXCEEDED");
+    }
+    if (depth > PRACTICAL_JSON_LIMITS.maximumDepth) {
+      fail("PRACTICAL_JSON_DEPTH_LIMIT_EXCEEDED");
+    }
+    if (candidate === null) return "null";
+    if (typeof candidate === "string") {
+      if (candidate.length > PRACTICAL_JSON_LIMITS.maximumStringLength) {
+        fail("PRACTICAL_JSON_STRING_LIMIT_EXCEEDED");
+      }
+      return JSON.stringify(candidate);
+    }
+    if (typeof candidate === "number") {
+      if (!Number.isFinite(candidate)) fail("NON_FINITE_EVALUATION_VALUE");
+      return Object.is(candidate, -0) ? "0" : JSON.stringify(candidate);
+    }
+    if (typeof candidate === "boolean") return candidate ? "true" : "false";
+    if (typeof candidate !== "object") fail("INVALID_STRUCTURED_FIELD");
+    if (Array.isArray(candidate)) {
+      if (candidate.length > PRACTICAL_JSON_LIMITS.maximumArrayLength) {
+        fail("PRACTICAL_JSON_ARRAY_LIMIT_EXCEEDED");
+      }
+      const keys = Reflect.ownKeys(candidate);
+      if (
+        keys.some(
+          (key) =>
+            typeof key !== "string" ||
+            (key !== "length" && !/^(0|[1-9][0-9]*)$/.test(key)),
+        )
+      ) {
+        fail("INVALID_STRUCTURED_FIELD");
+      }
+      const descriptors = Object.getOwnPropertyDescriptors(candidate);
+      for (let index = 0; index < candidate.length; index += 1) {
+        const descriptor = descriptors[String(index)];
+        if (!descriptor || descriptor.get || descriptor.set) {
+          fail("INVALID_STRUCTURED_FIELD");
+        }
+      }
+      return `[${candidate.map((item) => visit(item, depth + 1)).join(",")}]`;
+    }
+    const prototype = Object.getPrototypeOf(candidate);
+    if (prototype !== Object.prototype && prototype !== null) {
+      fail("INVALID_STRUCTURED_FIELD");
+    }
+    const keys = Reflect.ownKeys(candidate);
+    if (keys.some((key) => typeof key !== "string")) {
+      fail("INVALID_STRUCTURED_FIELD");
+    }
+    if (keys.length > PRACTICAL_JSON_LIMITS.maximumObjectKeys) {
+      fail("PRACTICAL_JSON_KEY_LIMIT_EXCEEDED");
+    }
+    const descriptors = Object.getOwnPropertyDescriptors(candidate);
+    const entries = (keys as string[]).sort().map((key) => {
+      if (FORBIDDEN_JSON_KEYS.has(key)) fail("INVALID_STRUCTURED_FIELD");
+      const descriptor = descriptors[key];
+      if (!descriptor?.enumerable || descriptor.get || descriptor.set) {
+        fail("INVALID_STRUCTURED_FIELD");
+      }
+      return `${JSON.stringify(key)}:${visit(descriptor.value, depth + 1)}`;
+    });
+    return `{${entries.join(",")}}`;
+  };
+  const serialized = visit(value, 0);
+  if (serialized.length > maximumLength) {
+    fail("PRACTICAL_JSON_SIZE_LIMIT_EXCEEDED");
+  }
+  return serialized;
+}
+
+export function validateCanonicalPracticalJson(
+  value: unknown,
+  maximumLength: number = PRACTICAL_JSON_LIMITS.maximumSnapshotLength,
+): PracticalJsonValue {
+  return deepFreezeJson(JSON.parse(canonicalizePracticalJson(value, maximumLength)));
+}
+
+export async function digestPracticalJson(
+  value: unknown,
+  maximumLength: number = PRACTICAL_JSON_LIMITS.maximumSnapshotLength,
+): Promise<{ canonicalJson: string; digest: string }> {
+  const canonicalJson = canonicalizePracticalJson(value, maximumLength);
+  const bytes = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(canonicalJson),
+  );
+  return {
+    canonicalJson,
+    digest: [...new Uint8Array(bytes)]
+      .map((byte) => byte.toString(16).padStart(2, "0"))
+      .join(""),
+  };
+}
+
+function deepFreezeJson(value: PracticalJsonValue): PracticalJsonValue {
+  if (Array.isArray(value)) {
+    for (const item of value) deepFreezeJson(item);
+    return Object.freeze(value);
+  }
+  if (value && typeof value === "object") {
+    for (const item of Object.values(value)) deepFreezeJson(item);
+    return Object.freeze(value);
+  }
+  return value;
 }
 
 function requireTimestamp(value: unknown, field: string): string {
@@ -134,12 +269,8 @@ export function createPracticalAttempt(input: {
 }): PracticalAttempt {
   if (!isPracticalId(input.practicalId)) fail("INVALID_PRACTICAL_ID");
   const state = input.state ?? "IN_PROGRESS";
-  if (!PRACTICAL_ATTEMPT_STATES.includes(state as PracticalAttemptState)) {
-    fail("INVALID_PRACTICAL_ATTEMPT_STATE");
-  }
-  if (state === "SUBMITTED" || state === "EVALUATED") {
-    requireTimestamp(input.submittedAt, "submitted_at");
-  }
+  if (state !== "IN_PROGRESS") fail("INVALID_INITIAL_PRACTICAL_ATTEMPT_STATE");
+  validateCanonicalPracticalJson(input.responses ?? []);
   const responses = validateLearnerResponses(
     input.responseSpec,
     input.responses ?? [],
@@ -227,6 +358,10 @@ export function transitionPracticalAttempt(
 }
 
 function validateEvaluationProvenance(value: unknown): EvaluationProvenance {
+  validateCanonicalPracticalJson(
+    value,
+    PRACTICAL_JSON_LIMITS.maximumProvenanceLength,
+  );
   if (!value || typeof value !== "object") fail("INVALID_EVALUATION_PROVENANCE");
   const item = value as Record<string, unknown>;
   if (!EVALUATION_METHODS.includes(item.method as EvaluationMethod)) {
@@ -259,6 +394,14 @@ function validateEvaluationProvenance(value: unknown): EvaluationProvenance {
           ),
         }),
     ...(aiModel ? { aiModel } : {}),
+    ...(item.metadata === undefined
+      ? {}
+      : {
+          metadata: validateCanonicalPracticalJson(
+            item.metadata,
+            PRACTICAL_JSON_LIMITS.maximumProvenanceLength,
+          ),
+        }),
   });
 }
 
@@ -290,6 +433,17 @@ export function createPracticalEvaluation(input: {
   ) {
     fail("EVALUATION_VERSION_MISMATCH");
   }
+  const isFirst = input.sequence === 1 && input.previousEvaluationId === undefined;
+  const isRevision =
+    (input.sequence as number) > 1 && input.previousEvaluationId !== undefined;
+  if (!isFirst && !isRevision) fail("INVALID_EVALUATION_HISTORY_LINK");
+  if (isFirst && input.attempt.state !== "SUBMITTED") {
+    fail("EVALUATION_BEFORE_SUBMISSION");
+  }
+  if (isRevision && input.attempt.state !== "EVALUATED") {
+    fail("INVALID_EVALUATION_REVISION_STATE");
+  }
+  validateCanonicalPracticalJson(input.dimensionResults);
   if (!Array.isArray(input.dimensionResults) || input.dimensionResults.length === 0) {
     fail("DIMENSION_RESULTS_REQUIRED");
   }

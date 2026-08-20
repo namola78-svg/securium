@@ -22,7 +22,7 @@
     "content:isms-p:batch1:production-plan": "node scripts/isms-p-batch1-production-executor.mjs plan",
     "content:isms-p:batch1:production-digest": "node scripts/isms-p-batch1-production-executor.mjs digest",
     "content:isms-p:batch1:production-apply": "node scripts/isms-p-batch1-production-executor.mjs apply",
-    "test:integration": "node scripts/run-d1-test-suite.mjs --test --test-concurrency=1 tests/rendered-html.test.mjs",
+    "test:integration": "node scripts/run-d1-test-suite.mjs --test --test-concurrency=1 tests/rendered-html.test.mjs tests/practical-persistence-integration.test.mjs",
     "test:e2e": "npm run build && node scripts/run-d1-test-suite.mjs --test --test-concurrency=1 tests/rendered-html.test.mjs tests/phase3-e2e.test.mjs tests/specialized-e2e.test.mjs tests/practical-e2e.test.mjs tests/ai-e2e.test.mjs tests/ai-specialized-e2e.test.mjs tests/audio-e2e.test.mjs tests/lecture-e2e.test.mjs tests/content-revision-e2e.test.mjs tests/audit-e2e.test.mjs tests/curriculum-e2e.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "node scripts/run-drizzle-kit.mjs generate",
