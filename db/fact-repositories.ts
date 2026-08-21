@@ -86,11 +86,83 @@ export type FactTrackBinding = Readonly<{
 
 type Row = Record<string, DatabaseValue>;
 
+export type CanonicalCandidatePersistenceResult = Readonly<{
+  outcome: "NEW_SUCCESS" | "EXACT_REPLAY";
+  factIdentity: FactIdentity;
+  temporalAssertion: TemporalAssertion;
+  sourceBindings: readonly AssertionSourceBinding[];
+}>;
+
 export class FactRepository {
   private readonly database: DatabaseProvider;
 
   constructor(database: DatabaseProvider) {
     this.database = database;
+  }
+
+  async createCanonicalCandidate(
+    factIdentity: FactIdentity,
+    temporalAssertion: TemporalAssertion,
+    sourceBindings: readonly AssertionSourceBinding[],
+  ): Promise<CanonicalCandidatePersistenceResult> {
+    if (temporalAssertion.factIdentityId !== factIdentity.id) {
+      conflict("CANONICAL_CANDIDATE_FACT_ASSERTION_MISMATCH");
+    }
+    await assertBindingsMatchAssertion(temporalAssertion, sourceBindings);
+
+    let results: Awaited<ReturnType<DatabaseProvider["transaction"]>>;
+    try {
+      results = await this.database.transaction([
+        canonicalCandidateStateGuardStatement(factIdentity, temporalAssertion, sourceBindings),
+        factIdentityInsertStatement(factIdentity),
+        canonicalFactGuardStatement(factIdentity, temporalAssertion),
+        temporalAssertionInsertStatement(temporalAssertion),
+        canonicalAssertionGuardStatement(temporalAssertion),
+        ...sourceBindings.map(sourceBindingInsertStatement),
+        ...sourceBindings.map((binding) =>
+          canonicalSourceBindingGuardStatement(temporalAssertion, binding)
+        ),
+        canonicalBindingCountGuardStatement(temporalAssertion, sourceBindings.length),
+      ]);
+    } catch (error) {
+      const state = await inspectCanonicalCandidateState(
+        this,
+        factIdentity,
+        temporalAssertion,
+        sourceBindings,
+      );
+      if (state === "EXACT") {
+        return canonicalCandidateResult(
+          "EXACT_REPLAY",
+          factIdentity,
+          temporalAssertion,
+          sourceBindings,
+        );
+      }
+      if (state === "FACT_CONFLICT") conflict("FACT_IDENTITY_CONFLICT");
+      if (state === "ASSERTION_CONFLICT") conflict("TEMPORAL_ASSERTION_CONFLICT");
+      if (state === "PARTIAL") {
+        conflict("CANONICAL_CANDIDATE_INCONSISTENT_PARTIAL_STATE");
+      }
+      if (isCanonicalGuardViolation(error) || isUniqueConstraintViolation(error)) {
+        conflict("CANONICAL_CANDIDATE_CONFLICT");
+      }
+      throw error;
+    }
+
+    const state = await inspectCanonicalCandidateState(
+      this,
+      factIdentity,
+      temporalAssertion,
+      sourceBindings,
+    );
+    if (state !== "EXACT") conflict("CANONICAL_CANDIDATE_INCONSISTENT_PARTIAL_STATE");
+    return canonicalCandidateResult(
+      results[1]?.affectedRows === 1 ? "NEW_SUCCESS" : "EXACT_REPLAY",
+      factIdentity,
+      temporalAssertion,
+      sourceBindings,
+    );
   }
 
   async createFactIdentity(input: FactIdentity): Promise<FactIdentity> {
@@ -770,6 +842,70 @@ function sourceBindingInsertStatement(input: AssertionSourceBinding) {
   } as const;
 }
 
+function factIdentityInsertStatement(input: FactIdentity): DatabaseStatement {
+  return {
+    sql: `INSERT INTO fact_identities
+      (id, canonical_key, domain, canonical_label, normalized_semantic_identity,
+       scope_discriminator, lifecycle_state, created_by, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT DO NOTHING`,
+    parameters: factIdentityValues(input),
+  };
+}
+
+function canonicalCandidateStateGuardStatement(
+  factIdentity: FactIdentity,
+  assertion: TemporalAssertion,
+  bindings: readonly AssertionSourceBinding[],
+): DatabaseStatement {
+  const relevantState = [
+    "EXISTS (SELECT 1 FROM fact_identities WHERE id = ? OR canonical_key = ?)",
+    `EXISTS (SELECT 1 FROM temporal_assertions
+      WHERE id = ? OR (fact_identity_id = ? AND payload_hash = ? AND provenance_hash = ?))`,
+    "EXISTS (SELECT 1 FROM assertion_source_bindings WHERE temporal_assertion_id = ?)",
+  ].join(" OR ");
+  const exactBindings = bindings.length === 0
+    ? "1 = 1"
+    : bindings.map(() =>
+      `EXISTS (SELECT 1 FROM assertion_source_bindings WHERE ${sourceBindingExactPredicate()})`
+    ).join(" AND ");
+  const exactState = [
+    `EXISTS (SELECT 1 FROM fact_identities WHERE ${factIdentityExactPredicate()})`,
+    `EXISTS (SELECT 1 FROM temporal_assertions WHERE ${temporalAssertionExactPredicate()})`,
+    "(SELECT count(*) FROM assertion_source_bindings WHERE temporal_assertion_id = ?) = ?",
+    exactBindings,
+  ].join(" AND ");
+  return canonicalGuardStatement(
+    assertion,
+    `(${relevantState}) AND NOT (${exactState})`,
+    [
+      factIdentity.id,
+      factIdentity.canonicalKey,
+      assertion.id,
+      assertion.factIdentityId,
+      assertion.payloadHash,
+      assertion.provenanceHash,
+      assertion.id,
+      ...factIdentityValues(factIdentity),
+      ...temporalAssertionPredicateValues(assertion),
+      assertion.id,
+      bindings.length,
+      ...bindings.flatMap(sourceBindingValues),
+    ],
+  );
+}
+
+function canonicalFactGuardStatement(
+  factIdentity: FactIdentity,
+  assertion: TemporalAssertion,
+): DatabaseStatement {
+  return canonicalGuardStatement(
+    assertion,
+    `NOT EXISTS (SELECT 1 FROM fact_identities WHERE ${factIdentityExactPredicate()})`,
+    factIdentityValues(factIdentity),
+  );
+}
+
 function temporalAssertionInsertStatement(input: TemporalAssertion): DatabaseStatement {
   return {
     sql: `INSERT INTO temporal_assertions
@@ -898,6 +1034,26 @@ function sourceBindingExactPredicate() {
     AND verification_metadata_json = ? AND created_by = ? AND created_at = ?`;
 }
 
+function factIdentityExactPredicate() {
+  return `id = ? AND canonical_key = ? AND domain = ? AND canonical_label = ?
+    AND normalized_semantic_identity = ? AND scope_discriminator = ?
+    AND lifecycle_state = ? AND created_by = ? AND created_at = ?`;
+}
+
+function factIdentityValues(input: FactIdentity): readonly DatabaseValue[] {
+  return [
+    input.id,
+    input.canonicalKey,
+    input.domain,
+    input.canonicalLabel,
+    input.normalizedSemanticIdentity,
+    input.scopeDiscriminator,
+    input.lifecycleState,
+    input.createdBy,
+    input.createdAt,
+  ];
+}
+
 function temporalAssertionPredicateValues(input: TemporalAssertion): readonly DatabaseValue[] {
   const values = temporalAssertionValues(input);
   return [...values.slice(0, 5), input.effectiveTo, ...values.slice(5)];
@@ -950,4 +1106,58 @@ async function assertPersistedBindingsMatch(
     conflict("ASSERTION_PROVENANCE_BINDING_MISMATCH");
   }
   await assertBindingsMatchAssertion(assertion, persisted);
+}
+
+type CanonicalCandidateState =
+  | "ABSENT"
+  | "EXACT"
+  | "FACT_CONFLICT"
+  | "ASSERTION_CONFLICT"
+  | "PARTIAL";
+
+async function inspectCanonicalCandidateState(
+  repository: FactRepository,
+  factIdentity: FactIdentity,
+  assertion: TemporalAssertion,
+  bindings: readonly AssertionSourceBinding[],
+): Promise<CanonicalCandidateState> {
+  const [factById, factByKey, persistedAssertion, persistedBindings] = await Promise.all([
+    repository.getFactIdentity(factIdentity.id),
+    repository.findFactByCanonicalKey(factIdentity.canonicalKey),
+    repository.getTemporalAssertion(assertion.id),
+    repository.listSourcesForAssertion(assertion.id),
+  ]);
+  const fact = factById ?? factByKey;
+  if (!fact && !persistedAssertion && persistedBindings.length === 0) return "ABSENT";
+  if (!fact || (factById && factByKey && factById.id !== factByKey.id)) {
+    return "FACT_CONFLICT";
+  }
+  if (!sameFactIdentity(fact, factIdentity)) return "FACT_CONFLICT";
+  if (!persistedAssertion) return "PARTIAL";
+  if (!sameTemporalAssertion(persistedAssertion, assertion)) return "ASSERTION_CONFLICT";
+  const byIdentity = (left: AssertionSourceBinding, right: AssertionSourceBinding) =>
+    left.id.localeCompare(right.id);
+  const persistedOrdered = [...persistedBindings].sort(byIdentity);
+  const expectedOrdered = [...bindings].sort(byIdentity);
+  if (
+    persistedOrdered.length !== expectedOrdered.length ||
+    persistedOrdered.some((binding, index) => !sameRecord(binding, expectedOrdered[index]))
+  ) {
+    return "PARTIAL";
+  }
+  return "EXACT";
+}
+
+function canonicalCandidateResult(
+  outcome: CanonicalCandidatePersistenceResult["outcome"],
+  factIdentity: FactIdentity,
+  temporalAssertion: TemporalAssertion,
+  sourceBindings: readonly AssertionSourceBinding[],
+): CanonicalCandidatePersistenceResult {
+  return Object.freeze({
+    outcome,
+    factIdentity,
+    temporalAssertion,
+    sourceBindings: Object.freeze([...sourceBindings]),
+  });
 }

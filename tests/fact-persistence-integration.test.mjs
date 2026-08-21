@@ -659,6 +659,15 @@ test("FR-1A I11 disposable PostgreSQL applies 0011 with RLS, privileges, and his
     );
     await provePostgresGuardRollback(sql);
     await provePostgresBindingConflictAtomicity(sql, sql2);
+    await proveCanonicalCandidateAtomicity(
+      new PostgresDatabaseProvider({
+        query: (statement, parameters) => postgresQuery(sql, statement, parameters),
+        transaction: (callback) => sql.begin((transaction) => callback({
+          query: (statement, parameters) => postgresQuery(transaction, statement, parameters),
+        })),
+      }),
+      "postgres",
+    );
   } finally {
     if (sql2) await sql2.end({ timeout: 5 });
     if (sql) await sql.end({ timeout: 5 });
@@ -674,6 +683,10 @@ test("FR-1A I12 published assertion history has no repository update, delete, or
   ]) {
     assert.equal(names.includes(prohibited), false);
   }
+});
+
+test("FR-1A I13 governed D1 candidate persistence is atomic, replay-safe, and fail-closed", async () => {
+  await proveCanonicalCandidateAtomicity(provider, "d1");
 });
 
 function makeFact(overrides = {}) {
@@ -850,6 +863,305 @@ async function scalar(sql, key = "value") {
 
 function hasCode(code) {
   return (error) => error?.code === code;
+}
+
+async function proveCanonicalCandidateAtomicity(baseProvider, providerLabel) {
+  const baseRepository = new FactRepository(baseProvider);
+  await baseRepository.createSourceIdentity(makeSource());
+  const stageResults = [];
+
+  const f1 = await makeCanonicalCandidate(`${providerLabel}-f1`, 1);
+  await assert.rejects(
+    baseRepository.createCanonicalCandidate(
+      f1.fact,
+      { ...f1.assertion, factIdentityId: "ffffffff-ffff-4fff-8fff-ffffffffffff" },
+      f1.bindings,
+    ),
+    hasCode("CANONICAL_CANDIDATE_FACT_ASSERTION_MISMATCH"),
+  );
+  assert.deepEqual(await canonicalCandidateCounts(baseProvider, f1), {
+    facts: 0,
+    assertions: 0,
+    bindings: 0,
+  });
+  stageResults.push("F1");
+
+  for (const [stage, injection] of [
+    ["F2", { mode: "insert", index: 2 }],
+    ["F3", { mode: "insert", index: 3 }],
+    ["F4", { mode: "insert", index: 5 }],
+    ["F5", { mode: "replace", index: 5 }],
+    ["F6", { mode: "insert", index: 6 }],
+    ["F7", { mode: "append" }],
+  ]) {
+    const candidate = await makeCanonicalCandidate(`${providerLabel}-${stage.toLowerCase()}`, 2);
+    const injected = new FactRepository(failureInjectedProvider(baseProvider, injection, candidate));
+    await assert.rejects(
+      injected.createCanonicalCandidate(candidate.fact, candidate.assertion, candidate.bindings),
+    );
+    assert.deepEqual(await canonicalCandidateCounts(baseProvider, candidate), {
+      facts: 0,
+      assertions: 0,
+      bindings: 0,
+    });
+    stageResults.push(stage);
+  }
+
+  assert.deepEqual(stageResults, ["F1", "F2", "F3", "F4", "F5", "F6", "F7"]);
+  const success = await makeCanonicalCandidate(`${providerLabel}-f8`, 2);
+  const first = await baseRepository.createCanonicalCandidate(
+    success.fact,
+    success.assertion,
+    success.bindings,
+  );
+  assert.equal(first.outcome, "NEW_SUCCESS");
+  assert.deepEqual(await canonicalCandidateCounts(baseProvider, success), {
+    facts: 1,
+    assertions: 1,
+    bindings: 2,
+  });
+
+  const ambiguous = await makeCanonicalCandidate(`${providerLabel}-ambiguous-commit`, 2);
+  const ambiguousRepository = new FactRepository(ambiguousCommitProvider(baseProvider));
+  const reconciled = await ambiguousRepository.createCanonicalCandidate(
+    ambiguous.fact,
+    ambiguous.assertion,
+    ambiguous.bindings,
+  );
+  assert.equal(reconciled.outcome, "EXACT_REPLAY");
+  assert.deepEqual(await canonicalCandidateCounts(baseProvider, ambiguous), {
+    facts: 1,
+    assertions: 1,
+    bindings: 2,
+  });
+  const replay = await baseRepository.createCanonicalCandidate(
+    success.fact,
+    success.assertion,
+    success.bindings,
+  );
+  assert.equal(replay.outcome, "EXACT_REPLAY");
+  assert.deepEqual(await canonicalCandidateCounts(baseProvider, success), {
+    facts: 1,
+    assertions: 1,
+    bindings: 2,
+  });
+
+  const factConflict = await makeCanonicalCandidate(`${providerLabel}-fact-conflict`, 1);
+  await baseRepository.createFactIdentity({
+    ...factConflict.fact,
+    id: incrementUuid(factConflict.fact.id),
+    canonicalLabel: "conflicting existing fact",
+  });
+  await assert.rejects(
+    baseRepository.createCanonicalCandidate(
+      factConflict.fact,
+      factConflict.assertion,
+      factConflict.bindings,
+    ),
+    hasCode("FACT_IDENTITY_CONFLICT"),
+  );
+
+  const partial = await makeCanonicalCandidate(`${providerLabel}-partial`, 1);
+  await baseRepository.createFactIdentity(partial.fact);
+  await assert.rejects(
+    baseRepository.createCanonicalCandidate(partial.fact, partial.assertion, partial.bindings),
+    hasCode("CANONICAL_CANDIDATE_INCONSISTENT_PARTIAL_STATE"),
+  );
+  assert.deepEqual(await canonicalCandidateCounts(baseProvider, partial), {
+    facts: 1,
+    assertions: 0,
+    bindings: 0,
+  });
+
+  const bindingPartial = await makeCanonicalCandidate(`${providerLabel}-binding-partial`, 2);
+  await baseRepository.createCanonicalCandidate(
+    bindingPartial.fact,
+    bindingPartial.assertion,
+    bindingPartial.bindings,
+  );
+  await baseProvider.execute({
+    sql: "DELETE FROM assertion_source_bindings WHERE id = ?",
+    parameters: [bindingPartial.bindings[1].id],
+  });
+  await assert.rejects(
+    baseRepository.createCanonicalCandidate(
+      bindingPartial.fact,
+      bindingPartial.assertion,
+      bindingPartial.bindings,
+    ),
+    hasCode("CANONICAL_CANDIDATE_INCONSISTENT_PARTIAL_STATE"),
+  );
+  assert.deepEqual(await canonicalCandidateCounts(baseProvider, bindingPartial), {
+    facts: 1,
+    assertions: 1,
+    bindings: 1,
+  });
+
+  const assertionConflict = await makeCanonicalCandidate(`${providerLabel}-assertion-conflict`, 1);
+  const conflictingAssertion = await makeAssertion(assertionConflict.assertion.id, {
+    factIdentityId: assertionConflict.fact.id,
+    normalizedProposition: `conflicting ${providerLabel} assertion`,
+    provenance: {
+      sources: assertionConflict.bindings.map(bindingToProvenanceSource),
+    },
+  });
+  await baseRepository.createFactIdentity(assertionConflict.fact);
+  await baseRepository.createTemporalAssertion(
+    conflictingAssertion,
+    assertionConflict.bindings,
+  );
+  await assert.rejects(
+    baseRepository.createCanonicalCandidate(
+      assertionConflict.fact,
+      assertionConflict.assertion,
+      assertionConflict.bindings,
+    ),
+    hasCode("TEMPORAL_ASSERTION_CONFLICT"),
+  );
+
+  const concurrent = await makeCanonicalCandidate(`${providerLabel}-concurrent`, 2);
+  const concurrentOutcomes = await Promise.all([
+    baseRepository.createCanonicalCandidate(concurrent.fact, concurrent.assertion, concurrent.bindings),
+    baseRepository.createCanonicalCandidate(concurrent.fact, concurrent.assertion, concurrent.bindings),
+  ]);
+  assert.deepEqual(
+    concurrentOutcomes.map((result) => result.outcome).sort(),
+    ["EXACT_REPLAY", "NEW_SUCCESS"],
+  );
+  assert.deepEqual(await canonicalCandidateCounts(baseProvider, concurrent), {
+    facts: 1,
+    assertions: 1,
+    bindings: 2,
+  });
+
+  const p0Candidates = await Promise.all(Array.from({ length: 10 }, (_, index) =>
+    makeCanonicalCandidate(`${providerLabel}-p0-${index + 1}`, index < 2 ? 3 : 2)
+  ));
+  const p0First = [];
+  for (const candidate of p0Candidates) {
+    p0First.push(await baseRepository.createCanonicalCandidate(
+      candidate.fact,
+      candidate.assertion,
+      candidate.bindings,
+    ));
+  }
+  assert.equal(p0First.filter((result) => result.outcome === "NEW_SUCCESS").length, 10);
+  assert.equal(p0Candidates.reduce((total, candidate) => total + candidate.bindings.length, 0), 22);
+  const p0Second = [];
+  for (const candidate of p0Candidates) {
+    p0Second.push(await baseRepository.createCanonicalCandidate(
+      candidate.fact,
+      candidate.assertion,
+      candidate.bindings,
+    ));
+  }
+  assert.equal(p0Second.filter((result) => result.outcome === "EXACT_REPLAY").length, 10);
+  for (const candidate of p0Candidates) {
+    assert.deepEqual(await canonicalCandidateCounts(baseProvider, candidate), {
+      facts: 1,
+      assertions: 1,
+      bindings: candidate.bindings.length,
+    });
+  }
+}
+
+function failureInjectedProvider(delegate, injection, candidate) {
+  return {
+    kind: delegate.kind,
+    query: (statement) => delegate.query(statement),
+    queryOne: (statement) => delegate.queryOne(statement),
+    execute: (statement) => delegate.execute(statement),
+    healthCheck: () => delegate.healthCheck(),
+    transaction: (statements) => {
+      const next = [...statements];
+      const failure = candidateFailureStatement(candidate, String(injection.index ?? "end"));
+      if (injection.mode === "replace") next.splice(injection.index, 1, failure);
+      else if (injection.mode === "append") next.push(failure);
+      else next.splice(injection.index, 0, failure);
+      return delegate.transaction(next);
+    },
+  };
+}
+
+function ambiguousCommitProvider(delegate) {
+  return {
+    kind: delegate.kind,
+    query: (statement) => delegate.query(statement),
+    queryOne: (statement) => delegate.queryOne(statement),
+    execute: (statement) => delegate.execute(statement),
+    healthCheck: () => delegate.healthCheck(),
+    transaction: async (statements) => {
+      await delegate.transaction(statements);
+      throw new Error("INJECTED_AMBIGUOUS_CLIENT_RESULT_AFTER_COMMIT");
+    },
+  };
+}
+
+function candidateFailureStatement(candidate, suffix) {
+  return {
+    sql: `INSERT INTO fact_identities
+      (id, canonical_key, domain, canonical_label, normalized_semantic_identity,
+       scope_discriminator, lifecycle_state, created_by, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    parameters: [
+      null,
+      `${candidate.fact.canonicalKey}:injected:${suffix}`,
+      candidate.fact.domain,
+      "Injected rollback proof",
+      `${candidate.fact.normalizedSemanticIdentity}:injected:${suffix}`,
+      candidate.fact.scopeDiscriminator,
+      candidate.fact.lifecycleState,
+      candidate.fact.createdBy,
+      candidate.fact.createdAt,
+    ],
+  };
+}
+
+async function makeCanonicalCandidate(label, bindingCount) {
+  const digest = [...label].reduce((value, character) =>
+    ((value * 31) + character.charCodeAt(0)) >>> 0, 2166136261);
+  const suffix = digest.toString(16).padStart(12, "0").slice(-12);
+  const fact = makeFact({
+    id: `a0000000-0000-4000-8000-${suffix}`,
+    canonicalKey: `fact:atomicity:${label}`,
+    canonicalLabel: `Atomicity ${label}`,
+    normalizedSemanticIdentity: `atomicity:${label}`,
+  });
+  const assertionId = `b0000000-0000-4000-8000-${suffix}`;
+  const bindings = Array.from({ length: bindingCount }, (_, index) => makeBinding(
+    `${"cdefghijklmnopqrstuvwxyz"[index]}0000000-0000-4000-8000-${suffix}`,
+    assertionId,
+    sourceId,
+    index === 0 ? "PRIMARY_AUTHORITY" : "SUPPORTING_AUTHORITY",
+    `atomicity-${label}-${index}`,
+  ));
+  const assertion = await makeAssertion(assertionId, {
+    factIdentityId: fact.id,
+    normalizedProposition: `atomic candidate ${label}`,
+    provenance: { sources: bindings.map(bindingToProvenanceSource) },
+  });
+  return { fact, assertion, bindings };
+}
+
+async function canonicalCandidateCounts(databaseProvider, candidate) {
+  const result = await databaseProvider.query({
+    sql: `SELECT
+      (SELECT count(*) FROM fact_identities WHERE id = ?) AS facts,
+      (SELECT count(*) FROM temporal_assertions WHERE id = ?) AS assertions,
+      (SELECT count(*) FROM assertion_source_bindings WHERE temporal_assertion_id = ?) AS bindings`,
+    parameters: [candidate.fact.id, candidate.assertion.id, candidate.assertion.id],
+  });
+  const row = result.rows[0];
+  return {
+    facts: Number(row.facts),
+    assertions: Number(row.assertions),
+    bindings: Number(row.bindings),
+  };
+}
+
+function incrementUuid(value) {
+  const last = Number.parseInt(value.at(-1), 16);
+  return `${value.slice(0, -1)}${((last + 1) % 16).toString(16)}`;
 }
 
 function makePostgresRepository(sql) {

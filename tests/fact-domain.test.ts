@@ -250,6 +250,7 @@ test("FactRepository exposes the narrow Fact and Concept persistence primitives"
   assert.deepEqual(methods, [
     "approveFactConceptBinding",
     "createAssertionSourceBinding",
+    "createCanonicalCandidate",
     "createFactConceptBinding",
     "createFactIdentity",
     "createFactTrackBinding",
