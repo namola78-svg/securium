@@ -183,6 +183,13 @@
       "when": 1787296752053,
       "tag": "0025_lush_nomad",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "6",
+      "when": 1787302252113,
+      "tag": "0026_remarkable_scarecrow",
+      "breakpoints": true
     }
   ]
 }

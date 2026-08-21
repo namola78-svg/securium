@@ -14,6 +14,7 @@ import {
   type PracticalAttempt,
 } from "../practical/practical-attempt.ts";
 import type { ResponseComponentSpec } from "../practical/practical-definition.ts";
+import { createEvidenceRecomputeRequiredSignal } from "./learning-event-contracts.ts";
 
 const REVIEW_STATUSES = ["NOT_REQUIRED", "PENDING", "COMPLETED"] as const;
 const EVALUATION_ACTOR_ROLES = [
@@ -272,7 +273,7 @@ export class PracticalAttemptService {
     const attempt = await this.requireOwnedAttempt(input.attemptId, input.userId);
     transitionPracticalAttempt(toDomainAttempt(attempt), "VOIDED", this.now().toISOString());
     const occurredAt = this.now().toISOString();
-    return this.repository.transitionAttempt(
+    const result = await this.repository.transitionAttempt(
       {
         attemptId: attempt.id,
         userId: attempt.userId,
@@ -285,6 +286,15 @@ export class PracticalAttemptService {
         reasonCode: input.reasonCode ?? "ATTEMPT_VOIDED",
       }),
     );
+    return {
+      ...result,
+      recomputeSignal: createEvidenceRecomputeRequiredSignal({
+        sourceType: "PRACTICAL_ATTEMPT",
+        sourceEventId: attempt.id,
+        reasonCode: "PRACTICAL_ATTEMPT_VOIDED",
+        sourceRevisionIdentity: `${attempt.id}:VOIDED:${occurredAt}`,
+      }),
+    };
   }
 
   async createFirstEvaluation(input: EvaluationInput) {
@@ -585,9 +595,20 @@ export class PracticalAttemptService {
         evaluationPayloadDigest: payload.digest,
       },
     };
-    return sequence === 1
+    const persisted = await (sequence === 1
       ? this.repository.createFirstEvaluation(write, audit)
-      : this.repository.appendEvaluationRevision(write, audit);
+      : this.repository.appendEvaluationRevision(write, audit));
+    return {
+      ...persisted,
+      recomputeSignal: createEvidenceRecomputeRequiredSignal({
+        sourceType: "PRACTICAL_EVALUATION",
+        sourceEventId: domain.evaluationId,
+        reasonCode: sequence === 1
+          ? "PRACTICAL_EVALUATION_CREATED"
+          : "PRACTICAL_EVALUATION_REVISED",
+        sourceRevisionIdentity: payload.digest,
+      }),
+    };
   }
 
   private async requireOwnedAttempt(attemptIdValue: unknown, userIdValue: unknown) {

@@ -14,6 +14,7 @@ import {
 
 type PublicQuestion = {
   id: string;
+  questionVersionId: string | null;
   title: string;
   content: string;
   type: string;
@@ -136,6 +137,7 @@ export function PracticeSession({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           questionId: question.id,
+          questionVersionId: question.questionVersionId,
           courseId,
           answer: question.type === "MULTIPLE_CHOICE" ? selected : selected[0],
           responseTime: 0,
