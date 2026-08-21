@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   assertOntologyCourseScope,
+  assertConceptMappingQualificationPreserved,
   buildOntologyGraph,
   createCrossCourseConceptMapping,
   createCurriculumContentOntologyEdges,
@@ -27,6 +28,22 @@ test("normalizes ontology labels for stable concept matching", () => {
   assert.equal(
     createOntologyConceptKey("SQL Injection Access Control", "security-certification"),
     "ontology:security-certification:sql-injection-access-control",
+  );
+});
+
+test("Concept mapping qualification preserves Fact scope and rejects broadening", () => {
+  assertConceptMappingQualificationPreserved({
+    factScope: "track-a",
+    qualificationJson: JSON.stringify({ scope: "track-a", jurisdiction: "KR" }),
+    mappingStatus: "APPROVED",
+  });
+  assert.throws(
+    () => assertConceptMappingQualificationPreserved({
+      factScope: "track-a",
+      qualificationJson: JSON.stringify({ scope: "global" }),
+      mappingStatus: "APPROVED",
+    }),
+    (error: unknown) => error instanceof Error && "code" in error && error.code === "QUALIFICATION_LOSS_BLOCKED",
   );
 });
 

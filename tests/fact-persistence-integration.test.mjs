@@ -70,6 +70,7 @@ test("FR-1A I01 D1 0023 creates exactly six empty canonical Fact tables", async 
     assert.equal(await scalar(`SELECT count(*) AS value FROM ${table.name}`), 0);
   }
   assert.equal(await scalar("SELECT count(*) AS value FROM sqlite_master WHERE name = 'fact_dependency_bindings'"), 0);
+  await applyMigration(await readFile("drizzle/0024_pale_diamondback.sql", "utf8"));
 });
 
 test("FR-1A I02 Fact creation is canonical-key unique and exact replay is idempotent", async () => {
@@ -406,9 +407,28 @@ test("FR-1A I06 Fact concept and cross-track bindings prevent duplicates without
   await database.prepare(`INSERT INTO ontology_concepts
     (id, concept_key, label, normalized_label) VALUES (?, ?, ?, ?)`)
     .bind(concept.id, concept.concept_key, concept.label, concept.normalized_label).run();
-  const conceptBinding = binding("60000000-0000-4000-8000-000000000001", { conceptId: concept.id });
-  await repository.createFactConceptBinding(conceptBinding);
-  await repository.createFactConceptBinding(conceptBinding);
+  const conceptBinding = {
+    concept: {
+      id: concept.id,
+      conceptKey: concept.concept_key,
+      label: concept.label,
+      normalizedLabel: concept.normalized_label,
+    },
+    binding: {
+      id: "60000000-0000-4000-8000-000000000001",
+      factIdentityId: factId,
+      createdBy: actorId,
+      createdAt,
+      qualificationJson: JSON.stringify({ scope: "kr:all-tracks" }),
+      mappingBasis: "CANONICAL_PACKAGE",
+      provenanceJson: JSON.stringify({ source: "synthetic-fixture", basis: "test" }),
+      mappingStatus: "APPROVED",
+      reviewedBy: actorId,
+      reviewedAt: createdAt,
+    },
+  };
+  await repository.createGovernedConceptMapping(conceptBinding);
+  await repository.createGovernedConceptMapping(conceptBinding);
   const cppg = track("70000000-0000-4000-8000-000000000001", "CPPG");
   const sw = track("70000000-0000-4000-8000-000000000002", "SW보안약점진단");
   await repository.createFactTrackBinding(cppg);
@@ -539,7 +559,24 @@ test("FR-1A I11 disposable PostgreSQL applies 0011 with RLS, privileges, and his
       CREATE ROLE anon NOLOGIN;
       CREATE ROLE authenticated NOLOGIN;
       CREATE TABLE users (id text PRIMARY KEY);
-      CREATE TABLE ontology_concepts (id text PRIMARY KEY);
+      CREATE TABLE ontology_concepts (
+        id text PRIMARY KEY,
+        concept_key text NOT NULL,
+        namespace text NOT NULL DEFAULT 'securium',
+        label text NOT NULL,
+        normalized_label text NOT NULL,
+        category text NOT NULL DEFAULT 'general',
+        description text NOT NULL DEFAULT '',
+        metadata_json text NOT NULL DEFAULT '{}',
+        created_at text NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at text NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE TABLE ontology_aliases (
+        id text PRIMARY KEY,
+        concept_id text NOT NULL REFERENCES ontology_concepts(id),
+        alias text NOT NULL,
+        normalized_alias text NOT NULL
+      );
       CREATE TABLE app_schema_migrations (
         id text PRIMARY KEY,
         checksum text NOT NULL,
@@ -584,7 +621,42 @@ test("FR-1A I11 disposable PostgreSQL applies 0011 with RLS, privileges, and his
     assert.equal(privileges[0].count, 0);
     const registration = await sql.unsafe("SELECT count(*)::int AS count FROM app_schema_migrations WHERE id = '0011_canonical_fact_foundation'");
     assert.equal(registration[0].count, 1);
+    await sql.unsafe(await readFile("db/postgres/migrations/0012_fact_concept_mapping_governance.sql", "utf8"));
+    const mappingColumns = await sql.unsafe(`SELECT count(*)::int AS count
+      FROM information_schema.columns
+      WHERE table_name = 'fact_concept_bindings'
+        AND column_name = ANY($1)`, [[
+      "relation_type", "qualification_json", "mapping_basis", "provenance_json",
+      "mapping_status", "mapping_version", "reviewed_by", "reviewed_at",
+    ]]);
+    assert.equal(mappingColumns[0].count, 8);
     await sql.unsafe("INSERT INTO users (id) VALUES ($1)", [actorId]);
+    const postgresRepository = makePostgresRepository(sql);
+    await postgresRepository.createFactIdentity(makeFact());
+    await sql.unsafe(`INSERT INTO ontology_concepts
+      (id, concept_key, label, normalized_label) VALUES ($1, $2, $3, $4)`,
+      ["concept-pg-proof", "pg:concept-proof", "Postgres Concept Proof", "postgres concept proof"]);
+    const pgMapping = {
+      concept: { id: "concept-pg-proof", conceptKey: "pg:concept-proof", label: "Postgres Concept Proof", normalizedLabel: "postgres concept proof" },
+      binding: {
+        id: "60000000-0000-4000-8000-000000000002",
+        factIdentityId: factId,
+        createdBy: actorId,
+        createdAt,
+        qualificationJson: JSON.stringify({ scope: "kr:all-tracks" }),
+        mappingBasis: "CANONICAL_PACKAGE",
+        provenanceJson: JSON.stringify({ source: "postgres-disposable", basis: "mechanical proof" }),
+        mappingStatus: "APPROVED",
+        reviewedBy: actorId,
+        reviewedAt: createdAt,
+      },
+    };
+    assert.equal((await postgresRepository.createGovernedConceptMapping(pgMapping)).outcome, "MAP_TO_EXISTING");
+    assert.equal((await postgresRepository.createGovernedConceptMapping(pgMapping)).outcome, "EXACT_REPLAY");
+    await assert.rejects(
+      postgresRepository.createGovernedConceptMapping({ ...pgMapping, binding: { ...pgMapping.binding, factIdentityId: "missing-fact" } }),
+      hasCode("PARENT_FACT_NOT_FOUND"),
+    );
     await provePostgresGuardRollback(sql);
     await provePostgresBindingConflictAtomicity(sql, sql2);
   } finally {
@@ -731,10 +803,6 @@ function provenanceSource(sourceIdentityId, sourceRole, locator) {
     locator,
     verification: sourceRole === "CONTEXT_SOURCE" ? contextVerification() : verification(),
   };
-}
-
-function binding(id, overrides) {
-  return Object.freeze({ id, factIdentityId: factId, createdBy: actorId, createdAt, ...overrides });
 }
 
 function track(id, trackKey) {

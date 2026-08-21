@@ -1,4 +1,5 @@
 import { AppError } from "../errors.ts";
+import { conceptMappingQualificationSchema } from "../validation.ts";
 
 export type OntologyEntityType =
   | "CONCEPT"
@@ -144,6 +145,60 @@ export type OntologyReviewTransition = {
   requiresAuditLog: true;
   auditAction: "ONTOLOGY_DRAFTED" | "ONTOLOGY_ACTIVATED" | "ONTOLOGY_ARCHIVED";
 };
+
+export type ConceptMappingOrigin =
+  | "HUMAN_AUTHORED"
+  | "RULE_BASED"
+  | "AI_SUGGESTED"
+  | "CANONICAL_PACKAGE"
+  | "IMPORT";
+
+export type ConceptMappingStatus =
+  | "LEGACY_UNVERIFIED"
+  | "SUGGESTED"
+  | "APPROVED"
+  | "REJECTED"
+  | "SUPERSEDED";
+
+export function assertConceptMappingQualificationPreserved(input: {
+  factScope: string;
+  qualificationJson: string | null;
+  mappingStatus: ConceptMappingStatus;
+}) {
+  if (!input.qualificationJson) {
+    if (input.mappingStatus === "APPROVED" && input.factScope !== "global") {
+      throw new AppError(
+        "A scoped Fact cannot be mapped without a matching qualification.",
+        409,
+        "QUALIFICATION_LOSS_BLOCKED",
+      );
+    }
+    return;
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(input.qualificationJson);
+  } catch {
+    throw new AppError("Mapping qualification must be valid JSON.", 400, "QUALIFICATION_INVALID");
+  }
+  const result = conceptMappingQualificationSchema.safeParse(parsed);
+  if (!result.success) {
+    throw new AppError("Mapping qualification has an unsupported shape.", 400, "QUALIFICATION_INVALID");
+  }
+  if (input.factScope === "global") return;
+  const scopes = Array.isArray(result.data.scope)
+    ? result.data.scope
+    : result.data.scope
+      ? [result.data.scope]
+      : [];
+  if (!scopes.includes(input.factScope)) {
+    throw new AppError(
+      "Mapping qualification would broaden the Fact scope.",
+      409,
+      "QUALIFICATION_LOSS_BLOCKED",
+    );
+  }
+}
 
 const DEFAULT_NAMESPACE = "securium";
 

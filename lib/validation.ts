@@ -28,6 +28,38 @@ const safeInternalPath = z
   .max(300)
   .refine(isSafeInternalPath, "안전한 내부 경로만 사용할 수 있습니다.");
 
+export const conceptMappingQualificationSchema = z
+  .object({
+    track: z.string().trim().min(1).max(200).optional(),
+    scope: z.union([
+      z.string().trim().min(1).max(300),
+      z.array(z.string().trim().min(1).max(300)).min(1).max(20),
+    ]).optional(),
+    jurisdiction: z.string().trim().min(1).max(200).optional(),
+    version: z.string().trim().min(1).max(100).optional(),
+    context: z.string().trim().min(1).max(300).optional(),
+    effective_from: z.string().trim().min(1).max(40).optional(),
+    effective_to: z.string().trim().min(1).max(40).optional(),
+  })
+  .strict();
+
+export const conceptMappingProvenanceSchema = z
+  .object({
+    source: z.string().trim().min(1).max(300),
+    locator: z.string().trim().min(1).max(1000).optional(),
+    basis: z.string().trim().min(1).max(500),
+    package_id: z.string().trim().min(1).max(200).optional(),
+  })
+  .strict();
+
+export const conceptMappingBasisSchema = z.enum([
+  "HUMAN_AUTHORED",
+  "RULE_BASED",
+  "AI_SUGGESTED",
+  "CANONICAL_PACKAGE",
+  "IMPORT",
+]);
+
 export const enrollmentSchema = z.object({
   courseId: id,
   returnTo: z.string().trim().startsWith("/").max(300).default("/dashboard"),
