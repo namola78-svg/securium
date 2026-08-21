@@ -1246,6 +1246,16 @@ export const questionVersions = sqliteTable(
     version: integer("version").notNull(),
     snapshotJson: text("snapshot_json").notNull(),
     reviewComment: text("review_comment").notNull().default(""),
+    semanticHash: text("semantic_hash"),
+    blueprintId: text("blueprint_id"),
+    qualificationJson: text("qualification_json"),
+    provenanceJson: text("provenance_json"),
+    governanceJson: text("governance_json"),
+    humanReviewHash: text("human_review_hash"),
+    humanReviewedBy: text("human_reviewed_by").references(() => users.id, {
+      onDelete: "restrict",
+    }),
+    humanReviewedAt: text("human_reviewed_at"),
     createdBy: text("created_by")
       .notNull()
       .references(() => users.id, { onDelete: "restrict" }),
@@ -1259,6 +1269,15 @@ export const questionVersions = sqliteTable(
     index("question_versions_history_idx").on(
       table.questionId,
       table.createdAt,
+    ),
+    uniqueIndex("question_versions_semantic_hash_unique").on(
+      table.questionId,
+      table.version,
+      table.semanticHash,
+    ),
+    check(
+      "question_versions_review_binding_check",
+      sql`${table.humanReviewHash} IS NULL OR (${table.semanticHash} IS NOT NULL AND ${table.humanReviewedBy} IS NOT NULL AND ${table.humanReviewedAt} IS NOT NULL)`,
     ),
   ],
 );
@@ -3586,6 +3605,67 @@ export const factTrackBindings = sqliteTable(
   ],
 );
 
+export const questionConcepts = sqliteTable(
+  "question_concepts",
+  {
+    id: text("id").primaryKey(),
+    questionVersionId: text("question_version_id")
+      .notNull()
+      .references(() => questionVersions.id, { onDelete: "restrict" }),
+    conceptId: text("concept_id")
+      .notNull()
+      .references(() => ontologyConcepts.id, { onDelete: "restrict" }),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    relationType: text("relation_type").notNull().default("MAPS_TO"),
+    qualificationJson: text("qualification_json"),
+    provenanceJson: text("provenance_json"),
+    mappingStatus: text("mapping_status")
+      .notNull()
+      .default("LEGACY_UNVERIFIED"),
+    mappingVersion: integer("mapping_version").notNull().default(1),
+    reviewedBy: text("reviewed_by").references(() => users.id, {
+      onDelete: "restrict",
+    }),
+    reviewedAt: text("reviewed_at"),
+  },
+  (table) => [
+    uniqueIndex("question_concepts_current_unique")
+      .on(table.questionVersionId, table.conceptId)
+      .where(
+        sql`${table.mappingStatus} IN ('LEGACY_UNVERIFIED', 'SUGGESTED', 'APPROVED')`,
+      ),
+    index("question_concepts_version_status_idx").on(
+      table.questionVersionId,
+      table.mappingStatus,
+      table.createdAt,
+    ),
+    index("question_concepts_concept_status_idx").on(
+      table.conceptId,
+      table.mappingStatus,
+      table.createdAt,
+    ),
+    check(
+      "question_concepts_relation_check",
+      sql`${table.relationType} = 'MAPS_TO'`,
+    ),
+    check(
+      "question_concepts_status_check",
+      sql`${table.mappingStatus} IN ('LEGACY_UNVERIFIED', 'SUGGESTED', 'APPROVED', 'REJECTED', 'SUPERSEDED')`,
+    ),
+    check(
+      "question_concepts_version_check",
+      sql`${table.mappingVersion} > 0`,
+    ),
+    check(
+      "question_concepts_review_check",
+      sql`${table.mappingStatus} <> 'APPROVED' OR (${table.reviewedBy} IS NOT NULL AND ${table.reviewedAt} IS NOT NULL)`,
+    ),
+  ],
+);
+
 export type User = typeof users.$inferSelect;
 export type CourseGroup = typeof courseGroups.$inferSelect;
 export type Course = typeof courses.$inferSelect;
@@ -3651,3 +3731,4 @@ export type AssertionSourceBindingRecord =
   typeof assertionSourceBindings.$inferSelect;
 export type FactConceptBindingRecord = typeof factConceptBindings.$inferSelect;
 export type FactTrackBindingRecord = typeof factTrackBindings.$inferSelect;
+export type QuestionConceptRecord = typeof questionConcepts.$inferSelect;

@@ -107,3 +107,65 @@ export function createQuestionVersionSnapshot(value: unknown) {
   return JSON.stringify(value);
 }
 
+export function assertGovernedQuestionApproval(input: {
+  semanticHash?: string | null;
+  governanceJson?: string | null;
+  humanReviewHash?: string | null;
+  humanReviewedBy?: string | null;
+  humanReviewedAt?: string | null;
+}) {
+  if (!input.semanticHash || !input.governanceJson) {
+    throw new AppError(
+      "Question governance metadata is required before approval.",
+      409,
+      "QUESTION_GOVERNANCE_REQUIRED",
+    );
+  }
+  if (
+    !input.humanReviewHash ||
+    !input.humanReviewedBy ||
+    !input.humanReviewedAt
+  ) {
+    throw new AppError(
+      "Human review must be bound to the exact question version.",
+      409,
+      "HUMAN_REVIEW_REQUIRED",
+    );
+  }
+  try {
+    const governance = JSON.parse(input.governanceJson) as Record<string, unknown>;
+    if (governance.rightsStatus !== "PASS") {
+      throw new AppError(
+        "Rights review is required before question approval.",
+        409,
+        "RIGHTS_REVIEW_REQUIRED",
+      );
+    }
+    if (
+      !["PASS_LOW_SIMILARITY", "REVIEW_MEDIUM_SIMILARITY"].includes(
+        String(governance.similarityStatus),
+      )
+    ) {
+      throw new AppError(
+        "Question similarity review is not clear.",
+        409,
+        "QUESTION_SIMILARITY_NOT_CLEAR",
+      );
+    }
+    if (governance.reviewedSemanticHash !== input.semanticHash) {
+      throw new AppError(
+        "Human review is not bound to this exact semantic version.",
+        409,
+        "HUMAN_REVIEW_HASH_MISMATCH",
+      );
+    }
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    throw new AppError(
+      "Question governance metadata is invalid.",
+      409,
+      "QUESTION_GOVERNANCE_INVALID",
+    );
+  }
+}
+

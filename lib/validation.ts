@@ -490,6 +490,30 @@ export const questionSchema = z
     }
   });
 
+export const questionConceptGovernanceSchema = z.object({
+  conceptId: id,
+  qualificationJson: z.string().max(20000).nullable().optional(),
+  provenanceJson: z.string().max(20000).nullable().optional(),
+  mappingStatus: z.enum(["SUGGESTED", "APPROVED"]).default("SUGGESTED"),
+  reviewedBy: id.nullable().optional(),
+  reviewedAt: z.string().datetime().nullable().optional(),
+});
+
+export const questionGovernanceSchema = z.object({
+  blueprintId: z.string().trim().min(1).max(200),
+  qualificationJson: z.string().max(20000),
+  provenanceJson: z.string().max(50000),
+  governanceJson: z.string().max(50000),
+  humanReviewHash: z.string().length(64).nullable().optional(),
+  humanReviewedBy: id.nullable().optional(),
+  humanReviewedAt: z.string().datetime().nullable().optional(),
+});
+
+export const governedQuestionSchema = questionSchema.extend({
+  governance: questionGovernanceSchema,
+  conceptMappings: z.array(questionConceptGovernanceSchema).min(1),
+});
+
 export const questionAttemptSchema = z.object({
   questionId: id,
   courseId: id,
@@ -1169,6 +1193,11 @@ export type TopicInput = z.infer<typeof topicSchema>;
 export type LearningUnitInput = z.infer<typeof learningUnitSchema>;
 export type LessonInput = z.infer<typeof lessonSchema>;
 export type QuestionInput = z.infer<typeof questionSchema>;
+export type QuestionGovernanceInput = z.infer<typeof questionGovernanceSchema>;
+export type QuestionConceptGovernanceInput = z.infer<
+  typeof questionConceptGovernanceSchema
+>;
+export type GovernedQuestionInput = z.infer<typeof governedQuestionSchema>;
 export type FactIdentityFoundationInput = z.infer<typeof factIdentityFoundationSchema>;
 export type TemporalAssertionFoundationInput = z.infer<typeof temporalAssertionFoundationSchema>;
 export type SourceIdentityFoundationInput = z.infer<typeof sourceIdentityFoundationSchema>;

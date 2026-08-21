@@ -176,6 +176,13 @@
       "when": 1787292404636,
       "tag": "0024_pale_diamondback",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "6",
+      "when": 1787296752053,
+      "tag": "0025_lush_nomad",
+      "breakpoints": true
     }
   ]
 }
