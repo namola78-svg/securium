@@ -597,6 +597,7 @@ export const userCourseLessonProgress = sqliteTable(
     courseLessonId: text("course_lesson_id")
       .notNull()
       .references(() => courseLessons.id, { onDelete: "restrict" }),
+    contentVersion: text("content_version"),
     status: text("status").notNull().default("IN_PROGRESS"),
     progressPercent: integer("progress_percent").notNull().default(0),
     completedAt: text("completed_at"),
@@ -929,6 +930,7 @@ export const userLessonProgress = sqliteTable(
     lessonId: text("lesson_id")
       .notNull()
       .references(() => lessons.id, { onDelete: "restrict" }),
+    contentVersion: integer("content_version"),
     status: text("status").notNull().default("IN_PROGRESS"),
     progressPercent: integer("progress_percent").notNull().default(0),
     startedAt: text("started_at"),
@@ -971,6 +973,10 @@ export const audioProgress = sqliteTable(
     audioContentId: text("audio_content_id")
       .notNull()
       .references(() => audioContents.id, { onDelete: "restrict" }),
+    contentRevisionId: text("content_revision_id").references(
+      () => contentRevisions.id,
+      { onDelete: "restrict" },
+    ),
     currentPositionSeconds: integer("current_position_seconds")
       .notNull()
       .default(0),
@@ -1013,6 +1019,10 @@ export const lectureProgress = sqliteTable(
     lectureId: text("lecture_id")
       .notNull()
       .references(() => lectures.id, { onDelete: "restrict" }),
+    contentRevisionId: text("content_revision_id").references(
+      () => contentRevisions.id,
+      { onDelete: "restrict" },
+    ),
     currentPositionSeconds: integer("current_position_seconds")
       .notNull()
       .default(0),
@@ -1293,6 +1303,11 @@ export const questionAttempts = sqliteTable(
     questionId: text("question_id")
       .notNull()
       .references(() => questions.id, { onDelete: "restrict" }),
+    questionVersionId: text("question_version_id").references(
+      () => questionVersions.id,
+      { onDelete: "restrict" },
+    ),
+    conceptMappingSetHash: text("concept_mapping_set_hash"),
     courseId: text("course_id")
       .notNull()
       .references(() => courses.id, { onDelete: "restrict" }),
@@ -1334,6 +1349,10 @@ export const questionAttempts = sqliteTable(
     check(
       "question_attempts_mode_check",
       sql`${table.mode} IN ('LEARNING', 'EXAM')`,
+    ),
+    check(
+      "question_attempts_version_binding_check",
+      sql`(${table.questionVersionId} IS NULL AND ${table.conceptMappingSetHash} IS NULL) OR (${table.questionVersionId} IS NOT NULL AND length(${table.conceptMappingSetHash}) = 64 AND ${table.conceptMappingSetHash} NOT GLOB '*[^0-9a-f]*')`,
     ),
   ],
 );
@@ -1770,6 +1789,7 @@ export const mockExamAttempts = sqliteTable(
     correctCount: integer("correct_count").notNull().default(0),
     wrongCount: integer("wrong_count").notNull().default(0),
     unansweredCount: integer("unanswered_count").notNull().default(0),
+    compositionSemanticHash: text("composition_semantic_hash"),
     ...timestamps,
   },
   (table) => [
@@ -1790,6 +1810,10 @@ export const mockExamAttempts = sqliteTable(
       "mock_exam_attempts_score_check",
       sql`${table.score} >= 0 AND ${table.score} <= 100`,
     ),
+    check(
+      "mock_exam_attempts_composition_hash_check",
+      sql`${table.compositionSemanticHash} IS NULL OR (length(${table.compositionSemanticHash}) = 64 AND ${table.compositionSemanticHash} NOT GLOB '*[^0-9a-f]*')`,
+    ),
   ],
 );
 
@@ -1803,6 +1827,11 @@ export const mockExamAnswers = sqliteTable(
     questionId: text("question_id")
       .notNull()
       .references(() => questions.id, { onDelete: "restrict" }),
+    questionVersionId: text("question_version_id").references(
+      () => questionVersions.id,
+      { onDelete: "restrict" },
+    ),
+    conceptMappingSetHash: text("concept_mapping_set_hash"),
     answerData: text("answer_data").notNull().default(""),
     isCorrect: integer("is_correct", { mode: "boolean" }),
     score: integer("score"),
@@ -1817,6 +1846,10 @@ export const mockExamAnswers = sqliteTable(
     index("mock_exam_answers_attempt_idx").on(
       table.attemptId,
       table.answeredAt,
+    ),
+    check(
+      "mock_exam_answers_version_binding_check",
+      sql`(${table.questionVersionId} IS NULL AND ${table.conceptMappingSetHash} IS NULL) OR (${table.questionVersionId} IS NOT NULL AND length(${table.conceptMappingSetHash}) = 64 AND ${table.conceptMappingSetHash} NOT GLOB '*[^0-9a-f]*')`,
     ),
   ],
 );
@@ -3666,6 +3699,76 @@ export const questionConcepts = sqliteTable(
   ],
 );
 
+export const learningEventRevisions = sqliteTable(
+  "learning_event_revisions",
+  {
+    id: text("id").primaryKey(),
+    sourceType: text("source_type").notNull(),
+    sourceEventId: text("source_event_id").notNull(),
+    sequence: integer("sequence").notNull(),
+    previousRevisionId: text("previous_revision_id"),
+    action: text("action").notNull(),
+    reasonCode: text("reason_code").notNull(),
+    payloadSchemaVersion: integer("payload_schema_version").notNull().default(1),
+    correctionPayloadJson: text("correction_payload_json").notNull().default("{}"),
+    semanticHash: text("semantic_hash").notNull(),
+    actorUserId: text("actor_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    foreignKey({
+      name: "learning_event_revisions_previous_fk",
+      columns: [table.previousRevisionId],
+      foreignColumns: [table.id],
+    }).onDelete("restrict"),
+    uniqueIndex("learning_event_revisions_sequence_unique").on(
+      table.sourceType,
+      table.sourceEventId,
+      table.sequence,
+    ),
+    uniqueIndex("learning_event_revisions_semantic_unique").on(
+      table.sourceType,
+      table.sourceEventId,
+      table.semanticHash,
+    ),
+    uniqueIndex("learning_event_revisions_predecessor_unique")
+      .on(table.previousRevisionId)
+      .where(sql`${table.previousRevisionId} IS NOT NULL`),
+    index("learning_event_revisions_source_idx").on(
+      table.sourceType,
+      table.sourceEventId,
+      table.createdAt,
+    ),
+    index("learning_event_revisions_actor_idx").on(
+      table.actorUserId,
+      table.createdAt,
+    ),
+    check(
+      "learning_event_revisions_source_check",
+      sql`${table.sourceType} IN ('QUESTION_ATTEMPT', 'MOCK_ATTEMPT', 'MOCK_ITEM_RESULT', 'PRACTICAL_ATTEMPT', 'PRACTICAL_EVALUATION', 'LESSON_PROGRESS', 'COURSE_LESSON_PROGRESS', 'LECTURE_PROGRESS', 'AUDIO_PROGRESS')`,
+    ),
+    check(
+      "learning_event_revisions_action_check",
+      sql`${table.action} IN ('CORRECT', 'INVALIDATE', 'RESTORE_ELIGIBILITY', 'CORRECT_CONCEPT_MAPPING')`,
+    ),
+    check("learning_event_revisions_sequence_check", sql`${table.sequence} > 0`),
+    check(
+      "learning_event_revisions_payload_version_check",
+      sql`${table.payloadSchemaVersion} > 0`,
+    ),
+    check(
+      "learning_event_revisions_payload_length_check",
+      sql`length(${table.correctionPayloadJson}) <= 20000`,
+    ),
+    check(
+      "learning_event_revisions_hash_check",
+      sql`length(${table.semanticHash}) = 64 AND ${table.semanticHash} NOT GLOB '*[^0-9a-f]*'`,
+    ),
+  ],
+);
+
 export type User = typeof users.$inferSelect;
 export type CourseGroup = typeof courseGroups.$inferSelect;
 export type Course = typeof courses.$inferSelect;
@@ -3732,3 +3835,5 @@ export type AssertionSourceBindingRecord =
 export type FactConceptBindingRecord = typeof factConceptBindings.$inferSelect;
 export type FactTrackBindingRecord = typeof factTrackBindings.$inferSelect;
 export type QuestionConceptRecord = typeof questionConcepts.$inferSelect;
+export type LearningEventRevisionRecord =
+  typeof learningEventRevisions.$inferSelect;

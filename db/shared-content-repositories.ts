@@ -762,6 +762,7 @@ async function requireAccessibleCourseLesson(input: {
     .select({
       id: courseLessons.id,
       courseId: courseLessons.courseId,
+      contentVersion: contents.version,
       completionRule: courseLessons.completionRule,
       enrollmentStatus: userCourseEnrollments.status,
     })
@@ -859,6 +860,7 @@ export async function updateCourseLessonProgress(input: {
         userId: input.userId,
         courseId: lesson.courseId,
         courseLessonId: lesson.id,
+        contentVersion: lesson.contentVersion,
         status: "IN_PROGRESS",
         progressPercent: Math.max(current?.progressPercent ?? 0, progressPercent),
         lastViewedAt: nowIso,
@@ -876,6 +878,7 @@ export async function updateCourseLessonProgress(input: {
         ],
         set: {
           status: "IN_PROGRESS",
+          contentVersion: lesson.contentVersion,
           progressPercent: sql`max(${userCourseLessonProgress.progressPercent}, ${progressPercent})`,
           lastViewedAt: nowIso,
           timeSpentSeconds: sql`max(${userCourseLessonProgress.timeSpentSeconds}, ${timeSpentSeconds})`,
@@ -907,6 +910,7 @@ export async function updateCourseLessonProgress(input: {
           userId: input.userId,
           courseId: lesson.courseId,
           courseLessonId: lesson.id,
+          contentVersion: lesson.contentVersion,
           status: "COMPLETED",
           progressPercent: 100,
           completedAt: nowIso,
@@ -925,6 +929,7 @@ export async function updateCourseLessonProgress(input: {
           ],
           set: {
             status: "COMPLETED",
+            contentVersion: lesson.contentVersion,
             progressPercent: 100,
             completedAt: sql`coalesce(${userCourseLessonProgress.completedAt}, ${nowIso})`,
             lastViewedAt: nowIso,

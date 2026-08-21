@@ -30,6 +30,7 @@ import {
   getVideoProviderConfig,
   validateLecturePosition,
 } from "@/lib/services/video-provider-service";
+import { getLatestPublishedRevision } from "./content-revision-repositories";
 
 type LectureFilters = {
   subjectId?: string;
@@ -433,12 +434,19 @@ export async function updateLectureProgress(input: {
   const now = new Date().toISOString();
   const completed = Boolean(current?.completed || input.complete);
   const completedAt = current?.completedAt ?? (completed ? now : null);
+  const latestRevision = current?.completed
+    ? null
+    : await getLatestPublishedRevision("LECTURE", input.lectureId);
+  const contentRevisionId = current?.completed
+    ? current.contentRevisionId
+    : latestRevision?.id ?? null;
   await getDb()
     .insert(lectureProgress)
     .values({
       id: current?.id ?? crypto.randomUUID(),
       userId: input.userId,
       lectureId: input.lectureId,
+      contentRevisionId,
       currentPositionSeconds: position,
       completed,
       completedAt,
@@ -448,6 +456,7 @@ export async function updateLectureProgress(input: {
       target: [lectureProgress.userId, lectureProgress.lectureId],
       set: {
         currentPositionSeconds: position,
+        contentRevisionId,
         completed,
         completedAt,
         lastPlayedAt: now,

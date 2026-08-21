@@ -17,8 +17,10 @@ import {
   contentRevisions,
   courses,
   learningActivities,
+  ontologyConcepts,
   questionAttempts,
   questionChoices,
+  questionConcepts,
   questionCourses,
   questionReports,
   questionSubjects,
@@ -50,6 +52,10 @@ import {
 import { AppError } from "@/lib/errors";
 import { updateReviewScheduleForAttempt } from "./phase3-repositories";
 import { createAuditInsert } from "./audit-repositories";
+import {
+  computeConceptMappingSetHash,
+  type GovernedConceptMapping,
+} from "@/lib/services/learning-event-contracts";
 
 function batchItems(items: BatchItem<"sqlite">[]) {
   return items as unknown as Parameters<ReturnType<typeof getDb>["batch"]>[0];
@@ -106,11 +112,21 @@ export async function listPublicQuestions(filters: QuestionFilters) {
       difficulty: questions.difficulty,
       isSample: questions.isSample,
       courseId: questionCourses.courseId,
+      questionVersionId: questionVersions.id,
+      questionVersionSemanticHash: questionVersions.semanticHash,
+      questionVersionHumanReviewHash: questionVersions.humanReviewHash,
       createdAt: questions.createdAt,
     })
     .from(questions)
     .innerJoin(questionCourses, eq(questions.id, questionCourses.questionId))
     .innerJoin(courses, eq(questionCourses.courseId, courses.id))
+    .leftJoin(
+      questionVersions,
+      and(
+        eq(questionVersions.questionId, questions.id),
+        eq(questionVersions.version, questions.version),
+      ),
+    )
     .leftJoin(questionSubjects, eq(questions.id, questionSubjects.questionId))
     .leftJoin(questionTopics, eq(questions.id, questionTopics.questionId))
     .where(and(...conditions))
@@ -138,19 +154,31 @@ export async function listPublicQuestions(filters: QuestionFilters) {
         .orderBy(asc(questionChoices.displayOrder))
     : [];
 
-  return rows.map((row) => ({
-    ...row,
-    automaticGradingAvailable: [
-      "TRUE_FALSE",
-      "SINGLE_CHOICE",
-      "MULTIPLE_CHOICE",
-      "SHORT_ANSWER",
-    ].includes(row.type),
-    choices: toPublicChoices(
-      row.type as QuestionType,
-      choiceRows.filter((choice) => choice.questionId === row.id),
-    ),
-  }));
+  const bindings = await resolveQuestionVersionBindings(
+    rows.map((row) => ({
+      questionId: row.id,
+      questionVersionId: row.questionVersionId,
+      semanticHash: row.questionVersionSemanticHash,
+      humanReviewHash: row.questionVersionHumanReviewHash,
+    })),
+  );
+  return rows.map((row) => {
+    const binding = bindings.get(row.id) ?? null;
+    return {
+      ...row,
+      questionVersionId: binding?.questionVersionId ?? null,
+      automaticGradingAvailable: [
+        "TRUE_FALSE",
+        "SINGLE_CHOICE",
+        "MULTIPLE_CHOICE",
+        "SHORT_ANSWER",
+      ].includes(row.type),
+      choices: toPublicChoices(
+        row.type as QuestionType,
+        choiceRows.filter((choice) => choice.questionId === row.id),
+      ),
+    };
+  });
 }
 
 export async function listQuestionFilterSubjectsForCourse(courseId: string) {
@@ -218,6 +246,7 @@ export async function listQuestionFilterTopicsForSubject(
 export async function getQuestionForGrading(
   questionId: string,
   courseId: string,
+  expectedQuestionVersionId?: string | null,
 ) {
   const [row] = await getDb()
     .select({
@@ -231,6 +260,7 @@ export async function getQuestionForGrading(
       explanationVersion: contentRevisions.version,
       explanationReviewedAt: contentRevisions.reviewedAt,
       answerConfigJson: questions.answerConfigJson,
+      version: questions.version,
       subjectId: subjects.id,
       topicId: topics.id,
     })
@@ -281,7 +311,12 @@ export async function getQuestionForGrading(
     .from(questionChoices)
     .where(eq(questionChoices.questionId, questionId))
     .orderBy(asc(questionChoices.displayOrder));
-  return { ...row, choices };
+  const binding = await resolveQuestionVersionBinding({
+    questionId,
+    expectedQuestionVersionId: expectedQuestionVersionId ?? null,
+    currentVersion: row.version,
+  });
+  return { ...row, choices, binding };
 }
 
 export async function submitQuestionAttempt(input: {
@@ -291,6 +326,7 @@ export async function submitQuestionAttempt(input: {
   answer: SubmittedAnswer;
   responseTime: number;
   idempotencyKey: string;
+  questionVersionId?: string | null;
 }) {
   const [enrollment] = await getDb()
     .select({ id: userCourseEnrollments.id })
@@ -321,8 +357,19 @@ export async function submitQuestionAttempt(input: {
       ),
     )
     .limit(1);
-  const question = await getQuestionForGrading(input.questionId, input.courseId);
   if (existing) {
+    if ((existing.questionVersionId ?? null) !== (input.questionVersionId ?? null)) {
+      throw new AppError(
+        "The replayed attempt uses a different QuestionVersion.",
+        409,
+        "QUESTION_VERSION_MISMATCH",
+      );
+    }
+    const question = await getQuestionForGrading(
+      input.questionId,
+      input.courseId,
+      existing.questionVersionId,
+    );
     return {
       attemptId: existing.id,
       idempotentReplay: true,
@@ -340,6 +387,12 @@ export async function submitQuestionAttempt(input: {
         .map((choice) => choice.content),
     };
   }
+
+  const question = await getQuestionForGrading(
+    input.questionId,
+    input.courseId,
+    input.questionVersionId,
+  );
 
   const grade = requireSupportedGrade(
     gradeQuestion(
@@ -361,6 +414,8 @@ export async function submitQuestionAttempt(input: {
       idempotencyKey: input.idempotencyKey,
       userId: input.userId,
       questionId: input.questionId,
+      questionVersionId: question.binding?.questionVersionId ?? null,
+      conceptMappingSetHash: question.binding?.conceptMappingSetHash ?? null,
       courseId: input.courseId,
       selectedAnswer,
       isCorrect: grade.isCorrect === true,
@@ -471,6 +526,156 @@ export async function submitQuestionAttempt(input: {
             .filter((choice) => choice.isCorrect)
             .map((choice) => choice.content),
   };
+}
+
+type QuestionBindingSeed = Readonly<{
+  questionId: string;
+  questionVersionId: string | null;
+  semanticHash: string | null;
+  humanReviewHash: string | null;
+}>;
+
+async function resolveQuestionVersionBindings(seeds: readonly QuestionBindingSeed[]) {
+  const result = new Map<
+    string,
+    Readonly<{ questionVersionId: string; conceptMappingSetHash: string }>
+  >();
+  const eligible = seeds.filter(
+    (seed): seed is QuestionBindingSeed & { questionVersionId: string; semanticHash: string; humanReviewHash: string } =>
+      Boolean(seed.questionVersionId && seed.semanticHash && seed.humanReviewHash),
+  );
+  if (!eligible.length) return result;
+  const mappings = await getDb()
+    .select({
+      questionVersionId: questionConcepts.questionVersionId,
+      conceptIdentity: ontologyConcepts.conceptKey,
+      mappingVersion: questionConcepts.mappingVersion,
+      qualificationJson: questionConcepts.qualificationJson,
+      provenanceJson: questionConcepts.provenanceJson,
+      status: questionConcepts.mappingStatus,
+    })
+    .from(questionConcepts)
+    .innerJoin(ontologyConcepts, eq(questionConcepts.conceptId, ontologyConcepts.id))
+    .where(
+      and(
+        inArray(
+          questionConcepts.questionVersionId,
+          eligible.map((seed) => seed.questionVersionId),
+        ),
+        eq(questionConcepts.mappingStatus, "APPROVED"),
+      ),
+    );
+  for (const seed of eligible) {
+    const rows = mappings.filter(
+      (mapping) => mapping.questionVersionId === seed.questionVersionId,
+    );
+    if (!rows.length) continue;
+    const conceptMappingSetHash = await computeConceptMappingSetHash(
+      rows.map(toGovernedConceptMapping),
+    );
+    result.set(seed.questionId, {
+      questionVersionId: seed.questionVersionId,
+      conceptMappingSetHash,
+    });
+  }
+  return result;
+}
+
+async function resolveQuestionVersionBinding(input: Readonly<{
+  questionId: string;
+  expectedQuestionVersionId: string | null;
+  currentVersion: number;
+}>) {
+  const [version] = await getDb()
+    .select({
+      id: questionVersions.id,
+      questionId: questionVersions.questionId,
+      version: questionVersions.version,
+      semanticHash: questionVersions.semanticHash,
+      humanReviewHash: questionVersions.humanReviewHash,
+    })
+    .from(questionVersions)
+    .where(
+      input.expectedQuestionVersionId
+        ? eq(questionVersions.id, input.expectedQuestionVersionId)
+        : and(
+            eq(questionVersions.questionId, input.questionId),
+            eq(questionVersions.version, input.currentVersion),
+          ),
+    )
+    .limit(1);
+  if (!version || !version.semanticHash || !version.humanReviewHash) {
+    if (input.expectedQuestionVersionId) {
+      throw new AppError("QuestionVersion was not found.", 404, "QUESTION_VERSION_NOT_FOUND");
+    }
+    return null;
+  }
+  if (
+    version.questionId !== input.questionId ||
+    version.version !== input.currentVersion
+  ) {
+    throw new AppError(
+      "QuestionVersion does not match the current question semantics.",
+      409,
+      "QUESTION_VERSION_MISMATCH",
+    );
+  }
+  const bindings = await resolveQuestionVersionBindings([
+    {
+      questionId: input.questionId,
+      questionVersionId: version.id,
+      semanticHash: version.semanticHash,
+      humanReviewHash: version.humanReviewHash,
+    },
+  ]);
+  const binding = bindings.get(input.questionId) ?? null;
+  if (!binding) {
+    if (input.expectedQuestionVersionId) {
+      throw new AppError(
+        "QuestionVersion lacks an approved Concept mapping set.",
+        409,
+        "QUESTION_VERSION_NOT_ELIGIBLE",
+      );
+    }
+    return null;
+  }
+  if (!input.expectedQuestionVersionId) {
+    throw new AppError(
+      "A governed QuestionVersion must be supplied for this attempt.",
+      409,
+      "QUESTION_VERSION_MISMATCH",
+    );
+  }
+  return binding;
+}
+
+function toGovernedConceptMapping(row: Readonly<{
+  conceptIdentity: string;
+  mappingVersion: number;
+  qualificationJson: string | null;
+  provenanceJson: string | null;
+  status: string;
+}>): GovernedConceptMapping {
+  return {
+    conceptIdentity: row.conceptIdentity,
+    mappingVersion: Number(row.mappingVersion),
+    qualification: parseGovernanceJson(row.qualificationJson),
+    provenance: parseGovernanceJson(row.provenanceJson),
+    status: "APPROVED",
+  };
+}
+
+function parseGovernanceJson(value: string | null) {
+  if (!value) return null;
+  try {
+    return JSON.parse(value) as unknown;
+  } catch {
+    throw new AppError(
+      "Governed Concept mapping metadata is invalid.",
+      409,
+      "CONCEPT_MAPPING_SET_MISMATCH",
+    );
+  }
 }
 
 export async function toggleBookmark(input: {

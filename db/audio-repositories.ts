@@ -17,6 +17,7 @@ import {
   parseTranscriptSegments,
   validateAudioUrl,
 } from "@/lib/services/audio-service";
+import { getLatestPublishedRevision } from "./content-revision-repositories";
 
 async function requireAccessibleAudio(
   userId: string,
@@ -203,12 +204,19 @@ export async function updateAudioProgress(input: {
   const now = new Date().toISOString();
   const completed = Boolean(current?.completed || input.complete);
   const completedAt = current?.completedAt ?? (completed ? now : null);
+  const latestRevision = current?.completed
+    ? null
+    : await getLatestPublishedRevision("AUDIO_CONTENT", input.audioContentId);
+  const contentRevisionId = current?.completed
+    ? current.contentRevisionId
+    : latestRevision?.id ?? null;
   await getDb()
     .insert(audioProgress)
     .values({
       id: current?.id ?? crypto.randomUUID(),
       userId: input.userId,
       audioContentId: input.audioContentId,
+      contentRevisionId,
       currentPositionSeconds: position,
       completed,
       completedAt,
@@ -219,6 +227,7 @@ export async function updateAudioProgress(input: {
       target: [audioProgress.userId, audioProgress.audioContentId],
       set: {
         currentPositionSeconds: position,
+        contentRevisionId,
         completed,
         completedAt,
         lastPlayedAt: now,
