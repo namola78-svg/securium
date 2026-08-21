@@ -42,6 +42,7 @@ import {
 } from "@/lib/services/grading-service";
 import {
   createQuestionVersionSnapshot,
+  assertGovernedQuestionApproval,
   resolveQuestionTransition,
   type QuestionStatus,
   type WorkflowAction,
@@ -761,7 +762,14 @@ export async function saveQuestion(input: QuestionInput, actorUserId: string) {
   if (input.id && !existing) {
     throw new AppError("문제를 찾을 수 없습니다.", 404, "QUESTION_NOT_FOUND");
   }
-  const version = (existing?.version ?? 0) + 1;
+  if (existing) {
+    throw new AppError(
+      "Semantic question updates require an explicit governed version operation.",
+      500,
+      "QUESTION_GOVERNED_VERSION_REQUIRED",
+    );
+  }
+  const version = 1;
   const values = {
     title: input.title,
     content: input.content,
@@ -895,6 +903,12 @@ export async function transitionQuestion(input: {
     actorId: input.actorUserId,
     createdBy: question.createdBy,
   });
+  if (["APPROVE", "PUBLISH"].includes(input.action)) {
+    const currentVersion = question.versions.find(
+      (version) => version.version === question.version,
+    );
+    assertGovernedQuestionApproval(currentVersion ?? {});
+  }
   const isReview = ["START_REVIEW", "APPROVE", "REJECT"].includes(input.action);
   await getDb()
     .update(questions)
