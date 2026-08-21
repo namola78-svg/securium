@@ -20,6 +20,11 @@ import type {
   DatabaseStatement,
   DatabaseValue,
 } from "./provider/database-provider.ts";
+import {
+  conceptMappingProvenanceSchema,
+  conceptMappingQualificationSchema,
+} from "../lib/validation.ts";
+import { assertConceptMappingQualificationPreserved } from "../lib/services/ontology-service.ts";
 
 export type FactConceptBinding = Readonly<{
   id: string;
@@ -27,6 +32,48 @@ export type FactConceptBinding = Readonly<{
   conceptId: string;
   createdBy: string;
   createdAt: string;
+}>;
+
+export type GovernedFactConceptBinding = FactConceptBinding & Readonly<{
+  relationType: "MAPS_TO";
+  qualificationJson: string | null;
+  mappingBasis: "HUMAN_AUTHORED" | "RULE_BASED" | "AI_SUGGESTED" | "CANONICAL_PACKAGE" | "IMPORT" | null;
+  provenanceJson: string | null;
+  mappingStatus: "LEGACY_UNVERIFIED" | "SUGGESTED" | "APPROVED" | "REJECTED" | "SUPERSEDED";
+  mappingVersion: number;
+  reviewedBy: string | null;
+  reviewedAt: string | null;
+}>;
+
+export type ConceptPersistenceInput = Readonly<{
+  concept: Readonly<{
+    id: string;
+    conceptKey: string;
+    namespace?: string;
+    label: string;
+    normalizedLabel: string;
+    category?: string;
+    description?: string;
+  }>;
+  binding: Readonly<{
+    id: string;
+    factIdentityId: string;
+    createdBy: string;
+    createdAt: string;
+    qualificationJson?: string | null;
+    mappingBasis: "HUMAN_AUTHORED" | "RULE_BASED" | "AI_SUGGESTED" | "CANONICAL_PACKAGE" | "IMPORT";
+    provenanceJson?: string | null;
+    mappingStatus: "SUGGESTED" | "APPROVED";
+    mappingVersion?: number;
+    reviewedBy?: string | null;
+    reviewedAt?: string | null;
+  }>;
+}>;
+
+export type ConceptPersistenceResult = Readonly<{
+  outcome: "NEW_SUCCESS" | "EXACT_REPLAY" | "CONFLICT" | "REVIEW_REQUIRED" | "MAP_TO_EXISTING";
+  conceptId: string;
+  binding: GovernedFactConceptBinding | null;
 }>;
 
 export type FactTrackBinding = Readonly<{
@@ -213,28 +260,211 @@ export class FactRepository {
   async createFactConceptBinding(
     input: FactConceptBinding,
   ): Promise<FactConceptBinding> {
-    await this.database.execute({
-      sql: `INSERT INTO fact_concept_bindings
-        (id, fact_identity_id, concept_id, created_by, created_at)
-        VALUES (?, ?, ?, ?, ?) ON CONFLICT DO NOTHING`,
-      parameters: [
-        input.id,
-        input.factIdentityId,
-        input.conceptId,
-        input.createdBy,
-        input.createdAt,
-      ],
-    });
     const row = await this.database.queryOne<Row>({
       sql: `SELECT * FROM fact_concept_bindings
         WHERE fact_identity_id = ? AND concept_id = ? LIMIT 1`,
       parameters: [input.factIdentityId, input.conceptId],
     });
     const mapped = row ? mapConceptBinding(row) : null;
-    if (!mapped || !sameRecord(mapped, input)) {
-      conflict("FACT_CONCEPT_BINDING_CONFLICT");
+    if (mapped && sameRecord(mapped, input)) return mapped;
+    conflict(mapped ? "FACT_CONCEPT_BINDING_CONFLICT" : "GOVERNED_MAPPING_REQUIRED");
+  }
+
+  async createGovernedConceptMapping(
+    input: ConceptPersistenceInput,
+  ): Promise<ConceptPersistenceResult> {
+    const fact = await this.getFactIdentity(input.binding.factIdentityId);
+    if (!fact) conflict("PARENT_FACT_NOT_FOUND");
+    const actor = await this.database.queryOne<Row>({
+      sql: "SELECT id FROM users WHERE id = ? LIMIT 1",
+      parameters: [input.binding.createdBy],
+    });
+    if (!actor) conflict("ACTOR_NOT_FOUND");
+
+    const qualificationJson = input.binding.qualificationJson ?? null;
+    const provenanceJson = input.binding.provenanceJson ?? null;
+    if (input.concept.conceptKey.startsWith("fixture:") || input.binding.factIdentityId.startsWith("fixture:")) {
+      conflict("FIXTURE_IDENTITY_LEAKAGE");
     }
-    return mapped;
+    validateGovernedMapping({ ...input.binding, qualificationJson, provenanceJson }, fact);
+
+    const aliasCollision = await this.database.queryOne<Row>({
+      sql: `SELECT oa.concept_id FROM ontology_aliases oa
+        WHERE oa.normalized_alias IN (?, ?) AND oa.concept_id <> ? LIMIT 1`,
+      parameters: [input.concept.normalizedLabel, input.concept.conceptKey, input.concept.id],
+    });
+    if (aliasCollision) conflict("REVIEW_REQUIRED");
+
+    let concept = await this.database.queryOne<Row>({
+      sql: "SELECT * FROM ontology_concepts WHERE concept_key = ? LIMIT 1",
+      parameters: [input.concept.conceptKey],
+    });
+    let conceptOutcome: ConceptPersistenceResult["outcome"] = "NEW_SUCCESS";
+    if (concept) {
+      if (!sameConcept(concept, input.concept)) conflict("CONFLICT");
+      conceptOutcome = "MAP_TO_EXISTING";
+    } else {
+      await this.database.execute({
+        sql: `INSERT INTO ontology_concepts
+          (id, concept_key, namespace, label, normalized_label, category, description,
+           metadata_json, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, '{}', ?, ?)`,
+        parameters: [
+          input.concept.id,
+          input.concept.conceptKey,
+          input.concept.namespace ?? "securium",
+          input.concept.label,
+          input.concept.normalizedLabel,
+          input.concept.category ?? "general",
+          input.concept.description ?? "",
+          input.binding.createdAt,
+          input.binding.createdAt,
+        ],
+      });
+      concept = await this.database.queryOne<Row>({
+        sql: "SELECT * FROM ontology_concepts WHERE concept_key = ? LIMIT 1",
+        parameters: [input.concept.conceptKey],
+      });
+    }
+    if (!concept) conflict("CONFLICT");
+
+    const existing = await this.database.queryOne<Row>({
+      sql: `SELECT * FROM fact_concept_bindings
+        WHERE fact_identity_id = ? AND concept_id = ?
+          AND mapping_status IN ('LEGACY_UNVERIFIED', 'SUGGESTED', 'APPROVED') LIMIT 1`,
+      parameters: [input.binding.factIdentityId, string(concept, "id")],
+    });
+    const expected = governedBindingValues(input, string(concept, "id"), qualificationJson, provenanceJson);
+    if (existing) {
+      const mapped = mapGovernedConceptBinding(existing);
+      if (sameRecord(mapped, expected)) {
+        return { outcome: "EXACT_REPLAY", conceptId: mapped.conceptId, binding: mapped };
+      }
+      conflict("CONFLICT");
+    }
+    await this.database.execute({
+      sql: `INSERT INTO fact_concept_bindings
+        (id, fact_identity_id, concept_id, created_by, created_at, relation_type,
+         qualification_json, mapping_basis, provenance_json, mapping_status,
+         mapping_version, reviewed_by, reviewed_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      parameters: expectedValues(expected),
+    });
+    const persisted = await this.database.queryOne<Row>({
+      sql: "SELECT * FROM fact_concept_bindings WHERE id = ? LIMIT 1",
+      parameters: [input.binding.id],
+    });
+    if (!persisted) conflict("CONFLICT");
+    return {
+      outcome: conceptOutcome,
+      conceptId: string(concept, "id"),
+      binding: mapGovernedConceptBinding(persisted),
+    };
+  }
+
+  async approveFactConceptBinding(input: Readonly<{
+    bindingId: string;
+    reviewedBy: string;
+    reviewedAt: string;
+    provenanceJson: string;
+    qualificationJson: string;
+  }>): Promise<GovernedFactConceptBinding> {
+    const actor = await this.database.queryOne<Row>({
+      sql: "SELECT id FROM users WHERE id = ? LIMIT 1",
+      parameters: [input.reviewedBy],
+    });
+    if (!actor) conflict("ACTOR_NOT_FOUND");
+    const existing = await this.database.queryOne<Row>({
+      sql: "SELECT * FROM fact_concept_bindings WHERE id = ? LIMIT 1",
+      parameters: [input.bindingId],
+    });
+    if (!existing) conflict("CONFLICT");
+    if (string(existing, "mapping_basis") === "AI_SUGGESTED" && string(existing, "mapping_status") !== "SUGGESTED") {
+      conflict("REVIEW_REQUIRED");
+    }
+    const fact = await this.getFactIdentity(string(existing, "fact_identity_id"));
+    if (!fact) conflict("PARENT_FACT_NOT_FOUND");
+    validateGovernedMapping({
+      ...mapGovernedConceptBinding(existing),
+      mappingStatus: "APPROVED",
+      reviewedBy: input.reviewedBy,
+      reviewedAt: input.reviewedAt,
+      provenanceJson: input.provenanceJson,
+      qualificationJson: input.qualificationJson,
+    }, fact);
+    await this.database.execute({
+      sql: `UPDATE fact_concept_bindings SET mapping_status = 'APPROVED',
+        provenance_json = ?, qualification_json = ?, reviewed_by = ?, reviewed_at = ?
+        WHERE id = ? AND mapping_status = 'SUGGESTED'`,
+      parameters: [input.provenanceJson, input.qualificationJson, input.reviewedBy, input.reviewedAt, input.bindingId],
+    });
+    const approved = await this.database.queryOne<Row>({
+      sql: "SELECT * FROM fact_concept_bindings WHERE id = ? LIMIT 1",
+      parameters: [input.bindingId],
+    });
+    if (!approved || string(approved, "mapping_status") !== "APPROVED") conflict("REVIEW_REQUIRED");
+    return mapGovernedConceptBinding(approved);
+  }
+
+  async replaceWithGovernedVersion(
+    input: ConceptPersistenceInput,
+  ): Promise<ConceptPersistenceResult> {
+    const current = await this.database.queryOne<Row>({
+      sql: `SELECT * FROM fact_concept_bindings
+        WHERE fact_identity_id = ? AND concept_id = ?
+          AND mapping_status IN ('LEGACY_UNVERIFIED', 'SUGGESTED', 'APPROVED') LIMIT 1`,
+      parameters: [input.binding.factIdentityId, input.concept.id],
+    });
+    if (!current) conflict("CONFLICT");
+    const currentVersion = numberValue(current, "mapping_version");
+    if ((input.binding.mappingVersion ?? currentVersion + 1) <= currentVersion) {
+      conflict("CONFLICT");
+    }
+    const fact = await this.getFactIdentity(input.binding.factIdentityId);
+    if (!fact) conflict("PARENT_FACT_NOT_FOUND");
+    const actor = await this.database.queryOne<Row>({
+      sql: "SELECT id FROM users WHERE id = ? LIMIT 1",
+      parameters: [input.binding.createdBy],
+    });
+    if (!actor) conflict("ACTOR_NOT_FOUND");
+    const concept = await this.database.queryOne<Row>({
+      sql: "SELECT * FROM ontology_concepts WHERE concept_key = ? LIMIT 1",
+      parameters: [input.concept.conceptKey],
+    });
+    if (!concept || !sameConcept(concept, input.concept)) conflict("CONFLICT");
+    const qualificationJson = input.binding.qualificationJson ?? null;
+    const provenanceJson = input.binding.provenanceJson ?? null;
+    if (input.concept.conceptKey.startsWith("fixture:") || input.binding.factIdentityId.startsWith("fixture:")) {
+      conflict("FIXTURE_IDENTITY_LEAKAGE");
+    }
+    validateGovernedMapping({ ...input.binding, qualificationJson, provenanceJson }, fact);
+    const expected = governedBindingValues(
+      { ...input, binding: { ...input.binding, mappingVersion: input.binding.mappingVersion ?? currentVersion + 1 } },
+      string(concept, "id"),
+      qualificationJson,
+      provenanceJson,
+    );
+    await this.database.transaction([
+      {
+        sql: `UPDATE fact_concept_bindings SET mapping_status = 'SUPERSEDED'
+          WHERE id = ? AND mapping_status IN ('LEGACY_UNVERIFIED', 'SUGGESTED', 'APPROVED')`,
+        parameters: [string(current, "id")],
+      },
+      {
+        sql: `INSERT INTO fact_concept_bindings
+          (id, fact_identity_id, concept_id, created_by, created_at, relation_type,
+           qualification_json, mapping_basis, provenance_json, mapping_status,
+           mapping_version, reviewed_by, reviewed_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        parameters: expectedValues(expected),
+      },
+    ]);
+    const persisted = await this.database.queryOne<Row>({
+      sql: "SELECT * FROM fact_concept_bindings WHERE id = ? LIMIT 1",
+      parameters: [expected.id],
+    });
+    if (!persisted) conflict("CONFLICT");
+    return { outcome: "MAP_TO_EXISTING", conceptId: expected.conceptId, binding: mapGovernedConceptBinding(persisted) };
   }
 
   async createFactTrackBinding(input: FactTrackBinding): Promise<FactTrackBinding> {
@@ -346,6 +576,143 @@ function mapConceptBinding(row: Row): FactConceptBinding {
     conceptId: string(row, "concept_id"),
     createdBy: string(row, "created_by"),
     createdAt: string(row, "created_at"),
+  });
+}
+
+function mapGovernedConceptBinding(row: Row): GovernedFactConceptBinding {
+  return Object.freeze({
+    id: string(row, "id"),
+    factIdentityId: string(row, "fact_identity_id"),
+    conceptId: string(row, "concept_id"),
+    createdBy: string(row, "created_by"),
+    createdAt: string(row, "created_at"),
+    relationType: string(row, "relation_type") as "MAPS_TO",
+    qualificationJson: nullableString(row, "qualification_json"),
+    mappingBasis: nullableString(row, "mapping_basis") as GovernedFactConceptBinding["mappingBasis"],
+    provenanceJson: nullableString(row, "provenance_json"),
+    mappingStatus: string(row, "mapping_status") as GovernedFactConceptBinding["mappingStatus"],
+    mappingVersion: numberValue(row, "mapping_version"),
+    reviewedBy: nullableString(row, "reviewed_by"),
+    reviewedAt: nullableString(row, "reviewed_at"),
+  });
+}
+
+function numberValue(row: Row, key: string): number {
+  const value = row[key];
+  if (typeof value !== "number") conflict("FACT_ROW_INVALID");
+  return value;
+}
+
+function sameConcept(row: Row, input: ConceptPersistenceInput["concept"]): boolean {
+  return string(row, "concept_key") === input.conceptKey &&
+    string(row, "label") === input.label &&
+    string(row, "normalized_label") === input.normalizedLabel &&
+    string(row, "namespace") === (input.namespace ?? "securium") &&
+    string(row, "category") === (input.category ?? "general") &&
+    string(row, "description") === (input.description ?? "");
+}
+
+function governedBindingValues(
+  input: ConceptPersistenceInput,
+  conceptId: string,
+  qualificationJson: string | null,
+  provenanceJson: string | null,
+): GovernedFactConceptBinding {
+  return Object.freeze({
+    id: input.binding.id,
+    factIdentityId: input.binding.factIdentityId,
+    conceptId,
+    createdBy: input.binding.createdBy,
+    createdAt: input.binding.createdAt,
+    relationType: "MAPS_TO",
+    qualificationJson,
+    mappingBasis: input.binding.mappingBasis,
+    provenanceJson,
+    mappingStatus: input.binding.mappingStatus,
+    mappingVersion: input.binding.mappingVersion ?? 1,
+    reviewedBy: input.binding.reviewedBy ?? null,
+    reviewedAt: input.binding.reviewedAt ?? null,
+  });
+}
+
+function expectedValues(input: GovernedFactConceptBinding): readonly DatabaseValue[] {
+  return [
+    input.id,
+    input.factIdentityId,
+    input.conceptId,
+    input.createdBy,
+    input.createdAt,
+    input.relationType,
+    input.qualificationJson,
+    input.mappingBasis,
+    input.provenanceJson,
+    input.mappingStatus,
+    input.mappingVersion,
+    input.reviewedBy,
+    input.reviewedAt,
+  ];
+}
+
+function validateGovernedMapping(
+  input: Readonly<{
+    mappingBasis: string | null;
+    mappingStatus: string;
+    qualificationJson: string | null;
+    provenanceJson: string | null;
+    reviewedBy?: string | null;
+    reviewedAt?: string | null;
+  }>,
+  fact: FactIdentity,
+) {
+  if (input.mappingStatus === "APPROVED" && input.mappingBasis === "AI_SUGGESTED") {
+    conflict("REVIEW_REQUIRED");
+  }
+  if (input.mappingStatus === "APPROVED" && !input.provenanceJson) {
+    conflict("PROVENANCE_REQUIRED");
+  }
+  if (input.mappingStatus === "APPROVED" && (!input.reviewedBy || !input.reviewedAt)) {
+    conflict("REVIEW_REQUIRED");
+  }
+  if (input.provenanceJson) {
+    try {
+      const identity = JSON.parse(input.provenanceJson) as { package_id?: unknown };
+      if (typeof identity.package_id === "string" && identity.package_id.startsWith("fixture:")) {
+        conflict("FIXTURE_IDENTITY_LEAKAGE");
+      }
+    } catch {
+      // The provenance parser below emits the authoritative error.
+    }
+  }
+  if (!input.qualificationJson) {
+    if (input.mappingStatus === "APPROVED" && fact.scopeDiscriminator !== "global") {
+      conflict("QUALIFICATION_LOSS_BLOCKED");
+    }
+    return;
+  }
+  let qualification: unknown;
+  let provenance: unknown;
+  try {
+    qualification = JSON.parse(input.qualificationJson);
+  } catch {
+    conflict("QUALIFICATION_INVALID");
+  }
+  if (input.provenanceJson) {
+    try {
+      provenance = JSON.parse(input.provenanceJson);
+    } catch {
+      conflict("PROVENANCE_REQUIRED");
+    }
+  }
+  const parsedQualification = conceptMappingQualificationSchema.safeParse(qualification);
+  if (!parsedQualification.success) conflict("QUALIFICATION_INVALID");
+  if (input.mappingStatus === "APPROVED") {
+    const parsedProvenance = conceptMappingProvenanceSchema.safeParse(provenance);
+    if (!parsedProvenance.success) conflict("PROVENANCE_REQUIRED");
+  }
+  assertConceptMappingQualificationPreserved({
+    factScope: fact.scopeDiscriminator,
+    qualificationJson: input.qualificationJson,
+    mappingStatus: input.mappingStatus as Parameters<typeof assertConceptMappingQualificationPreserved>[0]["mappingStatus"],
   });
 }
 

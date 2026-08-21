@@ -243,15 +243,17 @@ test("Fact and assertion domain records are frozen append-only values", async ()
   assert.ok(Object.isFrozen(await assertion()));
 });
 
-test("FactRepository exposes exactly the eleven narrow primitives", () => {
+test("FactRepository exposes the narrow Fact and Concept persistence primitives", () => {
   const methods = Object.getOwnPropertyNames(FactRepository.prototype)
     .filter((name) => name !== "constructor")
     .sort();
   assert.deepEqual(methods, [
+    "approveFactConceptBinding",
     "createAssertionSourceBinding",
     "createFactConceptBinding",
     "createFactIdentity",
     "createFactTrackBinding",
+    "createGovernedConceptMapping",
     "createSourceIdentity",
     "createTemporalAssertion",
     "findFactByCanonicalKey",
@@ -259,8 +261,9 @@ test("FactRepository exposes exactly the eleven narrow primitives", () => {
     "getTemporalAssertion",
     "listAssertionsForFact",
     "listSourcesForAssertion",
+    "replaceWithGovernedVersion",
   ]);
-  assert.equal(methods.some((name) => /update|delete|approve|activate|import|supersede/i.test(name)), false);
+  assert.equal(methods.some((name) => /update|delete|activate|import|supersede/i.test(name)), false);
 });
 
 test("canonical JSON rejects dangerous or non-deterministic objects", () => {

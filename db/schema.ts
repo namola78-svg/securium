@@ -3506,15 +3506,53 @@ export const factConceptBindings = sqliteTable(
       .notNull()
       .references(() => users.id),
     createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    relationType: text("relation_type").notNull().default("MAPS_TO"),
+    qualificationJson: text("qualification_json"),
+    mappingBasis: text("mapping_basis"),
+    provenanceJson: text("provenance_json"),
+    mappingStatus: text("mapping_status")
+      .notNull()
+      .default("LEGACY_UNVERIFIED"),
+    mappingVersion: integer("mapping_version").notNull().default(1),
+    reviewedBy: text("reviewed_by").references(() => users.id),
+    reviewedAt: text("reviewed_at"),
   },
   (table) => [
-    uniqueIndex("fact_concept_bindings_identity_unique").on(
+    uniqueIndex("fact_concept_bindings_current_unique")
+      .on(table.factIdentityId, table.conceptId)
+      .where(
+        sql`${table.mappingStatus} IN ('LEGACY_UNVERIFIED', 'SUGGESTED', 'APPROVED')`,
+      ),
+    index("fact_concept_bindings_fact_status_idx").on(
+      table.factIdentityId,
+      table.mappingStatus,
+      table.createdAt,
+    ),
+    index("fact_concept_bindings_concept_status_idx").on(
+      table.conceptId,
+      table.mappingStatus,
+      table.createdAt,
+    ),
+    index("fact_concept_bindings_semantic_version_idx").on(
       table.factIdentityId,
       table.conceptId,
+      table.mappingVersion,
     ),
-    index("fact_concept_bindings_concept_idx").on(
-      table.conceptId,
-      table.createdAt,
+    check(
+      "fact_concept_bindings_relation_check",
+      sql`${table.relationType} = 'MAPS_TO'`,
+    ),
+    check(
+      "fact_concept_bindings_status_check",
+      sql`${table.mappingStatus} IN ('LEGACY_UNVERIFIED', 'SUGGESTED', 'APPROVED', 'REJECTED', 'SUPERSEDED')`,
+    ),
+    check(
+      "fact_concept_bindings_version_check",
+      sql`${table.mappingVersion} > 0`,
+    ),
+    check(
+      "fact_concept_bindings_review_check",
+      sql`${table.mappingStatus} <> 'APPROVED' OR (${table.reviewedBy} IS NOT NULL AND ${table.reviewedAt} IS NOT NULL)`,
     ),
   ],
 );

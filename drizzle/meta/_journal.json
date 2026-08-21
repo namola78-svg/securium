@@ -169,6 +169,13 @@
       "when": 1787205552189,
       "tag": "0023_canonical_fact_foundation",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "6",
+      "when": 1787292404636,
+      "tag": "0024_pale_diamondback",
+      "breakpoints": true
     }
   ]
 }
