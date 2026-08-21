@@ -1,5 +1,9 @@
 import assert from "node:assert/strict";
+import { cp, mkdtemp, readdir, rm, stat, symlink } from "node:fs/promises";
 import { spawn } from "node:child_process";
+import net from "node:net";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { after, before, test } from "node:test";
 import { getSecurityCertificationDeepNodeCoverageSummary } from "../lib/curriculum/security-certification-content-map.ts";
 import {
@@ -10,10 +14,150 @@ import {
 const port = 33120;
 const baseUrl = `http://localhost:${port}`;
 const runId = `${process.pid}-${Date.now()}`;
+const startupTimeoutMs = 180_000;
+const pollIntervalMs = 250;
+const outputLimit = 12_000;
 let server;
 let output = "";
+let tcpReady = false;
+let httpReady = false;
+let serverRoot;
+
+const isolatedDirectories = [
+  ".openai",
+  "app",
+  "build",
+  "components",
+  "db",
+  "drizzle",
+  "examples",
+  "lib",
+  "node_modules",
+  "public",
+  "references",
+  "scripts",
+  "worker",
+];
+const isolatedFiles = [
+  ".env.local",
+  "cloudflare-env.d.ts",
+  "next-env.d.ts",
+  "next.config.ts",
+  "package.json",
+  "postcss.config.mjs",
+  "proxy.ts",
+  "tsconfig.json",
+  "vite.config.ts",
+  "wrangler.local.jsonc",
+];
+
+const prepareIsolatedServerRoot = async () => {
+  const sourceRoot = process.cwd();
+  serverRoot = await mkdtemp(join(tmpdir(), "securium-rendered-html-"));
+  const linkType = process.platform === "win32" ? "junction" : "dir";
+  await Promise.all(
+    isolatedDirectories.map((name) =>
+      symlink(join(sourceRoot, name), join(serverRoot, name), linkType),
+    ),
+  );
+  const availableFiles = (
+    await Promise.all(
+      isolatedFiles.map(async (name) => {
+        try {
+          await stat(join(sourceRoot, name));
+          return name;
+        } catch {
+          return null;
+        }
+      }),
+    )
+  ).filter(Boolean);
+  await Promise.all(
+    availableFiles.map((name) =>
+      cp(join(sourceRoot, name), join(serverRoot, name)),
+    ),
+  );
+};
+
+const removeIsolatedServerRoot = async () => {
+  if (!serverRoot) return;
+  for (const entry of await readdir(serverRoot)) {
+    await rm(join(serverRoot, entry), {
+      recursive: true,
+      force: true,
+      maxRetries: 3,
+      retryDelay: 100,
+    });
+  }
+  await rm(serverRoot, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+};
+
+const appendOutput = (chunk) => {
+  output = `${output}${chunk}`.slice(-outputLimit);
+};
+
+const waitForExit = (child, timeoutMs) =>
+  new Promise((resolve) => {
+    if (child.exitCode !== null) {
+      resolve(true);
+      return;
+    }
+    const timer = setTimeout(() => {
+      child.off("exit", onExit);
+      resolve(false);
+    }, timeoutMs);
+    const onExit = () => {
+      clearTimeout(timer);
+      resolve(true);
+    };
+    child.once("exit", onExit);
+  });
+
+const probeTcp = () =>
+  new Promise((resolve) => {
+    const socket = net.createConnection({ host: "localhost", port });
+    const finish = (ready) => {
+      socket.destroy();
+      resolve(ready);
+    };
+    socket.once("connect", () => finish(true));
+    socket.once("error", () => finish(false));
+    socket.setTimeout(500, () => finish(false));
+  });
+
+const diagnostics = (elapsedMs) => {
+  const exitState = server
+    ? `exitCode=${server.exitCode ?? "null"}, signal=${server.signalCode ?? "null"}`
+    : "server=not-spawned";
+  return [
+    `elapsedMs=${elapsedMs}`,
+    exitState,
+    `tcpReady=${tcpReady}`,
+    `httpReady=${httpReady}`,
+    `outputTail=${output}`,
+  ].join("\n");
+};
+
+const stopServer = async () => {
+  if (!server || server.exitCode !== null) return;
+
+  server.kill("SIGTERM");
+  if (await waitForExit(server, 2_000)) return;
+
+  if (process.platform === "win32") {
+    const killer = spawn("taskkill", ["/PID", String(server.pid), "/T", "/F"], {
+      stdio: "ignore",
+      windowsHide: true,
+    });
+    await waitForExit(killer, 5_000);
+  } else {
+    server.kill("SIGKILL");
+    await waitForExit(server, 5_000);
+  }
+};
 
 before(async () => {
+  await prepareIsolatedServerRoot();
   server = spawn(
     process.execPath,
     [
@@ -25,7 +169,7 @@ before(async () => {
       String(port),
     ],
     {
-      cwd: process.cwd(),
+      cwd: serverRoot,
       env: {
         ...process.env,
         WRANGLER_LOG_PATH: ".wrangler/wrangler.log",
@@ -34,26 +178,37 @@ before(async () => {
       windowsHide: true,
     },
   );
-  server.stdout.on("data", (chunk) => {
-    output += chunk.toString();
-  });
-  server.stderr.on("data", (chunk) => {
-    output += chunk.toString();
-  });
+  server.stdout.on("data", (chunk) => appendOutput(chunk.toString()));
+  server.stderr.on("data", (chunk) => appendOutput(chunk.toString()));
 
-  for (let attempt = 0; attempt < 480; attempt += 1) {
-    if (server.exitCode !== null) {
-      throw new Error(`E2E server stopped early.\n${output}`);
+  const startedAt = Date.now();
+  try {
+    while (Date.now() - startedAt < startupTimeoutMs) {
+      const elapsedMs = Date.now() - startedAt;
+      if (server.exitCode !== null) {
+        throw new Error(`E2E server stopped before readiness.\n${diagnostics(elapsedMs)}`);
+      }
+
+      tcpReady = await probeTcp();
+      if (tcpReady) {
+        try {
+          const response = await fetch(baseUrl, {
+            signal: AbortSignal.timeout(1_000),
+          });
+          httpReady = response.status > 0;
+        } catch {
+          httpReady = false;
+        }
+      }
+      if (tcpReady && httpReady) return;
+
+      await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
     }
-    try {
-      const response = await fetch(baseUrl);
-      if (response.status > 0) return;
-    } catch {
-      // The server is still starting.
-    }
-    await new Promise((resolve) => setTimeout(resolve, 250));
+    throw new Error(`E2E server did not become HTTP-ready.\n${diagnostics(Date.now() - startedAt)}`);
+  } catch (error) {
+    await stopServer();
+    throw error;
   }
-  throw new Error(`E2E server did not become ready.\n${output}`);
 });
 
 test("network security practice flow stays scoped to engineer and industrial engineer courses", async () => {
@@ -346,7 +501,7 @@ test("admin curriculum and shared content pages expose network security coverage
           diagramsJson: "[]",
           mediaJson: "[]",
           version: "test",
-          status: "PUBLISHED",
+          status: "DRAFT",
         },
       }),
     },
@@ -387,7 +542,7 @@ test("admin curriculum and shared content pages expose network security coverage
           isRequired: true,
           unlockCondition: "",
           completionRule: "MANUAL",
-          status: "PUBLISHED",
+          status: "DRAFT",
         },
       }),
     },
@@ -449,7 +604,7 @@ test("admin curriculum and shared content pages expose network security coverage
           isRequired: true,
           unlockCondition: "",
           completionRule: "MANUAL",
-          status: "PUBLISHED",
+          status: "DRAFT",
         },
       }),
     },
@@ -660,8 +815,9 @@ async function readJsonResponse(response) {
   }
 }
 
-after(() => {
-  if (server?.exitCode === null) server.kill();
+after(async () => {
+  await stopServer();
+  await removeIsolatedServerRoot();
 });
 
 test("통합 학습 플랫폼 랜딩페이지를 서버 렌더링한다", async () => {
