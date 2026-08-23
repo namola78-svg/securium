@@ -2,17 +2,15 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { after, before, test } from "node:test";
 
-const port = 33122;
-const baseUrl = `http://localhost:${port}`;
+const requestedPort = 0;
+let baseUrl = "";
 const lessonId = "course-isms-p-subject-foundation-topic-core-lesson-01";
 const user = {
   "content-type": "application/json",
-  origin: baseUrl,
   "oai-authenticated-user-email": "dev-user-1@example.invalid",
 };
 const admin = {
   "content-type": "application/json",
-  origin: baseUrl,
   "oai-authenticated-user-email": "dev-admin@example.invalid",
 };
 let server;
@@ -29,7 +27,7 @@ before(async () => {
       "--host",
       "127.0.0.1",
       "--port",
-      String(port),
+      String(requestedPort),
     ],
     {
       cwd: process.cwd(),
@@ -40,17 +38,25 @@ before(async () => {
   );
   server.stdout.on("data", (chunk) => {
     output += chunk.toString();
+    captureBaseUrl();
   });
   server.stderr.on("data", (chunk) => {
     output += chunk.toString();
+    captureBaseUrl();
   });
   for (let attempt = 0; attempt < 480; attempt += 1) {
     if (server.exitCode !== null) {
       throw new Error(`Content revision E2E server stopped.\n${output}`);
     }
     try {
-      const response = await fetch(baseUrl);
-      if (response.status > 0) return;
+      if (baseUrl) {
+        const response = await fetch(baseUrl);
+        if (response.status > 0) {
+          user.origin = baseUrl;
+          admin.origin = baseUrl;
+          return;
+        }
+      }
     } catch {
       // Server is starting.
     }
@@ -58,6 +64,12 @@ before(async () => {
   }
   throw new Error(`Content revision E2E server did not start.\n${output}`);
 });
+
+function captureBaseUrl() {
+  const cleanOutput = output.replace(/\u001b\[[0-?]*[ -/]*[@-~]/g, "");
+  const match = cleanOutput.match(/Local:\s+https?:\/\/localhost:(\d+)\//);
+  if (match) baseUrl = `http://localhost:${match[1]}`;
+}
 
 after(() => {
   if (server?.exitCode === null) server.kill();
