@@ -2,17 +2,17 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { after, before, test } from "node:test";
 
-const port = 33122;
-const baseUrl = `http://localhost:${port}`;
+const requestedPort = 33122;
+let baseUrl = "";
 const lessonId = "course-isms-p-subject-foundation-topic-core-lesson-01";
 const user = {
   "content-type": "application/json",
-  origin: baseUrl,
+  origin: "",
   "oai-authenticated-user-email": "dev-user-1@example.invalid",
 };
 const admin = {
   "content-type": "application/json",
-  origin: baseUrl,
+  origin: "",
   "oai-authenticated-user-email": "dev-admin@example.invalid",
 };
 let server;
@@ -29,7 +29,7 @@ before(async () => {
       "--host",
       "127.0.0.1",
       "--port",
-      String(port),
+      String(requestedPort),
     ],
     {
       cwd: process.cwd(),
@@ -48,11 +48,17 @@ before(async () => {
     if (server.exitCode !== null) {
       throw new Error(`Content revision E2E server stopped.\n${output}`);
     }
-    try {
-      const response = await fetch(baseUrl);
-      if (response.status > 0) return;
-    } catch {
-      // Server is starting.
+    const discoveredUrl = findLocalUrl(output);
+    if (discoveredUrl) {
+      baseUrl = discoveredUrl;
+      user.origin = baseUrl;
+      admin.origin = baseUrl;
+      try {
+        const response = await fetch(baseUrl);
+        if (response.status > 0) return;
+      } catch {
+        // The server URL is known, but the server is still starting.
+      }
     }
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
@@ -70,6 +76,13 @@ async function post(headers, body) {
     body: JSON.stringify(body),
   });
   return { response, payload: await response.json() };
+}
+
+function findLocalUrl(text) {
+  const matches = text.matchAll(/(?:https?:\/\/)?(localhost|127\.0\.0\.1):(\d+)(?:\/|\b)/g);
+  let lastMatch;
+  for (const match of matches) lastMatch = match;
+  return lastMatch ? `http://${lastMatch[1]}:${lastMatch[2]}` : "";
 }
 
 test("새 버전 초안을 생성하고 일반 사용자의 초안 접근을 차단한다", async () => {
