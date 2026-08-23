@@ -1,3 +1,5 @@
+import { AppError } from "../errors.ts";
+
 export const CONTENT_REVISION_TYPES = [
   "LEGAL_ARTICLE",
   "ISMS_STANDARD",
@@ -97,5 +99,117 @@ export function isCurrentRevision(input: {
   isLatest: boolean;
 }) {
   return input.revisionStatus === "published" && input.isLatest;
+}
+
+export const THEORY_REVISION_CONTENT_TYPE = "LEARNING_UNIT" as const;
+export const THEORY_REVISION_STATUS = "review" as const;
+
+export type TheoryConceptMappingInput = Readonly<{
+  conceptId?: string | null;
+  conceptKey: string;
+  qualificationJson: string;
+  provenanceJson: string;
+  mappingStatus?: "SUGGESTED" | "APPROVED";
+  mappingVersion?: number;
+  reviewedBy?: string | null;
+  reviewedAt?: string | null;
+}>;
+
+export type TheoryRevisionGovernanceInput = Readonly<{
+  blueprintId: string;
+  humanReviewHash: string;
+  humanReviewedBy: string;
+  humanReviewedAt: string;
+  rightsStatus: "PASS_ORIGINAL";
+  authoringOrigin: "SECURIUM_ORIGINAL";
+  copyrightStatus: "PASS_ORIGINAL";
+  restrictedPdfGenerationInput: false;
+  qualificationJson: string;
+  provenanceJson: string;
+  lifecycle: "CANONICAL_UNPUBLISHED";
+}>;
+
+export type GovernedTheoryRevisionCandidate = Readonly<{
+  canonicalKey: string;
+  contentId: string;
+  version: string;
+  title: string;
+  body: string;
+  bodyFormat: "MARKDOWN" | "STRUCTURED_JSON" | "PLAIN_TEXT";
+  learningObjectives: readonly string[];
+  examples: readonly unknown[];
+  selfChecks: readonly string[];
+  conceptMappings: readonly TheoryConceptMappingInput[];
+  governance: TheoryRevisionGovernanceInput;
+}>;
+
+export type TheoryRevisionSemanticProjection = Omit<GovernedTheoryRevisionCandidate, "contentId">;
+
+export function stableJson(value: unknown): string {
+  return JSON.stringify(sortTheoryValue(value));
+}
+
+export async function computeTheoryRevisionSemanticHash(
+  value: TheoryRevisionSemanticProjection,
+): Promise<string> {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(stableJson(value)),
+  );
+  return [...new Uint8Array(digest)]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+export function assertTheoryRevisionCandidate(
+  candidate: GovernedTheoryRevisionCandidate,
+  actorUserId: string,
+) {
+  if (!candidate.canonicalKey || !candidate.contentId || !candidate.version) failTheory("THEORY_REVISION_IDENTITY_INVALID");
+  if (!candidate.title.trim() || !candidate.body.trim()) failTheory("THEORY_REVISION_CONTENT_INVALID");
+  if (!candidate.learningObjectives.length || !candidate.selfChecks.length) failTheory("THEORY_REVISION_LEARNING_FIELDS_INVALID");
+  if (!actorUserId.trim()) failTheory("ACTOR_REQUIRED");
+  const governance = candidate.governance;
+  if (!/^\w{64}$/.test(governance.humanReviewHash)) failTheory("HUMAN_REVIEW_HASH_INVALID");
+  if (governance.authoringOrigin !== "SECURIUM_ORIGINAL") failTheory("THEORY_AUTHORING_ORIGIN_INVALID");
+  if (governance.rightsStatus !== "PASS_ORIGINAL" || governance.copyrightStatus !== "PASS_ORIGINAL") failTheory("RIGHTS_REVIEW_REQUIRED");
+  if (governance.restrictedPdfGenerationInput !== false) failTheory("RESTRICTED_SOURCE_FORBIDDEN");
+  if (governance.lifecycle !== "CANONICAL_UNPUBLISHED") failTheory("THEORY_LIFECYCLE_INVALID");
+  if (!governance.humanReviewedBy || !governance.humanReviewedAt) failTheory("HUMAN_REVIEW_BINDING_INVALID");
+  assertTheoryObjectJson(governance.qualificationJson, "THEORY_QUALIFICATION_INVALID");
+  assertTheoryObjectJson(governance.provenanceJson, "THEORY_PROVENANCE_INVALID");
+  candidate.conceptMappings.forEach((mapping) => {
+    if (!mapping.conceptKey.trim()) failTheory("CONCEPT_MAPPING_INVALID");
+    if (mapping.mappingStatus === "APPROVED" && (!mapping.reviewedBy || !mapping.reviewedAt)) failTheory("CONCEPT_REVIEW_REQUIRED");
+    if (mapping.mappingVersion !== undefined && mapping.mappingVersion < 1) failTheory("CONCEPT_MAPPING_VERSION_INVALID");
+    assertTheoryObjectJson(mapping.qualificationJson, "CONCEPT_QUALIFICATION_INVALID");
+    assertTheoryObjectJson(mapping.provenanceJson, "CONCEPT_PROVENANCE_INVALID");
+  });
+}
+
+function assertTheoryObjectJson(value: string, code: string) {
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) failTheory(code);
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    failTheory(code);
+  }
+}
+
+function failTheory(code: string): never {
+  throw new AppError("Theory revision governance validation failed.", 400, code);
+}
+
+function sortTheoryValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(sortTheoryValue);
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([key, child]) => [key, sortTheoryValue(child)]),
+    );
+  }
+  return value;
 }
 

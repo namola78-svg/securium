@@ -763,6 +763,8 @@ export const contentRevisions = sqliteTable(
     createdBy: text("created_by")
       .notNull()
       .references(() => users.id, { onDelete: "restrict" }),
+    semanticHash: text("semantic_hash"),
+    humanReviewHash: text("human_review_hash"),
     ...timestamps,
   },
   (table) => [
@@ -786,6 +788,11 @@ export const contentRevisions = sqliteTable(
       table.contentDate,
     ),
     index("content_revisions_previous_idx").on(table.previousVersionId),
+    uniqueIndex("content_revisions_semantic_hash_unique").on(
+      table.contentType,
+      table.contentId,
+      table.semanticHash,
+    ),
     foreignKey({
       name: "content_revisions_previous_fk",
       columns: [table.previousVersionId],
@@ -806,6 +813,70 @@ export const contentRevisions = sqliteTable(
     check(
       "content_revisions_snapshot_length_check",
       sql`length(${table.snapshotJson}) <= 100000`,
+    ),
+    check(
+      "content_revisions_review_binding_check",
+      sql`${table.humanReviewHash} IS NULL OR (${table.semanticHash} IS NOT NULL AND ${table.reviewedBy} IS NOT NULL AND ${table.reviewedAt} IS NOT NULL)`,
+    ),
+  ],
+);
+
+export const contentRevisionConcepts = sqliteTable(
+  "content_revision_concepts",
+  {
+    id: text("id").primaryKey(),
+    revisionId: text("revision_id")
+      .notNull()
+      .references(() => contentRevisions.id, { onDelete: "restrict" }),
+    conceptId: text("concept_id").references(() => ontologyConcepts.id, {
+      onDelete: "restrict",
+    }),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    relationType: text("relation_type").notNull().default("MAPS_TO"),
+    qualificationJson: text("qualification_json").notNull(),
+    provenanceJson: text("provenance_json").notNull(),
+    mappingStatus: text("mapping_status").notNull().default("SUGGESTED"),
+    mappingVersion: integer("mapping_version").notNull().default(1),
+    reviewedBy: text("reviewed_by").references(() => users.id, {
+      onDelete: "restrict",
+    }),
+    reviewedAt: text("reviewed_at"),
+  },
+  (table) => [
+    check(
+      "content_revision_concepts_relation_check",
+      sql`${table.relationType} = 'MAPS_TO'`,
+    ),
+    check(
+      "content_revision_concepts_status_check",
+      sql`${table.mappingStatus} IN ('LEGACY_UNVERIFIED', 'SUGGESTED', 'APPROVED', 'REJECTED', 'SUPERSEDED')`,
+    ),
+    check(
+      "content_revision_concepts_version_check",
+      sql`${table.mappingVersion} > 0`,
+    ),
+    check(
+      "content_revision_concepts_review_check",
+      sql`${table.mappingStatus} <> 'APPROVED' OR (${table.reviewedBy} IS NOT NULL AND ${table.reviewedAt} IS NOT NULL)`,
+    ),
+    check(
+      "content_revision_concepts_identity_check",
+      sql`${table.conceptId} IS NOT NULL OR length(${table.qualificationJson}) > 0`,
+    ),
+    uniqueIndex("content_revision_concepts_current_unique")
+      .on(table.revisionId, table.conceptId, table.mappingVersion)
+      .where(sql`${table.mappingStatus} IN ('LEGACY_UNVERIFIED', 'SUGGESTED', 'APPROVED')`),
+    index("content_revision_concepts_version_status_idx").on(
+      table.revisionId,
+      table.mappingStatus,
+      table.mappingVersion,
+    ),
+    index("content_revision_concepts_concept_status_idx").on(
+      table.conceptId,
+      table.mappingStatus,
     ),
   ],
 );
