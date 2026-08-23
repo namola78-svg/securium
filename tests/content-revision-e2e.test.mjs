@@ -66,7 +66,8 @@ before(async () => {
 });
 
 function captureBaseUrl() {
-  const match = output.match(/Local:\s+https?:\/\/localhost:(\d+)\//);
+  const cleanOutput = output.replace(/\u001b\[[0-?]*[ -/]*[@-~]/g, "");
+  const match = cleanOutput.match(/Local:\s+https?:\/\/localhost:(\d+)\//);
   if (match) baseUrl = `http://localhost:${match[1]}`;
 }
 
