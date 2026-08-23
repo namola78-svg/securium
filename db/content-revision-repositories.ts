@@ -28,6 +28,8 @@ import {
   type ContentRevisionType,
 } from "@/lib/services/content-revision-service";
 
+export { saveGovernedTheoryRevision } from "./content-revision-governance-repositories.ts";
+
 type TargetRecord = {
   contentType: ContentRevisionType;
   contentId: string;

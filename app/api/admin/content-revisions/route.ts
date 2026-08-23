@@ -3,6 +3,8 @@ import {
   createContentRevisionDraft,
   publishContentRevision,
 } from "@/db/content-revision-repositories";
+import { saveGovernedTheoryRevision } from "@/db/content-revision-governance-repositories";
+import { getDatabaseProvider } from "@/db";
 import {
   recordAudit,
   recordAuditFailureSafely,
@@ -33,7 +35,7 @@ export async function POST(request: Request) {
     const raw = await readRequestInput(request);
     const input = parseInput(contentRevisionAdminSchema, raw);
     const user =
-      input.operation === "CREATE_DRAFT"
+      input.operation === "CREATE_DRAFT" || input.operation === "SAVE_GOVERNED_THEORY"
         ? await requireQuestionAdministrator()
         : await requireQuestionPublisher();
     await assertAdminActionRateLimit(user.id, "content-revision");
@@ -47,7 +49,27 @@ export async function POST(request: Request) {
     resourceId =
       input.operation === "CREATE_DRAFT"
         ? input.contentId
+        : input.operation === "SAVE_GOVERNED_THEORY"
+          ? input.canonicalKey
         : input.revisionId;
+
+    if (input.operation === "SAVE_GOVERNED_THEORY") {
+      const result = await saveGovernedTheoryRevision(
+        input,
+        user.id,
+        await getDatabaseProvider(),
+      );
+      await recordAudit({
+        actorUserId: user.id,
+        actorRoles: user.roles,
+        action: `THEORY_REVISION_${result.outcome}`,
+        targetType: "THEORY_REVISION",
+        targetId: result.revisionId,
+        courseId: null,
+        metadata: { canonicalKey: result.canonicalKey, semanticHash: result.semanticHash },
+      }, request);
+      return successResponse(request, result, input.returnTo, result.outcome === "NEW_SUCCESS" ? 201 : 200);
+    }
 
     if (input.operation === "CREATE_DRAFT") {
       const id = await createContentRevisionDraft({
