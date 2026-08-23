@@ -10,10 +10,12 @@ import type {
 import type {
   DatabaseProvider,
 } from "./provider/database-provider.ts";
+import { recomputeInsert, type RecomputeRequestInput } from "./evidence-projection-repository.ts";
 
 type RevisionWrite = AppendLearningEventRevisionInput & Readonly<{
   correctionPayloadJson: string;
   semanticHash: string;
+  recomputeRequest: RecomputeRequestInput;
 }>;
 
 export class LearningEventGovernanceRepository
@@ -70,6 +72,7 @@ implements LearningEventGovernanceRepositoryContract {
             sequence,
           ],
         },
+        recomputeInsert(input.recomputeRequest),
       ]);
       if (insert?.affectedRows !== 1) conflict("LEARNING_EVENT_REVISION_SEQUENCE_CONFLICT");
     } catch (error) {
