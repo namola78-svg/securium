@@ -12,9 +12,30 @@ export type EvidenceQuality = "DIRECT_PERFORMANCE" | "HUMAN_EVALUATED" | "SUPPOR
 export type EvidenceLifecycle = "ACTIVE" | "SUPERSEDED" | "INVALIDATED";
 export type ProjectionOutcome = "NEW_SUCCESS" | "EXACT_REPLAY" | "CONFLICT" | "INVALID_SOURCE";
 
+export type EvidenceMappingGuard =
+  | Readonly<{
+    kind: "QUESTION_VERSION" | "MOCK_COMPOSITION";
+    parentIdentity: string;
+    members: readonly Readonly<{
+      mappingId: string;
+      conceptId: string;
+      conceptIdentity: string;
+      mappingVersion: number;
+      qualificationJson: string | null;
+      provenanceJson: string | null;
+    }>[];
+  }>
+  | Readonly<{
+    kind: "ONTOLOGY_EDGES";
+    parentIdentity: string;
+    parentType: string;
+    members: readonly Readonly<{ edgeKey: string; conceptId: string }>[];
+  }>;
+
 export type CanonicalEvidenceSource = Readonly<{
   sourceType: EvidenceSourceType;
   sourceEventId: string;
+  sourceLineageIdentity: string;
   sourceRevisionIdentity: string;
   userId: string;
   contentVersionIdentity: string;
@@ -26,6 +47,8 @@ export type CanonicalEvidenceSource = Readonly<{
   quality: EvidenceQuality;
   resultSummary: Readonly<Record<string, string | number | boolean | null>>;
   sourceSemanticHash: string;
+  mappingTransition: "PRESERVE_EVENT_TIME" | "GOVERNED_CORRECTION";
+  mappingGuard: EvidenceMappingGuard;
 }>;
 
 export type EvidenceCandidate = Readonly<{
@@ -33,6 +56,7 @@ export type EvidenceCandidate = Readonly<{
   userId: string;
   sourceType: EvidenceSourceType;
   sourceEventId: string;
+  sourceLineageIdentity: string;
   sourceRevisionIdentity: string;
   evidenceType: EvidenceType;
   conceptId: string;
@@ -121,12 +145,13 @@ async function buildCandidate(source: CanonicalEvidenceSource, conceptId: string
     resultSummaryJson,
     semanticHash,
     sourceSemanticHash: source.sourceSemanticHash,
+    sourceLineageIdentity: source.sourceLineageIdentity,
   });
 }
 
 function validateSource(source: CanonicalEvidenceSource, expected: EvidenceSourceType) {
   if (source.sourceType !== expected || !evidenceSourceTypes.includes(source.sourceType)) invalid("EVIDENCE_SOURCE_UNSUPPORTED");
-  for (const value of [source.sourceEventId, source.sourceRevisionIdentity, source.userId, source.contentVersionIdentity]) {
+  for (const value of [source.sourceEventId, source.sourceLineageIdentity, source.sourceRevisionIdentity, source.userId, source.contentVersionIdentity]) {
     if (!value || value.length > 500) invalid("EVIDENCE_SOURCE_IDENTITY_INVALID");
   }
   for (const hash of [source.conceptMappingSetHash, source.sourceSemanticHash]) {

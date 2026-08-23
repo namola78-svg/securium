@@ -1,7 +1,20 @@
 import { AppError } from "../lib/errors.ts";
-import { sha256, stableJson, type LearningEventSourceType } from "../lib/services/learning-event-contracts.ts";
-import type { EvidenceCandidate, ProjectionOutcome } from "../lib/services/evidence-projection.ts";
-import type { DatabaseProvider, DatabaseStatement } from "./provider/database-provider.ts";
+import {
+  sha256,
+  stableJson,
+  type LearningEventSourceType,
+} from "../lib/services/learning-event-contracts.ts";
+import type {
+  CanonicalEvidenceSource,
+  EvidenceCandidate,
+  EvidenceSourceType,
+  ProjectionOutcome,
+} from "../lib/services/evidence-projection.ts";
+import type {
+  DatabaseProvider,
+  DatabaseStatement,
+  DatabaseValue,
+} from "./provider/database-provider.ts";
 
 export type RecomputeScope = "EVENT" | "USER" | "CONCEPT" | "FULL";
 export type RecomputeRequestType = "EVIDENCE_RECOMPUTE_REQUIRED" | "MASTERY_RECOMPUTE_REQUIRED";
@@ -20,6 +33,27 @@ export type RecomputeRequestInput = Readonly<{
   cursor?: string | null;
 }>;
 
+type ActiveProjectionRow = Readonly<{
+  id: string;
+  user_id: string;
+  source_event_id: string;
+  source_revision_identity: string;
+  concept_id: string;
+  concept_mapping_set_hash: string;
+  evidence_type: string;
+  projection_version: string;
+  semantic_hash: string;
+}>;
+
+type InvalidationTarget = Readonly<{
+  sourceType: EvidenceSourceType;
+  sourceLineageIdentity: string;
+  sourceRevisionIdentity: string;
+  userId: string;
+  reasonCode: string;
+  guard?: Readonly<{ kind: "PRACTICAL_ATTEMPT_VOIDED"; attemptId: string }>;
+}>;
+
 export class EvidenceProjectionRepository {
   private readonly database: DatabaseProvider;
 
@@ -27,69 +61,120 @@ export class EvidenceProjectionRepository {
     this.database = database;
   }
 
-  async project(candidate: EvidenceCandidate): Promise<ProjectionOutcome> {
-    await this.assertParents(candidate);
-    const existing = await this.getProjection(candidate.id);
-    if (existing) return existing.semantic_hash === candidate.semanticHash ? "EXACT_REPLAY" : "CONFLICT";
-    const masteryRequest = await createRecomputeRequest({
-      requestType: "MASTERY_RECOMPUTE_REQUIRED",
-      scopeType: "CONCEPT",
-      userId: candidate.userId,
-      conceptId: candidate.conceptId,
-      projectionVersion: candidate.projectionVersion,
-      reasonCode: "EVIDENCE_SEMANTICS_CHANGED",
-      sourceType: candidate.sourceType,
-      sourceEventId: candidate.sourceEventId,
-      sourceRevisionIdentity: candidate.sourceRevisionIdentity,
-    });
+  async reconcileEventProjectionSet(
+    source: CanonicalEvidenceSource,
+    candidates: readonly EvidenceCandidate[],
+  ): Promise<ProjectionOutcome> {
+    validateCandidateSet(source, candidates);
+    const desired = [...candidates].sort((left, right) => left.id.localeCompare(right.id));
+    const active = await this.listActiveLineage(source);
+    if (
+      source.mappingTransition !== "GOVERNED_CORRECTION" &&
+      active.rows.some((row) => row.concept_mapping_set_hash !== source.conceptMappingSetHash)
+    ) {
+      return "CONFLICT";
+    }
+    const persisted = await this.listProjectionIdentities(desired.map((candidate) => candidate.id));
+    if (persisted.rows.some((row) => {
+      const candidate = desired.find((item) => item.id === row.id);
+      return !candidate || row.semantic_hash !== candidate.semanticHash || row.lifecycle !== "ACTIVE";
+    })) {
+      return "CONFLICT";
+    }
+
+    const currentByConcept = new Map(active.rows.map((row) => [row.concept_id, row]));
+    const desiredByConcept = new Map(desired.map((candidate) => [candidate.conceptId, candidate]));
+    const statements: DatabaseStatement[] = [];
+    const semanticWriteIndexes: number[] = [];
+    const initialGuard = completeSourceAndSnapshotGuard(source, desired[0], active.rows);
+    statements.push(initialGuard);
+
+    for (const row of active.rows) {
+      const replacement = desiredByConcept.get(row.concept_id);
+      if (replacement?.id === row.id) continue;
+      semanticWriteIndexes.push(statements.length);
+      statements.push(replacement
+        ? {
+          sql: `UPDATE evidence_projections SET lifecycle = 'SUPERSEDED',
+            superseded_by_id = NULL, invalidation_reason = NULL
+            WHERE id = ? AND lifecycle = 'ACTIVE' AND semantic_hash = ?`,
+          parameters: [row.id, row.semantic_hash],
+        }
+        : {
+          sql: `UPDATE evidence_projections SET lifecycle = 'INVALIDATED',
+            superseded_by_id = NULL, invalidation_reason = 'CONCEPT_MAPPING_REMOVED'
+            WHERE id = ? AND lifecycle = 'ACTIVE' AND semantic_hash = ?`,
+          parameters: [row.id, row.semantic_hash],
+        });
+    }
+
+    for (const candidate of desired) {
+      if (currentByConcept.get(candidate.conceptId)?.id === candidate.id) continue;
+      semanticWriteIndexes.push(statements.length);
+      statements.push(projectionInsert(candidate));
+    }
+
+    for (const row of active.rows) {
+      const replacement = desiredByConcept.get(row.concept_id);
+      if (!replacement || replacement.id === row.id) continue;
+      semanticWriteIndexes.push(statements.length);
+      statements.push({
+        sql: `UPDATE evidence_projections SET superseded_by_id = ?
+          WHERE id = ? AND lifecycle = 'SUPERSEDED' AND superseded_by_id IS NULL`,
+        parameters: [replacement.id, row.id],
+      });
+    }
+
+    const affectedConcepts = new Set([
+      ...desired.map((candidate) => candidate.conceptId),
+      ...active.rows.map((row) => row.concept_id),
+    ]);
+    for (const conceptId of [...affectedConcepts].sort()) {
+      const removed = !desiredByConcept.has(conceptId);
+      const request = await createRecomputeRequest({
+        requestType: "MASTERY_RECOMPUTE_REQUIRED",
+        scopeType: "CONCEPT",
+        userId: source.userId,
+        conceptId,
+        projectionVersion: desired[0].projectionVersion,
+        reasonCode: removed ? "EVIDENCE_MAPPING_REMOVED" : "EVIDENCE_SEMANTICS_CHANGED",
+        sourceType: source.sourceType,
+        sourceEventId: source.sourceEventId,
+        sourceRevisionIdentity: source.sourceRevisionIdentity,
+      });
+      semanticWriteIndexes.push(statements.length);
+      statements.push(recomputeInsert(request));
+    }
+    statements.push(finalActiveSetGuard(source, desired[0], desired));
+
     try {
-      const results = await this.database.transaction([
-        projectionInsert(candidate),
-        {
-          sql: `UPDATE evidence_projections SET lifecycle = 'SUPERSEDED', superseded_by_id = ?
-            WHERE source_type = ? AND source_event_id = ? AND concept_id = ?
-              AND evidence_type = ? AND lifecycle = 'ACTIVE' AND id <> ?`,
-          parameters: [candidate.id, candidate.sourceType, candidate.sourceEventId, candidate.conceptId, candidate.evidenceType, candidate.id],
-        },
-        recomputeInsert(masteryRequest),
-      ]);
-      if (results[0]?.affectedRows !== 1) {
-        const winner = await this.getProjection(candidate.id);
-        return winner ? winner.semantic_hash === candidate.semanticHash ? "EXACT_REPLAY" : "CONFLICT" : "INVALID_SOURCE";
-      }
-      return "NEW_SUCCESS";
+      const results = await this.database.transaction(statements);
+      const state = await this.inspectDesiredActiveSet(source, desired);
+      if (state !== "EXACT") return state === "CONFLICT" ? "CONFLICT" : "INVALID_SOURCE";
+      return semanticWriteIndexes.some((index) => (results[index]?.affectedRows ?? 0) > 0)
+        ? "NEW_SUCCESS"
+        : "EXACT_REPLAY";
     } catch (error) {
-      const winner = await this.getProjection(candidate.id);
-      if (winner) return winner.semantic_hash === candidate.semanticHash ? "EXACT_REPLAY" : "CONFLICT";
+      if (!await this.isSourceCurrent(source)) return "CONFLICT";
+      const state = await this.inspectDesiredActiveSet(source, desired);
+      if (state === "EXACT") return "EXACT_REPLAY";
+      if (isGuardOrUniqueViolation(error)) return "CONFLICT";
       throw error;
     }
   }
 
-  async invalidateSource(input: Readonly<{
-    sourceType: LearningEventSourceType;
-    sourceEventId: string;
-    sourceRevisionIdentity: string;
-    reasonCode: string;
-  }>) {
-    const active = await this.database.query<{ id: string; user_id: string; concept_id: string }>(
-      { sql: "SELECT id, user_id, concept_id FROM evidence_projections WHERE source_type = ? AND source_event_id = ? AND lifecycle = 'ACTIVE'", parameters: [input.sourceType, input.sourceEventId] },
-    );
-    if (!active.rows.length) return "EXACT_REPLAY" as const;
-    const statements: DatabaseStatement[] = [{
-      sql: "UPDATE evidence_projections SET lifecycle = 'INVALIDATED', invalidation_reason = ? WHERE source_type = ? AND source_event_id = ? AND lifecycle = 'ACTIVE'",
-      parameters: [input.reasonCode, input.sourceType, input.sourceEventId],
-    }];
-    for (const row of active.rows) {
-      statements.push(recomputeInsert(await createRecomputeRequest({
-        requestType: "MASTERY_RECOMPUTE_REQUIRED", scopeType: "CONCEPT",
-        userId: row.user_id, conceptId: row.concept_id,
-        projectionVersion: "EVIDENCE_V1", reasonCode: input.reasonCode,
-        sourceType: input.sourceType, sourceEventId: input.sourceEventId,
-        sourceRevisionIdentity: input.sourceRevisionIdentity,
-      })));
-    }
-    await this.database.transaction(statements);
-    return "NEW_SUCCESS" as const;
+  invalidateEventSource(source: CanonicalEvidenceSource, reasonCode: string) {
+    return this.invalidateActiveLineage({
+      sourceType: source.sourceType,
+      sourceLineageIdentity: source.sourceLineageIdentity,
+      sourceRevisionIdentity: source.sourceRevisionIdentity,
+      userId: source.userId,
+      reasonCode,
+    }, source);
+  }
+
+  invalidateLineage(input: InvalidationTarget) {
+    return this.invalidateActiveLineage(input, null);
   }
 
   async enqueue(request: RecomputeRequestInput) {
@@ -119,24 +204,109 @@ export class EvidenceProjectionRepository {
     });
   }
 
-  private getProjection(id: string) {
-    return this.database.queryOne<{ semantic_hash: string }>({
-      sql: "SELECT semantic_hash FROM evidence_projections WHERE id = ? LIMIT 1",
-      parameters: [id],
+  private async invalidateActiveLineage(
+    input: InvalidationTarget,
+    source: CanonicalEvidenceSource | null,
+  ) {
+    const active = await this.listActiveTarget(input);
+    if (!active.rows.length) return "EXACT_REPLAY" as const;
+    const seed = candidateSeedFromActive(input, active.rows[0]);
+    const statements: DatabaseStatement[] = [
+      source
+        ? completeSourceAndSnapshotGuard(source, seed, active.rows)
+        : invalidationControlAndSnapshotGuard(input, seed, active.rows),
+    ];
+    for (const row of active.rows) {
+      statements.push({
+        sql: `UPDATE evidence_projections SET lifecycle = 'INVALIDATED',
+          superseded_by_id = NULL, invalidation_reason = ?
+          WHERE id = ? AND lifecycle = 'ACTIVE' AND semantic_hash = ?`,
+        parameters: [input.reasonCode, row.id, row.semantic_hash],
+      });
+    }
+    for (const conceptId of [...new Set(active.rows.map((row) => row.concept_id))].sort()) {
+      statements.push(recomputeInsert(await createRecomputeRequest({
+        requestType: "MASTERY_RECOMPUTE_REQUIRED",
+        scopeType: "CONCEPT",
+        userId: input.userId,
+        conceptId,
+        projectionVersion: "EVIDENCE_V1",
+        reasonCode: input.reasonCode,
+        sourceType: input.sourceType,
+        sourceEventId: input.sourceLineageIdentity,
+        sourceRevisionIdentity: input.sourceRevisionIdentity,
+      })));
+    }
+    statements.push(noActiveLineageGuard(input, seed));
+    try {
+      await this.database.transaction(statements);
+      return "NEW_SUCCESS" as const;
+    } catch (error) {
+      const current = await this.listActiveTarget(input);
+      if (!current.rows.length) return "EXACT_REPLAY" as const;
+      if (isGuardOrUniqueViolation(error)) return "CONFLICT" as const;
+      throw error;
+    }
+  }
+
+  private listActiveLineage(source: CanonicalEvidenceSource) {
+    return this.database.query<ActiveProjectionRow>({
+      sql: `SELECT id, user_id, source_event_id, source_revision_identity, concept_id,
+        concept_mapping_set_hash, evidence_type, projection_version, semantic_hash
+        FROM evidence_projections WHERE user_id = ? AND source_type = ?
+          AND source_lineage_identity = ? AND evidence_type = ?
+          AND projection_version = ? AND lifecycle = 'ACTIVE' ORDER BY id`,
+      parameters: [source.userId, source.sourceType, source.sourceLineageIdentity,
+        source.evidenceType, "EVIDENCE_V1"],
     });
   }
 
-  private async assertParents(candidate: EvidenceCandidate) {
-    const [user, concept, source] = await Promise.all([
-      this.database.queryOne<{ id: string }>({ sql: "SELECT id FROM users WHERE id = ? LIMIT 1", parameters: [candidate.userId] }),
-      this.database.queryOne<{ id: string }>({ sql: "SELECT id FROM ontology_concepts WHERE id = ? LIMIT 1", parameters: [candidate.conceptId] }),
-      this.database.queryOne<{ id: string }>(sourceOwnerStatement(candidate.sourceType, candidate.sourceEventId, candidate.userId)),
-    ]);
-    if (!user || !concept || !source) fail("EVIDENCE_SOURCE_NOT_FOUND_OR_FORBIDDEN");
+  private listActiveTarget(input: InvalidationTarget) {
+    return this.database.query<ActiveProjectionRow>({
+      sql: `SELECT id, user_id, source_event_id, source_revision_identity, concept_id,
+        concept_mapping_set_hash, evidence_type, projection_version, semantic_hash
+        FROM evidence_projections WHERE user_id = ? AND source_type = ?
+          AND source_lineage_identity = ? AND lifecycle = 'ACTIVE' ORDER BY id`,
+      parameters: [input.userId, input.sourceType, input.sourceLineageIdentity],
+    });
+  }
+
+  private listProjectionIdentities(ids: readonly string[]) {
+    if (!ids.length) return Promise.resolve({ rows: [], rowCount: 0, metadata: { provider: this.database.kind } } as const);
+    return this.database.query<{ id: string; semantic_hash: string; lifecycle: string }>({
+      sql: `SELECT id, semantic_hash, lifecycle FROM evidence_projections
+        WHERE id IN (${ids.map(() => "?").join(", ")}) ORDER BY id`,
+      parameters: ids,
+    });
+  }
+
+  private async inspectDesiredActiveSet(
+    source: CanonicalEvidenceSource,
+    desired: readonly EvidenceCandidate[],
+  ): Promise<"EXACT" | "CONFLICT" | "ABSENT"> {
+    const active = await this.listActiveLineage(source);
+    if (!active.rows.length && desired.length) return "ABSENT";
+    if (active.rows.length !== desired.length) return "CONFLICT";
+    const expected = new Map(desired.map((candidate) => [candidate.id, candidate.semanticHash]));
+    return active.rows.every((row) => expected.get(row.id) === row.semantic_hash)
+      ? "EXACT"
+      : "CONFLICT";
+  }
+
+  private async isSourceCurrent(source: CanonicalEvidenceSource) {
+    const canonical = canonicalSourcePredicate(source);
+    const mapping = canonicalMappingPredicate(source);
+    const row = await this.database.queryOne<{ ok: number | string }>({
+      sql: `SELECT 1 AS ok WHERE (${canonical.sql}) AND (${mapping.sql})`,
+      parameters: [...canonical.parameters, ...mapping.parameters],
+    });
+    return Number(row?.ok ?? 0) === 1;
   }
 }
 
-export async function createRecomputeRequest(input: Omit<RecomputeRequestInput, "id" | "inputSemanticHash">): Promise<RecomputeRequestInput> {
+export async function createRecomputeRequest(
+  input: Omit<RecomputeRequestInput, "id" | "inputSemanticHash">,
+): Promise<RecomputeRequestInput> {
   const semantics = { ...input, cursor: input.cursor ?? null };
   const inputSemanticHash = await sha256(stableJson(semantics));
   return Object.freeze({ ...semantics, id: inputSemanticHash, inputSemanticHash });
@@ -151,50 +321,300 @@ export function recomputeInsert(input: RecomputeRequestInput): DatabaseStatement
       ON CONFLICT (request_type, input_semantic_hash) DO NOTHING`,
     parameters: [input.id, input.requestType, input.scopeType, input.sourceType ?? null,
       input.sourceEventId ?? null, input.sourceRevisionIdentity ?? null, input.userId ?? null,
-      input.conceptId ?? null, input.projectionVersion, input.reasonCode, input.inputSemanticHash,
-      input.cursor ?? null],
+      input.conceptId ?? null, input.projectionVersion, input.reasonCode,
+      input.inputSemanticHash, input.cursor ?? null],
   };
 }
 
 function projectionInsert(candidate: EvidenceCandidate): DatabaseStatement {
-  const source = sourceRelation(candidate.sourceType);
   return {
     sql: `INSERT INTO evidence_projections
-      (id, user_id, source_type, source_event_id, source_revision_identity, evidence_type,
-       concept_id, concept_mapping_set_hash, projection_version, source_semantic_hash,
-       semantic_hash, result_summary_json, quality, lifecycle, occurred_at)
-      SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?
-      FROM ${source.fromSql} WHERE ${source.identitySql}
+      (id, user_id, source_type, source_event_id, source_lineage_identity,
+       source_revision_identity, evidence_type, concept_id, concept_mapping_set_hash,
+       projection_version, source_semantic_hash, semantic_hash, result_summary_json,
+       quality, lifecycle, occurred_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?)
       ON CONFLICT (id) DO NOTHING`,
-    parameters: [candidate.id, candidate.userId, candidate.sourceType, candidate.sourceEventId,
+    parameters: [candidate.id, candidate.userId, candidate.sourceType,
+      candidate.sourceEventId, candidate.sourceLineageIdentity,
       candidate.sourceRevisionIdentity, candidate.evidenceType, candidate.conceptId,
-      candidate.conceptMappingSetHash, candidate.projectionVersion, candidate.sourceSemanticHash,
-      candidate.semanticHash, candidate.resultSummaryJson, candidate.quality, candidate.occurredAt,
-      candidate.sourceEventId, candidate.userId],
+      candidate.conceptMappingSetHash, candidate.projectionVersion,
+      candidate.sourceSemanticHash, candidate.semanticHash, candidate.resultSummaryJson,
+      candidate.quality, candidate.occurredAt],
   };
 }
 
-function sourceRelation(sourceType: EvidenceCandidate["sourceType"]) {
-  const direct: Partial<Record<EvidenceCandidate["sourceType"], string>> = {
-    QUESTION_ATTEMPT: "question_attempts", MOCK_ATTEMPT: "mock_exam_attempts",
-    LESSON_PROGRESS: "user_lesson_progress", COURSE_LESSON_PROGRESS: "user_course_lesson_progress",
-    LECTURE_PROGRESS: "lecture_progress", AUDIO_PROGRESS: "audio_progress",
-  };
-  if (direct[sourceType]) return { fromSql: `${direct[sourceType]} source`, identitySql: "source.id = ? AND source.user_id = ?" };
-  if (sourceType === "MOCK_ITEM_RESULT") return { fromSql: "mock_exam_answers source JOIN mock_exam_attempts owner ON owner.id = source.attempt_id", identitySql: "source.id = ? AND owner.user_id = ?" };
-  return { fromSql: "practical_evaluations source JOIN practical_attempts owner ON owner.id = source.attempt_id", identitySql: "source.id = ? AND owner.user_id = ?" };
+function completeSourceAndSnapshotGuard(
+  source: CanonicalEvidenceSource,
+  seed: EvidenceCandidate,
+  snapshot: readonly ActiveProjectionRow[],
+) {
+  const sourcePredicate = canonicalSourcePredicate(source);
+  const mappingPredicate = canonicalMappingPredicate(source);
+  const activePredicate = exactActiveSnapshotPredicate(source, snapshot);
+  return evidenceGuardStatement(
+    seed,
+    `NOT ((${sourcePredicate.sql}) AND (${mappingPredicate.sql}) AND (${activePredicate.sql}))`,
+    [...sourcePredicate.parameters, ...mappingPredicate.parameters, ...activePredicate.parameters],
+  );
 }
 
-function sourceOwnerStatement(sourceType: EvidenceCandidate["sourceType"], sourceEventId: string, userId: string): DatabaseStatement {
-  const direct: Partial<Record<EvidenceCandidate["sourceType"], string>> = {
-    QUESTION_ATTEMPT: "question_attempts", MOCK_ATTEMPT: "mock_exam_attempts",
-    LESSON_PROGRESS: "user_lesson_progress", COURSE_LESSON_PROGRESS: "user_course_lesson_progress",
-    LECTURE_PROGRESS: "lecture_progress", AUDIO_PROGRESS: "audio_progress",
-  };
-  if (direct[sourceType]) return { sql: `SELECT id FROM ${direct[sourceType]} WHERE id = ? AND user_id = ? LIMIT 1`, parameters: [sourceEventId, userId] };
-  if (sourceType === "MOCK_ITEM_RESULT") return { sql: `SELECT a.id FROM mock_exam_answers a INNER JOIN mock_exam_attempts m ON m.id = a.attempt_id WHERE a.id = ? AND m.user_id = ? LIMIT 1`, parameters: [sourceEventId, userId] };
-  return { sql: `SELECT e.id FROM practical_evaluations e INNER JOIN practical_attempts a ON a.id = e.attempt_id WHERE e.id = ? AND a.user_id = ? LIMIT 1`, parameters: [sourceEventId, userId] };
+function finalActiveSetGuard(
+  source: CanonicalEvidenceSource,
+  seed: EvidenceCandidate,
+  desired: readonly EvidenceCandidate[],
+) {
+  const predicate = exactDesiredSetPredicate(source, desired);
+  return evidenceGuardStatement(seed, `NOT (${predicate.sql})`, predicate.parameters);
 }
+
+function invalidationControlAndSnapshotGuard(
+  input: InvalidationTarget,
+  seed: EvidenceCandidate,
+  snapshot: readonly ActiveProjectionRow[],
+) {
+  if (input.guard?.kind !== "PRACTICAL_ATTEMPT_VOIDED") fail("EVIDENCE_INVALIDATION_GUARD_REQUIRED");
+  const snapshotPredicate = exactTargetSnapshotPredicate(input, snapshot);
+  return evidenceGuardStatement(
+    seed,
+    `NOT (EXISTS (SELECT 1 FROM practical_attempts
+      WHERE id = ? AND user_id = ? AND state = 'VOIDED') AND (${snapshotPredicate.sql}))`,
+    [input.guard.attemptId, input.userId, ...snapshotPredicate.parameters],
+  );
+}
+
+function noActiveLineageGuard(input: InvalidationTarget, seed: EvidenceCandidate) {
+  return evidenceGuardStatement(
+    seed,
+    `EXISTS (SELECT 1 FROM evidence_projections WHERE user_id = ? AND source_type = ?
+      AND source_lineage_identity = ? AND lifecycle = 'ACTIVE')`,
+    [input.userId, input.sourceType, input.sourceLineageIdentity],
+  );
+}
+
+function evidenceGuardStatement(
+  seed: EvidenceCandidate,
+  violationPredicate: string,
+  predicateParameters: readonly DatabaseValue[],
+): DatabaseStatement {
+  return {
+    sql: `INSERT INTO evidence_projections
+      (id, user_id, source_type, source_event_id, source_lineage_identity,
+       source_revision_identity, evidence_type, concept_id, concept_mapping_set_hash,
+       projection_version, source_semantic_hash, semantic_hash, result_summary_json,
+       quality, lifecycle, occurred_at)
+      SELECT NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?
+      WHERE ${violationPredicate}`,
+    parameters: [seed.userId, seed.sourceType, seed.sourceEventId,
+      seed.sourceLineageIdentity, seed.sourceRevisionIdentity, seed.evidenceType,
+      seed.conceptId, seed.conceptMappingSetHash, seed.projectionVersion,
+      seed.sourceSemanticHash, seed.semanticHash, seed.resultSummaryJson,
+      seed.quality, seed.occurredAt, ...predicateParameters],
+  };
+}
+
+function canonicalSourcePredicate(source: CanonicalEvidenceSource): SqlPredicate {
+  if (source.sourceType === "PRACTICAL_EVALUATION") {
+    const attemptStatePredicate = source.validity === "INVALIDATED"
+      ? "a.state = 'VOIDED'"
+      : "a.state <> 'VOIDED'";
+    return {
+      sql: `EXISTS (SELECT 1 FROM practical_evaluations e
+        JOIN practical_attempts a ON a.id = e.attempt_id
+        WHERE e.id = ? AND e.attempt_id = ? AND a.user_id = ?
+          AND ${attemptStatePredicate} AND e.evaluation_payload_digest = ?
+          AND NOT EXISTS (SELECT 1 FROM practical_evaluations newer
+            WHERE newer.attempt_id = e.attempt_id AND newer.sequence > e.sequence))`,
+      parameters: [source.sourceEventId, source.sourceLineageIdentity,
+        source.userId, source.sourceRevisionIdentity],
+    };
+  }
+  const relation = sourceRelation(source.sourceType);
+  return {
+    sql: `EXISTS (SELECT 1 FROM ${relation.fromSql} WHERE ${relation.identitySql})
+      AND (NOT EXISTS (SELECT 1 FROM learning_event_revisions
+          WHERE source_type = ? AND source_event_id = ?)
+        OR EXISTS (SELECT 1 FROM learning_event_revisions current_revision
+          WHERE current_revision.source_type = ? AND current_revision.source_event_id = ?
+            AND current_revision.semantic_hash = ?
+            AND NOT EXISTS (SELECT 1 FROM learning_event_revisions newer
+              WHERE newer.source_type = current_revision.source_type
+                AND newer.source_event_id = current_revision.source_event_id
+                AND newer.sequence > current_revision.sequence)))`,
+    parameters: [source.sourceEventId, source.userId, source.sourceType,
+      source.sourceEventId, source.sourceType, source.sourceEventId,
+      source.sourceRevisionIdentity],
+  };
+}
+
+function canonicalMappingPredicate(source: CanonicalEvidenceSource): SqlPredicate {
+  const guard = source.mappingGuard;
+  if (guard.kind === "ONTOLOGY_EDGES") {
+    const base = `e.from_type = ? AND e.from_id = ? AND e.to_type = 'CONCEPT'
+      AND e.status = 'ACTIVE' AND e.relation IN ('TESTS', 'ASSESSED_BY', 'COVERS')
+      AND c.status = 'ACTIVE'`;
+    const exact = guard.members.map(() => `EXISTS (SELECT 1 FROM ontology_edges e
+      JOIN ontology_concepts c ON c.id = e.to_id
+      WHERE ${base} AND e.edge_key = ? AND c.id = ?)`);
+    return {
+      sql: `(SELECT count(*) FROM ontology_edges e JOIN ontology_concepts c ON c.id = e.to_id
+        WHERE ${base}) = ?${exact.length ? ` AND ${exact.join(" AND ")}` : ""}`,
+      parameters: [guard.parentType, guard.parentIdentity, guard.members.length,
+        ...guard.members.flatMap((member) => [guard.parentType, guard.parentIdentity,
+          member.edgeKey, member.conceptId])],
+    };
+  }
+  const from = guard.kind === "MOCK_COMPOSITION"
+    ? `mock_exam_answers answer JOIN question_concepts qc
+        ON qc.question_version_id = answer.question_version_id
+      JOIN ontology_concepts c ON c.id = qc.concept_id
+      WHERE answer.attempt_id = ?`
+    : `question_concepts qc JOIN ontology_concepts c ON c.id = qc.concept_id
+      WHERE qc.question_version_id = ?`;
+  const current = `${from} AND qc.mapping_status = 'APPROVED' AND c.status = 'ACTIVE'`;
+  const exact = guard.members.map(() => `EXISTS (SELECT 1 FROM ${current}
+    AND qc.id = ? AND qc.concept_id = ? AND c.concept_key = ?
+    AND qc.mapping_version = ?
+    AND (qc.qualification_json = ? OR (qc.qualification_json IS NULL AND CAST(? AS TEXT) IS NULL))
+    AND (qc.provenance_json = ? OR (qc.provenance_json IS NULL AND CAST(? AS TEXT) IS NULL)))`);
+  return {
+    sql: `(SELECT count(DISTINCT qc.id) FROM ${current}) = ?${exact.length ? ` AND ${exact.join(" AND ")}` : ""}`,
+    parameters: [guard.parentIdentity, guard.members.length,
+      ...guard.members.flatMap((member) => [guard.parentIdentity, member.mappingId,
+        member.conceptId, member.conceptIdentity, member.mappingVersion,
+        member.qualificationJson, member.qualificationJson,
+        member.provenanceJson, member.provenanceJson])],
+  };
+}
+
+function exactActiveSnapshotPredicate(
+  source: CanonicalEvidenceSource,
+  snapshot: readonly ActiveProjectionRow[],
+): SqlPredicate {
+  const base = `user_id = ? AND source_type = ? AND source_lineage_identity = ?
+    AND evidence_type = ? AND projection_version = ? AND lifecycle = 'ACTIVE'`;
+  const exact = snapshot.map(() => `EXISTS (SELECT 1 FROM evidence_projections
+    WHERE ${base} AND id = ? AND semantic_hash = ?)`);
+  return {
+    sql: `(SELECT count(*) FROM evidence_projections WHERE ${base}) = ?${exact.length ? ` AND ${exact.join(" AND ")}` : ""}`,
+    parameters: [source.userId, source.sourceType, source.sourceLineageIdentity,
+      source.evidenceType, "EVIDENCE_V1", snapshot.length,
+      ...snapshot.flatMap((row) => [source.userId, source.sourceType,
+        source.sourceLineageIdentity, source.evidenceType, "EVIDENCE_V1",
+        row.id, row.semantic_hash])],
+  };
+}
+
+function exactTargetSnapshotPredicate(
+  input: InvalidationTarget,
+  snapshot: readonly ActiveProjectionRow[],
+): SqlPredicate {
+  const base = `user_id = ? AND source_type = ? AND source_lineage_identity = ?
+    AND lifecycle = 'ACTIVE'`;
+  const exact = snapshot.map(() => `EXISTS (SELECT 1 FROM evidence_projections
+    WHERE ${base} AND id = ? AND semantic_hash = ?)`);
+  return {
+    sql: `(SELECT count(*) FROM evidence_projections WHERE ${base}) = ?${exact.length ? ` AND ${exact.join(" AND ")}` : ""}`,
+    parameters: [input.userId, input.sourceType, input.sourceLineageIdentity,
+      snapshot.length, ...snapshot.flatMap((row) => [input.userId,
+        input.sourceType, input.sourceLineageIdentity, row.id, row.semantic_hash])],
+  };
+}
+
+function exactDesiredSetPredicate(
+  source: CanonicalEvidenceSource,
+  desired: readonly EvidenceCandidate[],
+): SqlPredicate {
+  const base = `user_id = ? AND source_type = ? AND source_lineage_identity = ?
+    AND evidence_type = ? AND projection_version = ? AND lifecycle = 'ACTIVE'`;
+  const exact = desired.map(() => `EXISTS (SELECT 1 FROM evidence_projections
+    WHERE ${base} AND id = ? AND semantic_hash = ?)`);
+  return {
+    sql: `(SELECT count(*) FROM evidence_projections WHERE ${base}) = ?
+      AND ${exact.join(" AND ")}`,
+    parameters: [source.userId, source.sourceType, source.sourceLineageIdentity,
+      source.evidenceType, "EVIDENCE_V1", desired.length,
+      ...desired.flatMap((candidate) => [source.userId, source.sourceType,
+        source.sourceLineageIdentity, source.evidenceType, "EVIDENCE_V1",
+        candidate.id, candidate.semanticHash])],
+  };
+}
+
+function sourceRelation(sourceType: EvidenceSourceType) {
+  const direct: Partial<Record<EvidenceSourceType, string>> = {
+    QUESTION_ATTEMPT: "question_attempts",
+    MOCK_ATTEMPT: "mock_exam_attempts",
+    LESSON_PROGRESS: "user_lesson_progress",
+    COURSE_LESSON_PROGRESS: "user_course_lesson_progress",
+    LECTURE_PROGRESS: "lecture_progress",
+    AUDIO_PROGRESS: "audio_progress",
+  };
+  if (direct[sourceType]) {
+    return { fromSql: `${direct[sourceType]} source`, identitySql: "source.id = ? AND source.user_id = ?" };
+  }
+  if (sourceType === "MOCK_ITEM_RESULT") {
+    return {
+      fromSql: "mock_exam_answers source JOIN mock_exam_attempts owner ON owner.id = source.attempt_id",
+      identitySql: "source.id = ? AND owner.user_id = ?",
+    };
+  }
+  fail("EVIDENCE_SOURCE_TYPE_INVALID");
+}
+
+function candidateSeedFromActive(
+  input: InvalidationTarget,
+  row: ActiveProjectionRow,
+): EvidenceCandidate {
+  return {
+    id: row.id,
+    userId: input.userId,
+    sourceType: input.sourceType,
+    sourceEventId: row.source_event_id,
+    sourceLineageIdentity: input.sourceLineageIdentity,
+    sourceRevisionIdentity: input.sourceRevisionIdentity,
+    evidenceType: row.evidence_type as EvidenceCandidate["evidenceType"],
+    conceptId: row.concept_id,
+    conceptMappingSetHash: row.concept_mapping_set_hash,
+    projectionVersion: "EVIDENCE_V1",
+    sourceSemanticHash: "0".repeat(64),
+    semanticHash: row.semantic_hash,
+    resultSummaryJson: "{}",
+    quality: "DIRECT_PERFORMANCE",
+    lifecycle: "ACTIVE",
+    occurredAt: "1970-01-01T00:00:00.000Z",
+  };
+}
+
+function validateCandidateSet(
+  source: CanonicalEvidenceSource,
+  candidates: readonly EvidenceCandidate[],
+) {
+  if (!candidates.length || candidates.length !== source.conceptIds.length) {
+    fail("EVIDENCE_EVENT_SET_INCOMPLETE");
+  }
+  if (new Set(candidates.map((candidate) => candidate.id)).size !== candidates.length ||
+    new Set(candidates.map((candidate) => candidate.conceptId)).size !== candidates.length) {
+    fail("EVIDENCE_EVENT_SET_DUPLICATE");
+  }
+  for (const candidate of candidates) {
+    if (candidate.userId !== source.userId || candidate.sourceType !== source.sourceType ||
+      candidate.sourceEventId !== source.sourceEventId ||
+      candidate.sourceLineageIdentity !== source.sourceLineageIdentity ||
+      candidate.sourceRevisionIdentity !== source.sourceRevisionIdentity ||
+      candidate.conceptMappingSetHash !== source.conceptMappingSetHash ||
+      candidate.projectionVersion !== "EVIDENCE_V1") {
+      fail("EVIDENCE_EVENT_SET_MISMATCH");
+    }
+  }
+}
+
+function isGuardOrUniqueViolation(error: unknown) {
+  return error instanceof Error &&
+    /NOT NULL constraint failed: evidence_projections\.id|null value in column ["']?id["']?.*not-null constraint|UNIQUE constraint failed|SQLITE_CONSTRAINT_UNIQUE|duplicate key/i
+      .test(error.message);
+}
+
+type SqlPredicate = Readonly<{ sql: string; parameters: readonly DatabaseValue[] }>;
 
 function fail(code: string): never {
   throw new AppError("Evidence projection operation failed.", 409, code);

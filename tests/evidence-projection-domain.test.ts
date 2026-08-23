@@ -9,11 +9,17 @@ const HASH_B = "b".repeat(64);
 function source(overrides: Partial<CanonicalEvidenceSource> = {}): CanonicalEvidenceSource {
   return {
     sourceType: "QUESTION_ATTEMPT", sourceEventId: "attempt-1", sourceRevisionIdentity: "revision-1",
+    sourceLineageIdentity: "attempt-1",
     userId: "user-1", contentVersionIdentity: "question-version-1",
     conceptMappingSetHash: HASH_A, conceptIds: ["concept-b", "concept-a"],
     occurredAt: "2026-08-21T00:00:00.000Z", validity: "ELIGIBLE",
     evidenceType: "PERFORMANCE_RESULT", quality: "DIRECT_PERFORMANCE",
     resultSummary: { correct: true, score: 100 }, sourceSemanticHash: HASH_B,
+    mappingTransition: "PRESERVE_EVENT_TIME",
+    mappingGuard: {
+      kind: "QUESTION_VERSION", parentIdentity: "question-version-1",
+      members: [{ mappingId: "mapping-1", conceptId: "concept-a", conceptIdentity: "concept:a", mappingVersion: 1, qualificationJson: null, provenanceJson: null }],
+    },
     ...overrides,
   };
 }
