@@ -25,11 +25,14 @@ import {
   mockExamQuestions,
   mockExamSections,
   mockExams,
+  ontologyConcepts,
   questionAttempts,
   questionChoices,
+  questionConcepts,
   questionCourses,
   questionSubjects,
   questionTopics,
+  questionVersions,
   questions,
   reviewSchedules,
   subjects,
@@ -74,6 +77,11 @@ import {
   type RecommendationCandidate,
 } from "@/lib/services/recommendation-service";
 import { getPublishedCurriculumPathForCourse } from "@/db/curriculum-repositories";
+import {
+  computeConceptMappingSetHash,
+  computeMockCompositionSemanticHash,
+  type GovernedConceptMapping,
+} from "@/lib/services/learning-event-contracts";
 
 function parseJson<T>(value: string, fallback: T): T {
   try {
@@ -690,9 +698,23 @@ export async function startMockExam(userId: string, mockExamId: string) {
     throw new AppError("최대 응시 횟수를 초과했습니다.", 409, "EXAM_ATTEMPT_LIMIT");
   }
   const questionRows = await getDb()
-    .select({ questionId: mockExamQuestions.questionId })
+    .select({
+      questionId: mockExamQuestions.questionId,
+      displayOrder: mockExamQuestions.displayOrder,
+      possibleScore: mockExamQuestions.score,
+      questionVersionId: questionVersions.id,
+      questionVersionSemanticHash: questionVersions.semanticHash,
+      questionVersionHumanReviewHash: questionVersions.humanReviewHash,
+    })
     .from(mockExamQuestions)
     .innerJoin(questions, eq(mockExamQuestions.questionId, questions.id))
+    .leftJoin(
+      questionVersions,
+      and(
+        eq(questionVersions.questionId, questions.id),
+        eq(questionVersions.version, questions.version),
+      ),
+    )
     .where(
       and(
         eq(mockExamQuestions.mockExamId, mockExamId),
@@ -704,6 +726,26 @@ export async function startMockExam(userId: string, mockExamId: string) {
   if (questionRows.length !== exam.questionCount) {
     throw new AppError("시험 문제 구성이 완료되지 않았습니다.", 409, "EXAM_INCOMPLETE");
   }
+  const versionBindings = await resolveMockQuestionVersionBindings(questionRows);
+  const allVersionBound = questionRows.every((row) => versionBindings.has(row.questionId));
+  const compositionSemanticHash = allVersionBound
+    ? await computeMockCompositionSemanticHash({
+        items: questionRows.map((row) => {
+          const binding = versionBindings.get(row.questionId)!;
+          return {
+            displayOrder: row.displayOrder,
+            questionIdentity: row.questionId,
+            questionVersionSemanticHash: binding.questionVersionSemanticHash,
+            possibleScore: row.possibleScore,
+            conceptMappingSetHash: binding.conceptMappingSetHash,
+          };
+        }),
+        passingScore: exam.passingScore,
+        questionCount: exam.questionCount,
+        randomizeChoices: exam.randomizeChoices,
+        randomizeQuestions: exam.randomizeQuestions,
+      })
+    : null;
   const id = crypto.randomUUID();
   const expiresAt = new Date(
     Date.now() + exam.timeLimitMinutes * 60_000,
@@ -715,12 +757,17 @@ export async function startMockExam(userId: string, mockExamId: string) {
       userId,
       expiresAt,
       unansweredCount: questionRows.length,
+      compositionSemanticHash,
     }),
     ...questionRows.map((row) =>
       getDb().insert(mockExamAnswers).values({
         id: crypto.randomUUID(),
         attemptId: id,
         questionId: row.questionId,
+        questionVersionId:
+          versionBindings.get(row.questionId)?.questionVersionId ?? null,
+        conceptMappingSetHash:
+          versionBindings.get(row.questionId)?.conceptMappingSetHash ?? null,
       }),
     ),
   ];
@@ -784,6 +831,8 @@ export async function getMockExamAttempt(userId: string, attemptId: string) {
       explanation: questions.explanation,
       wrongAnswerExplanation: questions.wrongAnswerExplanation,
       answerData: mockExamAnswers.answerData,
+      questionVersionId: mockExamAnswers.questionVersionId,
+      questionVersionSnapshotJson: questionVersions.snapshotJson,
       isCorrect: mockExamAnswers.isCorrect,
       earnedScore: mockExamAnswers.score,
       possibleScore: mockExamQuestions.score,
@@ -791,6 +840,10 @@ export async function getMockExamAttempt(userId: string, attemptId: string) {
     })
     .from(mockExamAnswers)
     .innerJoin(questions, eq(mockExamAnswers.questionId, questions.id))
+    .leftJoin(
+      questionVersions,
+      eq(mockExamAnswers.questionVersionId, questionVersions.id),
+    )
     .innerJoin(
       mockExamQuestions,
       and(
@@ -1017,12 +1070,20 @@ export async function submitMockExam(
       questionId: questions.id,
       type: questions.type,
       answerConfigJson: questions.answerConfigJson,
+      currentQuestionVersion: questions.version,
       answerData: mockExamAnswers.answerData,
       answeredAt: mockExamAnswers.answeredAt,
       possibleScore: mockExamQuestions.score,
+      questionVersionId: mockExamAnswers.questionVersionId,
+      boundQuestionVersion: questionVersions.version,
+      boundQuestionId: questionVersions.questionId,
     })
     .from(mockExamAnswers)
     .innerJoin(questions, eq(mockExamAnswers.questionId, questions.id))
+    .leftJoin(
+      questionVersions,
+      eq(mockExamAnswers.questionVersionId, questionVersions.id),
+    )
     .innerJoin(
       mockExamQuestions,
       and(
@@ -1053,6 +1114,19 @@ export async function submitMockExam(
         possibleScore: row.possibleScore,
         answerId: row.answerId,
       };
+    }
+    if (
+      row.questionVersionId &&
+      (
+        row.boundQuestionId !== row.questionId ||
+        row.boundQuestionVersion !== row.currentQuestionVersion
+      )
+    ) {
+      throw new AppError(
+        "Mock item QuestionVersion no longer matches the governed question state.",
+        409,
+        "QUESTION_VERSION_MISMATCH",
+      );
     }
     const grade = requireSupportedGrade(
       gradeQuestion(
@@ -1173,6 +1247,81 @@ export async function submitMockExam(
       }
     }
     throw error;
+  }
+  return result;
+}
+
+type MockVersionSeed = Readonly<{
+  questionId: string;
+  questionVersionId: string | null;
+  questionVersionSemanticHash: string | null;
+  questionVersionHumanReviewHash: string | null;
+}>;
+
+async function resolveMockQuestionVersionBindings(
+  seeds: readonly MockVersionSeed[],
+) {
+  const result = new Map<string, Readonly<{
+    questionVersionId: string;
+    questionVersionSemanticHash: string;
+    conceptMappingSetHash: string;
+  }>>();
+  const governed = seeds.filter(
+    (seed): seed is MockVersionSeed & {
+      questionVersionId: string;
+      questionVersionSemanticHash: string;
+      questionVersionHumanReviewHash: string;
+    } => Boolean(
+      seed.questionVersionId &&
+      seed.questionVersionSemanticHash &&
+      seed.questionVersionHumanReviewHash,
+    ),
+  );
+  if (!governed.length) return result;
+  const mappings = await getDb()
+    .select({
+      questionVersionId: questionConcepts.questionVersionId,
+      conceptIdentity: ontologyConcepts.conceptKey,
+      mappingVersion: questionConcepts.mappingVersion,
+      qualificationJson: questionConcepts.qualificationJson,
+      provenanceJson: questionConcepts.provenanceJson,
+    })
+    .from(questionConcepts)
+    .innerJoin(ontologyConcepts, eq(questionConcepts.conceptId, ontologyConcepts.id))
+    .where(
+      and(
+        inArray(
+          questionConcepts.questionVersionId,
+          governed.map((seed) => seed.questionVersionId),
+        ),
+        eq(questionConcepts.mappingStatus, "APPROVED"),
+      ),
+    );
+  for (const seed of governed) {
+    const rows = mappings.filter(
+      (mapping) => mapping.questionVersionId === seed.questionVersionId,
+    );
+    if (!rows.length) {
+      throw new AppError(
+        "Governed mock item lacks an approved Concept mapping set.",
+        409,
+        "QUESTION_VERSION_NOT_ELIGIBLE",
+      );
+    }
+    const conceptMappingSetHash = await computeConceptMappingSetHash(
+      rows.map((row): GovernedConceptMapping => ({
+        conceptIdentity: row.conceptIdentity,
+        mappingVersion: Number(row.mappingVersion),
+        qualification: parseJson<unknown>(row.qualificationJson ?? "null", null),
+        provenance: parseJson<unknown>(row.provenanceJson ?? "null", null),
+        status: "APPROVED",
+      })),
+    );
+    result.set(seed.questionId, {
+      questionVersionId: seed.questionVersionId,
+      questionVersionSemanticHash: seed.questionVersionSemanticHash,
+      conceptMappingSetHash,
+    });
   }
   return result;
 }

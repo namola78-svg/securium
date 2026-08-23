@@ -14,6 +14,8 @@ import {
   type PracticalAttempt,
 } from "../practical/practical-attempt.ts";
 import type { ResponseComponentSpec } from "../practical/practical-definition.ts";
+import { createEvidenceRecomputeRequiredSignal } from "./learning-event-contracts.ts";
+import { createRecomputeRequest } from "../../db/evidence-projection-repository.ts";
 
 const REVIEW_STATUSES = ["NOT_REQUIRED", "PENDING", "COMPLETED"] as const;
 const EVALUATION_ACTOR_ROLES = [
@@ -272,7 +274,8 @@ export class PracticalAttemptService {
     const attempt = await this.requireOwnedAttempt(input.attemptId, input.userId);
     transitionPracticalAttempt(toDomainAttempt(attempt), "VOIDED", this.now().toISOString());
     const occurredAt = this.now().toISOString();
-    return this.repository.transitionAttempt(
+    const sourceRevisionIdentity = `${attempt.id}:VOIDED:${occurredAt}`;
+    const result = await this.repository.transitionAttempt(
       {
         attemptId: attempt.id,
         userId: attempt.userId,
@@ -284,7 +287,22 @@ export class PracticalAttemptService {
       auditForAttempt(attempt.userId, "PRACTICAL_ATTEMPT_VOIDED", attempt.id, {
         reasonCode: input.reasonCode ?? "ATTEMPT_VOIDED",
       }),
+      await createRecomputeRequest({
+        requestType: "EVIDENCE_RECOMPUTE_REQUIRED", scopeType: "EVENT",
+        sourceType: "PRACTICAL_ATTEMPT", sourceEventId: attempt.id,
+        sourceRevisionIdentity, userId: attempt.userId,
+        projectionVersion: "EVIDENCE_V1", reasonCode: "PRACTICAL_ATTEMPT_VOIDED",
+      }),
     );
+    return {
+      ...result,
+      recomputeSignal: createEvidenceRecomputeRequiredSignal({
+        sourceType: "PRACTICAL_ATTEMPT",
+        sourceEventId: attempt.id,
+        reasonCode: "PRACTICAL_ATTEMPT_VOIDED",
+        sourceRevisionIdentity,
+      }),
+    };
   }
 
   async createFirstEvaluation(input: EvaluationInput) {
@@ -585,9 +603,27 @@ export class PracticalAttemptService {
         evaluationPayloadDigest: payload.digest,
       },
     };
-    return sequence === 1
-      ? this.repository.createFirstEvaluation(write, audit)
-      : this.repository.appendEvaluationRevision(write, audit);
+    const reasonCode = sequence === 1
+      ? "PRACTICAL_EVALUATION_CREATED"
+      : "PRACTICAL_EVALUATION_REVISED";
+    const recomputeRequest = await createRecomputeRequest({
+      requestType: "EVIDENCE_RECOMPUTE_REQUIRED", scopeType: "EVENT",
+      sourceType: "PRACTICAL_EVALUATION", sourceEventId: domain.evaluationId,
+      sourceRevisionIdentity: payload.digest, userId: attempt.userId,
+      projectionVersion: "EVIDENCE_V1", reasonCode,
+    });
+    const persisted = await (sequence === 1
+      ? this.repository.createFirstEvaluation(write, audit, recomputeRequest)
+      : this.repository.appendEvaluationRevision(write, audit, recomputeRequest));
+    return {
+      ...persisted,
+      recomputeSignal: createEvidenceRecomputeRequiredSignal({
+        sourceType: "PRACTICAL_EVALUATION",
+        sourceEventId: domain.evaluationId,
+        reasonCode,
+        sourceRevisionIdentity: payload.digest,
+      }),
+    };
   }
 
   private async requireOwnedAttempt(attemptIdValue: unknown, userIdValue: unknown) {

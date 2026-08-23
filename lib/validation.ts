@@ -516,6 +516,7 @@ export const governedQuestionSchema = questionSchema.extend({
 
 export const questionAttemptSchema = z.object({
   questionId: id,
+  questionVersionId: id.nullable().optional(),
   courseId: id,
   answer: z.union([z.string().max(10000), z.array(z.string().max(500)).max(20)]),
   responseTime: z.coerce.number().int().min(0).max(86_400_000).default(0),
