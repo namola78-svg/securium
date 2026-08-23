@@ -74,6 +74,12 @@ test("SW-P1A I01 fresh D1 migration creates exactly four P1A tables with foreign
   );
   assert.equal(await scalar("PRAGMA foreign_keys", "foreign_keys"), 1);
   assert.equal(await scalar("SELECT count(*) AS value FROM users"), 4);
+  const migrationNames = await (await import("node:fs/promises")).readdir("drizzle");
+  for (const slot of ["0023", "0024", "0025", "0026", "0027"]) {
+    const migration = migrationNames.find((candidate) => candidate.startsWith(`${slot}_`) && candidate.endsWith(".sql"));
+    assert.ok(migration, `migration ${slot} must exist`);
+    await applyMigration(await readMigration(`drizzle/${migration}`));
+  }
 });
 
 test("SW-P1A I02 rubric and definition versions enforce immutable compatible identities", async () => {

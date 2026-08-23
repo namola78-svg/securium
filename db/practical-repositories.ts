@@ -9,6 +9,7 @@ import type {
   DatabaseStatement,
   DatabaseValue,
 } from "./provider/database-provider.ts";
+import { recomputeInsert, type RecomputeRequestInput } from "./evidence-projection-repository.ts";
 
 export type PracticalRubricVersionRow = Readonly<{
   id: string;
@@ -327,7 +328,7 @@ export class PracticalRepository {
     return { attempt, idempotentReplay: false };
   }
 
-  async transitionAttempt(input: TransitionAttemptWrite, audit: PracticalAuditInput) {
+  async transitionAttempt(input: TransitionAttemptWrite, audit: PracticalAuditInput, recomputeRequest?: RecomputeRequestInput) {
     const timestampColumn = input.nextState === "EXPIRED" ? "expired_at" : "voided_at";
     const reasonSql = input.nextState === "VOIDED" ? ", void_reason_code = ?" : "";
     const parameters: DatabaseValue[] = [input.occurredAt, input.occurredAt];
@@ -335,7 +336,7 @@ export class PracticalRepository {
     parameters.push(input.attemptId, input.userId, input.expectedState);
     let results;
     try {
-      results = await this.database.transaction([
+      const statements: DatabaseStatement[] = [
         {
         sql: `UPDATE practical_attempts SET state = ?, ${timestampColumn} = ?, updated_at = ?${reasonSql}
           WHERE id = ? AND user_id = ? AND state = ?`.replace(
@@ -348,7 +349,9 @@ export class PracticalRepository {
           sql: "SELECT 1 FROM practical_attempts WHERE id = ? AND user_id = ? AND state = ?",
           parameters: [input.attemptId, input.userId, input.nextState],
         }),
-      ]);
+      ];
+      if (recomputeRequest) statements.push(recomputeInsert(recomputeRequest));
+      results = await this.database.transaction(statements);
     } catch (error) {
       if (isUniqueConflict(error)) conflict("CONCURRENT_MODIFICATION");
       throw error;
@@ -359,12 +362,12 @@ export class PracticalRepository {
     return attempt;
   }
 
-  async createFirstEvaluation(input: EvaluationWrite, audit: PracticalAuditInput) {
-    return this.insertEvaluation(input, audit, true);
+  async createFirstEvaluation(input: EvaluationWrite, audit: PracticalAuditInput, recomputeRequest?: RecomputeRequestInput) {
+    return this.insertEvaluation(input, audit, true, recomputeRequest);
   }
 
-  async appendEvaluationRevision(input: EvaluationWrite, audit: PracticalAuditInput) {
-    return this.insertEvaluation(input, audit, false);
+  async appendEvaluationRevision(input: EvaluationWrite, audit: PracticalAuditInput, recomputeRequest?: RecomputeRequestInput) {
+    return this.insertEvaluation(input, audit, false, recomputeRequest);
   }
 
   async getEvaluationForOwner(evaluationId: string, userId: string) {
@@ -427,6 +430,7 @@ export class PracticalRepository {
     input: EvaluationWrite,
     audit: PracticalAuditInput,
     first: boolean,
+    recomputeRequest?: RecomputeRequestInput,
   ) {
     validateEvaluationWrite(input);
     const existing = await this.getEvaluationByOperationInternal(
@@ -519,6 +523,7 @@ export class PracticalRepository {
         parameters: [input.id, input.attemptId],
       }),
     );
+    if (recomputeRequest) statements.push(recomputeInsert(recomputeRequest));
     let results;
     try {
       results = await this.database.transaction(statements);

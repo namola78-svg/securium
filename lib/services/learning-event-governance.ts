@@ -9,6 +9,7 @@ import {
   type LearningEventRevisionAction,
   type LearningEventSourceType,
 } from "./learning-event-contracts.ts";
+import { createRecomputeRequest, type RecomputeRequestInput } from "../../db/evidence-projection-repository.ts";
 
 export type LearningEventCorrectionPayload =
   | Readonly<{
@@ -77,6 +78,7 @@ export interface LearningEventGovernanceRepositoryContract {
     input: AppendLearningEventRevisionInput & Readonly<{
       correctionPayloadJson: string;
       semanticHash: string;
+      recomputeRequest: RecomputeRequestInput;
     }>,
   ): Promise<Readonly<{
     outcome: "NEW_SUCCESS" | "EXACT_REPLAY";
@@ -112,6 +114,16 @@ export class LearningEventGovernanceService {
       ...input,
       correctionPayloadJson,
       semanticHash,
+      recomputeRequest: await createRecomputeRequest({
+        requestType: "EVIDENCE_RECOMPUTE_REQUIRED",
+        scopeType: "EVENT",
+        sourceType: input.sourceType,
+        sourceEventId: input.sourceEventId,
+        sourceRevisionIdentity: semanticHash,
+        projectionVersion: "EVIDENCE_V1",
+        reasonCode: input.reasonCode,
+        userId: input.ownerUserId,
+      }),
     });
     return Object.freeze({
       ...result,
