@@ -7,8 +7,8 @@ import {
   SECURITY_CERTIFICATION_CURRICULUM_TREES,
 } from "../lib/curriculum/security-certification-standards.ts";
 
-const port = 33120;
-const baseUrl = `http://localhost:${port}`;
+const requestedPort = 33120;
+let baseUrl = "";
 const runId = `${process.pid}-${Date.now()}`;
 let server;
 let output = "";
@@ -22,7 +22,7 @@ before(async () => {
       "--host",
       "127.0.0.1",
       "--port",
-      String(port),
+      String(requestedPort),
     ],
     {
       cwd: process.cwd(),
@@ -36,9 +36,11 @@ before(async () => {
   );
   server.stdout.on("data", (chunk) => {
     output += chunk.toString();
+    captureBaseUrl();
   });
   server.stderr.on("data", (chunk) => {
     output += chunk.toString();
+    captureBaseUrl();
   });
 
   for (let attempt = 0; attempt < 480; attempt += 1) {
@@ -46,8 +48,22 @@ before(async () => {
       throw new Error(`E2E server stopped early.\n${output}`);
     }
     try {
-      const response = await fetch(baseUrl);
-      if (response.status > 0) return;
+      if (baseUrl) {
+        const response = await fetch(baseUrl);
+        if (response.status > 0) {
+          if (process.env.SECURIUM_HARNESS_TRACE === "1") {
+            console.log(
+              `RENDERED_HTML_HARNESS_URL ${JSON.stringify({
+                requestedPort,
+                actualBaseUrl: baseUrl,
+                readinessUrl: baseUrl,
+                requestBaseUrl: baseUrl,
+              })}`,
+            );
+          }
+          return;
+        }
+      }
     } catch {
       // The server is still starting.
     }
@@ -55,6 +71,15 @@ before(async () => {
   }
   throw new Error(`E2E server did not become ready.\n${output}`);
 });
+
+function captureBaseUrl() {
+  if (baseUrl) return;
+  const cleanOutput = output.replace(/\u001b\[[0-?]*[ -/]*[@-~]/g, "");
+  const match = cleanOutput.match(
+    /Local:\s+(https?:\/\/(?:localhost|127\.0\.0\.1):\d+)(?:\/|\s|$)/i,
+  );
+  if (match) baseUrl = new URL(match[1]).origin;
+}
 
 test("network security practice flow stays scoped to engineer and industrial engineer courses", async () => {
   await ensureNetworkQuestionSeed();
@@ -660,8 +685,24 @@ async function readJsonResponse(response) {
   }
 }
 
-after(() => {
-  if (server?.exitCode === null) server.kill();
+after(async () => {
+  if (!server || server.exitCode !== null) return;
+  await new Promise((resolve, reject) => {
+    const onExit = () => {
+      clearTimeout(timeout);
+      resolve();
+    };
+    const timeout = setTimeout(() => {
+      server.removeListener("exit", onExit);
+      reject(new Error("Rendered HTML server cleanup timed out."));
+    }, 5_000);
+    server.once("exit", onExit);
+    if (!server.kill()) {
+      clearTimeout(timeout);
+      server.removeListener("exit", onExit);
+      reject(new Error("Rendered HTML server could not be terminated."));
+    }
+  });
 });
 
 test("통합 학습 플랫폼 랜딩페이지를 서버 렌더링한다", async () => {
