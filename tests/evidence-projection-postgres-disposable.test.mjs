@@ -5,7 +5,7 @@ import { readFile } from "node:fs/promises";
 import { after, test } from "node:test";
 import { promisify } from "node:util";
 import { PostgresDatabaseProvider } from "../db/provider/postgres-database-provider.ts";
-import { EvidenceProjectionRepository } from "../db/evidence-projection-repository.ts";
+import { EvidenceProjectionRepository, createRecomputeRequest } from "../db/evidence-projection-repository.ts";
 import { buildEvidenceCandidates } from "../lib/services/evidence-projection.ts";
 
 const execFile = promisify(execFileCallback);
@@ -60,6 +60,7 @@ test("disposable PostgreSQL proves E1 complete-set atomicity, replay, rollback, 
     INSERT INTO practical_evaluations VALUES ('evaluation-1', 'practical-attempt-1', 1, '${"b".repeat(64)}');
     INSERT INTO ontology_edges VALUES ('edge-practical-a', 'PRACTICAL', 'practical-1', 'CONCEPT', 'concept-a', 'ASSESSED_BY', 'ACTIVE');`);
   await client.unsafe(await readFile("db/postgres/migrations/0015_evidence_projection_foundation.sql", "utf8"));
+  await client.unsafe(await readFile("db/postgres/migrations/0019_evidence_e2_a_recompute_operations.sql", "utf8"));
   await client.unsafe(`ALTER TABLE evidence_projections ADD COLUMN source_lineage_identity text;
     ALTER TABLE evidence_projections ALTER COLUMN source_lineage_identity SET NOT NULL;
     CREATE UNIQUE INDEX evidence_projections_active_lineage_unique
@@ -67,6 +68,24 @@ test("disposable PostgreSQL proves E1 complete-set atomicity, replay, rollback, 
       WHERE lifecycle = 'ACTIVE';`);
 
   const repository = new EvidenceProjectionRepository(makeProvider(client));
+  const lifecycleRequest = await createRecomputeRequest({
+    requestType: "EVIDENCE_RECOMPUTE_REQUIRED",
+    scopeType: "USER",
+    userId: "user-1",
+    projectionVersion: "EVIDENCE_V1",
+    reasonCode: "E2_A_POSTGRES_PROOF",
+  });
+  await client.unsafe(`INSERT INTO evidence_recompute_requests
+    (id, request_type, scope_type, source_type, source_event_id, source_revision_identity,
+     user_id, concept_id, projection_version, reason_code, input_semantic_hash, status, cursor)
+    VALUES ('${lifecycleRequest.id}', 'EVIDENCE_RECOMPUTE_REQUIRED', 'USER', NULL::text, NULL::text, NULL::text,
+      'user-1', NULL::text, 'EVIDENCE_V1', 'E2_A_POSTGRES_PROOF', '${lifecycleRequest.inputSemanticHash}', 'PENDING', NULL::text)
+    ON CONFLICT (request_type, input_semantic_hash) DO NOTHING`);
+  const claim = await repository.claimNext("USER", "postgres-worker-a");
+  assert.equal(claim?.id, lifecycleRequest.id);
+  assert.equal(await new EvidenceProjectionRepository(makeProvider(client2)).claimNext("USER", "postgres-worker-b"), null);
+  assert.equal((await repository.updateCheckpoint(lifecycleRequest.id, claim.claimToken, JSON.stringify({ cursor: "user-1" }))).affectedRows, 1);
+  assert.equal((await repository.completeClaim(lifecycleRequest.id, claim.claimToken)).affectedRows, 1);
   const current = source();
   const candidates = await buildEvidenceCandidates(current);
   assert.equal(await repository.reconcileEventProjectionSet(current, candidates), "NEW_SUCCESS");
@@ -176,7 +195,6 @@ function makeProvider(databaseClient, fail = false) {
     })),
   });
 }
-
 function source(overrides = {}) {
   const members = [
     mapping("mapping-a", "concept-a", "concept:a"),

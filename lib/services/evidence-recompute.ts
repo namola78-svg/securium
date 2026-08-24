@@ -20,7 +20,6 @@ export interface CanonicalEvidenceSourceResolver {
     sourceRevisionIdentity: string;
   }>): Promise<EvidenceLineageInvalidation | null>;
 }
-
 export type EvidenceLineageInvalidation = Readonly<{
   sourceType: "PRACTICAL_EVALUATION";
   sourceLineageIdentity: string;
@@ -145,6 +144,7 @@ function mapRequest(row: Record<string, unknown>): RecomputeRequestInput {
     userId: row.user_id as string | undefined, conceptId: row.concept_id as string | undefined,
     projectionVersion: String(row.projection_version), reasonCode: String(row.reason_code),
     inputSemanticHash: String(row.input_semantic_hash), cursor: row.cursor as string | null,
+    generationId: row.generation_id as string | null,
   };
 }
 
