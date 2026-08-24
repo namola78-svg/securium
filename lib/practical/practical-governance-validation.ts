@@ -1,5 +1,7 @@
 import { createHash } from "node:crypto";
 import { requireStableReference, requireStableSemanticSegment } from "../assessment/assessment-objective.ts";
+import { validateEvaluationModelV1, type PracticalEvaluationModelV1 } from "./practical-evaluation-definition.ts";
+import { evaluationSemanticHashV1, snapshotDigestV1, canonicalPersistedEvaluationPayloadV1, parsePersistedEvaluationPayloadV1 } from "./practical-evaluation-semantic-hash.ts";
 
 export const PRACTICAL_GOVERNANCE_LIFECYCLES = [
   "DRAFT",
@@ -62,6 +64,9 @@ export type PracticalGovernanceInput = Readonly<{
   reviewerMaterialDigest: string;
   conceptBindings: readonly PracticalConceptBindingInput[];
   supersededById?: string | null;
+  /** V1 semantic input. When present, all persisted semantic identities are server-recomputed. */
+  evaluationModel?: unknown;
+  evaluation?: unknown;
 }>;
 
 export type PracticalGovernanceOutcome = "NEW_SUCCESS" | "EXACT_REPLAY" | "NEW_VERSION_REQUIRED";
@@ -124,6 +129,29 @@ export function validatePracticalGovernanceInput(input: PracticalGovernanceInput
     keys.add(binding.conceptKey);
   }
   return input;
+}
+
+export type ValidatedEvaluationV1 = Readonly<{
+  model: PracticalEvaluationModelV1;
+  canonicalPayload: string;
+  evaluationSemanticHash: string;
+  snapshotDigest: string;
+}>;
+
+export function validateGovernedEvaluationV1(value: unknown, callerHash?: unknown): ValidatedEvaluationV1 {
+  const model = validateEvaluationModelV1(value);
+  const canonicalPayload = canonicalPersistedEvaluationPayloadV1(model);
+  const evaluationSemanticHash = evaluationSemanticHashV1(model);
+  const snapshotDigest = snapshotDigestV1(model);
+  if (callerHash !== undefined && callerHash !== evaluationSemanticHash) fail("EVALUATION_SEMANTIC_HASH_MISMATCH");
+  return Object.freeze({ model, canonicalPayload, evaluationSemanticHash, snapshotDigest });
+}
+
+export function replayGovernedEvaluationV1(snapshotJson: unknown, storedSnapshotDigest: unknown, storedEvaluationSemanticHash: unknown): PracticalEvaluationModelV1 {
+  if (typeof storedSnapshotDigest !== "string" || typeof storedEvaluationSemanticHash !== "string") fail("MISSING_EVALUATION_IDENTITY");
+  const model = parsePersistedEvaluationPayloadV1(String(snapshotJson), storedSnapshotDigest);
+  if (evaluationSemanticHashV1(model) !== storedEvaluationSemanticHash) fail("EVALUATION_SEMANTIC_HASH_MISMATCH");
+  return model;
 }
 
 export function comparePracticalGovernanceReplay(
