@@ -140,6 +140,16 @@ export type PracticalVersion = Readonly<{
   payloadDigest: ArtifactDigest;
 }>;
 
+export type GovernedPracticalVersionBinding = Readonly<{
+  canonicalPracticalId: string;
+  practicalVersionId: string;
+  semanticHash: string;
+  evaluationVersionId: string;
+  conceptMappingHash: string;
+  theoryDependencyJson: string;
+  lifecycle: "DRAFT" | "HUMAN_APPROVED" | "CANONICAL_UNPUBLISHED" | "SUPERSEDED";
+}>;
+
 export type PracticalPlacement = Readonly<{
   id: string;
   courseId: string;

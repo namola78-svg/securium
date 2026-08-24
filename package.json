@@ -29,6 +29,7 @@
     "test:e2e": "npm run build && node scripts/run-d1-test-suite.mjs --test --test-concurrency=1 tests/rendered-html.test.mjs tests/phase3-e2e.test.mjs tests/specialized-e2e.test.mjs tests/practical-e2e.test.mjs tests/ai-e2e.test.mjs tests/ai-specialized-e2e.test.mjs tests/audio-e2e.test.mjs tests/lecture-e2e.test.mjs tests/content-revision-e2e.test.mjs tests/audit-e2e.test.mjs tests/curriculum-e2e.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "node scripts/run-drizzle-kit.mjs generate",
+    "db:bind-existing": "node scripts/bind-existing-drizzle-migration.mjs",
     "db:check": "node scripts/run-drizzle-kit.mjs check --config=drizzle.config.ts",
     "db:migrate": "node scripts/run-wrangler.mjs d1 migrations apply DB --local --config wrangler.local.jsonc",
     "db:seed": "node scripts/run-wrangler.mjs d1 execute DB --local --config wrangler.local.jsonc --file db/seed.sql",
