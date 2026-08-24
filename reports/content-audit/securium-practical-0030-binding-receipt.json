@@ -1,0 +1,18 @@
+{
+  "version": "PRACTICAL_BINDING_RECEIPT_V1",
+  "identity": "0030_practical_revision_governance",
+  "existingSqlSha256": "c9d3c27d6eaa25c870b3db21a29bd1a97376be6e5a2aec9af87caf3eb7876a79",
+  "generatedSqlSha256": "6876444fae0c0c6a0b5c27ed2f46a05997d6ede1fc2037923060983f068882e5",
+  "schemaSha256": "a46ebab6545d0e3aae08614f211f8b25e3559988f6dcd8b47e38ef3c1249349e",
+  "snapshotSha256": "e747cd0919353fef221a4d65eb23d7fe4b17574b96bb3cce79d0cc0158fcbef6",
+  "journalSha256": "d498b501c55c07417aed486b9bd8ea5077a8a744af86838e5fa47aa3cc298ea3",
+  "authorityState": "VERIFIED_EXISTING_MIGRATION_AUTHORITY",
+  "authorityPath": "existing-migration",
+  "exactReplayState": "REPLAYABLE",
+  "validation": {
+    "executionValidated": true,
+    "schemaEquivalent": true,
+    "dataEquivalent": true,
+    "schemaMismatchCount": 0
+  }
+}
