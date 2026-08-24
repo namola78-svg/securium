@@ -211,6 +211,13 @@
       "when": 1787525937507,
       "tag": "0029_evidence_e1_core_remediation",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "6",
+      "when": 1787536861735,
+      "tag": "0030_practical_revision_governance",
+      "breakpoints": true
     }
   ]
 }

@@ -3121,6 +3121,10 @@ export const practicalRubricVersions = sqliteTable(
     id: text("id").primaryKey(),
     rubricId: text("rubric_id").notNull(),
     version: integer("version").notNull(),
+    evaluationSemanticHash: text("evaluation_semantic_hash"),
+    evaluationMethod: text("evaluation_method"),
+    humanReviewHash: text("human_review_hash"),
+    evidenceClassification: text("evidence_classification"),
     snapshotFormatVersion: integer("snapshot_format_version")
       .notNull()
       .default(1),
@@ -3150,6 +3154,18 @@ export const practicalRubricVersions = sqliteTable(
     check(
       "practical_rubric_versions_digest_check",
       sql`length(${table.snapshotDigest}) = 64 AND ${table.snapshotDigest} NOT GLOB '*[^0-9a-f]*'`,
+    ),
+    check(
+      "practical_rubric_versions_evaluation_hash_check",
+      sql`${table.evaluationSemanticHash} IS NULL OR (length(${table.evaluationSemanticHash}) = 64 AND ${table.evaluationSemanticHash} NOT GLOB '*[^0-9a-f]*')`,
+    ),
+    check(
+      "practical_rubric_versions_evaluation_method_check",
+      sql`${table.evaluationMethod} IS NULL OR ${table.evaluationMethod} IN ('RULE_BASED', 'STRUCTURED_HUMAN_REVIEW', 'HYBRID')`,
+    ),
+    check(
+      "practical_rubric_versions_evidence_check",
+      sql`${table.evidenceClassification} IS NULL OR ${table.evidenceClassification} IN ('ELIGIBLE_PERFORMANCE_EVIDENCE', 'ELIGIBLE_AFTER_HUMAN_EVALUATION', 'SUPPORTING_ACTIVITY_ONLY')`,
     ),
   ],
 );
@@ -3200,6 +3216,140 @@ export const practicalDefinitionVersions = sqliteTable(
   ],
 );
 
+export const canonicalPracticals = sqliteTable(
+  "canonical_practicals",
+  {
+    id: text("id").primaryKey(),
+    semanticKey: text("semantic_key").notNull(),
+    lifecycle: text("lifecycle").notNull().default("DRAFT"),
+    createdBy: text("created_by").notNull(),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    uniqueIndex("canonical_practicals_semantic_key_unique").on(table.semanticKey),
+    check(
+      "canonical_practicals_lifecycle_check",
+      sql`${table.lifecycle} IN ('DRAFT', 'HUMAN_APPROVED', 'CANONICAL_UNPUBLISHED', 'SUPERSEDED')`,
+    ),
+  ],
+);
+
+export const practicalGovernanceVersions = sqliteTable(
+  "practical_governance_versions",
+  {
+    id: text("id").primaryKey(),
+    practicalId: text("practical_id")
+      .notNull()
+      .references(() => canonicalPracticals.id, { onDelete: "restrict" }),
+    version: integer("version").notNull(),
+    semanticHash: text("semantic_hash").notNull(),
+    humanReviewHash: text("human_review_hash").notNull(),
+    safetyReviewHash: text("safety_review_hash").notNull(),
+    rightsBinding: text("rights_binding").notNull(),
+    provenanceBinding: text("provenance_binding").notNull(),
+    conceptMappingHash: text("concept_mapping_hash").notNull(),
+    theoryDependencyJson: text("theory_dependency_json").notNull(),
+    currentnessReference: text("currentness_reference").notNull(),
+    lifecycle: text("lifecycle").notNull().default("DRAFT"),
+    supersededById: text("superseded_by_id"),
+    createdBy: text("created_by").notNull(),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    uniqueIndex("practical_governance_versions_identity_unique").on(
+      table.practicalId,
+      table.version,
+    ),
+    uniqueIndex("practical_governance_versions_semantic_unique").on(
+      table.practicalId,
+      table.semanticHash,
+    ),
+    foreignKey({
+      name: "practical_governance_versions_superseded_by_fk",
+      columns: [table.supersededById],
+      foreignColumns: [table.id],
+    }).onDelete("restrict"),
+    check(
+      "practical_governance_versions_hash_check",
+      sql`${table.semanticHash} NOT GLOB '*[^0-9a-f]*' AND length(${table.semanticHash}) = 64 AND ${table.humanReviewHash} NOT GLOB '*[^0-9a-f]*' AND length(${table.humanReviewHash}) = 64 AND ${table.safetyReviewHash} NOT GLOB '*[^0-9a-f]*' AND length(${table.safetyReviewHash}) = 64 AND ${table.conceptMappingHash} NOT GLOB '*[^0-9a-f]*' AND length(${table.conceptMappingHash}) = 64`,
+    ),
+    check(
+      "practical_governance_versions_lifecycle_check",
+      sql`${table.lifecycle} IN ('DRAFT', 'HUMAN_APPROVED', 'CANONICAL_UNPUBLISHED', 'SUPERSEDED')`,
+    ),
+  ],
+);
+
+export const practicalReviewerMaterialVersions = sqliteTable(
+  "practical_reviewer_material_versions",
+  {
+    id: text("id").primaryKey(),
+    practicalVersionId: text("practical_version_id")
+      .notNull()
+      .references(() => practicalGovernanceVersions.id, { onDelete: "restrict" }),
+    rubricVersionId: text("rubric_version_id")
+      .notNull()
+      .references(() => practicalRubricVersions.id, { onDelete: "restrict" }),
+    payloadJson: text("payload_json").notNull(),
+    payloadDigest: text("payload_digest").notNull(),
+    visibility: text("visibility").notNull().default("REVIEWER_ONLY"),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    uniqueIndex("practical_reviewer_material_versions_identity_unique").on(
+      table.practicalVersionId,
+      table.rubricVersionId,
+    ),
+    check(
+      "practical_reviewer_material_versions_visibility_check",
+      sql`${table.visibility} = 'REVIEWER_ONLY'`,
+    ),
+    check(
+      "practical_reviewer_material_versions_digest_check",
+      sql`length(${table.payloadDigest}) = 64 AND ${table.payloadDigest} NOT GLOB '*[^0-9a-f]*'`,
+    ),
+    check(
+      "practical_reviewer_material_versions_payload_length_check",
+      sql`length(${table.payloadJson}) <= 200000`,
+    ),
+  ],
+);
+
+export const practicalVersionConceptBindings = sqliteTable(
+  "practical_version_concept_bindings",
+  {
+    id: text("id").primaryKey(),
+    practicalVersionId: text("practical_version_id")
+      .notNull()
+      .references(() => practicalGovernanceVersions.id, { onDelete: "restrict" }),
+    conceptKey: text("concept_key").notNull(),
+    conceptId: text("concept_id"),
+    mappingSemanticHash: text("mapping_semantic_hash").notNull(),
+    qualificationJson: text("qualification_json").notNull(),
+    mappingStatus: text("mapping_status").notNull().default("PENDING"),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    uniqueIndex("practical_version_concept_bindings_identity_unique").on(
+      table.practicalVersionId,
+      table.conceptKey,
+    ),
+    check(
+      "practical_version_concept_bindings_hash_check",
+      sql`length(${table.mappingSemanticHash}) = 64 AND ${table.mappingSemanticHash} NOT GLOB '*[^0-9a-f]*'`,
+    ),
+    check(
+      "practical_version_concept_bindings_status_check",
+      sql`${table.mappingStatus} IN ('PENDING', 'APPROVED', 'SUPERSEDED', 'LEGACY_UNVERIFIED')`,
+    ),
+    check(
+      "practical_version_concept_bindings_identity_check",
+      sql`${table.conceptId} IS NOT NULL OR length(${table.conceptKey}) > 0`,
+    ),
+  ],
+);
+
 export const practicalAttempts = sqliteTable(
   "practical_attempts",
   {
@@ -3210,6 +3360,10 @@ export const practicalAttempts = sqliteTable(
     practicalId: text("practical_id").notNull(),
     practicalDefinitionVersionId: text("practical_definition_version_id").notNull(),
     rubricVersionId: text("rubric_version_id").notNull(),
+    practicalGovernanceVersionId: text("practical_governance_version_id").references(
+      () => practicalGovernanceVersions.id,
+      { onDelete: "restrict" },
+    ),
     courseId: text("course_id")
       .notNull()
       .references(() => courses.id, { onDelete: "restrict" }),
@@ -3869,25 +4023,25 @@ export const evidenceProjections = sqliteTable(
       columns: [table.supersededById],
       foreignColumns: [table.id],
     }).onDelete("restrict"),
-    uniqueIndex("evidence_projections_identity_unique").on(table.id),
-    uniqueIndex("evidence_projections_active_lineage_unique")
-      .on(
+      uniqueIndex("evidence_projections_identity_unique").on(table.id),
+      uniqueIndex("evidence_projections_active_lineage_unique")
+        .on(
+          table.userId,
+          table.sourceType,
+          table.sourceLineageIdentity,
+          table.evidenceType,
+          table.conceptId,
+          table.projectionVersion,
+        )
+        .where(sql`${table.lifecycle} = 'ACTIVE'`),
+      index("evidence_projections_source_idx").on(table.sourceType, table.sourceEventId, table.lifecycle),
+      index("evidence_projections_lineage_idx").on(
         table.userId,
         table.sourceType,
         table.sourceLineageIdentity,
-        table.evidenceType,
-        table.conceptId,
-        table.projectionVersion,
-      )
-      .where(sql`${table.lifecycle} = 'ACTIVE'`),
-    index("evidence_projections_source_idx").on(table.sourceType, table.sourceEventId, table.lifecycle),
-    index("evidence_projections_lineage_idx").on(
-      table.userId,
-      table.sourceType,
-      table.sourceLineageIdentity,
-      table.lifecycle,
-    ),
-    index("evidence_projections_user_idx").on(table.userId, table.lifecycle, table.occurredAt),
+        table.lifecycle,
+      ),
+      index("evidence_projections_user_idx").on(table.userId, table.lifecycle, table.occurredAt),
     index("evidence_projections_concept_idx").on(table.conceptId, table.lifecycle, table.occurredAt),
     check("evidence_projections_source_check", sql`${table.sourceType} IN ('QUESTION_ATTEMPT', 'MOCK_ATTEMPT', 'MOCK_ITEM_RESULT', 'PRACTICAL_EVALUATION', 'LESSON_PROGRESS', 'COURSE_LESSON_PROGRESS', 'LECTURE_PROGRESS', 'AUDIO_PROGRESS')`),
     check("evidence_projections_type_check", sql`${table.evidenceType} IN ('PERFORMANCE_RESULT', 'PRACTICAL_PERFORMANCE', 'LEARNING_ACTIVITY')`),

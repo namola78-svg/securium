@@ -42,6 +42,7 @@ export type PracticalAttemptRow = Readonly<{
   practicalId: string;
   practicalDefinitionVersionId: string;
   rubricVersionId: string;
+  practicalGovernanceVersionId: string | null;
   courseId: string;
   curriculumTreeId: string;
   curriculumTreeVersionReference: string;
@@ -218,21 +219,28 @@ export class PracticalRepository {
       return { attempt: existing, idempotentReplay: true };
     }
     try {
+      const governanceVersionColumn = input.practicalGovernanceVersionId
+        ? ", practical_governance_version_id"
+        : "";
+      const governanceVersionValue = input.practicalGovernanceVersionId
+        ? [input.practicalGovernanceVersionId]
+        : [];
       await this.database.transaction([
         {
           sql: `INSERT INTO practical_attempts
-            (id, user_id, practical_id, practical_definition_version_id, rubric_version_id,
+            (id, user_id, practical_id, practical_definition_version_id, rubric_version_id${governanceVersionColumn},
              course_id, curriculum_tree_id, curriculum_tree_version_reference, curriculum_node_id,
              objective_placement_id, practical_placement_id, state, responses_json,
              artifact_manifest_json, creation_idempotency_key, draft_revision, started_at,
              expires_at, eligibility_decision_reference)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'IN_PROGRESS', ?, ?, ?, ?, ?, ?, ?)`,
+            VALUES (?, ?, ?, ?, ?, ${governanceVersionColumn ? "?, " : ""}?, ?, ?, ?, ?, ?, 'IN_PROGRESS', ?, ?, ?, ?, ?, ?, ?)`,
           parameters: [
             input.id,
             input.userId,
             input.practicalId,
             input.practicalDefinitionVersionId,
             input.rubricVersionId,
+            ...governanceVersionValue,
             input.courseId,
             input.curriculumTreeId,
             input.curriculumTreeVersionReference,
@@ -620,7 +628,8 @@ export type CreateAttemptWrite = Omit<
   | "voidReasonCode"
   | "createdAt"
   | "updatedAt"
->;
+  | "practicalGovernanceVersionId"
+> & Readonly<{ practicalGovernanceVersionId?: string | null }>;
 
 export type SubmitAttemptWrite = Readonly<{
   attemptId: string;
@@ -659,6 +668,7 @@ type DatabaseDefinitionVersionRow = Record<string, unknown> & {
 type DatabaseAttemptRow = Record<string, unknown> & {
   id: string; user_id: string; practical_id: string;
   practical_definition_version_id: string; rubric_version_id: string;
+  practical_governance_version_id: string | null;
   course_id: string; curriculum_tree_id: string;
   curriculum_tree_version_reference: string; curriculum_node_id: string;
   objective_placement_id: string; practical_placement_id: string; state: PracticalAttemptRow["state"];
@@ -703,7 +713,9 @@ function mapAttempt(row: DatabaseAttemptRow): PracticalAttemptRow {
   return Object.freeze({
     id: row.id, userId: row.user_id, practicalId: row.practical_id,
     practicalDefinitionVersionId: row.practical_definition_version_id,
-    rubricVersionId: row.rubric_version_id, courseId: row.course_id,
+    rubricVersionId: row.rubric_version_id,
+    practicalGovernanceVersionId: row.practical_governance_version_id ?? null,
+    courseId: row.course_id,
     curriculumTreeId: row.curriculum_tree_id,
     curriculumTreeVersionReference: row.curriculum_tree_version_reference,
     curriculumNodeId: row.curriculum_node_id, objectivePlacementId: row.objective_placement_id,
@@ -741,6 +753,7 @@ function mapEvaluation(row: DatabaseEvaluationRow): PracticalEvaluationRow {
 
 function sameAttemptCreation(row: PracticalAttemptRow, input: CreateAttemptWrite) {
   return row.practicalId === input.practicalId &&
+    row.practicalGovernanceVersionId === (input.practicalGovernanceVersionId ?? null) &&
     row.practicalDefinitionVersionId === input.practicalDefinitionVersionId &&
     row.rubricVersionId === input.rubricVersionId && row.courseId === input.courseId &&
     row.curriculumTreeId === input.curriculumTreeId &&
