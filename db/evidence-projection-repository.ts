@@ -31,7 +31,62 @@ export type RecomputeRequestInput = Readonly<{
   reasonCode: string;
   inputSemanticHash: string;
   cursor?: string | null;
+  generationId?: string | null;
 }>;
+
+export type RecomputeLifecycleState =
+  | "PENDING"
+  | "PROCESSING"
+  | "RETRYABLE"
+  | "COMPLETED"
+  | "FAILED"
+  | "CANCELLED"
+  | "SUPERSEDED";
+
+export type RetryErrorClass =
+  | "TRANSIENT_DB"
+  | "LOCK_CONTENTION"
+  | "WORKER_CRASH"
+  | "INVALID_REQUEST"
+  | "SOURCE_INVALID"
+  | "MAPPING_VERSION_CHANGED"
+  | "PROJECTION_VERSION_CHANGED"
+  | "SECURITY_SCOPE_FAILURE"
+  | "CORRUPT_SOURCE"
+  | "CHECKPOINT_FAILURE"
+  | "MASTERY_HANDOFF_FAILURE";
+
+export type RecomputeRequestRecord = RecomputeRequestInput & Readonly<{
+  status: RecomputeLifecycleState;
+  attempts: number;
+  claimedBy: string | null;
+  claimToken: string | null;
+  claimedAt: string | null;
+  leaseExpiresAt: string | null;
+  nextAttemptAt: string | null;
+  checkpoint: string | null;
+  errorClass: RetryErrorClass | null;
+  completedAt: string | null;
+}>;
+
+export type EvidenceRebuildGeneration = Readonly<{
+  id: string;
+  scopeKey: string;
+  projectionVersion: string;
+  mappingSnapshotHash: string;
+  sourceCutoff: string | null;
+  status: "PENDING" | "RUNNING" | "SUCCEEDED" | "FAILED" | "CANCELLED" | "SUPERSEDED";
+  checkpoint: string | null;
+  active: boolean;
+  startedAt: string | null;
+  completedAt: string | null;
+  failureClass: string | null;
+}>;
+
+export const E2A_MAX_ATTEMPTS = 5;
+export const E2A_INITIAL_BACKOFF_MS = 1_000;
+export const E2A_MAX_BACKOFF_MS = 60_000;
+export const E2A_LEASE_DURATION_MS = 120_000;
 
 type ActiveProjectionRow = Readonly<{
   id: string;
@@ -187,6 +242,159 @@ export class EvidenceProjectionRepository {
     return result.affectedRows === 1 ? "NEW_SUCCESS" as const : "EXACT_REPLAY" as const;
   }
 
+  async claimNext(scopeType: RecomputeScope | null, workerId: string, now = new Date().toISOString()) {
+    if (!workerId.trim()) fail("EVIDENCE_WORKER_ID_REQUIRED");
+    const candidate = await this.database.queryOne<{ id: string }>({
+      sql: `SELECT id FROM evidence_recompute_requests
+        WHERE status IN ('PENDING', 'RETRYABLE', 'PROCESSING')
+          AND (CAST(? AS TEXT) IS NULL OR scope_type = CAST(? AS TEXT))
+          AND (lease_expires_at IS NULL OR lease_expires_at <= ?)
+          AND (next_attempt_at IS NULL OR next_attempt_at <= ?)
+        ORDER BY created_at, id LIMIT 1`,
+      parameters: [scopeType, scopeType, now, now],
+    });
+    if (!candidate) return null;
+    const token = crypto.randomUUID();
+    const leaseExpiresAt = new Date(Date.now() + E2A_LEASE_DURATION_MS).toISOString();
+    const result = await this.database.execute({
+      sql: `UPDATE evidence_recompute_requests SET status = 'PROCESSING',
+        claimed_by = ?, claim_token = ?, claimed_at = ?, lease_expires_at = ?,
+        attempts = attempts + 1
+        WHERE id = ? AND status IN ('PENDING', 'RETRYABLE', 'PROCESSING')
+          AND (lease_expires_at IS NULL OR lease_expires_at <= ?)
+          AND (next_attempt_at IS NULL OR next_attempt_at <= ?)`,
+      parameters: [workerId, token, now, leaseExpiresAt, candidate.id, now, now],
+    });
+    if (result.affectedRows !== 1) return null;
+    return this.getRequest(candidate.id);
+  }
+
+  async getRequest(id: string) {
+    const row = await this.database.queryOne<Record<string, unknown>>({
+      sql: "SELECT * FROM evidence_recompute_requests WHERE id = ? LIMIT 1",
+      parameters: [id],
+    });
+    return row ? mapRequestRecord(row) : null;
+  }
+
+  async updateCheckpoint(id: string, claimToken: string, checkpoint: string | null) {
+    return this.database.execute({
+      sql: `UPDATE evidence_recompute_requests SET checkpoint = ?, cursor = ?
+        WHERE id = ? AND status = 'PROCESSING' AND claim_token = ?
+          AND lease_expires_at > ?`,
+      parameters: [checkpoint, checkpoint, id, claimToken, new Date().toISOString()],
+    });
+  }
+
+  async scheduleRetry(id: string, claimToken: string, errorClass: RetryErrorClass, random = Math.random(), now = new Date()) {
+    const request = await this.getRequest(id);
+    if (!request || request.status !== "PROCESSING" || request.claimToken !== claimToken) return { outcome: "CONFLICT" as const };
+    if (request.attempts >= E2A_MAX_ATTEMPTS) {
+      const result = await this.database.execute({
+        sql: `UPDATE evidence_recompute_requests SET status = 'FAILED', error_class = ?,
+          completed_at = ?, claimed_by = NULL, claim_token = NULL, lease_expires_at = NULL
+          WHERE id = ? AND status = 'PROCESSING' AND claim_token = ?`,
+        parameters: [errorClass, now.toISOString(), id, claimToken],
+      });
+      return { outcome: result.affectedRows === 1 ? "FAILED" as const : "CONFLICT" as const };
+    }
+    const cap = Math.min(E2A_MAX_BACKOFF_MS, E2A_INITIAL_BACKOFF_MS * (2 ** Math.max(0, request.attempts - 1)));
+    const delay = Math.floor(Math.max(0, Math.min(1, random)) * cap);
+    const nextAttemptAt = new Date(now.getTime() + delay).toISOString();
+    const result = await this.database.execute({
+      sql: `UPDATE evidence_recompute_requests SET status = 'RETRYABLE', error_class = ?,
+        next_attempt_at = ?, claimed_by = NULL, claim_token = NULL, claimed_at = NULL,
+        lease_expires_at = NULL WHERE id = ? AND status = 'PROCESSING' AND claim_token = ?`,
+      parameters: [errorClass, nextAttemptAt, id, claimToken],
+    });
+    return { outcome: result.affectedRows === 1 ? "RETRYABLE" as const : "CONFLICT" as const, nextAttemptAt };
+  }
+
+  async completeClaim(id: string, claimToken: string) {
+    return this.database.execute({
+      sql: `UPDATE evidence_recompute_requests SET status = 'COMPLETED', completed_at = CURRENT_TIMESTAMP,
+        claimed_by = NULL, claim_token = NULL, lease_expires_at = NULL
+        WHERE id = ? AND status = 'PROCESSING' AND claim_token = ?`,
+      parameters: [id, claimToken],
+    });
+  }
+
+  async cancelRequest(id: string, reason = "CANCELLED") {
+    return this.database.execute({
+      sql: `UPDATE evidence_recompute_requests SET status = 'CANCELLED', error_class = ?,
+        cancelled_at = CURRENT_TIMESTAMP, claimed_by = NULL, claim_token = NULL, lease_expires_at = NULL
+        WHERE id = ? AND status IN ('PENDING', 'RETRYABLE')`,
+      parameters: [reason, id],
+    });
+  }
+
+  async supersedeRequest(id: string, successorId: string) {
+    return this.database.execute({
+      sql: `UPDATE evidence_recompute_requests SET status = 'SUPERSEDED', superseded_by_id = ?,
+        claimed_by = NULL, claim_token = NULL, lease_expires_at = NULL
+        WHERE id = ? AND status IN ('PENDING', 'RETRYABLE')`,
+      parameters: [successorId, id],
+    });
+  }
+
+  async createGeneration(input: Readonly<{ id: string; mappingSnapshotHash: string; sourceCutoff?: string | null; projectionVersion?: string; scopeKey?: string }>) {
+    const result = await this.database.execute({
+      sql: `INSERT INTO evidence_rebuild_generations
+        (id, scope_key, projection_version, mapping_snapshot_hash, source_cutoff, status)
+        VALUES (?, ?, ?, ?, ?, 'PENDING') ON CONFLICT (id) DO NOTHING`,
+      parameters: [input.id, input.scopeKey ?? "EVIDENCE_V1", input.projectionVersion ?? "EVIDENCE_V1", input.mappingSnapshotHash, input.sourceCutoff ?? null],
+    });
+    return result.affectedRows === 1 ? "NEW_SUCCESS" as const : "EXACT_REPLAY" as const;
+  }
+
+  async startGeneration(id: string) {
+    return this.database.execute({
+      sql: "UPDATE evidence_rebuild_generations SET status = 'RUNNING', started_at = CURRENT_TIMESTAMP WHERE id = ? AND status = 'PENDING'",
+      parameters: [id],
+    });
+  }
+
+  async completeGeneration(id: string) {
+    return this.database.execute({
+      sql: "UPDATE evidence_rebuild_generations SET status = 'SUCCEEDED', completed_at = CURRENT_TIMESTAMP WHERE id = ? AND status = 'RUNNING' AND active = 0",
+      parameters: [id],
+    });
+  }
+
+  async cutoverGeneration(id: string, scopeKey = "EVIDENCE_V1") {
+    const target = await this.database.queryOne<{ status: string; active: number }>({
+      sql: "SELECT status, active FROM evidence_rebuild_generations WHERE id = ? AND scope_key = ? LIMIT 1",
+      parameters: [id, scopeKey],
+    });
+    if (!target || target.status !== "SUCCEEDED") return "CONFLICT" as const;
+    if (Number(target.active) === 1) return "EXACT_REPLAY" as const;
+    try {
+      const results = await this.database.transaction([
+        { sql: "UPDATE evidence_rebuild_generations SET active = 0 WHERE scope_key = ? AND active = 1", parameters: [scopeKey] },
+        { sql: `UPDATE evidence_rebuild_generations SET active = 1
+          WHERE id = ? AND scope_key = ? AND status = 'SUCCEEDED' AND active = 0
+            AND NOT EXISTS (SELECT 1 FROM evidence_rebuild_generations WHERE scope_key = ? AND active = 1)`, parameters: [id, scopeKey, scopeKey] },
+      ]);
+      return (results[1]?.affectedRows ?? 0) === 1 ? "NEW_SUCCESS" as const : "CONFLICT" as const;
+    } catch {
+      return "CONFLICT" as const;
+    }
+  }
+
+  async cancelGeneration(id: string) {
+    return this.database.execute({
+      sql: "UPDATE evidence_rebuild_generations SET status = 'CANCELLED', failure_class = 'CANCELLED' WHERE id = ? AND status IN ('PENDING', 'RUNNING') AND active = 0",
+      parameters: [id],
+    });
+  }
+
+  async supersedeGeneration(id: string, successorId: string) {
+    return this.database.execute({
+      sql: "UPDATE evidence_rebuild_generations SET status = 'SUPERSEDED', superseded_by_id = ?, active = 0 WHERE id = ? AND status IN ('PENDING', 'RUNNING', 'SUCCEEDED') AND active = 0",
+      parameters: [successorId, id],
+    });
+  }
+
   async listPending(scopeType: RecomputeScope, limit: number, cursor?: string) {
     if (!Number.isInteger(limit) || limit < 1 || limit > 500) fail("EVIDENCE_REBUILD_LIMIT_INVALID");
     return this.database.query<Record<string, unknown>>({
@@ -303,7 +511,6 @@ export class EvidenceProjectionRepository {
     return Number(row?.ok ?? 0) === 1;
   }
 }
-
 export async function createRecomputeRequest(
   input: Omit<RecomputeRequestInput, "id" | "inputSemanticHash">,
 ): Promise<RecomputeRequestInput> {
@@ -313,16 +520,37 @@ export async function createRecomputeRequest(
 }
 
 export function recomputeInsert(input: RecomputeRequestInput): DatabaseStatement {
+  const hasGeneration = input.generationId !== undefined;
   return {
     sql: `INSERT INTO evidence_recompute_requests
       (id, request_type, scope_type, source_type, source_event_id, source_revision_identity,
-       user_id, concept_id, projection_version, reason_code, input_semantic_hash, status, cursor)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?)
+       user_id, concept_id, projection_version, reason_code, input_semantic_hash, status, cursor${hasGeneration ? ", generation_id" : ""})
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?${hasGeneration ? ", ?" : ""})
       ON CONFLICT (request_type, input_semantic_hash) DO NOTHING`,
     parameters: [input.id, input.requestType, input.scopeType, input.sourceType ?? null,
       input.sourceEventId ?? null, input.sourceRevisionIdentity ?? null, input.userId ?? null,
       input.conceptId ?? null, input.projectionVersion, input.reasonCode,
-      input.inputSemanticHash, input.cursor ?? null],
+      input.inputSemanticHash, input.cursor ?? null,
+      ...(hasGeneration ? [input.generationId ?? null] : [])],
+  };
+}
+
+function mapRequestRecord(row: Record<string, unknown>): RecomputeRequestRecord {
+  return {
+    id: String(row.id), requestType: row.request_type as RecomputeRequestType,
+    scopeType: row.scope_type as RecomputeScope,
+    sourceType: row.source_type as LearningEventSourceType | undefined,
+    sourceEventId: row.source_event_id as string | undefined,
+    sourceRevisionIdentity: row.source_revision_identity as string | undefined,
+    userId: row.user_id as string | undefined, conceptId: row.concept_id as string | undefined,
+    projectionVersion: String(row.projection_version), reasonCode: String(row.reason_code),
+    inputSemanticHash: String(row.input_semantic_hash), cursor: row.cursor as string | null,
+    generationId: row.generation_id as string | null,
+    status: row.status as RecomputeLifecycleState, attempts: Number(row.attempts ?? 0),
+    claimedBy: row.claimed_by as string | null, claimToken: row.claim_token as string | null,
+    claimedAt: row.claimed_at as string | null, leaseExpiresAt: row.lease_expires_at as string | null,
+    nextAttemptAt: row.next_attempt_at as string | null, checkpoint: row.checkpoint as string | null,
+    errorClass: row.error_class as RetryErrorClass | null, completedAt: row.completed_at as string | null,
   };
 }
 
