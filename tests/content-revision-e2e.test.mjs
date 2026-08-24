@@ -79,10 +79,15 @@ async function post(headers, body) {
 }
 
 function findLocalUrl(text) {
-  const matches = text.matchAll(/(?:https?:\/\/)?(localhost|127\.0\.0\.1):(\d+)(?:\/|\b)/g);
+  const ansiFreeText = stripAnsi(text);
+  const matches = ansiFreeText.matchAll(/(?:https?:\/\/)?(localhost|127\.0\.0\.1):(\d+)(?:\/|\b)/g);
   let lastMatch;
   for (const match of matches) lastMatch = match;
   return lastMatch ? `http://${lastMatch[1]}:${lastMatch[2]}` : "";
+}
+
+function stripAnsi(text) {
+  return text.replace(/\u001B\[[0-?]*[ -/]*[@-~]/g, "");
 }
 
 test("새 버전 초안을 생성하고 일반 사용자의 초안 접근을 차단한다", async () => {
