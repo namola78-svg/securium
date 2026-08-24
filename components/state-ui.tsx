@@ -96,7 +96,7 @@ export function ErrorState({
       <span className="state-icon" aria-hidden="true">
         !
       </span>
-      <strong role="heading" aria-level={2}>{title}</strong>
+      <h1>{title}</h1>
       <p>{description}</p>
       {onRetry ? <RetryButton label={retryLabel} onRetry={onRetry} /> : null}
     </div>

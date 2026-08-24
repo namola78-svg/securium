@@ -317,7 +317,7 @@ a {
 
 .main-nav a.active {
   background: rgba(205, 255, 81, 0.14);
-  color: var(--lime);
+  color: var(--white);
   font-weight: 800;
 }
 
@@ -873,7 +873,7 @@ kbd {
 }
 
 .ds-button {
-  min-height: var(--spacing-6);
+  min-height: 44px;
   border-radius: var(--radius-md);
   gap: var(--spacing-1);
   padding-inline: var(--spacing-3);
@@ -926,11 +926,11 @@ kbd {
 .ds-button.variant-dark {
   background: var(--surface-dark);
   border-color: var(--surface-dark);
-  color: var(--text-inverse);
+  color: var(--color-text-inverse);
 }
 
 .ds-button.size-sm {
-  min-height: 40px;
+  min-height: 44px;
   padding-inline: var(--spacing-2);
   font-size: 13px;
 }
@@ -8619,7 +8619,7 @@ textarea {
 .footer-legal-links a {
   color: #d6e1ea;
   text-decoration: none;
-  min-height: 32px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
 }
