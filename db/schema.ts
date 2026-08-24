@@ -3847,6 +3847,7 @@ export const evidenceProjections = sqliteTable(
     userId: text("user_id").notNull().references(() => users.id, { onDelete: "restrict" }),
     sourceType: text("source_type").notNull(),
     sourceEventId: text("source_event_id").notNull(),
+    sourceLineageIdentity: text("source_lineage_identity").notNull(),
     sourceRevisionIdentity: text("source_revision_identity").notNull(),
     evidenceType: text("evidence_type").notNull(),
     conceptId: text("concept_id").notNull().references(() => ontologyConcepts.id, { onDelete: "restrict" }),
@@ -3869,7 +3870,23 @@ export const evidenceProjections = sqliteTable(
       foreignColumns: [table.id],
     }).onDelete("restrict"),
     uniqueIndex("evidence_projections_identity_unique").on(table.id),
+    uniqueIndex("evidence_projections_active_lineage_unique")
+      .on(
+        table.userId,
+        table.sourceType,
+        table.sourceLineageIdentity,
+        table.evidenceType,
+        table.conceptId,
+        table.projectionVersion,
+      )
+      .where(sql`${table.lifecycle} = 'ACTIVE'`),
     index("evidence_projections_source_idx").on(table.sourceType, table.sourceEventId, table.lifecycle),
+    index("evidence_projections_lineage_idx").on(
+      table.userId,
+      table.sourceType,
+      table.sourceLineageIdentity,
+      table.lifecycle,
+    ),
     index("evidence_projections_user_idx").on(table.userId, table.lifecycle, table.occurredAt),
     index("evidence_projections_concept_idx").on(table.conceptId, table.lifecycle, table.occurredAt),
     check("evidence_projections_source_check", sql`${table.sourceType} IN ('QUESTION_ATTEMPT', 'MOCK_ATTEMPT', 'MOCK_ITEM_RESULT', 'PRACTICAL_EVALUATION', 'LESSON_PROGRESS', 'COURSE_LESSON_PROGRESS', 'LECTURE_PROGRESS', 'AUDIO_PROGRESS')`),

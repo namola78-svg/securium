@@ -1,0 +1,3 @@
+ALTER TABLE `evidence_projections` ADD `source_lineage_identity` text NOT NULL;--> statement-breakpoint
+CREATE UNIQUE INDEX `evidence_projections_active_lineage_unique` ON `evidence_projections` (`user_id`,`source_type`,`source_lineage_identity`,`evidence_type`,`concept_id`,`projection_version`) WHERE "evidence_projections"."lifecycle" = 'ACTIVE';--> statement-breakpoint
+CREATE INDEX `evidence_projections_lineage_idx` ON `evidence_projections` (`user_id`,`source_type`,`source_lineage_identity`,`lifecycle`);
