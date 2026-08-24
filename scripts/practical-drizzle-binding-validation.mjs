@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { copyFile, mkdir, open, readFile, readdir, rename, rm, stat } from "node:fs/promises";
-import { basename, join } from "node:path";
+import { basename, isAbsolute, join, relative, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 
 export const BINDER_STATES = Object.freeze([
@@ -39,6 +40,97 @@ export class ValidationFailure extends Error {
     this.details = details;
   }
 }
+
+const CANONICAL_HASH_BASIS_VERSION = "CANONICAL_MIGRATION_INTEGRITY_HASH_BASIS_V1";
+export const CANONICAL_METADATA_HASH_BASIS_VERSION = "CANONICAL_DRIZZLE_METADATA_INTEGRITY_BASIS_V1";
+export const CANONICAL_JOURNAL_ENTRY_BASIS_VERSION = "CANONICAL_DRIZZLE_JOURNAL_ENTRY_V1";
+const REVISION_PATTERN = /^(?:HEAD|[0-9a-f]{40}|[A-Za-z0-9._/-]+)$/i;
+
+function canonicalGitFailure(message, details = {}) {
+  return new ValidationFailure("CANONICAL_MIGRATION_HASH_FAILED", message, details);
+}
+
+function gitRaw(args, repoRoot) {
+  try {
+    return execFileSync("git", args, { cwd: repoRoot, stdio: ["ignore", "pipe", "pipe"] });
+  } catch (error) {
+    throw canonicalGitFailure(`git object lookup failed: ${error.message}`, { args });
+  }
+}
+
+function validateMigrationPath(repoRoot, migrationPath) {
+  if (typeof migrationPath !== "string" || migrationPath.length === 0 || migrationPath.includes("\0")) {
+    throw canonicalGitFailure("migration path is required");
+  }
+  const normalized = migrationPath.replaceAll("\\", "/");
+  if (isAbsolute(normalized) || normalized.split("/").some((segment) => segment === "..")) {
+    throw canonicalGitFailure("migration path must be repository-relative", { path: migrationPath });
+  }
+  const absolute = resolve(repoRoot, normalized);
+  const relativePath = relative(resolve(repoRoot), absolute).replaceAll("\\", "/");
+  if (!relativePath || relativePath.startsWith("../") || isAbsolute(relativePath)) {
+    throw canonicalGitFailure("migration path escapes repository", { path: migrationPath });
+  }
+  return relativePath;
+}
+
+function validateRevision(revision) {
+  if (typeof revision !== "string" || !REVISION_PATTERN.test(revision) || revision.includes("..")) {
+    throw canonicalGitFailure("unsupported or unresolved revision", { revision });
+  }
+  return revision;
+}
+
+export function canonicalMigrationBlob({ revision, path: migrationPath, repoRoot = process.cwd() }) {
+  const root = resolve(repoRoot);
+  const ref = validateRevision(revision);
+  const path = validateMigrationPath(root, migrationPath);
+  const commit = gitRaw(["rev-parse", "--verify", "--end-of-options", `${ref}^{commit}`], root).toString("utf8").trim();
+  if (!/^[0-9a-f]{40}$/i.test(commit)) throw canonicalGitFailure("revision did not resolve to a commit", { revision: ref });
+  const spec = `${commit}:${path}`;
+  const oid = gitRaw(["rev-parse", "--verify", "--end-of-options", spec], root).toString("utf8").trim();
+  if (!/^[0-9a-f]{40}$/i.test(oid)) throw canonicalGitFailure("path did not resolve to a blob", { revision: ref, path });
+  const type = gitRaw(["cat-file", "-t", oid], root).toString("utf8").trim();
+  if (type !== "blob") throw canonicalGitFailure("resolved object is not a blob", { oid, type });
+  return { revision: commit, path, oid, bytes: gitRaw(["cat-file", "blob", oid], root), hashBasisVersion: CANONICAL_HASH_BASIS_VERSION };
+}
+
+export function canonicalMigrationSha256(options) {
+  return createHash("sha256").update(canonicalMigrationBlob(options).bytes).digest("hex");
+}
+
+export function canonicalJournalEntry(entry) {
+  const scoped = {
+    idx: entry?.idx,
+    version: entry?.version,
+    when: entry?.when,
+    tag: entry?.tag,
+    breakpoints: entry?.breakpoints,
+  };
+  if (!Number.isInteger(scoped.idx) || typeof scoped.version !== "string"
+    || !Number.isFinite(scoped.when) || typeof scoped.tag !== "string"
+    || typeof scoped.breakpoints !== "boolean") {
+    throw canonicalGitFailure("invalid journal entry authority", { entry });
+  }
+  return JSON.stringify(scoped);
+}
+
+export function canonicalJournalEntrySha256(entry) {
+  return createHash("sha256")
+    .update(`${CANONICAL_JOURNAL_ENTRY_BASIS_VERSION}\0${canonicalJournalEntry(entry)}`)
+    .digest("hex");
+}
+
+export function canonicalMetadataJson({ revision, path: metadataPath, repoRoot = process.cwd() }) {
+  const blob = canonicalMigrationBlob({ revision, path: metadataPath, repoRoot });
+  try {
+    return { ...blob, value: JSON.parse(blob.bytes.toString("utf8")), hashBasisVersion: CANONICAL_METADATA_HASH_BASIS_VERSION };
+  } catch (error) {
+    throw canonicalGitFailure("metadata blob is not valid UTF-8 JSON", { path: metadataPath, cause: error.message });
+  }
+}
+
+export { CANONICAL_HASH_BASIS_VERSION };
 
 export class BinderStateMachine {
   constructor() {
@@ -575,7 +667,7 @@ export async function commitMetadataTransaction({ metaDir, binderDir = metaDir, 
   return { status: "COMMITTED", manifestVersion: manifest.version };
 }
 
-export async function verifyBindingReceipt({ metaDir, binderDir = metaDir, receiptFilename = null, identity, existingSqlSha256, schemaSha256 = null }) {
+export async function verifyBindingReceipt({ metaDir, binderDir = metaDir, receiptFilename = null, identity, existingSqlSha256, schemaSha256 = null, repoRoot = null }) {
   const paths = metadataPaths(metaDir, identity, { binderDir, receiptFilename });
   if (!(await exists(paths.receipt))) return false;
   const receipt = await readJson(paths.receipt, "INVALID_BINDING_RECEIPT");
@@ -586,6 +678,41 @@ export async function verifyBindingReceipt({ metaDir, binderDir = metaDir, recei
     || receipt.exactReplayState !== REPLAYABLE_RECEIPT_STATE) return false;
   if (schemaSha256 !== null && receipt.schemaSha256 !== schemaSha256) return false;
   if (!(await exists(paths.snapshot)) || !(await exists(paths.journal))) return false;
+  if (receipt.version === "PRACTICAL_BINDING_RECEIPT_V2") {
+    if (!repoRoot || receipt.hashBasisVersion !== CANONICAL_METADATA_HASH_BASIS_VERSION
+      || typeof receipt.authorityRevision !== "string"
+      || !/^[0-9a-f]{40}$/i.test(receipt.authorityRevision)
+      || receipt.snapshotPath !== relative(resolve(repoRoot), paths.snapshot).replaceAll("\\", "/")
+      || receipt.journalPath !== relative(resolve(repoRoot), paths.journal).replaceAll("\\", "/")
+      || receipt.journalEntry?.tag !== identity.tag
+      || receipt.journalEntry?.idx !== identity.idx
+      || receipt.journalEntrySha256 !== canonicalJournalEntrySha256(receipt.journalEntry)) return false;
+    let authoritySnapshot; let authorityJournal; let currentSnapshot; let currentJournal;
+    try {
+      authoritySnapshot = canonicalMetadataJson({ revision: receipt.authorityRevision, path: receipt.snapshotPath, repoRoot });
+      authorityJournal = canonicalMetadataJson({ revision: receipt.authorityRevision, path: receipt.journalPath, repoRoot });
+      currentSnapshot = canonicalMetadataJson({ revision: "HEAD", path: receipt.snapshotPath, repoRoot });
+      currentJournal = canonicalMetadataJson({ revision: "HEAD", path: receipt.journalPath, repoRoot });
+    } catch { return false; }
+    const authorityEntry = authorityJournal.value.entries?.find((entry) => entry.tag === identity.tag);
+    const currentEntries = currentJournal.value.entries ?? [];
+    const currentEntry = currentEntries.find((entry) => entry.tag === identity.tag);
+    const duplicateTags = currentEntries.filter((entry) => entry.tag === identity.tag).length !== 1;
+    const duplicateIndexes = currentEntries.filter((entry) => entry.idx === identity.idx).length !== 1;
+    const predecessor = currentEntries.find((entry) => entry.idx === identity.idx - 1);
+    return sha256(authoritySnapshot.bytes) === receipt.snapshotSha256
+      && (!receipt.snapshotBlobOid || authoritySnapshot.oid === receipt.snapshotBlobOid)
+      && sha256(authorityJournal.bytes) === receipt.journalSha256
+      && sha256(currentSnapshot.bytes) === receipt.snapshotSha256
+      && currentSnapshot.value.id === receipt.snapshotId
+      && currentSnapshot.value.prevId === receipt.snapshotPrevId
+      && Boolean(authorityEntry && currentEntry)
+      && canonicalJournalEntrySha256(authorityEntry) === receipt.journalEntrySha256
+      && canonicalJournalEntrySha256(currentEntry) === receipt.journalEntrySha256
+      && currentEntry.idx === identity.idx && currentEntry.version === receipt.journalEntry.version
+      && currentEntry.tag === identity.tag && predecessor?.idx === identity.idx - 1
+      && !duplicateTags && !duplicateIndexes;
+  }
   return receipt.snapshotSha256 === sha256(await readFile(paths.snapshot))
     && receipt.journalSha256 === sha256(await readFile(paths.journal));
 }
