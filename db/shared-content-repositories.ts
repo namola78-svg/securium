@@ -15,6 +15,8 @@ import {
 } from "./schema";
 import { createAuditInsert } from "./audit-repositories";
 import { AppError } from "@/lib/errors";
+import type { Cs1aPolicyRequest } from "@/lib/policy/cs1a-contract";
+import { assertCs1aMutationAllowed } from "@/lib/policy/cs1a-mutation-gate";
 import {
   assertCourseLessonCompletionAllowed,
   assertContentCanBeLinked,
@@ -103,7 +105,9 @@ export async function getSharedContentById(contentId: string) {
 export async function saveSharedContent(
   input: SharedContentInput,
   actorUserId: string,
+  policy?: Cs1aPolicyRequest,
 ) {
+  assertCs1aMutationAllowed(policy, "DRAFT_MUTATION");
   const id = input.id ?? crypto.randomUUID();
   const existing = input.id ? await getSharedContentById(input.id) : null;
   if (input.id && !existing) {
@@ -207,7 +211,9 @@ export async function getCourseLessonById(courseLessonId: string) {
 export async function saveCourseLesson(
   input: CourseLessonInput,
   actorUserId: string,
+  policy?: Cs1aPolicyRequest,
 ) {
+  assertCs1aMutationAllowed(policy, "CANONICAL_MUTATION");
   const id = input.id ?? crypto.randomUUID();
   const existing = input.id ? await getCourseLessonById(input.id) : null;
   if (input.id && !existing) {
@@ -349,7 +355,9 @@ export async function saveCourseLesson(
 export async function saveCourseLessonExtension(
   input: CourseLessonExtensionInput,
   actorUserId: string,
+  policy?: Cs1aPolicyRequest,
 ) {
+  assertCs1aMutationAllowed(policy, "CANONICAL_MUTATION");
   const courseLesson = await getCourseLessonById(input.courseLessonId);
   if (!courseLesson) {
     throw new AppError(

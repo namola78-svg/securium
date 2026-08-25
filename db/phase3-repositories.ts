@@ -13,6 +13,8 @@ import {
 } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
 import { getDb } from ".";
+import type { Cs1aPolicyRequest } from "@/lib/policy/cs1a-contract";
+import { assertCs1aMutationAllowed } from "@/lib/policy/cs1a-mutation-gate";
 import {
   courses,
   contents,
@@ -2652,7 +2654,8 @@ export async function saveLevel(input: {
   displayOrder: number;
   active: boolean;
   published: boolean;
-}) {
+}, policy?: Cs1aPolicyRequest) {
+  assertCs1aMutationAllowed(policy, "CANONICAL_MUTATION");
   if (input.requiredLevelId) {
     if (input.requiredLevelId === input.id) {
       throw new AppError(
@@ -2702,7 +2705,8 @@ export async function saveLevelContent(input: {
   contentId: string;
   displayOrder: number;
   required: boolean;
-}) {
+}, policy?: Cs1aPolicyRequest) {
+  assertCs1aMutationAllowed(policy, "CANONICAL_MUTATION");
   const [level] = await getDb()
     .select({ courseId: levels.courseId })
     .from(levels)
@@ -2817,7 +2821,8 @@ export async function saveMockExam(input: {
   randomizeChoices: boolean;
   status: string;
   published: boolean;
-}) {
+}, policy?: Cs1aPolicyRequest) {
+  assertCs1aMutationAllowed(policy, "CANONICAL_MUTATION");
   const values = {
     ...input,
     startAt: input.startAt || null,
@@ -2842,7 +2847,8 @@ export async function saveMockExamSection(input: {
   questionCount: number;
   scoreWeight: number;
   displayOrder: number;
-}) {
+}, policy?: Cs1aPolicyRequest) {
+  assertCs1aMutationAllowed(policy, "CANONICAL_MUTATION");
   const [exam] = await getDb()
     .select({ courseId: mockExams.courseId })
     .from(mockExams)
@@ -2895,7 +2901,8 @@ export async function saveMockExamQuestion(input: {
   sectionId?: string;
   score: number;
   displayOrder: number;
-}) {
+}, policy?: Cs1aPolicyRequest) {
+  assertCs1aMutationAllowed(policy, "CANONICAL_MUTATION");
   const [examQuestion] = await getDb()
     .select({
       questionId: questions.id,

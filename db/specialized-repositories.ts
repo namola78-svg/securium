@@ -20,6 +20,8 @@ import {
   writtenAnswerRules,
 } from "./schema";
 import { AppError } from "@/lib/errors";
+import type { Cs1aPolicyRequest } from "@/lib/policy/cs1a-contract";
+import { assertCs1aMutationAllowed } from "@/lib/policy/cs1a-mutation-gate";
 import {
   calculateRisk,
   gradeWrittenAnswer,
@@ -518,7 +520,9 @@ export async function listRiskRegister(userId: string) {
 export async function saveRiskRegisterItem(
   userId: string,
   input: RiskRegisterInput,
+  policy?: Cs1aPolicyRequest,
 ) {
+  assertCs1aMutationAllowed(policy, "CANONICAL_MUTATION");
   const [scenario] = await getDb()
     .select({
       courseId: riskScenarios.courseId,
@@ -624,7 +628,9 @@ export async function getAdminSpecializedData() {
 export async function saveSpecializedContent(
   actorUserId: string,
   input: SpecializedAdminInput,
+  policy?: Cs1aPolicyRequest,
 ) {
+  assertCs1aMutationAllowed(policy, "DRAFT_MUTATION");
   const id = "id" in input && input.id ? input.id : crypto.randomUUID();
   switch (input.entity) {
     case "ISMS_STANDARD": {

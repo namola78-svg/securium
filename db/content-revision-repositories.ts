@@ -19,6 +19,8 @@ import {
   userCourseEnrollments,
 } from "./schema";
 import { AppError } from "@/lib/errors";
+import type { Cs1aPolicyRequest } from "@/lib/policy/cs1a-contract";
+import { assertCs1aMutationAllowed, assertCs1aPublicationAllowed } from "@/lib/policy/cs1a-mutation-gate";
 import {
   CONTENT_REVISION_TYPES,
   CONTENT_REVISION_TYPE_LABELS,
@@ -462,7 +464,8 @@ export async function createContentRevisionDraft(input: {
   changeSummary: string;
   snapshotJson?: string;
   userId: string;
-}) {
+}, policy?: Cs1aPolicyRequest) {
+  assertCs1aMutationAllowed(policy, "DRAFT_MUTATION");
   assertContentType(input.contentType);
   const target = await getRevisionTarget(input.contentType, input.contentId);
   if (!target) {
@@ -623,7 +626,9 @@ function applySnapshot(
 export async function publishContentRevision(
   revisionId: string,
   reviewerId: string,
+  policy?: Cs1aPolicyRequest,
 ) {
+  assertCs1aPublicationAllowed(policy);
   const [revision] = await getDb()
     .select()
     .from(contentRevisions)
@@ -677,7 +682,8 @@ export async function publishContentRevision(
   return revision.id;
 }
 
-export async function archiveContentRevision(revisionId: string) {
+export async function archiveContentRevision(revisionId: string, policy?: Cs1aPolicyRequest) {
+  assertCs1aMutationAllowed(policy, "CANONICAL_MUTATION");
   const [revision] = await getDb()
     .select()
     .from(contentRevisions)

@@ -30,6 +30,8 @@ import type {
   EnrollmentStatus,
 } from "@/lib/services/enrollment-service";
 import { AppError } from "@/lib/errors";
+import type { Cs1aPolicyRequest } from "@/lib/policy/cs1a-contract";
+import { assertCs1aMutationAllowed } from "@/lib/policy/cs1a-mutation-gate";
 import { ensureLevelProgress } from "./phase3-repositories";
 
 export type CourseListItem = {
@@ -755,7 +757,8 @@ export async function listProgressForCourse(userId: string, courseId: string) {
     .orderBy(desc(userProgress.lastStudiedAt));
 }
 
-export async function saveCourseGroup(input: CourseGroupInput) {
+export async function saveCourseGroup(input: CourseGroupInput, policy?: Cs1aPolicyRequest) {
+  assertCs1aMutationAllowed(policy, "CANONICAL_MUTATION");
   const values = {
     code: input.code,
     name: input.name,
@@ -784,7 +787,8 @@ export async function saveCourseGroup(input: CourseGroupInput) {
   return id;
 }
 
-export async function saveCourse(input: CourseInput) {
+export async function saveCourse(input: CourseInput, policy?: Cs1aPolicyRequest) {
+  assertCs1aMutationAllowed(policy, "CANONICAL_MUTATION");
   const values = {
     courseGroupId: input.courseGroupId,
     code: input.code,
@@ -817,7 +821,8 @@ export async function saveCourse(input: CourseInput) {
   return id;
 }
 
-export async function saveSubject(input: SubjectInput) {
+export async function saveSubject(input: SubjectInput, policy?: Cs1aPolicyRequest) {
+  assertCs1aMutationAllowed(policy, "CANONICAL_MUTATION");
   const values = {
     courseId: input.courseId,
     code: input.code,
@@ -851,7 +856,8 @@ export async function saveSubject(input: SubjectInput) {
   return id;
 }
 
-export async function saveTopic(input: TopicInput) {
+export async function saveTopic(input: TopicInput, policy?: Cs1aPolicyRequest) {
+  assertCs1aMutationAllowed(policy, "CANONICAL_MUTATION");
   if (input.parentTopicId) {
     if (input.parentTopicId === input.id) {
       throw new AppError(
