@@ -68,7 +68,7 @@ export function PublicLandingHeader() {
   }
 
   return (
-    <header className={styles.header}>
+    <header className={styles.header} data-v2-public-header="">
       <div className={styles.headerInner}>
         <Link className={styles.brand} href="/" aria-label="SECURIUM 홈">
           <span className={styles.brandMark} aria-hidden="true">S</span>
