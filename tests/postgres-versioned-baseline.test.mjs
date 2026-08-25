@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFile as execFileCallback } from "node:child_process";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import test from "node:test";
 import { promisify } from "node:util";
@@ -11,6 +11,7 @@ import {
   canonicalizeBaselineArtifact,
   classifyBaselineState,
   migrationsAfterBoundary,
+  normalizeMigrationFragment,
   schemaProjection,
   securityProjection,
   sha256,
@@ -93,6 +94,66 @@ test("CANON-03 generator output is deterministic and canonical", async () => {
   assert.equal(first, second);
   assert.equal(sha256(first), manifest.artifactDigest);
 });
+
+test("CANON-08 LF, CRLF, mixed endings, BOM, and final-newline variants share one generator identity", async () => {
+  const names = await migrationNames();
+  const source = await migrationOverrides(names, (value) => value);
+  const lf = await buildBaselineArtifact({ migrationTextOverrides: source });
+  const crlf = await buildBaselineArtifact({ migrationTextOverrides: Object.fromEntries(Object.entries(source).map(([name, value]) => [name, value.replace(/\r\n?/g, "\n").replaceAll("\n", "\r\n")])) });
+  const mixed = await buildBaselineArtifact({ migrationTextOverrides: Object.fromEntries(Object.entries(source).map(([name, value], index) => [name, value.replace(/\r\n?/g, "\n").split("\n").map((line, lineIndex) => `${line}${lineIndex % 2 === index % 2 ? "\r\n" : "\n"}`).join("")])) });
+  const bomAndFinalVariants = await buildBaselineArtifact({ migrationTextOverrides: Object.fromEntries(Object.entries(source).map(([name, value]) => [name, `\uFEFF${value.replace(/\r\n?/g, "\n").replace(/\n+$/g, "")}\n\n`])) });
+  const digests = [lf, crlf, mixed, bomAndFinalVariants].map((value) => sha256(canonicalizeBaselineArtifact(value)));
+  assert.deepEqual(digests, [manifest.artifactDigest, manifest.artifactDigest, manifest.artifactDigest, manifest.artifactDigest]);
+});
+
+test("CANON-09 registration removal is separator-stable across LF and CRLF", async () => {
+  const names = await migrationNames();
+  const source = await migrationOverrides(names, (value) => value);
+  const lf = await buildBaselineArtifact({ migrationTextOverrides: source });
+  const crlf = await buildBaselineArtifact({ migrationTextOverrides: Object.fromEntries(Object.entries(source).map(([name, value]) => [name, normalizeMigrationFragment(value).replaceAll("\n", "\r\n")])) });
+  assert.equal(canonicalizeBaselineArtifact(lf), canonicalizeBaselineArtifact(crlf));
+  assert.equal(sha256(canonicalizeBaselineArtifact(lf)), manifest.artifactDigest);
+});
+
+test("CANON-10 deterministic filename ordering is independent of enumeration order", async () => {
+  const names = await migrationNames();
+  const reversed = [...names].reverse();
+  const first = await buildBaselineArtifact({ migrationNames: names });
+  const second = await buildBaselineArtifact({ migrationNames: reversed });
+  assert.equal(canonicalizeBaselineArtifact(first), canonicalizeBaselineArtifact(second));
+});
+
+test("CANON-11 semantic migration mutation changes the generated identity", async () => {
+  const names = await migrationNames();
+  const source = await migrationOverrides(names, (value) => value);
+  source[names.find((name) => name.startsWith("0019_"))] += "\nCREATE TABLE canon03_semantic_mutation (id integer);\n";
+  const mutated = await buildBaselineArtifact({ migrationTextOverrides: source });
+  assert.notEqual(sha256(canonicalizeBaselineArtifact(mutated)), manifest.artifactDigest);
+});
+
+test("CANON-12 migration removal changes the generated identity", async () => {
+  const names = await migrationNames();
+  const removed = await buildBaselineArtifact({ migrationNames: names.filter((name) => !name.startsWith("0019_")) });
+  assert.notEqual(sha256(canonicalizeBaselineArtifact(removed)), manifest.artifactDigest);
+});
+
+test("CANON-13 migration content reordering changes the generated identity", async () => {
+  const names = await migrationNames();
+  const source = await migrationOverrides(names, (value) => value);
+  const first = names.find((name) => name.startsWith("0018_"));
+  const second = names.find((name) => name.startsWith("0019_"));
+  [source[first], source[second]] = [source[second], source[first]];
+  const reordered = await buildBaselineArtifact({ migrationTextOverrides: source });
+  assert.notEqual(sha256(canonicalizeBaselineArtifact(reordered)), manifest.artifactDigest);
+});
+
+async function migrationNames() {
+  return (await readdir("db/postgres/migrations")).filter((name) => /^\d{4}_.+\.sql$/.test(name)).sort();
+}
+
+async function migrationOverrides(names, transform) {
+  return Object.fromEntries(await Promise.all(names.map(async (name) => [name, transform(await readFile(`db/postgres/migrations/${name}`, "utf8"))])));
+}
 
 test("CANON-04 validator uses the canonical identity contract", () => {
   const crlfArtifact = canonicalizeBaselineArtifact(artifact).replaceAll("\n", "\r\n");

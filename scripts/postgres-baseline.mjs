@@ -85,13 +85,14 @@ export function validateArtifactAgainstManifest({ artifact, manifest, digestFile
   );
 }
 
-export async function buildBaselineArtifact() {
-  const names = (await readdir(MIGRATIONS_DIRECTORY))
+export async function buildBaselineArtifact({ migrationTextOverrides = {}, migrationNames } = {}) {
+  const names = (migrationNames ?? (await readdir(MIGRATIONS_DIRECTORY)))
     .filter((name) => /^\d{4}_.+\.sql$/.test(name))
     .sort();
   const published = new Map();
   for (const name of names) {
-    published.set(name.slice(0, 4), await readFile(resolve(MIGRATIONS_DIRECTORY, name), "utf8"));
+    const source = migrationTextOverrides[name] ?? await readFile(resolve(MIGRATIONS_DIRECTORY, name), "utf8");
+    published.set(name.slice(0, 4), normalizeMigrationFragment(source));
   }
   const sections = [
     "-- SECURIUM GENERATED POSTGRES FRESH BASELINE V1.",
@@ -138,6 +139,10 @@ export function canonicalizeBaselineArtifact(value) {
   return `${String(value).replace(/\r\n?/g, "\n").replace(/\n+$/g, "")}\n`;
 }
 
+export function normalizeMigrationFragment(value) {
+  return String(value).replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n");
+}
+
 export function classifyBaselineState(input) {
   const {
     applicationRelationCount = 0,
@@ -181,9 +186,42 @@ export function securityProjection(sql) {
 }
 
 function stripMigrationRegistration(sql = "") {
-  return sql
-    .replace(/^\s*BEGIN;\s*$/gim, "")
-    .replace(/^\s*COMMIT;\s*$/gim, "")
-    .replace(/\s*INSERT INTO\s+(?:public\.)?app_schema_migrations[\s\S]*?ON CONFLICT \(id\) DO NOTHING;\s*/gi, "")
-    .trim();
+  const output = [];
+  let removingRegistration = false;
+  let afterRegistration = false;
+  let skipBlank = false;
+  for (const line of normalizeMigrationFragment(sql).split("\n")) {
+    const trimmed = line.trim();
+    if (removingRegistration) {
+      if (/^ON CONFLICT\s+\(id\)\s+DO\s+NOTHING;$/i.test(trimmed)) {
+        removingRegistration = false;
+        afterRegistration = true;
+      }
+      continue;
+    }
+    if (/^INSERT INTO\s+(?:public\.)?app_schema_migrations\b/i.test(trimmed)) {
+      while (output.at(-1) === "") output.pop();
+      removingRegistration = true;
+      continue;
+    }
+    if (afterRegistration) {
+      if (trimmed === "") continue;
+      if (/^COMMIT;$/i.test(trimmed)) {
+        afterRegistration = false;
+        skipBlank = true;
+        continue;
+      }
+      afterRegistration = false;
+    }
+    if (skipBlank) {
+      if (trimmed === "") continue;
+      skipBlank = false;
+    }
+    if (/^(?:BEGIN|COMMIT);$/i.test(trimmed)) {
+      skipBlank = true;
+      continue;
+    }
+    output.push(line);
+  }
+  return output.join("\n").trim();
 }
