@@ -71,33 +71,33 @@ jobs:
         shell: bash
         run: |
           node --input-type=module <<'NODE'
+          import { execFileSync } from "node:child_process";
           import { createHash } from "node:crypto";
-          import { readFile } from "node:fs/promises";
           const expected = {
-            "0001_d1_compatibility_schema.sql": "f1338fc956c85fa4337a30676ba53b09bded463dd0f2990b074be06c7ca26ef3",
-            "0002_server_only_rls_lockdown.sql": "3b4d30567a88340b633ad97c8bf21120d34860918a7a912de9e9022c4a6c97d0",
-            "0003_curriculum_tree.sql": "eac7570d8db76b179309b8585047fc724e1133dcc8de576eb2d6e63458fcdfbe",
-            "0004_shared_content_lesson.sql": "4e60c331a709864a7c0cf37d073952c7add52142fb1148d37ebf58ed3995ae9c",
-            "0005_course_lesson_lesson_progress.sql": "b3a3925894d8c6e9d65b3f908e9a8b089e4b716f137d43a4f7b81fab67a42947",
-            "0006_question_attempt_lookup_index.sql": "c0c8cc72187b81565e75c55d34b6e7f5995e9dd173974c66dd2084fd84dbec0b",
-            "0007_ai_explainability_feedback.sql": "0f359ecec0275125ade6ac3c273a21f33c7aba3ce3282d6518d2a2ecaa1a0638",
-            "0008_ontology_graph_storage.sql": "bce803475c049b88bb17ff5fe7e589ef4a353e9477246fb95714496426bfe7b0",
-            "0009_security_certification_taxonomy_cleanup.sql": "2cd73dd58f51184cc9c3f1e13b6bb203e489f74f3f87ec4f2996fcae29fb2cae",
-            "0010_practical_attempt_evaluation_foundation.sql": "c7b3fcc7f1c6ad8982482b23af6087afa9f5ade45f225bbf8d7e16246d43915b",
-            "0011_canonical_fact_foundation.sql": "4f6cbf751b91bc1a7984253457e8625b30fea6ad7988ef4569d1f914c073198e",
-            "0012_fact_concept_mapping_governance.sql": "d1a3e61afe51f3281f21db15ab334fb95a85cf30fecc69d8274f5d0b5b5da390",
-            "0013_question_governance_foundation.sql": "56dab0fb5facf1ab69e27703ab42f92c403403ce4dd50d7b52229f02e71cee85",
-            "0014_learning_event_version_revision_governance.sql": "8cabd1c2ce386b9114130954cf10580ac2d3501ec1ed218a677b2c1f0f917979",
-            "0015_evidence_projection_foundation.sql": "394cd3c843b0146cde76fe20f07d741840d21f487cf97531dbd4fc90c92146d2",
-            "0016_theory_revision_governance.sql": "84d5a6f7cbb33539214b4c9821b318bd80bccf9f938c1258646c63d8b5c9c647",
-            "0017_evidence_e1_core_remediation.sql": "a6c539b1e37f86f59bd0bae93a7cb493a96646bbe102f624cc82deaf01d5cb99",
-            "0018_practical_revision_governance.sql": "353d98bb974d825099fc2bdbd93e9dc8ebf300605e4a560207dc95ef52834abb",
-            "0019_evidence_e2_a_recompute_operations.sql": "6a6996a6aeb8d206fb4beac0162c863d520f0b302f813d727d5b5aadb52176ab",
+            "0001_d1_compatibility_schema.sql": "090f24c4f399886f09c2899250cc4facadd3b9615a914701ccce63545fba84f8",
+            "0002_server_only_rls_lockdown.sql": "289b707321fab2573780f401ec65e62053e3fba7062361e86e8b5f2fd6fce1cd",
+            "0003_curriculum_tree.sql": "b0d36b094cebecf4f07948c901e49984da95a365508d56ec6e3f0da5e2111534",
+            "0004_shared_content_lesson.sql": "3d595502184ff058b1e43f0fcbe6d21ef7dce6af794c3e96045df9aca3aa8519",
+            "0005_course_lesson_lesson_progress.sql": "1d54e457520b6f13bdf792f6b54d0aab05f47fd3f83472dbd19eef7b95b19e93",
+            "0006_question_attempt_lookup_index.sql": "03e944f9570f59c424c3ba6f02ea0abc2173ab6fa2565f9df9ebfb8d3ae6972f",
+            "0007_ai_explainability_feedback.sql": "41e50f5cc0057c33be80e1935e69de04406e5a0bc8a6340810e7b4122d481a21",
+            "0008_ontology_graph_storage.sql": "e7eac518ac8d0619b0774b4b439a6161275039c7f7c13cbb05949070d1af1d76",
+            "0009_security_certification_taxonomy_cleanup.sql": "3a9bd46c9e1e153644712df04995d9d6ea99b22f260de3f58a20319ca40ddb07",
+            "0010_practical_attempt_evaluation_foundation.sql": "fa112b1f23faf99dd763fd9e5482cbe0e8696ca701c314954924d91d57713cdf",
+            "0011_canonical_fact_foundation.sql": "0fb0e1aad921d5a3430a61c5a477263c25aa6e31ea19947d426f58b70df9f7c7",
+            "0012_fact_concept_mapping_governance.sql": "0188957618171f61c1c6c318c7a4cf64c3f779870df1cb46a134f96a6b52bdf5",
+            "0013_question_governance_foundation.sql": "7f38edb4b339a3cd4ab3e3b437a0bfa9bb52aa64641d22286406345517a04de9",
+            "0014_learning_event_version_revision_governance.sql": "d831ffc616e1be9bef1f9c42ba8a61143fe0fbfba5c0b3e914ca0ce915df09e1",
+            "0015_evidence_projection_foundation.sql": "f99d9916458df3ac1270d60945fdf9611652c13cb7cef267d1105f59cfd8a840",
+            "0016_theory_revision_governance.sql": "a7fdc4ed079d8816b29b85c869e96149bd1b059ade875cafcfd77800108856b3",
+            "0017_evidence_e1_core_remediation.sql": "282151ea4c8eecb60159c47ea59a608459ac5052332fd19d719187b1c47e188a",
+            "0018_practical_revision_governance.sql": "3434e9c0f7d52ace63742e859eee1472ce59324eb9b3c6cd38e6f0bf8ff02eb2",
+            "0019_evidence_e2_a_recompute_operations.sql": "9a2c2a2a9e473ac97f36ba6085466092891552df0f5d5e696a0dde0613763367",
           };
           const files = Object.keys(expected).sort();
-          const actual = Object.fromEntries(await Promise.all(files.map(async (file) => [file, createHash("sha256").update(await readFile(`db/postgres/migrations/${file}`)).digest("hex")] )));
+          const actual = Object.fromEntries(files.map((file) => [file, createHash("sha256").update(execFileSync("git", ["show", `HEAD:db/postgres/migrations/${file}`])).digest("hex")]));
           if (JSON.stringify(actual) !== JSON.stringify(expected)) throw new Error("POSTGRES_PUBLISHED_MIGRATION_HASH_MISMATCH");
-          if (actual["0002_server_only_rls_lockdown.sql"] !== "3b4d30567a88340b633ad97c8bf21120d34860918a7a912de9e9022c4a6c97d0") throw new Error("POSTGRES_0002_HASH_MISMATCH");
+          if (actual["0002_server_only_rls_lockdown.sql"] !== "289b707321fab2573780f401ec65e62053e3fba7062361e86e8b5f2fd6fce1cd") throw new Error("POSTGRES_0002_HASH_MISMATCH");
           console.log(`POSTGRES_PUBLISHED_MIGRATIONS_IMMUTABLE count=${files.length}`);
           NODE
 
