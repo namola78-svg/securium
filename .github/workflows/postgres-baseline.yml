@@ -113,12 +113,49 @@ jobs:
         run: |
           node --input-type=module <<'NODE'
           import assert from "node:assert/strict";
+          import { createHash } from "node:crypto";
           import { readFile, readdir } from "node:fs/promises";
           import postgres from "postgres";
           import { BASELINE_BOUNDARY, BASELINE_ID, classifyBaselineState, migrationsAfterBoundary } from "./scripts/postgres-baseline.mjs";
           const admin = postgres(process.env.POSTGRES_BASELINE_DATABASE_URL, { max: 1, prepare: false, ssl: false });
           const database = `historical_0019_${process.env.GITHUB_RUN_ID}`;
           const url = new URL(process.env.POSTGRES_BASELINE_DATABASE_URL);
+          if (url.protocol !== "postgresql:" || url.hostname !== "127.0.0.1" || !database.startsWith("historical_0019_")) {
+            throw new Error("HISTORICAL_FIXTURE_SAFETY_GUARD_FAILED");
+          }
+          const serviceRoleBefore = await admin`
+            SELECT rolname, rolsuper, rolcreatedb, rolcreaterole, rolinherit, rolbypassrls
+            FROM pg_roles WHERE rolname = 'service_role'
+          `;
+          await admin.unsafe(`DO $$
+          BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+              CREATE ROLE anon NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
+              CREATE ROLE authenticated NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS;
+            END IF;
+          END $$`);
+          const fixtureRoles = await admin`
+            SELECT rolname, rolsuper, rolcreatedb, rolcreaterole, rolinherit, rolbypassrls
+            FROM pg_roles
+            WHERE rolname IN ('anon', 'authenticated')
+            ORDER BY rolname
+          `;
+          assert.deepEqual(Array.from(fixtureRoles).map(({ rolname }) => rolname), ["anon", "authenticated"]);
+          assert.equal(fixtureRoles.some((role) => role.rolsuper || role.rolcreatedb || role.rolcreaterole || role.rolbypassrls), false);
+          const fixtureMemberships = await admin`
+            SELECT 1
+            FROM pg_auth_members members
+            JOIN pg_roles member_role ON member_role.oid = members.member
+            WHERE member_role.rolname IN ('anon', 'authenticated')
+          `;
+          assert.equal(fixtureMemberships.length, 0);
+          const serviceRoleAfter = await admin`
+            SELECT rolname, rolsuper, rolcreatedb, rolcreaterole, rolinherit, rolbypassrls
+            FROM pg_roles WHERE rolname = 'service_role'
+          `;
+          assert.deepEqual(serviceRoleAfter, serviceRoleBefore);
           await admin.unsafe(`CREATE DATABASE "${database}"`);
           const historical = postgres(`postgres://${url.username}:${url.password}@${url.hostname}:${url.port}/${database}`, { max: 1, prepare: false, ssl: false });
           const order = [
@@ -130,7 +167,50 @@ jobs:
             "0016_theory_revision_governance.sql", "0017_evidence_e1_core_remediation.sql", "0018_practical_revision_governance.sql",
             "0019_evidence_e2_a_recompute_operations.sql",
           ];
-          for (const file of order) await historical.unsafe(await readFile(`db/postgres/migrations/${file}`, "utf8"));
+          for (const file of order) {
+            if (file === "0009_security_certification_taxonomy_cleanup.sql") {
+              await historical.unsafe(`
+                INSERT INTO course_groups
+                  (id, code, name, description, display_order, active, is_sample)
+                VALUES
+                  ('group-national-security', 'NATIONAL_SECURITY_CERT', '정보보안 국가기술자격', '[개발용 샘플] 정보보안기사와 정보보안산업기사 과정군', 1, 1, 1)
+                ON CONFLICT (id) DO NOTHING;
+
+                INSERT INTO courses
+                  (id, course_group_id, code, slug, name, short_name, description,
+                   total_levels, passing_score, difficulty, active, published, display_order, is_sample)
+                VALUES
+                  ('course-ise', 'group-national-security', 'ISE', 'information-security-engineer', '정보보안기사', '정보보안기사', '[개발용 샘플] 정보보안기사 필기·실기 공통 기반 과정', 100, 60, 'INTERMEDIATE', 1, 1, 2, 1),
+                  ('course-isie', 'group-national-security', 'ISIE', 'information-security-industrial-engineer', '정보보안산업기사', '정보보안산업기사', '[개발용 샘플] 정보보안산업기사 필기·실기 공통 기반 과정', 100, 60, 'BEGINNER', 1, 1, 3, 1)
+                ON CONFLICT (id) DO NOTHING;
+
+                INSERT INTO subjects
+                  (id, course_id, code, name, description, display_order, active, is_sample)
+                VALUES
+                  ('course-ise-subject-foundation', 'course-ise', 'FOUNDATION', '정보보안기사 · 기초 체계', '[개발용 샘플] 핵심 개념과 용어를 학습합니다.', 1, 1, 1),
+                  ('course-ise-subject-practice', 'course-ise', 'PRACTICE', '정보보안기사 · 실무 적용', '[개발용 샘플] 현업 적용 관점에서 학습합니다.', 2, 1, 1),
+                  ('course-ise-subject-review', 'course-ise', 'REVIEW', '정보보안기사 · 평가 대비', '[개발용 샘플] 주요 확인사항을 정리합니다.', 3, 1, 1),
+                  ('course-isie-subject-foundation', 'course-isie', 'FOUNDATION', '정보보안산업기사 · 기초 체계', '[개발용 샘플] 핵심 개념과 용어를 학습합니다.', 1, 1, 1),
+                  ('course-isie-subject-practice', 'course-isie', 'PRACTICE', '정보보안산업기사 · 실무 적용', '[개발용 샘플] 현업 적용 관점에서 학습합니다.', 2, 1, 1),
+                  ('course-isie-subject-review', 'course-isie', 'REVIEW', '정보보안산업기사 · 평가 대비', '[개발용 샘플] 주요 확인사항을 정리합니다.', 3, 1, 1)
+                ON CONFLICT (id) DO NOTHING;
+              `);
+              const historicalRows = await historical`
+                SELECT count(*)::int AS count
+                FROM (
+                  SELECT id FROM course_groups WHERE id = 'group-national-security'
+                  UNION ALL SELECT id FROM courses WHERE id IN ('course-ise', 'course-isie')
+                  UNION ALL SELECT id FROM subjects WHERE id IN (
+                    'course-ise-subject-foundation', 'course-ise-subject-practice', 'course-ise-subject-review',
+                    'course-isie-subject-foundation', 'course-isie-subject-practice', 'course-isie-subject-review'
+                  )
+                ) proven_rows
+              `;
+              assert.equal(historicalRows[0].count, 9);
+              console.log("HISTORICAL_PRE0009_BOOTSTRAP rows=9 inferred=0 fabricated=0");
+            }
+            await historical.unsafe(await readFile(`db/postgres/migrations/${file}`, "utf8"));
+          }
           const applications = await historical`SELECT count(*)::int AS count FROM public.app_schema_migrations`;
           const baseline = await historical`SELECT to_regclass('public.app_schema_baseline_receipts') AS relation`;
           const relations = await historical`SELECT count(*)::int AS count FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname='public' AND c.relkind IN ('r','v','m') AND c.relname NOT IN ('app_schema_migrations','app_schema_baseline_receipts')`;
@@ -140,7 +220,41 @@ jobs:
           assert.equal(baseline[0].relation, null);
           const migrations = (await readdir("db/postgres/migrations")).filter((name) => /^\d{4}_.+\.sql$/.test(name)).map((name) => ({ id: name.replace(/\.sql$/, "") }));
           assert.deepEqual(migrationsAfterBoundary(migrations, BASELINE_BOUNDARY).map(({ id }) => id), []);
-          console.log(`TRUE_HISTORICAL_0019_ROUNDTRIP state=${state} receipts=${applications[0].count} baselineReceipt=0 postBoundary=0 baselineId=${BASELINE_ID}`);
+          const freshDatabase = `fresh_equivalence_${process.env.GITHUB_RUN_ID}`;
+          if (!freshDatabase.startsWith("fresh_equivalence_")) throw new Error("FRESH_EQUIVALENCE_DATABASE_SAFETY_GUARD_FAILED");
+          await admin.unsafe(`CREATE DATABASE "${freshDatabase}"`);
+          const fresh = postgres(`postgres://${url.username}:${url.password}@${url.hostname}:${url.port}/${freshDatabase}`, { max: 1, prepare: false, ssl: false });
+          const manifest = JSON.parse(await readFile("db/postgres/baselines/POSTGRES_FRESH_BASELINE_V1.json", "utf8"));
+          const artifact = await readFile("db/postgres/baselines/POSTGRES_FRESH_BASELINE_V1.sql", "utf8");
+          await fresh.unsafe(`SET securium.baseline_artifact_sha256 = '${manifest.artifactDigest}'`);
+          await fresh.unsafe(`SET securium.baseline_schema_sha256 = '${manifest.schemaDigest}'`);
+          await fresh.unsafe(`SET securium.baseline_security_sha256 = '${manifest.securityDigest}'`);
+          await fresh.unsafe(artifact);
+          const project = async (connection) => {
+            const tables = await connection`SELECT c.relname AS name, c.relkind AS kind FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND c.relkind IN ('r', 'v', 'm') AND c.relname NOT IN ('app_schema_migrations', 'app_schema_baseline_receipts')`;
+            const columns = await connection`SELECT table_name, column_name, ordinal_position, data_type, udt_name, is_nullable, column_default FROM information_schema.columns WHERE table_schema = 'public' AND table_name NOT IN ('app_schema_migrations', 'app_schema_baseline_receipts')`;
+            const constraints = await connection`SELECT conrelid::regclass::text AS table_name, conname, contype, pg_get_constraintdef(oid) AS definition FROM pg_constraint WHERE connamespace = 'public'::regnamespace AND conrelid::regclass::text NOT IN ('app_schema_migrations', 'app_schema_baseline_receipts')`;
+            const indexes = await connection`SELECT tablename, indexname, indexdef FROM pg_indexes WHERE schemaname = 'public' AND tablename NOT IN ('app_schema_migrations', 'app_schema_baseline_receipts')`;
+            const views = await connection`SELECT schemaname, viewname, definition FROM pg_views WHERE schemaname = 'public'`;
+            const triggers = await connection`SELECT event_object_table, trigger_name, action_statement, action_timing, event_manipulation FROM information_schema.triggers WHERE trigger_schema = 'public'`;
+            const rls = await connection`SELECT c.relname AS table_name, c.relrowsecurity, c.relforcerowsecurity FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND c.relkind = 'r' AND c.relname NOT IN ('app_schema_migrations', 'app_schema_baseline_receipts')`;
+            const policies = await connection`SELECT schemaname, tablename, policyname, permissive, roles, cmd, qual, with_check FROM pg_policies WHERE schemaname = 'public'`;
+            const grants = await connection`SELECT table_name, grantee, privilege_type, is_grantable FROM information_schema.role_table_grants WHERE table_schema = 'public' AND table_name NOT IN ('app_schema_migrations', 'app_schema_baseline_receipts') AND grantee IN ('anon', 'authenticated', 'service_role', 'postgres')`;
+            const normalize = (rows) => rows.map((row) => Object.fromEntries(Object.entries(row).map(([key, value]) => [key, typeof value === "string" ? value.replace(/\s+/g, " ").trim() : value]).sort(([a], [b]) => a.localeCompare(b)))).sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+            const schema = { tables: normalize(tables), columns: normalize(columns), constraints: normalize(constraints), indexes: normalize(indexes), views: normalize(views), triggers: normalize(triggers) };
+            const security = { rls: normalize(rls), policies: normalize(policies), grants: normalize(grants) };
+            return { schema, security, schemaDigest: createHash("sha256").update(JSON.stringify(schema)).digest("hex"), securityDigest: createHash("sha256").update(JSON.stringify(security)).digest("hex") };
+          };
+          const historicalProjection = await project(historical);
+          const freshProjection = await project(fresh);
+          assert.deepEqual(historicalProjection.schema, freshProjection.schema, "HISTORICAL_SCHEMA_PROJECTION_MISMATCH");
+          assert.deepEqual(historicalProjection.security, freshProjection.security, "HISTORICAL_SECURITY_PROJECTION_MISMATCH");
+          assert.equal(historicalProjection.schemaDigest, freshProjection.schemaDigest);
+          assert.equal(historicalProjection.securityDigest, freshProjection.securityDigest);
+          console.log(`SCHEMA_SECURITY_EQUIVALENCE schema=${historicalProjection.schemaDigest} security=${historicalProjection.securityDigest} objects=${historicalProjection.schema.tables.length}`);
+          await fresh.end({ timeout: 5 });
+          await admin.unsafe(`DROP DATABASE "${freshDatabase}" WITH (FORCE)`);
+          console.log(`TRUE_HISTORICAL_0019_ROUNDTRIP state=${state} receipts=${applications[0].count} baselineReceipt=0 postBoundary=0 baselineId=${BASELINE_ID} fixtureRows=9 roles=anon,authenticated`);
           await historical.end({ timeout: 5 });
           await admin.unsafe(`DROP DATABASE "${database}" WITH (FORCE)`);
           await admin.end({ timeout: 5 });
