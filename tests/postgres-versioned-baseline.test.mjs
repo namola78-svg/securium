@@ -39,6 +39,30 @@ function diagnostic(event, fields = {}) {
   console.log(`[BASE01_DIAG] ${JSON.stringify({ event, at: new Date().toISOString(), ...fields })}`);
 }
 
+const TRANSIENT_CONNECTION_ERROR_CODES = new Set(["ECONNRESET", "ECONNREFUSED", "EPIPE"]);
+const INITIAL_CONNECTIVITY_MAX_ATTEMPTS = 3;
+const INITIAL_CONNECTIVITY_BACKOFF_MS = 50;
+
+function isTransientConnectionError(error) {
+  return TRANSIENT_CONNECTION_ERROR_CODES.has(error?.code);
+}
+
+async function establishInitialConnectivity({ connect, verify, sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)), maxAttempts = INITIAL_CONNECTIVITY_MAX_ATTEMPTS, backoffMs = INITIAL_CONNECTIVITY_BACKOFF_MS, onAttempt = () => {} }) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const candidate = connect();
+    onAttempt({ attempt, maxAttempts });
+    try {
+      await verify(candidate);
+      return candidate;
+    } catch (error) {
+      await candidate.end({ timeout: 5 }).catch(() => {});
+      if (!isTransientConnectionError(error) || attempt === maxAttempts) throw error;
+      await sleep(backoffMs * attempt);
+    }
+  }
+  throw new Error("Initial PostgreSQL connectivity attempts were exhausted.");
+}
+
 async function diagnosticExec(command, args, { limit = 600 } = {}) {
   try {
     const result = await execFile(command, args);
@@ -133,6 +157,11 @@ test.before(async () => {
     firstSuccessAttempt: readinessFirstSuccessAttempt,
     elapsedMs: Date.now() - readinessStartedAt,
   });
+  if (!readinessSucceeded) {
+    await captureContainerState("READINESS_FAILURE");
+    await capturePostgresLogs("READINESS_FAILURE");
+    throw new Error("PostgreSQL readiness checks exhausted without success.");
+  }
   const portOutput = await execFile("docker", ["port", container, "5432/tcp"]).catch(async () => {
     await execFile("docker", ["stop", container]);
     throw new Error("Docker port mapping was unavailable.");
@@ -144,8 +173,12 @@ test.before(async () => {
   await capturePostgresLogs("PRE_QUERY");
   diagnostic("CLIENT_CONNECT_BEGIN", { host: "127.0.0.1", port, database: "postgres" });
   const postgres = (await import("postgres")).default;
-  sql = postgres(`postgres://postgres:${password}@127.0.0.1:${port}/postgres`, { max: 1, prepare: false, ssl: false, onnotice: false });
-  diagnostic("CLIENT_CONNECT_READY", { clientObjectInitialized: true });
+  sql = await establishInitialConnectivity({
+    connect: () => postgres(`postgres://postgres:${password}@127.0.0.1:${port}/postgres`, { max: 1, prepare: false, ssl: false, onnotice: false }),
+    verify: (candidate) => candidate`SELECT 1`,
+    onAttempt: ({ attempt, maxAttempts }) => diagnostic("INITIAL_CONNECTIVITY_ATTEMPT", { attempt, maxAttempts, boundary: "SELECT 1", retryableCodes: [...TRANSIENT_CONNECTION_ERROR_CODES] }),
+  });
+  diagnostic("CLIENT_CONNECT_READY", { clientObjectInitialized: true, connectivityVerified: true });
   diagnostic("FIRST_QUERY_BEGIN", { statement: "CREATE ROLE anon" });
   try {
     await sql`CREATE ROLE anon NOLOGIN`;
@@ -190,6 +223,56 @@ test("BASE-02 valid artifact, manifest, and digest pass", async () => {
 
 test("BASE-03 tampered artifact fails closed", () => {
   assert.equal(validateArtifactAgainstManifest({ artifact: `${artifact}-- tampered`, manifest, digestFile: manifest.artifactDigest }), false);
+});
+
+test("BASE-04 transient initial connectivity resets are retried before mutation", async () => {
+  let attempts = 0;
+  let closed = 0;
+  const verifiedBoundaries = [];
+  const client = { end: async () => { closed += 1; } };
+  const result = await establishInitialConnectivity({
+    connect: () => ({ end: client.end }),
+    verify: async (candidate) => {
+      verifiedBoundaries.push(candidate);
+      attempts += 1;
+      if (attempts === 1) throw Object.assign(new Error("socket reset"), { code: "ECONNRESET" });
+    },
+    sleep: async () => {},
+  });
+  assert.ok(result);
+  assert.equal(attempts, 2);
+  assert.equal(closed, 1);
+  assert.equal(verifiedBoundaries.length, 2);
+});
+
+test("BASE-05 persistent initial connectivity resets fail after the bounded retry limit", async () => {
+  let attempts = 0;
+  let closed = 0;
+  await assert.rejects(() => establishInitialConnectivity({
+    connect: () => ({ end: async () => { closed += 1; } }),
+    verify: async () => {
+      attempts += 1;
+      throw Object.assign(new Error("socket reset"), { code: "ECONNRESET" });
+    },
+    sleep: async () => {},
+  }), (error) => error.code === "ECONNRESET");
+  assert.equal(attempts, INITIAL_CONNECTIVITY_MAX_ATTEMPTS);
+  assert.equal(closed, INITIAL_CONNECTIVITY_MAX_ATTEMPTS);
+});
+
+test("BASE-06 semantic SQL errors are not retried as transport transients", async () => {
+  let attempts = 0;
+  let closed = 0;
+  await assert.rejects(() => establishInitialConnectivity({
+    connect: () => ({ end: async () => { closed += 1; } }),
+    verify: async () => {
+      attempts += 1;
+      throw Object.assign(new Error("permission denied"), { code: "42501" });
+    },
+    sleep: async () => {},
+  }), (error) => error.code === "42501");
+  assert.equal(attempts, 1);
+  assert.equal(closed, 1);
 });
 
 test("CANON-01 canonical LF bytes produce the authoritative digest", () => {
