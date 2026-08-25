@@ -47,6 +47,10 @@ function isTransientConnectionError(error) {
   return TRANSIENT_CONNECTION_ERROR_CODES.has(error?.code);
 }
 
+function requireReadinessSucceeded(succeeded) {
+  if (!succeeded) throw new Error("PostgreSQL readiness checks exhausted without success.");
+}
+
 async function establishInitialConnectivity({ connect, verify, sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)), maxAttempts = INITIAL_CONNECTIVITY_MAX_ATTEMPTS, backoffMs = INITIAL_CONNECTIVITY_BACKOFF_MS, onAttempt = () => {} }) {
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const candidate = connect();
@@ -160,8 +164,8 @@ test.before(async () => {
   if (!readinessSucceeded) {
     await captureContainerState("READINESS_FAILURE");
     await capturePostgresLogs("READINESS_FAILURE");
-    throw new Error("PostgreSQL readiness checks exhausted without success.");
   }
+  requireReadinessSucceeded(readinessSucceeded);
   const portOutput = await execFile("docker", ["port", container, "5432/tcp"]).catch(async () => {
     await execFile("docker", ["stop", container]);
     throw new Error("Docker port mapping was unavailable.");
@@ -287,6 +291,11 @@ test("BASE-06 semantic SQL errors are not retried as transport transients", asyn
   }), (error) => error.code === "42501");
   assert.equal(attempts, 1);
   assert.equal(closed, 1);
+});
+
+test("BASE-06A readiness exhaustion fails before SQL connectivity", () => {
+  assert.throws(() => requireReadinessSucceeded(false), /readiness checks exhausted/);
+  assert.doesNotThrow(() => requireReadinessSucceeded(true));
 });
 
 test("CANON-01 canonical LF bytes produce the authoritative digest", () => {
