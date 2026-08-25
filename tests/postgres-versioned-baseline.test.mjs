@@ -31,12 +31,41 @@ let referenceDb;
 let baselineReferenceSql;
 let baselineDb;
 
+const TRANSIENT_CONNECTION_ERROR_CODES = new Set(["ECONNRESET", "ECONNREFUSED", "EPIPE", "57P03"]);
+const INITIAL_CONNECTIVITY_MAX_ATTEMPTS = 3;
+const INITIAL_CONNECTIVITY_BACKOFF_MS = 50;
+
+function isTransientConnectionError(error) {
+  return TRANSIENT_CONNECTION_ERROR_CODES.has(error?.code);
+}
+
+function requireReadinessSucceeded(succeeded) {
+  if (!succeeded) throw new Error("PostgreSQL readiness checks exhausted without success.");
+}
+
+async function establishInitialConnectivity({ connect, verify, sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)), maxAttempts = INITIAL_CONNECTIVITY_MAX_ATTEMPTS, backoffMs = INITIAL_CONNECTIVITY_BACKOFF_MS }) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const candidate = connect();
+    try {
+      await verify(candidate);
+      return candidate;
+    } catch (error) {
+      await candidate.end({ timeout: 5 }).catch(() => {});
+      if (!isTransientConnectionError(error) || attempt === maxAttempts) throw error;
+      await sleep(backoffMs * attempt);
+    }
+  }
+  throw new Error("Initial PostgreSQL connectivity attempts were exhausted.");
+}
+
 test.before(async () => {
   await execFile("docker", ["run", "--detach", "--rm", "--name", container, "--env", `POSTGRES_PASSWORD=${password}`, "--publish", "127.0.0.1::5432", "postgres:17.6"]);
+  let readinessSucceeded = false;
   for (let attempt = 0; attempt < 60; attempt += 1) {
-    try { await execFile("docker", ["exec", container, "pg_isready", "-U", "postgres"]); break; }
+    try { await execFile("docker", ["exec", container, "pg_isready", "-U", "postgres"]); readinessSucceeded = true; break; }
     catch { await new Promise((resolve) => setTimeout(resolve, 500)); }
   }
+  requireReadinessSucceeded(readinessSucceeded);
   const portOutput = await execFile("docker", ["port", container, "5432/tcp"]).catch(async () => {
     await execFile("docker", ["stop", container]);
     throw new Error("Docker port mapping was unavailable.");
@@ -44,7 +73,10 @@ test.before(async () => {
   port = portOutput.stdout.trim().match(/:(\d+)$/)?.[1];
   assert.ok(port);
   const postgres = (await import("postgres")).default;
-  sql = postgres(`postgres://postgres:${password}@127.0.0.1:${port}/postgres`, { max: 1, prepare: false, ssl: false, onnotice: false });
+  sql = await establishInitialConnectivity({
+    connect: () => postgres(`postgres://postgres:${password}@127.0.0.1:${port}/postgres`, { max: 1, prepare: false, ssl: false, onnotice: false }),
+    verify: (candidate) => candidate`SELECT 1`,
+  });
   await sql`CREATE ROLE anon NOLOGIN`;
   await sql`CREATE ROLE authenticated NOLOGIN`;
   await sql`CREATE ROLE service_role NOLOGIN`;
@@ -75,6 +107,71 @@ test("BASE-02 valid artifact, manifest, and digest pass", async () => {
 
 test("BASE-03 tampered artifact fails closed", () => {
   assert.equal(validateArtifactAgainstManifest({ artifact: `${artifact}-- tampered`, manifest, digestFile: manifest.artifactDigest }), false);
+});
+
+test("BASE-04 transient initial connectivity resets are retried before mutation", async () => {
+  let attempts = 0;
+  let closed = 0;
+  const result = await establishInitialConnectivity({
+    connect: () => ({ end: async () => { closed += 1; } }),
+    verify: async () => {
+      attempts += 1;
+      if (attempts === 1) throw Object.assign(new Error("socket reset"), { code: "ECONNRESET" });
+    },
+    sleep: async () => {},
+  });
+  assert.ok(result);
+  assert.equal(attempts, 2);
+  assert.equal(closed, 1);
+});
+
+test("BASE-05 persistent initial connectivity resets fail after the bounded retry limit", async () => {
+  let attempts = 0;
+  let closed = 0;
+  await assert.rejects(() => establishInitialConnectivity({
+    connect: () => ({ end: async () => { closed += 1; } }),
+    verify: async () => {
+      attempts += 1;
+      throw Object.assign(new Error("socket reset"), { code: "ECONNRESET" });
+    },
+    sleep: async () => {},
+  }), (error) => error.code === "ECONNRESET");
+  assert.equal(attempts, INITIAL_CONNECTIVITY_MAX_ATTEMPTS);
+  assert.equal(closed, INITIAL_CONNECTIVITY_MAX_ATTEMPTS);
+});
+
+test("BASE-05A PostgreSQL startup SQLSTATE is retried before mutation", async () => {
+  let attempts = 0;
+  const result = await establishInitialConnectivity({
+    connect: () => ({ end: async () => {} }),
+    verify: async () => {
+      attempts += 1;
+      if (attempts === 1) throw Object.assign(new Error("the database system is starting up"), { code: "57P03" });
+    },
+    sleep: async () => {},
+  });
+  assert.ok(result);
+  assert.equal(attempts, 2);
+});
+
+test("BASE-06 semantic SQL errors are not retried as transport transients", async () => {
+  let attempts = 0;
+  let closed = 0;
+  await assert.rejects(() => establishInitialConnectivity({
+    connect: () => ({ end: async () => { closed += 1; } }),
+    verify: async () => {
+      attempts += 1;
+      throw Object.assign(new Error("permission denied"), { code: "42501" });
+    },
+    sleep: async () => {},
+  }), (error) => error.code === "42501");
+  assert.equal(attempts, 1);
+  assert.equal(closed, 1);
+});
+
+test("BASE-06A readiness exhaustion fails before SQL connectivity", () => {
+  assert.throws(() => requireReadinessSucceeded(false), /readiness checks exhausted/);
+  assert.doesNotThrow(() => requireReadinessSucceeded(true));
 });
 
 test("CANON-01 canonical LF bytes produce the authoritative digest", () => {
