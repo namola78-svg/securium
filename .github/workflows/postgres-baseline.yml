@@ -27,13 +27,13 @@ jobs:
       postgres:
         image: postgres:17.6-alpine
         env:
-          POSTGRES_USER: test
+          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: ci-baseline-only-2026
           POSTGRES_DB: securium_test
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U test -d securium_test"
+          --health-cmd "pg_isready -U postgres -d securium_test"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 12
@@ -42,7 +42,7 @@ jobs:
       CI: "true"
       APP_ENV: test
       NODE_OPTIONS: "--experimental-strip-types"
-      POSTGRES_BASELINE_DATABASE_URL: postgresql://test:ci-baseline-only-2026@127.0.0.1:5432/securium_test
+      POSTGRES_BASELINE_DATABASE_URL: postgresql://postgres:ci-baseline-only-2026@127.0.0.1:5432/securium_test
 
     steps:
       - name: Check out exact tested revision
@@ -109,7 +109,7 @@ jobs:
 
       - name: Run historical 0019 true roundtrip and post-boundary selection
         env:
-          POSTGRES_BASELINE_DATABASE_URL: postgresql://test:ci-baseline-only-2026@127.0.0.1:5432/securium_test
+          POSTGRES_BASELINE_DATABASE_URL: postgresql://postgres:ci-baseline-only-2026@127.0.0.1:5432/securium_test
         run: |
           node --input-type=module <<'NODE'
           import assert from "node:assert/strict";
