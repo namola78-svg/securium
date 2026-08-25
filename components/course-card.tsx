@@ -15,7 +15,7 @@ export function CourseCard({ course }: { course: CourseListItem }) {
   const courseName = course.name || course.shortName || "이름 없는 과정";
 
   return (
-    <article className="course-card" aria-labelledby={`course-${course.id}`}>
+    <article className="course-card v2-course-card" aria-labelledby={`course-${course.id}`}>
       <div className="course-card-top"><span className="course-code">{typeLabel}</span><span className={`course-status ${available ? "available" : "planned"}`}>{status}</span></div>
       <p className="eyebrow">{course.groupName}</p>
       <h3 id={`course-${course.id}`}>{courseName}</h3>

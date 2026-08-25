@@ -69,6 +69,7 @@
   --success: var(--color-success);
   --warning: var(--color-warning);
   --error: var(--color-danger);
+
 }
 
 * {
@@ -138,6 +139,71 @@ a {
   background: rgb(17 27 32 / 0.96);
   color: var(--white);
   backdrop-filter: blur(16px);
+}
+
+/* Batch A A2: bounded V2 treatment for the shared public/auth header. */
+.site-header.v2-public-header {
+  border-bottom-color: var(--color-line);
+  background: rgb(255 255 255 / 0.96);
+  color: var(--color-text-primary);
+  box-shadow: 0 1px 0 rgb(15 23 42 / 0.03);
+}
+
+.site-header.v2-public-header .brand-mark {
+  border-color: #2563eb;
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.site-header.v2-public-header .brand small {
+  color: var(--color-text-muted);
+}
+
+.site-header.v2-public-header .main-nav {
+  color: var(--color-text-secondary);
+}
+
+.site-header.v2-public-header .main-nav a:hover,
+.site-header.v2-public-header .main-nav a:focus-visible {
+  color: #2563eb;
+}
+
+.site-header.v2-public-header .main-nav a.active {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.site-header.v2-public-header .main-nav a.active::after {
+  background: #2563eb;
+}
+
+.site-header.v2-public-header .header-utility-link,
+.site-header.v2-public-header .profile-menu-trigger {
+  border-color: var(--color-line-strong);
+  color: var(--color-text-secondary);
+}
+
+.site-header.v2-public-header .header-utility-link:hover,
+.site-header.v2-public-header .header-utility-link:focus-visible,
+.site-header.v2-public-header .profile-menu-trigger:hover,
+.site-header.v2-public-header .profile-menu-trigger:focus-visible {
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+.site-header.v2-public-header .user-chip {
+  color: var(--color-text-secondary);
+}
+
+.site-header.v2-public-header .ds-button.variant-ghost {
+  border-color: var(--color-line-strong);
+  color: var(--color-text-secondary);
+}
+
+.site-header.v2-public-header .ds-button.variant-dark {
+  border-color: #2563eb;
+  background: #2563eb;
+  color: #ffffff;
 }
 
 .header-inner {
@@ -2138,6 +2204,72 @@ button:disabled {
     border-color 160ms ease,
     box-shadow 160ms ease,
     transform 160ms ease;
+}
+
+/* Batch A A2: CourseCard owns this visual migration; shared button/badge
+   semantics remain unchanged. */
+.course-card.v2-course-card {
+  min-height: 31rem;
+  padding: 1.5rem;
+  border-color: var(--color-line);
+  border-radius: 20px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.course-card.v2-course-card:hover,
+.course-card.v2-course-card:focus-within {
+  border-color: var(--color-line-strong);
+  box-shadow: var(--shadow-card);
+}
+
+.course-card.v2-course-card::before {
+  background: #2563eb;
+}
+
+.course-card.v2-course-card .course-code {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.course-card.v2-course-card .course-status {
+  min-height: 44px;
+  padding-inline: 12px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+}
+
+.course-card.v2-course-card .course-status.available {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.course-card.v2-course-card .course-status.planned {
+  background: var(--color-surface-soft);
+  color: var(--color-text-secondary);
+}
+
+.course-card.v2-course-card h3 {
+  color: var(--color-text-primary);
+}
+
+.course-card.v2-course-card .course-summary,
+.course-card.v2-course-card .course-comparison-list dt {
+  color: var(--color-text-secondary);
+}
+
+.course-card.v2-course-card .course-comparison-list dd {
+  color: var(--color-text-primary);
+}
+
+.course-card.v2-course-card .course-card-cta {
+  border-radius: var(--radius-md);
+}
+
+.course-card.v2-course-card .course-card-cta.variant-dark {
+  border-color: #2563eb;
+  background: #2563eb;
+  color: #ffffff;
 }
 
 .course-card:hover,
