@@ -7,6 +7,8 @@ import { promisify } from "node:util";
 import {
   BASELINE_ID,
   BASELINE_BOUNDARY,
+  buildBaselineArtifact,
+  canonicalizeBaselineArtifact,
   classifyBaselineState,
   migrationsAfterBoundary,
   schemaProjection,
@@ -72,6 +74,42 @@ test("BASE-02 valid artifact, manifest, and digest pass", async () => {
 
 test("BASE-03 tampered artifact fails closed", () => {
   assert.equal(validateArtifactAgainstManifest({ artifact: `${artifact}-- tampered`, manifest, digestFile: manifest.artifactDigest }), false);
+});
+
+test("CANON-01 canonical LF bytes produce the authoritative digest", () => {
+  assert.equal(sha256(canonicalizeBaselineArtifact(artifact)), manifest.artifactDigest);
+  assert.equal(canonicalizeBaselineArtifact(artifact).endsWith("\n"), true);
+});
+
+test("CANON-02 CRLF representation resolves to the same canonical identity", () => {
+  const crlfArtifact = canonicalizeBaselineArtifact(artifact).replaceAll("\n", "\r\n");
+  assert.equal(sha256(canonicalizeBaselineArtifact(crlfArtifact)), manifest.artifactDigest);
+  assert.equal(validateArtifactAgainstManifest({ artifact: crlfArtifact, manifest, digestFile: manifest.artifactDigest }), true);
+});
+
+test("CANON-03 generator output is deterministic and canonical", async () => {
+  const first = canonicalizeBaselineArtifact(await buildBaselineArtifact());
+  const second = canonicalizeBaselineArtifact(await buildBaselineArtifact());
+  assert.equal(first, second);
+  assert.equal(sha256(first), manifest.artifactDigest);
+});
+
+test("CANON-04 validator uses the canonical identity contract", () => {
+  const crlfArtifact = canonicalizeBaselineArtifact(artifact).replaceAll("\n", "\r\n");
+  assert.equal(validateArtifactAgainstManifest({ artifact: crlfArtifact, manifest }), true);
+});
+
+test("CANON-05 altered SQL content remains rejected", () => {
+  const altered = `${artifact.replace("CREATE TABLE app_schema_baseline_receipts", "CREATE TABLE altered_receipts")}\n`;
+  assert.equal(validateArtifactAgainstManifest({ artifact: altered, manifest, digestFile: manifest.artifactDigest }), false);
+});
+
+test("CANON-06 altered manifest digest remains rejected", () => {
+  assert.equal(validateArtifactAgainstManifest({ artifact, manifest: { ...manifest, artifactDigest: "0".repeat(64) }, digestFile: manifest.artifactDigest }), false);
+});
+
+test("CANON-07 altered digest file identity remains rejected", () => {
+  assert.equal(validateArtifactAgainstManifest({ artifact, manifest, digestFile: "0".repeat(64) }), false);
 });
 
 test("BASE-04 unrecognized nonempty database is ambiguous", () => {

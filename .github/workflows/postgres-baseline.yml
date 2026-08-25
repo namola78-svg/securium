@@ -1,0 +1,150 @@
+name: PostgreSQL versioned baseline
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/postgres-baseline.yml"
+      - "db/postgres/baselines/**"
+      - "scripts/postgres-baseline.mjs"
+      - "scripts/postgres-migrations.mjs"
+      - "tests/postgres-versioned-baseline.test.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: postgres-baseline-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  baseline:
+    name: PostgreSQL baseline and historical roundtrip
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:17.6-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: ci-baseline-only-2026
+          POSTGRES_DB: securium_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test -d securium_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    env:
+      CI: "true"
+      APP_ENV: test
+      NODE_OPTIONS: "--experimental-strip-types"
+      POSTGRES_BASELINE_DATABASE_URL: postgresql://test:ci-baseline-only-2026@127.0.0.1:5432/securium_test
+
+    steps:
+      - name: Check out exact tested revision
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22.13.0"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Bind exact tested SHA
+        run: |
+          expected_sha="${{ github.event.pull_request.head.sha || github.sha }}"
+          test "$(git rev-parse HEAD)" = "$expected_sha"
+          echo "tested_sha=$expected_sha" >> "$GITHUB_OUTPUT"
+          echo "TESTED_SHA=$expected_sha"
+
+      - name: Guard published PostgreSQL migration hashes
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import { createHash } from "node:crypto";
+          import { readFile } from "node:fs/promises";
+          const expected = {
+            "0001_d1_compatibility_schema.sql": "f1338fc956c85fa4337a30676ba53b09bded463dd0f2990b074be06c7ca26ef3",
+            "0002_server_only_rls_lockdown.sql": "3b4d30567a88340b633ad97c8bf21120d34860918a7a912de9e9022c4a6c97d0",
+            "0003_curriculum_tree.sql": "eac7570d8db76b179309b8585047fc724e1133dcc8de576eb2d6e63458fcdfbe",
+            "0004_shared_content_lesson.sql": "4e60c331a709864a7c0cf37d073952c7add52142fb1148d37ebf58ed3995ae9c",
+            "0005_course_lesson_lesson_progress.sql": "b3a3925894d8c6e9d65b3f908e9a8b089e4b716f137d43a4f7b81fab67a42947",
+            "0006_question_attempt_lookup_index.sql": "c0c8cc72187b81565e75c55d34b6e7f5995e9dd173974c66dd2084fd84dbec0b",
+            "0007_ai_explainability_feedback.sql": "0f359ecec0275125ade6ac3c273a21f33c7aba3ce3282d6518d2a2ecaa1a0638",
+            "0008_ontology_graph_storage.sql": "bce803475c049b88bb17ff5fe7e589ef4a353e9477246fb95714496426bfe7b0",
+            "0009_security_certification_taxonomy_cleanup.sql": "2cd73dd58f51184cc9c3f1e13b6bb203e489f74f3f87ec4f2996fcae29fb2cae",
+            "0010_practical_attempt_evaluation_foundation.sql": "c7b3fcc7f1c6ad8982482b23af6087afa9f5ade45f225bbf8d7e16246d43915b",
+            "0011_canonical_fact_foundation.sql": "4f6cbf751b91bc1a7984253457e8625b30fea6ad7988ef4569d1f914c073198e",
+            "0012_fact_concept_mapping_governance.sql": "d1a3e61afe51f3281f21db15ab334fb95a85cf30fecc69d8274f5d0b5b5da390",
+            "0013_question_governance_foundation.sql": "56dab0fb5facf1ab69e27703ab42f92c403403ce4dd50d7b52229f02e71cee85",
+            "0014_learning_event_version_revision_governance.sql": "8cabd1c2ce386b9114130954cf10580ac2d3501ec1ed218a677b2c1f0f917979",
+            "0015_evidence_projection_foundation.sql": "394cd3c843b0146cde76fe20f07d741840d21f487cf97531dbd4fc90c92146d2",
+            "0016_theory_revision_governance.sql": "84d5a6f7cbb33539214b4c9821b318bd80bccf9f938c1258646c63d8b5c9c647",
+            "0017_evidence_e1_core_remediation.sql": "a6c539b1e37f86f59bd0bae93a7cb493a96646bbe102f624cc82deaf01d5cb99",
+            "0018_practical_revision_governance.sql": "353d98bb974d825099fc2bdbd93e9dc8ebf300605e4a560207dc95ef52834abb",
+            "0019_evidence_e2_a_recompute_operations.sql": "6a6996a6aeb8d206fb4beac0162c863d520f0b302f813d727d5b5aadb52176ab",
+          };
+          const files = Object.keys(expected).sort();
+          const actual = Object.fromEntries(await Promise.all(files.map(async (file) => [file, createHash("sha256").update(await readFile(`db/postgres/migrations/${file}`)).digest("hex")] )));
+          if (JSON.stringify(actual) !== JSON.stringify(expected)) throw new Error("POSTGRES_PUBLISHED_MIGRATION_HASH_MISMATCH");
+          if (actual["0002_server_only_rls_lockdown.sql"] !== "3b4d30567a88340b633ad97c8bf21120d34860918a7a912de9e9022c4a6c97d0") throw new Error("POSTGRES_0002_HASH_MISMATCH");
+          console.log(`POSTGRES_PUBLISHED_MIGRATIONS_IMMUTABLE count=${files.length}`);
+          NODE
+
+      - name: Validate baseline and migrations
+        run: npm run db:postgres:validate
+
+      - name: Run baseline, six-state, security, checksum, and fresh PostgreSQL proofs
+        run: node --test tests/postgres-versioned-baseline.test.mjs
+
+      - name: Run historical 0019 true roundtrip and post-boundary selection
+        env:
+          POSTGRES_BASELINE_DATABASE_URL: postgresql://test:ci-baseline-only-2026@127.0.0.1:5432/securium_test
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from "node:assert/strict";
+          import { readFile, readdir } from "node:fs/promises";
+          import postgres from "postgres";
+          import { BASELINE_BOUNDARY, BASELINE_ID, classifyBaselineState, migrationsAfterBoundary } from "./scripts/postgres-baseline.mjs";
+          const admin = postgres(process.env.POSTGRES_BASELINE_DATABASE_URL, { max: 1, prepare: false, ssl: false });
+          const database = `historical_0019_${process.env.GITHUB_RUN_ID}`;
+          const url = new URL(process.env.POSTGRES_BASELINE_DATABASE_URL);
+          await admin.unsafe(`CREATE DATABASE "${database}"`);
+          const historical = postgres(`postgres://${url.username}:${url.password}@${url.hostname}:${url.port}/${database}`, { max: 1, prepare: false, ssl: false });
+          const order = [
+            "0001_d1_compatibility_schema.sql", "0003_curriculum_tree.sql", "0002_server_only_rls_lockdown.sql",
+            "0004_shared_content_lesson.sql", "0005_course_lesson_lesson_progress.sql", "0006_question_attempt_lookup_index.sql",
+            "0007_ai_explainability_feedback.sql", "0008_ontology_graph_storage.sql", "0009_security_certification_taxonomy_cleanup.sql",
+            "0010_practical_attempt_evaluation_foundation.sql", "0011_canonical_fact_foundation.sql", "0012_fact_concept_mapping_governance.sql",
+            "0013_question_governance_foundation.sql", "0014_learning_event_version_revision_governance.sql", "0015_evidence_projection_foundation.sql",
+            "0016_theory_revision_governance.sql", "0017_evidence_e1_core_remediation.sql", "0018_practical_revision_governance.sql",
+            "0019_evidence_e2_a_recompute_operations.sql",
+          ];
+          for (const file of order) await historical.unsafe(await readFile(`db/postgres/migrations/${file}`, "utf8"));
+          const applications = await historical`SELECT count(*)::int AS count FROM public.app_schema_migrations`;
+          const baseline = await historical`SELECT to_regclass('public.app_schema_baseline_receipts') AS relation`;
+          const relations = await historical`SELECT count(*)::int AS count FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname='public' AND c.relkind IN ('r','v','m') AND c.relname NOT IN ('app_schema_migrations','app_schema_baseline_receipts')`;
+          const state = classifyBaselineState({ applicationRelationCount: Number(relations[0].count), historicalReceiptCount: Number(applications[0].count), baselineReceiptCount: baseline[0].relation ? 0 : 0, baselineReceiptValid: false, historicalReceiptsValid: true });
+          assert.equal(state, "HISTORICAL_DATABASE");
+          assert.equal(applications[0].count, 19);
+          assert.equal(baseline[0].relation, null);
+          const migrations = (await readdir("db/postgres/migrations")).filter((name) => /^\d{4}_.+\.sql$/.test(name)).map((name) => ({ id: name.replace(/\.sql$/, "") }));
+          assert.deepEqual(migrationsAfterBoundary(migrations, BASELINE_BOUNDARY).map(({ id }) => id), []);
+          console.log(`TRUE_HISTORICAL_0019_ROUNDTRIP state=${state} receipts=${applications[0].count} baselineReceipt=0 postBoundary=0 baselineId=${BASELINE_ID}`);
+          await historical.end({ timeout: 5 });
+          await admin.unsafe(`DROP DATABASE "${database}" WITH (FORCE)`);
+          await admin.end({ timeout: 5 });
+          NODE
+
+      - name: Validate Drizzle schema and migrations
+        run: npm run db:check

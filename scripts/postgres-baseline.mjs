@@ -27,7 +27,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
 }
 
 export async function generateBaseline() {
-  const artifact = await buildBaselineArtifact();
+  const artifact = canonicalizeBaselineArtifact(await buildBaselineArtifact());
   const artifactDigest = sha256(artifact);
   const schemaDigest = sha256(schemaProjection(artifact));
   const securityDigest = sha256(securityProjection(artifact));
@@ -60,12 +60,14 @@ export async function validateBaselineFiles() {
   ]);
   const manifest = JSON.parse(manifestText);
   const digestFile = digestText.trim().split(/\s+/)[0];
-  const valid = validateArtifactAgainstManifest({ artifact, manifest, digestFile });
+  const valid = validateArtifactAgainstManifest({ artifact: canonicalizeBaselineArtifact(artifact), manifest, digestFile });
   if (!valid) throw new Error("POSTGRES_BASELINE_DIGEST_OR_IDENTITY_INVALID");
   return { artifact, manifest };
 }
 
-export function validateArtifactAgainstManifest({ artifact, manifest, digestFile = sha256(artifact) }) {
+export function validateArtifactAgainstManifest({ artifact, manifest, digestFile }) {
+  artifact = canonicalizeBaselineArtifact(artifact);
+  digestFile = digestFile?.trim() ?? sha256(artifact);
   const artifactDigest = sha256(artifact);
   const schemaDigest = sha256(schemaProjection(artifact));
   const securityDigest = sha256(securityProjection(artifact));
@@ -88,7 +90,9 @@ export async function buildBaselineArtifact() {
     .filter((name) => /^\d{4}_.+\.sql$/.test(name))
     .sort();
   const published = new Map();
-  for (const name of names) published.set(name.slice(0, 4), await readFile(resolve(MIGRATIONS_DIRECTORY, name), "utf8"));
+  for (const name of names) {
+    published.set(name.slice(0, 4), await readFile(resolve(MIGRATIONS_DIRECTORY, name), "utf8"));
+  }
   const sections = [
     "-- SECURIUM GENERATED POSTGRES FRESH BASELINE V1.",
     "-- Source: immutable published migrations plus canonical reference-state generation.",
@@ -125,7 +129,13 @@ export async function buildBaselineArtifact() {
     "COMMIT;",
     "",
   );
-  return sections.join("\n").replaceAll("BEGIN;\nBEGIN;\n", "BEGIN;\n").replaceAll("\nCOMMIT;\n\nCOMMIT;", "\nCOMMIT;");
+  return canonicalizeBaselineArtifact(
+    sections.join("\n").replaceAll("BEGIN;\nBEGIN;\n", "BEGIN;\n").replaceAll("\nCOMMIT;\n\nCOMMIT;", "\nCOMMIT;"),
+  );
+}
+
+export function canonicalizeBaselineArtifact(value) {
+  return `${String(value).replace(/\r\n?/g, "\n").replace(/\n+$/g, "")}\n`;
 }
 
 export function classifyBaselineState(input) {
