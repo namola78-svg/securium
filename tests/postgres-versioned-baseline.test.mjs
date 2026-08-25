@@ -31,33 +31,185 @@ let referenceDb;
 let baselineReferenceSql;
 let baselineDb;
 
-test.before(async () => {
-  await execFile("docker", ["run", "--detach", "--rm", "--name", container, "--env", `POSTGRES_PASSWORD=${password}`, "--publish", "127.0.0.1::5432", "postgres:17.6"]);
-  for (let attempt = 0; attempt < 60; attempt += 1) {
-    try { await execFile("docker", ["exec", container, "pg_isready", "-U", "postgres"]); break; }
-    catch { await new Promise((resolve) => setTimeout(resolve, 500)); }
+function diagnosticText(value, limit = 600) {
+  return String(value ?? "").replaceAll(password, "[REDACTED]").slice(0, limit);
+}
+
+function diagnostic(event, fields = {}) {
+  console.log(`[BASE01_DIAG] ${JSON.stringify({ event, at: new Date().toISOString(), ...fields })}`);
+}
+
+const TRANSIENT_CONNECTION_ERROR_CODES = new Set(["ECONNRESET", "ECONNREFUSED", "EPIPE", "57P03"]);
+const INITIAL_CONNECTIVITY_MAX_ATTEMPTS = 3;
+const INITIAL_CONNECTIVITY_BACKOFF_MS = 50;
+
+function isTransientConnectionError(error) {
+  return TRANSIENT_CONNECTION_ERROR_CODES.has(error?.code);
+}
+
+function requireReadinessSucceeded(succeeded) {
+  if (!succeeded) throw new Error("PostgreSQL readiness checks exhausted without success.");
+}
+
+async function establishInitialConnectivity({ connect, verify, sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)), maxAttempts = INITIAL_CONNECTIVITY_MAX_ATTEMPTS, backoffMs = INITIAL_CONNECTIVITY_BACKOFF_MS, onAttempt = () => {} }) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const candidate = connect();
+    onAttempt({ attempt, maxAttempts });
+    try {
+      await verify(candidate);
+      return candidate;
+    } catch (error) {
+      await candidate.end({ timeout: 5 }).catch(() => {});
+      if (!isTransientConnectionError(error) || attempt === maxAttempts) throw error;
+      await sleep(backoffMs * attempt);
+    }
   }
+  throw new Error("Initial PostgreSQL connectivity attempts were exhausted.");
+}
+
+async function diagnosticExec(command, args, { limit = 600 } = {}) {
+  try {
+    const result = await execFile(command, args);
+    return { ok: true, exitCode: 0, stdout: diagnosticText(result.stdout, limit), stderr: diagnosticText(result.stderr, limit) };
+  } catch (error) {
+    return {
+      ok: false,
+      exitCode: typeof error.code === "number" ? error.code : null,
+      errorCode: typeof error.code === "string" ? error.code : null,
+      stdout: diagnosticText(error.stdout, limit),
+      stderr: diagnosticText(error.stderr, limit),
+    };
+  }
+}
+
+async function captureContainerState(label) {
+  const state = await diagnosticExec("docker", ["inspect", "--format", "{{json .State}}", container]);
+  const identity = await diagnosticExec("docker", ["inspect", "--format", "{{.Id}}|{{.Name}}|{{.Config.Image}}|{{.Created}}|{{.RestartCount}}", container]);
+  const mapping = await diagnosticExec("docker", ["port", container, "5432/tcp"]);
+  let parsedState = null;
+  try { parsedState = JSON.parse(state.stdout); } catch { parsedState = null; }
+  const identityParts = identity.stdout.split("|");
+  const snapshot = {
+    label,
+    exists: identity.ok,
+    containerId: identityParts[0] || null,
+    containerName: identityParts[1]?.replace(/^\//, "") || null,
+    imageTag: identityParts[2] || "postgres:17.6",
+    createdAt: identityParts[3] || null,
+    restartCount: identityParts[4] ? Number(identityParts[4]) : null,
+    state: parsedState ? {
+      running: parsedState.Running ?? null,
+      status: parsedState.Status ?? null,
+      exitCode: parsedState.ExitCode ?? null,
+      oomKilled: parsedState.OOMKilled ?? null,
+      dead: parsedState.Dead ?? null,
+      restarting: parsedState.Restarting ?? null,
+      paused: parsedState.Paused ?? null,
+      pid: parsedState.Pid ?? null,
+      startedAt: parsedState.StartedAt ?? null,
+      finishedAt: parsedState.FinishedAt ?? null,
+      health: parsedState.Health?.Status ?? null,
+    } : null,
+    mappedPort: mapping.ok ? diagnosticText(mapping.stdout) : null,
+  };
+  diagnostic(`${label}_CONTAINER_STATE`, snapshot);
+  return snapshot;
+}
+
+async function capturePostgresLogs(label) {
+  const logs = await diagnosticExec("docker", ["logs", "--tail", "200", container], { limit: 8000 });
+  diagnostic(`${label}_POSTGRES_LOG_TAIL`, { available: logs.ok, exitCode: logs.exitCode, logs: logs.stdout || logs.stderr });
+  return logs;
+}
+
+test.before(async () => {
+  const launchStartedAt = Date.now();
+  const launch = await execFile("docker", ["run", "--detach", "--rm", "--name", container, "--env", `POSTGRES_PASSWORD=${password}`, "--publish", "127.0.0.1::5432", "postgres:17.6"]);
+  const image = await diagnosticExec("docker", ["image", "inspect", "postgres:17.6", "--format", "{{.Id}}|{{json .RepoDigests}}"]);
+  diagnostic("CONTAINER_ID_CAPTURED", {
+    containerId: launch.stdout.trim(),
+    containerName: container,
+    imageTag: "postgres:17.6",
+    imageIdentity: image.ok ? diagnosticText(image.stdout) : null,
+    launchElapsedMs: Date.now() - launchStartedAt,
+  });
+  let readinessSucceeded = false;
+  let readinessFirstSuccessAttempt = null;
+  const readinessStartedAt = Date.now();
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    const probeStartedAt = Date.now();
+    const probe = await diagnosticExec("docker", ["exec", container, "pg_isready", "-U", "postgres"]);
+    diagnostic("READINESS_PROBE", {
+      attempt: attempt + 1,
+      elapsedMs: Date.now() - readinessStartedAt,
+      probeElapsedMs: Date.now() - probeStartedAt,
+      exitCode: probe.exitCode,
+      ok: probe.ok,
+      stdout: probe.stdout,
+      stderr: probe.stderr,
+    });
+    if (probe.ok) {
+      readinessSucceeded = true;
+      readinessFirstSuccessAttempt = attempt + 1;
+      break;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+  diagnostic("READINESS_COMPLETE", {
+    attempts: readinessFirstSuccessAttempt ?? 60,
+    succeeded: readinessSucceeded,
+    firstSuccessAttempt: readinessFirstSuccessAttempt,
+    elapsedMs: Date.now() - readinessStartedAt,
+  });
+  if (!readinessSucceeded) {
+    await captureContainerState("READINESS_FAILURE");
+    await capturePostgresLogs("READINESS_FAILURE");
+  }
+  requireReadinessSucceeded(readinessSucceeded);
   const portOutput = await execFile("docker", ["port", container, "5432/tcp"]).catch(async () => {
     await execFile("docker", ["stop", container]);
     throw new Error("Docker port mapping was unavailable.");
   });
   port = portOutput.stdout.trim().match(/:(\d+)$/)?.[1];
   assert.ok(port);
+  diagnostic("MAPPED_HOST_PORT", { containerPort: "5432/tcp", mapping: diagnosticText(portOutput.stdout), hostPort: port });
+  await captureContainerState("PRE_QUERY");
+  await capturePostgresLogs("PRE_QUERY");
+  diagnostic("CLIENT_CONNECT_BEGIN", { host: "127.0.0.1", port, database: "postgres" });
   const postgres = (await import("postgres")).default;
-  sql = postgres(`postgres://postgres:${password}@127.0.0.1:${port}/postgres`, { max: 1, prepare: false, ssl: false, onnotice: false });
-  await sql`CREATE ROLE anon NOLOGIN`;
+  sql = await establishInitialConnectivity({
+    connect: () => postgres(`postgres://postgres:${password}@127.0.0.1:${port}/postgres`, { max: 1, prepare: false, ssl: false, onnotice: false }),
+    verify: (candidate) => candidate`SELECT 1`,
+    onAttempt: ({ attempt, maxAttempts }) => diagnostic("INITIAL_CONNECTIVITY_ATTEMPT", { attempt, maxAttempts, boundary: "SELECT 1", retryableCodes: [...TRANSIENT_CONNECTION_ERROR_CODES] }),
+  });
+  diagnostic("CLIENT_CONNECT_READY", { clientObjectInitialized: true, connectivityVerified: true });
+  diagnostic("FIRST_QUERY_BEGIN", { statement: "CREATE ROLE anon" });
+  try {
+    await sql`CREATE ROLE anon NOLOGIN`;
+    diagnostic("FIRST_QUERY_RESULT", { ok: true, statement: "CREATE ROLE anon", elapsedMs: Date.now() - readinessStartedAt });
+  } catch (error) {
+    diagnostic("FIRST_QUERY_RESULT", { ok: false, statement: "CREATE ROLE anon", code: error.code ?? null, message: diagnosticText(error.message) });
+    await captureContainerState("POST_FAILURE");
+    const postFailureReadiness = await diagnosticExec("docker", ["exec", container, "pg_isready", "-U", "postgres"]);
+    diagnostic("POST_FAILURE_READINESS", { ok: postFailureReadiness.ok, exitCode: postFailureReadiness.exitCode, stdout: postFailureReadiness.stdout, stderr: postFailureReadiness.stderr });
+    await capturePostgresLogs("POST_FAILURE");
+    throw error;
+  }
   await sql`CREATE ROLE authenticated NOLOGIN`;
   await sql`CREATE ROLE service_role NOLOGIN`;
   ({ artifact, manifest } = await validateBaselineFiles());
 });
 
 test.after(async () => {
+  diagnostic("CLEANUP_BEGIN", { containerName: container });
+  await captureContainerState("CLEANUP_PRE");
   if (referenceSql) await referenceSql.end({ timeout: 5 });
   if (sql && referenceDb) await sql.unsafe(`DROP DATABASE IF EXISTS "${referenceDb}" WITH (FORCE)`).catch(() => {});
   if (baselineReferenceSql) await baselineReferenceSql.end({ timeout: 5 });
   if (sql && baselineDb) await sql.unsafe(`DROP DATABASE IF EXISTS "${baselineDb}" WITH (FORCE)`).catch(() => {});
   if (sql) await sql.end({ timeout: 5 });
-  await execFile("docker", ["rm", "--force", container]).catch(() => {});
+  const cleanup = await diagnosticExec("docker", ["rm", "--force", container]);
+  diagnostic("CLEANUP_END", { ok: cleanup.ok, exitCode: cleanup.exitCode, containerName: container });
 });
 
 test("BASE-01 fresh empty DB applies V1 and records only a baseline receipt", async () => {
@@ -75,6 +227,75 @@ test("BASE-02 valid artifact, manifest, and digest pass", async () => {
 
 test("BASE-03 tampered artifact fails closed", () => {
   assert.equal(validateArtifactAgainstManifest({ artifact: `${artifact}-- tampered`, manifest, digestFile: manifest.artifactDigest }), false);
+});
+
+test("BASE-04 transient initial connectivity resets are retried before mutation", async () => {
+  let attempts = 0;
+  let closed = 0;
+  const verifiedBoundaries = [];
+  const client = { end: async () => { closed += 1; } };
+  const result = await establishInitialConnectivity({
+    connect: () => ({ end: client.end }),
+    verify: async (candidate) => {
+      verifiedBoundaries.push(candidate);
+      attempts += 1;
+      if (attempts === 1) throw Object.assign(new Error("socket reset"), { code: "ECONNRESET" });
+    },
+    sleep: async () => {},
+  });
+  assert.ok(result);
+  assert.equal(attempts, 2);
+  assert.equal(closed, 1);
+  assert.equal(verifiedBoundaries.length, 2);
+});
+
+test("BASE-05 persistent initial connectivity resets fail after the bounded retry limit", async () => {
+  let attempts = 0;
+  let closed = 0;
+  await assert.rejects(() => establishInitialConnectivity({
+    connect: () => ({ end: async () => { closed += 1; } }),
+    verify: async () => {
+      attempts += 1;
+      throw Object.assign(new Error("socket reset"), { code: "ECONNRESET" });
+    },
+    sleep: async () => {},
+  }), (error) => error.code === "ECONNRESET");
+  assert.equal(attempts, INITIAL_CONNECTIVITY_MAX_ATTEMPTS);
+  assert.equal(closed, INITIAL_CONNECTIVITY_MAX_ATTEMPTS);
+});
+
+test("BASE-05A PostgreSQL startup SQLSTATE is retried before mutation", async () => {
+  let attempts = 0;
+  const result = await establishInitialConnectivity({
+    connect: () => ({ end: async () => {} }),
+    verify: async () => {
+      attempts += 1;
+      if (attempts === 1) throw Object.assign(new Error("the database system is starting up"), { code: "57P03" });
+    },
+    sleep: async () => {},
+  });
+  assert.ok(result);
+  assert.equal(attempts, 2);
+});
+
+test("BASE-06 semantic SQL errors are not retried as transport transients", async () => {
+  let attempts = 0;
+  let closed = 0;
+  await assert.rejects(() => establishInitialConnectivity({
+    connect: () => ({ end: async () => { closed += 1; } }),
+    verify: async () => {
+      attempts += 1;
+      throw Object.assign(new Error("permission denied"), { code: "42501" });
+    },
+    sleep: async () => {},
+  }), (error) => error.code === "42501");
+  assert.equal(attempts, 1);
+  assert.equal(closed, 1);
+});
+
+test("BASE-06A readiness exhaustion fails before SQL connectivity", () => {
+  assert.throws(() => requireReadinessSucceeded(false), /readiness checks exhausted/);
+  assert.doesNotThrow(() => requireReadinessSucceeded(true));
 });
 
 test("CANON-01 canonical LF bytes produce the authoritative digest", () => {
