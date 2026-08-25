@@ -39,7 +39,7 @@ function diagnostic(event, fields = {}) {
   console.log(`[BASE01_DIAG] ${JSON.stringify({ event, at: new Date().toISOString(), ...fields })}`);
 }
 
-const TRANSIENT_CONNECTION_ERROR_CODES = new Set(["ECONNRESET", "ECONNREFUSED", "EPIPE"]);
+const TRANSIENT_CONNECTION_ERROR_CODES = new Set(["ECONNRESET", "ECONNREFUSED", "EPIPE", "57P03"]);
 const INITIAL_CONNECTIVITY_MAX_ATTEMPTS = 3;
 const INITIAL_CONNECTIVITY_BACKOFF_MS = 50;
 
@@ -258,6 +258,20 @@ test("BASE-05 persistent initial connectivity resets fail after the bounded retr
   }), (error) => error.code === "ECONNRESET");
   assert.equal(attempts, INITIAL_CONNECTIVITY_MAX_ATTEMPTS);
   assert.equal(closed, INITIAL_CONNECTIVITY_MAX_ATTEMPTS);
+});
+
+test("BASE-05A PostgreSQL startup SQLSTATE is retried before mutation", async () => {
+  let attempts = 0;
+  const result = await establishInitialConnectivity({
+    connect: () => ({ end: async () => {} }),
+    verify: async () => {
+      attempts += 1;
+      if (attempts === 1) throw Object.assign(new Error("the database system is starting up"), { code: "57P03" });
+    },
+    sleep: async () => {},
+  });
+  assert.ok(result);
+  assert.equal(attempts, 2);
 });
 
 test("BASE-06 semantic SQL errors are not retried as transport transients", async () => {
