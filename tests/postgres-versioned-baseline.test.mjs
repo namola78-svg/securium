@@ -31,25 +31,25 @@ let referenceDb;
 let baselineReferenceSql;
 let baselineDb;
 
-function diagnosticText(value) {
-  return String(value ?? "").replaceAll(password, "[REDACTED]").slice(0, 600);
+function diagnosticText(value, limit = 600) {
+  return String(value ?? "").replaceAll(password, "[REDACTED]").slice(0, limit);
 }
 
 function diagnostic(event, fields = {}) {
   console.log(`[BASE01_DIAG] ${JSON.stringify({ event, at: new Date().toISOString(), ...fields })}`);
 }
 
-async function diagnosticExec(command, args) {
+async function diagnosticExec(command, args, { limit = 600 } = {}) {
   try {
     const result = await execFile(command, args);
-    return { ok: true, exitCode: 0, stdout: diagnosticText(result.stdout), stderr: diagnosticText(result.stderr) };
+    return { ok: true, exitCode: 0, stdout: diagnosticText(result.stdout, limit), stderr: diagnosticText(result.stderr, limit) };
   } catch (error) {
     return {
       ok: false,
       exitCode: typeof error.code === "number" ? error.code : null,
       errorCode: typeof error.code === "string" ? error.code : null,
-      stdout: diagnosticText(error.stdout),
-      stderr: diagnosticText(error.stderr),
+      stdout: diagnosticText(error.stdout, limit),
+      stderr: diagnosticText(error.stderr, limit),
     };
   }
 }
@@ -89,7 +89,7 @@ async function captureContainerState(label) {
 }
 
 async function capturePostgresLogs(label) {
-  const logs = await diagnosticExec("docker", ["logs", "--tail", "120", container]);
+  const logs = await diagnosticExec("docker", ["logs", "--tail", "200", container], { limit: 8000 });
   diagnostic(`${label}_POSTGRES_LOG_TAIL`, { available: logs.ok, exitCode: logs.exitCode, logs: logs.stdout || logs.stderr });
   return logs;
 }
@@ -153,6 +153,8 @@ test.before(async () => {
   } catch (error) {
     diagnostic("FIRST_QUERY_RESULT", { ok: false, statement: "CREATE ROLE anon", code: error.code ?? null, message: diagnosticText(error.message) });
     await captureContainerState("POST_FAILURE");
+    const postFailureReadiness = await diagnosticExec("docker", ["exec", container, "pg_isready", "-U", "postgres"]);
+    diagnostic("POST_FAILURE_READINESS", { ok: postFailureReadiness.ok, exitCode: postFailureReadiness.exitCode, stdout: postFailureReadiness.stdout, stderr: postFailureReadiness.stderr });
     await capturePostgresLogs("POST_FAILURE");
     throw error;
   }
