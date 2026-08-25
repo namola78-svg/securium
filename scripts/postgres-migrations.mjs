@@ -8,6 +8,13 @@ import {
   deployMigrationOnReservedConnection,
   MigrationGuardError,
 } from "./postgres-migration-guard.mjs";
+import {
+  BASELINE_BOUNDARY,
+  BASELINE_ID,
+  classifyBaselineState,
+  migrationsAfterBoundary,
+  validateBaselineFiles,
+} from "./postgres-baseline.mjs";
 
 const migrationsDirectory = resolve("db/postgres/migrations");
 const command = process.argv[2] ?? "validate";
@@ -20,6 +27,7 @@ const migrations = await loadMigrations();
 const validation = validateMigrations(migrations);
 
 if (command === "validate") {
+  await validateBaselineFiles();
   console.log(
     `POSTGRES_MIGRATIONS_VALID files=${validation.fileCount} tables=${validation.tableCount} checksum=${validation.checksum}`,
   );
@@ -38,6 +46,21 @@ let runnerIndex = 0;
 let runner = await createPostgresMigrationRunner(migrationUrls[runnerIndex]);
 
 if (command === "status") {
+  const state = await inspectDatabaseState(runner);
+  if (state === "TRUE_EMPTY") {
+    await runner.close();
+    console.log(`POSTGRES_BASELINE_PENDING ${BASELINE_ID}`);
+    process.exit(0);
+  }
+  if (state === "BASELINE_DATABASE") {
+    await runner.close();
+    console.log(`POSTGRES_BASELINE_APPLIED_PENDING ${migrationsAfterBoundary(migrations, BASELINE_BOUNDARY).map((migration) => migration.id).join(",") || "NONE"}`);
+    process.exit(0);
+  }
+  if (["AMBIGUOUS_NONEMPTY", "PARTIAL_BASELINE", "UNKNOWN"].includes(state)) {
+    await runner.close();
+    fail(`POSTGRES_BASELINE_STATE_${state}`);
+  }
   const result = await queryWithConnectionFallback(
     "SELECT id FROM app_schema_migrations ORDER BY applied_at",
   );
@@ -71,7 +94,19 @@ if (
 ) {
   fail("POSTGRES_MIGRATION_APPROVAL_REQUIRED");
 }
-for (const migration of migrations) {
+const databaseState = await inspectDatabaseState(runner);
+if (["AMBIGUOUS_NONEMPTY", "PARTIAL_BASELINE", "UNKNOWN"].includes(databaseState)) {
+  await runner.close();
+  fail(`POSTGRES_BASELINE_STATE_${databaseState}`);
+}
+if (databaseState === "TRUE_EMPTY") {
+  await validateBaselineFiles();
+  await runner.applyBaseline();
+}
+const migrationsToApply = databaseState === "TRUE_EMPTY" || databaseState === "BASELINE_DATABASE"
+  ? migrationsAfterBoundary(migrations, BASELINE_BOUNDARY)
+  : migrations;
+for (const migration of migrationsToApply) {
   const result = await runner.deployMigration(migration);
   if (result.code !== 0) {
     failWithDetail("POSTGRES_MIGRATION_DEPLOY_FAILED", result.errorCode);
@@ -262,7 +297,54 @@ async function createPostgresMigrationRunner(directUrl) {
         return { code: 1, errorCode: safeErrorCode(error), stdout: "" };
       }
     },
+    queryRows: async (statement) => sql.unsafe(statement),
+    applyBaseline: async () => {
+      const baseline = await validateBaselineFiles();
+      const reserved = await sql.reserve();
+      try {
+        await reserved.unsafe(`SET securium.baseline_artifact_sha256 = '${baseline.manifest.artifactDigest}'`);
+        await reserved.unsafe(`SET securium.baseline_schema_sha256 = '${baseline.manifest.schemaDigest}'`);
+        await reserved.unsafe(`SET securium.baseline_security_sha256 = '${baseline.manifest.securityDigest}'`);
+        await reserved.unsafe(baseline.artifact);
+        const receipts = await reserved.unsafe(
+          `SELECT baseline_id, baseline_version, schema_boundary, artifact_sha256, schema_sha256, security_sha256
+           FROM app_schema_baseline_receipts WHERE baseline_id = '${BASELINE_ID}'`,
+        );
+        if (receipts.length !== 1 || receipts[0].artifact_sha256 !== baseline.manifest.artifactDigest || receipts[0].schema_sha256 !== baseline.manifest.schemaDigest || receipts[0].security_sha256 !== baseline.manifest.securityDigest) {
+          throw new Error("POSTGRES_BASELINE_RECEIPT_VERIFICATION_FAILED");
+        }
+      } finally {
+        await reserved.release();
+      }
+    },
   };
+}
+
+async function inspectDatabaseState(runner) {
+  if (!runner.queryRows) return "UNKNOWN";
+  const relationRows = await runner.queryRows(`
+    SELECT count(*)::int AS count
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public' AND c.relkind IN ('r', 'v', 'm')
+      AND c.relname NOT IN ('app_schema_migrations', 'app_schema_baseline_receipts')
+  `);
+  const appRows = await runner.queryRows(
+    "SELECT to_regclass('public.app_schema_migrations') AS relation, to_regclass('public.app_schema_baseline_receipts') AS baseline_relation",
+  );
+  const historical = appRows[0]?.relation
+    ? await runner.queryRows("SELECT count(*)::int AS count FROM public.app_schema_migrations")
+    : [{ count: 0 }];
+  const baseline = appRows[0]?.baseline_relation
+    ? await runner.queryRows(`SELECT count(*)::int AS count, bool_and(baseline_id = '${BASELINE_ID}' AND schema_boundary = '${BASELINE_BOUNDARY}') AS valid FROM public.app_schema_baseline_receipts`)
+    : [{ count: 0, valid: false }];
+  return classifyBaselineState({
+    applicationRelationCount: Number(relationRows[0]?.count ?? 0),
+    historicalReceiptCount: Number(historical[0]?.count ?? 0),
+    baselineReceiptCount: Number(baseline[0]?.count ?? 0),
+    baselineReceiptValid: Boolean(baseline[0]?.valid),
+    historicalReceiptsValid: true,
+  });
 }
 
 async function maybeFindPsql() {
