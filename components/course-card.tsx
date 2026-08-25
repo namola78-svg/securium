@@ -17,14 +17,14 @@ export function CourseCard({ course }: { course: CourseListItem }) {
   return (
     <article className="course-card v2-course-card" aria-labelledby={`course-${course.id}`}>
       <div className="course-card-top"><span className="course-code">{typeLabel}</span><span className={`course-status ${available ? "available" : "planned"}`}>{status}</span></div>
-      <p className="eyebrow">{course.groupName}</p>
+      <p className="eyebrow">{course.groupName} · {typeLabel}</p>
       <h3 id={`course-${course.id}`}>{courseName}</h3>
       <p className="course-summary">{description}</p>
-      <dl className="course-comparison-list">
+      <dl aria-label={`${courseName} 과정 정보`} className="course-comparison-list">
         <div><dt>추천 대상</dt><dd>{recommendedFor}</dd></div>
-        <div><dt>학습 구성</dt><dd>{subjectCount}개 과목 · {topicCount}개 주제</dd></div>
+        <div><dt>학습 콘텐츠</dt><dd>{subjectCount}개 과목 · {topicCount}개 주제</dd></div>
         <div><dt>예상 기간</dt><dd>{estimatedWeeks}주</dd></div>
-        <div><dt>문제</dt><dd>{questionCount ? `${questionCount}문항` : "문항 업데이트 예정"}</dd></div>
+        <div><dt>문제 수</dt><dd>{questionCount ? `${questionCount}문항` : "문항 업데이트 예정"}</dd></div>
       </dl>
       {available ? <ActionButton href={`/courses/${course.slug}`} variant="dark" className="full-width course-card-cta">과정 상세 보기</ActionButton> : <ActionButton variant="secondary" className="full-width course-card-cta" disabled>개설 예정</ActionButton>}
     </article>
