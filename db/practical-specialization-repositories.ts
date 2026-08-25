@@ -20,6 +20,8 @@ import {
   wrongNotes,
 } from "./schema";
 import { AppError } from "@/lib/errors";
+import type { Cs1aPolicyRequest } from "@/lib/policy/cs1a-contract";
+import { assertCs1aMutationAllowed } from "@/lib/policy/cs1a-mutation-gate";
 import {
   gradeCodeAnalysis,
   gradePrivacyAssessment,
@@ -719,7 +721,9 @@ export async function getAdminPracticalData() {
 export async function savePracticalSpecializedContent(
   actorUserId: string,
   input: AdminInput,
+  policy?: Cs1aPolicyRequest,
 ) {
+  assertCs1aMutationAllowed(policy, "DRAFT_MUTATION");
   const id = "id" in input && input.id ? input.id : crypto.randomUUID();
   let courseId: string | null = null;
   switch (input.entity) {

@@ -20,6 +20,8 @@ import type {
   LessonInput,
 } from "@/lib/validation";
 import { AppError } from "@/lib/errors";
+import type { Cs1aPolicyRequest } from "@/lib/policy/cs1a-contract";
+import { assertCs1aMutationAllowed } from "@/lib/policy/cs1a-mutation-gate";
 import {
   assertLessonCompletionAllowed,
   deriveStudySeconds,
@@ -149,7 +151,9 @@ export async function listAdminLearningUnits() {
 export async function saveLearningUnit(
   input: LearningUnitInput,
   actorUserId: string,
+  policy?: Cs1aPolicyRequest,
 ) {
+  assertCs1aMutationAllowed(policy, "DRAFT_MUTATION");
   const scope = await getHierarchyScope(input);
   const existing = input.id
     ? (
@@ -243,7 +247,9 @@ export async function saveLearningUnit(
 export async function archiveLearningUnit(
   id: string,
   actorUserId: string,
+  policy?: Cs1aPolicyRequest,
 ) {
+  assertCs1aMutationAllowed(policy, "CANONICAL_MUTATION");
   const [unit] = await getDb()
     .select({ id: learningUnits.id, courseId: learningUnits.courseId })
     .from(learningUnits)
@@ -369,7 +375,8 @@ async function requireLessonUnit(learningUnitId: string, topicId: string) {
   };
 }
 
-export async function saveLesson(input: LessonInput, actorUserId: string) {
+export async function saveLesson(input: LessonInput, actorUserId: string, policy?: Cs1aPolicyRequest) {
+  assertCs1aMutationAllowed(policy, "DRAFT_MUTATION");
   const scope = await requireLessonUnit(input.learningUnitId, input.topicId);
   const existing = input.id
     ? (
@@ -433,7 +440,8 @@ export async function saveLesson(input: LessonInput, actorUserId: string) {
   return { id, courseId: scope.courseId };
 }
 
-export async function archiveLesson(id: string, actorUserId: string) {
+export async function archiveLesson(id: string, actorUserId: string, policy?: Cs1aPolicyRequest) {
+  assertCs1aMutationAllowed(policy, "CANONICAL_MUTATION");
   const [lesson] = await getDb()
     .select({ id: lessons.id, courseId: lessons.courseId })
     .from(lessons)

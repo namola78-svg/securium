@@ -22,6 +22,8 @@ import {
   wrongNotes,
 } from "./schema";
 import { AppError } from "@/lib/errors";
+import type { Cs1aPolicyRequest } from "@/lib/policy/cs1a-contract";
+import { assertCs1aMutationAllowed } from "@/lib/policy/cs1a-mutation-gate";
 import type {
   curriculumNodeArchiveSchema,
   curriculumNodeSchema,
@@ -818,7 +820,9 @@ export async function getPublishedCurriculumPathForCourse(
 export async function saveCurriculumTree(
   input: CurriculumTreeInput,
   actorUserId: string,
+  policy?: Cs1aPolicyRequest,
 ) {
+  assertCs1aMutationAllowed(policy, "CANONICAL_MUTATION");
   const [course] = await getDb()
     .select({ id: courses.id })
     .from(courses)
@@ -1283,7 +1287,9 @@ async function getParentNode(parentId: string | null) {
 export async function saveCurriculumNode(
   input: CurriculumNodeInput,
   actorUserId: string,
+  policy?: Cs1aPolicyRequest,
 ) {
+  assertCs1aMutationAllowed(policy, "CANONICAL_MUTATION");
   const tree = await getCurriculumTreeById(input.curriculumTreeId);
   if (!tree) {
     throw new AppError(
@@ -1423,7 +1429,9 @@ export async function saveCurriculumNode(
 export async function archiveCurriculumNode(
   input: CurriculumNodeArchiveInput,
   actorUserId: string,
+  policy?: Cs1aPolicyRequest,
 ) {
+  assertCs1aMutationAllowed(policy, "CANONICAL_MUTATION");
   const [node] = await getDb()
     .select({
       id: curriculumNodes.id,

@@ -34,6 +34,8 @@ import {
   wrongNotes,
 } from "./schema";
 import type { QuestionInput } from "@/lib/validation";
+import type { Cs1aPolicyRequest } from "@/lib/policy/cs1a-contract";
+import { assertCs1aMutationAllowed, assertCs1aPublicationAllowed } from "@/lib/policy/cs1a-mutation-gate";
 import {
   gradeQuestion,
   requireSupportedGrade,
@@ -929,7 +931,8 @@ export async function getAdminQuestion(questionId: string) {
   };
 }
 
-export async function saveQuestion(input: QuestionInput, actorUserId: string) {
+export async function saveQuestion(input: QuestionInput, actorUserId: string, policy?: Cs1aPolicyRequest) {
+  assertCs1aMutationAllowed(policy, "DRAFT_MUTATION");
   if (input.subjectIds.length) {
     const subjectRows = await getDb()
       .select({ id: subjects.id, courseId: subjects.courseId })
@@ -1064,7 +1067,8 @@ export async function saveQuestion(input: QuestionInput, actorUserId: string) {
   return id;
 }
 
-export async function cloneQuestion(questionId: string, actorUserId: string) {
+export async function cloneQuestion(questionId: string, actorUserId: string, policy?: Cs1aPolicyRequest) {
+  assertCs1aMutationAllowed(policy, "DRAFT_MUTATION");
   const source = await getAdminQuestion(questionId);
   if (!source) throw new AppError("문제를 찾을 수 없습니다.", 404, "QUESTION_NOT_FOUND");
   return saveQuestion(
@@ -1098,7 +1102,13 @@ export async function transitionQuestion(input: {
   comment: string;
   actorUserId: string;
   actorRoles: string[];
+  policy?: Cs1aPolicyRequest;
 }) {
+  if (input.action === "PUBLISH") {
+    assertCs1aPublicationAllowed(input.policy);
+  } else {
+    assertCs1aMutationAllowed(input.policy, "CANONICAL_MUTATION");
+  }
   const question = await getAdminQuestion(input.questionId);
   if (!question) throw new AppError("문제를 찾을 수 없습니다.", 404, "QUESTION_NOT_FOUND");
   const nextStatus = resolveQuestionTransition({

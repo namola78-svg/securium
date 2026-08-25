@@ -8,6 +8,8 @@ import {
   type QuestionConceptInput,
 } from "../lib/services/question-governance.ts";
 import type { DatabaseProvider, DatabaseValue } from "./provider/database-provider.ts";
+import type { Cs1aPolicyRequest } from "@/lib/policy/cs1a-contract";
+import { assertCs1aMutationAllowed } from "@/lib/policy/cs1a-mutation-gate";
 
 export type GovernedQuestionWriteOutcome =
   | "NEW_SUCCESS"
@@ -26,7 +28,9 @@ export async function saveGovernedQuestionCandidate(
   candidate: GovernedQuestionCandidate,
   actorUserId: string,
   database: DatabaseProvider,
+  policy?: Cs1aPolicyRequest,
 ): Promise<GovernedQuestionWriteResult> {
+  assertCs1aMutationAllowed(policy, "DRAFT_MUTATION");
   assertCandidate(candidate, actorUserId);
   const semanticHash = await computeQuestionSemanticHash({
     id: candidate.id,
