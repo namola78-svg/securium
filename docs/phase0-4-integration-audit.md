@@ -98,7 +98,7 @@
 | 패키지 설치 상태 | 통과 | `npm ls --depth=0`, 누락·invalid 의존성 없음 |
 | Prisma validate/generate | 해당 없음 | Prisma 미사용 |
 | Drizzle schema/generate | 통과 | 44개 테이블, 스키마 변경 없음 |
-| TypeScript | 통과 | `tsc --noEmit` |
+| TypeScript | 통과 | `npm run typecheck` |
 | Lint | 통과 | 오류·경고 없음 |
 | 단위 테스트 | 통과 | 39개 |
 | 통합/E2E | 통과 | 23개, 비로그인·권한·CSRF·멱등성·소유권 포함 |
