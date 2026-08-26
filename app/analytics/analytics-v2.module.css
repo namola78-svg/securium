@@ -1,5 +1,19 @@
 .page {
+  --analytics-surface: var(--v2-color-surface-default);
+  --analytics-canvas: var(--v2-color-bg-canvas);
+  --analytics-ink: var(--v2-color-text-primary);
+  --analytics-muted: var(--v2-color-text-muted);
+  --analytics-line: var(--v2-color-border-default);
+  --analytics-primary: var(--v2-color-action-primary);
+  --analytics-primary-soft: var(--v2-color-accent);
+  --white: var(--analytics-surface);
+  --ink: var(--analytics-ink);
+  --muted: var(--analytics-muted);
+  --line: var(--analytics-line);
+  --lime: var(--analytics-primary);
+  --lime-strong: var(--v2-color-action-primary-hover);
   padding-bottom: calc(72px + env(safe-area-inset-bottom));
+  background: var(--analytics-canvas);
 }
 
 .header {
