@@ -88,6 +88,7 @@ export function validateArtifactAgainstManifest({ artifact, manifest, digestFile
 export async function buildBaselineArtifact({ migrationTextOverrides = {}, migrationNames } = {}) {
   const names = (migrationNames ?? (await readdir(MIGRATIONS_DIRECTORY)))
     .filter((name) => /^\d{4}_.+\.sql$/.test(name))
+    .filter((name) => migrationNames || name.slice(0, 4) <= BASELINE_BOUNDARY)
     .sort();
   const published = new Map();
   for (const name of names) {

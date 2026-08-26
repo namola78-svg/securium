@@ -2631,5 +2631,14 @@
         }
       ]
     }
+  },
+  "cpAExtension": {
+    "snapshot": "drizzle/meta/0032_snapshot.json",
+    "tables": [
+      "concepts",
+      "concept_versions",
+      "concept_labels"
+    ],
+    "migration": "db/postgres/migrations/0020_concept_persistence_cp_a.sql"
   }
 }

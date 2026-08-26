@@ -225,6 +225,13 @@
       "when": 1787561289870,
       "tag": "0031_evidence_e2_a_recompute_operations",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "6",
+      "when": 1787705172347,
+      "tag": "0032_concept_persistence_cp_a",
+      "breakpoints": true
     }
   ]
 }

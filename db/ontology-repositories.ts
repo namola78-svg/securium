@@ -16,6 +16,13 @@ import {
 } from "@/lib/services/ontology-service";
 import { AppError } from "@/lib/errors";
 
+// CP-A governed identity writes are intentionally separate from legacy ontology rows.
+export {
+  addConceptLabel,
+  createConcept,
+  createConceptVersion,
+} from "./concept-persistence-repositories";
+
 export type OntologyConceptFilters = {
   namespace?: string;
   status?: "ACTIVE" | "DRAFT" | "ARCHIVED";
