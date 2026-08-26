@@ -218,8 +218,30 @@ jobs:
           assert.equal(state, "HISTORICAL_DATABASE");
           assert.equal(applications[0].count, 19);
           assert.equal(baseline[0].relation, null);
-          const migrations = (await readdir("db/postgres/migrations")).filter((name) => /^\d{4}_.+\.sql$/.test(name)).map((name) => ({ id: name.replace(/\.sql$/, "") }));
-          assert.deepEqual(migrationsAfterBoundary(migrations, BASELINE_BOUNDARY).map(({ id }) => id), []);
+          const migrationFiles = (await readdir("db/postgres/migrations"))
+            .filter((name) => /^\d{4}_.+\.sql$/.test(name))
+            .sort();
+          const migrations = migrationFiles.map((name) => ({ id: name.replace(/\.sql$/, "") }));
+          const postBoundaryIds = (candidates) => migrationsAfterBoundary(candidates, BASELINE_BOUNDARY).map(({ id }) => id);
+          const expectedPostBoundaryIds = migrations
+            .filter(({ id }) => Number(id.slice(0, 4)) > Number(BASELINE_BOUNDARY))
+            .map(({ id }) => id);
+          assert.deepEqual(postBoundaryIds(migrations), expectedPostBoundaryIds);
+          assert.deepEqual(postBoundaryIds([{ id: "0019_boundary" }]), []);
+          assert.deepEqual(postBoundaryIds([{ id: "0020_concept_persistence_cp_a" }]), ["0020_concept_persistence_cp_a"]);
+          assert.deepEqual(postBoundaryIds([
+            { id: "0021_future" },
+            { id: "0020_concept_persistence_cp_a" },
+          ]).sort(), ["0020_concept_persistence_cp_a", "0021_future"]);
+          assert.deepEqual(postBoundaryIds([{ id: "0018_before" }, { id: "0019_boundary" }]), []);
+          assert.deepEqual(
+            postBoundaryIds(
+              ["0019_boundary.sql", "0020_concept_persistence_cp_a.sql", "README.md"]
+                .filter((name) => /^\d{4}_.+\.sql$/.test(name))
+                .map((name) => ({ id: name.replace(/\.sql$/, "") })),
+            ),
+            ["0020_concept_persistence_cp_a"],
+          );
           const freshDatabase = `fresh_equivalence_${process.env.GITHUB_RUN_ID}`;
           if (!freshDatabase.startsWith("fresh_equivalence_")) throw new Error("FRESH_EQUIVALENCE_DATABASE_SAFETY_GUARD_FAILED");
           await admin.unsafe(`CREATE DATABASE "${freshDatabase}"`);
