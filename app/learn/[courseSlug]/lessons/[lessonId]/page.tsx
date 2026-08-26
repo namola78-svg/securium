@@ -61,10 +61,11 @@ export default async function LessonPage({
           <span aria-current="page">현재 레슨</span>
         </nav>
 
-        <header className={styles.lessonHeader}>
+        <header className={styles.lessonHeader} data-learning-route="lesson">
           <p className={styles.eyebrow}>핵심 개념</p>
           <h1>{publicCopy(lesson.title)}</h1>
           <p>{publicCopy(lesson.summary)}</p>
+          <p className={styles.lessonIntent}>본문을 읽고 공식 근거를 확인하며 학습을 마무리합니다.</p>
           <div className={styles.lessonHeaderMeta}>
             <span>{publicCopy(lesson.topicName)}</span>
             <span>예상 {lesson.estimatedMinutes}분</span>

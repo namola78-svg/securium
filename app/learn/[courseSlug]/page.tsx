@@ -49,6 +49,15 @@ export default async function LearnCoursePage({
     : `/practice/${course.slug}?random=1&count=10`;
   const isSecurityCertificationCourse =
     course.id === "course-ise" || course.id === "course-isie";
+  const conceptEntries = curriculum
+    .flatMap((subject) =>
+      subject.topics.slice(0, 2).map((topic) => ({
+        href: `/learn/${course.slug}/subjects/${subject.id}`,
+        subject: subject.name,
+        title: topic.name,
+      })),
+    )
+    .slice(0, 6);
 
   return (
     <main className={styles.page} data-learn-overview-v2="">
@@ -59,10 +68,15 @@ export default async function LearnCoursePage({
           <span aria-current="page">{course.shortName}</span>
         </nav>
 
-        <header className={styles.courseHeader}>
+        <header className={styles.courseHeader} data-learn-course-header="">
           <p className={styles.eyebrow}>{course.groupName}</p>
           <h1>{course.name}</h1>
-          <p>복잡한 과정 구조보다 지금 배울 내용부터 확인하세요.</p>
+          <p>지금 배울 내용을 먼저 확인하고, 과정의 전체 흐름은 필요할 때 확장해 보세요.</p>
+          <div className={styles.courseHeaderMeta} aria-label="과정 학습 맥락">
+            <span>{isSecurityCertificationCourse ? "자격증 학습" : "실무 학습"}</span>
+            <span>{theory.completedLessons}/{theory.totalLessons} 레슨 완료</span>
+            {activity.dueReviewCount > 0 ? <span>복습 {activity.dueReviewCount}개 예정</span> : null}
+          </div>
         </header>
 
         <section className={styles.overviewGrid} aria-label="현재 과정 학습 상태">
@@ -98,6 +112,31 @@ export default async function LearnCoursePage({
             <p>완료한 레슨 {theory.completedLessons}개 · 전체 {theory.totalLessons}개</p>
           </aside>
         </section>
+
+        {conceptEntries.length ? (
+          <section className={styles.conceptSection} aria-labelledby="learn-concepts-title" data-learn-concepts="">
+            <header className={styles.sectionHeading}>
+              <div>
+                <p className={styles.eyebrow}>핵심 주제</p>
+                <h2 id="learn-concepts-title">이번 과정에서 만나는 개념</h2>
+                <span>과목에 실제로 연결된 주제부터 열어 보고, 필요한 레슨으로 이어가세요.</span>
+              </div>
+              <strong>{conceptEntries.length}개 주제</strong>
+            </header>
+            <div className={styles.conceptRail}>
+              {conceptEntries.map((concept, index) => (
+                <Link className={styles.conceptRow} href={concept.href} key={`${concept.subject}-${concept.title}`}>
+                  <span className={styles.conceptNumber}>{String(index + 1).padStart(2, "0")}</span>
+                  <span>
+                    <small>{concept.subject}</small>
+                    <strong>{concept.title}</strong>
+                  </span>
+                  <b aria-hidden="true">→</b>
+                </Link>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         <nav className={styles.secondaryActions} aria-label="과정 보조 학습">
           <Link href={`/practice/${course.slug}?random=1&count=10`}>문제 풀기</Link>
