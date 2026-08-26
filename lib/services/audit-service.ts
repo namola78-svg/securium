@@ -62,6 +62,21 @@ export const AUDIT_ACTION_METADATA_ALLOWLIST: Record<string, readonly string[]> 
     "evaluationPayloadDigest",
   ],
   PRACTICAL_EVALUATOR_FAILED: ["reasonCode", "evaluatorJobId"],
+  CS1A_GOVERNANCE_DECISION_CONFIRMED: [
+    "policyVersion",
+    "resourceType",
+    "resourceId",
+    "resourceRevisionId",
+    "revisionHash",
+    "decision",
+    "reasonCode",
+    "sourceSetHash",
+    "humanDecisionHash",
+    "rightsDisposition",
+    "currentnessDisposition",
+    "contentClass",
+    "publicationAuthority",
+  ],
 };
 
 const SENSITIVE_KEY =

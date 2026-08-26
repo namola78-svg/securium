@@ -54,6 +54,36 @@ export function createAuditInsert(input: AuditWriteInput) {
   });
 }
 
+/** Creates one server-owned audit event and returns its generated ID. */
+export async function createAuditEvent(
+  input: AuditWriteInput,
+  request?: Request,
+) {
+  const context = request
+    ? await requestAuditContext(request, env.AUDIT_IP_HASH_SALT)
+    : {
+        ipHash: input.ipHash ?? null,
+        userAgentSummary: input.userAgentSummary ?? null,
+        requestId: input.requestId ?? crypto.randomUUID(),
+      };
+  const id = crypto.randomUUID();
+  const metadata = sanitizeAuditMetadata(input.action, input.metadata);
+  await getDb().insert(auditLogs).values({
+    id,
+    actorUserId: input.actorUserId,
+    actorRole: input.actorRole ?? choosePrimaryActorRole(input.actorRoles ?? []),
+    action: input.action.slice(0, 100),
+    resourceType: input.resourceType.slice(0, 100),
+    resourceId: input.resourceId.slice(0, 200),
+    result: input.result ?? "SUCCESS",
+    ipHash: context.ipHash,
+    userAgentSummary: context.userAgentSummary,
+    requestId: input.requestId ?? context.requestId,
+    metadataJson: JSON.stringify(metadata),
+  });
+  return id;
+}
+
 export async function recordAuditEvent(
   input: AuditWriteInput,
   request?: Request,
