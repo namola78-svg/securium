@@ -2,9 +2,7 @@
   min-height: 100%;
   padding: clamp(1.5rem, 3vw, 3rem) clamp(1rem, 3vw, 3rem) 5rem;
   color: var(--v2-color-text-primary);
-  background:
-    radial-gradient(circle at 88% 4%, rgb(219 234 254 / .72), transparent 28rem),
-    var(--v2-color-bg-subtle);
+  background: var(--v2-color-bg-canvas);
 }
 .container { width: min(72rem, 100%); margin: 0 auto; }
 .eyebrow { margin: 0; color: var(--v2-color-action-primary); font-size: var(--v2-font-size-caption); font-weight: var(--v2-font-weight-bold); letter-spacing: .08em; text-transform: uppercase; }
@@ -17,11 +15,11 @@
 .primaryAction { border: 1px solid var(--v2-color-action-primary); color: white; background: var(--v2-color-action-primary); }
 .secondaryAction, .resetAction { border: 1px solid var(--v2-color-border-default); color: var(--v2-color-text-secondary); background: var(--v2-color-surface-default); }
 .reviewHero { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(18rem, .7fr); gap: var(--v2-space-4); margin-top: var(--v2-space-6); }
-.reviewLead { display: grid; align-content: start; min-height: 22rem; padding: clamp(1.5rem, 4vw, 3rem); border-radius: var(--v2-radius-surface-md); color: white; background: linear-gradient(135deg, #0b3b8f, #0f66dd 68%, #2885ef); box-shadow: var(--v2-shadow-raised); }
-.reviewLead .eyebrow { color: #bfdbfe; }
+.reviewLead { display: grid; align-content: start; min-height: 22rem; padding: clamp(1.5rem, 4vw, 3rem); border-radius: var(--v2-radius-surface-md); color: var(--v2-color-text-inverse); background: var(--v2-color-action-primary-hover); box-shadow: var(--v2-shadow-raised); }
+.reviewLead .eyebrow { color: var(--v2-color-focus-inverse); }
 .reviewLead h2 { max-width: 38rem; margin: var(--v2-space-4) 0 var(--v2-space-3); font-size: clamp(1.75rem, 4vw, 2.75rem); letter-spacing: -.045em; line-height: 1.18; }
-.reviewLead > p:not(.eyebrow) { max-width: 38rem; margin: 0 0 var(--v2-space-7); color: rgb(255 255 255 / .82); font-size: var(--v2-font-size-body); line-height: 1.65; }
-.reviewLead .primaryAction { justify-self: start; margin-top: auto; border-color: white; color: #0b3b8f; background: white; }
+.reviewLead > p:not(.eyebrow) { max-width: 38rem; margin: 0 0 var(--v2-space-7); color: color-mix(in srgb, var(--v2-color-text-inverse) 82%, transparent); font-size: var(--v2-font-size-body); line-height: 1.65; }
+.reviewLead .primaryAction { justify-self: start; margin-top: auto; border-color: var(--v2-color-text-inverse); color: var(--v2-color-action-primary-hover); background: var(--v2-color-text-inverse); }
 .reviewSummary, .notesSummary, .section, .emptyState { border: 1px solid var(--v2-color-border-default); border-radius: var(--v2-radius-surface-md); background: var(--v2-color-surface-default); }
 .reviewSummary { display: grid; align-content: start; padding: clamp(1.25rem, 3vw, 2rem); }
 .summaryHeading { padding-bottom: var(--v2-space-4); border-bottom: 1px solid var(--v2-color-border-default); }

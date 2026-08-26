@@ -25,7 +25,9 @@ test("mock exam V2 exposes navigation, submit confirmation, results, and review 
   assert.match(session, /공식 해설/);
   assert.match(session, /href="\/reviews"/);
   assert.match(session, /href="\/wrong-notes"/);
-  assert.match(shell, /pathname\.startsWith\("\/mock-exams\/attempts\/"\)/);
+  const nav = readFileSync("lib/ui-nav.ts", "utf8");
+  assert.match(shell, /isLearnerFocusRoute\(pathname\)/);
+  assert.match(nav, /mock-exams\/attempts/);
 });
 
 test("mock exam entry and instructions use actual repository metadata", () => {
