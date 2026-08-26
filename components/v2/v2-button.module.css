@@ -9,7 +9,7 @@
   border-radius: var(--v2-radius-control);
   font-family: var(--v2-font-family-sans);
   font-size: var(--v2-font-size-label);
-  font-weight: var(--v2-font-weight-semibold);
+  font-weight: var(--v2-font-weight-bold);
   line-height: var(--v2-line-height-label);
   text-align: center;
   text-decoration: none;
@@ -55,6 +55,7 @@
 .ghost {
   background: transparent;
   color: var(--v2-color-text-secondary);
+  border-color: transparent;
 }
 
 .ghost:hover:not(:disabled):not([aria-disabled="true"]) {

@@ -1,5 +1,6 @@
 import type { HTMLAttributes, ReactNode } from "react";
 import styles from "./v2-foundation.module.css";
+import grammarStyles from "./visual-grammar.module.css";
 
 type V2FoundationProps = HTMLAttributes<HTMLDivElement> & {
   children: ReactNode;
@@ -18,7 +19,7 @@ export function V2Foundation({
 }: V2FoundationProps) {
   return (
     <div
-      className={[styles.root, "securium-v2", className].filter(Boolean).join(" ")}
+      className={[styles.root, grammarStyles.root, "securium-v2", className].filter(Boolean).join(" ")}
       data-v2-foundation=""
       {...props}
     >
