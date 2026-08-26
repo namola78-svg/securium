@@ -232,6 +232,13 @@
       "when": 1787705172347,
       "tag": "0032_concept_persistence_cp_a",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "6",
+      "when": 1787711348764,
+      "tag": "0033_cs1a_governance_receipts",
+      "breakpoints": true
     }
   ]
 }
