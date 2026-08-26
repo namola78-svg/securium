@@ -1,0 +1,52 @@
+.root {
+  min-width: 0;
+  text-rendering: optimizeLegibility;
+}
+
+/* Shared reading and hierarchy rules. Route modules remain responsible for
+   their own macrostructure and task-specific layout. */
+.root :global(h1),
+.root :global(h2),
+.root :global(h3) {
+  text-wrap: balance;
+  font-kerning: normal;
+}
+
+.root :global(h1) {
+  letter-spacing: var(--v2-letter-spacing-display);
+}
+
+.root :global(h2),
+.root :global(h3) {
+  letter-spacing: var(--v2-letter-spacing-editorial);
+}
+
+.root :global(dl) {
+  font-variant-numeric: tabular-nums;
+}
+
+/* A section boundary should be legible through rhythm before enclosure. */
+.root :global(main > section + section) {
+  margin-block-start: var(--v2-space-section);
+}
+
+/* Preserve semantic status, but keep metadata quiet and rectangular enough
+   to avoid turning every fact into a floating pill. */
+.root :global([data-v2-status]) {
+  border-radius: var(--v2-radius-control);
+  font-size: var(--v2-font-size-caption);
+  font-weight: var(--v2-font-weight-semibold);
+  line-height: var(--v2-line-height-label);
+}
+
+@media (max-width: 680px) {
+  .root :global(main > section + section) {
+    margin-block-start: var(--v2-space-subsection);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root {
+    text-rendering: auto;
+  }
+}
