@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "AI_SEARCH_BASELINE_MANIFEST_V1",
+  "baselineVersion": "V1",
+  "freezeStatus": "FROZEN",
+  "semantic": {
+    "benchmarkVersion": "AI_SEARCH_EVAL_V1",
+    "hashContractRevision": "SEMANTIC_HASH_V2",
+    "semanticResultHash": "8714a4e1940a4951c34b8f4b29f2d3e32cc63a199f23003e7e17baa554dc113a",
+    "corpusIdentity": "1b6181cbe15acefb16122e1e20ecbc33e6907b3143f2382a1ddbe948e3b54ab8",
+    "expectationIdentity": "bc128f8a16c686ba010a0795cb7a9a8f7808998f068e8223c6399df15ce35267",
+    "fixtureIdentity": "MCPA_BENCHMARK_FIXTURE_V1:8e0a33184e1d2b03a4473d707277a484fe0f10e35ad6a64dc3264bbfd30bf049",
+    "classificationAuthorityIdentity": "67d90533b89c492a164064adddace706a977b384a97ffb50a63f494e856e78e9",
+    "caseContract": {
+      "total": 100,
+      "executed": 79,
+      "contractOnly": 21
+    },
+    "acceptance": {
+      "hardGateCount": 0,
+      "qualityGapCount": 0
+    }
+  },
+  "provenance": {
+    "sourceGitSha": "6517e6c35d182784720d55f223d64b7a835d63d6",
+    "executionIdentityHash": "9639b7587be5dc57b676d262f265654815778d377175dd188b3db1f6ba40ca96",
+    "technicalReview": {
+      "status": "PASS",
+      "evidenceRef": "docs/reports/securium-ai-search-semantic-hash-v2-independent-review.md",
+      "reviewedAt": "2026-08-25"
+    }
+  },
+  "governance": {
+    "humanFreezeDecision": "APPROVED",
+    "humanDecision": "APPROVE_BASELINE_V1_FOR_FREEZE_TRANSITION",
+    "humanDecisionHash": "b4da07afecab9712e0393a5e2b318431c9dcb567306d86d07594797c5d60bfdc",
+    "freezeEvidenceRef": "reports/ai-search/securium-ai-search-baseline-v1-b4-freeze-evidence.json",
+    "frozenAt": "2026-08-26T00:15:20.189Z"
+  }
+}

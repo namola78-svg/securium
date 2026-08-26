@@ -16,6 +16,9 @@ export const FAILURE_CODES = [
   "IDENTITY_ERROR",
 ] as const;
 
+export const HASH_CONTRACT_REVISION = "SEMANTIC_HASH_V2" as const;
+export const LEGACY_HASH_CONTRACT_REVISION = "LEGACY_EXECUTION_BOUND" as const;
+
 export type FailureCode = (typeof FAILURE_CODES)[number];
 export type BenchmarkCase = {
   id: string;
@@ -53,6 +56,54 @@ export type CaseMetrics = {
   supportRatio: number | "N/A";
 };
 
+export type BenchmarkMetadata = {
+  mainSha: string;
+  benchmarkVersion: string;
+};
+
+export type HashContractRevision = typeof HASH_CONTRACT_REVISION | typeof LEGACY_HASH_CONTRACT_REVISION;
+
+export type BenchmarkAggregateMetrics = {
+  precisionAtK: "N/A";
+  recallAtK: "N/A";
+  mrr: "N/A";
+  ndcgAtK: "N/A";
+  hitRateAtK: "N/A";
+  resultCount: number;
+  duplicateStableKeyCount: number;
+  serializedResultBytes: number;
+};
+
+export type BenchmarkSummary = {
+  mainSha: string;
+  benchmarkVersion: string;
+  hashContractRevision: HashContractRevision;
+  classificationAuthorityIdentity: string;
+  fixtureIdentity: string;
+  caseCount: number;
+  currentExecutedCount: number;
+  futureContractCount: number;
+  hardGateFailureCount: number;
+  qualityGapCount: number;
+  metrics: BenchmarkAggregateMetrics;
+};
+
+export type SemanticIdentity = {
+  hashContractRevision: typeof HASH_CONTRACT_REVISION;
+  semanticResultHash: string;
+};
+
+export type BenchmarkRun = {
+  summary: BenchmarkSummary;
+  results: CaseResult[];
+  semanticResultHash: string;
+  semanticIdentity: SemanticIdentity;
+  executionIdentityHash: string;
+  hashContractRevision: typeof HASH_CONTRACT_REVISION;
+  /** @deprecated Use semanticResultHash or semanticIdentity for current outputs. */
+  benchmarkImplementationHash: string;
+};
+
 export type CaseResult = {
   id: string;
   disposition: "PASS" | "PASS_UNJUDGED" | "NOT_CURRENTLY_EXECUTABLE" | "HARD_FAIL" | "QUALITY_GAP";
@@ -85,6 +136,90 @@ export function canonicalJson(value: unknown): string {
 export function fixtureIdentity(): string {
   const digest = createHash("sha256").update(canonicalJson(benchmarkFixtureData)).digest("hex");
   return BENCHMARK_FIXTURE_ID + ":" + digest;
+}
+
+export function corpusIdentity(cases: readonly BenchmarkCase[]): string {
+  return createHash("sha256").update(canonicalJson(cases)).digest("hex");
+}
+
+export function expectationIdentity(cases: readonly BenchmarkCase[]): string {
+  const expectations = cases.map((testCase) => ({
+    id: testCase.id,
+    intent: testCase.intent,
+    authorityStatus: testCase.authorityStatus,
+    currentClassification: testCase.currentClassification,
+    currentExpectedBehavior: testCase.currentExpectedBehavior,
+    futureExpectedBehavior: testCase.futureExpectedBehavior,
+    allowedDomains: testCase.allowedDomains,
+    forbiddenDomains: testCase.forbiddenDomains,
+    expectedStableKeys: testCase.expectedStableKeys,
+    relevanceRubric: testCase.relevanceRubric,
+    abstentionExpected: testCase.abstentionExpected,
+    ambiguityExpected: testCase.ambiguityExpected,
+    privateDataBoundary: testCase.privateDataBoundary,
+    governanceBoundary: testCase.governanceBoundary,
+  }));
+  return createHash("sha256").update(canonicalJson(expectations)).digest("hex");
+}
+
+export function classificationAuthorityIdentity(cases: readonly BenchmarkCase[]): string {
+  return createHash("sha256").update(canonicalJson({
+    corpusIdentity: corpusIdentity(cases),
+    expectationIdentity: expectationIdentity(cases),
+  })).digest("hex");
+}
+
+export function interpretHashContractRevision(value: unknown): HashContractRevision {
+  if (value === undefined || value === null) return LEGACY_HASH_CONTRACT_REVISION;
+  if (value === HASH_CONTRACT_REVISION) return HASH_CONTRACT_REVISION;
+  if (value === LEGACY_HASH_CONTRACT_REVISION) return LEGACY_HASH_CONTRACT_REVISION;
+  throw new Error("UNSUPPORTED_HASH_CONTRACT_REVISION");
+}
+
+export function buildSemanticPayload(
+  cases: readonly BenchmarkCase[],
+  summary: BenchmarkSummary,
+  results: readonly CaseResult[],
+) {
+  const semanticSummary = Object.fromEntries(
+    Object.entries(summary).filter(([key]) => ![
+      "mainSha",
+      "hashContractRevision",
+      "classificationAuthorityIdentity",
+    ].includes(key)),
+  ) as Omit<BenchmarkSummary, "mainSha" | "hashContractRevision" | "classificationAuthorityIdentity">;
+  return {
+    corpusIdentity: corpusIdentity(cases),
+    expectationIdentity: expectationIdentity(cases),
+    summary: semanticSummary,
+    results,
+  };
+}
+
+export function computeSemanticResultHash(
+  cases: readonly BenchmarkCase[],
+  summary: BenchmarkSummary,
+  results: readonly CaseResult[],
+): string {
+  return createHash("sha256").update(canonicalJson(buildSemanticPayload(cases, summary, results))).digest("hex");
+}
+
+export function computeExecutionIdentityHash(
+  metadata: BenchmarkMetadata,
+  summary: BenchmarkSummary,
+  cases: readonly BenchmarkCase[],
+  semanticResultHash: string,
+): string {
+  return createHash("sha256").update(canonicalJson({
+    mainSha: metadata.mainSha,
+    benchmarkVersion: metadata.benchmarkVersion,
+    hashContractRevision: summary.hashContractRevision,
+    classificationAuthorityIdentity: summary.classificationAuthorityIdentity,
+    fixtureIdentity: summary.fixtureIdentity,
+    corpusIdentity: corpusIdentity(cases),
+    expectationIdentity: expectationIdentity(cases),
+    semanticResultHash,
+  })).digest("hex");
 }
 
 export function normalizeResults(
@@ -169,16 +304,18 @@ export async function executeCase(core: McpACore, testCase: BenchmarkCase): Prom
 export async function runBenchmark(
   cases: readonly BenchmarkCase[],
   core: McpACore,
-  metadata: Readonly<{ mainSha: string; benchmarkVersion: string }>,
-) {
+  metadata: Readonly<BenchmarkMetadata>,
+): Promise<BenchmarkRun> {
   const results: CaseResult[] = [];
   for (const testCase of cases) results.push(await executeCase(core, testCase));
   const current = results.filter((result) => result.disposition !== "NOT_CURRENTLY_EXECUTABLE");
   const future = results.filter((result) => result.disposition === "NOT_CURRENTLY_EXECUTABLE");
   const hardFailures = results.flatMap((result) => result.failureCodes);
   const qualityGaps = results.filter((result) => result.disposition === "QUALITY_GAP");
-  const summary = {
+  const summary: BenchmarkSummary = {
     ...metadata,
+    hashContractRevision: HASH_CONTRACT_REVISION,
+    classificationAuthorityIdentity: classificationAuthorityIdentity(cases),
     fixtureIdentity: fixtureIdentity(),
     caseCount: cases.length,
     currentExecutedCount: current.length,
@@ -196,9 +333,18 @@ export async function runBenchmark(
       serializedResultBytes: results.reduce((sum, result) => sum + result.metrics.serializedResultBytes, 0),
     },
   };
+  const semanticResultHash = computeSemanticResultHash(cases, summary, results);
+  const semanticIdentity: SemanticIdentity = {
+    hashContractRevision: HASH_CONTRACT_REVISION,
+    semanticResultHash,
+  };
   return {
     summary,
     results,
-    benchmarkImplementationHash: createHash("sha256").update(canonicalJson({ summary, results })).digest("hex"),
+    semanticResultHash,
+    semanticIdentity,
+    executionIdentityHash: computeExecutionIdentityHash(metadata, summary, cases, semanticResultHash),
+    hashContractRevision: HASH_CONTRACT_REVISION,
+    benchmarkImplementationHash: semanticResultHash,
   };
 }

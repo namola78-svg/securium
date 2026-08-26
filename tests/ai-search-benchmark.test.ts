@@ -5,7 +5,13 @@ import { createBenchmarkMcpACore } from "./ai-search-benchmark.fixture.ts";
 import {
   FAST_GATE_CASE_IDS,
   FAILURE_CODES,
+  HASH_CONTRACT_REVISION,
+  LEGACY_HASH_CONTRACT_REVISION,
+  classificationAuthorityIdentity,
+  computeExecutionIdentityHash,
+  computeSemanticResultHash,
   fixtureIdentity,
+  interpretHashContractRevision,
   normalizeResults,
   runBenchmark,
   scoreCase,
@@ -139,5 +145,85 @@ test("FAST_GATE and FULL_BENCHMARK are deterministic against the same fixture", 
   assert.equal(runA.summary.currentExecutedCount, 79);
   assert.equal(runA.summary.hardGateFailureCount, 0);
   assert.equal(runA.benchmarkImplementationHash, runB.benchmarkImplementationHash);
+  assert.equal(runA.semanticResultHash, runB.semanticResultHash);
+  assert.equal(runA.hashContractRevision, HASH_CONTRACT_REVISION);
+  assert.equal(runA.summary.hashContractRevision, HASH_CONTRACT_REVISION);
+  assert.deepEqual(runA.semanticIdentity, {
+    hashContractRevision: HASH_CONTRACT_REVISION,
+    semanticResultHash: runA.semanticResultHash,
+  });
   assert.deepEqual(runA.results, runB.results);
+});
+
+test("SEMANTIC_HASH_V2 output is versioned and legacy absence is deterministic", async () => {
+  const run = await runBenchmark(cases, createBenchmarkMcpACore(), {
+    mainSha: "sha-a",
+    benchmarkVersion: "AI_SEARCH_EVAL_V1",
+  });
+  assert.equal(run.summary.hashContractRevision, HASH_CONTRACT_REVISION);
+  assert.equal(run.hashContractRevision, HASH_CONTRACT_REVISION);
+  assert.equal(run.benchmarkImplementationHash, run.semanticResultHash);
+  assert.equal(interpretHashContractRevision(undefined), LEGACY_HASH_CONTRACT_REVISION);
+  assert.equal(interpretHashContractRevision(null), LEGACY_HASH_CONTRACT_REVISION);
+  assert.equal(interpretHashContractRevision(HASH_CONTRACT_REVISION), HASH_CONTRACT_REVISION);
+});
+
+test("hash-contract metadata namespaces identity without changing semantic payload", async () => {
+  const run = await runBenchmark(cases, createBenchmarkMcpACore(), {
+    mainSha: "sha-a",
+    benchmarkVersion: "AI_SEARCH_EVAL_V1",
+  });
+  const metadataChangedSummary = {
+    ...run.summary,
+    hashContractRevision: LEGACY_HASH_CONTRACT_REVISION,
+    classificationAuthorityIdentity: "different-authority",
+  };
+  assert.equal(
+    computeSemanticResultHash(cases, metadataChangedSummary, run.results),
+    run.semanticResultHash,
+  );
+  assert.notEqual(
+    computeExecutionIdentityHash({ mainSha: "sha-a", benchmarkVersion: "AI_SEARCH_EVAL_V1" }, metadataChangedSummary, cases, run.semanticResultHash),
+    run.executionIdentityHash,
+  );
+});
+
+test("classification-authority identity is deterministic and corpus/expectation-bound", () => {
+  assert.equal(classificationAuthorityIdentity(cases), classificationAuthorityIdentity(cases));
+  const changed = cases.map((testCase, index) => index === 0 ? {
+    ...testCase,
+    currentClassification: "BOUNDARY_TEST",
+  } : testCase);
+  assert.notEqual(classificationAuthorityIdentity(cases), classificationAuthorityIdentity(changed));
+});
+
+test("semantic identity excludes mainSha while execution identity preserves provenance", async () => {
+  const runA = await runBenchmark(cases, createBenchmarkMcpACore(), {
+    mainSha: "sha-a",
+    benchmarkVersion: "AI_SEARCH_EVAL_V1",
+  });
+  const runB = await runBenchmark(cases, createBenchmarkMcpACore(), {
+    mainSha: "sha-b",
+    benchmarkVersion: "AI_SEARCH_EVAL_V1",
+  });
+  assert.equal(runA.semanticResultHash, runB.semanticResultHash);
+  assert.equal(runA.benchmarkImplementationHash, runB.benchmarkImplementationHash);
+  assert.notEqual(runA.executionIdentityHash, runB.executionIdentityHash);
+  assert.equal(runA.summary.mainSha, "sha-a");
+  assert.equal(runB.summary.mainSha, "sha-b");
+});
+
+test("semantic identity remains sensitive to a real benchmark outcome change", async () => {
+  const run = await runBenchmark(cases, createBenchmarkMcpACore(), {
+    mainSha: "sha-a",
+    benchmarkVersion: "AI_SEARCH_EVAL_V1",
+  });
+  const changedResults = run.results.map((item, index) => index === 0 ? {
+    ...item,
+    disposition: "QUALITY_GAP" as const,
+  } : item);
+  assert.notEqual(
+    computeSemanticResultHash(cases, run.summary, changedResults),
+    run.semanticResultHash,
+  );
 });
