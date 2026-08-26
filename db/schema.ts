@@ -8,6 +8,7 @@ import {
   sqliteTable,
   text,
   uniqueIndex,
+  type AnySQLiteColumn,
 } from "drizzle-orm/sqlite-core";
 
 const timestamps = {
@@ -41,6 +42,70 @@ export const roles = sqliteTable("roles", {
 
 const governedStatuses = sql`'DRAFT', 'ACTIVE', 'RETIRED'`;
 const governedLabelTypes = sql`'PREF', 'ALT'`;
+
+const cs1aResourceTypes = sql`'CONTENT', 'CONTENT_REVISION', 'QUESTION', 'QUESTION_VERSION', 'LESSON', 'LEARNING_UNIT', 'COURSE_LESSON', 'CURRICULUM_TREE', 'CURRICULUM_NODE', 'COURSE_GROUP', 'COURSE', 'SUBJECT', 'TOPIC'`;
+const cs1aContentClasses = sql`'PROSPECTIVE_ORIGINAL_SECURIUM_AUTHORED', 'AUTHORIZED_EXTERNAL_SOURCE', 'REVIEW_REQUIRED_EXTERNAL_SOURCE', 'LEGACY_REVIEW_REQUIRED', 'MUST_EXCLUDE', 'UNKNOWN'`;
+const cs1aDecisions = sql`'ALLOW_DRAFT', 'ALLOW_CANONICAL', 'ALLOW_PUBLICATION', 'DENY', 'DEFER_RIGHTS', 'DEFER_CURRENTNESS'`;
+const cs1aReasonCodes = sql`'AUTHORIZED_PROSPECTIVE_ORIGINAL', 'AUTHORIZED_EXTERNAL_SOURCE', 'REVIEW_REQUIRED', 'LEGACY_REVIEW_REQUIRED', 'MUST_EXCLUDE', 'UNKNOWN_CONTENT_CLASS', 'MISSING_PROVENANCE', 'UNSUPPORTED_POLICY_VERSION', 'INVALID_RESOURCE_IDENTITY', 'AMBIGUOUS_EFFECTIVE_STATE', 'PUBLICATION_AUTHORITY_REQUIRED', 'POLICY_DENY'`;
+const cs1aRightsDispositions = sql`'ORIGINAL_INTERNAL', 'REVIEWED_EXTERNAL_AUTHORIZED', 'REVIEW_REQUIRED', 'LEGACY_UNRESOLVED', 'EXCLUDED', 'UNKNOWN'`;
+const cs1aCurrentnessDispositions = sql`'CURRENT', 'CURRENT_WITH_VERSION_UNCERTAINTY', 'HISTORICAL', 'SUPERSEDED', 'FUTURE_EFFECTIVE', 'UNKNOWN', 'REVIEW_REQUIRED'`;
+const cs1aPublicationAuthorities = sql`'NOT_GRANTED', 'GRANTED_BY_SEPARATE_AUTHORITY', 'NOT_APPLICABLE'`;
+const cs1aAuthoringOrigins = sql`'SECURIUM_ADMIN_CMS', 'SECURIUM_GIT_PACKAGE', 'EXTERNAL_SOURCE', 'LEGACY', 'UNKNOWN'`;
+const cs1aSourceOrigins = sql`'NONE_NOT_APPLICABLE', 'KNOWN_SOURCE_PACKAGE', 'KNOWN_EXTERNAL_SOURCE', 'LEGACY_UNKNOWN', 'UNKNOWN'`;
+
+export const cs1aGovernanceReceipts = sqliteTable(
+  "cs1a_governance_receipts",
+  {
+    receiptId: text("receipt_id").primaryKey(),
+    resourceType: text("resource_type").notNull(),
+    resourceId: text("resource_id").notNull(),
+    resourceRevisionId: text("resource_revision_id").notNull(),
+    parentRevisionId: text("parent_revision_id"),
+    revisionHash: text("revision_hash").notNull(),
+    sourceSetHash: text("source_set_hash").notNull(),
+    policyVersion: text("policy_version").notNull(),
+    rightsDisposition: text("rights_disposition").notNull(),
+    currentnessDisposition: text("currentness_disposition").notNull(),
+    contentClass: text("content_class").notNull(),
+    authoringOrigin: text("authoring_origin").notNull(),
+    sourceOrigin: text("source_origin").notNull(),
+    publicationAuthority: text("publication_authority").notNull(),
+    decision: text("decision").notNull(),
+    reasonCode: text("reason_code").notNull(),
+    humanDecisionHash: text("human_decision_hash").notNull(),
+    humanDecisionRef: text("human_decision_ref").notNull(),
+    humanDecisionAt: text("human_decision_at").notNull(),
+    semanticDecisionHash: text("semantic_decision_hash").notNull(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    supersedesReceiptId: text("supersedes_receipt_id").references((): AnySQLiteColumn => cs1aGovernanceReceipts.receiptId, { onDelete: "restrict" }),
+    sourceManifestRef: text("source_manifest_ref"),
+    sourceAuthority: text("source_authority"),
+    actorAuditLogId: text("actor_audit_log_id").notNull(),
+    gitSha: text("git_sha"),
+    executionId: text("execution_id"),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    uniqueIndex("cs1a_governance_receipts_idempotency_unique").on(table.idempotencyKey),
+    uniqueIndex("cs1a_governance_receipts_semantic_hash_unique").on(table.semanticDecisionHash),
+    index("cs1a_governance_receipts_resource_idx").on(table.resourceType, table.resourceId, table.resourceRevisionId, table.createdAt),
+    index("cs1a_governance_receipts_supersession_idx").on(table.supersedesReceiptId),
+    check("cs1a_governance_receipts_resource_type_check", sql`${table.resourceType} IN (${cs1aResourceTypes})`),
+    check("cs1a_governance_receipts_content_class_check", sql`${table.contentClass} IN (${cs1aContentClasses})`),
+    check("cs1a_governance_receipts_decision_check", sql`${table.decision} IN (${cs1aDecisions})`),
+    check("cs1a_governance_receipts_reason_code_check", sql`${table.reasonCode} IN (${cs1aReasonCodes})`),
+    check("cs1a_governance_receipts_rights_check", sql`${table.rightsDisposition} IN (${cs1aRightsDispositions})`),
+    check("cs1a_governance_receipts_currentness_check", sql`${table.currentnessDisposition} IN (${cs1aCurrentnessDispositions})`),
+    check("cs1a_governance_receipts_publication_authority_check", sql`${table.publicationAuthority} IN (${cs1aPublicationAuthorities})`),
+    check("cs1a_governance_receipts_authoring_origin_check", sql`${table.authoringOrigin} IN (${cs1aAuthoringOrigins})`),
+    check("cs1a_governance_receipts_source_origin_check", sql`${table.sourceOrigin} IN (${cs1aSourceOrigins})`),
+    check("cs1a_governance_receipts_policy_check", sql`${table.policyVersion} = 'CS1A_POLICY_V1'`),
+    check("cs1a_governance_receipts_hash_check", sql`${table.revisionHash} GLOB '[0-9a-f]*' AND length(${table.revisionHash}) = 64 AND ${table.revisionHash} NOT GLOB '*[^0-9a-f]*' AND ${table.sourceSetHash} GLOB '[0-9a-f]*' AND length(${table.sourceSetHash}) = 64 AND ${table.sourceSetHash} NOT GLOB '*[^0-9a-f]*' AND ${table.humanDecisionHash} GLOB '[0-9a-f]*' AND length(${table.humanDecisionHash}) = 64 AND ${table.humanDecisionHash} NOT GLOB '*[^0-9a-f]*' AND ${table.semanticDecisionHash} GLOB '[0-9a-f]*' AND length(${table.semanticDecisionHash}) = 64 AND ${table.semanticDecisionHash} NOT GLOB '*[^0-9a-f]*' AND ${table.idempotencyKey} GLOB '[0-9a-f]*' AND length(${table.idempotencyKey}) = 64 AND ${table.idempotencyKey} NOT GLOB '*[^0-9a-f]*'`),
+    check("cs1a_governance_receipts_source_binding_check", sql`(${table.sourceOrigin} = 'NONE_NOT_APPLICABLE' AND ${table.sourceAuthority} IS NULL AND ${table.sourceManifestRef} IS NULL) OR (${table.sourceOrigin} <> 'NONE_NOT_APPLICABLE' AND length(trim(${table.sourceAuthority})) > 0)`),
+    check("cs1a_governance_receipts_publication_separation_check", sql`(${table.decision} = 'ALLOW_PUBLICATION' AND ${table.publicationAuthority} = 'GRANTED_BY_SEPARATE_AUTHORITY' AND ${table.supersedesReceiptId} IS NOT NULL) OR (${table.decision} <> 'ALLOW_PUBLICATION' AND ${table.publicationAuthority} <> 'GRANTED_BY_SEPARATE_AUTHORITY')`),
+    check("cs1a_governance_receipts_no_self_supersession_check", sql`${table.supersedesReceiptId} IS NULL OR ${table.supersedesReceiptId} <> ${table.receiptId}`),
+  ],
+);
 
 export const concepts = sqliteTable(
   "concepts",
