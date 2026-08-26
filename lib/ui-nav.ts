@@ -1,5 +1,9 @@
 export type NavItem = { href: string; label: string; disabled?: boolean };
 
+export function isLearnerFocusRoute(pathname: string): boolean {
+  return pathname.startsWith("/practice/") || pathname.startsWith("/mock-exams/attempts/");
+}
+
 export type MobileNavIcon =
   | "home"
   | "book-open"

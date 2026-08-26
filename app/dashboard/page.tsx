@@ -12,6 +12,13 @@ export const dynamic = "force-dynamic";
 
 type Enrollment = Awaited<ReturnType<typeof listDashboardUserEnrollments>>[number];
 type ProgressStyle = CSSProperties & { "--dashboard-progress": string };
+type Concept = { title: string; summary: string };
+
+const mustKnowConcepts: Concept[] = [
+  { title: "접근통제", summary: "누가 어떤 정보와 시스템에 접근할 수 있는지 결정하는 보안의 기본 원리입니다." },
+  { title: "암호 알고리즘", summary: "정보를 보호하기 위해 평문을 안전한 형태로 바꾸고 복원하는 방법을 이해합니다." },
+  { title: "로그 분석", summary: "정상적인 활동과 침해 징후를 구분하기 위해 기록을 읽는 방법을 익힙니다." },
+];
 
 export default async function DashboardPage() {
   const user = await requireCurrentAppUser("/dashboard");
@@ -72,9 +79,9 @@ export default async function DashboardPage() {
       <div className={styles.container}>
         <header className={styles.greeting}>
           <div>
-            <p>오늘의 학습</p>
-            <h1>안녕하세요, {greetingName}님!</h1>
-            <span>오늘도 학습을 이어가세요.</span>
+            <p>SECURIUM 학습 공간</p>
+            <h1>{currentCourse ? currentCourse.courseName : `안녕하세요, ${greetingName}님`}</h1>
+            <span>{currentCourse ? `${currentCourse.progressPercent}%까지 학습했습니다. 다음 한 걸음을 이어가 보세요.` : "과정을 고르면 학습 기록과 다음 할 일이 여기에 쌓입니다."}</span>
           </div>
           <Link className={styles.courseLink} href="/my-courses">내 과정 보기</Link>
         </header>
@@ -82,7 +89,7 @@ export default async function DashboardPage() {
         <div className={styles.dashboardGrid}>
           <section className={styles.recommendation} aria-labelledby="dashboard-recommendation-title" data-dashboard-recommendation="">
             <div className={styles.recommendationCopy}>
-              <p>오늘의 추천 학습</p>
+              <p>오늘의 추천 학습 · 지금 이어갈 학습</p>
               <span>{nextAction.type}</span>
               <h2 id="dashboard-recommendation-title">{nextAction.title}</h2>
               <div>{nextAction.reason}</div>
@@ -133,6 +140,20 @@ export default async function DashboardPage() {
             )}
           </section>
 
+          <section className={styles.concepts} aria-labelledby="dashboard-concepts-title" data-dashboard-concepts="">
+            <SectionHeader eyebrow="Must-Know Concept" title="보안의 핵심 개념" id="dashboard-concepts-title" href={currentCourse ? `/learn/${currentCourse.courseSlug}` : "/courses"} linkLabel="학습으로 이동" />
+            <p className={styles.sectionIntro}>자격증 과목을 외우기 전에, 여러 학습에서 반복해서 만나는 개념부터 연결해 보세요.</p>
+            <div className={styles.conceptList}>
+              {mustKnowConcepts.map((concept, index) => (
+                <Link className={styles.conceptRow} href={currentCourse ? `/learn/${currentCourse.courseSlug}` : "/courses"} key={concept.title}>
+                  <span className={styles.conceptIndex}>{String(index + 1).padStart(2, "0")}</span>
+                  <span><strong>{concept.title}</strong><small>{concept.summary}</small></span>
+                  <b aria-hidden="true">→</b>
+                </Link>
+              ))}
+            </div>
+          </section>
+
           <section className={styles.todayPlan} aria-labelledby="dashboard-plan-title" data-dashboard-plan="">
             <SectionHeader eyebrow="오늘의 계획" title="오늘 할 일" id="dashboard-plan-title" href="/settings" linkLabel="목표 설정" />
             <div className={styles.planList}>
@@ -177,6 +198,15 @@ export default async function DashboardPage() {
               <EmptyMessage>학습을 시작하면 최근 활동이 여기에 표시됩니다.</EmptyMessage>
             )}
           </section>
+
+          <section className={styles.evidence} aria-labelledby="dashboard-evidence-title" data-dashboard-evidence="">
+            <SectionHeader eyebrow="학습 기록" title="이미 쌓인 증거" id="dashboard-evidence-title" href="/analytics" linkLabel="학습 분석" />
+            <div className={styles.evidenceList}>
+              <EvidenceRow label="오늘 문제 풀이" value={`${plan.completedQuestions}문제`} detail={`목표 ${plan.settings.dailyQuestionGoal}문제`} />
+              <EvidenceRow label="복습 활동" value={`${plan.reviewSummary.dueCount}개 예정`} detail={plan.reviewSummary.dueCount ? "복습에서 다시 확인할 항목" : "예정된 복습 항목 없음"} />
+              <EvidenceRow label="최근 학습" value={`${recentCourses.length}개 과정`} detail={recentCourses.length ? "최근 이어간 과정" : "아직 기록이 없습니다"} />
+            </div>
+          </section>
         </div>
       </div>
     </main>
@@ -206,6 +236,10 @@ function CourseProgressRow({ course }: { course: Enrollment }) {
 function PlanItem({ detail, href, label, title }: { detail: string; href?: string; label: string; title: string }) {
   const content = <><span>{label}</span><strong>{title}</strong><small>{detail}</small></>;
   return href ? <Link className={styles.planItem} href={href}>{content}<b aria-hidden="true">→</b></Link> : <div className={styles.planItem}>{content}</div>;
+}
+
+function EvidenceRow({ detail, label, value }: { detail: string; label: string; value: string }) {
+  return <div className={styles.evidenceRow}><span>{label}</span><strong>{value}</strong><small>{detail}</small></div>;
 }
 
 function SectionHeader({ eyebrow, href, id, linkLabel, title }: { eyebrow: string; href?: string; id: string; linkLabel?: string; title: string }) {

@@ -13,6 +13,7 @@ import {
   learnerPrimaryNavItems,
   learnerUtilityNavItems,
   mobileBottomNavItems,
+  isLearnerFocusRoute,
   publicNavItems,
   type MobileBottomNavItem as ConfigMobileBottomNavItem,
 } from "@/lib/ui-nav";
@@ -36,6 +37,7 @@ type MobileBottomNavItem = ConfigMobileBottomNavItem;
 
 export function HeaderControls({ user }: HeaderControlsProps) {
   const pathname = usePathname() || "/";
+  const focusMode = isLearnerFocusRoute(pathname);
   const router = useRouter();
   const searchParams = useSearchParams();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -474,7 +476,7 @@ export function HeaderControls({ user }: HeaderControlsProps) {
         />
       ) : null}
 
-      {isSignedIn ? (
+      {isSignedIn && !focusMode ? (
         <nav className="mobile-bottom-nav" aria-label="모바일 학습 빠른 이동">
           {mobileBottomItems.map((item) => {
             const active = isMobileBottomActive(activePath, item);

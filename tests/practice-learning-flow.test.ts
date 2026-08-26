@@ -6,13 +6,17 @@ const page = readFileSync("app/practice/[courseSlug]/page.tsx", "utf8");
 const session = readFileSync("components/practice-session.tsx", "utf8");
 const styles = readFileSync("components/v2/practice-v2.module.css", "utf8");
 const learnerShell = readFileSync("components/learner-app-shell.tsx", "utf8");
+const headerControls = readFileSync("components/header-controls.tsx", "utf8");
+const nav = readFileSync("lib/ui-nav.ts", "utf8");
 
 test("Practice V2 uses a route-scoped focus mode", () => {
   assert.match(page, /data-practice-focus-v2/);
   assert.match(page, /학습으로 돌아가기/);
   assert.match(styles, /data-practice-focus-shell/);
-  assert.match(learnerShell, /pathname\.startsWith\("\/practice\/"\)/);
+  assert.match(nav, /isLearnerFocusRoute/);
+  assert.match(learnerShell, /isLearnerFocusRoute\(pathname\)/);
   assert.match(learnerShell, /practiceFocusMode \? null : <MobileBottomNavigation/);
+  assert.match(headerControls, /isSignedIn && !focusMode/);
 });
 
 test("Practice V2 preserves selection modes and submission safety", () => {
