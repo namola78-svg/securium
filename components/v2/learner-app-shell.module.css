@@ -11,7 +11,7 @@
 .brand > div { display: grid; gap: 0.0625rem; }
 .brand strong { font-size: var(--v2-font-size-label); letter-spacing: -0.02em; }
 .brand small { color: var(--v2-color-text-muted); font-size: var(--v2-font-size-caption); letter-spacing: 0.08em; }
-.sidebarNav { display: grid; gap: var(--v2-space-6); margin-top: var(--v2-space-8); overflow-y: auto; }
+.sidebarNav { display: grid; gap: var(--v2-space-8); margin-top: var(--v2-space-10); overflow-y: auto; }
 .navGroup { display: grid; gap: var(--v2-space-1); }
 .navGroup > p { margin: 0 0 var(--v2-space-2); padding-inline: var(--v2-space-3); color: var(--v2-color-text-muted); font-size: var(--v2-font-size-caption); font-weight: var(--v2-font-weight-bold); letter-spacing: 0.06em; }
 .navItem { position: relative; display: grid; min-height: var(--v2-control-min-size); grid-template-columns: 1.25rem minmax(0, 1fr) auto; align-items: center; gap: var(--v2-space-3); padding: 0.625rem var(--v2-space-3); border-radius: var(--v2-radius-control); color: var(--v2-color-text-secondary); font-size: var(--v2-font-size-label); font-weight: var(--v2-font-weight-semibold); text-decoration: none; }
@@ -20,7 +20,8 @@
 .navItem.active { background: var(--v2-color-surface-selected); color: var(--v2-color-action-primary-hover); }
 .navItem.active::before { position: absolute; top: 0.65rem; bottom: 0.65rem; left: 0; width: 3px; border-radius: var(--v2-radius-pill); background: var(--v2-color-action-primary); content: ""; }
 .navItem small { padding: 0.15rem 0.4rem; border-radius: var(--v2-radius-pill); background: var(--v2-color-accent); color: var(--v2-color-action-primary-hover); font-size: var(--v2-font-size-caption); }
-.supportArea { display: grid; gap: var(--v2-space-2); margin-top: auto; padding-top: var(--v2-space-4); border-top: 1px solid var(--v2-color-border-default); }
+.supportArea { display: grid; gap: var(--v2-space-3); margin-top: auto; padding-top: var(--v2-space-5); border-top: 1px solid var(--v2-color-border-default); }
+.supportArea .navGroup > p { margin-bottom: var(--v2-space-1); }
 .askButton { display: inline-flex; min-height: var(--v2-control-min-size); align-items: center; justify-content: center; padding-inline: var(--v2-space-3); border: 1px solid var(--v2-color-border-strong); border-radius: var(--v2-radius-control); color: var(--v2-color-text-primary); font-size: var(--v2-font-size-label); font-weight: var(--v2-font-weight-semibold); text-decoration: none; }
 .mainColumn { min-width: 0; }
 .topHeader { position: sticky; top: 0; z-index: var(--v2-z-sticky); display: flex; min-height: 4rem; align-items: center; gap: var(--v2-space-4); padding: 0 var(--v2-space-6); border-bottom: 1px solid var(--v2-color-border-default); background: color-mix(in srgb, var(--v2-color-surface-default) 94%, transparent); backdrop-filter: blur(16px); }

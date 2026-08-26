@@ -1,15 +1,16 @@
-.page { min-width: 0; min-height: calc(100vh - 4rem); padding: clamp(1.25rem, 3vw, 3rem); background: radial-gradient(circle at 82% -8%, rgb(37 99 235 / 0.08), transparent 28rem), var(--v2-color-bg-canvas); }
+.page { min-width: 0; min-height: calc(100vh - 4rem); padding: var(--v2-space-route-start) clamp(1rem, 3vw, 3rem) var(--v2-space-section); background: var(--v2-color-bg-canvas); }
 .container { width: min(100%, 94rem); margin-inline: auto; }
 .greeting { display: flex; align-items: end; justify-content: space-between; gap: var(--v2-space-6); margin-bottom: clamp(1.5rem, 3vw, 2.5rem); }
 .greeting p, .sectionLabel { margin: 0; color: var(--v2-color-action-primary); font-size: var(--v2-font-size-caption); font-weight: var(--v2-font-weight-bold); letter-spacing: 0.06em; }
-.greeting h1 { margin: var(--v2-space-2) 0 var(--v2-space-1); font-size: clamp(2rem, 4vw, 3.5rem); letter-spacing: -0.06em; line-height: 1.05; }
+.greeting h1 { max-width: 24ch; margin: var(--v2-space-2) 0 var(--v2-space-1); font-size: var(--v2-font-size-route-title); letter-spacing: var(--v2-letter-spacing-display); line-height: 1.08; }
 .greeting > div > span { color: var(--v2-color-text-secondary); }
 .courseLink, .primaryAction, .textAction { font-size: var(--v2-font-size-label); font-weight: var(--v2-font-weight-bold); text-decoration: none; }
 .courseLink { display: inline-flex; min-height: var(--v2-control-min-size); align-items: center; padding-inline: var(--v2-space-4); border: 1px solid var(--v2-color-border-default); border-radius: var(--v2-radius-control); background: var(--v2-color-surface-default); color: var(--v2-color-text-primary); }
 .textAction { display: inline-flex; min-height: var(--v2-control-min-size); align-items: center; color: var(--v2-color-action-primary-hover); }
-.dashboardGrid { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(18rem, 0.85fr); grid-template-areas: "recommendation progress" "courses plan" "recent weakness"; gap: var(--v2-space-5); align-items: start; }
-.recommendation, .progressCard, .courseProgress, .todayPlan, .weakArea, .recentLearning { min-width: 0; border: 1px solid var(--v2-color-border-default); border-radius: var(--v2-radius-surface-md); background: var(--v2-color-surface-default); }
-.recommendation { grid-area: recommendation; display: grid; min-height: 20rem; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: var(--v2-space-8); padding: clamp(1.75rem, 4vw, 3.25rem); overflow: hidden; border-color: #1d4ed8; background: radial-gradient(circle at 95% 10%, rgb(255 255 255 / 0.15), transparent 18rem), linear-gradient(145deg, #1d4ed8, #2563eb 56%, #3b82f6); color: white; box-shadow: 0 1.5rem 3.5rem rgb(37 99 235 / 0.18); }
+.dashboardGrid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(17rem, 0.85fr); grid-template-areas: "recommendation progress" "courses plan" "concepts concepts" "weakness recent" "evidence evidence"; gap: var(--v2-space-8) var(--v2-space-6); align-items: start; }
+.recommendation, .progressCard, .courseProgress, .todayPlan, .weakArea, .recentLearning, .concepts, .evidence { min-width: 0; }
+.progressCard, .courseProgress, .todayPlan, .weakArea, .recentLearning, .concepts, .evidence { padding: var(--v2-space-6) 0; border-top: 1px solid var(--v2-color-border-strong); }
+.recommendation { grid-area: recommendation; display: grid; min-height: 20rem; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: var(--v2-space-8); padding: clamp(1.75rem, 4vw, 3.25rem); overflow: hidden; border: 1px solid #1d4ed8; border-radius: var(--v2-radius-surface-md); background: linear-gradient(145deg, #1d4ed8, #2563eb 56%, #3b82f6); color: white; box-shadow: 0 1.5rem 3.5rem rgb(37 99 235 / 0.18); }
 .recommendationCopy > p { margin: 0 0 var(--v2-space-8); color: rgb(255 255 255 / 0.72); font-size: var(--v2-font-size-label); font-weight: var(--v2-font-weight-bold); }
 .recommendationCopy > span { display: inline-flex; padding: 0.35rem 0.65rem; border: 1px solid rgb(255 255 255 / 0.24); border-radius: var(--v2-radius-pill); background: rgb(255 255 255 / 0.1); font-size: var(--v2-font-size-caption); font-weight: var(--v2-font-weight-bold); }
 .recommendation h2 { max-width: 17ch; margin: var(--v2-space-4) 0 var(--v2-space-3); font-size: clamp(1.8rem, 3.6vw, 3.5rem); letter-spacing: -0.055em; line-height: 1.06; }
@@ -25,10 +26,27 @@
 .progressRing::before { grid-area: 1 / 1; width: 6.3rem; height: 6.3rem; border-radius: 50%; background: var(--v2-color-surface-default); content: ""; }
 .progressRing > span { z-index: 1; grid-area: 1 / 1; color: var(--v2-color-text-primary); font-size: var(--v2-font-size-heading-lg); font-weight: var(--v2-font-weight-bold); letter-spacing: -0.05em; }
 .progressCard > .textAction { margin-top: var(--v2-space-6); }
-.courseProgress { grid-area: courses; padding: var(--v2-space-6); }
-.todayPlan { grid-area: plan; padding: var(--v2-space-6); }
-.recentLearning { grid-area: recent; padding: var(--v2-space-6); }
-.weakArea { grid-area: weakness; padding: var(--v2-space-6); }
+.courseProgress { grid-area: courses; }
+.todayPlan { grid-area: plan; }
+.recentLearning { grid-area: recent; }
+.weakArea { grid-area: weakness; }
+.concepts { grid-area: concepts; }
+.evidence { grid-area: evidence; }
+.sectionIntro { max-width: 52rem; margin: calc(var(--v2-space-5) * -1) 0 var(--v2-space-5); color: var(--v2-color-text-secondary); line-height: var(--v2-line-height-body); }
+.conceptList { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--v2-color-border-default); }
+.conceptRow { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--v2-space-4); align-items: start; min-width: 0; padding: var(--v2-space-5) var(--v2-space-4) var(--v2-space-5) 0; border-right: 1px solid var(--v2-color-border-default); color: var(--v2-color-text-primary); text-decoration: none; }
+.conceptRow + .conceptRow { padding-left: var(--v2-space-4); }
+.conceptRow:last-child { border-right: 0; }
+.conceptIndex { color: var(--v2-color-action-primary); font-family: var(--v2-font-family-mono); font-size: var(--v2-font-size-caption); font-weight: var(--v2-font-weight-bold); }
+.conceptRow span:nth-child(2) { display: grid; gap: var(--v2-space-2); min-width: 0; }
+.conceptRow strong { font-size: var(--v2-font-size-body-lg); }
+.conceptRow small { color: var(--v2-color-text-secondary); font-size: var(--v2-font-size-body-sm); line-height: 1.55; }
+.conceptRow b { color: var(--v2-color-action-primary); }
+.evidenceList { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.evidenceRow { display: grid; gap: var(--v2-space-1); padding-right: var(--v2-space-5); }
+.evidenceRow + .evidenceRow { padding-left: var(--v2-space-5); border-left: 1px solid var(--v2-color-border-default); }
+.evidenceRow span, .evidenceRow small { color: var(--v2-color-text-muted); font-size: var(--v2-font-size-caption); }
+.evidenceRow strong { font-size: var(--v2-font-size-heading-sm); }
 .sectionHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--v2-space-4); margin-bottom: var(--v2-space-5); }
 .sectionHeader h2 { margin: var(--v2-space-2) 0 0; font-size: clamp(1.25rem, 2vw, 1.65rem); letter-spacing: -0.04em; }
 .courseList { display: grid; }
@@ -74,7 +92,7 @@
   .progressSummary { align-items: flex-start; flex-direction: column; }
 }
 @media (max-width: 900px) {
-  .dashboardGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-areas: "recommendation recommendation" "progress plan" "courses courses" "weakness recent"; }
+  .dashboardGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-areas: "recommendation recommendation" "progress plan" "courses courses" "concepts concepts" "weakness recent" "evidence evidence"; }
   .recommendation { min-height: 17rem; }
   .progressCard { min-height: auto; }
   .progressSummary { align-items: center; flex-direction: row; }
@@ -85,12 +103,17 @@
   .greeting { align-items: flex-start; flex-direction: column; gap: var(--v2-space-3); }
   .greeting h1 { font-size: clamp(2rem, 9vw, 2.75rem); }
   .courseLink { display: none; }
-  .dashboardGrid { grid-template-columns: 1fr; grid-template-areas: "recommendation" "progress" "plan" "courses" "weakness" "recent"; gap: var(--v2-space-4); }
+  .dashboardGrid { grid-template-columns: 1fr; grid-template-areas: "recommendation" "progress" "plan" "concepts" "courses" "weakness" "recent" "evidence"; gap: var(--v2-space-5); }
   .recommendation { min-height: 0; padding: var(--v2-space-6); }
   .recommendationCopy > p { margin-bottom: var(--v2-space-5); }
   .recommendation h2 { font-size: clamp(1.75rem, 8vw, 2.4rem); }
   .primaryAction { width: 100%; }
-  .progressCard, .courseProgress, .todayPlan, .weakArea, .recentLearning { padding: var(--v2-space-5); }
+  .progressCard, .courseProgress, .todayPlan, .weakArea, .recentLearning, .concepts, .evidence { padding: var(--v2-space-5) 0; }
+  .conceptList, .evidenceList { grid-template-columns: 1fr; }
+  .conceptRow, .conceptRow + .conceptRow { padding: var(--v2-space-4) 0; border-right: 0; border-bottom: 1px solid var(--v2-color-border-default); }
+  .conceptRow:last-child { border-bottom: 0; }
+  .evidenceRow, .evidenceRow + .evidenceRow { padding: var(--v2-space-4) 0; border-left: 0; border-top: 1px solid var(--v2-color-border-default); }
+  .evidenceRow:first-child { padding-top: 0; border-top: 0; }
   .progressRing { width: 6.5rem; height: 6.5rem; }
   .progressRing::before { width: 5.1rem; height: 5.1rem; }
   .progressRing > span { font-size: var(--v2-font-size-heading-md); }

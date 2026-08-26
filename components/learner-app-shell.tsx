@@ -12,6 +12,7 @@ import {
   learnerShellSecondaryItems,
   learnerShellSupportItems,
   mobileBottomNavItems,
+  isLearnerFocusRoute,
   type LearnerShellNavItem,
 } from "@/lib/ui-nav";
 import styles from "@/components/v2/learner-app-shell.module.css";
@@ -48,7 +49,7 @@ export function LearnerAppShell({ children, user }: { children: ReactNode; user:
 }
 
 function AuthenticatedLearnerShell({ children, pathname, user }: { children: ReactNode; pathname: string; user: ShellUser }) {
-  const practiceFocusMode = pathname.startsWith("/practice/") || pathname.startsWith("/mock-exams/attempts/");
+  const practiceFocusMode = isLearnerFocusRoute(pathname);
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -204,12 +205,12 @@ function LearnerSidebar({ pathname }: { pathname: string }) {
     <aside className={styles.sidebar} aria-label="학습자 사이드바">
       <Link className={styles.brand} href="/dashboard" aria-label="SECURIUM 대시보드로 이동"><span aria-hidden="true">S</span><div><strong>SECURIUM</strong><small>LEARNING APP</small></div></Link>
       <nav className={styles.sidebarNav} aria-label="학습자 주요 메뉴">
-        <NavGroup items={learnerShellPrimaryItems} pathname={pathname} />
+        <NavGroup label="학습 흐름" items={learnerShellPrimaryItems} pathname={pathname} />
         <NavGroup label="학습 도구" items={learnerShellSecondaryItems} pathname={pathname} />
         <NavGroup label="계정" items={learnerShellAccountItems} pathname={pathname} />
       </nav>
       <div className={styles.supportArea}>
-        <NavGroup items={learnerShellSupportItems} pathname={pathname} />
+        <NavGroup label="도움" items={learnerShellSupportItems} pathname={pathname} />
         <Link className={styles.askButton} href="/ai-tutor">AI 튜터에게 질문하기</Link>
       </div>
     </aside>
