@@ -39,6 +39,67 @@ export const roles = sqliteTable("roles", {
   ...timestamps,
 });
 
+const governedStatuses = sql`'DRAFT', 'ACTIVE', 'RETIRED'`;
+const governedLabelTypes = sql`'PREF', 'ALT'`;
+
+export const concepts = sqliteTable(
+  "concepts",
+  {
+    id: text("id").primaryKey(),
+    stableKey: text("stable_key").notNull(),
+    status: text("status").notNull().default("DRAFT"),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("concepts_stable_key_unique").on(table.stableKey),
+    check("concepts_status_check", sql`${table.status} IN (${governedStatuses})`),
+  ],
+);
+
+export const conceptVersions = sqliteTable(
+  "concept_versions",
+  {
+    id: text("id").primaryKey(),
+    conceptId: text("concept_id").notNull().references(() => concepts.id, { onDelete: "restrict" }),
+    version: integer("version").notNull(),
+    semanticHash: text("semantic_hash").notNull(),
+    definition: text("definition").notNull(),
+    scope: text("scope").notNull(),
+    status: text("status").notNull().default("DRAFT"),
+    activatedAt: text("activated_at"),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    uniqueIndex("concept_versions_identity_unique").on(table.conceptId, table.version),
+    uniqueIndex("concept_versions_hash_unique").on(table.conceptId, table.semanticHash),
+    index("concept_versions_status_idx").on(table.conceptId, table.status),
+    check("concept_versions_version_check", sql`${table.version} > 0`),
+    check("concept_versions_hash_check", sql`${table.semanticHash} GLOB '[0-9a-f]*' AND length(${table.semanticHash}) = 64 AND ${table.semanticHash} NOT GLOB '*[^0-9a-f]*'`),
+    check("concept_versions_status_check", sql`${table.status} IN (${governedStatuses})`),
+  ],
+);
+
+export const conceptLabels = sqliteTable(
+  "concept_labels",
+  {
+    id: text("id").primaryKey(),
+    conceptId: text("concept_id").notNull().references(() => concepts.id, { onDelete: "restrict" }),
+    language: text("language").notNull(),
+    label: text("label").notNull(),
+    normalizedLabel: text("normalized_label").notNull(),
+    labelType: text("label_type").notNull().default("PREF"),
+    status: text("status").notNull().default("DRAFT"),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("concept_labels_identity_unique").on(table.conceptId, table.language, table.normalizedLabel),
+    uniqueIndex("concept_labels_pref_language_unique").on(table.conceptId, table.language, table.labelType).where(sql`${table.labelType} = 'PREF' AND ${table.status} = 'ACTIVE'`),
+    check("concept_labels_type_check", sql`${table.labelType} IN (${governedLabelTypes})`),
+    check("concept_labels_status_check", sql`${table.status} IN (${governedStatuses})`),
+    check("concept_labels_nonempty_check", sql`length(trim(${table.label})) > 0 AND length(trim(${table.normalizedLabel})) > 0`),
+  ],
+);
+
 export const courseGroups = sqliteTable(
   "course_groups",
   {
