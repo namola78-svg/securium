@@ -1,11 +1,9 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { HeaderControls } from "@/components/header-controls";
-import { getOptionalCurrentAppUser } from "@/lib/auth";
 import { BRAND } from "@/lib/brand";
 
-export async function SiteHeader() {
-  const user = await getOptionalCurrentAppUser();
+export function SiteHeader() {
   return (
     <header className="site-header v2-public-header">
       <div className="shell header-inner">
@@ -17,9 +15,7 @@ export async function SiteHeader() {
           </span>
         </Link>
         <Suspense fallback={<div className="header-controls-placeholder" />}>
-          <HeaderControls
-            user={user ? { displayName: user.displayName, roles: user.roles } : null}
-          />
+          <HeaderControls />
         </Suspense>
       </div>
     </header>
