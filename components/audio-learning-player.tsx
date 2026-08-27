@@ -50,6 +50,16 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const pendingSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedAtRef = useRef(0);
+  const currentPositionRef = useRef(item.currentPositionSeconds);
+  const isPlayingRef = useRef(false);
+  const lastPersistedRef = useRef({
+    position: item.currentPositionSeconds,
+    complete: item.completed,
+  });
+  const inFlightRef = useRef(false);
+  const queuedSaveRef = useRef<{ position: number; complete: boolean } | null>(
+    null,
+  );
   const desiredSaveRef = useRef({
     position: item.currentPositionSeconds,
     complete: item.completed,
@@ -84,38 +94,67 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
   async function persist(
     nextPosition: number,
     complete: boolean,
+    force = false,
   ) {
-    lastSavedAtRef.current = Date.now();
-    const response = await fetch("/api/audio/progress", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        audioContentId: item.id,
-        currentPositionSeconds: Math.max(
-          0,
-          Math.min(item.durationSeconds, Math.round(nextPosition)),
-        ),
-        complete,
-      }),
-    });
-    const payload = (await response.json()) as {
-      result?: {
-        currentPositionSeconds: number;
-        completed: boolean;
-      };
-      error?: string;
+    const position = Math.max(
+      0,
+      Math.min(item.durationSeconds, Math.round(nextPosition)),
+    );
+    const desired = {
+      position,
+      complete: lastPersistedRef.current.complete || complete,
     };
-    if (!response.ok) {
-      setMessage(payload.error ?? "오디오 진행도를 저장하지 못했습니다.");
+    if (
+      !force &&
+      desired.position === lastPersistedRef.current.position &&
+      desired.complete === lastPersistedRef.current.complete
+    ) {
       return;
     }
-    if (payload.result) {
-      setCompleted(payload.result.completed);
-      setMessage(
-        payload.result.completed
-          ? "오디오 학습 완료를 저장했습니다."
-          : "재생 위치를 저장했습니다.",
-      );
+    if (inFlightRef.current) {
+      queuedSaveRef.current = desired;
+      return;
+    }
+    inFlightRef.current = true;
+    lastSavedAtRef.current = Date.now();
+    try {
+      const response = await fetch("/api/audio/progress", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          audioContentId: item.id,
+          currentPositionSeconds: desired.position,
+          complete: desired.complete,
+        }),
+      });
+      const payload = (await response.json()) as {
+        result?: {
+          currentPositionSeconds: number;
+          completed: boolean;
+        };
+        error?: string;
+      };
+      if (!response.ok) {
+        setMessage(payload.error ?? "오디오 진행도를 저장하지 못했습니다.");
+        return;
+      }
+      if (payload.result) {
+        lastPersistedRef.current = {
+          position: payload.result.currentPositionSeconds,
+          complete: payload.result.completed,
+        };
+        setCompleted(payload.result.completed);
+        setMessage(
+          payload.result.completed
+            ? "오디오 학습 완료를 저장했습니다."
+            : "재생 위치를 저장했습니다.",
+        );
+      }
+    } finally {
+      inFlightRef.current = false;
+      const queued = queuedSaveRef.current;
+      queuedSaveRef.current = null;
+      if (queued) void persist(queued.position, queued.complete);
     }
   }
 
@@ -128,6 +167,7 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
       position: nextPosition,
       complete: desiredSaveRef.current.complete || complete,
     };
+    if (!force && !isPlayingRef.current) return;
     const elapsed = Date.now() - lastSavedAtRef.current;
     if (force || elapsed >= 15_000) {
       if (pendingSaveRef.current) {
@@ -135,7 +175,7 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
         pendingSaveRef.current = null;
       }
       const desired = desiredSaveRef.current;
-      void persist(desired.position, desired.complete);
+      void persist(desired.position, desired.complete, force);
       return;
     }
     if (!pendingSaveRef.current) {
@@ -159,6 +199,7 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
     speechTimerRef.current = setInterval(() => {
       setPosition((current) => {
         const next = Math.min(item.durationSeconds, current + speed);
+        currentPositionRef.current = next;
         queueSave(next);
         return next;
       });
@@ -171,6 +212,7 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
       audioRef.current.playbackRate = speed;
       try {
         await audioRef.current.play();
+        isPlayingRef.current = true;
         setPlaying(true);
       } catch {
         setMessage("오디오 학습 상태를 업데이트했습니다.");
@@ -189,6 +231,7 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
     setSpeechAvailable(true);
     if (window.speechSynthesis.paused && speechUtteranceRef.current) {
       window.speechSynthesis.resume();
+      isPlayingRef.current = true;
       setPlaying(true);
       startSpeechTimer();
       return;
@@ -219,6 +262,7 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
     };
     speechUtteranceRef.current = utterance;
     window.speechSynthesis.speak(utterance);
+    isPlayingRef.current = true;
     setPlaying(true);
     startSpeechTimer();
   }
@@ -230,8 +274,9 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
       window.speechSynthesis.pause();
       stopSpeechTimer();
     }
+    isPlayingRef.current = false;
     setPlaying(false);
-    queueSave(position, false, true);
+    if (!audioRef.current) queueSave(currentPositionRef.current, false, true);
   }
 
   function seek(deltaSeconds: number) {
@@ -247,6 +292,7 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
       stopSpeechTimer();
       setPlaying(false);
     }
+    currentPositionRef.current = next;
     setPosition(next);
     queueSave(next, false, true);
   }
@@ -304,16 +350,24 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
           onWaiting={() => setLoading(true)}
           onPlaying={() => {
             setLoading(false);
+            isPlayingRef.current = true;
             setPlaying(true);
           }}
-          onPause={() => setPlaying(false)}
+          onPause={() => {
+            isPlayingRef.current = false;
+            setPlaying(false);
+            queueSave(currentPositionRef.current, false, true);
+          }}
           onTimeUpdate={(event) => {
             const next = Math.floor(event.currentTarget.currentTime);
+            currentPositionRef.current = next;
             setPosition(next);
             queueSave(next);
           }}
           onEnded={() => {
+            isPlayingRef.current = false;
             setPlaying(false);
+            currentPositionRef.current = item.durationSeconds;
             setPosition(item.durationSeconds);
             queueSave(item.durationSeconds, true, true);
           }}
@@ -393,7 +447,7 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
               item.durationSeconds -
                 Math.max(5, Math.ceil(item.durationSeconds * 0.05))
           }
-          onClick={() => queueSave(position, true, true)}
+          onClick={() => queueSave(currentPositionRef.current, true, true)}
         >
           {completed ? "완료됨" : "오디오 완료"}
         </button>
