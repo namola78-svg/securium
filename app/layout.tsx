@@ -3,9 +3,9 @@ import { headers } from "next/headers";
 import { Suspense } from "react";
 import { CommandPalette } from "@/components/command-palette";
 import { LearnerAppShell } from "@/components/learner-app-shell";
+import { PresentationIdentityProvider } from "@/components/presentation-identity-provider";
 import { SiteHeader } from "@/components/site-header";
 import { FooterLegalLinks } from "@/components/footer-legal-links";
-import { getOptionalCurrentAppUser } from "@/lib/auth";
 import { BRAND } from "@/lib/brand";
 import "./globals.css";
 
@@ -88,18 +88,15 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const user = await getOptionalCurrentAppUser();
-  const shellUser = user
-    ? { displayName: user.displayName, roles: user.roles }
-    : null;
-
   return (
     <html lang="ko">
       <body>
         <a className="skip-link" href="#main-content">본문으로 건너뛰기</a>
-        <SiteHeader />
-        <CommandPalette />
-        <LearnerAppShell user={shellUser}>{children}</LearnerAppShell>
+        <PresentationIdentityProvider>
+          <SiteHeader />
+          <CommandPalette />
+          <LearnerAppShell>{children}</LearnerAppShell>
+        </PresentationIdentityProvider>
         <footer className="site-footer">
           <div className="shell footer-inner">
             <strong>{BRAND.officialName}</strong>

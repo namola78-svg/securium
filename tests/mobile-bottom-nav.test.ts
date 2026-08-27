@@ -8,7 +8,8 @@ const styles = readFileSync("components/v2/learner-app-shell.module.css", "utf8"
 const layout = readFileSync("app/layout.tsx", "utf8");
 
 test("authenticated learner routes opt into an isolated V2 app shell", () => {
-  assert.match(layout, /<LearnerAppShell user=\{shellUser\}>/);
+  assert.match(layout, /<PresentationIdentityProvider>/);
+  assert.match(layout, /<LearnerAppShell>/);
   assert.match(shell, /data-learner-app-shell-v2=""/);
   assert.match(shell, /if \(!user \|\| !isLearnerRoute\(pathname\)\)/);
   assert.match(styles, /body:has\(\[data-learner-app-shell-v2\]\) > \.site-header/);
