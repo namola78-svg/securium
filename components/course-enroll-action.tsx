@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ActionButton } from "@/components/design-system-primitives";
 import { CardSkeleton, InlineError, RetryButton } from "@/components/state-ui";
+import { usePresentationIdentity } from "@/components/presentation-identity-provider";
 
 type EnrollmentStatus = "ACTIVE" | "PAUSED" | "COMPLETED" | "CANCELLED";
 type ActionStatus =
@@ -47,11 +48,18 @@ export function CourseEnrollAction({
   initialEnrollmentStatus = null,
 }: CourseEnrollActionProps) {
   const router = useRouter();
+  const { status: presentationStatus, identity } = usePresentationIdentity();
   const [status, setStatus] = useState<ActionStatus>(
     initialSignedIn
       ? statusFromEnrollment(initialEnrollmentStatus)
       : "checking",
   );
+  const renderStatus =
+    !initialSignedIn && status === "checking" && presentationStatus !== "loading"
+      ? identity?.authenticated
+        ? "ready"
+        : "anonymous"
+      : status;
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -64,38 +72,6 @@ export function CourseEnrollAction({
     window.addEventListener(ENROLLMENT_SYNC_EVENT, handleEnrollmentSync);
     return () => window.removeEventListener(ENROLLMENT_SYNC_EVENT, handleEnrollmentSync);
   }, [courseId]);
-
-  useEffect(() => {
-    if (initialSignedIn) return;
-
-    let active = true;
-
-    async function refreshSession() {
-      try {
-        const response = await fetch("/api/auth/session", {
-          cache: "no-store",
-          credentials: "same-origin",
-        });
-        if (!active) return;
-        if (!response.ok) {
-          setStatus("anonymous");
-          return;
-        }
-        const payload = (await response.json()) as { authenticated?: boolean };
-        setStatus(payload.authenticated ? "ready" : "anonymous");
-      } catch {
-        if (active) {
-          setStatus("anonymous");
-        }
-      }
-    }
-
-    void refreshSession();
-
-    return () => {
-      active = false;
-    };
-  }, [initialSignedIn]);
 
   async function handleEnroll() {
     if (status === "enrolling") return;
@@ -140,7 +116,7 @@ export function CourseEnrollAction({
     }
   }
 
-  if (status === "checking") {
+  if (renderStatus === "checking") {
     return (
       <div className="enroll-action" aria-live="polite">
         <CardSkeleton compact />
@@ -148,7 +124,7 @@ export function CourseEnrollAction({
     );
   }
 
-  if (status === "anonymous") {
+  if (renderStatus === "anonymous") {
     return (
       <div className="enroll-action">
         <ActionButton
@@ -162,7 +138,7 @@ export function CourseEnrollAction({
     );
   }
 
-  if (status === "enrolled") {
+  if (renderStatus === "enrolled") {
     return (
       <div className="enroll-action">
         <ActionButton href={`/learn/${courseSlug}`} variant="dark" className="full-width">
@@ -173,7 +149,7 @@ export function CourseEnrollAction({
     );
   }
 
-  if (status === "completed") {
+  if (renderStatus === "completed") {
     return (
       <div className="enroll-action">
         <ActionButton
@@ -187,7 +163,7 @@ export function CourseEnrollAction({
     );
   }
 
-  if (status === "error") {
+  if (renderStatus === "error") {
     return (
       <div className="enroll-action" aria-live="polite">
         <RetryButton label={TEXT.retry} onRetry={handleEnroll} />
@@ -203,11 +179,11 @@ export function CourseEnrollAction({
         className="full-width"
         type="button"
         onClick={handleEnroll}
-        disabled={status === "enrolling"}
-        loading={status === "enrolling"}
-        aria-busy={status === "enrolling"}
+        disabled={renderStatus === "enrolling"}
+        loading={renderStatus === "enrolling"}
+        aria-busy={renderStatus === "enrolling"}
       >
-        {status === "enrolling" ? TEXT.enrolling : TEXT.addToLearning}
+        {renderStatus === "enrolling" ? TEXT.enrolling : TEXT.addToLearning}
       </ActionButton>
     </div>
   );

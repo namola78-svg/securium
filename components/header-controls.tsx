@@ -7,6 +7,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { ActionButton } from "@/components/design-system-primitives";
 import { NavigationIcon } from "@/components/navigation-icon";
 import { authRedirectHref, safeAuthReturnPath } from "@/lib/auth-routing";
+import { usePresentationIdentity } from "@/components/presentation-identity-provider";
 
 
 import {
@@ -22,10 +23,6 @@ type HeaderUser = {
   roles: string[];
 };
 
-type HeaderControlsProps = {
-  user: HeaderUser | null;
-};
-
 type NavItem = {
   href?: string;
   label: string;
@@ -35,7 +32,7 @@ type NavItem = {
 
 type MobileBottomNavItem = ConfigMobileBottomNavItem;
 
-export function HeaderControls({ user }: HeaderControlsProps) {
+export function HeaderControls() {
   const pathname = usePathname() || "/";
   const focusMode = isLearnerFocusRoute(pathname);
   const router = useRouter();
@@ -45,12 +42,17 @@ export function HeaderControls({ user }: HeaderControlsProps) {
   const [signedOutLocally, setSignedOutLocally] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [logoutError, setLogoutError] = useState("");
+  const { identity, status, markUnauthenticated } = usePresentationIdentity();
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const navRef = useRef<HTMLElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
   const profileButtonRef = useRef<HTMLButtonElement>(null);
   const lockedScrollY = useRef(0);
   const activePath = resolveActivePath(pathname, searchParams);
+  const user: HeaderUser | null =
+    status === "authenticated" && identity?.displayName
+      ? { displayName: identity.displayName, roles: identity.roles }
+      : null;
   const currentUser = signedOutLocally ? null : user;
   const isSignedIn = Boolean(currentUser);
   const isAdmin = Boolean(
@@ -192,6 +194,7 @@ export function HeaderControls({ user }: HeaderControlsProps) {
       const { data } = supabase.auth.onAuthStateChange((event) => {
         if (event === "SIGNED_OUT") {
           setSignedOutLocally(true);
+          markUnauthenticated();
           setMobileOpen(false);
           setProfileOpen(false);
           router.refresh();
@@ -203,7 +206,7 @@ export function HeaderControls({ user }: HeaderControlsProps) {
     }
 
     return () => unsubscribe?.();
-  }, [router]);
+  }, [markUnauthenticated, router]);
 
   const profileItems = useMemo<NavItem[]>(() => {
     const items: NavItem[] = [
@@ -246,6 +249,7 @@ export function HeaderControls({ user }: HeaderControlsProps) {
       }
 
       setSignedOutLocally(true);
+      markUnauthenticated();
       router.replace(loginAfterLogoutHref);
       router.refresh();
 

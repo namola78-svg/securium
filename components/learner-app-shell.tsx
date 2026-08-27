@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { NavigationIcon } from "@/components/navigation-icon";
+import { usePresentationIdentity } from "@/components/presentation-identity-provider";
 import { V2Foundation } from "@/components/v2/v2-foundation";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import {
@@ -39,8 +40,13 @@ const learnerRoutePrefixes = [
   "/wrong-notes",
 ] as const;
 
-export function LearnerAppShell({ children, user }: { children: ReactNode; user: ShellUser | null }) {
+export function LearnerAppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname() || "/";
+  const { identity, status } = usePresentationIdentity();
+  const user: ShellUser | null =
+    status === "authenticated" && identity?.displayName
+      ? { displayName: identity.displayName, roles: identity.roles }
+      : null;
   if (!user || !isLearnerRoute(pathname)) {
     return <div id="main-content" tabIndex={-1}>{children}</div>;
   }

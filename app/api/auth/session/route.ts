@@ -10,8 +10,20 @@ export async function GET() {
 
   try {
     const user = await getOptionalApiUser();
-    return Response.json({ authenticated: Boolean(user) }, { headers });
+    return Response.json(
+      user
+        ? {
+            authenticated: true,
+            displayName: user.displayName,
+            roles: user.roles,
+          }
+        : { authenticated: false, displayName: null, roles: [] },
+      { headers },
+    );
   } catch {
-    return Response.json({ authenticated: false }, { headers });
+    return Response.json(
+      { authenticated: false, displayName: null, roles: [] },
+      { headers },
+    );
   }
 }
