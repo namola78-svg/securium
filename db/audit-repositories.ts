@@ -251,6 +251,56 @@ export async function getAuditLogById(id: string) {
   return { ...row, metadata: safeJson(row.metadataJson) };
 }
 
+export async function hasExactCs1aGovernanceAudit(
+  actorUserId: string,
+  expectation: Readonly<{
+    resourceType: string;
+    resourceId: string;
+    resourceRevisionId: string;
+    revisionHash: string;
+    policyVersion: string;
+    sourceSetHash: string;
+    humanDecisionHash: string;
+    decision: string;
+    reasonCode: string;
+    rightsDisposition: string;
+    currentnessDisposition: string;
+    contentClass: string;
+    publicationAuthority: string;
+  }>,
+) {
+  const rows = await getDb()
+    .select({ metadataJson: auditLogs.metadataJson })
+    .from(auditLogs)
+    .where(
+      and(
+        eq(auditLogs.actorUserId, actorUserId),
+        eq(auditLogs.action, "CS1A_GOVERNANCE_DECISION_CONFIRMED"),
+        eq(auditLogs.resourceType, expectation.resourceType),
+        eq(auditLogs.resourceId, expectation.resourceId),
+      ),
+    )
+    .limit(20);
+
+  const fields = [
+    "resourceRevisionId",
+    "revisionHash",
+    "policyVersion",
+    "sourceSetHash",
+    "humanDecisionHash",
+    "decision",
+    "reasonCode",
+    "rightsDisposition",
+    "currentnessDisposition",
+    "contentClass",
+    "publicationAuthority",
+  ] as const;
+  return rows.some((row) => {
+    const metadata = safeJson(row.metadataJson);
+    return fields.every((field) => metadata[field] === expectation[field]);
+  });
+}
+
 export async function listAuditActors() {
   const recentActorRows = await getDb()
     .select({
