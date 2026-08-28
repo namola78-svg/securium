@@ -1,4 +1,5 @@
 import { AppError } from "../../lib/errors.ts";
+import { normalizeDatabaseError } from "./database-error.ts";
 import type {
   DatabaseProvider,
   DatabaseStatement,
@@ -38,7 +39,12 @@ export class DrizzleD1CompatibilityDatabase implements D1Database {
       return statement.databaseStatement();
     });
     const provider = await this.providerFactory();
-    const results = await provider.transaction(compatible);
+    let results;
+    try {
+      results = await provider.transaction(compatible);
+    } catch (error) {
+      throw normalizeCompatibilityError(error, "transaction");
+    }
     return results.map((result) =>
       d1Result<T>(result.returnedRows as T[], result.affectedRows),
     );
@@ -85,9 +91,14 @@ class CompatibilityPreparedStatement implements D1PreparedStatement {
     columnName?: string,
   ): Promise<T | null> {
     const provider = await this.providerFactory();
-    const row = await provider.queryOne<Record<string, unknown>>(
-      this.databaseStatement(),
-    );
+    let row;
+    try {
+      row = await provider.queryOne<Record<string, unknown>>(
+        this.databaseStatement(),
+      );
+    } catch (error) {
+      throw normalizeCompatibilityError(error);
+    }
     if (!row) return null;
     if (columnName !== undefined) {
       return (row[columnName] ?? null) as T | null;
@@ -97,15 +108,25 @@ class CompatibilityPreparedStatement implements D1PreparedStatement {
 
   async run<T = Record<string, unknown>>(): Promise<D1Result<T>> {
     const provider = await this.providerFactory();
-    const result = await provider.execute(this.databaseStatement());
+    let result;
+    try {
+      result = await provider.execute(this.databaseStatement());
+    } catch (error) {
+      throw normalizeCompatibilityError(error);
+    }
     return d1Result<T>(result.returnedRows as T[], result.affectedRows);
   }
 
   async all<T = Record<string, unknown>>(): Promise<D1Result<T>> {
     const provider = await this.providerFactory();
-    const result = await provider.query<Record<string, unknown>>(
-      this.databaseStatement(),
-    );
+    let result;
+    try {
+      result = await provider.query<Record<string, unknown>>(
+        this.databaseStatement(),
+      );
+    } catch (error) {
+      throw normalizeCompatibilityError(error);
+    }
     return d1Result<T>(result.rows as T[], result.rowCount);
   }
 
@@ -114,15 +135,25 @@ class CompatibilityPreparedStatement implements D1PreparedStatement {
   ): Promise<T[]> {
     const provider = await this.providerFactory();
     if (isRawRowProvider(provider)) {
-      const result = await provider.raw(this.databaseStatement());
+      let result;
+      try {
+        result = await provider.raw(this.databaseStatement());
+      } catch (error) {
+        throw normalizeCompatibilityError(error);
+      }
       if (options?.columnNames) {
         return [result.columns, ...result.rows] as T[];
       }
       return result.rows as T[];
     }
-    const result = await provider.query<Record<string, unknown>>(
-      this.databaseStatement(),
-    );
+    let result;
+    try {
+      result = await provider.query<Record<string, unknown>>(
+        this.databaseStatement(),
+      );
+    } catch (error) {
+      throw normalizeCompatibilityError(error);
+    }
     const values = result.rows.map((row) => Object.values(row));
     if (options?.columnNames) {
       const columns =
@@ -307,4 +338,12 @@ function d1Result<T>(results: T[], affectedRows: number): D1Result<T> {
 
 function compatibilityError(message: string) {
   return new AppError(message, 500, "DATABASE_COMPATIBILITY_ERROR");
+}
+
+function normalizeCompatibilityError(
+  error: unknown,
+  context: "query" | "transaction" = "query",
+) {
+  if (error instanceof AppError) return error;
+  return normalizeDatabaseError(error, context);
 }
