@@ -1,4 +1,5 @@
 import { AppError, publicError } from "./errors";
+import { emitRequestObservation } from "./observability/request-observability";
 
 export function assertSameOrigin(request: Request) {
   const requestUrl = new URL(request.url);
@@ -47,6 +48,7 @@ export function successResponse(
   returnTo?: string,
   status = 200,
 ) {
+  emitRequestObservation(request, status);
   if (returnTo) {
     return Response.redirect(new URL(safeReturnTo(returnTo), request.url), 303);
   }
@@ -60,6 +62,7 @@ export function errorResponse(error: unknown, request?: Request) {
       ? supplied
       : crypto.randomUUID();
   const result = publicError(error, requestId);
+  if (request) emitRequestObservation(request, result.status);
   return Response.json(result.body, {
     status: result.status,
     headers: {
