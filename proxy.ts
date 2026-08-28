@@ -1,7 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
+import {
+  getSupabaseRequestAuthState,
+  SUPABASE_ACCESS_COOKIE,
+  SUPABASE_REFRESH_COOKIE,
+} from "./lib/auth-provider.ts";
 
-const SUPABASE_ACCESS_COOKIE = "sa_access_token";
-const SUPABASE_REFRESH_COOKIE = "sa_refresh_token";
 const AUTH_PAGES = new Set(["/login", "/signup"]);
 const PROTECTED_PREFIXES = [
   "/admin",
@@ -40,6 +43,17 @@ export async function proxy(request: NextRequest) {
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
   if (!isAuthPage && !isProtectedPage) return NextResponse.next();
+
+  const ssrAuth = await getSupabaseRequestAuthState(request.cookies.getAll());
+  if (ssrAuth.authenticated) {
+    const response = isAuthPage
+      ? NextResponse.redirect(
+          new URL(safeReturnPath(searchParams.get("return_to")), request.url),
+        )
+      : NextResponse.next();
+    applySupabaseCookieUpdates(response, ssrAuth.cookieUpdates);
+    return response;
+  }
 
   const accessToken = request.cookies.get(SUPABASE_ACCESS_COOKIE)?.value;
   if (isAccessTokenUsable(accessToken)) {
@@ -81,6 +95,15 @@ export async function proxy(request: NextRequest) {
   response.cookies.delete(SUPABASE_ACCESS_COOKIE);
   response.cookies.delete(SUPABASE_REFRESH_COOKIE);
   return response;
+}
+
+function applySupabaseCookieUpdates(
+  response: NextResponse,
+  cookieUpdates: Awaited<ReturnType<typeof getSupabaseRequestAuthState>>["cookieUpdates"],
+) {
+  for (const cookie of cookieUpdates) {
+    response.cookies.set(cookie.name, cookie.value, cookie.options);
+  }
 }
 
 function resolveProxyAuthProvider() {

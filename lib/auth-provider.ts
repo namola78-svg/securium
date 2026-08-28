@@ -1,4 +1,4 @@
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { AppError } from "./errors.ts";
 
 export type AuthProviderName = "sites" | "supabase";
@@ -17,6 +17,19 @@ export type SupabaseAuthSession = {
   accessToken: string;
   refreshToken: string;
   expiresIn: number;
+};
+
+export type SupabaseRequestCookie = { name: string; value: string };
+
+export type SupabaseRequestCookieUpdate = {
+  name: string;
+  value: string;
+  options: CookieOptions;
+};
+
+export type SupabaseRequestAuthState = {
+  authenticated: boolean;
+  cookieUpdates: SupabaseRequestCookieUpdate[];
 };
 
 type SupabaseUserPayload = {
@@ -116,6 +129,38 @@ export async function getSupabaseAuthenticatedIdentity(): Promise<AuthenticatedI
 
   const payload = (await response.json()) as SupabaseUserPayload;
   return supabasePayloadToIdentity(payload);
+}
+
+/**
+ * Resolve a request with the same Supabase SSR cookie contract used by the
+ * server session resolver. The caller owns response construction and applies
+ * cookie updates returned by the SSR adapter.
+ */
+export async function getSupabaseRequestAuthState(
+  requestCookies: readonly SupabaseRequestCookie[],
+): Promise<SupabaseRequestAuthState> {
+  const cookieUpdates: SupabaseRequestCookieUpdate[] = [];
+  const config = resolveSupabaseAuthConfig();
+  const supabase = createServerClient(config.supabaseUrl, config.anonKey, {
+    cookies: {
+      getAll() {
+        return [...requestCookies];
+      },
+      setAll(cookies) {
+        cookieUpdates.push(...cookies);
+      },
+    },
+  });
+
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    return {
+      authenticated: !error && Boolean(data.user),
+      cookieUpdates,
+    };
+  } catch {
+    return { authenticated: false, cookieUpdates };
+  }
 }
 
 export async function getSupabaseSessionCookieIdentity(): Promise<AuthenticatedIdentity | null> {
