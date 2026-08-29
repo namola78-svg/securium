@@ -151,13 +151,35 @@ export function classifyBaselineState(input) {
     baselineReceiptCount = 0,
     baselineReceiptValid = false,
     historicalReceiptsValid = false,
+    postBoundaryMigrationIds = null,
+    expectedPostBoundaryMigrationIds = null,
   } = input;
-  if (baselineReceiptCount > 1 || historicalReceiptCount > 0 && baselineReceiptCount > 0) return "AMBIGUOUS_NONEMPTY";
+  if (baselineReceiptCount > 1) return "AMBIGUOUS_NONEMPTY";
   if (baselineReceiptCount === 1 && !baselineReceiptValid) return "PARTIAL_BASELINE";
-  if (baselineReceiptCount === 1 && baselineReceiptValid && historicalReceiptCount === 0) return "BASELINE_DATABASE";
+  if (baselineReceiptCount === 1 && baselineReceiptValid) {
+    if (historicalReceiptCount > 0) return "AMBIGUOUS_NONEMPTY";
+    if (postBoundaryMigrationIds === null || expectedPostBoundaryMigrationIds === null) {
+      return "BASELINE_DATABASE";
+    }
+    const postBoundaryState = classifyPostBoundaryMigrations(
+      postBoundaryMigrationIds,
+      expectedPostBoundaryMigrationIds,
+    );
+    if (postBoundaryState === "INVALID_UNKNOWN") return "UNKNOWN";
+    if (postBoundaryState === "INVALID_ORDER") return "AMBIGUOUS_NONEMPTY";
+    return postBoundaryMigrationIds.length ? "POST_BOUNDARY_DATABASE" : "BASELINE_DATABASE";
+  }
   if (historicalReceiptCount > 0) return historicalReceiptsValid ? "HISTORICAL_DATABASE" : "UNKNOWN";
   if (applicationRelationCount === 0) return "TRUE_EMPTY";
   return "AMBIGUOUS_NONEMPTY";
+}
+
+function classifyPostBoundaryMigrations(appliedIds, expectedIds) {
+  if (!Array.isArray(appliedIds) || !Array.isArray(expectedIds)) return "INVALID_UNKNOWN";
+  if (new Set(appliedIds).size !== appliedIds.length) return "INVALID_ORDER";
+  if (appliedIds.some((id) => !expectedIds.includes(id))) return "INVALID_UNKNOWN";
+  if (appliedIds.some((id, index) => id !== expectedIds[index])) return "INVALID_ORDER";
+  return "VALID";
 }
 
 export function migrationsAfterBoundary(migrations, boundary = BASELINE_BOUNDARY) {

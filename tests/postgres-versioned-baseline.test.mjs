@@ -359,6 +359,32 @@ test("LIVE-02 all six state-machine states execute explicit fail-closed expectat
   assert.equal(matrix.filter(([, , behavior]) => behavior === "DENY").length, 3);
 });
 
+test("LIVE-02A valid baseline post-boundary states are healthy and invalid states fail closed", () => {
+  const expectedPostBoundary = ["0020_concept_persistence_cp_a", "0021_cs1a_governance_receipts"];
+  const baseline = {
+    applicationRelationCount: 102,
+    baselineReceiptCount: 1,
+    baselineReceiptValid: true,
+    historicalReceiptCount: 0,
+    historicalReceiptsValid: true,
+    expectedPostBoundaryMigrationIds: expectedPostBoundary,
+  };
+  const classify = (postBoundaryMigrationIds, overrides = {}) =>
+    classifyBaselineState({ ...baseline, postBoundaryMigrationIds, ...overrides });
+
+  assert.equal(classify([]), "BASELINE_DATABASE");
+  assert.equal(classify([expectedPostBoundary[0]]), "POST_BOUNDARY_DATABASE");
+  assert.equal(classify(expectedPostBoundary), "POST_BOUNDARY_DATABASE");
+  assert.equal(classify(["0022_future_migration"]), "UNKNOWN");
+  assert.equal(classify([expectedPostBoundary[1]]), "AMBIGUOUS_NONEMPTY");
+  assert.equal(classify([expectedPostBoundary[0], expectedPostBoundary[0]]), "AMBIGUOUS_NONEMPTY");
+  assert.equal(classify([], { baselineReceiptValid: false }), "PARTIAL_BASELINE");
+  assert.equal(
+    classify([], { baselineReceiptCount: 0, applicationRelationCount: 1 }),
+    "AMBIGUOUS_NONEMPTY",
+  );
+});
+
 test("LIVE-03 every one of the 71 lockdown relations is present and secure", async () => {
   const expected = await lockdownRelationNames();
   assert.equal(expected.length, 71);

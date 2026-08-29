@@ -57,6 +57,23 @@ if (command === "status") {
     console.log(`POSTGRES_BASELINE_APPLIED_PENDING ${migrationsAfterBoundary(migrations, BASELINE_BOUNDARY).map((migration) => migration.id).join(",") || "NONE"}`);
     process.exit(0);
   }
+  if (state === "POST_BOUNDARY_DATABASE") {
+    const result = await queryWithConnectionFallback(
+      "SELECT id FROM app_schema_migrations ORDER BY applied_at",
+    );
+    await runner.close();
+    if (result.code !== 0) failWithDetail("POSTGRES_MIGRATION_STATUS_FAILED", result.errorCode);
+    const applied = new Set(result.stdout.split(/\r?\n/).filter(Boolean));
+    const pending = migrationsAfterBoundary(migrations, BASELINE_BOUNDARY)
+      .map((migration) => migration.id)
+      .filter((id) => !applied.has(id));
+    console.log(
+      pending.length
+        ? `POSTGRES_MIGRATIONS_PENDING ${pending.join(",")}`
+        : "POSTGRES_MIGRATIONS_APPLIED",
+    );
+    process.exit(0);
+  }
   if (["AMBIGUOUS_NONEMPTY", "PARTIAL_BASELINE", "UNKNOWN"].includes(state)) {
     await runner.close();
     fail(`POSTGRES_BASELINE_STATE_${state}`);
@@ -103,9 +120,23 @@ if (databaseState === "TRUE_EMPTY") {
   await validateBaselineFiles();
   await runner.applyBaseline();
 }
-const migrationsToApply = databaseState === "TRUE_EMPTY" || databaseState === "BASELINE_DATABASE"
-  ? migrationsAfterBoundary(migrations, BASELINE_BOUNDARY)
-  : migrations;
+let migrationsToApply;
+if (databaseState === "TRUE_EMPTY" || databaseState === "BASELINE_DATABASE") {
+  migrationsToApply = migrationsAfterBoundary(migrations, BASELINE_BOUNDARY);
+} else if (databaseState === "POST_BOUNDARY_DATABASE") {
+  const result = await queryWithConnectionFallback(
+    "SELECT id FROM app_schema_migrations ORDER BY applied_at",
+  );
+  if (result.code !== 0) {
+    await runner.close();
+    failWithDetail("POSTGRES_MIGRATION_STATUS_FAILED", result.errorCode);
+  }
+  const applied = new Set(result.stdout.split(/\r?\n/).filter(Boolean));
+  migrationsToApply = migrationsAfterBoundary(migrations, BASELINE_BOUNDARY)
+    .filter((migration) => !applied.has(migration.id));
+} else {
+  migrationsToApply = migrations;
+}
 for (const migration of migrationsToApply) {
   const result = await runner.deployMigration(migration);
   if (result.code !== 0) {
@@ -332,18 +363,24 @@ async function inspectDatabaseState(runner) {
   const appRows = await runner.queryRows(
     "SELECT to_regclass('public.app_schema_migrations') AS relation, to_regclass('public.app_schema_baseline_receipts') AS baseline_relation",
   );
-  const historical = appRows[0]?.relation
-    ? await runner.queryRows("SELECT count(*)::int AS count FROM public.app_schema_migrations")
-    : [{ count: 0 }];
+  const migrationRows = appRows[0]?.relation
+    ? await runner.queryRows("SELECT id FROM public.app_schema_migrations ORDER BY applied_at, id")
+    : [];
+  const historical = migrationRows.filter((row) => Number(row.id?.slice(0, 4)) <= Number(BASELINE_BOUNDARY));
+  const postBoundary = migrationRows
+    .filter((row) => Number(row.id?.slice(0, 4)) > Number(BASELINE_BOUNDARY) || Number.isNaN(Number(row.id?.slice(0, 4))))
+    .map((row) => row.id);
   const baseline = appRows[0]?.baseline_relation
     ? await runner.queryRows(`SELECT count(*)::int AS count, bool_and(baseline_id = '${BASELINE_ID}' AND schema_boundary = '${BASELINE_BOUNDARY}') AS valid FROM public.app_schema_baseline_receipts`)
     : [{ count: 0, valid: false }];
   return classifyBaselineState({
     applicationRelationCount: Number(relationRows[0]?.count ?? 0),
-    historicalReceiptCount: Number(historical[0]?.count ?? 0),
+    historicalReceiptCount: historical.length,
     baselineReceiptCount: Number(baseline[0]?.count ?? 0),
     baselineReceiptValid: Boolean(baseline[0]?.valid),
     historicalReceiptsValid: true,
+    postBoundaryMigrationIds: postBoundary,
+    expectedPostBoundaryMigrationIds: migrationsAfterBoundary(migrations, BASELINE_BOUNDARY).map((migration) => migration.id),
   });
 }
 
