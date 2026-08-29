@@ -107,6 +107,74 @@ export const cs1aGovernanceReceipts = sqliteTable(
   ],
 );
 
+/** Lossless CS1A decision identity. This is distinct from generic audit rows. */
+export const cs1aGovernanceDecisions = sqliteTable(
+  "cs1a_governance_decisions",
+  {
+    id: text("id").primaryKey(),
+    contractVersion: text("contract_version").notNull(),
+    humanDecisionHash: text("human_decision_hash").notNull(),
+    decision: text("decision").notNull(),
+    reasonCode: text("reason_code").notNull(),
+    publicationAuthority: text("publication_authority").notNull(),
+    subjectCount: integer("subject_count").notNull(),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    uniqueIndex("cs1a_governance_decisions_identity_unique").on(
+      table.contractVersion,
+      table.humanDecisionHash,
+    ),
+    check("cs1a_governance_decisions_subject_count_check", sql`${table.subjectCount} > 0`),
+    check("cs1a_governance_decisions_hash_check", sql`${table.humanDecisionHash} GLOB '[0-9a-f]*' AND length(${table.humanDecisionHash}) = 64 AND ${table.humanDecisionHash} NOT GLOB '*[^0-9a-f]*'`),
+  ],
+);
+
+/** Complete normalized subject membership for one CS1A decision. */
+export const cs1aGovernanceDecisionSubjects = sqliteTable(
+  "cs1a_governance_decision_subjects",
+  {
+    id: text("id").primaryKey(),
+    decisionId: text("decision_id").notNull().references(() => cs1aGovernanceDecisions.id, { onDelete: "restrict" }),
+    canonicalSubjectIdentity: text("canonical_subject_identity").notNull().references(() => contentRevisions.id, { onDelete: "restrict" }),
+    governanceScope: text("governance_scope").notNull(),
+    resourceType: text("resource_type").notNull(),
+    resourceId: text("resource_id").notNull(),
+    contentHash: text("content_hash").notNull(),
+    revisionHash: text("revision_hash").notNull(),
+    policyVersion: text("policy_version").notNull(),
+    decision: text("decision").notNull(),
+    reasonCode: text("reason_code").notNull(),
+    rightsDisposition: text("rights_disposition").notNull(),
+    currentnessDisposition: text("currentness_disposition").notNull(),
+    authoringOrigin: text("authoring_origin").notNull(),
+    contentClass: text("content_class").notNull(),
+    sourceOrigin: text("source_origin").notNull(),
+    publicationAuthority: text("publication_authority").notNull(),
+    sourceAuthority: text("source_authority"),
+    sourceManifestRef: text("source_manifest_ref"),
+    sourceSetHash: text("source_set_hash"),
+    parentRevisionId: text("parent_revision_id"),
+    immutableProvenanceIdentity: text("immutable_provenance_identity"),
+  },
+  (table) => [
+    uniqueIndex("cs1a_governance_decision_subjects_membership_unique").on(table.decisionId, table.canonicalSubjectIdentity),
+    index("cs1a_governance_decision_subjects_decision_idx").on(table.decisionId),
+    check("cs1a_governance_decision_subjects_resource_type_check", sql`${table.resourceType} = 'CONTENT_REVISION'`),
+  ],
+);
+
+/** Database-enforced 1:1 canonical execution binding. */
+export const cs1aGovernanceDecisionAudits = sqliteTable(
+  "cs1a_governance_decision_audits",
+  {
+    decisionId: text("decision_id").primaryKey().references(() => cs1aGovernanceDecisions.id, { onDelete: "restrict" }),
+    auditLogId: text("audit_log_id").notNull().references(() => adminAuditLogs.id, { onDelete: "restrict" }),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [uniqueIndex("cs1a_governance_decision_audits_audit_unique").on(table.auditLogId)],
+);
+
 export const concepts = sqliteTable(
   "concepts",
   {

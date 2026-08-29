@@ -5,11 +5,13 @@ import {
   type VerifiedCs1aGovernanceExecutionContext,
 } from "./cs1a-governance-execution.ts";
 import type { Cs1aGovernanceAuditExpectation } from "./cs1a-actor-audit-adapter.ts";
+import type { Cs1aHumanDecisionSubject } from "../policy/cs1a-human-decision.ts";
 
 type Cs1aAuditCreator = (
   actor: Readonly<{ id: string; roles: readonly string[] }>,
   expectation: Cs1aGovernanceAuditExpectation,
   request?: Request,
+  context?: VerifiedCs1aGovernanceExecutionContext,
 ) => Promise<Readonly<{ actorAuditLogId: string; event: Readonly<Record<string, unknown>> | null }>>;
 
 export type Cs1aExplicitConfirmation = Readonly<{
@@ -36,6 +38,7 @@ export type Cs1aGovernanceAuditExecutionDependencies = Readonly<{
   findDuplicate?: (
     actor: Cs1aServerApplicationUser,
     expectation: Cs1aGovernanceAuditExpectation,
+    context?: VerifiedCs1aGovernanceExecutionContext,
   ) => Promise<boolean>;
   createAudit?: Cs1aAuditCreator;
   buildAuditExpectation?: (
@@ -81,7 +84,7 @@ export async function executeCs1aGovernanceAudit(
     throw new AppError(
       "The exact governance confirmation audit already exists.",
       409,
-      "CS1A_GOVERNANCE_AUDIT_DUPLICATE",
+      "DUPLICATE_EXACT_GOVERNANCE_DECISION",
     );
   }
 
@@ -93,6 +96,7 @@ export async function executeCs1aGovernanceAudit(
     },
     expectation,
     input.request,
+    context,
   );
   if (!audit.event) {
     throw new AppError(
@@ -112,18 +116,43 @@ export async function executeCs1aGovernanceAudit(
 async function defaultFindDuplicate(
   actor: Cs1aServerApplicationUser,
   expectation: Cs1aGovernanceAuditExpectation,
+  context?: VerifiedCs1aGovernanceExecutionContext,
 ): Promise<boolean> {
-  const { hasExactCs1aGovernanceAudit } = await import("../../db/audit-repositories.ts");
-  return hasExactCs1aGovernanceAudit(actor.id, expectation);
+  if (!context) return false;
+  const { getDatabaseProvider } = await import("../../db/index.ts");
+  const { readCs1aGovernanceDecision } = await import("../../db/cs1a-governance-identity-repository.ts");
+  return Boolean(await readCs1aGovernanceDecision(await getDatabaseProvider(), context.semantic.contractVersion, context.semantic.humanDecisionHash));
 }
 
 async function defaultCreateAudit(
   actor: Readonly<{ id: string; roles: readonly string[] }>,
   expectation: Cs1aGovernanceAuditExpectation,
   request?: Request,
+  context?: VerifiedCs1aGovernanceExecutionContext,
 ) {
-  const { createValidatedCs1aGovernanceAuditEvent } = await import("./cs1a-actor-audit-adapter.ts");
-  return createValidatedCs1aGovernanceAuditEvent(actor, expectation, request);
+  if (!context) throw new AppError("Verified governance context is required.", 500, "CS1A_VERIFIED_CONTEXT_REQUIRED");
+  const { getDatabaseProvider } = await import("../../db/index.ts");
+  const { persistCs1aGovernanceDecision } = await import("../../db/cs1a-governance-identity-repository.ts");
+  const persisted = await persistCs1aGovernanceDecision({
+    database: await getDatabaseProvider(),
+    actor,
+    contractVersion: context.semantic.contractVersion,
+    humanDecisionHash: context.semantic.humanDecisionHash,
+    subjects: context.semantic.projection.subjects as unknown as readonly Cs1aHumanDecisionSubject[],
+    decision: context.semantic.decision,
+    reasonCode: context.semantic.reasonCodes[0] ?? expectation.reasonCode,
+    publicationAuthority: context.semantic.publicationAuthority,
+  });
+  return {
+    actorAuditLogId: persisted.actorAuditLogId,
+    event: {
+      id: persisted.actorAuditLogId,
+      actorUserId: actor.id,
+      action: "CS1A_GOVERNANCE_DECISION_CONFIRMED",
+      result: "SUCCESS",
+      metadata: expectation,
+    },
+  };
 }
 
 function assertExplicitConfirmation(
