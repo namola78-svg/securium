@@ -1,4 +1,7 @@
 const EVENT_NAME = "SECURIUM_REQUEST_OBSERVATION_V1" as const;
+const MAX_EVENT_LENGTH = 2048;
+const MAX_DURATION_MS = 24 * 60 * 60 * 1000;
+const SAFE_CORRELATION_ID = /^[A-Za-z0-9._:-]{1,128}$/;
 
 export const ROUTE_FAMILIES = [
   "PUBLIC_PAGE",
@@ -37,6 +40,7 @@ export type EnvironmentCategory =
   | "PRODUCTION"
   | "PREVIEW"
   | "DEVELOPMENT"
+  | "TEST"
   | "UNKNOWN";
 export type DurationBucket =
   | "LT_50MS"
@@ -45,19 +49,50 @@ export type DurationBucket =
   | "S_1_5"
   | "GT_5S"
   | "UNKNOWN";
+export type Outcome = "SUCCESS" | "FAILURE" | "UNKNOWN";
+export type ErrorCategory =
+  | "NONE"
+  | "VALIDATION"
+  | "AUTH"
+  | "AUTHORIZATION"
+  | "DATABASE"
+  | "EXTERNAL_SERVICE"
+  | "AI"
+  | "RATE_LIMIT"
+  | "CONFIGURATION"
+  | "INTERNAL"
+  | "UNKNOWN";
+export type Severity = "INFO" | "ERROR";
 
 export type RequestObservation = {
   event: typeof EVENT_NAME;
+  severity: Severity;
   routeFamily: RouteFamily;
   routeTemplate: string;
   method: MethodCategory;
   statusClass: StatusClass;
+  outcome: Outcome;
+  errorCategory: ErrorCategory;
   authCategory: AuthCategory;
   trafficCategory: TrafficCategory;
   runtimeCategory: RuntimeCategory;
   environment: EnvironmentCategory;
+  durationMs: number | null;
   durationBucket: DurationBucket;
+  correlationId: string;
 };
+
+export type RequestObservationContext = {
+  status?: number;
+  durationMs?: number | null;
+  outcome?: Outcome;
+  error?: unknown;
+  correlationId?: string;
+};
+
+type ObservationWriter = (line: string) => void;
+
+const requestStarts = new WeakMap<Request, number>();
 
 const PUBLIC_STATIC_ROUTES = new Set([
   "/",
@@ -232,58 +267,170 @@ export function classifyTraffic(userAgent: string | null | undefined): TrafficCa
 
 function classifyAuth(routeFamily: RouteFamily, statusClass: StatusClass): AuthCategory {
   if (routeFamily === "PUBLIC_PAGE" || routeFamily === "AUTH_PAGE") return "ANONYMOUS";
-  if (
-    statusClass === "2xx" ||
-    statusClass === "3xx"
-  ) {
-    if (routeFamily === "PROGRESS_API" || routeFamily === "ADMIN_API") return "AUTHENTICATED";
+  if ((statusClass === "2xx" || statusClass === "3xx") &&
+      (routeFamily === "PROGRESS_API" || routeFamily === "ADMIN_API")) {
+    return "AUTHENTICATED";
   }
   return "UNKNOWN";
 }
 
-function classifyRuntime() {
+function classifyRuntime(): RuntimeCategory {
   const runtime = process.env.NEXT_RUNTIME?.toLowerCase();
-  if (runtime === "nodejs" || runtime === "node") return "NODE" as const;
-  if (runtime === "edge") return "EDGE" as const;
-  if (runtime === "middleware") return "MIDDLEWARE" as const;
-  return "UNKNOWN" as const;
+  if (runtime === "nodejs" || runtime === "node") return "NODE";
+  if (runtime === "edge") return "EDGE";
+  if (runtime === "middleware") return "MIDDLEWARE";
+  return "UNKNOWN";
 }
 
-function classifyEnvironment() {
-  const environment = process.env.VERCEL_ENV?.toLowerCase();
-  if (environment === "production") return "PRODUCTION" as const;
-  if (environment === "preview") return "PREVIEW" as const;
-  if (process.env.NODE_ENV === "development") return "DEVELOPMENT" as const;
-  return "UNKNOWN" as const;
+function classifyEnvironment(): EnvironmentCategory {
+  const vercelEnvironment = process.env.VERCEL_ENV?.toLowerCase();
+  if (vercelEnvironment === "production") return "PRODUCTION";
+  if (vercelEnvironment === "preview") return "PREVIEW";
+  if (process.env.NODE_ENV === "test") return "TEST";
+  if (process.env.NODE_ENV === "development") return "DEVELOPMENT";
+  return "UNKNOWN";
+}
+
+export function normalizeDurationMs(durationMs: number | null | undefined) {
+  if (!Number.isFinite(durationMs) || (durationMs as number) < 0) return null;
+  return Math.min(Math.round(durationMs as number), MAX_DURATION_MS);
 }
 
 export function durationBucket(durationMs: number | null | undefined): DurationBucket {
-  if (!Number.isFinite(durationMs) || (durationMs as number) < 0) return "UNKNOWN";
-  if ((durationMs as number) < 50) return "LT_50MS";
-  if ((durationMs as number) < 250) return "MS_50_250";
-  if ((durationMs as number) < 1000) return "MS_250_1000";
-  if ((durationMs as number) <= 5000) return "S_1_5";
+  const normalized = normalizeDurationMs(durationMs);
+  if (normalized === null) return "UNKNOWN";
+  if (normalized < 50) return "LT_50MS";
+  if (normalized < 250) return "MS_50_250";
+  if (normalized < 1000) return "MS_250_1000";
+  if (normalized <= 5000) return "S_1_5";
   return "GT_5S";
+}
+
+export function startRequestObservation(request: Request, startedAt = performance.now()) {
+  try {
+    if (Number.isFinite(startedAt)) requestStarts.set(request, startedAt);
+  } catch {
+    // Timing is diagnostic only.
+  }
+}
+
+export function finishRequestObservation(request: Request) {
+  try {
+    const startedAt = requestStarts.get(request);
+    requestStarts.delete(request);
+    if (startedAt === undefined) return null;
+    return normalizeDurationMs(performance.now() - startedAt);
+  } catch {
+    return null;
+  }
+}
+
+function safeHeader(request: Request, name: string) {
+  try {
+    return request.headers.get(name);
+  } catch {
+    return null;
+  }
+}
+
+function correlationIdFromRequest(request: Request) {
+  for (const header of ["x-vercel-id", "x-request-id"]) {
+    const value = safeHeader(request, header);
+    if (isSafeCorrelationId(value)) return value;
+  }
+  try {
+    return crypto.randomUUID();
+  } catch {
+    return "UNAVAILABLE";
+  }
+}
+
+function isSafeCorrelationId(value: unknown): value is string {
+  return typeof value === "string" && SAFE_CORRELATION_ID.test(value);
+}
+
+function safeErrorCode(error: unknown) {
+  if (typeof error !== "object" || error === null || !("code" in error)) return "";
+  const code = (error as { code?: unknown }).code;
+  return typeof code === "string" ? code.slice(0, 128).toUpperCase() : "";
+}
+
+export function classifyErrorCategory(error: unknown, status?: number): ErrorCategory {
+  const code = safeErrorCode(error);
+  if (code.startsWith("DATABASE_") || code.startsWith("DB_")) return "DATABASE";
+  if (code === "AUTHORIZATION_DENIED" || code === "CSRF_REJECTED") return "AUTHORIZATION";
+  if (code === "AUTH_REQUIRED" || code === "SESSION_INVALID" || code.startsWith("AUTH_") || code.startsWith("SUPABASE_AUTH_")) {
+    return "AUTH";
+  }
+  if (code.includes("RATE_LIMIT")) return "RATE_LIMIT";
+  if (code.startsWith("AI_")) return "AI";
+  if (code.includes("CONFIG") || code.includes("PROVIDER_INVALID")) return "CONFIGURATION";
+  if (code.includes("NETWORK") || code.includes("EXTERNAL") || code.includes("UNAVAILABLE")) {
+    return "EXTERNAL_SERVICE";
+  }
+  if (code.includes("INVALID") || code === "BAD_REQUEST") return "VALIDATION";
+
+  if (status === 401) return "AUTH";
+  if (status === 403) return "AUTHORIZATION";
+  if (status === 429) return "RATE_LIMIT";
+  if (status === 400 || status === 422) return "VALIDATION";
+  if (status !== undefined && status >= 500) return "INTERNAL";
+  return "UNKNOWN";
+}
+
+function classifyOutcome(status: number | undefined, error: unknown, requested?: Outcome): Outcome {
+  if (requested === "SUCCESS" || requested === "FAILURE") return requested;
+  if (error !== undefined) return "FAILURE";
+  const statusClass = classifyStatus(status);
+  if (statusClass === "2xx" || statusClass === "3xx") return "SUCCESS";
+  if (statusClass === "4xx" || statusClass === "5xx") return "FAILURE";
+  return "UNKNOWN";
+}
+
+function observationContext(
+  contextOrStatus: RequestObservationContext | number | undefined,
+  durationMs?: number | null,
+): RequestObservationContext {
+  if (typeof contextOrStatus === "number") {
+    return { status: contextOrStatus, durationMs };
+  }
+  return contextOrStatus ?? {};
 }
 
 export function buildRequestObservation(
   request: Request,
-  status?: number,
-  durationMs?: number,
+  contextOrStatus: RequestObservationContext | number = {},
+  legacyDurationMs?: number | null,
 ): RequestObservation {
+  const context = observationContext(contextOrStatus, legacyDurationMs);
   const route = classifyRoute(request);
-  const statusClass = classifyStatus(status);
+  const statusClass = classifyStatus(context.status);
+  const outcome = classifyOutcome(context.status, context.error, context.outcome);
+  const errorCategory = outcome === "SUCCESS"
+    ? "NONE"
+    : classifyErrorCategory(context.error, context.status);
+  const durationMs = normalizeDurationMs(context.durationMs);
+  const suppliedCorrelationId = context.correlationId;
+  const correlationId = isSafeCorrelationId(suppliedCorrelationId)
+    ? suppliedCorrelationId
+    : correlationIdFromRequest(request);
+
   return {
     event: EVENT_NAME,
+    severity: outcome === "FAILURE" ? "ERROR" : "INFO",
     routeFamily: route.routeFamily,
     routeTemplate: route.routeTemplate,
     method: classifyMethod(request.method),
     statusClass,
+    outcome,
+    errorCategory,
     authCategory: classifyAuth(route.routeFamily, statusClass),
-    trafficCategory: classifyTraffic(request.headers.get("user-agent")),
+    trafficCategory: classifyTraffic(safeHeader(request, "user-agent")),
     runtimeCategory: classifyRuntime(),
     environment: classifyEnvironment(),
+    durationMs,
     durationBucket: durationBucket(durationMs),
+    correlationId,
   };
 }
 
@@ -293,16 +440,46 @@ function shouldEmit() {
     process.env.NODE_ENV === "test";
 }
 
+function defaultWriter(event: RequestObservation, line: string) {
+  if (event.severity === "ERROR") {
+    console.error(line);
+  } else {
+    console.log(line);
+  }
+}
+
 export function emitRequestObservation(
   request: Request,
-  status?: number,
-  durationMs?: number,
-  write: (line: string) => void = (line) => console.log(line),
+  contextOrStatus: RequestObservationContext | number = {},
+  durationOrWrite?: number | null | ObservationWriter,
+  errorOrWrite?: unknown | ObservationWriter,
+  legacyWrite?: ObservationWriter,
 ) {
   try {
     if (!shouldEmit()) return;
-    const event = buildRequestObservation(request, status, durationMs);
-    write(JSON.stringify(event));
+
+    let context: RequestObservationContext;
+    let write: ObservationWriter | undefined;
+    if (typeof contextOrStatus === "number") {
+      context = observationContext(
+        contextOrStatus,
+        typeof durationOrWrite === "number" ? durationOrWrite : undefined,
+      );
+      if (typeof errorOrWrite === "function") write = errorOrWrite as ObservationWriter;
+      else if (errorOrWrite !== undefined) context.error = errorOrWrite;
+      if (legacyWrite) write = legacyWrite;
+    } else {
+      context = contextOrStatus ?? {};
+      if (typeof durationOrWrite === "function") write = durationOrWrite as ObservationWriter;
+      else if (typeof errorOrWrite === "function") write = errorOrWrite as ObservationWriter;
+      if (legacyWrite) write = legacyWrite;
+    }
+
+    const event = buildRequestObservation(request, context);
+    const line = JSON.stringify(event);
+    if (line.length > MAX_EVENT_LENGTH) return;
+    if (write) write(line);
+    else defaultWriter(event, line);
   } catch {
     // Telemetry is deliberately fail-open. It must never affect a request.
   }

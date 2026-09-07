@@ -1,0 +1,151 @@
+{
+  "finalStatus": "SECURIUM_VERCEL_P4_PRIVACY_SAFE_MINIMAL_SERVER_OBSERVABILITY_IMPLEMENTATION_PASS_READY_FOR_REVIEW",
+  "implementationDecision": "IMPLEMENT_PRIVACY_SAFE_SERVER_LOGGING_AND_NATIVE_VERCEL_METRICS",
+  "readiness": "P4_MINIMAL_SERVER_OBSERVABILITY_IMPLEMENTED_INDEPENDENT_REVIEW_REQUIRED",
+  "primaryNextGate": "REVIEW_SECURIUM_VERCEL_P4_PRIVACY_SAFE_MINIMAL_SERVER_OBSERVABILITY_IMPLEMENTATION",
+  "snapshotDate": "2026-09-07",
+  "scope": "SERVER_LOGGING_AND_METRICS",
+  "serverFirst": true,
+  "filesChanged": [
+    "lib/observability/request-observability.ts",
+    "lib/http.ts",
+    "tests/request-observability.test.ts",
+    "package.json"
+  ],
+  "preExistingArtifactsPreserved": [
+    "docs/observability/securium-vercel-p4-bounded-implementation-readiness-2026-09-07.md",
+    "reports/securium-vercel-p4-bounded-implementation-readiness-2026-09-07.json"
+  ],
+  "event": {
+    "name": "SECURIUM_REQUEST_OBSERVATION_V1",
+    "fields": [
+      "event",
+      "severity",
+      "routeFamily",
+      "routeTemplate",
+      "method",
+      "statusClass",
+      "outcome",
+      "errorCategory",
+      "authCategory",
+      "trafficCategory",
+      "runtimeCategory",
+      "environment",
+      "durationMs",
+      "durationBucket",
+      "correlationId"
+    ],
+    "maxSerializedLength": 2048,
+    "bodyCapture": "NOT_CAPTURED",
+    "queryValues": "NOT_CAPTURED",
+    "rawSql": "NOT_CAPTURED",
+    "rawAiContent": "NOT_CAPTURED",
+    "learningEvidence": "NOT_CAPTURED",
+    "securityPayload": "NOT_CAPTURED"
+  },
+  "outcomes": ["SUCCESS", "FAILURE", "UNKNOWN"],
+  "errorCategories": [
+    "NONE",
+    "VALIDATION",
+    "AUTH",
+    "AUTHORIZATION",
+    "DATABASE",
+    "EXTERNAL_SERVICE",
+    "AI",
+    "RATE_LIMIT",
+    "CONFIGURATION",
+    "INTERNAL",
+    "UNKNOWN"
+  ],
+  "duration": {
+    "source": "monotonic performance.now",
+    "normalization": "finite non-negative rounded milliseconds, capped at 24 hours; invalid or missing is null",
+    "buckets": ["LT_50MS", "MS_50_250", "MS_250_1000", "S_1_5", "GT_5S", "UNKNOWN"],
+    "metricDimension": false
+  },
+  "correlationId": {
+    "preferredHeaders": ["x-vercel-id", "x-request-id"],
+    "validation": "[A-Za-z0-9._:-]{1,128}",
+    "fallback": "crypto.randomUUID then UNAVAILABLE",
+    "identityEncoded": false,
+    "metricDimension": false
+  },
+  "metricDimensions": [
+    "routeFamily",
+    "routeTemplate",
+    "method",
+    "statusClass",
+    "outcome",
+    "errorCategory",
+    "environment",
+    "durationBucket"
+  ],
+  "forbiddenMetricDimensions": [
+    "correlationId",
+    "userId",
+    "questionId",
+    "lessonId",
+    "attemptId",
+    "rawUrl",
+    "queryValue",
+    "errorMessage",
+    "payloadValue"
+  ],
+  "provider": {
+    "logging": "native Vercel Runtime Logs via structured console output",
+    "aggregation": "native Vercel aggregation over bounded structured fields",
+    "customDatabase": false,
+    "externalDrain": false,
+    "openTelemetry": "DEFER",
+    "tracing": "DEFER",
+    "newDependencies": 0
+  },
+  "integration": {
+    "point": "lib/http.ts shared assertSameOrigin/readRequestInput to successResponse/errorResponse",
+    "wholeAppMassInstrumentation": false,
+    "activeCollision": "NONE"
+  },
+  "testRunnerRepair": {
+    "rootCause": "extensionless TypeScript ESM import under native Node test execution",
+    "repair": "explicit .ts import and focused npm run test:observability script",
+    "packageWideModuleConfigChanged": false
+  },
+  "verification": {
+    "focusedTelemetry": {"passed": 13, "failed": 0},
+    "unit": {"passed": 448, "failed": 0},
+    "integration": {"passed": 59, "failed": 0},
+    "migrationGuard": {"passed": 10, "failed": 0},
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "build": "PASS",
+    "gitDiffCheck": "PASS",
+    "newSkipsOnlyTodo": 0,
+    "externalTelemetryDuringTests": false
+  },
+  "review": {
+    "securityCriticalHigh": "0/0",
+    "privacyCriticalHigh": "0/0",
+    "cardinalityCriticalHigh": "0/0",
+    "costRisk": "LOW",
+    "performanceRisk": "LOW",
+    "operabilityValue": "HIGH",
+    "schemaChange": 0,
+    "migrationChange": 0,
+    "historicalMigrationMutation": 0,
+    "productionDatabase": "NO",
+    "productionDeployment": "NO",
+    "uiChange": 0,
+    "crossWorktreeMutation": 0
+  },
+  "deferred": {
+    "p1": ["sampling and rate tuning", "selected route expansion", "retention/data-residency review", "dashboard and alert design", "SLO definition"],
+    "p2": ["distributed tracing", "client telemetry", "AI observability", "MCP observability", "richer provider integration"],
+    "paymentTelemetry": "OUT_OF_SCOPE",
+    "sessionReplay": "OUT_OF_SCOPE",
+    "productAnalytics": "OUT_OF_SCOPE",
+    "learningAnalytics": "OUT_OF_SCOPE"
+  },
+  "retention": "PROVIDER_MANAGED",
+  "dataResidency": "UNKNOWN / REQUIRES PLATFORM POLICY REVIEW",
+  "privacyDocumentation": "REVIEW_REQUIRED if provider processing/retention policy changes"
+}

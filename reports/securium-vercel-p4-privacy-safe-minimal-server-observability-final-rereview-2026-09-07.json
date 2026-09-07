@@ -1,0 +1,139 @@
+{
+  "finalStatus": "SECURIUM_VERCEL_P4_PRIVACY_SAFE_MINIMAL_SERVER_OBSERVABILITY_FINAL_REREVIEW_PASS",
+  "reviewDecision": "APPROVE_PRIVACY_SAFE_MINIMAL_SERVER_LOGGING_AND_NATIVE_VERCEL_METRICS",
+  "snapshotDate": "2026-09-07",
+  "worktree": "securium-vercel-observability-p4",
+  "branch": "design/vercel-observability-p4",
+  "head": "313db389b8f3c1d0ccced0bb296661d163986b74",
+  "freshOriginMain": "92a2f0a94ad364118a3bef6ea5987e98a96223c9",
+  "aheadBehind": { "ahead": 1, "behind": 8 },
+  "repairEvidence": {
+    "markdownSha256": "c0dd8700597ac81900be61f815e88f87f3289239af68537f89d4c2d0996ea945",
+    "machineSha256": "421b97dcc0a41d18e779b6ea0209cdadbfe50754f95a5c8da161cf8801c43188"
+  },
+  "failedReviewEvidence": {
+    "markdownSha256": "abf5461c9697c4f34189bba3705694d073079870172912566d61c60de80872a9",
+    "machineSha256": "f4dad1da5b9a5138efccc76d6ce6fe80a2d3c5699cfd94534a9c7a1b71275c20"
+  },
+  "rootCauseClosure": "PASS",
+  "rootCause": "TYPE_VALIDATION_AND_RETURN_VALUE_MISMATCH",
+  "defectivePathBefore": "Correlation validation could coerce an unknown object and retain the original object for emission.",
+  "currentCorrelationNormalizer": "isSafeCorrelationId(value: unknown): value is string",
+  "primitiveStringRequired": true,
+  "correlationRegex": "^[A-Za-z0-9._:-]{1,128}$",
+  "correlationMaxLength": 128,
+  "correlationOutputType": "primitive string or safe fallback",
+  "originalObjectRetained": false,
+  "runtimeMisuseCases": {
+    "objectWithToString": "PASS",
+    "nestedSecretObject": "PASS",
+    "boxedString": "PASS",
+    "array": "PASS",
+    "number": "PASS",
+    "boolean": "PASS",
+    "symbol": "PASS",
+    "bigint": "PASS",
+    "nullUndefined": "PASS",
+    "longString": "PASS",
+    "controlCharacters": "PASS",
+    "logInjection": "PASS",
+    "valueOf": "PASS",
+    "throwingCoercion": "PASS",
+    "symbolToPrimitive": "PASS",
+    "proxy": "PASS"
+  },
+  "event": {
+    "name": "SECURIUM_REQUEST_OBSERVATION_V1",
+    "fieldCount": 15,
+    "fields": ["event", "severity", "routeFamily", "routeTemplate", "method", "statusClass", "outcome", "errorCategory", "authCategory", "trafficCategory", "runtimeCategory", "environment", "durationMs", "durationBucket", "correlationId"],
+    "arbitraryMetadataPath": "NONE",
+    "serializedEventMaxCharacters": 2048
+  },
+  "exclusions": {
+    "requestBody": "NOT_CAPTURED",
+    "responseBody": "NOT_CAPTURED",
+    "queryValues": "NOT_CAPTURED",
+    "rawUrl": "NOT_CAPTURED",
+    "headers": "NOT_CAPTURED",
+    "userIdentifier": "NONE",
+    "ipAddress": "NOT_COLLECTED",
+    "rawErrorMessage": "NOT_CAPTURED",
+    "errorStack": "NOT_CAPTURED",
+    "rawSql": "NOT_CAPTURED",
+    "aiContent": "NOT_CAPTURED",
+    "learningEvidence": "NOT_CAPTURED",
+    "securityPayload": "NOT_CAPTURED"
+  },
+  "dimensions": {
+    "allowed": ["routeTemplate", "routeFamily", "method", "statusClass", "outcome", "errorCategory", "environment", "runtimeCategory", "durationBucket"],
+    "correlationId": "FORBIDDEN",
+    "forbidden": ["userId", "sessionId", "resourceId", "questionId", "lessonId", "courseId", "attemptId", "rawUrl", "rawDuration", "errorMessage", "requestId", "arbitraryPayload"]
+  },
+  "duration": {
+    "source": "performance.now()",
+    "finite": true,
+    "nonNegative": true,
+    "rounded": true,
+    "maxMs": 86400000,
+    "buckets": ["LT_50MS", "MS_50_250", "MS_250_1000", "S_1_5", "GT_5S", "UNKNOWN"]
+  },
+  "outcomes": ["SUCCESS", "FAILURE", "UNKNOWN"],
+  "errorCategories": ["NONE", "VALIDATION", "AUTH", "AUTHORIZATION", "DATABASE", "EXTERNAL_SERVICE", "AI", "RATE_LIMIT", "CONFIGURATION", "INTERNAL", "UNKNOWN"],
+  "failureIsolation": {
+    "successPath": "PASS",
+    "errorPath": "PASS",
+    "recursiveFailure": "NONE",
+    "doubleEmission": "NONE",
+    "directHelperCoverage": "Emitter boundary covered; direct lib/http import is not separately executed because it requires a global ESM resolution change. Source inspection confirms primary response/error semantics are preserved."
+  },
+  "scope": {
+    "logs": "IMPLEMENTED",
+    "metrics": "NATIVE_VERCEL_AGGREGATION",
+    "traces": "DEFERRED",
+    "clientTelemetry": "DEFERRED",
+    "otel": "DEFERRED",
+    "drains": "DEFERRED",
+    "aiObservability": "P2",
+    "mcpObservability": "P2",
+    "sampling": "P1",
+    "retentionResidency": "P1_REVIEW_REQUIRED"
+  },
+  "validation": {
+    "focusedObservability": "16/16 PASS",
+    "unit": "448/448 PASS",
+    "integration": "59/59 PASS",
+    "postgresMigrationGuard": "10/10 PASS",
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "build": "PASS",
+    "gitDiffCheck": "PASS",
+    "newSkipsOnlyTodo": 0,
+    "newDependencies": 0
+  },
+  "risk": {
+    "privacyCriticalHigh": "0/0",
+    "securityCriticalHigh": "0/0",
+    "cardinalityCriticalHigh": "0/0",
+    "cost": "LOW",
+    "performance": "LOW",
+    "operabilityValue": "HIGH"
+  },
+  "sideEffects": {
+    "reviewArtifactsOnly": true,
+    "schemaChange": 0,
+    "migrationChange": 0,
+    "historicalMigrationMutation": 0,
+    "productionDb": "NO",
+    "deployment": "NO",
+    "uiChange": 0,
+    "crossWorktreeMutation": 0,
+    "commit": "NO",
+    "push": "NO",
+    "pullRequest": "NO"
+  },
+  "p1Remaining": ["sampling", "route expansion", "dashboards and alerts", "provider retention/residency review"],
+  "p2Remaining": ["distributed tracing", "client telemetry", "AI observability", "MCP observability"],
+  "criticalBlockers": [],
+  "readinessClassification": "P4_MINIMAL_SERVER_OBSERVABILITY_APPROVED_CLEAN_PUBLICATION_PREPARATION_MAY_PROCEED",
+  "primaryNextGate": "PREPARE_SECURIUM_VERCEL_P4_OBSERVABILITY_CLEAN_PUBLICATION_WORKTREE"
+}

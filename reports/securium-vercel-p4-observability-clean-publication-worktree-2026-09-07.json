@@ -1,0 +1,104 @@
+{
+  "finalStatus": "SECURIUM_VERCEL_P4_OBSERVABILITY_CLEAN_PUBLICATION_WORKTREE_PASS_READY_FOR_BOUNDED_PR",
+  "decision": "APPROVE_CLEAN_MAIN_BASED_PRIVACY_SAFE_OBSERVABILITY_PUBLICATION_CANDIDATE",
+  "snapshotDate": "2026-09-07",
+  "source": {
+    "worktree": "securium-vercel-observability-p4",
+    "branch": "design/vercel-observability-p4",
+    "head": "313db389b8f3c1d0ccced0bb296661d163986b74",
+    "mutation": 0
+  },
+  "freshOriginMain": "92a2f0a94ad364118a3bef6ea5987e98a96223c9",
+  "newWorktree": {
+    "path": "C:\\Users\\user\\Documents\\Codex\\2026-07-24\\1-2-3-4-5-6\\securium-vercel-observability-p4-publication",
+    "branch": "feat/vercel-p4-observability-publication",
+    "baseSha": "92a2f0a94ad364118a3bef6ea5987e98a96223c9",
+    "initialStatus": "CLEAN"
+  },
+  "evidence": {
+    "finalRereviewMarkdownSha256": "f8e9e3986c5912bc40332953b97ca42df7f5cdf54355a9119c26dc6cc3b3023e",
+    "finalRereviewMachineSha256": "3078ca22af8049bad67412962c2bfbed7742c987b8604fb5108a474353753d9f",
+    "repairMarkdownSha256": "c0dd8700597ac81900be61f815e88f87f3289239af68537f89d4c2d0996ea945",
+    "repairMachineSha256": "421b97dcc0a41d18e779b6ea0209cdadbfe50754f95a5c8da161cf8801c43188"
+  },
+  "collision": {
+    "libHttp": "NO_COLLISION",
+    "packageJson": "NO_COLLISION",
+    "overall": "NO_COLLISION",
+    "sourcePatchParity": "SEMANTICALLY_IDENTICAL"
+  },
+  "files": {
+    "runtime": ["lib/http.ts", "lib/observability/request-observability.ts"],
+    "tests": ["tests/request-observability.test.ts"],
+    "packageScripts": ["package.json"],
+    "evidence": [
+      "docs/observability/securium-vercel-p4-bounded-implementation-readiness-2026-09-07.md",
+      "docs/observability/securium-vercel-p4-privacy-safe-minimal-server-observability-implementation-2026-09-07.md",
+      "docs/observability/securium-vercel-p4-observability-runtime-field-boundary-repair-2026-09-07.md",
+      "docs/observability/securium-vercel-p4-privacy-safe-minimal-server-observability-final-rereview-2026-09-07.md",
+      "reports/securium-vercel-p4-bounded-implementation-readiness-2026-09-07.json",
+      "reports/securium-vercel-p4-privacy-safe-minimal-server-observability-implementation-2026-09-07.json",
+      "reports/securium-vercel-p4-observability-runtime-field-boundary-repair-2026-09-07.json",
+      "reports/securium-vercel-p4-privacy-safe-minimal-server-observability-final-rereview-2026-09-07.json"
+    ],
+    "publicationReports": [
+      "docs/observability/securium-vercel-p4-observability-clean-publication-worktree-2026-09-07.md",
+      "reports/securium-vercel-p4-observability-clean-publication-worktree-2026-09-07.json"
+    ],
+    "totalChangedFiles": 14,
+    "unexpectedFiles": []
+  },
+  "implementation": {
+    "scope": "SERVER_LOGGING_AND_METRICS",
+    "eventName": "SECURIUM_REQUEST_OBSERVATION_V1",
+    "eventSchemaFieldCount": 15,
+    "primitiveCorrelationGuard": "isSafeCorrelationId(value: unknown): value is string",
+    "correlationRegex": "^[A-Za-z0-9._:-]{1,128}$",
+    "arbitraryObjectEscape": "CLOSED",
+    "arbitraryMetadataPath": "NONE",
+    "requestBody": "NOT_CAPTURED",
+    "queryValues": "NOT_CAPTURED",
+    "rawUrl": "NOT_CAPTURED",
+    "headers": "NOT_CAPTURED",
+    "secrets": "NOT_CAPTURED",
+    "correlationMetricDimension": "FORBIDDEN"
+  },
+  "validation": {
+    "focusedObservability": "16/16 PASS",
+    "hostileObjectProbe": "PASS",
+    "unit": "448/448 PASS",
+    "integration": "59/59 PASS",
+    "postgresMigrationGuard": "10/10 PASS",
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "build": "PASS",
+    "gitDiffCheck": "PASS",
+    "newSkipsOnlyTodo": 0,
+    "newDependencies": 0
+  },
+  "risk": {
+    "privacyCriticalHigh": "0/0",
+    "securityCriticalHigh": "0/0",
+    "cardinalityCriticalHigh": "0/0",
+    "cost": "LOW",
+    "performance": "LOW"
+  },
+  "scopeGuards": {
+    "traces": "DEFERRED",
+    "clientTelemetry": "DEFERRED",
+    "otel": "DEFERRED",
+    "drains": "DEFERRED",
+    "schemaChange": 0,
+    "migrationChange": 0,
+    "historicalMigrationMutation": 0,
+    "productionDb": "NO",
+    "deployment": "NO",
+    "uiChange": 0,
+    "sourceMutation": 0,
+    "commit": "NO",
+    "push": "NO",
+    "pullRequest": "NO"
+  },
+  "readinessClassification": "P4_OBSERVABILITY_ISOLATED_ON_FRESH_MAIN_BOUNDED_PR_CREATION_MAY_PROCEED",
+  "primaryNextGate": "CREATE_SECURIUM_VERCEL_P4_OBSERVABILITY_BOUNDED_PR"
+}
