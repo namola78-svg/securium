@@ -175,6 +175,152 @@ export const cs1aGovernanceDecisionAudits = sqliteTable(
   (table) => [uniqueIndex("cs1a_governance_decision_audits_audit_unique").on(table.auditLogId)],
 );
 
+const contentReviewDomains = sql`'TECHNICAL', 'SAFETY_SECURITY_CONTENT', 'COPYRIGHT_RIGHTS', 'SUPPORT_QUALIFICATION', 'CURRENTNESS'`;
+const contentReviewResults = sql`'REVIEW_PERFORMED_PASS', 'REVIEW_PERFORMED_FAIL', 'REQUIRES_REVISION'`;
+const contentReviewLifecycle = sql`'ACTIVE', 'HISTORICAL', 'INVALIDATED', 'SUPERSEDED'`;
+const contentReviewSeverities = sql`'CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO'`;
+const contentReviewDispositions = sql`'OPEN', 'REMEDIATED', 'ACCEPTED', 'NOT_APPLICABLE'`;
+
+export const contentReviewJudgments = sqliteTable(
+  "content_review_judgments",
+  {
+    judgmentId: text("judgment_id").primaryKey(),
+    contractVersion: text("contract_version").notNull(),
+    reviewDomain: text("review_domain").notNull(),
+    reviewedInputIdentity: text("reviewed_input_identity").notNull(),
+    reviewedInputSnapshotJson: text("reviewed_input_snapshot_json").notNull(),
+    semanticReviewIdentity: text("semantic_review_identity").notNull(),
+    result: text("result").notNull(),
+    lifecycleState: text("lifecycle_state").notNull().default("ACTIVE"),
+    reviewerUserId: text("reviewer_user_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+    auditLogId: text("audit_log_id").notNull().references(() => adminAuditLogs.id, { onDelete: "restrict" }),
+    idempotencyKey: text("idempotency_key").notNull(),
+    supersedesJudgmentId: text("supersedes_judgment_id"),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    uniqueIndex("content_review_judgments_semantic_reviewer_unique").on(table.semanticReviewIdentity, table.reviewerUserId),
+    uniqueIndex("content_review_judgments_idempotency_unique").on(table.idempotencyKey),
+    index("content_review_judgments_input_domain_idx").on(table.reviewedInputIdentity, table.reviewDomain, table.lifecycleState),
+    index("content_review_judgments_supersession_idx").on(table.supersedesJudgmentId),
+    check("content_review_judgments_contract_check", sql`${table.contractVersion} = 'CONTENT_REVIEW_JUDGMENT_V1'`),
+    check("content_review_judgments_domain_check", sql`${table.reviewDomain} IN (${contentReviewDomains})`),
+    check("content_review_judgments_result_check", sql`${table.result} IN (${contentReviewResults})`),
+    check("content_review_judgments_lifecycle_check", sql`${table.lifecycleState} IN (${contentReviewLifecycle})`),
+    check("content_review_judgments_hash_check", sql`${table.reviewedInputIdentity} GLOB '[0-9a-f]*' AND length(${table.reviewedInputIdentity}) = 64 AND ${table.reviewedInputIdentity} NOT GLOB '*[^0-9a-f]*' AND ${table.semanticReviewIdentity} GLOB '[0-9a-f]*' AND length(${table.semanticReviewIdentity}) = 64 AND ${table.semanticReviewIdentity} NOT GLOB '*[^0-9a-f]*'`),
+    check("content_review_judgments_no_self_supersession_check", sql`${table.supersedesJudgmentId} IS NULL OR ${table.supersedesJudgmentId} <> ${table.judgmentId}`),
+  ],
+);
+
+export const contentReviewJudgmentSubjects = sqliteTable(
+  "content_review_judgment_subjects",
+  {
+    judgmentId: text("judgment_id").notNull().references(() => contentReviewJudgments.judgmentId, { onDelete: "restrict" }),
+    subjectIdentity: text("subject_identity").notNull(),
+    resourceRevisionId: text("resource_revision_id").notNull(),
+    contentSemanticHash: text("content_semantic_hash").notNull(),
+    semanticOrdinal: integer("semantic_ordinal").notNull(),
+  },
+  (table) => [
+    uniqueIndex("content_review_judgment_subjects_subject_unique").on(table.judgmentId, table.subjectIdentity),
+    uniqueIndex("content_review_judgment_subjects_ordinal_unique").on(table.judgmentId, table.semanticOrdinal),
+    check("content_review_judgment_subjects_ordinal_check", sql`${table.semanticOrdinal} >= 0`),
+    check("content_review_judgment_subjects_hash_check", sql`${table.contentSemanticHash} GLOB '[0-9a-f]*' AND length(${table.contentSemanticHash}) = 64 AND ${table.contentSemanticHash} NOT GLOB '*[^0-9a-f]*'`),
+  ],
+);
+
+export const contentReviewFindings = sqliteTable(
+  "content_review_findings",
+  {
+    findingId: text("finding_id").primaryKey(),
+    judgmentId: text("judgment_id").notNull().references(() => contentReviewJudgments.judgmentId, { onDelete: "restrict" }),
+    findingSemanticIdentity: text("finding_semantic_identity").notNull(),
+    subjectIdentity: text("subject_identity"),
+    category: text("category").notNull(),
+    severity: text("severity").notNull(),
+    disposition: text("disposition").notNull(),
+    materialFactsJson: text("material_facts_json").notNull(),
+  },
+  (table) => [
+    uniqueIndex("content_review_findings_semantic_unique").on(table.judgmentId, table.findingSemanticIdentity),
+    check("content_review_findings_hash_check", sql`${table.findingSemanticIdentity} GLOB '[0-9a-f]*' AND length(${table.findingSemanticIdentity}) = 64 AND ${table.findingSemanticIdentity} NOT GLOB '*[^0-9a-f]*'`),
+    check("content_review_findings_severity_check", sql`${table.severity} IN (${contentReviewSeverities})`),
+    check("content_review_findings_disposition_check", sql`${table.disposition} IN (${contentReviewDispositions})`),
+  ],
+);
+
+const reviewerSeparationPolicyVersion = "CONTENT_REVIEWER_SEPARATION_POLICY_V1";
+const reviewerSeparationLifecycle = sql`'ACTIVE', 'HISTORICAL', 'INVALIDATED', 'SUPERSEDED'`;
+
+export const contentReviewOwnerAttestations = sqliteTable(
+  "content_review_owner_attestations",
+  {
+    attestationId: text("attestation_id").primaryKey(),
+    contractVersion: text("contract_version").notNull().default("CONTENT_REVIEW_JUDGMENT_V1"),
+    resourceType: text("resource_type").notNull(),
+    resourceId: text("resource_id").notNull(),
+    reviewedInputIdentity: text("reviewed_input_identity").notNull(),
+    ownerUserId: text("owner_user_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+    attestationType: text("attestation_type").notNull().default("RESPONSIBLE_OWNER"),
+    policyVersion: text("policy_version").notNull().default(reviewerSeparationPolicyVersion),
+    semanticIdentity: text("semantic_identity").notNull(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    lifecycleState: text("lifecycle_state").notNull().default("ACTIVE"),
+    supersedesAttestationId: text("supersedes_attestation_id"),
+    auditLogId: text("audit_log_id").notNull().references(() => adminAuditLogs.id, { onDelete: "restrict" }),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    uniqueIndex("content_review_owner_attestations_semantic_unique").on(table.semanticIdentity),
+    uniqueIndex("content_review_owner_attestations_idempotency_unique").on(table.idempotencyKey),
+    index("content_review_owner_attestations_state_idx").on(table.reviewedInputIdentity, table.lifecycleState),
+    check("content_review_owner_attestations_policy_check", sql`${table.policyVersion} = '${sql.raw(reviewerSeparationPolicyVersion)}'`),
+    check("content_review_owner_attestations_lifecycle_check", sql`${table.lifecycleState} IN (${reviewerSeparationLifecycle})`),
+    check("content_review_owner_attestations_no_self_supersession_check", sql`${table.supersedesAttestationId} IS NULL OR ${table.supersedesAttestationId} <> ${table.attestationId}`),
+  ],
+);
+
+export const contentReviewPolicyEvaluations = sqliteTable(
+  "content_review_policy_evaluations",
+  {
+    evaluationId: text("evaluation_id").primaryKey(),
+    judgmentId: text("judgment_id").notNull().references(() => contentReviewJudgments.judgmentId, { onDelete: "restrict" }),
+    policyVersion: text("policy_version").notNull().default(reviewerSeparationPolicyVersion),
+    reviewedInputIdentity: text("reviewed_input_identity").notNull(),
+    judgmentSemanticIdentity: text("judgment_semantic_identity").notNull(),
+    resourceType: text("resource_type").notNull().default("CONTENT_REVISION"),
+    resourceId: text("resource_id").notNull().default("SERVER_RESOLVED"),
+    reviewerUserId: text("reviewer_user_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+    ownerAttestationId: text("owner_attestation_id").references(() => contentReviewOwnerAttestations.attestationId, { onDelete: "restrict" }),
+    authorUserId: text("author_user_id").references(() => users.id, { onDelete: "restrict" }),
+    ownerUserId: text("owner_user_id").references(() => users.id, { onDelete: "restrict" }),
+    materialEditorUserIdsJson: text("material_editor_user_ids_json").notNull().default("[]"),
+    materialEditorProvenance: text("material_editor_provenance").notNull().default("UNKNOWN"),
+    provenanceClass: text("provenance_class").notNull(),
+    riskClass: text("risk_class").notNull(),
+    requiredReviewerCount: integer("required_reviewer_count").notNull(),
+    reviewerSlot: integer("reviewer_slot").notNull().default(1),
+    evaluationResult: text("evaluation_result").notNull(),
+    reasonCodesJson: text("reason_codes_json").notNull().default("[]"),
+    semanticIdentity: text("semantic_identity").notNull(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    auditLogId: text("audit_log_id").notNull().references(() => adminAuditLogs.id, { onDelete: "restrict" }),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    uniqueIndex("content_review_policy_evaluations_semantic_unique").on(table.semanticIdentity),
+    uniqueIndex("content_review_policy_evaluations_idempotency_unique").on(table.idempotencyKey),
+    index("content_review_policy_evaluations_judgment_idx").on(table.judgmentId),
+    uniqueIndex("content_review_policy_evaluations_judgment_reviewer_unique").on(table.judgmentId, table.reviewerUserId),
+    uniqueIndex("content_review_policy_evaluations_judgment_slot_unique").on(table.judgmentId, table.reviewerSlot),
+    check("content_review_policy_evaluations_policy_check", sql`${table.policyVersion} = '${sql.raw(reviewerSeparationPolicyVersion)}'`),
+    check("content_review_policy_evaluations_reviewer_count_check", sql`${table.requiredReviewerCount} IN (1, 2)`),
+    check("content_review_policy_evaluations_reviewer_slot_check", sql`${table.reviewerSlot} IN (1, 2) AND ${table.reviewerSlot} <= ${table.requiredReviewerCount}`),
+    check("content_review_policy_evaluations_result_check", sql`${table.evaluationResult} IN ('ALLOW', 'DENY')`),
+    check("content_review_policy_evaluations_editor_provenance_check", sql`${table.materialEditorProvenance} IN ('KNOWN', 'UNKNOWN')`),
+  ],
+);
+
 export const concepts = sqliteTable(
   "concepts",
   {

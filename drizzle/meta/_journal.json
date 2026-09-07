@@ -246,6 +246,48 @@
       "when": 1787967336705,
       "tag": "0034_cs1a_audit_identity",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "6",
+      "when": 1789000000001,
+      "tag": "0035_content_review_judgment_infrastructure",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "6",
+      "when": 1789000000002,
+      "tag": "0036_content_reviewer_separation_policy",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "6",
+      "when": 1789000000003,
+      "tag": "0037_content_reviewer_separation_enforcement",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "6",
+      "when": 1789000000004,
+      "tag": "0038_web-pentest-review-records",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "6",
+      "when": 1789000000005,
+      "tag": "0039_generic_content_revision_registration_v1",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "6",
+      "when": 1789000000005,
+      "tag": "0040_generic_review_currentness_domain",
+      "breakpoints": true
     }
   ]
 }
