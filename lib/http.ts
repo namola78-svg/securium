@@ -1,7 +1,12 @@
 import { AppError, publicError } from "./errors";
-import { emitRequestObservation } from "./observability/request-observability";
+import {
+  emitRequestObservation,
+  finishRequestObservation,
+  startRequestObservation,
+} from "./observability/request-observability";
 
 export function assertSameOrigin(request: Request) {
+  startRequestObservation(request);
   const requestUrl = new URL(request.url);
   const origin = request.headers.get("origin");
   const referer = request.headers.get("referer");
@@ -22,6 +27,7 @@ function matchesOrigin(value: string | null, expectedOrigin: string) {
 }
 
 export async function readRequestInput(request: Request) {
+  startRequestObservation(request);
   const contentType = request.headers.get("content-type") ?? "";
   if (contentType.includes("application/json")) {
     return request.json();
@@ -48,7 +54,11 @@ export function successResponse(
   returnTo?: string,
   status = 200,
 ) {
-  emitRequestObservation(request, status);
+  emitRequestObservation(request, {
+    status,
+    durationMs: finishRequestObservation(request),
+    outcome: status >= 400 ? "FAILURE" : "SUCCESS",
+  });
   if (returnTo) {
     return Response.redirect(new URL(safeReturnTo(returnTo), request.url), 303);
   }
@@ -62,7 +72,15 @@ export function errorResponse(error: unknown, request?: Request) {
       ? supplied
       : crypto.randomUUID();
   const result = publicError(error, requestId);
-  if (request) emitRequestObservation(request, result.status);
+  if (request) {
+    emitRequestObservation(request, {
+      status: result.status,
+      durationMs: finishRequestObservation(request),
+      outcome: "FAILURE",
+      error,
+      correlationId: requestId,
+    });
+  }
   return Response.json(result.body, {
     status: result.status,
     headers: {

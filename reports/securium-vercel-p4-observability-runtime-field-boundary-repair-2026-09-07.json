@@ -1,0 +1,123 @@
+{
+  "finalStatus": "SECURIUM_VERCEL_P4_OBSERVABILITY_RUNTIME_FIELD_BOUNDARY_REPAIR_PASS_READY_FOR_FINAL_REREVIEW",
+  "repairDecision": "ENFORCE_PRIMITIVE_BOUNDED_CORRELATION_ID_RUNTIME_BOUNDARY",
+  "readiness": "P4_OBSERVABILITY_RUNTIME_SCHEMA_BOUNDARY_REPAIRED_FINAL_REREVIEW_REQUIRED",
+  "primaryNextGate": "REREVIEW_SECURIUM_VERCEL_P4_PRIVACY_SAFE_MINIMAL_SERVER_OBSERVABILITY_AFTER_RUNTIME_BOUNDARY_REPAIR",
+  "snapshotDate": "2026-09-07",
+  "worktree": "securium-vercel-observability-p4",
+  "branch": "design/vercel-observability-p4",
+  "head": "313db389b8f3c1d0ccced0bb296661d163986b74",
+  "freshOriginMain": "92a2f0a94ad364118a3bef6ea5987e98a96223c9",
+  "aheadBehind": {"ahead": 1, "behind": 8},
+  "failedReviewEvidence": {
+    "markdownSha256": "abf5461c9697c4f34189bba3705694d073079870172912566d61c60de80872a9",
+    "machineSha256": "f4dad1da5b9a5138efccc76d6ce6fe80a2d3c5699cfd94534a9c7a1b71275c20"
+  },
+  "rootCause": "TYPE_VALIDATION_AND_RETURN_VALUE_MISMATCH",
+  "defectiveFile": "lib/observability/request-observability.ts",
+  "defectiveFunction": "buildRequestObservation correlation ID selection",
+  "originalDefectReproduced": true,
+  "originalObjectRetained": true,
+  "originalSecretEmitted": true,
+  "repair": {
+    "strategy": "require primitive string before exact regex validation",
+    "primitiveStringRequired": true,
+    "regex": "^[A-Za-z0-9._:-]{1,128}$",
+    "implicitObjectCoercion": false,
+    "fallback": "existing safe header/crypto.randomUUID/UNAVAILABLE policy",
+    "recursiveSanitizerAdded": false
+  },
+  "runtimeCases": {
+    "objectWithToString": "PASS",
+    "secretBearingObject": "PASS",
+    "nestedSecretObject": "PASS",
+    "boxedString": "PASS",
+    "array": "PASS",
+    "number": "PASS",
+    "boolean": "PASS",
+    "symbol": "PASS",
+    "bigint": "PASS",
+    "nullUndefined": "PASS",
+    "longString": "PASS",
+    "controlCharacters": "PASS",
+    "logInjection": "PASS",
+    "valueOfObject": "PASS",
+    "throwingCoercion": "PASS",
+    "proxy": "PASS"
+  },
+  "event": {
+    "name": "SECURIUM_REQUEST_OBSERVATION_V1",
+    "fieldCount": 15,
+    "fields": ["event", "severity", "routeFamily", "routeTemplate", "method", "statusClass", "outcome", "errorCategory", "authCategory", "trafficCategory", "runtimeCategory", "environment", "durationMs", "durationBucket", "correlationId"],
+    "correlationOutputType": "primitive string",
+    "correlationMaxLength": 128,
+    "arbitraryMetadataPath": false,
+    "nestedObjectBoundary": "PASS",
+    "bodyExclusion": "PASS",
+    "queryExclusion": "PASS",
+    "rawUrlExclusion": "PASS",
+    "headerExclusion": "PASS",
+    "rawErrorExclusion": "PASS",
+    "sqlExclusion": "PASS",
+    "aiExclusion": "PASS",
+    "evidenceExclusion": "PASS",
+    "securityPayloadExclusion": "PASS"
+  },
+  "dimensions": {
+    "correlationId": "FORBIDDEN",
+    "routeCardinality": "bounded templates",
+    "otherMetricDimensions": ["routeFamily", "routeTemplate", "method", "statusClass", "outcome", "errorCategory", "environment", "durationBucket"]
+  },
+  "failureIsolation": {
+    "successHelper": "PASS through emitter fail-open boundary; direct wrapper injection not separately runnable without global ESM change",
+    "errorHelper": "PASS through emitter fail-open boundary; direct wrapper injection not separately runnable without global ESM change",
+    "recursiveFailure": false,
+    "doubleEmission": false
+  },
+  "tests": {
+    "focused": {"passed": 16, "failed": 0},
+    "runtimeMisuse": "PASS",
+    "redaction": "PASS",
+    "bodyFixture": "PASS",
+    "queryFixture": "PASS",
+    "headerFixture": "PASS",
+    "testQuality": "SUFFICIENT for runtime privacy boundary"
+  },
+  "verification": {
+    "unit": {"passed": 448, "failed": 0},
+    "integration": {"passed": 59, "failed": 0},
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "build": "PASS",
+    "gitDiffCheck": "PASS",
+    "newSkipsOnlyTodo": 0,
+    "externalTelemetry": false
+  },
+  "scopeGuards": {
+    "newDependencies": 0,
+    "schemaChange": 0,
+    "migrationChange": 0,
+    "historicalMigrationMutation": 0,
+    "productionDatabase": "NO",
+    "deployment": "NO",
+    "uiChange": 0,
+    "crossWorktreeMutation": 0,
+    "traces": "DEFER",
+    "clientTelemetry": "DEFER",
+    "otel": "DEFER",
+    "drains": "DEFER"
+  },
+  "risk": {
+    "privacyCriticalHigh": "0/0",
+    "securityCriticalHigh": "0/0",
+    "cardinalityCriticalHigh": "0/0",
+    "costRisk": "LOW",
+    "performanceRisk": "LOW",
+    "operationalValue": "HIGH"
+  },
+  "p1Remaining": ["sampling", "route expansion", "dashboards/alerts", "retention/residency review"],
+  "p2Remaining": ["distributed tracing", "client telemetry", "AI observability", "MCP observability"],
+  "commit": "NO",
+  "push": "NO",
+  "pr": "NO"
+}
