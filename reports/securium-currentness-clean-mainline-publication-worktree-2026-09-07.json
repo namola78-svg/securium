@@ -1,0 +1,120 @@
+{
+  "snapshotDate": "2026-09-07",
+  "finalStatus": "SECURIUM_CURRENTNESS_CLEAN_MAINLINE_PUBLICATION_WORKTREE_PASS_READY_FOR_BOUNDED_PR",
+  "decision": "APPROVE_CLEAN_MAIN_BASED_CURRENTNESS_GLOBAL_INTEGRATION_PUBLICATION_CANDIDATE",
+  "readiness": "CURRENTNESS_GLOBAL_INTEGRATION_ISOLATED_JOURNAL_SYNCHRONIZED_PR_CREATION_MAY_PROCEED",
+  "primaryNextGate": "CREATE_SECURIUM_CURRENTNESS_GLOBAL_INTEGRATION_BOUNDED_PR",
+  "coordinator": {
+    "path": "securium-migration-integration",
+    "branch": "integration/migration-reconciliation",
+    "head": "a17d4702061250d8b4d3fce8bbbd500dcc2442b2",
+    "mutation": false
+  },
+  "freshOriginMain": "92a2f0a94ad364118a3bef6ea5987e98a96223c9",
+  "source": {
+    "path": "securium-secure-coding-content-v1",
+    "branch": "content/secure-coding-v1",
+    "head": "1855f9818b473a2aa752d004da45a27f056b4838",
+    "mutation": false
+  },
+  "candidate": {
+    "path": "securium-currentness-mainline-publication-clean",
+    "branch": "integration/currentness-mainline-publication-clean",
+    "base": "92a2f0a94ad364118a3bef6ea5987e98a96223c9",
+    "changedFileCount": 21,
+    "implementationPackageFileCount": 19,
+    "reportFileCount": 2,
+    "mutation": "bounded_publication_package_only"
+  },
+  "evidence": {
+    "closureMarkdownSha256": "b372f357a77d724eb6e37d139e88a2c6a376684b9365912b33fd3a4b51573d29",
+    "closureMachineSha256": "442387412ad9a688fff23481e1ee5fd355f17a4386888fde8a6f6153497cda8c",
+    "stableManifestSha256": "cc735f10e9407d8fa425e297ddd4778952438d0b524d93ff0d4b95227f56adad",
+    "stableManifestMethod": "RAW_FINAL_FILE_SHA256_V1"
+  },
+  "migrations": {
+    "postgres0029Sha256": "594c1dcf17997169ab185b02310576bae020035fe1d8c8a0a4d7c8a8bd165f5b",
+    "d10040Sha256": "2415c499bb19c088e060cee868d866184b5c32d904ba08be76b18323550e6472",
+    "postgresNamespace": "0022-0029",
+    "d1Namespace": "0034-0040",
+    "postgresDuplicateIds": 0,
+    "d1DuplicateIds": 0,
+    "historicalMutation": 0,
+    "nextPostgresCandidate": { "id": "0030", "status": "UNRESERVED" },
+    "nextD1Candidate": { "id": "0041", "status": "UNRESERVED" }
+  },
+  "journal": {
+    "before": "0-34",
+    "after": "0-40",
+    "idx40Count": 1,
+    "tag40": "0040_generic_review_currentness_domain",
+    "tag40Count": 1,
+    "authority": "MAINLINE_JOURNAL_AUTHORITY_RESOLVED",
+    "validation": "PASS"
+  },
+  "domain": {
+    "values": ["TECHNICAL", "SAFETY_SECURITY_CONTENT", "COPYRIGHT_RIGHTS", "CURRENTNESS", "SUPPORT_QUALIFICATION"],
+    "currentnessOccurrences": 1,
+    "defaultCurrentnessPass": "NONE",
+    "backfill": "NONE",
+    "grandfathering": "DISABLED",
+    "webPentestCurrentnessRequired": false,
+    "iseCurrentnessRequired": true,
+    "swSecurityWeaknessImpact": "NONE"
+  },
+  "validation": {
+    "postgresRunA": "PASS",
+    "postgresRunB": "PASS",
+    "postgresDeterminism": "PASS",
+    "d1RunA": "PASS",
+    "d1RunB": "PASS",
+    "d1Determinism": "PASS",
+    "postgresD1Parity": "PASS_INTENDED_SCOPE",
+    "existingRowCompatibility": "PASS",
+    "currentnessAcceptance": "PASS",
+    "unknownDomainRejection": "PASS",
+    "focusedCurrentnessTests": "2/2 PASS",
+    "migrationValidation": "PASS",
+    "migrationGuard": "10/10 PASS",
+    "namespaceGuard": "PASS postgres=29 d1=41 journal=41",
+    "drizzleCheck": "PASS",
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "build": "PASS",
+    "gitDiffCheck": "PASS",
+    "newSkipsOnlyTodo": "0/0/0"
+  },
+  "publicationFiles": [
+    "db/schema.ts",
+    "drizzle/meta/_journal.json",
+    "db/postgres/migrations/0023_content_final_review_authority.sql",
+    "db/postgres/migrations/0024_content_review_judgment_infrastructure.sql",
+    "db/postgres/migrations/0025_content_reviewer_separation_policy.sql",
+    "db/postgres/migrations/0026_content_reviewer_separation_enforcement.sql",
+    "db/postgres/migrations/0027_web-pentest-review-records.sql",
+    "db/postgres/migrations/0028_generic_content_revision_registration_v1.sql",
+    "db/postgres/migrations/0029_generic_review_currentness_domain.sql",
+    "drizzle/0035_content_review_judgment_infrastructure.sql",
+    "drizzle/0036_content_reviewer_separation_policy.sql",
+    "drizzle/0037_content_reviewer_separation_enforcement.sql",
+    "drizzle/0038_web-pentest-review-records.sql",
+    "drizzle/0039_generic_content_revision_registration_v1.sql",
+    "drizzle/0040_generic_review_currentness_domain.sql",
+    "lib/policy/content-review-judgment.ts",
+    "scripts/migration-namespace-guard.mjs",
+    "tests/currentness-domain.test.ts",
+    "tests/migration-namespace-guard.test.mjs"
+  ],
+  "sideEffects": {
+    "productionDb": false,
+    "productionMigration": false,
+    "deployment": false,
+    "commit": false,
+    "push": false,
+    "pr": false,
+    "mainMerge": false,
+    "featureWorktreeMutation": 0,
+    "securityCriticalHigh": "0/0",
+    "dataTrustCriticalHigh": "0/0"
+  }
+}
