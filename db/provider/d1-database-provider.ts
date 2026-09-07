@@ -4,6 +4,7 @@ import {
   type DatabaseProvider,
   type DatabaseStatement,
 } from "./database-provider.ts";
+import { AppError } from "../../lib/errors.ts";
 
 export class D1DatabaseProvider implements DatabaseProvider {
   readonly kind = "d1" as const;
@@ -56,6 +57,15 @@ export class D1DatabaseProvider implements DatabaseProvider {
       returnedRows: [],
       metadata: { provider: this.kind },
     }));
+  }
+
+  async transactional<T>(callback: (database: never) => Promise<T>): Promise<T> {
+    void callback;
+    throw new AppError(
+      "The D1 compatibility provider cannot provide transaction-scoped readback.",
+      503,
+      "TRANSACTION_SCOPED_READBACK_UNAVAILABLE",
+    );
   }
 
   async healthCheck() {
