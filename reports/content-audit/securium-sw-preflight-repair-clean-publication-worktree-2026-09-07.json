@@ -1,0 +1,135 @@
+{
+  "snapshotDate": "2026-09-07",
+  "finalStatus": "SECURIUM_SW_PREFLIGHT_REPAIR_CLEAN_PUBLICATION_WORKTREE_PASS_READY_FOR_BOUNDED_PR",
+  "decision": "APPROVE_CLEAN_MAIN_BASED_SW_PREFLIGHT_REPAIR_PUBLICATION_CANDIDATE",
+  "readiness": "SW_PREFLIGHT_REPAIR_ISOLATED_ON_FRESH_MAIN_BASED_BRANCH_PR_CREATION_MAY_PROCEED",
+  "primaryNextGate": "CREATE_SECURIUM_SW_SERVER_RUNTIME_PREFLIGHT_REPAIR_BOUNDED_PR",
+  "source": {
+    "worktree": "securium-content-sw-security-weakness",
+    "branch": "content/sw-security-weakness-authoring",
+    "head": "7a61095e6b5234db8406cb2b3569aab721ae5490",
+    "mutation": 0,
+    "treatedAsReadOnly": true
+  },
+  "publicationWorktree": {
+    "path": "C:/Users/user/Documents/Codex/2026-07-24/1-2-3-4-5-6/securium-sw-preflight-repair-publication",
+    "branch": "fix/sw-canonical-db-preflight-publication",
+    "baseSha": "a17d4702061250d8b4d3fce8bbbd500dcc2442b2",
+    "initialStatus": "CLEAN",
+    "finalExpectedChangedFileCount": 7
+  },
+  "evidence": {
+    "publicationReviewMarkdownSha256": "5d875064e40f0f61f7a4e760063a64ae75ffafe5331c3e421ab0632d6c883600",
+    "publicationReviewMachineSha256": "f82eaaceafa02be9a71b757f2c8555c72af082aebd61c1d973da07fae740d559",
+    "finalRereviewMarkdownSha256": "f02a4989f3ca1f046a82352b08ef47247cdda0a8703d89e45edc582388344e78",
+    "finalRereviewMachineSha256": "5cdcd12fa3be3513cda43f7e11e4e8b1e886bb454c479636562b13812e1fd8de"
+  },
+  "manifest": {
+    "runtime": [
+      "app/api/admin/ontology/canonicalization-preflight/route.ts",
+      "lib/services/securium-sw-security-weakness-canonical-db-preflight.ts",
+      "lib/services/securium-sw-security-weakness-concept-canonicalization.ts",
+      "lib/data/securium-sw-security-weakness-concept-relation-refinement.mjs"
+    ],
+    "tests": [
+      "tests/securium-sw-security-weakness-canonical-db-preflight.test.mjs"
+    ],
+    "reports": [
+      "docs/content/securium-sw-preflight-repair-clean-publication-worktree-2026-09-07.md",
+      "reports/content-audit/securium-sw-preflight-repair-clean-publication-worktree-2026-09-07.json"
+    ],
+    "excluded": [
+      "lib/services/securium-sw-security-weakness-concept-canonicalization-postgres.ts",
+      "migration artifacts",
+      "course/content artifacts",
+      "unrelated reports"
+    ],
+    "sourcePatchParity": "SEMANTICALLY_IDENTICAL",
+    "currentMainAdaptation": "lib/http.ts preserved from current main; no overwrite",
+    "currentMainCollision": "TEXTUAL_COLLISION_ONLY",
+    "semanticCollision": false
+  },
+  "route": {
+    "path": "/api/admin/ontology/canonicalization-preflight",
+    "method": "GET",
+    "duplicateCount": 0,
+    "authentication": "requireOntologyAdministrator",
+    "sameOrigin": "PASS",
+    "rateLimit": "10 requests / 60 seconds",
+    "cache": "no-store"
+  },
+  "identity": {
+    "aggregator": "aggregateCanonicalIdentity",
+    "mandatoryPredicates": [
+      "provider",
+      "migrationOrBaseline",
+      "schema",
+      "ontologyTables",
+      "rls",
+      "forceRlsContract",
+      "privileges"
+    ],
+    "allPassRequired": true,
+    "readyImpliesCanonicalVerified": true,
+    "failUnknownErrorDeny": true,
+    "wrongDbMatchingTables": "DENY",
+    "wrongDbExactPackage": "DENY",
+    "migrationFailure": "DENY",
+    "migrationUnknownOrError": "DENY",
+    "rlsDrift": "DENY",
+    "validHistoricalFixture": "PASS",
+    "validBaselineFixture": "PASS"
+  },
+  "readOnly": {
+    "reachableInsert": 0,
+    "reachableUpdate": 0,
+    "reachableDelete": 0,
+    "reachableDdl": 0,
+    "migrationWrites": 0,
+    "auditWrites": 0,
+    "evidenceWrites": 0,
+    "masteryWrites": 0,
+    "skillGraphWrites": 0,
+    "draftExecutorReachable": false,
+    "secretExposure": "NONE",
+    "rawDatabaseErrorExposure": "NONE"
+  },
+  "package": {
+    "builder": "buildSwSecurityWeaknessConceptCanonicalizationPackage",
+    "conceptCount": 3,
+    "edgeCount": 4,
+    "state": "DRAFT",
+    "swW01": "ontology:securium:code-injection",
+    "swW06": "ontology:securium:os-command-injection",
+    "learningCoverage": "24/24",
+    "draftConceptVisibility": 0,
+    "draftEdgeVisibility": 0
+  },
+  "validation": {
+    "focusedTests": "19/19 PASS",
+    "postgresqlIntegration": "10/10 PASS via disposable PostgreSQL 17.6 migration-guard suite; separate 12-case mutation-adapter suite excluded by scope",
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "build": "PASS",
+    "buildClassification": "PASS",
+    "migrationGuard": "10/10 PASS",
+    "gitDiffCheck": "PASS",
+    "newSkipsOnlyTodo": 0
+  },
+  "impact": {
+    "schemaChange": 0,
+    "migrationChange": 0,
+    "historicalMigrationMutation": 0,
+    "contentMutation": 0,
+    "productionDb": "NO",
+    "deployment": "NO",
+    "productionInvocation": "NO",
+    "commit": "NO",
+    "push": "NO",
+    "pr": "NO",
+    "mainMerge": "NO",
+    "securityCriticalHigh": "0/0",
+    "dataTrustCriticalHigh": "0/0"
+  },
+  "criticalBlockers": []
+}
