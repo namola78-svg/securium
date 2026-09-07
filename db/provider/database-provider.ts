@@ -28,6 +28,8 @@ export type DatabaseExecutionResult = {
   metadata: DatabaseResultMetadata;
 };
 
+export type DatabaseTransaction = Pick<DatabaseProvider, "query" | "queryOne" | "execute">;
+
 export interface DatabaseProvider {
   readonly kind: "d1" | "supabase";
   query<Row extends Record<string, unknown>>(
@@ -40,6 +42,8 @@ export interface DatabaseProvider {
   transaction(
     statements: readonly DatabaseStatement[],
   ): Promise<DatabaseExecutionResult[]>;
+  /** Execute callback reads and writes on one database transaction. */
+  transactional?<T>(callback: (database: DatabaseTransaction) => Promise<T>): Promise<T>;
   healthCheck(): Promise<boolean>;
 }
 

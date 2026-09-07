@@ -3,6 +3,7 @@ import {
   assertSafeStatement,
   type DatabaseExecutionResult,
   type DatabaseProvider,
+  type DatabaseTransaction,
   type DatabaseStatement,
   type DatabaseValue,
 } from "./database-provider.ts";
@@ -102,6 +103,32 @@ export class PostgresDatabaseProvider implements DatabaseProvider {
       }
       return results;
     });
+  }
+
+  async transactional<T>(callback: (database: DatabaseTransaction) => Promise<T>): Promise<T> {
+    return this.executor.transaction(async (transaction) => callback({
+      query: async <Row extends Record<string, unknown>>(statement: DatabaseStatement) => {
+        assertSafeStatement(statement);
+        const normalized = normalizePostgresStatement(statement);
+        const result = await transaction.query<Row>(normalized.sql, normalized.parameters);
+        return { rows: result.rows, rowCount: result.rowCount, metadata: { provider: this.kind } };
+      },
+      queryOne: async <Row extends Record<string, unknown>>(statement: DatabaseStatement): Promise<Row | null> => {
+        const result: Row[] = await (async () => {
+          assertSafeStatement(statement);
+          const normalized = normalizePostgresStatement(statement);
+          const queryResult = await transaction.query<Row>(normalized.sql, normalized.parameters);
+          return queryResult.rows;
+        })();
+        return (result[0] as Row | undefined) ?? null;
+      },
+      execute: async (statement: DatabaseStatement) => {
+        assertSafeStatement(statement);
+        const normalized = normalizePostgresStatement(statement);
+        const result = await transaction.query<Record<string, unknown>>(normalized.sql, normalized.parameters);
+        return { affectedRows: result.rowCount, returnedRows: result.rows, metadata: { provider: this.kind } };
+      },
+    }));
   }
 
   async healthCheck() {
