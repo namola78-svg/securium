@@ -1,0 +1,158 @@
+{
+  "finalStatus": "SECURIUM_CANONICAL_ONTOLOGY_LEGACY_DATASET_WORKTREE_DEAUTHORITY_PASS_READY_FOR_REVIEW",
+  "decision": "PASS_READY_FOR_ARCHIVAL_REVIEW",
+  "gitBaseline": {
+    "worktree": "C:/Users/user/Documents/Codex/2026-07-24/1-2-3-4-5-6/securium-canonical-ontology-dataset",
+    "branch": "architecture/canonical-ontology-dataset",
+    "head": "980ef6adb94d87a923d7a973edaf4419f03fff9d",
+    "originMain": "980ef6adb94d87a923d7a973edaf4419f03fff9d",
+    "headEqualsOriginMain": true,
+    "dirtyOrUntrackedAtClose": [
+      "M package.json",
+      "?? docs/content/securium-canonical-ontology-concept-dataset-seed-restore-2026-09-08.md",
+      "?? docs/content/securium-canonical-ontology-concept-dataset-seed-restore-final-review-2026-09-08.md",
+      "?? docs/content/securium-canonical-ontology-seed-evidence-restore-and-provenance-binding-repair-2026-09-08.md",
+      "?? lib/data/securium-canonical-concept-dataset-archival-guard.mjs",
+      "?? lib/data/securium-canonical-concept-dataset-seed.mjs",
+      "?? reports/content-audit/securium-canonical-ontology-concept-dataset-manifest-2026-09-08.json",
+      "?? reports/content-audit/securium-canonical-ontology-concept-dataset-seed-restore-2026-09-08.json",
+      "?? reports/content-audit/securium-canonical-ontology-concept-dataset-seed-restore-final-review-2026-09-08.json",
+      "?? reports/content-audit/securium-canonical-ontology-legacy-dataset-worktree-authority-closure-2026-09-08.json",
+      "?? reports/content-audit/securium-canonical-ontology-legacy-dataset-worktree-authority-closure-2026-09-08.md",
+      "?? reports/content-audit/securium-canonical-ontology-legacy-dataset-worktree-authority-closure-2026-09-08.sha256",
+      "?? reports/content-audit/securium-canonical-ontology-seed-evidence-restore-and-provenance-binding-repair-2026-09-08.json",
+      "?? scripts/build-securium-canonical-ontology-legacy-authority-closure-report.mjs",
+      "?? tests/securium-canonical-concept-dataset-seed.test.mjs",
+      "?? tests/securium-canonical-ontology-legacy-authority.test.mjs"
+    ],
+    "note": "Pre-existing and gate-generated untracked historical evidence is preserved; no destructive cleanup was performed."
+  },
+  "worktreeClassification": "HISTORICAL_DATASET_A",
+  "datasetA": {
+    "concepts": 29,
+    "aliases": 10,
+    "edges": 0,
+    "seedId": "SECURIUM_CANONICAL_CONCEPT_DATASET_V1_2026_09_08"
+  },
+  "currentDatasetB": {
+    "concepts": 54,
+    "aliases": 56,
+    "edges": 4,
+    "manifestPath": "../securium-canonical-ontology-dataset-foundation/db/seeds/canonical-ontology/canonical-concept-manifest.json"
+  },
+  "canonicalOwner": {
+    "worktree": "securium-canonical-ontology-dataset-foundation",
+    "branch": "architecture/canonical-ontology-dataset-foundation",
+    "manifestPath": "db/seeds/canonical-ontology/canonical-concept-manifest.json",
+    "directManifestCounts": {
+      "concepts": 54,
+      "aliases": 56,
+      "edges": 4
+    },
+    "staleHistoricalEvidenceNote": "Older ownership registry/report artifacts retain a 50/55/4 snapshot; they are preserved as evidence and are not the current owner manifest."
+  },
+  "ownerCount": 1,
+  "datasetASeedWriters": [
+    {
+      "path": "lib/data/securium-canonical-concept-dataset-seed.mjs",
+      "capability": "renderSecuriumCanonicalConceptSeedSql",
+      "classification": "HISTORICAL_LOCAL_FIXTURE_RENDERER",
+      "canonicalWriterAuthority": "NONE",
+      "guard": "Explicit allowHistoricalFixture + LOCAL_HISTORICAL_TEST only; shared nonprod/production/Dataset B fail closed"
+    }
+  ],
+  "sharedNonprodWriteCapability": "NONE",
+  "environmentGuard": "PASS_FAIL_CLOSED_SHARED_NONPROD_AND_PRODUCTION",
+  "datasetAManifestClassification": "ARCHIVED_EVIDENCE",
+  "datasetBMutation": 0,
+  "sharedNonprodMutation": 0,
+  "productionMutation": 0,
+  "downgradeGuard": "PASS",
+  "crossSeedGuard": "PASS",
+  "historicalEvidencePreservation": {
+    "status": "PASS",
+    "preserved": [
+      "Dataset A 29-concept/10-alias manifest",
+      "Dataset A seed restore reports and semantic evidence",
+      "Dataset A live-canonical hash fcb12b48b66b69b377c9d693baf35334ba711329a625f24b53ec075156a9d009",
+      "Dataset A manifest hash 16b6ba243e587fd1be021fd950deab56b82d670078be26b2c16c1bef18bf91d8",
+      "Owner registry and Dataset B semantic-diff evidence in the owner worktree"
+    ]
+  },
+  "duplicateAuthorityScan": [
+    {
+      "worktree": "securium-canonical-ontology-dataset",
+      "artifacts": [
+        "lib/data/securium-canonical-concept-dataset-seed.mjs"
+      ],
+      "classification": "HISTORICAL_SEED_EVIDENCE",
+      "canonicalWriterAuthority": "NONE"
+    },
+    {
+      "worktree": "securium-canonical-ontology-dataset-foundation",
+      "artifacts": [
+        "scripts/canonical-ontology-seed.mjs",
+        "db/seeds/canonical-ontology/canonical-concept-manifest.json"
+      ],
+      "classification": "ACTIVE_CANONICAL_WRITER",
+      "canonicalWriterAuthority": "OWNER_ONLY"
+    },
+    {
+      "worktree": "securium-postgres-baseline-migration-repair/securium-content-sw-security-weakness",
+      "artifacts": [
+        "lib/data/securium-canonical-concept-dataset-seed.mjs"
+      ],
+      "classification": "HISTORICAL_SEED_EVIDENCE",
+      "canonicalWriterAuthority": "NONE"
+    }
+  ],
+  "activeCanonicalWriterCount": 1,
+  "swMappingBoundary": "NO CHANGE / 0",
+  "secureCodingBoundary": "NO CHANGE / 0",
+  "webPentestBoundary": "NO CHANGE / 0",
+  "skillMutation": 0,
+  "roleMutation": 0,
+  "evidenceMutation": 0,
+  "masteryMutation": 0,
+  "schemaChange": 0,
+  "migrationChange": 0,
+  "focusedTests": {
+    "command": "npm run test:canonical-ontology-legacy-closure",
+    "result": "PASS 10/10",
+    "sharedNonprodSeed": "NOT RUN"
+  },
+  "unit": {
+    "command": "npm run test:unit",
+    "result": "PASS 448/448"
+  },
+  "typecheck": "PASS",
+  "lint": "PASS",
+  "build": "PASS",
+  "dbCheck": "PASS",
+  "gitDiffCheck": "PASS",
+  "securityCriticalHigh": "0/0",
+  "dataTrustCriticalHigh": "0/0",
+  "privacyCriticalHigh": "0/0",
+  "p0": [],
+  "p1": [],
+  "p2": [
+    "Archive or remove this legacy worktree only after explicit archival review; do not delete automatically."
+  ],
+  "recommendedNextGate": "ARCHIVE_OR_REMOVE_SECURIUM_CANONICAL_ONTOLOGY_DATASET_LEGACY_WORKTREE_AFTER_REVIEW",
+  "commit": "NOT MADE",
+  "push": "NOT MADE",
+  "pr": "NOT OPENED",
+  "deployment": "NONE",
+  "productionDb": "NOT TOUCHED",
+  "reportArtifacts": {
+    "markdown": "reports/content-audit/securium-canonical-ontology-legacy-dataset-worktree-authority-closure-2026-09-08.md",
+    "json": "reports/content-audit/securium-canonical-ontology-legacy-dataset-worktree-authority-closure-2026-09-08.json",
+    "sha256": "reports/content-audit/securium-canonical-ontology-legacy-dataset-worktree-authority-closure-2026-09-08.sha256",
+    "inputHashes": {
+      "datasetAManifest": "16b6ba243e587fd1be021fd950deab56b82d670078be26b2c16c1bef18bf91d8",
+      "datasetASeed": "77223f47b84a33a3d8f9ebc648bf7fb4f23b169cd63c2c9c87e255629f053461",
+      "archivalGuard": "4c3c290bca964957922f61e36dde4d7288b5093e2d125d79e74d730e9c3da5f5",
+      "datasetBManifest": "df1ede13ed0305577d1bb525085de52d6d45eda2a104f5c2867011784f0ba224"
+    }
+  }
+}

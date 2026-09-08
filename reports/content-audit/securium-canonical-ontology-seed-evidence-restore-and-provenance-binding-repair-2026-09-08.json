@@ -1,0 +1,228 @@
+{
+  "finalStatus": "SECURIUM_CANONICAL_ONTOLOGY_SEED_EVIDENCE_RESTORE_AND_PROVENANCE_BINDING_REPAIR_BLOCKED",
+  "repairDecision": "BLOCKED",
+  "snapshotDate": "2026-09-08",
+  "targetGitBaseline": {
+    "worktree": "securium-canonical-ontology-dataset",
+    "branch": "architecture/canonical-ontology-dataset",
+    "head": "980ef6adb94d87a923d7a973edaf4419f03fff9d",
+    "originMain": "980ef6adb94d87a923d7a973edaf4419f03fff9d",
+    "aheadBehind": "0/0",
+    "trackedChanges": 0,
+    "untrackedRepairArtifacts": 9,
+    "untrackedArtifactsBeforeRepairReportGeneration": 7,
+    "commitPushPrPrDeployment": "NOT PERFORMED"
+  },
+  "sourceArtifactDiscovery": {
+    "ownershipDecision": "CANONICAL_ONTOLOGY_BRANCH_IS_RIGHTFUL_OWNER",
+    "candidates": [
+      {
+        "worktree": "securium-canonical-ontology-dataset",
+        "branch": "architecture/canonical-ontology-dataset",
+        "status": "untracked in target worktree; restored as repository-controlled repair artifacts",
+        "artifacts": [
+          {
+            "path": "lib/data/securium-canonical-concept-dataset-seed.mjs",
+            "sha256": "B526DFE09A13FD078BABBB671E10A76ACF128D42ECCCF3F8C6204D9654B0C0DD",
+            "purpose": "deterministic seed renderer and binding"
+          },
+          {
+            "path": "tests/securium-canonical-concept-dataset-seed.test.mjs",
+            "sha256": "788AEAEA7C0C1B27B9416B3A5B169EDACD30B01D87682127D4129E66EC050981",
+            "purpose": "semantic seed/resolver/idempotency tests"
+          },
+          {
+            "path": "reports/content-audit/securium-canonical-ontology-concept-dataset-manifest-2026-09-08.json",
+            "sha256": "16B6BA243E587FD1BE021FD950DEAB56B82D670078BE26B2C16C1BEF18BF91D8",
+            "purpose": "canonical dataset manifest"
+          }
+        ]
+      },
+      {
+        "worktree": "securium-content-sw-security-weakness",
+        "branch": "content/sw-security-weakness-authoring",
+        "status": "untracked duplicate/stale artifact; reference-only, not authoritative",
+        "classification": "DUPLICATE_STALE_ARTIFACT"
+      },
+      {
+        "worktree": "securium-canonical-ontology-dataset-foundation",
+        "branch": "architecture/canonical-ontology-dataset-foundation",
+        "status": "different-purpose branch-local candidate; not trusted as live 29/10 seed",
+        "classification": "DIFFERENT_PURPOSE",
+        "observedShape": "50 concepts, 55 aliases, 4 relations; candidate manifest parse/content issues"
+      }
+    ],
+    "blindCopying": "NOT_USED; live readback and independent semantic comparison performed"
+  },
+  "liveNonprod": {
+    "project": "securium-governance-nonprod",
+    "projectId": "ppvawotvswcrdadwmyed",
+    "runtimeDb": "Supabase PostgreSQL",
+    "d1Role": "local / compatibility / rollback",
+    "productionMutation": "NO",
+    "concepts": 50,
+    "aliases": 55,
+    "edges": 4,
+    "duplicateIds": 0,
+    "duplicateConceptKeys": 0,
+    "ambiguousAliases": 0,
+    "orphanAliases": 0,
+    "lifecycle": {
+      "DRAFT": 9,
+      "ACTIVE": 41
+    },
+    "mappings": {
+      "question": 0,
+      "content": 0
+    },
+    "datasetSha256": "NOT_EQUAL_TO_TARGET_BOUND_HASH; current state carries foundation manifest cf8b59d94e55328c5a074ecf1d4e8368bcab94e0570edff554a88084b671dc96"
+  },
+  "candidateManifestComparison": {
+    "manifestSha256": "16B6BA243E587FD1BE021FD950DEAB56B82D670078BE26B2C16C1BEF18BF91D8",
+    "concepts": {
+      "expected": 29,
+      "live": 50,
+      "exactMatches": 0,
+      "missing": 29,
+      "extra": 50,
+      "fieldMismatches": "not applicable while live dataset is a different seed",
+      "lifecycleMismatches": "not applicable",
+      "provenanceMismatches": "not applicable"
+    },
+    "aliases": {
+      "expected": 10,
+      "live": 55,
+      "exactMatches": 0,
+      "missing": 10,
+      "extra": 55
+    },
+    "comparisonNote": "The earlier 29/10 snapshot was superseded by current nonprod state. Current rows carry foundation manifest cf8b59d94e55328c5a074ecf1d4e8368bcab94e0570edff554a88084b671dc96 and include 50 concepts/55 aliases/4 edges. No destructive reconciliation was performed."
+  },
+  "repositorySeed": {
+    "mechanism": "DETERMINISTIC_MANIFEST_PLUS_SEED",
+    "seedPath": "lib/data/securium-canonical-concept-dataset-seed.mjs",
+    "manifestPath": "reports/content-audit/securium-canonical-ontology-concept-dataset-manifest-2026-09-08.json",
+    "seedTestPath": "tests/securium-canonical-concept-dataset-seed.test.mjs",
+    "renderedSqlSha256": "A3744BAE60AD45678193E267F774B080DED39E3F03DE7EEA228999C737C781D3",
+    "seedVersion": "SECURIUM_CANONICAL_CONCEPT_DATASET_V1_2026_09_08",
+    "repositoryBinding": {
+      "bindingVersion": "TARGET_BRANCH_BOUND_V1",
+      "repository": "securium-canonical-ontology-dataset",
+      "branch": "architecture/canonical-ontology-dataset",
+      "targetHead": "980ef6adb94d87a923d7a973edaf4419f03fff9d",
+      "manifestSha256": "16B6BA243E587FD1BE021FD950DEAB56B82D670078BE26B2C16C1BEF18BF91D8",
+      "liveCanonicalDatasetSha256": "fcb12b48b66b69b377c9d693baf35334ba711329a625f24b53ec075156a9d009"
+    },
+    "disposableSeed": "BLOCKED for current linkage; target renderer is 29/10/0 while current shared nonprod is 50/55/4",
+    "idempotency": "PASS for earlier 29/10 target state; current shared nonprod is not the target dataset",
+    "reproducibility": "PASS at deterministic renderer/readback level for target seed; live linkage currently mismatches",
+    "manualOnlyAuthority": "NO"
+  },
+  "provenance": {
+    "coverage": "29/29",
+    "class": "independently authored seed records with architecture/current-domain provenance and repository binding",
+    "unknown": 0,
+    "rights": "REFERENCE_ONLY / RIGHTS_REVIEW_REQUIRED; no restricted source text copied"
+  },
+  "resolver": {
+    "authority": "public.ontology_concepts / public.ontology_aliases",
+    "authorityCount": 1,
+    "exactId": "29/29 PASS",
+    "conceptKey": "29/29 PASS",
+    "exactAlias": "10/10 PASS",
+    "unknown": "FAIL_CLOSED",
+    "ambiguous": "FAIL_CLOSED",
+    "labelOnly": "UNRESOLVED / NON_AUTHORITATIVE",
+    "fallbackSources": "NONE"
+  },
+  "compatibility": {
+    "swSecurityWeakness": {
+      "topics": "8/8",
+      "questions": "40/40",
+      "mappingWrites": 0,
+      "trueRemainingGaps": 0,
+      "readiness": "BLOCKED_PENDING_NONPROD_DATASET_RECONCILIATION"
+    },
+    "secureCoding": {
+      "currentCandidateCount": 18,
+      "reported36Interpretation": "COUNT_SEMANTICS_DIFFER; 36 is slot/static semantics, not a verified 36-ID canonical inventory",
+      "extraCanonicalIdsFound": 0,
+      "mappingWrites": 0,
+      "authorityRisk": "LOW"
+    },
+    "webPentest": {
+      "mappingWrites": 0,
+      "readOnlyCompatibility": "NO_CONFLICTING_CANONICAL_AUTHORITY_FOUND"
+    },
+    "reconciliation29vs36": "COUNT_SEMANTICS_DIFFER; do not seed seven additional concepts"
+  },
+  "boundaries": {
+    "lifecycle": "29 DRAFT / 0 ACTIVE; no activation performed",
+    "activationGovernance": "NO BYPASS",
+    "legacyConceptTables": "REFERENCE_ONLY / UNTRUSTED_FOR_CANONICAL_AUTHORITY",
+    "legacyRlsAdvisory": "P2_LEGACY_HARDENING; non-causal and not repaired",
+    "cpA": "STAGING / COMPATIBILITY ONLY; no override",
+    "mappingWrites": 0,
+    "skillMutation": 0,
+    "roleMutation": 0,
+    "evidenceMutation": 0,
+    "schemaChange": 0,
+    "migrationChange": 0,
+    "historicalMigrationMutation": 0,
+    "csvFixture": "P2 pre-existing/non-causal; not changed"
+  },
+  "findings": {
+    "p0": [],
+    "p1Before": [
+      "CODO-REV-P1-001 missing canonical-branch implementation/evidence",
+      "CODO-REV-P1-002 missing repository-to-live provenance linkage"
+    ],
+    "p1Closed": [
+      "CODO-REV-P1-001 CLOSED"
+    ],
+    "p1Remaining": [
+      "CODO-REV-P1-002 remains open because current nonprod is 50 concepts/55 aliases/4 edges under a different foundation manifest"
+    ],
+    "p2": [
+      "P2_LEGACY_HARDENING: legacy concept-table RLS advisory remains separate",
+      "P2_MISSING_PREEXISTING_ONTOLOGY_CSV_FIXTURE: not owned by this repair"
+    ]
+  },
+  "regressions": {
+    "seedFocused": "6/6 PASS",
+    "waveOntologyPrior": "103/103 PASS reported baseline; current seed-focused coverage 6/6 PASS",
+    "unit": "448/448 PASS",
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "build": "PASS",
+    "dbCheck": "PASS",
+    "postgresValidation": "PASS",
+    "migrationGuard": "10/10 PASS",
+    "namespaceGuard": "NOT_APPLICABLE / no target script",
+    "gitDiffCheck": "PASS for tracked and repair-scope artifacts",
+    "skipOnlyTodo": "0 new repair-scope bypasses; pre-existing documentation/test mentions remain",
+    "postgresStatus": "UNAVAILABLE: DIRECT_URL_REQUIRED; no mutation performed"
+  },
+  "readiness": {
+    "codoP1_001": "CLOSED",
+    "codoP1_002": "NOT_CLOSED",
+    "swMappingReadiness": "BLOCKED_PENDING_NONPROD_DATASET_RECONCILIATION",
+    "finalRepairDecision": "BLOCKED",
+    "recommendedNextGate": "RECONCILE_SHARED_NONPROD_CANONICAL_DATASET_OWNERSHIP_AND_REBIND_OR_RESTORE_WITH_EXPLICIT_AUTHORITY"
+  },
+  "authorityStatus": {
+    "courseMappings": 0,
+    "activation": "NOT_GRANTED",
+    "governance": "NOT_GRANTED",
+    "publication": "NO",
+    "productionDb": "NO",
+    "deployment": "NO",
+    "commit": "NO",
+    "push": "NO",
+    "pr": "NO"
+  },
+  "reportArtifacts": {
+    "markdown": "docs/content/securium-canonical-ontology-seed-evidence-restore-and-provenance-binding-repair-2026-09-08.md",
+    "json": "reports/content-audit/securium-canonical-ontology-seed-evidence-restore-and-provenance-binding-repair-2026-09-08.json"
+  }
+}

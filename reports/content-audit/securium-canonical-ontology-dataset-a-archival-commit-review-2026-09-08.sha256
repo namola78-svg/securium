@@ -1,0 +1,5 @@
+7c12e0f371c4298d1e6fb5790bf12caf541dae6d177c218fbbbfe76077b0f33f  reports/content-audit/securium-canonical-ontology-dataset-a-archival-commit-review-2026-09-08.md
+560641d9bb64217689379a583f19fc23b6e99ef5bf069a21d0f8ab4777f445b7  reports/content-audit/securium-canonical-ontology-dataset-a-archival-commit-review-2026-09-08.json
+9a4c8d34b88284c0ca282b972f5fd3d8ae5a0e2df3720be22672d082759fb08b  reports/content-audit/securium-canonical-ontology-dataset-a-archival-commit-candidate-2026-09-08.json
+b5855f042d51c62aeac627218fabac99748c435437353da64aaaaf3cc16502bb  reports/content-audit/securium-canonical-ontology-dataset-a-archival-commit-exclusions-2026-09-08.json
+# The sidecar's own self-hash is intentionally externalized to avoid a circular hash.
