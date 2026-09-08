@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "1",
+  "scope": "COMMIT_REVIEW_SECURIUM_CANONICAL_ONTOLOGY_DATASET_A_ARCHIVAL_EVIDENCE",
+  "worktree": "C:/Users/user/Documents/Codex/2026-07-24/1-2-3-4-5-6/securium-canonical-ontology-dataset",
+  "excludedCurrentDirtyOrUntrackedFiles": [],
+  "excludedOutOfScopeLocations": [
+    {
+      "path": "../securium-canonical-ontology-dataset-foundation",
+      "classification": "REDUNDANT",
+      "reason": "Canonical Dataset B owner worktree; its owner manifest, semantic diff, and active writer are separate owner evidence and are not part of this Dataset A worktree commit."
+    },
+    {
+      "path": "../securium-postgres-baseline-migration-repair/securium-content-sw-security-weakness",
+      "classification": "REDUNDANT",
+      "reason": "Contains non-identical untracked Dataset A copies and unrelated SW content; not a durable archival destination."
+    },
+    {
+      "path": "node_modules/**",
+      "classification": "TEMPORARY",
+      "reason": "Dependency installation output; not present in Git status and not historical evidence."
+    },
+    {
+      "path": ".next/**",
+      "classification": "TEMPORARY",
+      "reason": "Build output; not archival evidence."
+    },
+    {
+      "path": "dist/**, *.log, cache/**",
+      "classification": "TEMPORARY",
+      "reason": "Transient/generated output; not present as candidate evidence."
+    },
+    {
+      "path": "raw external source evidence",
+      "classification": "REDUNDANT",
+      "reason": "No raw external source evidence is present in the current dirty/untracked inventory; reference-only provenance metadata is retained, source prose is not."
+    }
+  ],
+  "duplicateReports": {
+    "currentWorktree": "none excluded; each report represents a distinct audit-chain state",
+    "externalCopies": "excluded from this candidate because they are outside the worktree and not durably tracked"
+  },
+  "candidateBoundary": "ARCHIVAL_EVIDENCE_ONLY",
+  "datasetBFilesExcluded": true,
+  "mappingFilesExcluded": true,
+  "schemaAndMigrationFilesExcluded": true,
+  "productionAndDatabaseActionsExcluded": true
+}

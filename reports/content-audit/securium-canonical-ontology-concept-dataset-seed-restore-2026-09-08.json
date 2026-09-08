@@ -1,0 +1,102 @@
+{
+  "finalStatus": "SECURIUM_CANONICAL_ONTOLOGY_CONCEPT_DATASET_SEED_RESTORE_REPAIR_PASS_READY_FOR_INDEPENDENT_REVIEW",
+  "repairDecision": "PASS_READY_FOR_INDEPENDENT_REVIEW",
+  "snapshotDate": "2026-09-08",
+  "repository": "securium-canonical-ontology-dataset",
+  "branch": "architecture/canonical-ontology-dataset",
+  "targetHead": "980ef6adb94d87a923d7a973edaf4419f03fff9d",
+  "originMain": "980ef6adb94d87a923d7a973edaf4419f03fff9d",
+  "aheadBehind": {"ahead": 0, "behind": 0},
+  "worktreeState": "DIRTY_UNCOMMITTED_REPAIR_ARTIFACTS_ONLY",
+  "targetEnvironment": {"name": "securium-governance-nonprod", "projectId": "ppvawotvswcrdadwmyed", "productionMutation": false},
+  "findings": {
+    "CODO-REV-P1-001": {"status": "CLOSED", "evidence": [
+      "lib/data/securium-canonical-concept-dataset-seed.mjs",
+      "tests/securium-canonical-concept-dataset-seed.test.mjs",
+      "reports/content-audit/securium-canonical-ontology-concept-dataset-manifest-2026-09-08.json"
+    ]},
+    "CODO-REV-P1-002": {"status": "CLOSED", "evidence": [
+      "TARGET_BRANCH_BOUND_V1 seed metadata binding",
+      "29/29 nonprod rows exact branch/HEAD/manifest readback"
+    ]}
+  },
+  "canonicalAuthority": {
+    "authorityCount": 1,
+    "authority": ["public.ontology_concepts", "public.ontology_aliases"],
+    "legacyTables": "REFERENCE_ONLY",
+    "cpA": "STAGING_COMPATIBILITY_ONLY",
+    "metadata": "AUTHORING_HINT_ONLY",
+    "resolver": {"id": "PASS", "conceptKey": "PASS", "exactAlias": "PASS", "unknown": "FAIL_CLOSED", "ambiguous": "FAIL_CLOSED", "labelOnly": "FAIL_CLOSED"}
+  },
+  "seed": {
+    "seedId": "SECURIUM_CANONICAL_CONCEPT_DATASET_V1_2026_09_08",
+    "conceptCount": 29,
+    "aliasCount": 10,
+    "edgeCount": 0,
+    "mappingCount": 0,
+    "status": "DRAFT",
+    "provenanceCoverage": "29/29",
+    "manifestPath": "reports/content-audit/securium-canonical-ontology-concept-dataset-manifest-2026-09-08.json",
+    "manifestSha256": "7E4F754191B12F0972CD43AF23AAADA7017BFA99851A5BACD84A4E4FA9EB7564",
+    "seedModulePath": "lib/data/securium-canonical-concept-dataset-seed.mjs",
+    "seedModuleSha256": "E85F0BE5C6355775629EC7FDF24BE6A404441D3BDAE793D5C2A5D51C30F72C5F",
+    "seedTestPath": "tests/securium-canonical-concept-dataset-seed.test.mjs",
+    "seedTestSha256": "3D9182BBB207688E291928B4C39AF0559C7FD9D821E9498C2152CF1F484A01AB"
+  },
+  "provenanceBinding": {
+    "bindingVersion": "TARGET_BRANCH_BOUND_V1",
+    "repository": "securium-canonical-ontology-dataset",
+    "branch": "architecture/canonical-ontology-dataset",
+    "targetHead": "980ef6adb94d87a923d7a973edaf4419f03fff9d",
+    "manifestPath": "reports/content-audit/securium-canonical-ontology-concept-dataset-manifest-2026-09-08.json",
+    "manifestSha256": "7E4F754191B12F0972CD43AF23AAADA7017BFA99851A5BACD84A4E4FA9EB7564",
+    "seedModulePath": "lib/data/securium-canonical-concept-dataset-seed.mjs",
+    "seedTestPath": "tests/securium-canonical-concept-dataset-seed.test.mjs",
+    "runtimeMetadataField": "public.ontology_concepts.metadata_json.repositoryBinding",
+    "runtimeBindingReadback": {"matchedRows": 29, "exactRows": 29}
+  },
+  "scopeIntegrity": {
+    "identityChanges": 0,
+    "aliasIdentityChanges": 0,
+    "edgeWrites": 0,
+    "mappingWrites": 0,
+    "skillWrites": 0,
+    "evidenceWrites": 0,
+    "learnerStateWrites": 0,
+    "historicalMigrationMutation": 0,
+    "productionMutation": false
+  },
+  "runtimeReadback": {
+    "concepts": 29,
+    "aliases": 10,
+    "edges": 0,
+    "duplicateIds": 0,
+    "duplicateConceptKeys": 0,
+    "ambiguousAliases": 0,
+    "orphanAliases": 0,
+    "draft": 29,
+    "active": 0,
+    "questionMappings": 0,
+    "contentMappings": 0
+  },
+  "tests": {
+    "seedSemanticTests": "5/5 PASS",
+    "manifestHash": "PASS",
+    "seedSyntax": "PASS",
+    "provenanceBindingAssertion": "PASS",
+    "nonprodReadback": "29/29 PASS"
+  },
+  "p2Unchanged": {
+    "legacyRlsAdvisory": "UNCHANGED_SEPARATE_HARDENING_GATE",
+    "missingOntologyCsvFixture": "UNCHANGED_UNRELATED_FIXTURE_GATE"
+  },
+  "security": {"newCriticalHigh": 0, "newP1": 0},
+  "dataTrust": {"newCriticalHigh": 0, "newP1": 0},
+  "remainingWork": ["independent final review", "separate legacy RLS advisory gate", "separate missing fixture gate"],
+  "recommendedNextGate": "REVIEW_SECURIUM_CANONICAL_ONTOLOGY_CONCEPT_DATASET_SEED_RESTORE",
+  "commit": "NOT_CREATED",
+  "push": "NOT_PERFORMED",
+  "pr": "NOT_CREATED",
+  "deployment": "NOT_PERFORMED"
+}
+
