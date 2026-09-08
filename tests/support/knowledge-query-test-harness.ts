@@ -3,7 +3,7 @@ export type ResolutionKind =
   | "RESOLVED"
   | "NOT_FOUND"
   | "AMBIGUOUS"
-  | "UNRESOLVED_LEGACY_REFERENCE"
+  | "UNRESOLVED"
   | "DEPRECATED"
   | "SUPERSEDED"
   | "UNKNOWN";
@@ -102,7 +102,7 @@ function freshnessOf(state: ServerKnowledgeState, resolution: CanonicalResolutio
 }
 
 function eligibilityOf(entityType: KnowledgeEntityType, state: ServerKnowledgeState, resolution: CanonicalResolution): EligibilityResult {
-  if (resolution.kind === "AMBIGUOUS" || resolution.kind === "UNKNOWN" || resolution.kind === "UNRESOLVED_LEGACY_REFERENCE") return "UNKNOWN";
+  if (resolution.kind === "AMBIGUOUS" || resolution.kind === "UNKNOWN" || resolution.kind === "UNRESOLVED") return "UNKNOWN";
   if (entityType === "CONCEPT" && !resolution.concept) return "NOT_PUBLIC";
   if (state.access === "RESTRICTED") return "RESTRICTED";
   if (state.access === "UNKNOWN") return "UNKNOWN";
@@ -191,5 +191,4 @@ export function createKnowledgeQueryService(authority: KnowledgeAuthority) {
 
   return Object.freeze({ getPublicEntity, resolveConcept, search });
 }
-
 

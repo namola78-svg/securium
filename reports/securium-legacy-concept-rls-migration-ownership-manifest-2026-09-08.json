@@ -1,0 +1,15 @@
+{
+  "manifest_type": "SECURIUM_LEGACY_CONCEPT_RLS_MIGRATION_OWNERSHIP",
+  "snapshot_date": "2026-09-08",
+  "migration_id": "0041_legacy_concept_rls_hardening",
+  "path": "db/postgres/migrations/0041_legacy_concept_rls_hardening.sql",
+  "semantic_owner_count": 1,
+  "file_owner_count_across_registered_worktrees": 1,
+  "semantic_checksum": "legacy-concept-rls-hardening-v1",
+  "file_sha256": "2BC12292259FA48D6D53A7A99485BF1EE766FB9964EF486D6044DDDE339BF2D5",
+  "postgres_namespace_collision": 0,
+  "d1_namespace_collision": 0,
+  "orphan": 0,
+  "d1_counterpart": "NOT_APPLICABLE: no fake D1 RLS implementation",
+  "repository_guard": "POSTGRES_MIGRATIONS_VALID files=30 tables=92 checksum=a19a7426aabc9650"
+}

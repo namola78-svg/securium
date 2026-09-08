@@ -1,0 +1,36 @@
+{
+  "manifest_type": "SECURIUM_LEGACY_CONCEPT_HARDENING_EXCLUSIONS",
+  "snapshot_date": "2026-09-08",
+  "excluded_count": 5,
+  "excluded_files": [
+    {
+      "path": "reports/securium-legacy-concept-rls-final-rereview-2026-09-08.md",
+      "classification": "SUPERSEDED_REPORT",
+      "reason": "Earlier RLS-only rereview artifact; superseded by the runtime-authority final rereview and production-gate evidence. Preserved unmodified and not staged."
+    },
+    {
+      "path": "reports/securium-legacy-concept-rls-final-rereview-2026-09-08.json",
+      "classification": "SUPERSEDED_REPORT",
+      "reason": "Earlier RLS-only rereview artifact; superseded by the runtime-authority final rereview and production-gate evidence. Preserved unmodified and not staged."
+    },
+    {
+      "path": "reports/securium-legacy-concept-runtime-shadow-authority-repair-2026-09-08.md",
+      "classification": "GENERATED_REPORT",
+      "reason": "Hash-locked historical Markdown report contains Markdown hard-break trailing whitespace; preserved unmodified and represented by its JSON report and commit/PR report."
+    },
+    {
+      "path": "reports/securium-legacy-concept-rls-runtime-authority-final-rereview-2026-09-08.md",
+      "classification": "SHOULD_COMMIT_FINAL_REVIEW_EXCLUDED",
+      "reason": "Hash-locked final rereview Markdown contains Markdown hard-break trailing whitespace; preserved unmodified and represented by its JSON report and commit/PR report."
+    },
+    {
+      "path": "reports/securium-legacy-concept-rls-production-deployment-readback-review-2026-09-08.md",
+      "classification": "GENERATED_REPORT",
+      "reason": "Production-gate Markdown contains Markdown hard-break trailing whitespace; preserved unmodified and represented by its JSON report and whitespace-clean commit/PR report."
+    }
+  ],
+  "unrelated_files": 0,
+  "canonical_dataset_files_excluded": true,
+  "dataset_a_artifacts_excluded": true,
+  "production_files_excluded": true
+}

@@ -1,11 +1,12 @@
-import { and, asc, eq, like, or } from "drizzle-orm";
+import { and, asc, eq, or, sql } from "drizzle-orm";
+import type { getDb } from "../../db/index.ts";
 
 export type ConceptLifecycle = "ACTIVE" | "DEPRECATED" | "SUPERSEDED" | "UNKNOWN";
 export type ResolutionKind =
   | "RESOLVED"
   | "NOT_FOUND"
   | "AMBIGUOUS"
-  | "UNRESOLVED_LEGACY_REFERENCE"
+  | "UNRESOLVED"
   | "DEPRECATED"
   | "SUPERSEDED"
   | "UNKNOWN";
@@ -104,7 +105,7 @@ function freshnessOf(state: ServerKnowledgeState, resolution: CanonicalResolutio
 }
 
 function eligibilityOf(entityType: KnowledgeEntityType, state: ServerKnowledgeState, resolution: CanonicalResolution): EligibilityResult {
-  if (resolution.kind === "AMBIGUOUS" || resolution.kind === "UNKNOWN" || resolution.kind === "UNRESOLVED_LEGACY_REFERENCE") return "UNKNOWN";
+  if (resolution.kind === "AMBIGUOUS" || resolution.kind === "UNKNOWN" || resolution.kind === "UNRESOLVED") return "UNKNOWN";
   if (entityType === "CONCEPT" && !resolution.concept) return "NOT_PUBLIC";
   if (state.access === "RESTRICTED") return "RESTRICTED";
   if (state.access === "UNKNOWN") return "UNKNOWN";
@@ -201,48 +202,145 @@ async function database() {
   return { db: getDb(), ...schema };
 }
 
+export type CanonicalOntologyRow = {
+  id: string;
+  conceptKey: string;
+  label: string;
+  normalizedLabel: string;
+  status: string;
+};
+
+export type CanonicalOntologyRepository = {
+  findByIdOrKey(input: { id?: string; key?: string }): Promise<CanonicalOntologyRow[]>;
+  findByAlias(normalizedAlias: string): Promise<CanonicalOntologyRow[]>;
+  search(input: { normalizedQuery: string; limit: number }): Promise<Array<{ id: string; stableKey: string; text: string }>>;
+  findActiveConcept(id: string): Promise<{ id: string } | null>;
+  findPublishedContent(id: string): Promise<{ id: string } | null>;
+};
+type CanonicalOntologyDatabase = ReturnType<typeof getDb>;
+
+function lifecycleForOntologyStatus(status: string): ConceptLifecycle {
+  if (status === "ACTIVE") return "ACTIVE";
+  if (status === "ARCHIVED") return "DEPRECATED";
+  return "UNKNOWN";
+}
+
+function resolutionForOntologyRow(row: CanonicalOntologyRow): CanonicalResolution {
+  const lifecycle = lifecycleForOntologyStatus(row.status);
+  const concept: CanonicalConcept = {
+    id: row.id,
+    stableKey: row.conceptKey,
+    lifecycle,
+    labels: [{ normalizedLabel: row.normalizedLabel, label: row.label, status: row.status }],
+  };
+  return {
+    kind: lifecycle === "ACTIVE" ? "RESOLVED" : lifecycle === "DEPRECATED" ? "DEPRECATED" : "UNKNOWN",
+    concept,
+  };
+}
+
+export function createCanonicalOntologyAuthorityFromRepository(repository: CanonicalOntologyRepository): KnowledgeAuthority {
+  return Object.freeze({
+    async resolveConcept(reference: OntologyReference) {
+      const lookup = reference.id ?? reference.stableKey ?? reference.key;
+      const rows = lookup
+        ? await repository.findByIdOrKey(reference.id ? { id: lookup } : { key: lookup })
+        : reference.alias
+          ? await repository.findByAlias(normalizeLookup(reference.alias))
+          : [];
+      if (rows.length === 0) return { kind: lookup || reference.alias ? "UNRESOLVED" as const : "NOT_FOUND" as const };
+      if (rows.length > 1) return { kind: "AMBIGUOUS" as const };
+      return resolutionForOntologyRow(rows[0]);
+    },
+    async searchCandidates(input: { query: string; limit: number }) {
+      const normalizedQuery = normalizeLookup(input.query);
+      const rows = await repository.search({ normalizedQuery, limit: input.limit });
+      const candidates = new Map<string, { reference: OntologyReference; score: number }>();
+      for (const row of rows) {
+        const score = row.text === normalizedQuery ? 1 : 0.5;
+        const existing = candidates.get(row.id);
+        if (!existing || score > existing.score) candidates.set(row.id, { reference: { stableKey: row.stableKey }, score });
+      }
+      return [...candidates.values()].sort((left, right) => right.score - left.score || String(left.reference.stableKey).localeCompare(String(right.reference.stableKey))).slice(0, input.limit);
+    },
+    async loadState(input: { entityType: KnowledgeEntityType; canonicalId: string }) {
+      if (input.entityType === "CONCEPT") {
+        const row = await repository.findActiveConcept(input.canonicalId);
+        return row ? { canonicalId: row.id, publication: "UNKNOWN" as const, access: "UNKNOWN" as const, mappingStatus: null, provenanceSourceType: "UNKNOWN" as const, revision: "UNKNOWN" as const } : null;
+      }
+      if (input.entityType === "LEARNING_CONTENT") {
+        const row = await repository.findPublishedContent(input.canonicalId);
+        return row ? { canonicalId: row.id, publication: "PUBLISHED" as const, access: "UNKNOWN" as const, mappingStatus: null, provenanceSourceType: "UNKNOWN" as const, revision: "UNKNOWN" as const } : null;
+      }
+      return null;
+    },
+  });
+}
+
 async function resolveCanonicalConcept(reference: OntologyReference): Promise<CanonicalResolution> {
   try {
-    const { db, conceptLabels, conceptVersions, concepts } = await database();
-    const lookup = reference.id ?? reference.stableKey ?? reference.key;
-    const rows = lookup
-      ? await db.select().from(concepts).where(reference.id ? eq(concepts.id, lookup) : eq(concepts.stableKey, lookup)).limit(1)
-      : reference.alias
-        ? await db.select({ concept: concepts }).from(conceptLabels).innerJoin(concepts, eq(conceptLabels.conceptId, concepts.id)).where(eq(conceptLabels.normalizedLabel, reference.alias.normalize("NFKC").trim().toLowerCase().replace(/\\s+/g, " "))).limit(1).then(items => items.map(item => item.concept))
-        : [];
-    const row = rows[0];
-    if (!row) return { kind: reference.key ? "UNRESOLVED_LEGACY_REFERENCE" : "NOT_FOUND" };
-    const [version] = await db.select({ id: conceptVersions.id, version: conceptVersions.version }).from(conceptVersions).where(and(eq(conceptVersions.conceptId, row.id), eq(conceptVersions.status, "ACTIVE"))).orderBy(asc(conceptVersions.version)).limit(1);
-    const concept: CanonicalConcept = { id: row.id, stableKey: row.stableKey, lifecycle: row.status === "ACTIVE" ? "ACTIVE" : row.status === "RETIRED" ? "DEPRECATED" : "UNKNOWN", versionId: version?.id, version: version?.version };
-    return { kind: concept.lifecycle === "DEPRECATED" ? "DEPRECATED" : concept.lifecycle === "UNKNOWN" ? "UNKNOWN" : "RESOLVED", concept };
+    const { db } = await database();
+    return createCanonicalOntologyAuthority(db).resolveConcept(reference);
   } catch { return { kind: "UNKNOWN" }; }
+}
+
+export function createCanonicalOntologyAuthority(db: CanonicalOntologyDatabase): KnowledgeAuthority {
+  return createCanonicalOntologyAuthorityFromRepository({
+    async findByIdOrKey(input) {
+      const { ontologyConcepts } = await import("../../db/schema.ts");
+      const selectConcept = { id: ontologyConcepts.id, conceptKey: ontologyConcepts.conceptKey, label: ontologyConcepts.label, normalizedLabel: ontologyConcepts.normalizedLabel, status: ontologyConcepts.status };
+      const lookup = input.id ?? input.key;
+      if (!lookup) return [];
+      return db.select(selectConcept).from(ontologyConcepts).where(input.id ? eq(ontologyConcepts.id, lookup) : eq(ontologyConcepts.conceptKey, lookup)).limit(2) as Promise<CanonicalOntologyRow[]>;
+    },
+    async findByAlias(normalizedAlias) {
+      const { ontologyAliases, ontologyConcepts } = await import("../../db/schema.ts");
+      const selectConcept = { id: ontologyConcepts.id, conceptKey: ontologyConcepts.conceptKey, label: ontologyConcepts.label, normalizedLabel: ontologyConcepts.normalizedLabel, status: ontologyConcepts.status };
+      return db.select(selectConcept).from(ontologyAliases).innerJoin(ontologyConcepts, eq(ontologyAliases.conceptId, ontologyConcepts.id)).where(eq(ontologyAliases.normalizedAlias, normalizedAlias)).limit(2) as Promise<CanonicalOntologyRow[]>;
+    },
+    async search({ normalizedQuery, limit }) {
+      const { ontologyAliases, ontologyConcepts } = await import("../../db/schema.ts");
+      const query = `%${normalizedQuery}%`;
+      const [conceptRows, aliasRows] = await Promise.all([
+        db.select({ id: ontologyConcepts.id, stableKey: ontologyConcepts.conceptKey, text: ontologyConcepts.normalizedLabel }).from(ontologyConcepts).where(and(eq(ontologyConcepts.status, "ACTIVE"), or(sql`${ontologyConcepts.normalizedLabel} LIKE ${query}`, sql`${ontologyConcepts.conceptKey} LIKE ${query}`))).orderBy(asc(ontologyConcepts.conceptKey)).limit(limit),
+        db.select({ id: ontologyConcepts.id, stableKey: ontologyConcepts.conceptKey, text: ontologyAliases.normalizedAlias }).from(ontologyAliases).innerJoin(ontologyConcepts, eq(ontologyAliases.conceptId, ontologyConcepts.id)).where(and(eq(ontologyConcepts.status, "ACTIVE"), sql`${ontologyAliases.normalizedAlias} LIKE ${query}`)).orderBy(asc(ontologyConcepts.conceptKey)).limit(limit),
+      ]);
+      return [...conceptRows, ...aliasRows];
+    },
+    async findActiveConcept(id) {
+      const { ontologyConcepts } = await import("../../db/schema.ts");
+      const [row] = await db.select({ id: ontologyConcepts.id }).from(ontologyConcepts).where(and(eq(ontologyConcepts.id, id), eq(ontologyConcepts.status, "ACTIVE"))).limit(1);
+      return row ?? null;
+    },
+    async findPublishedContent(id) {
+      const { contents } = await import("../../db/schema.ts");
+      const [row] = await db.select({ id: contents.id }).from(contents).where(and(eq(contents.id, id), eq(contents.status, "PUBLISHED"))).limit(1);
+      return row ?? null;
+    },
+  });
 }
 
 async function searchCanonicalCandidates(input: { query: string; limit: number }) {
   try {
-    const { db, conceptLabels, concepts } = await database(); const query = `%${input.query.normalize("NFKC").trim().toLowerCase().replace(/\\s+/g, " ")}%`;
-    const rows = await db.select({ stableKey: concepts.stableKey, label: conceptLabels.normalizedLabel }).from(conceptLabels).innerJoin(concepts, eq(conceptLabels.conceptId, concepts.id)).where(and(eq(concepts.status, "ACTIVE"), or(like(conceptLabels.normalizedLabel, query), like(concepts.stableKey, query)))).orderBy(asc(concepts.stableKey)).limit(input.limit);
-    return rows.map(row => ({ reference: { stableKey: row.stableKey }, score: row.label === input.query ? 1 : 0.5 }));
+    const { db } = await database();
+    return createCanonicalOntologyAuthority(db).searchCandidates(input);
   } catch { return []; }
 }
 
 async function loadCanonicalState(input: { entityType: KnowledgeEntityType; canonicalId: string }) {
   try {
-    const { db, concepts, contents } = await database();
-    if (input.entityType === "CONCEPT") {
-      const [row] = await db.select({ id: concepts.id }).from(concepts).where(and(eq(concepts.id, input.canonicalId), eq(concepts.status, "ACTIVE"))).limit(1);
-      return row ? { canonicalId: row.id, publication: "UNKNOWN" as const, access: "UNKNOWN" as const, mappingStatus: null, provenanceSourceType: "UNKNOWN" as const, revision: "UNKNOWN" as const } : null;
-    }
-    if (input.entityType === "LEARNING_CONTENT") {
-      const [row] = await db.select({ id: contents.id }).from(contents).where(and(eq(contents.id, input.canonicalId), eq(contents.status, "PUBLISHED"))).limit(1);
-      return row ? { canonicalId: row.id, publication: "PUBLISHED" as const, access: "UNKNOWN" as const, mappingStatus: null, provenanceSourceType: "UNKNOWN" as const, revision: "UNKNOWN" as const } : null;
-    }
-    return null;
+    const { db } = await database();
+    return createCanonicalOntologyAuthority(db).loadState(input);
   } catch { return null; }
 }
 
-function serverAuthority(): KnowledgeAuthority { return { resolveConcept: resolveCanonicalConcept, loadState: loadCanonicalState, searchCandidates: searchCanonicalCandidates }; }
+export const canonicalOntologyAuthority: KnowledgeAuthority = Object.freeze({
+  resolveConcept: async (reference) => resolveCanonicalConcept(reference),
+  loadState: async (input) => loadCanonicalState(input),
+  searchCandidates: async (input) => searchCanonicalCandidates(input),
+});
+
+function serverAuthority(): KnowledgeAuthority { return canonicalOntologyAuthority; }
 const productionService = createKnowledgeQueryService(serverAuthority());
 export function resolvePublicKnowledge(input: Parameters<typeof productionService.getPublicEntity>[0]): Promise<PublicKnowledgeResult> { return productionService.getPublicEntity(input); }
 export function searchPublicKnowledge(input: Parameters<typeof productionService.search>[0]) { return productionService.search(input); }
-
