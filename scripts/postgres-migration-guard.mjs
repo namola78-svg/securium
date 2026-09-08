@@ -111,6 +111,18 @@ export function assertMigrationSessionControls(observed) {
   return normalized;
 }
 
+export function expectedMigrationChecksum(migration) {
+  const migrationId = typeof migration?.id === "string" ? migration.id : "";
+  const sql = typeof migration?.sql === "string" ? migration.sql : "";
+  const registration = sql.match(
+    /INSERT\s+INTO\s+(?:public\.)?app_schema_migrations\s*\(id,\s*checksum\)\s*VALUES\s*\(\s*'([^']+)'\s*,\s*'([^']*)'/i,
+  );
+  if (!registration || registration[1] !== migrationId || !registration[2]) {
+    throw new MigrationGuardError("MIGRATION_GUARD_CHECKSUM_REGISTRATION_INVALID");
+  }
+  return registration[2];
+}
+
 export async function executeGuardedMigration({
   session,
   migration,
@@ -144,11 +156,21 @@ export async function executeGuardedMigration({
     );
   }
 
+  const expectedChecksum = expectedMigrationChecksum(migration);
   const guardedIdentity = normalizeSessionIdentity(observed.sessionIdentity);
-  const alreadyApplied = await session.isMigrationApplied(migration.id);
-  if (alreadyApplied) {
+  const ledgerRows = await session.readMigrationLedger(migration.id);
+  if (!Array.isArray(ledgerRows)) {
+    throw new MigrationGuardError("MIGRATION_GUARD_MIGRATION_LEDGER_INVALID");
+  }
+  if (ledgerRows.length > 1) {
+    throw new MigrationGuardError("MIGRATION_GUARD_MIGRATION_LEDGER_DUPLICATE");
+  }
+  if (ledgerRows.length === 1) {
+    if (ledgerRows[0]?.id !== migration.id || ledgerRows[0]?.checksum !== expectedChecksum) {
+      throw new MigrationGuardError("MIGRATION_GUARD_MIGRATION_CHECKSUM_MISMATCH");
+    }
     logger(
-      `MIGRATION_GUARD_PASS migration=${migration.id} session=${guardedIdentity} action=ALREADY_APPLIED`,
+      `MIGRATION_GUARD_PASS migration=${migration.id} session=${guardedIdentity} action=ALREADY_APPLIED_VALID`,
     );
     return { applied: false, ddlStatementsExecuted: 0 };
   }
@@ -201,15 +223,15 @@ export async function deployMigrationOnReservedConnection({
           sessionIdentity: row.session_identity,
         };
       },
-      isMigrationApplied: async (migrationId) => {
+      readMigrationLedger: async (migrationId) => {
         try {
           const rows = await reserved.unsafe(
-            "SELECT id FROM app_schema_migrations WHERE id = $1",
+            "SELECT id, checksum FROM app_schema_migrations WHERE id = $1",
             [migrationId],
           );
-          return rows.length === 1;
+          return rows;
         } catch (error) {
-          if (safeDatabaseErrorCode(error) === "42P01") return false;
+          if (safeDatabaseErrorCode(error) === "42P01") return [];
           throw error;
         }
       },

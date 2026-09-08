@@ -22,7 +22,7 @@ function authority(overrides: Partial<KnowledgeAuthority> = {}): KnowledgeAuthor
       if (reference.id === active.id || reference.key === active.stableKey || reference.stableKey === active.stableKey) return { kind: "RESOLVED", concept: active };
       if (reference.id === deprecated.id || reference.key === deprecated.stableKey) return { kind: "DEPRECATED", concept: deprecated, replacement: active };
       if (reference.alias === "shared") return { kind: "AMBIGUOUS" };
-      return { kind: reference.key ? "UNRESOLVED_LEGACY_REFERENCE" : "NOT_FOUND" };
+      return { kind: reference.key ? "UNRESOLVED" : "NOT_FOUND" };
     },
     loadState: async ({ canonicalId }) => canonicalId === "c-1" ? publicState : null,
     searchCandidates: async () => [{ reference: { key: active.stableKey }, score: 0.99 }, { reference: { key: "ontology:unresolved" }, score: 1 }],
@@ -34,7 +34,7 @@ test("canonical resolution is server-owned and lifecycle-preserving", async () =
   const service = createKnowledgeQueryService(authority());
   assert.equal((await service.resolveConcept({ id: "c-1" })).kind, "RESOLVED");
   assert.equal((await service.resolveConcept({ key: "concept:old" })).kind, "DEPRECATED");
-  assert.equal((await service.resolveConcept({ key: "ontology:missing" })).kind, "UNRESOLVED_LEGACY_REFERENCE");
+  assert.equal((await service.resolveConcept({ key: "ontology:missing" })).kind, "UNRESOLVED");
   assert.equal((await service.resolveConcept({ alias: "shared" })).kind, "AMBIGUOUS");
   assert.equal((await service.resolveConcept({})).kind, "NOT_FOUND");
 });

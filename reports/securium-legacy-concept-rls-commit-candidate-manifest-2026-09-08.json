@@ -1,0 +1,40 @@
+{
+  "manifest_type": "SECURIUM_LEGACY_CONCEPT_HARDENING_COMMIT_CANDIDATE",
+  "snapshot_date": "2026-09-08",
+  "candidate_count": 24,
+  "commit_strategy": "ONE_BOUNDED_COMMIT",
+  "candidate_files": [
+    "db/postgres/migrations/0041_legacy_concept_rls_hardening.sql",
+    "lib/services/server-knowledge-query-service.ts",
+    "package.json",
+    "tests/canonical-concept-shadow-authority.test.ts",
+    "tests/knowledge-public-contract.test.ts",
+    "tests/legacy-concept-rls-hardening-postgres-disposable.test.mjs",
+    "tests/migration-namespace-guard.test.mjs",
+    "tests/support/knowledge-query-test-harness.ts",
+    "reports/securium-legacy-concept-rls-hardening-2026-09-08.json",
+    "reports/securium-legacy-concept-rls-hardening-2026-09-08.md",
+    "reports/securium-legacy-concept-runtime-shadow-authority-repair-2026-09-08.json",
+    "reports/securium-legacy-concept-rls-runtime-authority-final-rereview-2026-09-08.json",
+    "reports/securium-legacy-concept-rls-production-deployment-artifact-manifest-2026-09-08.json",
+    "reports/securium-legacy-concept-rls-production-deployment-readback-review-2026-09-08.json",
+    "reports/securium-legacy-concept-rls-production-readback-checklist-2026-09-08.md",
+    "reports/securium-legacy-concept-rls-production-rollback-checklist-2026-09-08.md",
+    "reports/securium-legacy-concept-rls-production-sha256-manifest-2026-09-08.json",
+    "reports/securium-legacy-concept-rls-commit-pr-report-2026-09-08.json",
+    "reports/securium-legacy-concept-rls-commit-pr-report-2026-09-08.md",
+    "reports/securium-legacy-concept-rls-commit-candidate-manifest-2026-09-08.json",
+    "reports/securium-legacy-concept-rls-exclusion-manifest-2026-09-08.json",
+    "reports/securium-legacy-concept-rls-migration-ownership-manifest-2026-09-08.json",
+    "reports/securium-legacy-concept-rls-pr-scope-manifest-2026-09-08.json",
+    "reports/securium-legacy-concept-rls-commit-pr-sha256-manifest-2026-09-08.json"
+  ],
+  "candidate_classes": {
+    "MUST_COMMIT_SECURITY_IMPLEMENTATION": ["db/postgres/migrations/0041_legacy_concept_rls_hardening.sql"],
+    "MUST_COMMIT_RUNTIME_AUTHORITY_REPAIR": ["lib/services/server-knowledge-query-service.ts"],
+    "MUST_COMMIT_TEST": ["package.json", "tests/canonical-concept-shadow-authority.test.ts", "tests/knowledge-public-contract.test.ts", "tests/legacy-concept-rls-hardening-postgres-disposable.test.mjs", "tests/migration-namespace-guard.test.mjs", "tests/support/knowledge-query-test-harness.ts"],
+    "MUST_COMMIT_MIGRATION": ["db/postgres/migrations/0041_legacy_concept_rls_hardening.sql"],
+    "MUST_COMMIT_GOVERNANCE_EVIDENCE": ["reports/securium-legacy-concept-rls-production-deployment-readback-review-2026-09-08.json", "reports/securium-legacy-concept-rls-production-deployment-artifact-manifest-2026-09-08.json", "reports/securium-legacy-concept-rls-production-readback-checklist-2026-09-08.md", "reports/securium-legacy-concept-rls-production-rollback-checklist-2026-09-08.md", "reports/securium-legacy-concept-rls-production-sha256-manifest-2026-09-08.json", "reports/securium-legacy-concept-rls-commit-pr-report-2026-09-08.md", "reports/securium-legacy-concept-rls-commit-pr-report-2026-09-08.json", "reports/securium-legacy-concept-rls-commit-candidate-manifest-2026-09-08.json", "reports/securium-legacy-concept-rls-exclusion-manifest-2026-09-08.json", "reports/securium-legacy-concept-rls-migration-ownership-manifest-2026-09-08.json", "reports/securium-legacy-concept-rls-pr-scope-manifest-2026-09-08.json", "reports/securium-legacy-concept-rls-commit-pr-sha256-manifest-2026-09-08.json"],
+    "SHOULD_COMMIT_FINAL_REVIEW": ["reports/securium-legacy-concept-rls-hardening-2026-09-08.md", "reports/securium-legacy-concept-rls-hardening-2026-09-08.json", "reports/securium-legacy-concept-runtime-shadow-authority-repair-2026-09-08.json", "reports/securium-legacy-concept-rls-runtime-authority-final-rereview-2026-09-08.json"]
+  }
+}

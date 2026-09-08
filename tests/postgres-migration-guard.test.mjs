@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import { execFile as execFileCallback } from "node:child_process";
+import { readFileSync } from "node:fs";
+import { readdir } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import test from "node:test";
 import { promisify } from "node:util";
@@ -9,6 +11,7 @@ import {
   MigrationGuardError,
   parsePostgresDurationMilliseconds,
   deployMigrationOnReservedConnection,
+  expectedMigrationChecksum,
 } from "../scripts/postgres-migration-guard.mjs";
 
 const execFile = promisify(execFileCallback);
@@ -19,6 +22,10 @@ CREATE TABLE migration_guard_fixture (id integer PRIMARY KEY);
 INSERT INTO app_schema_migrations (id, checksum)
 VALUES ('guard_fixture_0001', 'guard-fixture');
 COMMIT;`,
+};
+const legacyRlsMigration = {
+  id: "0041_legacy_concept_rls_hardening",
+  sql: readFileSync("db/postgres/migrations/0041_legacy_concept_rls_hardening.sql", "utf8"),
 };
 
 test("case 1: exact session settings pass before DDL", async () => {
@@ -36,6 +43,99 @@ test("case 1: exact session settings pass before DDL", async () => {
   assert.equal(state.targetTablesCreated, 1);
   assert.equal(events.at(-1)?.includes("action=EXECUTE"), true);
   assert.equal(state.executionEvents.at(-1), "DDL");
+});
+
+test("valid applied migration requires the exact registered checksum", async () => {
+  const state = createFakeSession({
+    migrationLedgerRows: [{ id: fixtureMigration.id, checksum: "guard-fixture" }],
+  });
+  const result = await executeGuardedMigration({
+    session: state.session,
+    migration: fixtureMigration,
+    logger: (message) => state.events.push(message),
+  });
+
+  assert.equal(result.applied, false);
+  assert.equal(state.ddlStatementsExecuted, 0);
+  assert.equal(state.events.at(-1)?.includes("action=ALREADY_APPLIED_VALID"), true);
+});
+
+test("same migration ID with a different checksum fails closed before DDL", async () => {
+  const state = createFakeSession({
+    migrationLedgerRows: [{ id: fixtureMigration.id, checksum: "wrong-checksum" }],
+  });
+  await assert.rejects(
+    executeGuardedMigration({
+      session: state.session,
+      migration: fixtureMigration,
+      logger: () => {},
+    }),
+    hasGuardCode("MIGRATION_GUARD_MIGRATION_CHECKSUM_MISMATCH"),
+  );
+  assertZeroDdl(state);
+});
+
+test("0041 legacy Concept RLS migration uses its approved checksum", async () => {
+  assert.equal(expectedMigrationChecksum(legacyRlsMigration), "legacy-concept-rls-hardening-v1");
+  const state = createFakeSession({
+    migrationLedgerRows: [{ id: legacyRlsMigration.id, checksum: "legacy-concept-rls-hardening-v1" }],
+  });
+  const result = await executeGuardedMigration({
+    session: state.session,
+    migration: legacyRlsMigration,
+    logger: () => {},
+  });
+  assert.equal(result.applied, false);
+  assert.equal(state.ddlStatementsExecuted, 0);
+});
+
+test("missing, null, and empty migration ledger checksums fail closed", async () => {
+  for (const checksum of [null, ""]) {
+    const state = createFakeSession({
+      migrationLedgerRows: [{ id: fixtureMigration.id, checksum }],
+    });
+    await assert.rejects(
+      executeGuardedMigration({
+        session: state.session,
+        migration: fixtureMigration,
+        logger: () => {},
+      }),
+      hasGuardCode("MIGRATION_GUARD_MIGRATION_CHECKSUM_MISMATCH"),
+    );
+    assertZeroDdl(state);
+  }
+});
+
+test("duplicate migration ledger IDs fail closed", async () => {
+  const state = createFakeSession({
+    migrationLedgerRows: [
+      { id: fixtureMigration.id, checksum: "guard-fixture" },
+      { id: fixtureMigration.id, checksum: "guard-fixture" },
+    ],
+  });
+  await assert.rejects(
+    executeGuardedMigration({
+      session: state.session,
+      migration: fixtureMigration,
+      logger: () => {},
+    }),
+    hasGuardCode("MIGRATION_GUARD_MIGRATION_LEDGER_DUPLICATE"),
+  );
+  assertZeroDdl(state);
+});
+
+test("all governed PostgreSQL migrations expose the existing checksum convention", async () => {
+  const files = (await readdir("db/postgres/migrations"))
+    .filter((file) => /^\d{4}_.+\.sql$/.test(file))
+    .sort();
+  assert.equal(files.length, 30);
+  for (const file of files) {
+    const migration = {
+      id: file.replace(/\.sql$/, ""),
+      sql: readFileSync(`db/postgres/migrations/${file}`, "utf8"),
+    };
+    assert.ok(expectedMigrationChecksum(migration), file);
+  }
 });
 
 test("case 2: lock_timeout 0 blocks before DDL", async () => {
@@ -243,6 +343,7 @@ function createFakeSession(options = {}) {
     migrationRows: 0,
     targetTablesCreated: 0,
     executionEvents: [],
+    events: [],
   };
   const controls = {
     lockTimeout: "5s",
@@ -260,7 +361,7 @@ function createFakeSession(options = {}) {
       state.executionEvents.push("READBACK");
       return controls;
     },
-    isMigrationApplied: async () => false,
+    readMigrationLedger: async () => options.migrationLedgerRows ?? [],
     readSessionIdentity: async () =>
       options.executionSessionIdentity ?? controls.sessionIdentity,
     executeMigration: async () => {

@@ -1,0 +1,174 @@
+{
+  "review_type": "PRODUCTION_DEPLOYMENT_READBACK_READINESS",
+  "snapshot_date": "2026-09-08",
+  "production_deployment_decision": "DEPLOYMENT_ARTIFACT_NOT_ON_MAIN",
+  "repository_completion": "LEGACY_CONCEPT_SHADOW_AUTHORITY_HARDENING_COMPLETE",
+  "production_status": "PRODUCTION_READBACK_NOT_PERFORMED",
+  "repository_baseline": {
+    "worktree": "securium-legacy-concept-rls-hardening",
+    "branch": "security/legacy-concept-rls-hardening",
+    "head": "980ef6adb94d87a923d7a973edaf4419f03fff9d",
+    "origin_main": "ac65766b8e406968dd66fd906249c48b91fa6b38",
+    "origin_main_fetched": true,
+    "ahead": 0,
+    "behind": 1,
+    "raw_rev_list_origin_main_ellipsis_head": "1 0",
+    "dirty_or_untracked": true,
+    "implementation_diff_is_expected": true,
+    "git_diff_check": "PASS"
+  },
+  "repository_completion_freeze": {
+    "runtime_shadow_authority": "CLOSED; not reopened",
+    "legacy_rls": "CLOSED; not reopened",
+    "canonical_authority_architecture": "FROZEN",
+    "canonical_authority_count": 1,
+    "legacy_authority_count": 0,
+    "canonical_facing_legacy_reads": 0,
+    "unsafe_writers": 0,
+    "canonical_dataset_mutation": 0
+  },
+  "report_hash_verification": {
+    "markdown": "C6EB7F48271AF5007229D4AE7EDD9B544EC902ECFFEF9A2233353D83B52D04A9",
+    "json": "C30C28F2262755A33D51C851418BEBDF821EC118FEFD98F5577AD2497932DD46",
+    "status": "PASS"
+  },
+  "deployment_artifact_inventory": {
+    "database_deployment": [
+      {
+        "path": "db/postgres/migrations/0041_legacy_concept_rls_hardening.sql",
+        "migration_id": "0041_legacy_concept_rls_hardening",
+        "semantic_checksum": "legacy-concept-rls-hardening-v1",
+        "sha256": "2BC12292259FA48D6D53A7A99485BF1EE766FB9964EF486D6044DDDE339BF2D5",
+        "deployment_mutations": [
+          "REVOKE all privileges on public.concepts, public.concept_versions, public.concept_labels from PUBLIC, anon, authenticated",
+          "GRANT all privileges on the three target tables to service_role",
+          "ENABLE ROW LEVEL SECURITY on the three target tables",
+          "register migration in app_schema_migrations with ON CONFLICT DO NOTHING"
+        ],
+        "not_included": ["canonical ontology data", "legacy row deletion", "schema redesign", "D1 fake RLS"]
+      }
+    ],
+    "application_deployment": [
+      {
+        "path": "lib/services/server-knowledge-query-service.ts",
+        "purpose": "route canonical resolver/search/state through ontology_concepts and ontology_aliases only",
+        "sha256": "823002572863A2B066139AF9EEC44346CA7C90428D297B1BE32D8FB3B2A7FAD9",
+        "runtime_commit_state": "LOCAL_ONLY"
+      }
+    ],
+    "search_changes": "Included in application runtime artifact; canonical search reads ontology_concepts and ontology_aliases only.",
+    "state_read_model_changes": "Included in application runtime artifact; canonical Concept state reads ontology_concepts only.",
+    "tests_and_guards_not_deployed": [
+      "tests/canonical-concept-shadow-authority.test.ts",
+      "tests/legacy-concept-rls-hardening-postgres-disposable.test.mjs",
+      "tests/migration-namespace-guard.test.mjs",
+      "package.json test scripts",
+      "reports/*"
+    ]
+  },
+  "migration_identity": {
+    "id": "0041_legacy_concept_rls_hardening",
+    "file": "db/postgres/migrations/0041_legacy_concept_rls_hardening.sql",
+    "semantic_owner_count": 1,
+    "file_owner_count_across_git_worktrees": 1,
+    "namespace_collision": 0,
+    "repository_validation": "POSTGRES_MIGRATIONS_VALID files=30 tables=92 checksum=a19a7426aabc9650",
+    "ledger_checksum": "legacy-concept-rls-hardening-v1",
+    "migration_file_sha256": "2BC12292259FA48D6D53A7A99485BF1EE766FB9964EF486D6044DDDE339BF2D5",
+    "migration_state": "LOCAL_ONLY"
+  },
+  "runtime_commit_state": "LOCAL_ONLY",
+  "rls_migration_state": "LOCAL_ONLY",
+  "production_access_availability": "CREDENTIALS_REQUIRED",
+  "credential_workaround": "NONE: no secrets were extracted from logs, unrelated env files, shell history, browser storage, or other worktrees.",
+  "production_provider_state": "UNKNOWN: repository supports D1 default and Supabase/PostgreSQL mode; no authorized deployment metadata or production readback is available.",
+  "deployment_dependency_graph": {
+    "preflight": "authorized read-only production readback",
+    "order": ["DATABASE_DEPLOYMENT", "APPLICATION_DEPLOYMENT", "POST_DEPLOYMENT_READBACK"],
+    "repository_supported_database_path": "scripts/postgres-migrations.mjs with guarded single-session migration runner",
+    "database_precondition": "production provider must be confirmed as Supabase/PostgreSQL; 0041 does not map to D1",
+    "application_precondition": "merged runtime repair build must be available before traffic switch",
+    "status": "NOT_READY"
+  },
+  "exact_production_mutation_set": {
+    "database": "Only migration 0041 on the three legacy tables; no canonical or legacy row data mutation.",
+    "application": "Only the server knowledge query runtime repair; no mapping, seed, schema, or learner-state changes.",
+    "unrelated_mutations": 0
+  },
+  "pre_deployment_readback_plan": {
+    "connection_identity": "current_database, current_user, current_schema, search_path, provider identity",
+    "rls": "pg_class.relrowsecurity and relforcerowsecurity for all three legacy tables",
+    "grants": "has_table_privilege for anon, authenticated, service_role on SELECT/INSERT/UPDATE/DELETE",
+    "policies": "pg_policies rows, roles, commands, USING, WITH CHECK",
+    "canonical": "read-only counts/identities for ontology_concepts, ontology_aliases, ontology_edges",
+    "legacy": "read-only table existence, counts, and migration ledger state for concepts, concept_versions, concept_labels",
+    "client_access": "supported PostgREST GET using authorized anon key and authenticated test session; no production writes",
+    "runtime": "approved existing canonical IDs/keys/aliases through the deployed server path; no synthetic production rows"
+  },
+  "production_canonical_authority": "Read-only target: ontology_concepts / ontology_aliases; ontology_edges only for relation lookup.",
+  "production_rls_expected_after_deployment": {
+    "concepts": "RLS enabled, force false unless separately justified, anon/authenticated SELECT/INSERT/UPDATE/DELETE denied, service_role retained",
+    "concept_versions": "same",
+    "concept_labels": "same",
+    "policies": 0,
+    "anon_reads": "DENIED",
+    "authenticated_reads": "DENIED",
+    "anon_writes": "DENIED",
+    "authenticated_writes": "DENIED"
+  },
+  "production_runtime_expected_after_deployment": {
+    "canonical_resolver": "ontology_concepts / ontology_aliases only",
+    "canonical_search": "ontology_concepts / ontology_aliases only",
+    "canonical_state": "ontology_concepts only for Concept state",
+    "canonical_facing_legacy_reads": 0,
+    "silent_fallback": 0,
+    "legacy_only_synthetic_test": "NOT PERFORMED in production; nonproduction proof retained"
+  },
+  "data_freeze": {
+    "canonical_concepts": 0,
+    "canonical_aliases": 0,
+    "canonical_edges": 0,
+    "legacy_deletion": 0,
+    "legacy_promotion": 0,
+    "legacy_rewrite": 0,
+    "skill_relations_evidence_mastery_mutation": 0
+  },
+  "production_smoke_plan": [
+    "GET public application health and database health",
+    "exercise canonical Concept resolution using approved existing ID/key/alias",
+    "exercise canonical Concept search using approved existing query",
+    "exercise relevant learning route(s) and verify no error/regression",
+    "verify auth/session boundary with anonymous and authorized sessions",
+    "capture request IDs and deployment version; do not expose service_role credentials"
+  ],
+  "monitoring": {
+    "existing_sources": ["application request observability", "platform runtime logs", "Supabase/PostgreSQL logs and advisor readback when authorized", "existing audit logs for server writes"],
+    "rls_denial_anomaly": "alert on unexpected 42501 volume or unexpected client 2xx access to target tables",
+    "canonical_resolver_failure": "alert on health/runtime errors and unexpected UNRESOLVED/UNKNOWN rate for approved canonical identifiers",
+    "unexpected_legacy_access": "review database/API logs for target-table access by anon/authenticated or canonical-facing service path",
+    "new_telemetry": "NONE added in this review"
+  },
+  "rollback": {
+    "rls_grants": "No automatic down migration. If the guarded transaction fails, transaction rollback is safe. After commit, preserve revokes and RLS; use a separately authorized forward corrective migration only. Never restore anon/authenticated privileges or disable RLS.",
+    "application_runtime": "Do not roll back to the pre-repair runtime because it reads legacy tables as canonical authority. Pause traffic or roll forward to a known canonical-authority build; only a build containing the repair is an acceptable runtime rollback target.",
+    "fail_safe": "If application deployment fails after DB hardening, leave legacy tables server-only and keep the database hardening active; do not declare completion until canonical runtime is serving."
+  },
+  "readiness": {
+    "production_mutation_requirement": "UNKNOWN",
+    "database_deployment": "BLOCKED",
+    "application_deployment": "BLOCKED",
+    "production_readback": "NOT_READ",
+    "deployment_readiness": "REQUIRES_PRODUCTION_READBACK_PLAN"
+  },
+  "security_critical_high": "0/0 repository evidence; production state not read",
+  "data_trust_critical_high": "0/0 repository evidence; production state not read",
+  "privacy_critical_high": "0/0 repository evidence; production state not read",
+  "production_db_mutation": 0,
+  "commit": "NOT PERFORMED",
+  "push": "NOT PERFORMED",
+  "pr": "NOT PERFORMED",
+  "deployment": "NOT PERFORMED",
+  "production_decision_rationale": "DEPLOYMENT_ARTIFACT_NOT_ON_MAIN takes precedence because both the RLS migration and runtime repair are local-only; CREDENTIALS_REQUIRED is an additional independent blocker.",
+  "next_gate": "COMMIT_AND_PR_SECURIUM_LEGACY_CONCEPT_HARDENING",
+  "do_not_execute_automatically": true
+}

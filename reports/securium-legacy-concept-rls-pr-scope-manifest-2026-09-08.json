@@ -1,0 +1,26 @@
+{
+  "manifest_type": "SECURIUM_LEGACY_CONCEPT_HARDENING_PR_SCOPE",
+  "snapshot_date": "2026-09-08",
+  "title": "fix(security): harden legacy concept authority boundary",
+  "base": "main",
+  "head": "security/legacy-concept-rls-hardening",
+  "commit_strategy": "ONE_BOUNDED_COMMIT",
+  "merge": "NOT_PERFORMED",
+  "auto_merge": "NOT_ENABLED",
+  "production_deployment": "NOT_PERFORMED",
+  "production_db": "NOT_CONNECTED",
+  "scope": ["legacy Concept RLS/grants", "canonical runtime resolver/search/state authority repair", "focused tests", "migration/namespace guards", "review and deployment-readiness evidence"],
+  "out_of_scope": ["canonical ontology data", "Dataset A artifacts", "Skill/Role/Relations/Evidence/Mastery", "UI", "dependencies", "production DB", "deployment"],
+  "invariants": {
+    "canonical_authority_count": 1,
+    "legacy_authority_count": 0,
+    "canonical_facing_legacy_reads": 0,
+    "silent_fallback": 0,
+    "unsafe_writers": 0,
+    "direct_access": "24/24 DENIED",
+    "canonical_dataset_mutation": 0,
+    "legacy_deletion": 0,
+    "legacy_promotion": 0
+  },
+  "ci_policy": "Observe checks; do not merge or auto-merge."
+}

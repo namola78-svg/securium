@@ -1,0 +1,12 @@
+{
+  "manifest_type": "SECURIUM_LEGACY_CONCEPT_PRODUCTION_GATE_SHA256",
+  "snapshot_date": "2026-09-08",
+  "files": {
+    "reports/securium-legacy-concept-rls-production-deployment-readback-review-2026-09-08.md": "56972958EE105011B79F1433F8B06DF0D7AB3D80F26A5997CDFB0F2B583FE854",
+    "reports/securium-legacy-concept-rls-production-deployment-readback-review-2026-09-08.json": "B20F811A079D06D8023B385DA98502609F36DF87A9D401B3D1F623D3D67E6BC8",
+    "reports/securium-legacy-concept-rls-production-deployment-artifact-manifest-2026-09-08.json": "694FECFB17A1938EA7A76B332426A7A5424586EDAB657452B9A59B8CEAC2FC78",
+    "reports/securium-legacy-concept-rls-production-readback-checklist-2026-09-08.md": "DF16515E312807919B527F5675DF5EEACCB7ECC4401755CF0F6C1D2798B58EFC",
+    "reports/securium-legacy-concept-rls-production-rollback-checklist-2026-09-08.md": "B1C465928C9844E9FF8A962291E4E4CEACA7CA2BC04154659715ACD70103EC8E"
+  },
+  "self_sha256": "CALCULATED_AFTER_WRITE_NOT_SELF_REFERENTIAL"
+}

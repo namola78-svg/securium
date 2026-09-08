@@ -1,0 +1,32 @@
+{
+  "manifest_type": "SECURIUM_LEGACY_CONCEPT_HARDENING_PRODUCTION_ARTIFACTS",
+  "snapshot_date": "2026-09-08",
+  "database_deployment": {
+    "path": "db/postgres/migrations/0041_legacy_concept_rls_hardening.sql",
+    "migration_id": "0041_legacy_concept_rls_hardening",
+    "ledger_checksum": "legacy-concept-rls-hardening-v1",
+    "sha256": "2BC12292259FA48D6D53A7A99485BF1EE766FB9964EF486D6044DDDE339BF2D5",
+    "scope": ["REVOKE anon/authenticated/PUBLIC", "GRANT service_role", "ENABLE RLS", "journal registration"],
+    "canonical_data_mutation": 0,
+    "legacy_data_mutation": 0,
+    "d1_equivalent": "NOT_APPLICABLE"
+  },
+  "application_deployment": {
+    "path": "lib/services/server-knowledge-query-service.ts",
+    "sha256": "823002572863A2B066139AF9EEC44346CA7C90428D297B1BE32D8FB3B2A7FAD9",
+    "scope": ["canonical resolver ontology-only", "canonical search ontology-only", "canonical Concept state ontology-only", "no legacy fallback"],
+    "runtime_commit_state": "LOCAL_ONLY"
+  },
+  "verification_only": [
+    "tests/canonical-concept-shadow-authority.test.ts",
+    "tests/legacy-concept-rls-hardening-postgres-disposable.test.mjs",
+    "tests/migration-namespace-guard.test.mjs",
+    "package.json test scripts",
+    "reports/securium-legacy-concept-rls-runtime-authority-final-rereview-2026-09-08.md",
+    "reports/securium-legacy-concept-rls-runtime-authority-final-rereview-2026-09-08.json"
+  ],
+  "not_deployable": ["canonical seed", "canonical manifest", "mapping content", "Skill/Role/Evidence/Mastery artifacts", "production reports"],
+  "main_inclusion": "NOT_INCLUDED_ON_ORIGIN_MAIN",
+  "deployment_authorization": "NOT_GRANTED",
+  "production_mutation_performed": 0
+}

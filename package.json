@@ -28,6 +28,8 @@
     "test:fact-domain": "node --test tests/fact-domain.test.ts",
     "test:fact-persistence": "node scripts/run-d1-test-suite.mjs --test --test-concurrency=1 tests/fact-persistence-integration.test.mjs",
     "test:postgres-migration-guard": "node --test --test-concurrency=1 tests/postgres-migration-guard.test.mjs",
+    "test:legacy-concept-rls": "node --test --test-concurrency=1 tests/legacy-concept-rls-hardening-postgres-disposable.test.mjs",
+    "test:legacy-concept-shadow": "node --test --test-concurrency=1 tests/canonical-concept-shadow-authority.test.ts",
     "test:e2e": "npm run build && node scripts/run-d1-test-suite.mjs --test --test-concurrency=1 tests/rendered-html.test.mjs tests/phase3-e2e.test.mjs tests/specialized-e2e.test.mjs tests/practical-e2e.test.mjs tests/ai-e2e.test.mjs tests/ai-specialized-e2e.test.mjs tests/audio-e2e.test.mjs tests/lecture-e2e.test.mjs tests/content-revision-e2e.test.mjs tests/audit-e2e.test.mjs tests/curriculum-e2e.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "node scripts/run-drizzle-kit.mjs generate",
