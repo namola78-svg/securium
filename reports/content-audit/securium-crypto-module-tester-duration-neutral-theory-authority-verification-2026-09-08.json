@@ -1,0 +1,144 @@
+{
+  "schema": "securium.crypto_module_tester.theory_authority_verification.v1",
+  "authority_count": 1,
+  "course_id": "course-crypto-module-tester",
+  "unit_count": 12,
+  "all_units_pedagogical": true,
+  "required_fields": [
+    "purpose",
+    "core_concepts",
+    "key_terms",
+    "principles",
+    "tester_perspective",
+    "evidence_to_check",
+    "common_misconceptions",
+    "judgment_points",
+    "practical_example",
+    "learning_checkpoints"
+  ],
+  "required_field_coverage": true,
+  "objective_binding": {
+    "U01": {
+      "objective_count": 4,
+      "objective_ids": [
+        "CMT-DN-U01-O01",
+        "CMT-DN-U01-O02",
+        "CMT-DN-U01-O03",
+        "CMT-DN-U01-O04"
+      ],
+      "status": "PASS"
+    },
+    "U02": {
+      "objective_count": 4,
+      "objective_ids": [
+        "CMT-DN-U02-O01",
+        "CMT-DN-U02-O02",
+        "CMT-DN-U02-O03",
+        "CMT-DN-U02-O04"
+      ],
+      "status": "PASS"
+    },
+    "U03": {
+      "objective_count": 4,
+      "objective_ids": [
+        "CMT-DN-U03-O01",
+        "CMT-DN-U03-O02",
+        "CMT-DN-U03-O03",
+        "CMT-DN-U03-O04"
+      ],
+      "status": "PASS"
+    },
+    "U04": {
+      "objective_count": 4,
+      "objective_ids": [
+        "CMT-DN-U04-O01",
+        "CMT-DN-U04-O02",
+        "CMT-DN-U04-O03",
+        "CMT-DN-U04-O04"
+      ],
+      "status": "PASS"
+    },
+    "U05": {
+      "objective_count": 4,
+      "objective_ids": [
+        "CMT-DN-U05-O01",
+        "CMT-DN-U05-O02",
+        "CMT-DN-U05-O03",
+        "CMT-DN-U05-O04"
+      ],
+      "status": "PASS"
+    },
+    "U06": {
+      "objective_count": 4,
+      "objective_ids": [
+        "CMT-DN-U06-O01",
+        "CMT-DN-U06-O02",
+        "CMT-DN-U06-O03",
+        "CMT-DN-U06-O04"
+      ],
+      "status": "PASS"
+    },
+    "U07": {
+      "objective_count": 4,
+      "objective_ids": [
+        "CMT-DN-U07-O01",
+        "CMT-DN-U07-O02",
+        "CMT-DN-U07-O03",
+        "CMT-DN-U07-O04"
+      ],
+      "status": "PASS"
+    },
+    "U08": {
+      "objective_count": 4,
+      "objective_ids": [
+        "CMT-DN-U08-O01",
+        "CMT-DN-U08-O02",
+        "CMT-DN-U08-O03",
+        "CMT-DN-U08-O04"
+      ],
+      "status": "PASS"
+    },
+    "U09": {
+      "objective_count": 4,
+      "objective_ids": [
+        "CMT-DN-U09-O01",
+        "CMT-DN-U09-O02",
+        "CMT-DN-U09-O03",
+        "CMT-DN-U09-O04"
+      ],
+      "status": "PASS"
+    },
+    "U10": {
+      "objective_count": 4,
+      "objective_ids": [
+        "CMT-DN-U10-O01",
+        "CMT-DN-U10-O02",
+        "CMT-DN-U10-O03",
+        "CMT-DN-U10-O04"
+      ],
+      "status": "PASS"
+    },
+    "U11": {
+      "objective_count": 4,
+      "objective_ids": [
+        "CMT-DN-U11-O01",
+        "CMT-DN-U11-O02",
+        "CMT-DN-U11-O03",
+        "CMT-DN-U11-O04"
+      ],
+      "status": "PASS"
+    },
+    "U12": {
+      "objective_count": 4,
+      "objective_ids": [
+        "CMT-DN-U12-O01",
+        "CMT-DN-U12-O02",
+        "CMT-DN-U12-O03",
+        "CMT-DN-U12-O04"
+      ],
+      "status": "PASS"
+    }
+  },
+  "official_field_claims": "NONE; every unit declares SECURIUM_PEDAGOGICAL and denies official 12-field equivalence",
+  "provenance": "topic-level source coverage only; no source item/question mapping"
+}

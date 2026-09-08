@@ -1,0 +1,3697 @@
+{
+  "schema": "securium.crypto_module_tester.duration_neutral_assessment_authority.v1",
+  "authority_count": 1,
+  "course_id": "course-crypto-module-tester",
+  "status": "DRAFT",
+  "rights_note": "All prompts, choices, answers, explanations and rubrics are Securium-original. No source question wording, choices, answer reconstruction, OCR canonicalization, or source image dependency is present.",
+  "source_boundary": "Knowledge coverage was informed by reference evidence only; questions map to concepts and objectives, never to source items.",
+  "type_counts": {
+    "MULTIPLE_CHOICE": 60,
+    "SHORT_ANSWER": 36,
+    "DESCRIPTIVE": 24
+  },
+  "question_count": 120,
+  "questions": [
+    {
+      "id": "CMT-DN-Q001",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U01",
+      "objective": "CMT-DN-U01-O01",
+      "concept_candidates": [
+        "암호모듈 범위·보증경계",
+        "요구사항 해석과 시험목표",
+        "증적·finding·retest·보고서"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "보증경계",
+      "prompt": "가상 암호모듈의 암호 연산은 보안 프로세스 안에서 수행되지만 키 백업은 별도 운영 서비스가 담당한다. 첫 시험계획에서 우선 할 일은?",
+      "choices": [
+        "백업 서비스를 자동으로 모듈 경계 안에 포함한다.",
+        "암호모듈 경계와 외부 의존성, 백업 경계를 명시하고 영향 경로를 추적한다.",
+        "키 백업은 암호 연산이 아니므로 시험에서 제외한다.",
+        "공급자에게 경계 결론을 맡기고 시험 후 문서화한다."
+      ],
+      "answer": 1,
+      "explanation": "시험 범위는 외곽선이 아니라 책임과 데이터 흐름으로 고정해야 한다. 외부 백업 서비스가 결과에 영향을 주면 경계 밖 의존성으로 추적한다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "암호모듈 경계와 외부 의존성, 백업 경계를 명시하고 영향 경로를 추적한다."
+    },
+    {
+      "id": "CMT-DN-Q002",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U01",
+      "objective": "CMT-DN-U01-O02",
+      "concept_candidates": [
+        "암호모듈 범위·보증경계",
+        "요구사항 해석과 시험목표",
+        "증적·finding·retest·보고서"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "요구사항 분해",
+      "prompt": "“민감한 오류를 안전하게 처리한다”는 문장을 재현 가능한 시험으로 바꾸기 위한 첫 유효한 분해는?",
+      "choices": [
+        "제품이 안전하다는 설명을 수집한다.",
+        "오류 조건·기대 상태·관찰할 출력/상태·판정기준을 정의한다.",
+        "정상 입력의 처리시간만 측정한다.",
+        "오류 로그가 있으면 자동 PASS로 판정한다."
+      ],
+      "answer": 1,
+      "explanation": "모호한 요구사항은 조건, 기대 결과, 관찰 항목, 판정 기준으로 분해해야 독립적인 시험이 된다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "오류 조건·기대 상태·관찰할 출력/상태·판정기준을 정의한다."
+    },
+    {
+      "id": "CMT-DN-Q003",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U01",
+      "objective": "CMT-DN-U01-O03",
+      "concept_candidates": [
+        "암호모듈 범위·보증경계",
+        "요구사항 해석과 시험목표",
+        "증적·finding·retest·보고서"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "증거와 결론",
+      "prompt": "시험자가 한 번의 정상 호출을 관찰했다. “모든 서비스가 요구사항을 만족한다”는 결론이 부적절한 가장 직접적인 이유는?",
+      "choices": [
+        "정상 호출은 항상 무의미하기 때문이다.",
+        "관찰 범위가 주장 범위보다 좁고 다른 서비스·조건에 대한 증거가 없기 때문이다.",
+        "호출 로그는 어떤 경우에도 증거가 될 수 없기 때문이다.",
+        "시험자는 결론을 작성하면 안 되기 때문이다."
+      ],
+      "answer": 1,
+      "explanation": "증거가 지지하는 범위보다 넓은 결론은 false assurance다. 정상 호출은 해당 조건의 제한된 증거일 수 있다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "관찰 범위가 주장 범위보다 좁고 다른 서비스·조건에 대한 증거가 없기 때문이다."
+    },
+    {
+      "id": "CMT-DN-Q004",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U01",
+      "objective": "CMT-DN-U01-O04",
+      "concept_candidates": [
+        "암호모듈 범위·보증경계",
+        "요구사항 해석과 시험목표",
+        "증적·finding·retest·보고서"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "범위 변경",
+      "prompt": "모듈 시험 중 공급자가 관리 콘솔을 새 버전으로 교체했다. 가장 적절한 판단은?",
+      "choices": [
+        "관리 콘솔은 UI이므로 결과에 영향이 없다.",
+        "변경된 artifact와 경계·인터페이스·권한 영향 및 재시험 필요성을 분석한다.",
+        "기존 PASS를 그대로 유지하고 변경 이력은 생략한다.",
+        "모든 시험을 무조건 처음부터 반복한다."
+      ],
+      "answer": 1,
+      "explanation": "변경의 성격과 영향 경계를 먼저 분석한 뒤 비례적인 retest 범위를 정해야 한다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "변경된 artifact와 경계·인터페이스·권한 영향 및 재시험 필요성을 분석한다."
+    },
+    {
+      "id": "CMT-DN-Q005",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U01",
+      "objective": "CMT-DN-U01-O01",
+      "concept_candidates": [
+        "암호모듈 범위·보증경계",
+        "요구사항 해석과 시험목표",
+        "증적·finding·retest·보고서"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "보증과 암호강도",
+      "prompt": "승인된 강한 알고리즘이 사용된다는 사실만으로 바로 결론 내릴 수 없는 것은?",
+      "choices": [
+        "해당 알고리즘이 존재한다는 관찰",
+        "모듈 구현과 경계·키 관리·서비스 구성이 요구사항을 만족한다는 전체 assurance",
+        "알고리즘 이름의 확인",
+        "호출 경로의 일부 확인"
+      ],
+      "answer": 1,
+      "explanation": "알고리즘 강도는 모듈 전체 구현 assurance와 동일하지 않다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "모듈 구현과 경계·키 관리·서비스 구성이 요구사항을 만족한다는 전체 assurance"
+    },
+    {
+      "id": "CMT-DN-Q006",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U01",
+      "objective": "CMT-DN-U01-O02",
+      "concept_candidates": [
+        "암호모듈 범위·보증경계",
+        "요구사항 해석과 시험목표",
+        "증적·finding·retest·보고서"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "시험목표",
+      "prompt": "요구사항을 관찰 가능한 시험 질문으로 바꾼 결과를 무엇이라고 부르는가?",
+      "canonical_answer": "시험목표",
+      "accepted_answers": [
+        "test objective",
+        "시험 목표"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "시험목표는 요구사항을 조건과 관찰로 검증하기 위한 구체적 질문이다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q007",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U01",
+      "objective": "CMT-DN-U01-O03",
+      "concept_candidates": [
+        "암호모듈 범위·보증경계",
+        "요구사항 해석과 시험목표",
+        "증적·finding·retest·보고서"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "증거 chain",
+      "prompt": "요구사항에서 결론까지 연결되는 기록 흐름을 순서대로 쓰라.",
+      "canonical_answer": "요구사항 → 시험목표 → 시험절차 → 관찰 → 증거 → finding → retest → 결론",
+      "accepted_answers": [
+        "요구사항-시험목표-시험절차-관찰-증거-finding-retest-결론",
+        "requirement-test objective-procedure-observation-evidence-finding-retest-conclusion"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "이 흐름은 주장과 관찰을 분리하고 수정 후 결론을 다시 검증하게 한다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q008",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U01",
+      "objective": "CMT-DN-U01-O04",
+      "concept_candidates": [
+        "암호모듈 범위·보증경계",
+        "요구사항 해석과 시험목표",
+        "증적·finding·retest·보고서"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "범위",
+      "prompt": "시험 범위 밖 구성요소가 모듈 결과에 영향을 줄 수 있을 때 기록해야 하는 핵심 관계는?",
+      "canonical_answer": "외부 의존성 및 영향 경로",
+      "accepted_answers": [
+        "경계 밖 의존성",
+        "외부 구성요소의 영향 경로"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "범위 밖이라는 이유만으로 영향 가능성을 삭제하지 말고 경계와 의존성을 기록해야 한다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q009",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U01",
+      "objective": "CMT-DN-U01-O01",
+      "concept_candidates": [
+        "암호모듈 범위·보증경계",
+        "요구사항 해석과 시험목표",
+        "증적·finding·retest·보고서"
+      ],
+      "type": "DESCRIPTIVE",
+      "topic": "시험계획",
+      "prompt": "가상 모듈이 암호 API, 관리 API, 키 백업 서비스, 감사 로그 수집기로 구성되어 있다. 시험자는 범위·제외·증거 계획을 어떻게 작성해야 하는가?",
+      "rubric": [
+        "암호 API와 관리 API의 경계를 식별한다(2점).",
+        "키 백업과 로그 수집기의 외부 의존성과 영향 경로를 명시한다(2점).",
+        "각 요구사항에 시험목표·사전조건·관찰·판정기준을 연결한다(2점).",
+        "제외 범위에는 제외 이유와 잔여 위험을 기록한다(1점).",
+        "공급자 주장과 독립 증거를 분리한다(1점)."
+      ],
+      "explanation": "좋은 답은 제품 구성요소 나열에 그치지 않고 경계, 영향, 증거, 제외 근거를 trace한다.",
+      "difficulty": "ADVANCED",
+      "cognitive": "EVALUATE",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q010",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U01",
+      "objective": "CMT-DN-U01-O02",
+      "concept_candidates": [
+        "암호모듈 범위·보증경계",
+        "요구사항 해석과 시험목표",
+        "증적·finding·retest·보고서"
+      ],
+      "type": "DESCRIPTIVE",
+      "topic": "종합판정",
+      "prompt": "정상 암호화 호출은 PASS였지만 오류 입력과 권한 거부 로그가 없다. 보고서의 finding과 추가 시험을 설계하라.",
+      "rubric": [
+        "정상 호출 PASS의 범위를 제한한다(2점).",
+        "오류 입력 및 권한 거부에 대한 증거 gap을 분리한다(2점).",
+        "재현 가능한 추가 절차와 기대 상태를 제시한다(2점).",
+        "전체 모듈 PASS로 일반화하지 않는다(2점)."
+      ],
+      "explanation": "정상 기능의 관찰과 경계조건·접근통제의 미검증을 분리하는 것이 핵심이다.",
+      "difficulty": "ADVANCED",
+      "cognitive": "EVALUATE",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q011",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U02",
+      "objective": "CMT-DN-U02-O03",
+      "concept_candidates": [
+        "요구사항 해석과 시험목표",
+        "암호알고리즘·매개변수·적합성",
+        "소프트웨어/펌웨어·수명주기 보증"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "표준 적용",
+      "prompt": "표준 버전이 문서에 기재되어 있지만 시험 절차가 어떤 구현 주장에 적용되는지 trace가 없다. 가장 타당한 평가는?",
+      "choices": [
+        "표준명이 있으므로 자동 PASS다.",
+        "표준 적용 선언은 있으나 요구사항-절차-증거 연결이 부족하다.",
+        "표준은 시험에 사용할 수 없으므로 모든 결과가 무효다.",
+        "표준 버전은 중요하지 않다."
+      ],
+      "answer": 1,
+      "explanation": "표준 선언은 적용 근거의 일부일 뿐이며, 실제 요구사항과 시험 증거의 trace가 필요하다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "표준 적용 선언은 있으나 요구사항-절차-증거 연결이 부족하다."
+    },
+    {
+      "id": "CMT-DN-Q012",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U02",
+      "objective": "CMT-DN-U02-O04",
+      "concept_candidates": [
+        "요구사항 해석과 시험목표",
+        "암호알고리즘·매개변수·적합성",
+        "소프트웨어/펌웨어·수명주기 보증"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "요구사항 해석",
+      "prompt": "하나의 요구사항이 정상·오류·복구 상태를 모두 요구한다. 적절한 시험 설계는?",
+      "choices": [
+        "정상 상태 한 번만 시험한다.",
+        "세 상태를 별도 조건과 판정기준으로 분해하고 공통 trace를 유지한다.",
+        "요구사항을 정상 상태로 축소한다.",
+        "복구 상태는 운영팀 책임이므로 제외한다."
+      ],
+      "answer": 1,
+      "explanation": "서로 다른 상태는 관찰과 기대 결과가 다르므로 분해하되 원래 요구사항과 연결해야 한다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "세 상태를 별도 조건과 판정기준으로 분해하고 공통 trace를 유지한다."
+    },
+    {
+      "id": "CMT-DN-Q013",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U02",
+      "objective": "CMT-DN-U02-O01",
+      "concept_candidates": [
+        "요구사항 해석과 시험목표",
+        "암호알고리즘·매개변수·적합성",
+        "소프트웨어/펌웨어·수명주기 보증"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "표준과 교육 구조",
+      "prompt": "표준의 장(章) 구조를 발견했을 때 Securium 과정에서 취해야 할 태도는?",
+      "choices": [
+        "그 구조를 KISA 공식 교육과정이라고 표시한다.",
+        "표준 taxonomy와 Securium pedagogical structure를 분리하여 provenance를 표시한다.",
+        "표준 내용을 전부 복사해 authority로 삼는다.",
+        "표준은 교육과 무관하므로 삭제한다."
+      ],
+      "answer": 1,
+      "explanation": "관련 표준은 기술 기준의 근거가 될 수 있지만 공식 교육과정의 12개 분야 목록으로 자동 변환되지 않는다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "표준 taxonomy와 Securium pedagogical structure를 분리하여 provenance를 표시한다."
+    },
+    {
+      "id": "CMT-DN-Q014",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U02",
+      "objective": "CMT-DN-U02-O02",
+      "concept_candidates": [
+        "요구사항 해석과 시험목표",
+        "암호알고리즘·매개변수·적합성",
+        "소프트웨어/펌웨어·수명주기 보증"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "적합성",
+      "prompt": "알고리즘 구현 적합성 시험에서 가장 중요한 추가 확인은?",
+      "choices": [
+        "알고리즘 이름의 철자",
+        "실제 호출 모드·매개변수·입력 검증 및 결과가 요구사항과 일치하는지",
+        "UI 색상",
+        "문서의 분량"
+      ],
+      "answer": 1,
+      "explanation": "적합성은 이름의 존재보다 실제 경로와 조건의 일치에 관한 판단이다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "실제 호출 모드·매개변수·입력 검증 및 결과가 요구사항과 일치하는지"
+    },
+    {
+      "id": "CMT-DN-Q015",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U02",
+      "objective": "CMT-DN-U02-O03",
+      "concept_candidates": [
+        "요구사항 해석과 시험목표",
+        "암호알고리즘·매개변수·적합성",
+        "소프트웨어/펌웨어·수명주기 보증"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "traceability",
+      "prompt": "요구사항-시험목표 trace에서 시험목표가 없는 요구사항이 발견되었다. 올바른 조치는?",
+      "choices": [
+        "누락을 보고하지 않는다.",
+        "시험목표를 추가하거나 적용 제외의 근거를 명시한다.",
+        "가장 가까운 다른 요구사항의 결과를 재사용한다.",
+        "문서 제목만 변경한다."
+      ],
+      "answer": 1,
+      "explanation": "모든 적용 요구사항은 검증 경로 또는 정당한 제외 근거를 가져야 한다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "시험목표를 추가하거나 적용 제외의 근거를 명시한다."
+    },
+    {
+      "id": "CMT-DN-Q016",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U02",
+      "objective": "CMT-DN-U02-O04",
+      "concept_candidates": [
+        "요구사항 해석과 시험목표",
+        "암호알고리즘·매개변수·적합성",
+        "소프트웨어/펌웨어·수명주기 보증"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "표준 경계",
+      "prompt": "표준 문장을 학습 콘텐츠로 사용할 때 bulk reproduction을 피하고 무엇을 중심으로 작성해야 하는가?",
+      "canonical_answer": "개념명·적용 맥락·독립 설명·출처",
+      "accepted_answers": [
+        "독립 설명과 출처",
+        "개념명과 독립적 해설"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "저작권 경계를 지키면서 학습자가 판단할 수 있는 개념과 적용 맥락을 제공한다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q017",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U02",
+      "objective": "CMT-DN-U02-O01",
+      "concept_candidates": [
+        "요구사항 해석과 시험목표",
+        "암호알고리즘·매개변수·적합성",
+        "소프트웨어/펌웨어·수명주기 보증"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "판정기준",
+      "prompt": "시험자가 PASS/FAIL을 일관되게 판단하기 위해 사전에 정해야 하는 기준은?",
+      "canonical_answer": "판정기준",
+      "accepted_answers": [
+        "acceptance criteria",
+        "판정 기준"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "판정기준이 있어야 관찰 결과가 자의적인 결론으로 변하지 않는다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q018",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U02",
+      "objective": "CMT-DN-U02-O02",
+      "concept_candidates": [
+        "요구사항 해석과 시험목표",
+        "암호알고리즘·매개변수·적합성",
+        "소프트웨어/펌웨어·수명주기 보증"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "적합성",
+      "prompt": "알고리즘 이름 확인만으로 부족한 이유를 한 가지 쓰라.",
+      "canonical_answer": "실제 모드·매개변수·호출 경로와 요구사항 적합성을 확인해야 하기 때문",
+      "accepted_answers": [
+        "실제 구현 경로를 확인해야 함",
+        "모드와 매개변수까지 확인해야 함"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "알고리즘 이름은 구현 동작의 충분한 증거가 아니다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q019",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U02",
+      "objective": "CMT-DN-U02-O03",
+      "concept_candidates": [
+        "요구사항 해석과 시험목표",
+        "암호알고리즘·매개변수·적합성",
+        "소프트웨어/펌웨어·수명주기 보증"
+      ],
+      "type": "DESCRIPTIVE",
+      "topic": "요구사항 trace",
+      "prompt": "가상 요구사항 세 개가 각각 정상 호출, 오류 차단, 업데이트 후 재검증을 요구한다. trace matrix의 열과 각 행에 들어갈 증거를 설계하라.",
+      "rubric": [
+        "요구사항·해석·시험목표 열을 둔다(2점).",
+        "사전조건·절차·기대결과·관찰 열을 둔다(2점).",
+        "증거 식별자와 판정기준을 둔다(2점).",
+        "업데이트 전후 artifact와 retest link를 둔다(2점)."
+      ],
+      "explanation": "trace matrix는 문서 장식이 아니라 요구사항과 증거의 연결을 재현하는 통제다.",
+      "difficulty": "ADVANCED",
+      "cognitive": "EVALUATE",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q020",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U02",
+      "objective": "CMT-DN-U02-O04",
+      "concept_candidates": [
+        "요구사항 해석과 시험목표",
+        "암호알고리즘·매개변수·적합성",
+        "소프트웨어/펌웨어·수명주기 보증"
+      ],
+      "type": "DESCRIPTIVE",
+      "topic": "표준 기반 판단",
+      "prompt": "표준 기반 요구사항을 설명할 때 보호된 조항을 대량 복사하지 않고 학습자에게 전달해야 할 구조를 제시하라.",
+      "rubric": [
+        "요구사항의 목적을 독립적으로 요약한다(2점).",
+        "적용 조건과 시험자 관찰 항목을 제시한다(2점).",
+        "필요한 증거와 판정기준을 제시한다(2점).",
+        "표준과 Securium 설명의 권한을 구분한다(2점)."
+      ],
+      "explanation": "독립 설명과 정확한 provenance가 표준 text 재현보다 학습과 권리 경계를 함께 충족한다.",
+      "difficulty": "ADVANCED",
+      "cognitive": "EVALUATE",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q021",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U03",
+      "objective": "CMT-DN-U03-O01",
+      "concept_candidates": [
+        "모듈 명세와 보안기능",
+        "인터페이스·데이터 흐름",
+        "암호모듈 범위·보증경계"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "경계",
+      "prompt": "민감 키가 프로세스에서 보안 저장소로 이동하고 관리 콘솔에서 삭제 요청이 발생한다. 가장 우선적으로 모델링할 것은?",
+      "choices": [
+        "화면 배치",
+        "데이터 흐름·책임 경계·삭제 상태 전이",
+        "CPU 종류",
+        "문서 파일 확장자"
+      ],
+      "answer": 1,
+      "explanation": "시험자는 민감정보의 이동과 상태 변화를 경계 및 책임과 연결해야 한다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "데이터 흐름·책임 경계·삭제 상태 전이"
+    },
+    {
+      "id": "CMT-DN-Q022",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U03",
+      "objective": "CMT-DN-U03-O02",
+      "concept_candidates": [
+        "모듈 명세와 보안기능",
+        "인터페이스·데이터 흐름",
+        "암호모듈 범위·보증경계"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "인터페이스 분류",
+      "prompt": "호출자가 작업을 요청하고 모듈이 현재 상태를 반환하는 경로는 각각 어떤 관점의 인터페이스 증거가 필요한가?",
+      "choices": [
+        "둘 다 물리 인터페이스다.",
+        "요청은 입력/제어, 상태 반환은 출력/상태 인터페이스로 분석할 수 있다.",
+        "둘 다 인증 증거만 필요하다.",
+        "인터페이스 구분은 불필요하다."
+      ],
+      "answer": 1,
+      "explanation": "입력·제어와 출력·상태는 기대 결과와 실패 조건이 다르므로 구분이 유용하다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "요청은 입력/제어, 상태 반환은 출력/상태 인터페이스로 분석할 수 있다."
+    },
+    {
+      "id": "CMT-DN-Q023",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U03",
+      "objective": "CMT-DN-U03-O03",
+      "concept_candidates": [
+        "모듈 명세와 보안기능",
+        "인터페이스·데이터 흐름",
+        "암호모듈 범위·보증경계"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "외부 의존성",
+      "prompt": "암호모듈이 OS 난수 장치를 호출한다. 모듈 시험에서 적절한 질문은?",
+      "choices": [
+        "OS는 항상 신뢰되므로 제외한다.",
+        "난수 의존성의 경계·초기화·오류 반환과 모듈의 처리 결과를 확인한다.",
+        "출력만 보면 충분하다.",
+        "OS 버전은 기록할 필요가 없다."
+      ],
+      "answer": 1,
+      "explanation": "외부 의존성은 경계 밖일 수 있지만 모듈 보안기능에 영향을 주는 경로는 시험해야 한다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "난수 의존성의 경계·초기화·오류 반환과 모듈의 처리 결과를 확인한다."
+    },
+    {
+      "id": "CMT-DN-Q024",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U03",
+      "objective": "CMT-DN-U03-O04",
+      "concept_candidates": [
+        "모듈 명세와 보안기능",
+        "인터페이스·데이터 흐름",
+        "암호모듈 범위·보증경계"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "논리/물리 경계",
+      "prompt": "같은 기능이 전용 장치와 가상화 환경에서 제공된다. 가장 타당한 결론은?",
+      "choices": [
+        "논리 경계가 같으면 물리 경계도 자동으로 같다.",
+        "각 배치의 물리 경계와 환경 가정을 확인하고 공통/차이 증거를 분리한다.",
+        "가상화 환경은 항상 범위 밖이다.",
+        "전용 장치는 시험할 필요가 없다."
+      ],
+      "answer": 1,
+      "explanation": "배치 형태에 따라 물리적 보호와 환경 가정이 달라질 수 있다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "각 배치의 물리 경계와 환경 가정을 확인하고 공통/차이 증거를 분리한다."
+    },
+    {
+      "id": "CMT-DN-Q025",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U03",
+      "objective": "CMT-DN-U03-O01",
+      "concept_candidates": [
+        "모듈 명세와 보안기능",
+        "인터페이스·데이터 흐름",
+        "암호모듈 범위·보증경계"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "상태 흐름",
+      "prompt": "삭제 요청 후 API는 성공을 반환했지만 키 사용 상태가 계속 ACTIVE로 조회된다. 첫 판단은?",
+      "choices": [
+        "성공 응답이 있으므로 PASS다.",
+        "제어 출력과 실제 상태 전이가 불일치하는지 재현하고 삭제 경로의 finding을 검토한다.",
+        "상태 조회는 시험 대상이 아니다.",
+        "키를 다시 생성해 결과를 덮어쓴다."
+      ],
+      "answer": 1,
+      "explanation": "상태 인터페이스의 관찰이 제어 응답과 일치하지 않으면 재현 가능한 상태 전이 검증이 필요하다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "제어 출력과 실제 상태 전이가 불일치하는지 재현하고 삭제 경로의 finding을 검토한다."
+    },
+    {
+      "id": "CMT-DN-Q026",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U03",
+      "objective": "CMT-DN-U03-O02",
+      "concept_candidates": [
+        "모듈 명세와 보안기능",
+        "인터페이스·데이터 흐름",
+        "암호모듈 범위·보증경계"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "인터페이스",
+      "prompt": "입력·출력 외에 시험자가 별도로 구분해야 하는 두 가지 인터페이스 관점은?",
+      "canonical_answer": "제어와 상태",
+      "accepted_answers": [
+        "control and status",
+        "제어 인터페이스와 상태 인터페이스"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "제어는 동작 요청, 상태는 현재 허용/오류 상태 관찰과 관련된다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q027",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U03",
+      "objective": "CMT-DN-U03-O03",
+      "concept_candidates": [
+        "모듈 명세와 보안기능",
+        "인터페이스·데이터 흐름",
+        "암호모듈 범위·보증경계"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "경계",
+      "prompt": "논리적 경계와 물리적 경계를 동일하게 취급하면 놓칠 수 있는 것은?",
+      "canonical_answer": "배치·환경·물리적 보호 차이",
+      "accepted_answers": [
+        "운영환경 차이",
+        "물리적 보호와 환경 가정"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "동일한 논리 기능도 배치에 따라 물리·운영 위험이 달라질 수 있다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q028",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U03",
+      "objective": "CMT-DN-U03-O04",
+      "concept_candidates": [
+        "모듈 명세와 보안기능",
+        "인터페이스·데이터 흐름",
+        "암호모듈 범위·보증경계"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "데이터 흐름",
+      "prompt": "시험자가 민감정보를 경계 안팎에서 추적할 때 최소한 기록해야 할 것은?",
+      "canonical_answer": "출발점·통과 인터페이스·도착 상태·잔존 위치",
+      "accepted_answers": [
+        "source/interface/destination/residual locations",
+        "흐름과 잔존 위치"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "민감정보의 흐름과 잔존을 알아야 경계 주장을 검증할 수 있다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q029",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U03",
+      "objective": "CMT-DN-U03-O01",
+      "concept_candidates": [
+        "모듈 명세와 보안기능",
+        "인터페이스·데이터 흐름",
+        "암호모듈 범위·보증경계"
+      ],
+      "type": "DESCRIPTIVE",
+      "topic": "경계 모델",
+      "prompt": "가상 암호모듈, 보안 저장소, 운영자 콘솔, 모니터링 수집기가 있다. 논리·물리 경계와 인터페이스별 시험 증거를 제안하라.",
+      "rubric": [
+        "각 구성요소의 책임과 경계를 구분한다(2점).",
+        "입력·출력·제어·상태 경로를 식별한다(2점).",
+        "키 흐름과 로그/모니터링의 민감정보 노출을 분석한다(2점).",
+        "배치 환경과 외부 의존성 증거를 제시한다(2점)."
+      ],
+      "explanation": "좋은 경계 모델은 구성요소 그림, 데이터 흐름, 상태와 운영 증거를 함께 포함한다.",
+      "difficulty": "ADVANCED",
+      "cognitive": "EVALUATE",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q030",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U03",
+      "objective": "CMT-DN-U03-O02",
+      "concept_candidates": [
+        "모듈 명세와 보안기능",
+        "인터페이스·데이터 흐름",
+        "암호모듈 범위·보증경계"
+      ],
+      "type": "DESCRIPTIVE",
+      "topic": "상태 불일치",
+      "prompt": "모듈은 delete 성공을 반환하지만 재시작 전까지 이전 키로 복호화가 된다. 관찰·요구사항·finding·retest를 구분해 작성하라.",
+      "rubric": [
+        "재현 조건과 관찰을 정확히 기록한다(2점).",
+        "삭제의 의미와 키 사용 상태 요구사항을 분리한다(2점).",
+        "메모리·캐시·저장소별 원인 가설을 제시한다(2점).",
+        "수정 후 재시작 전후 경로를 포함해 retest한다(2점)."
+      ],
+      "explanation": "응답 코드 하나가 실제 상태 전이를 증명하지 않으므로 저장·캐시·세션 경로를 분해해야 한다.",
+      "difficulty": "ADVANCED",
+      "cognitive": "EVALUATE",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q031",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U04",
+      "objective": "CMT-DN-U04-O03",
+      "concept_candidates": [
+        "인터페이스·데이터 흐름",
+        "역할·서비스·인증·접근통제",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "인증/권한",
+      "prompt": "사용자가 올바른 비밀번호로 로그인했지만 CSP export 서비스가 거부되었다. 이는 주로 어떤 통제의 결과인가?",
+      "choices": [
+        "인증 실패",
+        "권한부여가 서비스별로 제한된 결과",
+        "무결성 실패",
+        "entropy 부족"
+      ],
+      "answer": 1,
+      "explanation": "주체 인증이 성공해도 해당 서비스 권한이 없으면 authorization 거부가 발생할 수 있다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "권한부여가 서비스별로 제한된 결과"
+    },
+    {
+      "id": "CMT-DN-Q032",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U04",
+      "objective": "CMT-DN-U04-O04",
+      "concept_candidates": [
+        "인터페이스·데이터 흐름",
+        "역할·서비스·인증·접근통제",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "서비스 matrix",
+      "prompt": "역할-서비스 matrix에서 operator가 키 생성·사용은 가능하지만 policy 변경은 불가하다. 이 설계의 핵심 의도는?",
+      "choices": [
+        "모든 역할에 동일 권한 제공",
+        "최소권한과 역할 분리를 통한 관리 기능 제한",
+        "인증 생략",
+        "서비스를 하나로 합치기"
+      ],
+      "answer": 1,
+      "explanation": "서비스별 권한 분리는 최소권한과 책임 분리를 지원한다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "최소권한과 역할 분리를 통한 관리 기능 제한"
+    },
+    {
+      "id": "CMT-DN-Q033",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U04",
+      "objective": "CMT-DN-U04-O01",
+      "concept_candidates": [
+        "인터페이스·데이터 흐름",
+        "역할·서비스·인증·접근통제",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "거부 동작",
+      "prompt": "권한 없는 요청에 대해 API가 오류를 반환했지만 내부 상태가 변경되었다. 적절한 판단은?",
+      "choices": [
+        "오류 응답이면 PASS다.",
+        "거부 결과와 상태 변경을 함께 기록하고 권한 통제 결함 가능성을 분석한다.",
+        "오류 메시지만 삭제한다.",
+        "정상 요청으로만 다시 시험한다."
+      ],
+      "answer": 1,
+      "explanation": "거부는 출력뿐 아니라 상태 불변성까지 포함해야 안전한 통제다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "거부 결과와 상태 변경을 함께 기록하고 권한 통제 결함 가능성을 분석한다."
+    },
+    {
+      "id": "CMT-DN-Q034",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U04",
+      "objective": "CMT-DN-U04-O02",
+      "concept_candidates": [
+        "인터페이스·데이터 흐름",
+        "역할·서비스·인증·접근통제",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "trusted path",
+      "prompt": "민감한 키 입력을 일반 디버그 콘솔에서도 받을 수 있다. 시험자는 무엇을 우선 확인해야 하는가?",
+      "choices": [
+        "콘솔 글꼴",
+        "민감 입력 경로가 trusted path와 접근통제 요구를 우회하는지",
+        "키 이름 길이",
+        "로그 파일 확장자"
+      ],
+      "answer": 1,
+      "explanation": "민감 입력이 보호된 경로를 우회하면 역할·인터페이스·CSP 통제가 약화될 수 있다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "민감 입력 경로가 trusted path와 접근통제 요구를 우회하는지"
+    },
+    {
+      "id": "CMT-DN-Q035",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U04",
+      "objective": "CMT-DN-U04-O03",
+      "concept_candidates": [
+        "인터페이스·데이터 흐름",
+        "역할·서비스·인증·접근통제",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "역할 오류",
+      "prompt": "감사자 계정이 감사 기록을 조회하는 데 성공했지만 삭제도 성공한다. 가장 직접적인 concern은?",
+      "choices": [
+        "인증 강도만의 문제",
+        "서비스 권한이 역할 의도보다 넓은 문제",
+        "알고리즘 선택 문제",
+        "물리 경계 문제"
+      ],
+      "answer": 1,
+      "explanation": "역할에 부여된 서비스가 의도보다 넓으면 authorization finding이다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "서비스 권한이 역할 의도보다 넓은 문제"
+    },
+    {
+      "id": "CMT-DN-Q036",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U04",
+      "objective": "CMT-DN-U04-O04",
+      "concept_candidates": [
+        "인터페이스·데이터 흐름",
+        "역할·서비스·인증·접근통제",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "authentication",
+      "prompt": "인증과 권한부여의 차이를 한 문장으로 설명하라.",
+      "canonical_answer": "인증은 주체를 확인하고 권한부여는 그 주체가 수행할 서비스를 결정한다.",
+      "accepted_answers": [
+        "authentication identifies the subject; authorization decides allowed actions",
+        "주체 확인과 허용 행위 결정"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "두 통제를 분리해야 거부 원인과 시험 증거를 정확히 기록할 수 있다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q037",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U04",
+      "objective": "CMT-DN-U04-O01",
+      "concept_candidates": [
+        "인터페이스·데이터 흐름",
+        "역할·서비스·인증·접근통제",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "최소권한",
+      "prompt": "역할에 업무 수행에 필요한 최소 서비스만 허용하는 원칙은?",
+      "canonical_answer": "최소권한 원칙",
+      "accepted_answers": [
+        "least privilege",
+        "least-privilege principle"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "최소권한은 불필요한 민감 서비스 접근을 줄인다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q038",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U04",
+      "objective": "CMT-DN-U04-O02",
+      "concept_candidates": [
+        "인터페이스·데이터 흐름",
+        "역할·서비스·인증·접근통제",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "상태 불변성",
+      "prompt": "권한 거부 시험에서 오류 코드 외에 확인해야 하는 핵심 결과는?",
+      "canonical_answer": "상태와 민감 데이터가 변경되지 않았는지",
+      "accepted_answers": [
+        "no state change",
+        "상태 변경 없음"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "거부 요청이 부수적으로 상태를 바꾸면 통제의 의미가 약해진다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q039",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U04",
+      "objective": "CMT-DN-U04-O03",
+      "concept_candidates": [
+        "인터페이스·데이터 흐름",
+        "역할·서비스·인증·접근통제",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "type": "DESCRIPTIVE",
+      "topic": "접근통제 matrix",
+      "prompt": "operator, auditor, security officer 세 역할과 키 생성·키 사용·정책 변경·감사조회·CSP export 다섯 서비스를 가진 가상 모듈의 matrix를 검토하라. 두 가지 시험 시나리오와 필요한 증거를 제안하라.",
+      "rubric": [
+        "역할별 허용/거부를 명시한다(2점).",
+        "인증 성공 후 권한 거부 시나리오를 포함한다(2점).",
+        "거부 후 상태 불변성과 로그를 확인한다(2점).",
+        "CSP export와 정책 변경의 민감도를 별도로 다룬다(2점)."
+      ],
+      "explanation": "역할 이름만 나열하지 않고 서비스별 허용·거부와 증거를 함께 제시해야 한다.",
+      "difficulty": "ADVANCED",
+      "cognitive": "EVALUATE",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q040",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U04",
+      "objective": "CMT-DN-U04-O04",
+      "concept_candidates": [
+        "인터페이스·데이터 흐름",
+        "역할·서비스·인증·접근통제",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "type": "DESCRIPTIVE",
+      "topic": "권한 결함",
+      "prompt": "감사자에게 삭제 권한이 노출되었고 삭제 실패 시에도 감사 로그가 남지 않는다. finding을 두 개로 나누고 retest를 설계하라.",
+      "rubric": [
+        "과도한 서비스 권한을 별도 finding으로 작성한다(2점).",
+        "감사 증적 누락을 별도 finding으로 작성한다(2점).",
+        "정상·거부·실패 경로의 관찰을 제시한다(2점).",
+        "수정 후 역할 matrix와 로그 생성/무결성을 재시험한다(2점)."
+      ],
+      "explanation": "권한 범위와 감사 책임성은 서로 다른 요구사항과 증거를 가질 수 있다.",
+      "difficulty": "ADVANCED",
+      "cognitive": "EVALUATE",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q041",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U05",
+      "objective": "CMT-DN-U05-O01",
+      "concept_candidates": [
+        "역할·서비스·인증·접근통제",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "CSP",
+      "prompt": "암호화된 데이터베이스에 개인키가 저장되어 있다. 추가로 가장 필요한 검토는?",
+      "choices": [
+        "DB가 암호화되었으므로 종료한다.",
+        "키 암호화 키 접근 주체·복구·캐시·백업·사용 경로를 확인한다.",
+        "키 길이만 확인한다.",
+        "UI에서 키를 숨겼는지만 확인한다."
+      ],
+      "answer": 1,
+      "explanation": "저장 암호화만으로 접근·복구·백업·메모리 잔존 등 CSP 수명주기 통제가 완성되지 않는다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "키 암호화 키 접근 주체·복구·캐시·백업·사용 경로를 확인한다."
+    },
+    {
+      "id": "CMT-DN-Q042",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U05",
+      "objective": "CMT-DN-U05-O02",
+      "concept_candidates": [
+        "역할·서비스·인증·접근통제",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "zeroization",
+      "prompt": "zeroization 함수가 성공 코드를 반환하지만 테스트 후 메모리에서 키 패턴이 발견된다. 가장 타당한 판단은?",
+      "choices": [
+        "성공 코드가 우선이므로 PASS다.",
+        "관찰된 잔존과 함수 결과의 불일치를 재현하고 zeroization 결함 또는 범위 gap을 분석한다.",
+        "메모리 관찰은 의미 없다.",
+        "로그를 삭제한다."
+      ],
+      "answer": 1,
+      "explanation": "설계·반환 코드보다 실제 잔존 관찰이 중요하며 원인과 범위를 확인해야 한다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "관찰된 잔존과 함수 결과의 불일치를 재현하고 zeroization 결함 또는 범위 gap을 분석한다."
+    },
+    {
+      "id": "CMT-DN-Q043",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U05",
+      "objective": "CMT-DN-U05-O03",
+      "concept_candidates": [
+        "역할·서비스·인증·접근통제",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "키 수명주기",
+      "prompt": "키 rotation 이후 이전 키로 복호화가 허용된다. 어떤 추가 질문이 가장 중요할까?",
+      "choices": [
+        "새 키의 이름은 무엇인가?",
+        "rotation의 폐기·유효기간 정책과 이전 키 사용의 허용 조건은 무엇인가?",
+        "UI 버튼은 몇 개였는가?",
+        "문서 페이지 수는 얼마인가?"
+      ],
+      "answer": 1,
+      "explanation": "이전 키 사용이 정책상 허용될 수도 있으므로 폐기·유효기간·서비스 조건을 먼저 확인한다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "rotation의 폐기·유효기간 정책과 이전 키 사용의 허용 조건은 무엇인가?"
+    },
+    {
+      "id": "CMT-DN-Q044",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U05",
+      "objective": "CMT-DN-U05-O04",
+      "concept_candidates": [
+        "역할·서비스·인증·접근통제",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "백업/복구",
+      "prompt": "백업 복구 절차가 키를 복원하지만 접근 주체와 감사 기록이 없다. 결론은?",
+      "choices": [
+        "복구되었으므로 완전 PASS",
+        "복구 기능과 CSP 접근통제·감사 증거의 부족을 분리하여 평가",
+        "키는 백업 대상이 아니므로 무시",
+        "정상 생성 시험으로 대체"
+      ],
+      "answer": 1,
+      "explanation": "복구 성공은 보호된 복구와 책임성의 충분한 증거가 아니다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "복구 기능과 CSP 접근통제·감사 증거의 부족을 분리하여 평가"
+    },
+    {
+      "id": "CMT-DN-Q045",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U05",
+      "objective": "CMT-DN-U05-O01",
+      "concept_candidates": [
+        "역할·서비스·인증·접근통제",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "잔존 정보",
+      "prompt": "CSP가 로그에 직접 기록되지는 않지만 오류 trace에 일부 값이 포함된다. 우선 조치는?",
+      "choices": [
+        "일부 값은 CSP가 아니므로 무시",
+        "trace의 민감도·재현 조건·노출 범위를 확인하고 로그 경로를 통제한다.",
+        "trace를 PASS 증거로 사용",
+        "오류를 재현하지 않는다."
+      ],
+      "answer": 1,
+      "explanation": "오류·진단 경로도 민감정보의 잔존·노출 표면이 될 수 있다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "trace의 민감도·재현 조건·노출 범위를 확인하고 로그 경로를 통제한다."
+    },
+    {
+      "id": "CMT-DN-Q046",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U05",
+      "objective": "CMT-DN-U05-O02",
+      "concept_candidates": [
+        "역할·서비스·인증·접근통제",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "CSP",
+      "prompt": "CSP는 무엇의 약어이며 시험자는 일반 데이터와 어떻게 구분해야 하는가?",
+      "canonical_answer": "Critical Security Parameter; 보안 기능에 직접 영향을 주는 민감 보안 매개변수",
+      "accepted_answers": [
+        "Critical Security Parameter",
+        "중요 보안 매개변수"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "CSP는 수명주기와 접근통제가 더 엄격하게 검토되어야 한다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q047",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U05",
+      "objective": "CMT-DN-U05-O03",
+      "concept_candidates": [
+        "역할·서비스·인증·접근통제",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "zeroization",
+      "prompt": "zeroization 설계 문서만으로 완료를 결론 내릴 수 없는 이유는?",
+      "canonical_answer": "실제 실행 후 메모리·캐시·백업 등 잔존 여부의 관찰이 없기 때문",
+      "accepted_answers": [
+        "실행 관찰이 필요하기 때문",
+        "잔존 여부를 시험해야 하기 때문"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "문서 주장은 실행 증거를 대체하지 않는다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q048",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U05",
+      "objective": "CMT-DN-U05-O04",
+      "concept_candidates": [
+        "역할·서비스·인증·접근통제",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "rotation",
+      "prompt": "키 rotation을 평가할 때 새 키 생성 외에 함께 확인할 두 단계를 쓰라.",
+      "canonical_answer": "이전 키의 유효기간/폐기와 접근·사용 경로",
+      "accepted_answers": [
+        "old-key retirement and access/use policy",
+        "이전 키 폐기와 사용 통제"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "rotation은 생성만이 아니라 이전 키와 서비스 전환까지 포함한다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q049",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U05",
+      "objective": "CMT-DN-U05-O01",
+      "concept_candidates": [
+        "역할·서비스·인증·접근통제",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "type": "DESCRIPTIVE",
+      "topic": "키 수명주기",
+      "prompt": "가상 모듈의 키는 생성·보호 저장·백업·사용·rotation·폐기 단계를 갖는다. 각 단계별 최소 증거와 한 가지 실패 조건을 설계하라.",
+      "rubric": [
+        "각 단계의 상태와 책임 주체를 연결한다(2점).",
+        "생성·저장·사용 증거를 제시한다(2점).",
+        "백업/복구와 rotation 전환 증거를 제시한다(2점).",
+        "폐기 후 메모리·캐시·백업 잔존 시험을 제시한다(2점)."
+      ],
+      "explanation": "단계마다 다른 관찰과 실패 조건을 가져야 수명주기 판단이 실질적이다.",
+      "difficulty": "ADVANCED",
+      "cognitive": "EVALUATE",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q050",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U05",
+      "objective": "CMT-DN-U05-O02",
+      "concept_candidates": [
+        "역할·서비스·인증·접근통제",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "type": "DESCRIPTIVE",
+      "topic": "zeroization finding",
+      "prompt": "삭제 API는 성공하지만 메모리 allocator 재사용 전까지 키 바이트가 남는다. 구현 결함과 증거 부족을 구분해 보고하라.",
+      "rubric": [
+        "관찰 조건과 잔존 위치를 재현 가능하게 쓴다(2점).",
+        "삭제 API 결과와 실제 잔존의 불일치를 설명한다(2점).",
+        "캐시·백업·로그 등 추가 범위를 제안한다(2점).",
+        "수정 후 여러 allocator/실패 경로를 retest한다(2점)."
+      ],
+      "explanation": "구체적 잔존 관찰은 설계 문구보다 강한 결함 신호지만, 전체 범위는 추가 증거로 확정해야 한다.",
+      "difficulty": "ADVANCED",
+      "cognitive": "EVALUATE",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q051",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U06",
+      "objective": "CMT-DN-U06-O03",
+      "concept_candidates": [
+        "암호알고리즘·매개변수·적합성",
+        "엔트로피·RNG·DRBG",
+        "모듈 명세와 보안기능"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "primitive 목적",
+      "prompt": "메시지 변경 감지와 공유 비밀 기반 위조 방지를 함께 요구할 때 적합한 primitive는?",
+      "choices": [
+        "단순 hash만 사용",
+        "MAC",
+        "난수 출력만 사용",
+        "버전 문자열"
+      ],
+      "answer": 1,
+      "explanation": "MAC은 공유 비밀을 사용해 무결성과 출처 확인을 함께 지원한다. 단순 hash는 비밀 기반 인증을 제공하지 않는다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "MAC"
+    },
+    {
+      "id": "CMT-DN-Q052",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U06",
+      "objective": "CMT-DN-U06-O04",
+      "concept_candidates": [
+        "암호알고리즘·매개변수·적합성",
+        "엔트로피·RNG·DRBG",
+        "모듈 명세와 보안기능"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "매개변수 검증",
+      "prompt": "서명 API가 허용되지 않은 키 길이를 조용히 잘라서 처리한다. 시험자의 우선 판단은?",
+      "choices": [
+        "길이가 달라도 결과가 나오면 PASS",
+        "입력 검증과 오류 처리 요구를 기준으로 허용·거부 동작을 분석",
+        "키 이름만 확인",
+        "정상 길이만 반복"
+      ],
+      "answer": 1,
+      "explanation": "허용되지 않은 매개변수를 조용히 변형하면 입력 검증과 의미 보존 문제가 생긴다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "입력 검증과 오류 처리 요구를 기준으로 허용·거부 동작을 분석"
+    },
+    {
+      "id": "CMT-DN-Q053",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U06",
+      "objective": "CMT-DN-U06-O01",
+      "concept_candidates": [
+        "암호알고리즘·매개변수·적합성",
+        "엔트로피·RNG·DRBG",
+        "모듈 명세와 보안기능"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "hash semantics",
+      "prompt": "배포 파일의 hash가 예상값과 같다. 이 결과만으로 확정할 수 없는 것은?",
+      "choices": [
+        "파일 바이트가 예상값과 같다는 것",
+        "그 파일의 출처와 서명자가 신뢰된다는 것",
+        "동일성 확인의 일부",
+        "무결성 검증의 일부"
+      ],
+      "answer": 1,
+      "explanation": "hash 일치는 계산된 동일성/무결성 증거일 수 있지만 key holder의 authenticity를 단독 보장하지 않는다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "그 파일의 출처와 서명자가 신뢰된다는 것"
+    },
+    {
+      "id": "CMT-DN-Q054",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U06",
+      "objective": "CMT-DN-U06-O02",
+      "concept_candidates": [
+        "암호알고리즘·매개변수·적합성",
+        "엔트로피·RNG·DRBG",
+        "모듈 명세와 보안기능"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "알고리즘 assurance",
+      "prompt": "승인된 AES 구현이 발견되었지만 CBC 모드에서 IV 재사용이 관찰되었다. 가장 적절한 설명은?",
+      "choices": [
+        "알고리즘 승인으로 문제 없음",
+        "알고리즘과 실제 사용 매개변수·운영 안전성은 별도 평가 대상",
+        "IV는 항상 공개이므로 문제 없음",
+        "모드 검토는 암호학자가 아니면 불가"
+      ],
+      "answer": 1,
+      "explanation": "알고리즘 이름과 실제 매개변수·사용 경로는 별개이며 구현·운영 assurance를 함께 보아야 한다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "알고리즘과 실제 사용 매개변수·운영 안전성은 별도 평가 대상"
+    },
+    {
+      "id": "CMT-DN-Q055",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U06",
+      "objective": "CMT-DN-U06-O03",
+      "concept_candidates": [
+        "암호알고리즘·매개변수·적합성",
+        "엔트로피·RNG·DRBG",
+        "모듈 명세와 보안기능"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "경계값",
+      "prompt": "MAC tag 길이가 16바이트여야 하는 API에 8바이트 tag가 들어왔다. 좋은 시험은?",
+      "choices": [
+        "항상 성공을 기대한다.",
+        "정의된 오류·거부·상태 불변성을 확인한다.",
+        "입력을 자동 보정해 성공시키는지 본다.",
+        "응답 시간만 측정한다."
+      ],
+      "answer": 1,
+      "explanation": "경계값 시험은 허용·거부 조건과 실패 후 상태를 확인해야 한다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "정의된 오류·거부·상태 불변성을 확인한다."
+    },
+    {
+      "id": "CMT-DN-Q056",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U06",
+      "objective": "CMT-DN-U06-O04",
+      "concept_candidates": [
+        "암호알고리즘·매개변수·적합성",
+        "엔트로피·RNG·DRBG",
+        "모듈 명세와 보안기능"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "MAC",
+      "prompt": "공유 비밀 기반 메시지 무결성·인증에 사용하는 primitive는?",
+      "canonical_answer": "MAC",
+      "accepted_answers": [
+        "message authentication code",
+        "메시지 인증 코드"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "MAC은 공유 비밀을 전제로 하므로 단순 hash와 목적이 다르다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q057",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U06",
+      "objective": "CMT-DN-U06-O01",
+      "concept_candidates": [
+        "암호알고리즘·매개변수·적합성",
+        "엔트로피·RNG·DRBG",
+        "모듈 명세와 보안기능"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "hash",
+      "prompt": "hash 일치가 단독으로 보장하지 않는 대표적인 속성은?",
+      "canonical_answer": "발신자 authenticity",
+      "accepted_answers": [
+        "source authenticity",
+        "출처 인증"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "hash를 계산할 수 있는 사람이 누구인지 확인하지 않으면 출처 인증은 결론 내릴 수 없다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q058",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U06",
+      "objective": "CMT-DN-U06-O02",
+      "concept_candidates": [
+        "암호알고리즘·매개변수·적합성",
+        "엔트로피·RNG·DRBG",
+        "모듈 명세와 보안기능"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "parameter validation",
+      "prompt": "허용되지 않은 매개변수 입력에 대해 시험자가 확인해야 하는 두 결과는?",
+      "canonical_answer": "명확한 거부/오류와 상태 불변성",
+      "accepted_answers": [
+        "reject/error and no state change",
+        "거부와 상태 불변"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "입력 검증은 출력뿐 아니라 부작용도 포함한다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q059",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U06",
+      "objective": "CMT-DN-U06-O03",
+      "concept_candidates": [
+        "암호알고리즘·매개변수·적합성",
+        "엔트로피·RNG·DRBG",
+        "모듈 명세와 보안기능"
+      ],
+      "type": "DESCRIPTIVE",
+      "topic": "구현 적합성",
+      "prompt": "가상 서명 서비스가 승인된 알고리즘을 사용한다고 선언하지만, 키 길이·padding·오류 입력 처리의 evidence가 없다. 시험계획을 작성하라.",
+      "rubric": [
+        "선언된 알고리즘과 실제 호출 trace를 확인한다(2점).",
+        "키 길이·padding 등 매개변수 경계를 정의한다(2점).",
+        "잘못된 입력의 오류·상태·로그를 확인한다(2점).",
+        "적합성 결론의 범위를 확보된 evidence로 제한한다(2점)."
+      ],
+      "explanation": "알고리즘 이름은 출발점이며 실제 매개변수와 오류 경로의 독립 증거가 필요하다.",
+      "difficulty": "ADVANCED",
+      "cognitive": "EVALUATE",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q060",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U06",
+      "objective": "CMT-DN-U06-O04",
+      "concept_candidates": [
+        "암호알고리즘·매개변수·적합성",
+        "엔트로피·RNG·DRBG",
+        "모듈 명세와 보안기능"
+      ],
+      "type": "DESCRIPTIVE",
+      "topic": "hash와 authenticity",
+      "prompt": "업데이트 artifact hash는 게시된 값과 일치하지만 서명 검증이 생략되었다. 보고서에서 hash와 authenticity를 어떻게 분리할지 설명하라.",
+      "rubric": [
+        "hash가 동일성/무결성의 어떤 범위를 보이는지 쓴다(2점).",
+        "서명·신뢰 anchor·키 관리 evidence의 부재를 지적한다(2점).",
+        "hash 일치만으로 출처를 결론 내리지 않는다(2점).",
+        "추가 검증 절차를 제안한다(2점)."
+      ],
+      "explanation": "계산된 값의 일치와 누가 artifact를 발행했는지는 서로 다른 주장이다.",
+      "difficulty": "ADVANCED",
+      "cognitive": "EVALUATE",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q061",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U07",
+      "objective": "CMT-DN-U07-O01",
+      "concept_candidates": [
+        "엔트로피·RNG·DRBG",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "entropy source",
+      "prompt": "DRBG 출력이 통계적으로 균일해 보인다. 아직 판단할 수 없는 것은?",
+      "choices": [
+        "출력 샘플의 관찰",
+        "초기화 source가 충분한 entropy를 제공했다는 사실",
+        "출력 수집 조건",
+        "재현 환경"
+      ],
+      "answer": 1,
+      "explanation": "출력 형태만으로 source entropy와 초기화·재시드 assurance를 증명할 수 없다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "초기화 source가 충분한 entropy를 제공했다는 사실"
+    },
+    {
+      "id": "CMT-DN-Q062",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U07",
+      "objective": "CMT-DN-U07-O02",
+      "concept_candidates": [
+        "엔트로피·RNG·DRBG",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "초기화",
+      "prompt": "DRBG가 초기화 완료 전에 요청을 받았을 때 가장 안전한 기대 동작은?",
+      "choices": [
+        "예측 가능한 기본값으로 계속 출력",
+        "요청을 거부하고 안전한 오류/미초기화 상태를 관찰 가능하게 함",
+        "seed를 로그에 기록",
+        "상태를 자동으로 ACTIVE 표시"
+      ],
+      "answer": 1,
+      "explanation": "초기화 전 출력은 예측 가능성 위험이 있으므로 정의된 차단·오류 상태가 필요하다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "요청을 거부하고 안전한 오류/미초기화 상태를 관찰 가능하게 함"
+    },
+    {
+      "id": "CMT-DN-Q063",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U07",
+      "objective": "CMT-DN-U07-O03",
+      "concept_candidates": [
+        "엔트로피·RNG·DRBG",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "reseed",
+      "prompt": "reseed 실패가 발생했는데 모듈이 계속 키를 생성한다. 우선 검토할 것은?",
+      "choices": [
+        "키 이름",
+        "reseed 실패 정책, 상태 전이, 출력 차단 및 상위 서비스 영향",
+        "UI 알림 색",
+        "문서 제목"
+      ],
+      "answer": 1,
+      "explanation": "reseed 실패 후 출력 계속 여부는 상태·오류 처리와 직접 연결된다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "reseed 실패 정책, 상태 전이, 출력 차단 및 상위 서비스 영향"
+    },
+    {
+      "id": "CMT-DN-Q064",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U07",
+      "objective": "CMT-DN-U07-O04",
+      "concept_candidates": [
+        "엔트로피·RNG·DRBG",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "health test",
+      "prompt": "entropy source health test의 실패가 로그에만 남고 생성 서비스는 계속 성공한다. 가장 직접적인 concern은?",
+      "choices": [
+        "로그 형식",
+        "source 실패가 안전한 상태 전이와 출력 차단으로 이어지지 않는 것",
+        "알고리즘 키 길이",
+        "물리 봉인"
+      ],
+      "answer": 1,
+      "explanation": "source health 실패는 출력 신뢰에 영향을 주므로 실패 처리와 서비스 차단을 확인해야 한다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "source 실패가 안전한 상태 전이와 출력 차단으로 이어지지 않는 것"
+    },
+    {
+      "id": "CMT-DN-Q065",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U07",
+      "objective": "CMT-DN-U07-O01",
+      "concept_candidates": [
+        "엔트로피·RNG·DRBG",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "관찰 범위",
+      "prompt": "두 환경에서 동일한 DRBG 출력이 나온다. 이 결과의 올바른 해석은?",
+      "choices": [
+        "두 환경의 entropy가 동일하게 충분하다.",
+        "관찰된 조건에서 출력이 같았다는 사실만 기록하고 source·상태 assurance는 추가 증거로 판단한다.",
+        "DRBG가 고장났다.",
+        "모든 재시드가 불필요하다."
+      ],
+      "answer": 1,
+      "explanation": "관찰을 그 범위 이상으로 일반화하지 않아야 한다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "관찰된 조건에서 출력이 같았다는 사실만 기록하고 source·상태 assurance는 추가 증거로 판단한다."
+    },
+    {
+      "id": "CMT-DN-Q066",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U07",
+      "objective": "CMT-DN-U07-O02",
+      "concept_candidates": [
+        "엔트로피·RNG·DRBG",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "entropy",
+      "prompt": "entropy source와 DRBG의 관계를 한 문장으로 구분하라.",
+      "canonical_answer": "entropy source는 예측불가능성 입력을 제공하고 DRBG는 상태와 절차를 사용해 출력을 생성한다.",
+      "accepted_answers": [
+        "source provides entropy; DRBG generates output",
+        "source와 결정적 생성기의 구분"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "두 구성요소는 입력·상태·출력의 assurance 질문이 다르다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q067",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U07",
+      "objective": "CMT-DN-U07-O03",
+      "concept_candidates": [
+        "엔트로피·RNG·DRBG",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "reseed",
+      "prompt": "DRBG 상태에 새 입력을 반영하는 작업을 무엇이라고 하는가?",
+      "canonical_answer": "reseed",
+      "accepted_answers": [
+        "재시드",
+        "re-seeding"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "재시드는 주기·조건·실패 처리와 함께 시험해야 한다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q068",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U07",
+      "objective": "CMT-DN-U07-O04",
+      "concept_candidates": [
+        "엔트로피·RNG·DRBG",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "health test",
+      "prompt": "entropy source health test 실패 후 반드시 확인할 보호 동작은?",
+      "canonical_answer": "안전한 오류상태 진입과 출력/키 생성 차단",
+      "accepted_answers": [
+        "error state and output blocking",
+        "오류상태와 출력 차단"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "실패가 탐지되었어도 서비스가 계속되면 보호 목적을 달성하지 못할 수 있다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q069",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U07",
+      "objective": "CMT-DN-U07-O01",
+      "concept_candidates": [
+        "엔트로피·RNG·DRBG",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "type": "DESCRIPTIVE",
+      "topic": "RNG trace",
+      "prompt": "가상 모듈의 키 생성 trace에 source 초기화, DRBG instantiation, reseed, 출력 생성 기록이 서로 다른 시각으로 남아 있다. 시험자가 확인할 순서와 gap을 제시하라.",
+      "rubric": [
+        "source 초기화 완료와 health 결과를 먼저 확인한다(2점).",
+        "instantiation과 seed 보호 evidence를 확인한다(2점).",
+        "reseed 조건·상태·실패 경로를 확인한다(2점).",
+        "출력 결과만으로 전체 entropy를 결론 내리지 않는다(2점)."
+      ],
+      "explanation": "RNG 시험은 출력 샘플의 모양보다 입력 source와 상태 전이의 trace가 중심이다.",
+      "difficulty": "ADVANCED",
+      "cognitive": "EVALUATE",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q070",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U07",
+      "objective": "CMT-DN-U07-O02",
+      "concept_candidates": [
+        "엔트로피·RNG·DRBG",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "type": "DESCRIPTIVE",
+      "topic": "초기화 전 출력",
+      "prompt": "DRBG 초기화가 실패했는데 API가 32바이트를 반환한다. finding, 추가 증거, retest 범위를 작성하라.",
+      "rubric": [
+        "실패 조건과 반환 출력의 재현성을 기록한다(2점).",
+        "초기화 전/실패 상태의 출력 차단 요구를 연결한다(2점).",
+        "source·seed·오류 상태·상위 키 생성 영향을 조사한다(2점).",
+        "수정 후 초기화·재시드·동시 요청을 retest한다(2점)."
+      ],
+      "explanation": "초기화 실패 후 출력은 output quality가 아니라 상태·차단·키 수명주기 위험으로 우선 분석한다.",
+      "difficulty": "ADVANCED",
+      "cognitive": "EVALUATE",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q071",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U08",
+      "objective": "CMT-DN-U08-O03",
+      "concept_candidates": [
+        "self-test·무결성·오류상태",
+        "증적·finding·retest·보고서"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "self-test",
+      "prompt": "기동 self-test가 PASS였다는 로그가 있다. 이 로그가 직접 증명하지 않는 것은?",
+      "choices": [
+        "해당 로그가 존재한다는 것",
+        "그 조건에서 시험이 수행되었다는 일부 증거",
+        "모든 입력·서비스·운영환경에서 구현이 안전하다는 것",
+        "기동 시점의 관찰"
+      ],
+      "answer": 2,
+      "explanation": "self-test는 특정 대상과 조건의 결과이며 전체 구현 assurance로 일반화할 수 없다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "모든 입력·서비스·운영환경에서 구현이 안전하다는 것"
+    },
+    {
+      "id": "CMT-DN-Q072",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U08",
+      "objective": "CMT-DN-U08-O04",
+      "concept_candidates": [
+        "self-test·무결성·오류상태",
+        "증적·finding·retest·보고서"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "오류 상태",
+      "prompt": "조건부 시험 실패 후 모듈이 오류 상태를 표시하지만 CSP export만 계속 허용한다. 적절한 판단은?",
+      "choices": [
+        "오류 표시만으로 충분",
+        "오류 상태에서 허용되는 서비스와 CSP 보호를 별도로 확인한다.",
+        "조건부 시험은 중요하지 않다.",
+        "정상 호출만 다시 한다."
+      ],
+      "answer": 1,
+      "explanation": "오류 상태는 observable status와 서비스 제한의 조합으로 평가해야 한다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "오류 상태에서 허용되는 서비스와 CSP 보호를 별도로 확인한다."
+    },
+    {
+      "id": "CMT-DN-Q073",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U08",
+      "objective": "CMT-DN-U08-O01",
+      "concept_candidates": [
+        "self-test·무결성·오류상태",
+        "증적·finding·retest·보고서"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "무결성",
+      "prompt": "모듈 파일 hash를 계산해 기준값과 비교했다. 이 결과의 가장 적절한 설명은?",
+      "choices": [
+        "모든 보안 속성의 증명",
+        "계산된 대상의 동일성/무결성에 관한 제한된 evidence",
+        "서명자 인증의 완전한 증명",
+        "키 폐기의 증명"
+      ],
+      "answer": 1,
+      "explanation": "hash evidence는 계산 대상과 신뢰 경로의 범위 안에서 해석해야 한다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "계산된 대상의 동일성/무결성에 관한 제한된 evidence"
+    },
+    {
+      "id": "CMT-DN-Q074",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U08",
+      "objective": "CMT-DN-U08-O02",
+      "concept_candidates": [
+        "self-test·무결성·오류상태",
+        "증적·finding·retest·보고서"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "복구",
+      "prompt": "오류 상태에서 재시작하면 서비스가 재개되지만 재시작 전 원인이 기록되지 않는다. 무엇이 부족한가?",
+      "choices": [
+        "서비스 이름",
+        "원인·상태 전이·복구 승인과 재시험 증거",
+        "알고리즘 목록",
+        "화면 캡처"
+      ],
+      "answer": 1,
+      "explanation": "복구 가능성만으로는 원인 추적과 안전한 복구 판단이 되지 않는다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "원인·상태 전이·복구 승인과 재시험 증거"
+    },
+    {
+      "id": "CMT-DN-Q075",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U08",
+      "objective": "CMT-DN-U08-O03",
+      "concept_candidates": [
+        "self-test·무결성·오류상태",
+        "증적·finding·retest·보고서"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "조건부 시험",
+      "prompt": "키 pair 생성 후 조건부 검사가 실행되어야 하는데 로그에는 생성 성공만 있다. 결론은?",
+      "choices": [
+        "조건부 검사도 통과한 것으로 본다.",
+        "조건부 시험 실행과 결과 evidence가 누락되었다.",
+        "키 생성은 시험 대상이 아니다.",
+        "로그를 임의로 보완한다."
+      ],
+      "answer": 1,
+      "explanation": "연관된 시험의 실행·결과가 관찰되지 않으면 성공을 추정할 수 없다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "조건부 시험 실행과 결과 evidence가 누락되었다."
+    },
+    {
+      "id": "CMT-DN-Q076",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U08",
+      "objective": "CMT-DN-U08-O04",
+      "concept_candidates": [
+        "self-test·무결성·오류상태",
+        "증적·finding·retest·보고서"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "self-test",
+      "prompt": "기동 시 수행되는 self-test와 특정 조건에서 수행되는 self-test를 각각 무엇이라 부르는가?",
+      "canonical_answer": "power-up self-test와 conditional self-test",
+      "accepted_answers": [
+        "기동 self-test와 조건부 self-test",
+        "power-up / conditional"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "실행 시점과 조건이 다르므로 절차와 증거가 다르다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q077",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U08",
+      "objective": "CMT-DN-U08-O01",
+      "concept_candidates": [
+        "self-test·무결성·오류상태",
+        "증적·finding·retest·보고서"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "오류상태",
+      "prompt": "오류상태에서 시험자가 확인해야 하는 두 가지 observable behavior는?",
+      "canonical_answer": "상태 표시와 허용 서비스/출력의 차단",
+      "accepted_answers": [
+        "status indication and service blocking",
+        "상태와 서비스 차단"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "상태 이름만으로는 보호 효과를 확인할 수 없다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q078",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U08",
+      "objective": "CMT-DN-U08-O02",
+      "concept_candidates": [
+        "self-test·무결성·오류상태",
+        "증적·finding·retest·보고서"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "무결성",
+      "prompt": "파일 hash 비교와 서명 검증을 혼동하면 어떤 assurance 주장이 과장되는가?",
+      "canonical_answer": "출처/발행자 authenticity",
+      "accepted_answers": [
+        "authenticity of origin",
+        "발행자 인증"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "hash 비교는 서명자 신뢰와 별도의 검증이다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q079",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U08",
+      "objective": "CMT-DN-U08-O03",
+      "concept_candidates": [
+        "self-test·무결성·오류상태",
+        "증적·finding·retest·보고서"
+      ],
+      "type": "DESCRIPTIVE",
+      "topic": "self-test 실패",
+      "prompt": "조건부 검사가 실패했지만 일반 암호화 서비스는 성공하고 CSP export만 차단된다. 시험자가 확인할 요구사항, 증거, 결론의 범위를 작성하라.",
+      "rubric": [
+        "실패한 시험의 대상·조건·결과를 기록한다(2점).",
+        "오류 상태에서 서비스별 허용/차단 기준을 확인한다(2점).",
+        "CSP export 차단과 일반 암호화 허용의 정당성을 요구사항과 연결한다(2점).",
+        "전체 모듈 보안성으로 일반화하지 않는다(2점)."
+      ],
+      "explanation": "실패 후 모든 서비스를 동일하게 차단해야 하는지는 요구사항과 위협에 따라 판단하며, 관찰된 동작을 범위 제한해 보고한다.",
+      "difficulty": "ADVANCED",
+      "cognitive": "EVALUATE",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q080",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U08",
+      "objective": "CMT-DN-U08-O04",
+      "concept_candidates": [
+        "self-test·무결성·오류상태",
+        "증적·finding·retest·보고서"
+      ],
+      "type": "DESCRIPTIVE",
+      "topic": "복구 retest",
+      "prompt": "무결성 검증 실패 후 재시작으로 복구되는 가상 모듈에서 원인 로그와 승인 기록이 없다. retest와 보고서 요구를 설계하라.",
+      "rubric": [
+        "실패 재현 및 오류 상태 진입을 확인한다(2점).",
+        "복구 조건·승인 주체·상태 초기화를 확인한다(2점).",
+        "원인 로그와 증거 무결성을 요구한다(2점).",
+        "복구 후 기동·조건부 시험과 영향 경로를 retest한다(2점)."
+      ],
+      "explanation": "안전한 복구는 재시작 성공보다 원인 추적·승인·재검증이 중요하다.",
+      "difficulty": "ADVANCED",
+      "cognitive": "EVALUATE",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q081",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U09",
+      "objective": "CMT-DN-U09-O01",
+      "concept_candidates": [
+        "물리·운영·환경·비침투 보안",
+        "소프트웨어/펌웨어·수명주기 보증"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "물리/운영",
+      "prompt": "장비 봉인은 온전하지만 승인 없는 유지보수 계정으로 설정 변경이 가능하다. 가장 적절한 분류는?",
+      "choices": [
+        "봉인이 온전하므로 문제 없음",
+        "물리 관찰과 운영/접근통제 결함을 분리한다.",
+        "알고리즘 결함",
+        "entropy 결함"
+      ],
+      "answer": 1,
+      "explanation": "물리적 tamper evidence와 운영 권한 통제는 대체 관계가 아니다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "물리 관찰과 운영/접근통제 결함을 분리한다."
+    },
+    {
+      "id": "CMT-DN-Q082",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U09",
+      "objective": "CMT-DN-U09-O02",
+      "concept_candidates": [
+        "물리·운영·환경·비침투 보안",
+        "소프트웨어/펌웨어·수명주기 보증"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "환경",
+      "prompt": "시험실 온도 조건이 운영환경 명세와 다르다. 시험자는?",
+      "choices": [
+        "차이는 항상 무시",
+        "조건 차이가 결과와 보증 범위에 미치는 영향을 분석하고 제한을 기록한다.",
+        "모듈을 바로 PASS",
+        "환경 기록 삭제"
+      ],
+      "answer": 1,
+      "explanation": "환경 조건은 시험 결과의 적용범위를 제한할 수 있다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "조건 차이가 결과와 보증 범위에 미치는 영향을 분석하고 제한을 기록한다."
+    },
+    {
+      "id": "CMT-DN-Q083",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U09",
+      "objective": "CMT-DN-U09-O03",
+      "concept_candidates": [
+        "물리·운영·환경·비침투 보안",
+        "소프트웨어/펌웨어·수명주기 보증"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "구성 baseline",
+      "prompt": "배포 후 구성 파일에 승인되지 않은 옵션이 추가되었다. 우선 필요한 evidence는?",
+      "choices": [
+        "파일 이름",
+        "기준선, 변경 diff, 승인 기록 및 보안 영향",
+        "화면 밝기",
+        "사용자 선호"
+      ],
+      "answer": 1,
+      "explanation": "구성 변경의 source, 승인, 영향이 있어야 결과를 해석할 수 있다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "기준선, 변경 diff, 승인 기록 및 보안 영향"
+    },
+    {
+      "id": "CMT-DN-Q084",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U09",
+      "objective": "CMT-DN-U09-O04",
+      "concept_candidates": [
+        "물리·운영·환경·비침투 보안",
+        "소프트웨어/펌웨어·수명주기 보증"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "비침투",
+      "prompt": "비침투 공격 완화 주장이 문서에 있지만 시험 조건과 관찰 결과가 없다. 결론은?",
+      "choices": [
+        "문서가 있으므로 PASS",
+        "주장은 있으나 독립 시험 evidence가 부족하다.",
+        "공격 완화는 시험 불가",
+        "물리시험으로 대체"
+      ],
+      "answer": 1,
+      "explanation": "문서 주장은 구현·시험 evidence를 대체하지 않는다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "주장은 있으나 독립 시험 evidence가 부족하다."
+    },
+    {
+      "id": "CMT-DN-Q085",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U09",
+      "objective": "CMT-DN-U09-O01",
+      "concept_candidates": [
+        "물리·운영·환경·비침투 보안",
+        "소프트웨어/펌웨어·수명주기 보증"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "운영 책임",
+      "prompt": "환경 설정 변경 승인 주체가 문서마다 다르다. 가장 먼저 할 일은?",
+      "choices": [
+        "가장 최근 문서를 임의로 선택",
+        "문서 버전·책임주체·실제 절차의 불일치를 finding 후보로 정리",
+        "모든 책임을 운영자에게 전가",
+        "시험에서 제외"
+      ],
+      "answer": 1,
+      "explanation": "책임과 절차의 불일치는 운영 통제와 증거의 재현성에 영향을 준다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "문서 버전·책임주체·실제 절차의 불일치를 finding 후보로 정리"
+    },
+    {
+      "id": "CMT-DN-Q086",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U09",
+      "objective": "CMT-DN-U09-O02",
+      "concept_candidates": [
+        "물리·운영·환경·비침투 보안",
+        "소프트웨어/펌웨어·수명주기 보증"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "baseline",
+      "prompt": "승인된 구성과 실제 실행 구성을 비교하는 기준선을 무엇이라고 하는가?",
+      "canonical_answer": "configuration baseline",
+      "accepted_answers": [
+        "구성 기준선",
+        "approved configuration baseline"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "baseline과 변경 diff가 있어야 실행 조건을 재현할 수 있다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q087",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U09",
+      "objective": "CMT-DN-U09-O03",
+      "concept_candidates": [
+        "물리·운영·환경·비침투 보안",
+        "소프트웨어/펌웨어·수명주기 보증"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "환경",
+      "prompt": "시험환경이 운영 가정과 다를 때 보고서에 반드시 제한해야 하는 것은?",
+      "canonical_answer": "결론의 적용 범위와 잔여 불확실성",
+      "accepted_answers": [
+        "scope of conclusion",
+        "결론의 적용범위"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "환경 차이는 시험결과의 일반화를 제한할 수 있다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q088",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U09",
+      "objective": "CMT-DN-U09-O04",
+      "concept_candidates": [
+        "물리·운영·환경·비침투 보안",
+        "소프트웨어/펌웨어·수명주기 보증"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "물리 보안",
+      "prompt": "봉인·표시 관찰만으로 입증할 수 없는 대표 주장은?",
+      "canonical_answer": "모든 tamper 공격이 완화되었다는 주장",
+      "accepted_answers": [
+        "complete attack mitigation",
+        "전체 공격 완화"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "관찰된 물리 흔적의 범위를 넘어선 결론은 부적절하다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q089",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U09",
+      "objective": "CMT-DN-U09-O01",
+      "concept_candidates": [
+        "물리·운영·환경·비침투 보안",
+        "소프트웨어/펌웨어·수명주기 보증"
+      ],
+      "type": "DESCRIPTIVE",
+      "topic": "운영환경 case",
+      "prompt": "가상 장비의 설치 절차는 승인자를 요구하지만 실제 현장 기록에는 승인자와 구성 hash가 없다. 운영·구성·증거 finding을 작성하라.",
+      "rubric": [
+        "요구된 승인과 실제 기록의 차이를 쓴다(2점).",
+        "실행 구성 식별과 hash evidence gap을 쓴다(2점).",
+        "현장 절차와 시스템 로그를 교차 확인한다(2점).",
+        "환경 증거가 없을 때 결론을 제한한다(2점)."
+      ],
+      "explanation": "정책 존재와 실제 운영 증거는 다르며 구성 식별은 재현성의 핵심이다.",
+      "difficulty": "ADVANCED",
+      "cognitive": "EVALUATE",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q090",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U09",
+      "objective": "CMT-DN-U09-O02",
+      "concept_candidates": [
+        "물리·운영·환경·비침투 보안",
+        "소프트웨어/펌웨어·수명주기 보증"
+      ],
+      "type": "DESCRIPTIVE",
+      "topic": "물리와 운영",
+      "prompt": "장비 케이스의 tamper indicator는 변경되지 않았지만 유지보수 포트가 열려 있고 audit logging이 비활성화되었다. 결론을 두 영역으로 나누어 설계하라.",
+      "rubric": [
+        "tamper indicator 관찰의 범위를 제한한다(2점).",
+        "유지보수 포트와 운영권한의 위험을 분석한다(2점).",
+        "감사기록 비활성화의 evidence/책임성 영향을 쓴다(2점).",
+        "물리 PASS를 전체 보안 PASS로 일반화하지 않는다(2점)."
+      ],
+      "explanation": "한 영역의 관찰이 다른 영역의 요구사항을 자동 충족하지 않는다.",
+      "difficulty": "ADVANCED",
+      "cognitive": "EVALUATE",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q091",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U10",
+      "objective": "CMT-DN-U10-O03",
+      "concept_candidates": [
+        "소프트웨어/펌웨어·수명주기 보증",
+        "모듈 명세와 보안기능",
+        "증적·finding·retest·보고서"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "artifact identity",
+      "prompt": "문서의 버전은 v4.1이지만 실행 binary의 build ID가 기록되지 않았다. 가장 직접적인 gap은?",
+      "choices": [
+        "문서 서식",
+        "시험 대상 artifact의 식별과 traceability",
+        "알고리즘 강도",
+        "물리 봉인"
+      ],
+      "answer": 1,
+      "explanation": "실행 대상이 무엇인지 식별되지 않으면 결과를 특정 구현에 연결하기 어렵다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "시험 대상 artifact의 식별과 traceability"
+    },
+    {
+      "id": "CMT-DN-Q092",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U10",
+      "objective": "CMT-DN-U10-O04",
+      "concept_candidates": [
+        "소프트웨어/펌웨어·수명주기 보증",
+        "모듈 명세와 보안기능",
+        "증적·finding·retest·보고서"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "업데이트",
+      "prompt": "업데이트 패키지의 hash는 검증되지만 downgrade 방지가 없다. 무엇을 별도로 평가해야 하는가?",
+      "choices": [
+        "패키지 크기",
+        "버전 정책과 이전 취약 구성으로의 rollback/downgrade 가능성",
+        "로그 색상",
+        "UI 언어"
+      ],
+      "answer": 1,
+      "explanation": "hash 검증과 버전 전환 정책은 다른 assurance 질문이다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "버전 정책과 이전 취약 구성으로의 rollback/downgrade 가능성"
+    },
+    {
+      "id": "CMT-DN-Q093",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U10",
+      "objective": "CMT-DN-U10-O01",
+      "concept_candidates": [
+        "소프트웨어/펌웨어·수명주기 보증",
+        "모듈 명세와 보안기능",
+        "증적·finding·retest·보고서"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "rollback",
+      "prompt": "업데이트 중 전원 차단 후 모듈이 일부 새 구성과 일부 이전 구성으로 기동된다. 우선 시험은?",
+      "choices": [
+        "정상 업데이트만 반복",
+        "중단 시 atomicity, 상태 일관성, 안전한 복구/rollback을 확인",
+        "전원 차단은 비정상이라 제외",
+        "버전 문자열만 확인"
+      ],
+      "answer": 1,
+      "explanation": "중단 경로가 안전한 상태로 복구되는지 확인해야 한다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "중단 시 atomicity, 상태 일관성, 안전한 복구/rollback을 확인"
+    },
+    {
+      "id": "CMT-DN-Q094",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U10",
+      "objective": "CMT-DN-U10-O02",
+      "concept_candidates": [
+        "소프트웨어/펌웨어·수명주기 보증",
+        "모듈 명세와 보안기능",
+        "증적·finding·retest·보고서"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "hash/authenticity",
+      "prompt": "릴리스 파일 hash가 공식 목록과 같지만 목록 자체의 신뢰 anchor가 불명확하다. 결론은?",
+      "choices": [
+        "출처가 확정됨",
+        "파일 동일성 evidence는 있으나 목록의 authenticity/신뢰 경로가 미확인",
+        "파일이 반드시 변조됨",
+        "hash는 아무 의미 없음"
+      ],
+      "answer": 1,
+      "explanation": "hash와 신뢰 anchor의 주장을 분리한다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "파일 동일성 evidence는 있으나 목록의 authenticity/신뢰 경로가 미확인"
+    },
+    {
+      "id": "CMT-DN-Q095",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U10",
+      "objective": "CMT-DN-U10-O03",
+      "concept_candidates": [
+        "소프트웨어/펌웨어·수명주기 보증",
+        "모듈 명세와 보안기능",
+        "증적·finding·retest·보고서"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "구성 drift",
+      "prompt": "기존 시험 후 보안 옵션이 기본값으로 되돌아갔다. 가장 타당한 조치는?",
+      "choices": [
+        "기존 결과를 유지",
+        "구성 drift를 식별하고 영향을 받는 시험과 retest 범위를 분석",
+        "옵션은 보안과 무관",
+        "문서만 업데이트"
+      ],
+      "answer": 1,
+      "explanation": "시험 조건이 변하면 이전 결과의 적용 가능성을 다시 확인해야 한다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "구성 drift를 식별하고 영향을 받는 시험과 retest 범위를 분석"
+    },
+    {
+      "id": "CMT-DN-Q096",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U10",
+      "objective": "CMT-DN-U10-O04",
+      "concept_candidates": [
+        "소프트웨어/펌웨어·수명주기 보증",
+        "모듈 명세와 보안기능",
+        "증적·finding·retest·보고서"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "build ID",
+      "prompt": "실행 중인 binary를 문서·시험결과와 연결하는 대표 식별자는?",
+      "canonical_answer": "build ID 또는 release artifact identifier",
+      "accepted_answers": [
+        "build identifier",
+        "릴리스 artifact 식별자"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "버전 문자열보다 실행 artifact와 직접 연결되는 식별이 필요하다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q097",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U10",
+      "objective": "CMT-DN-U10-O01",
+      "concept_candidates": [
+        "소프트웨어/펌웨어·수명주기 보증",
+        "모듈 명세와 보안기능",
+        "증적·finding·retest·보고서"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "downgrade",
+      "prompt": "서명 검증과 별도로 이전 버전으로의 회귀를 통제하는 정책은?",
+      "canonical_answer": "anti-downgrade/version policy",
+      "accepted_answers": [
+        "downgrade 방지 정책",
+        "버전 전환 정책"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "업데이트 authenticity와 버전 순서 통제는 별개의 검토다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q098",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U10",
+      "objective": "CMT-DN-U10-O02",
+      "concept_candidates": [
+        "소프트웨어/펌웨어·수명주기 보증",
+        "모듈 명세와 보안기능",
+        "증적·finding·retest·보고서"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "rollback",
+      "prompt": "업데이트 중단 시 시험자가 확인해야 하는 두 가지는?",
+      "canonical_answer": "상태 일관성과 안전한 복구/rollback",
+      "accepted_answers": [
+        "atomicity and safe recovery",
+        "안전한 복구와 상태 일관성"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "중단은 부분 적용 상태와 보안 경계 변화를 만들 수 있다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q099",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U10",
+      "objective": "CMT-DN-U10-O03",
+      "concept_candidates": [
+        "소프트웨어/펌웨어·수명주기 보증",
+        "모듈 명세와 보안기능",
+        "증적·finding·retest·보고서"
+      ],
+      "type": "DESCRIPTIVE",
+      "topic": "업데이트 시험",
+      "prompt": "가상 펌웨어 업데이트는 서명 검증에 성공하지만 downgrade와 전원 차단 복구가 시험되지 않았다. 최소 시험 세트와 결론 제한을 제시하라.",
+      "rubric": [
+        "artifact identity·서명 검증 trace를 확인한다(2점).",
+        "downgrade/버전 정책을 시험한다(2점).",
+        "전원 차단·부분 적용·rollback을 시험한다(2점).",
+        "시험되지 않은 조건을 결론에서 제외한다(2점)."
+      ],
+      "explanation": "업데이트 assurance는 package integrity/authenticity, version policy, failure recovery를 분리해 평가해야 한다.",
+      "difficulty": "ADVANCED",
+      "cognitive": "EVALUATE",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q100",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U10",
+      "objective": "CMT-DN-U10-O04",
+      "concept_candidates": [
+        "소프트웨어/펌웨어·수명주기 보증",
+        "모듈 명세와 보안기능",
+        "증적·finding·retest·보고서"
+      ],
+      "type": "DESCRIPTIVE",
+      "topic": "구성 drift",
+      "prompt": "보안 옵션의 승인 baseline과 실제 실행 설정이 다르지만 기존 시험 결과가 PASS다. 영향 분석과 retest 판단을 작성하라.",
+      "rubric": [
+        "baseline과 실제 diff를 식별한다(2점).",
+        "변경 옵션이 어떤 보안기능·인터페이스에 영향을 주는지 분석한다(2점).",
+        "영향 경로에 따라 retest를 범위화한다(2점).",
+        "기존 PASS를 무조건 유지/폐기하지 않고 조건을 명시한다(2점)."
+      ],
+      "explanation": "변경의 영향과 증거 범위를 분석하는 것이 과소·과대 재시험을 모두 피한다.",
+      "difficulty": "ADVANCED",
+      "cognitive": "EVALUATE",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q101",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U11",
+      "objective": "CMT-DN-U11-O01",
+      "concept_candidates": [
+        "요구사항 해석과 시험목표",
+        "증적·finding·retest·보고서",
+        "암호모듈 범위·보증경계"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "사전조건",
+      "prompt": "재현 가능한 시험절차에 반드시 포함되어야 하는 것은?",
+      "choices": [
+        "시험자의 선호",
+        "artifact, 환경, 초기 상태, 입력 및 기대 결과",
+        "보고서 글꼴",
+        "제품 광고 문구"
+      ],
+      "answer": 1,
+      "explanation": "사전조건이 빠지면 동일한 결과를 재현하거나 차이를 설명하기 어렵다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "artifact, 환경, 초기 상태, 입력 및 기대 결과"
+    },
+    {
+      "id": "CMT-DN-Q102",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U11",
+      "objective": "CMT-DN-U11-O02",
+      "concept_candidates": [
+        "요구사항 해석과 시험목표",
+        "증적·finding·retest·보고서",
+        "암호모듈 범위·보증경계"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "관찰",
+      "prompt": "공급자가 “오류 시 안전하게 차단된다”고 설명했다. 독립 시험 기록에서 이를 무엇과 구분해야 하는가?",
+      "choices": [
+        "문서 제목",
+        "실제 오류 조건에서 관찰된 상태·서비스·출력",
+        "시험자의 직함",
+        "제품 가격"
+      ],
+      "answer": 1,
+      "explanation": "공급자 주장은 입력 설명이고 독립 관찰은 별도 evidence다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "실제 오류 조건에서 관찰된 상태·서비스·출력"
+    },
+    {
+      "id": "CMT-DN-Q103",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U11",
+      "objective": "CMT-DN-U11-O03",
+      "concept_candidates": [
+        "요구사항 해석과 시험목표",
+        "증적·finding·retest·보고서",
+        "암호모듈 범위·보증경계"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "증거 무결성",
+      "prompt": "로그 원본이 수정 가능한 공유 폴더에만 저장되어 있다. 가장 직접적인 문제는?",
+      "choices": [
+        "로그의 글자 수",
+        "증거의 무결성과 chain of custody가 약하다.",
+        "시험 시간이 짧다.",
+        "알고리즘이 약하다."
+      ],
+      "answer": 1,
+      "explanation": "원본 보호와 수집 시점·담당자 기록이 증거 신뢰에 중요하다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "증거의 무결성과 chain of custody가 약하다."
+    },
+    {
+      "id": "CMT-DN-Q104",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U11",
+      "objective": "CMT-DN-U11-O04",
+      "concept_candidates": [
+        "요구사항 해석과 시험목표",
+        "증적·finding·retest·보고서",
+        "암호모듈 범위·보증경계"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "민감정보",
+      "prompt": "시험 로그에 키 material이 포함될 수 있다. 시험자가 해야 할 일은?",
+      "choices": [
+        "모든 로그를 공개 저장",
+        "수집 최소화·마스킹·접근통제·보존정책을 설계",
+        "키 material을 정답으로 사용",
+        "로그를 만들지 않음"
+      ],
+      "answer": 1,
+      "explanation": "시험 증거도 민감정보를 다루므로 최소수집과 보호가 필요하다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "수집 최소화·마스킹·접근통제·보존정책을 설계"
+    },
+    {
+      "id": "CMT-DN-Q105",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U11",
+      "objective": "CMT-DN-U11-O01",
+      "concept_candidates": [
+        "요구사항 해석과 시험목표",
+        "증적·finding·retest·보고서",
+        "암호모듈 범위·보증경계"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "reproducibility",
+      "prompt": "두 번의 같은 시험에서 다른 결과가 나왔다. 우선 비교할 항목은?",
+      "choices": [
+        "시험자의 기분",
+        "artifact·환경·초기상태·입력·도구 버전·시간 조건",
+        "문서 색상",
+        "보고서 길이"
+      ],
+      "answer": 1,
+      "explanation": "재현성 분석은 시험 조건 fingerprint 비교에서 시작한다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "artifact·환경·초기상태·입력·도구 버전·시간 조건"
+    },
+    {
+      "id": "CMT-DN-Q106",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U11",
+      "objective": "CMT-DN-U11-O02",
+      "concept_candidates": [
+        "요구사항 해석과 시험목표",
+        "증적·finding·retest·보고서",
+        "암호모듈 범위·보증경계"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "observation",
+      "prompt": "공급자 설명과 달리 시험자가 직접 본 결과를 기록하는 항목은?",
+      "canonical_answer": "관찰(observation)",
+      "accepted_answers": [
+        "observation",
+        "독립 관찰"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "관찰은 공급자 주장과 시험자의 해석에서 분리해 실제로 확인한 동작만 기록하는 항목이다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q107",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U11",
+      "objective": "CMT-DN-U11-O03",
+      "concept_candidates": [
+        "요구사항 해석과 시험목표",
+        "증적·finding·retest·보고서",
+        "암호모듈 범위·보증경계"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "chain of custody",
+      "prompt": "증거가 언제 누구에 의해 수집·보관되었는지 추적하는 기록을 무엇이라 하는가?",
+      "canonical_answer": "chain of custody",
+      "accepted_answers": [
+        "증거 보관 연속성",
+        "custody chain"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "증거의 생성·이동·보관 이력은 신뢰성과 재현성에 영향을 준다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q108",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U11",
+      "objective": "CMT-DN-U11-O04",
+      "concept_candidates": [
+        "요구사항 해석과 시험목표",
+        "증적·finding·retest·보고서",
+        "암호모듈 범위·보증경계"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "최소수집",
+      "prompt": "시험 로그에 민감정보가 포함될 수 있을 때 적용할 원칙은?",
+      "canonical_answer": "필요 최소한만 수집하고 마스킹·접근통제를 적용한다.",
+      "accepted_answers": [
+        "data minimization",
+        "최소수집과 마스킹"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "증거 확보와 개인정보·CSP 노출 최소화를 함께 고려한다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q109",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U11",
+      "objective": "CMT-DN-U11-O01",
+      "concept_candidates": [
+        "요구사항 해석과 시험목표",
+        "증적·finding·retest·보고서",
+        "암호모듈 범위·보증경계"
+      ],
+      "type": "DESCRIPTIVE",
+      "topic": "절차 작성",
+      "prompt": "가상 API의 권한 거부 시험을 재현 가능한 절차로 작성하라. 단, 실제 비밀값은 사용하지 않는다.",
+      "rubric": [
+        "synthetic role·credential과 초기 상태를 정의한다(2점).",
+        "허용되지 않은 서비스를 호출하는 행동을 정의한다(2점).",
+        "기대 오류·상태 불변성·로그를 정의한다(2점).",
+        "민감값 없는 artifact 보존과 재현 정보를 정의한다(2점)."
+      ],
+      "explanation": "좋은 절차는 안전한 synthetic 입력만으로도 조건과 기대 결과를 반복 가능하게 한다.",
+      "difficulty": "ADVANCED",
+      "cognitive": "EVALUATE",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q110",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U11",
+      "objective": "CMT-DN-U11-O02",
+      "concept_candidates": [
+        "요구사항 해석과 시험목표",
+        "증적·finding·retest·보고서",
+        "암호모듈 범위·보증경계"
+      ],
+      "type": "DESCRIPTIVE",
+      "topic": "증거 관리",
+      "prompt": "오류 로그는 존재하지만 timestamp, build ID, 수집자, 원본 hash가 없다. 증거의 한계와 보완 조치를 보고하라.",
+      "rubric": [
+        "누락된 provenance 필드를 식별한다(2점).",
+        "재현성과 chain of custody의 영향을 설명한다(2점).",
+        "안전한 재수집 절차를 제안한다(2점).",
+        "현재 로그를 결론의 제한된 보조자료로만 취급한다(2점)."
+      ],
+      "explanation": "로그 내용이 그럴듯해도 생성 조건과 무결성 증거가 부족하면 결론 범위를 제한해야 한다.",
+      "difficulty": "ADVANCED",
+      "cognitive": "EVALUATE",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q111",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U12",
+      "objective": "CMT-DN-U12-O03",
+      "concept_candidates": [
+        "증적·finding·retest·보고서",
+        "요구사항 해석과 시험목표",
+        "self-test·무결성·오류상태"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "finding",
+      "prompt": "시험 결과가 재현되지 않지만 현재 로그도 불충분하다. 가장 정확한 분류는?",
+      "choices": [
+        "무조건 구현 결함",
+        "결론을 지지하는 증거 부족 또는 재현성 finding을 먼저 검토",
+        "무조건 PASS",
+        "시험자 오류로 삭제"
+      ],
+      "answer": 1,
+      "explanation": "증거 부족과 구현 결함은 구분해야 하며, 재현성 gap 자체가 보고 대상일 수 있다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "결론을 지지하는 증거 부족 또는 재현성 finding을 먼저 검토"
+    },
+    {
+      "id": "CMT-DN-Q112",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U12",
+      "objective": "CMT-DN-U12-O04",
+      "concept_candidates": [
+        "증적·finding·retest·보고서",
+        "요구사항 해석과 시험목표",
+        "self-test·무결성·오류상태"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "retest scope",
+      "prompt": "수정 diff가 오류 상태 처리와 관리 API에만 영향을 준다. retest를 정하는 원칙은?",
+      "choices": [
+        "항상 전체 시험 생략",
+        "변경 영향 경계와 의존성을 기준으로 비례적으로 범위화",
+        "무조건 한 테스트만",
+        "무조건 모든 시험 반복"
+      ],
+      "answer": 1,
+      "explanation": "변경 영향에 비례한 retest가 과소·과대 시험을 모두 줄인다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "변경 영향 경계와 의존성을 기준으로 비례적으로 범위화"
+    },
+    {
+      "id": "CMT-DN-Q113",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U12",
+      "objective": "CMT-DN-U12-O01",
+      "concept_candidates": [
+        "증적·finding·retest·보고서",
+        "요구사항 해석과 시험목표",
+        "self-test·무결성·오류상태"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "결론",
+      "prompt": "모든 개별 알고리즘 KAT가 PASS였다. 이 결과로 바로 확정할 수 없는 것은?",
+      "choices": [
+        "KAT 조건에서의 결과",
+        "모듈 전체 보안 요구사항과 운영 통제의 충족",
+        "KAT 로그 존재",
+        "입력/기대 결과의 일부"
+      ],
+      "answer": 1,
+      "explanation": "KAT는 특정 알고리즘 동작의 evidence이지 전체 module assurance가 아니다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "모듈 전체 보안 요구사항과 운영 통제의 충족"
+    },
+    {
+      "id": "CMT-DN-Q114",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U12",
+      "objective": "CMT-DN-U12-O02",
+      "concept_candidates": [
+        "증적·finding·retest·보고서",
+        "요구사항 해석과 시험목표",
+        "self-test·무결성·오류상태"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "finding 문장",
+      "prompt": "가장 재현 가능한 finding 문장은?",
+      "choices": [
+        "제품이 나쁘다.",
+        "오류 상태 X에서 서비스 Y가 계속 성공하여 요구사항 Z의 차단 조건을 충족하지 못했다; 로그 L로 재현됨.",
+        "문서가 부족하다.",
+        "시험에 실패했다."
+      ],
+      "answer": 1,
+      "explanation": "현상·조건·요구사항·증거를 연결한 문장이 재현과 수정 검증에 유리하다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "오류 상태 X에서 서비스 Y가 계속 성공하여 요구사항 Z의 차단 조건을 충족하지 못했다; 로그 L로 재현됨."
+    },
+    {
+      "id": "CMT-DN-Q115",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U12",
+      "objective": "CMT-DN-U12-O03",
+      "concept_candidates": [
+        "증적·finding·retest·보고서",
+        "요구사항 해석과 시험목표",
+        "self-test·무결성·오류상태"
+      ],
+      "type": "MULTIPLE_CHOICE",
+      "topic": "잔여 위험",
+      "prompt": "수정 후 retest가 통과했지만 다른 인터페이스는 시험하지 않았다. 최종 보고서는?",
+      "choices": [
+        "전체 PASS",
+        "수정된 경로의 결과와 미시험 인터페이스의 제한을 분리해 기록",
+        "모든 finding 삭제",
+        "미시험을 숨김"
+      ],
+      "answer": 1,
+      "explanation": "retest 결과는 실제로 수행한 영향 범위 안에서만 결론을 지지한다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "APPLY",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      },
+      "answer_label": "수정된 경로의 결과와 미시험 인터페이스의 제한을 분리해 기록"
+    },
+    {
+      "id": "CMT-DN-Q116",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U12",
+      "objective": "CMT-DN-U12-O04",
+      "concept_candidates": [
+        "증적·finding·retest·보고서",
+        "요구사항 해석과 시험목표",
+        "self-test·무결성·오류상태"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "finding",
+      "prompt": "관찰된 현상, 적용 요구사항, 영향, 증거를 연결해 기록한 판단 항목은?",
+      "canonical_answer": "finding",
+      "accepted_answers": [
+        "발견사항",
+        "finding statement"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "finding은 비난이 아니라 요구사항과 증거에 연결된 재현 가능한 판단이다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q117",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U12",
+      "objective": "CMT-DN-U12-O01",
+      "concept_candidates": [
+        "증적·finding·retest·보고서",
+        "요구사항 해석과 시험목표",
+        "self-test·무결성·오류상태"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "retest",
+      "prompt": "수정 후 변경 영향에 맞춰 다시 수행하는 검증을 무엇이라 하는가?",
+      "canonical_answer": "retest",
+      "accepted_answers": [
+        "재시험",
+        "regression retest"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "retest 범위는 수정 diff와 영향 경계로 정당화한다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q118",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U12",
+      "objective": "CMT-DN-U12-O02",
+      "concept_candidates": [
+        "증적·finding·retest·보고서",
+        "요구사항 해석과 시험목표",
+        "self-test·무결성·오류상태"
+      ],
+      "type": "SHORT_ANSWER",
+      "topic": "잔여 위험",
+      "prompt": "시험하지 않은 인터페이스가 남아 있을 때 보고서에서 명시해야 하는 것은?",
+      "canonical_answer": "결론의 제한과 잔여 위험",
+      "accepted_answers": [
+        "scope limitation and residual risk",
+        "미시험 범위와 잔여 위험"
+      ],
+      "normalization": "Unicode NFC; trim; collapse whitespace; case-insensitive for Latin abbreviations; do not require one exact Korean surface form.",
+      "explanation": "미시험을 숨기지 않고 결론 적용범위를 제한한다.",
+      "difficulty": "INTERMEDIATE",
+      "cognitive": "UNDERSTAND",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q119",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U12",
+      "objective": "CMT-DN-U12-O03",
+      "concept_candidates": [
+        "증적·finding·retest·보고서",
+        "요구사항 해석과 시험목표",
+        "self-test·무결성·오류상태"
+      ],
+      "type": "DESCRIPTIVE",
+      "topic": "통합 finding",
+      "prompt": "가상 모듈에서 오류 상태 차단, 키 zeroization, 업데이트 rollback 세 finding이 발견되었다. 수정 후 retest matrix와 최종 결론의 작성 원칙을 제시하라.",
+      "rubric": [
+        "각 finding의 요구사항·증거·원인·수정 diff를 분리한다(2점).",
+        "영향 경계에 따라 각 retest와 공통 회귀시험을 정한다(2점).",
+        "통과하지 않은 경로와 미시험 경로를 명시한다(2점).",
+        "개별 PASS를 전체 assurance로 과장하지 않는다(2점)."
+      ],
+      "explanation": "종합 보고서는 finding별 증거와 영향 범위를 보존하면서 최종 결론의 한계를 명시해야 한다.",
+      "difficulty": "ADVANCED",
+      "cognitive": "EVALUATE",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    },
+    {
+      "id": "CMT-DN-Q120",
+      "course": "course-crypto-module-tester",
+      "learning_unit": "U12",
+      "objective": "CMT-DN-U12-O04",
+      "concept_candidates": [
+        "증적·finding·retest·보고서",
+        "요구사항 해석과 시험목표",
+        "self-test·무결성·오류상태"
+      ],
+      "type": "DESCRIPTIVE",
+      "topic": "증거 부족 vs 결함",
+      "prompt": "공급자는 zeroization 완료를 주장하지만 메모리 잔존 시험의 raw evidence를 제공하지 못한다. 결함으로 단정할 때와 evidence gap으로 기록할 때를 구분하라.",
+      "rubric": [
+        "현재 확보된 사실과 주장/미확인 사실을 분리한다(2점).",
+        "직접 잔존 관찰이 있으면 결함 가설의 근거가 됨을 설명한다(2점).",
+        "관찰이 없으면 요구된 assurance를 지지하지 못하는 evidence gap으로 기록한다(2점).",
+        "안전한 독립 시험과 retest 절차를 제시한다(2점)."
+      ],
+      "explanation": "결론은 증거 수준에 맞춰야 하며, 미확인과 반증된 동작을 같은 finding으로 쓰면 안 된다.",
+      "difficulty": "ADVANCED",
+      "cognitive": "EVALUATE",
+      "authoring": {
+        "independent": true,
+        "basis": "concept + objective + novel synthetic scenario",
+        "source_question_mapping": "NONE",
+        "source_wording_ingestion": 0,
+        "source_image_dependency": 0
+      }
+    }
+  ]
+}

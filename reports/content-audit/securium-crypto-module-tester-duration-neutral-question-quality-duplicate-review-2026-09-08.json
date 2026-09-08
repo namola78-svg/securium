@@ -1,0 +1,57 @@
+{
+  "schema": "securium.crypto_module_tester.question_quality_duplicate_review.v1",
+  "assessment_authority_count": 1,
+  "question_count": 120,
+  "distribution": {
+    "MULTIPLE_CHOICE": 60,
+    "SHORT_ANSWER": 36,
+    "DESCRIPTIVE": 24
+  },
+  "stable_ids": {
+    "unique": 120,
+    "sequential": true
+  },
+  "binding": {
+    "unknown_units": [],
+    "unknown_objectives": [],
+    "course_mismatch": []
+  },
+  "duplicates": {
+    "exact": 0,
+    "normalized": 0,
+    "material_semantic": 0,
+    "material_ambiguity": 0,
+    "semantic_review": "All prompt pairs were independently reviewed at concept/scenario level; no material duplicate found."
+  },
+  "mcq": {
+    "count": 60,
+    "four_choices": 60,
+    "unique_choices": 60,
+    "valid_answer_index": 60,
+    "one_best_answer_governed": true,
+    "distractor_leakage": 0,
+    "multiple_correct_defects": 0
+  },
+  "short_answer": {
+    "count": 36,
+    "normalization_rules": 36,
+    "accepted_answers": 36
+  },
+  "descriptive": {
+    "count": 24,
+    "rubrics": 24,
+    "point_items": 24,
+    "partial_credit_logic": "itemized point rubric for every descriptive question",
+    "unacceptable_misconception": "handled in unit misconceptions and explanation boundaries where relevant"
+  },
+  "explanations": {
+    "coverage": "120/120",
+    "objective_binding": "PASS",
+    "source_copying": 0,
+    "unsupported_official_claims": 0
+  },
+  "semantic_hash": "15af4398a54727017b7ddb1fbc880e85eb794e9d3887605160f65c90c36b6d98",
+  "source_question_ingestion": 0,
+  "source_question_reconstruction_high_risk": 0,
+  "ocr_canonicalization": 0
+}

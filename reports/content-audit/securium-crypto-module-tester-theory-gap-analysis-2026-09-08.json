@@ -1,0 +1,135 @@
+{
+  "schema": "securium.crypto_module_tester.theory_gap_analysis.v1",
+  "baseline": {
+    "legacy_theory_units": 8,
+    "legacy_objectives": 32,
+    "legacy_questions": 40,
+    "legacy_labs": 8
+  },
+  "salvage": [
+    {
+      "legacy_units": [
+        "H01",
+        "H08"
+      ],
+      "new_unit": "U01",
+      "classification": "SUPPORTED_WITH_RESTRUCTURE",
+      "reason": "Independent content semantics preserved; duration/module authority removed."
+    },
+    {
+      "legacy_units": [
+        "H01",
+        "H02",
+        "H08"
+      ],
+      "new_unit": "U02",
+      "classification": "SUPPORTED_WITH_RESTRUCTURE",
+      "reason": "Independent content semantics preserved; duration/module authority removed."
+    },
+    {
+      "legacy_units": [
+        "H03",
+        "H01"
+      ],
+      "new_unit": "U03",
+      "classification": "SUPPORTED_WITH_RESTRUCTURE",
+      "reason": "Independent content semantics preserved; duration/module authority removed."
+    },
+    {
+      "legacy_units": [
+        "H04",
+        "H03"
+      ],
+      "new_unit": "U04",
+      "classification": "SUPPORTED_WITH_RESTRUCTURE",
+      "reason": "Independent content semantics preserved; duration/module authority removed."
+    },
+    {
+      "legacy_units": [
+        "H02",
+        "H04",
+        "H07"
+      ],
+      "new_unit": "U05",
+      "classification": "SUPPORTED_WITH_RESTRUCTURE",
+      "reason": "Independent content semantics preserved; duration/module authority removed."
+    },
+    {
+      "legacy_units": [
+        "H02",
+        "H07"
+      ],
+      "new_unit": "U06",
+      "classification": "SUPPORTED_WITH_RESTRUCTURE",
+      "reason": "Independent content semantics preserved; duration/module authority removed."
+    },
+    {
+      "legacy_units": [
+        "H02",
+        "H07"
+      ],
+      "new_unit": "U07",
+      "classification": "SUPPORTED_WITH_RESTRUCTURE",
+      "reason": "Independent content semantics preserved; duration/module authority removed."
+    },
+    {
+      "legacy_units": [
+        "H05",
+        "H08"
+      ],
+      "new_unit": "U08",
+      "classification": "SUPPORTED_WITH_RESTRUCTURE",
+      "reason": "Independent content semantics preserved; duration/module authority removed."
+    },
+    {
+      "legacy_units": [
+        "H06"
+      ],
+      "new_unit": "U09",
+      "classification": "SUPPORTED_WITH_RESTRUCTURE",
+      "reason": "Independent content semantics preserved; duration/module authority removed."
+    },
+    {
+      "legacy_units": [
+        "H06",
+        "H07"
+      ],
+      "new_unit": "U10",
+      "classification": "SUPPORTED_WITH_RESTRUCTURE",
+      "reason": "Independent content semantics preserved; duration/module authority removed."
+    },
+    {
+      "legacy_units": [
+        "H01",
+        "H08"
+      ],
+      "new_unit": "U11",
+      "classification": "SUPPORTED_WITH_RESTRUCTURE",
+      "reason": "Independent content semantics preserved; duration/module authority removed."
+    },
+    {
+      "legacy_units": [
+        "H08",
+        "H05"
+      ],
+      "new_unit": "U12",
+      "classification": "SUPPORTED_WITH_RESTRUCTURE",
+      "reason": "Independent content semantics preserved; duration/module authority removed."
+    }
+  ],
+  "gaps_addressed": [
+    "explicit tester evidence chain",
+    "entropy/source/DRBG separation",
+    "hash versus authenticity",
+    "algorithm strength versus module assurance",
+    "key lifecycle and zeroization evidence",
+    "configuration/update/rollback assurance",
+    "finding/retest boundary reasoning",
+    "typed assessment and descriptive rubrics"
+  ],
+  "unresolved": [
+    "official 12-field labels and order",
+    "official total education hours",
+    "official exam format, duration, weighting, pass threshold"
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "schema": "securium.crypto_module_tester.duration_neutral_validator.v1",
+  "status": "PASS",
+  "failures": [],
+  "counts": {
+    "MULTIPLE_CHOICE": 60,
+    "SHORT_ANSWER": 36,
+    "DESCRIPTIVE": 24
+  },
+  "question_count": 120,
+  "explanation_coverage": "120/120",
+  "semantic_hash": "15af4398a54727017b7ddb1fbc880e85eb794e9d3887605160f65c90c36b6d98",
+  "mutation_tests": {
+    "missing_unit": "PASS_REJECTED",
+    "duplicate_question_id": "PASS_REJECTED",
+    "missing_explanation": "PASS_REJECTED",
+    "wrong_binding": "PASS_REJECTED",
+    "unsupported_duration": "PASS_REJECTED",
+    "prohibited_source_field": "PASS_REJECTED"
+  },
+  "authority_paths": {
+    "theory": "content-drafts/crypto-module-tester-duration-neutral/theory-authority.json",
+    "objectives": "content-drafts/crypto-module-tester-duration-neutral/objective-authority.json",
+    "assessment": "content-drafts/crypto-module-tester-duration-neutral/assessment-authority.json"
+  },
+  "source_boundary": {
+    "direct_question_ingestion": 0,
+    "ocr_canonicalization": 0,
+    "source_image_exposure": 0
+  },
+  "no_canonical_writes": 0
+}

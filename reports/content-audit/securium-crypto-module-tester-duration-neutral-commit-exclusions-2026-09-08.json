@@ -1,0 +1,1034 @@
+{
+  "schema": "securium.crypto_module_tester.bounded_commit_exclusions.v1",
+  "exclusion_count": 171,
+  "duplicate_paths": 0,
+  "unknown_exclusions": [],
+  "paths": [
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q001.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q002.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q003.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q004.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q005.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q006.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q007.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q008.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q009.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q010.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q011.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q012.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q013.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q014.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q015.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q016.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q017.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q018.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q019.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q020.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q021.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q022.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q023.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q024.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q025.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q026.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q027.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q028.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q029.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q030.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q031.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q032.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q033.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q034.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q035.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q036.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q037.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q038.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q039.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q040.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q041.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q042.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q043.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q044.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q045.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q046.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q047.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q048.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q049.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q050.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q051.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q052.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q053.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q054.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q055.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q056.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q057.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q058.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q059.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q060.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q061.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q062.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q063.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q064.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q065.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q066.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q067.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q068.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q069.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q070.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q071.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q072.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q073.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q074.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q075.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q076.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q077.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q078.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q079.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q080.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q081.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q082.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q083.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q084.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q085.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q086.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q087.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q088.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q089.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q090.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q091.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q092.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q093.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q094.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q095.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q096.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q097.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q098.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q099.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q100.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q101.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q102.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q103.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q104.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q105.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q106.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q107.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q108.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q109.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q110.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q111.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q112.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q113.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q114.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q115.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q116.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q117.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q118.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q119.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/CMT-DN-Q120.md",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/descriptive.json",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/multiple-choice.json",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/assessment/short-answer.json",
+      "category": "GENERATED_PROJECTION_OPTIONAL",
+      "decision": "EXCLUDE",
+      "reason": "regenerable typed/question projections; authority JSON is sufficient"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester/assessment-authority.json",
+      "category": "SUPERSEDED_8H_ARTIFACT",
+      "decision": "EXCLUDE",
+      "reason": "legacy unsupported 8H authority; preserved as historical worktree evidence"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester/concept-candidates.json",
+      "category": "SUPERSEDED_8H_ARTIFACT",
+      "decision": "EXCLUDE",
+      "reason": "legacy unsupported 8H authority; preserved as historical worktree evidence"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester/course.json",
+      "category": "SUPERSEDED_8H_ARTIFACT",
+      "decision": "EXCLUDE",
+      "reason": "legacy unsupported 8H authority; preserved as historical worktree evidence"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester/labs/labs.json",
+      "category": "SUPERSEDED_8H_ARTIFACT",
+      "decision": "EXCLUDE",
+      "reason": "legacy unsupported 8H authority; preserved as historical worktree evidence"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester/modules/H01.md",
+      "category": "SUPERSEDED_8H_ARTIFACT",
+      "decision": "EXCLUDE",
+      "reason": "legacy unsupported 8H authority; preserved as historical worktree evidence"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester/modules/H02.md",
+      "category": "SUPERSEDED_8H_ARTIFACT",
+      "decision": "EXCLUDE",
+      "reason": "legacy unsupported 8H authority; preserved as historical worktree evidence"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester/modules/H03.md",
+      "category": "SUPERSEDED_8H_ARTIFACT",
+      "decision": "EXCLUDE",
+      "reason": "legacy unsupported 8H authority; preserved as historical worktree evidence"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester/modules/H04.md",
+      "category": "SUPERSEDED_8H_ARTIFACT",
+      "decision": "EXCLUDE",
+      "reason": "legacy unsupported 8H authority; preserved as historical worktree evidence"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester/modules/H05.md",
+      "category": "SUPERSEDED_8H_ARTIFACT",
+      "decision": "EXCLUDE",
+      "reason": "legacy unsupported 8H authority; preserved as historical worktree evidence"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester/modules/H06.md",
+      "category": "SUPERSEDED_8H_ARTIFACT",
+      "decision": "EXCLUDE",
+      "reason": "legacy unsupported 8H authority; preserved as historical worktree evidence"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester/modules/H07.md",
+      "category": "SUPERSEDED_8H_ARTIFACT",
+      "decision": "EXCLUDE",
+      "reason": "legacy unsupported 8H authority; preserved as historical worktree evidence"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester/modules/H08.md",
+      "category": "SUPERSEDED_8H_ARTIFACT",
+      "decision": "EXCLUDE",
+      "reason": "legacy unsupported 8H authority; preserved as historical worktree evidence"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester/objectives.json",
+      "category": "SUPERSEDED_8H_ARTIFACT",
+      "decision": "EXCLUDE",
+      "reason": "legacy unsupported 8H authority; preserved as historical worktree evidence"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-12-field-authority-candidate-manifest-2026-09-08.json",
+      "category": "HISTORICAL_REPORT",
+      "decision": "EXCLUDE",
+      "reason": "prior gate report; not required for smallest current commit set"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-assessment-manifest-2026-09-08.json",
+      "category": "HISTORICAL_REPORT",
+      "decision": "EXCLUDE",
+      "reason": "prior gate report; not required for smallest current commit set"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-curriculum-authority-manifest-2026-09-08.json",
+      "category": "HISTORICAL_REPORT",
+      "decision": "EXCLUDE",
+      "reason": "prior gate report; not required for smallest current commit set"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-curriculum-evidence-manifest-2026-09-08.json",
+      "category": "HISTORICAL_REPORT",
+      "decision": "EXCLUDE",
+      "reason": "prior gate report; not required for smallest current commit set"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-curriculum-reassessment-2026-09-08.json",
+      "category": "HISTORICAL_REPORT",
+      "decision": "EXCLUDE",
+      "reason": "prior gate report; not required for smallest current commit set"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-curriculum-reassessment-2026-09-08.md",
+      "category": "HISTORICAL_REPORT",
+      "decision": "EXCLUDE",
+      "reason": "prior gate report; not required for smallest current commit set"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-curriculum-reassessment-sha256-2026-09-08.txt",
+      "category": "HISTORICAL_REPORT",
+      "decision": "EXCLUDE",
+      "reason": "prior gate report; not required for smallest current commit set"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-duration-neutral-content-foundation-independent-final-review-2026-09-08.json",
+      "category": "HISTORICAL_REPORT",
+      "decision": "EXCLUDE",
+      "reason": "prior gate report; not required for smallest current commit set"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-duration-neutral-content-foundation-independent-final-review-2026-09-08.md",
+      "category": "HISTORICAL_REPORT",
+      "decision": "EXCLUDE",
+      "reason": "prior gate report; not required for smallest current commit set"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-duration-neutral-content-foundation-independent-review-sha256-2026-09-08.txt",
+      "category": "HISTORICAL_REPORT",
+      "decision": "EXCLUDE",
+      "reason": "prior gate report; not required for smallest current commit set"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-duration-neutral-generated-artifacts-sha256-2026-09-08.txt",
+      "category": "INTERMEDIATE",
+      "decision": "EXCLUDE",
+      "reason": "superseded/pre-final generation output; final independent review is the durable evidence"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-duration-neutral-theory-and-original-question-bank-2026-09-08.json",
+      "category": "INTERMEDIATE",
+      "decision": "EXCLUDE",
+      "reason": "superseded/pre-final generation output; final independent review is the durable evidence"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-duration-neutral-theory-and-original-question-bank-2026-09-08.md",
+      "category": "INTERMEDIATE",
+      "decision": "EXCLUDE",
+      "reason": "superseded/pre-final generation output; final independent review is the durable evidence"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-duration-neutral-theory-and-original-question-bank-final-2026-09-08.json",
+      "category": "INTERMEDIATE",
+      "decision": "EXCLUDE",
+      "reason": "superseded/pre-final generation output; final independent review is the durable evidence"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-duration-neutral-theory-and-original-question-bank-final-2026-09-08.md",
+      "category": "INTERMEDIATE",
+      "decision": "EXCLUDE",
+      "reason": "superseded/pre-final generation output; final independent review is the durable evidence"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-exact-curriculum-gap-manifest-2026-09-08.json",
+      "category": "HISTORICAL_REPORT",
+      "decision": "EXCLUDE",
+      "reason": "prior gate report; not required for smallest current commit set"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-foundation-salvage-rebind-manifest-2026-09-08.json",
+      "category": "HISTORICAL_REPORT",
+      "decision": "EXCLUDE",
+      "reason": "prior gate report; not required for smallest current commit set"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-foundation-wave-a-independent-review-2026-09-08.json",
+      "category": "HISTORICAL_REPORT",
+      "decision": "EXCLUDE",
+      "reason": "prior gate report; not required for smallest current commit set"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-foundation-wave-a-independent-review-2026-09-08.md",
+      "category": "HISTORICAL_REPORT",
+      "decision": "EXCLUDE",
+      "reason": "prior gate report; not required for smallest current commit set"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-foundation-wave-a-independent-review-reports-sha256-2026-09-08.txt",
+      "category": "HISTORICAL_REPORT",
+      "decision": "EXCLUDE",
+      "reason": "prior gate report; not required for smallest current commit set"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-generated-artifacts-sha256-2026-09-08.txt",
+      "category": "HISTORICAL_REPORT",
+      "decision": "EXCLUDE",
+      "reason": "prior gate report; not required for smallest current commit set"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-official-attachment-inventory-2026-09-08.json",
+      "category": "HISTORICAL_REPORT",
+      "decision": "EXCLUDE",
+      "reason": "prior gate report; not required for smallest current commit set"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-official-curriculum-authority-2026-09-08.json",
+      "category": "HISTORICAL_REPORT",
+      "decision": "EXCLUDE",
+      "reason": "prior gate report; not required for smallest current commit set"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-official-curriculum-authority-2026-09-08.md",
+      "category": "HISTORICAL_REPORT",
+      "decision": "EXCLUDE",
+      "reason": "prior gate report; not required for smallest current commit set"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-official-curriculum-reassessment-sha256-2026-09-08.txt",
+      "category": "HISTORICAL_REPORT",
+      "decision": "EXCLUDE",
+      "reason": "prior gate report; not required for smallest current commit set"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-official-vs-securium-coverage-2026-09-08.json",
+      "category": "HISTORICAL_REPORT",
+      "decision": "EXCLUDE",
+      "reason": "prior gate report; not required for smallest current commit set"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-official-vs-securium-coverage-gap-review-2026-09-08.json",
+      "category": "HISTORICAL_REPORT",
+      "decision": "EXCLUDE",
+      "reason": "prior gate report; not required for smallest current commit set"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-partial-curriculum-authority-gap-review-2026-09-08.json",
+      "category": "HISTORICAL_REPORT",
+      "decision": "EXCLUDE",
+      "reason": "prior gate report; not required for smallest current commit set"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-partial-curriculum-authority-gap-review-2026-09-08.md",
+      "category": "HISTORICAL_REPORT",
+      "decision": "EXCLUDE",
+      "reason": "prior gate report; not required for smallest current commit set"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-partial-curriculum-authority-gap-review-sha256-2026-09-08.txt",
+      "category": "HISTORICAL_REPORT",
+      "decision": "EXCLUDE",
+      "reason": "prior gate report; not required for smallest current commit set"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-rights-provenance-2026-09-08.json",
+      "category": "HISTORICAL_REPORT",
+      "decision": "EXCLUDE",
+      "reason": "prior gate report; not required for smallest current commit set"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-source-audit-foundation-wave-a-2026-09-08.json",
+      "category": "HISTORICAL_REPORT",
+      "decision": "EXCLUDE",
+      "reason": "prior gate report; not required for smallest current commit set"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-source-audit-foundation-wave-a-2026-09-08.md",
+      "category": "HISTORICAL_REPORT",
+      "decision": "EXCLUDE",
+      "reason": "prior gate report; not required for smallest current commit set"
+    },
+    {
+      "path": "scripts/finalize-crypto-module-tester-duration-neutral-review.mjs",
+      "category": "INTERMEDIATE",
+      "decision": "EXCLUDE",
+      "reason": "superseded/pre-final generation output; final independent review is the durable evidence"
+    },
+    {
+      "path": "scripts/validate-crypto-module-tester-foundation.mjs",
+      "category": "SUPERSEDED_8H_ARTIFACT",
+      "decision": "EXCLUDE",
+      "reason": "legacy unsupported 8H authority; preserved as historical worktree evidence"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "schema": "securium.crypto_module_tester.downstream_readiness.v1",
+  "foundation": "PASS",
+  "curriculum_rebind": "WAIT_FOR_EXACT_12_FIELD_OFFICIAL_AUTHORITY",
+  "mock_implementation": "READY_FOR_EXAMINEE_OBSERVATION_MOCK_IMPLEMENTATION",
+  "practical_wave_b": "WAIT_FOR_CURRICULUM_REBIND",
+  "commit": "READY",
+  "ontology_skill_role_evidence_writes": 0,
+  "executable_labs": 0,
+  "next_gate": "COMMIT_REVIEW_SECURIUM_CRYPTO_MODULE_TESTER_DURATION_NEUTRAL_CONTENT_FOUNDATION"
+}

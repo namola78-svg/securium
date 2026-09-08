@@ -1,0 +1,542 @@
+{
+  "schema": "securium.crypto_module_tester.objective_authority.v1",
+  "authority_count": 1,
+  "course_id": "course-crypto-module-tester",
+  "status": "DRAFT",
+  "objectives": [
+    {
+      "id": "CMT-DN-U01-O01",
+      "learning_unit": "U01",
+      "text": "시험 대상과 제외 범위를 식별한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H01",
+        "H08"
+      ]
+    },
+    {
+      "id": "CMT-DN-U01-O02",
+      "learning_unit": "U01",
+      "text": "보증경계를 데이터 흐름과 책임 주체로 설명한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H01",
+        "H08"
+      ]
+    },
+    {
+      "id": "CMT-DN-U01-O03",
+      "learning_unit": "U01",
+      "text": "요구사항을 시험목표·사전조건·판정기준으로 분해한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H01",
+        "H08"
+      ]
+    },
+    {
+      "id": "CMT-DN-U01-O04",
+      "learning_unit": "U01",
+      "text": "관찰·증거·finding·결론을 구분해 기록한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H01",
+        "H08"
+      ]
+    },
+    {
+      "id": "CMT-DN-U02-O01",
+      "learning_unit": "U02",
+      "text": "관련 표준과 적용 버전을 확인한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H01",
+        "H02",
+        "H08"
+      ]
+    },
+    {
+      "id": "CMT-DN-U02-O02",
+      "learning_unit": "U02",
+      "text": "표준 기반 요구사항을 독립적인 testable claim으로 바꾼다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H01",
+        "H02",
+        "H08"
+      ]
+    },
+    {
+      "id": "CMT-DN-U02-O03",
+      "learning_unit": "U02",
+      "text": "알고리즘 적합성 주장과 모듈 assurance 주장을 구분한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H01",
+        "H02",
+        "H08"
+      ]
+    },
+    {
+      "id": "CMT-DN-U02-O04",
+      "learning_unit": "U02",
+      "text": "요구사항-절차-증거 traceability의 누락을 판단한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H01",
+        "H02",
+        "H08"
+      ]
+    },
+    {
+      "id": "CMT-DN-U03-O01",
+      "learning_unit": "U03",
+      "text": "모듈 명세의 구성요소와 의존성을 식별한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H03",
+        "H01"
+      ]
+    },
+    {
+      "id": "CMT-DN-U03-O02",
+      "learning_unit": "U03",
+      "text": "논리적 경계와 물리적 경계를 구분한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H03",
+        "H01"
+      ]
+    },
+    {
+      "id": "CMT-DN-U03-O03",
+      "learning_unit": "U03",
+      "text": "입력·출력·제어·상태 인터페이스를 분류한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H03",
+        "H01"
+      ]
+    },
+    {
+      "id": "CMT-DN-U03-O04",
+      "learning_unit": "U03",
+      "text": "민감정보의 경계 통과와 잔존 지점을 추적한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H03",
+        "H01"
+      ]
+    },
+    {
+      "id": "CMT-DN-U04-O01",
+      "learning_unit": "U04",
+      "text": "서비스와 역할의 관계를 설명한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H04",
+        "H03"
+      ]
+    },
+    {
+      "id": "CMT-DN-U04-O02",
+      "learning_unit": "U04",
+      "text": "인증과 권한부여의 실패를 구분한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H04",
+        "H03"
+      ]
+    },
+    {
+      "id": "CMT-DN-U04-O03",
+      "learning_unit": "U04",
+      "text": "서비스 matrix에서 최소권한 위반을 식별한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H04",
+        "H03"
+      ]
+    },
+    {
+      "id": "CMT-DN-U04-O04",
+      "learning_unit": "U04",
+      "text": "거부 응답과 상태 불변성을 증거로 평가한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H04",
+        "H03"
+      ]
+    },
+    {
+      "id": "CMT-DN-U05-O01",
+      "learning_unit": "U05",
+      "text": "CSP와 일반 데이터를 구분한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H02",
+        "H04",
+        "H07"
+      ]
+    },
+    {
+      "id": "CMT-DN-U05-O02",
+      "learning_unit": "U05",
+      "text": "키 생성·저장·사용·백업·폐기 단계를 추적한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H02",
+        "H04",
+        "H07"
+      ]
+    },
+    {
+      "id": "CMT-DN-U05-O03",
+      "learning_unit": "U05",
+      "text": "zeroization 주장에 필요한 관찰과 전제조건을 제시한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H02",
+        "H04",
+        "H07"
+      ]
+    },
+    {
+      "id": "CMT-DN-U05-O04",
+      "learning_unit": "U05",
+      "text": "수명주기 변경이 접근통제와 잔존 위험에 미치는 영향을 분석한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H02",
+        "H04",
+        "H07"
+      ]
+    },
+    {
+      "id": "CMT-DN-U06-O01",
+      "learning_unit": "U06",
+      "text": "대칭키·공개키·해시·MAC의 목적을 구분한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H02",
+        "H07"
+      ]
+    },
+    {
+      "id": "CMT-DN-U06-O02",
+      "learning_unit": "U06",
+      "text": "모드·키 길이·nonce·입력 검증의 적합성을 평가한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H02",
+        "H07"
+      ]
+    },
+    {
+      "id": "CMT-DN-U06-O03",
+      "learning_unit": "U06",
+      "text": "알고리즘 승인과 구현 assurance의 차이를 설명한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H02",
+        "H07"
+      ]
+    },
+    {
+      "id": "CMT-DN-U06-O04",
+      "learning_unit": "U06",
+      "text": "경계값 입력 결과에서 구현 적합성 결함을 식별한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H02",
+        "H07"
+      ]
+    },
+    {
+      "id": "CMT-DN-U07-O01",
+      "learning_unit": "U07",
+      "text": "entropy source와 DRBG의 역할을 구분한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H02",
+        "H07"
+      ]
+    },
+    {
+      "id": "CMT-DN-U07-O02",
+      "learning_unit": "U07",
+      "text": "초기화·재시드·상태·출력의 trace를 분석한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H02",
+        "H07"
+      ]
+    },
+    {
+      "id": "CMT-DN-U07-O03",
+      "learning_unit": "U07",
+      "text": "health test와 실패 시 출력 차단을 검증한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H02",
+        "H07"
+      ]
+    },
+    {
+      "id": "CMT-DN-U07-O04",
+      "learning_unit": "U07",
+      "text": "출력 통계만으로 entropy assurance를 결론 내릴 수 없는 이유를 설명한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H02",
+        "H07"
+      ]
+    },
+    {
+      "id": "CMT-DN-U08-O01",
+      "learning_unit": "U08",
+      "text": "기동시험과 조건부 시험을 구분한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H05",
+        "H08"
+      ]
+    },
+    {
+      "id": "CMT-DN-U08-O02",
+      "learning_unit": "U08",
+      "text": "무결성 검증의 대상과 한계를 설명한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H05",
+        "H08"
+      ]
+    },
+    {
+      "id": "CMT-DN-U08-O03",
+      "learning_unit": "U08",
+      "text": "시험 실패 후 오류상태와 서비스 차단을 분석한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H05",
+        "H08"
+      ]
+    },
+    {
+      "id": "CMT-DN-U08-O04",
+      "learning_unit": "U08",
+      "text": "self-test PASS가 보장하지 않는 주장을 식별한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H05",
+        "H08"
+      ]
+    },
+    {
+      "id": "CMT-DN-U09-O01",
+      "learning_unit": "U09",
+      "text": "물리·운영·환경 통제의 책임 주체를 분류한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H06"
+      ]
+    },
+    {
+      "id": "CMT-DN-U09-O02",
+      "learning_unit": "U09",
+      "text": "구성 기준선과 변경 추적 증거를 평가한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H06"
+      ]
+    },
+    {
+      "id": "CMT-DN-U09-O03",
+      "learning_unit": "U09",
+      "text": "물리적 흔적과 공격 완화 주장을 구분한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H06"
+      ]
+    },
+    {
+      "id": "CMT-DN-U09-O04",
+      "learning_unit": "U09",
+      "text": "시험환경과 운영환경의 차이가 결론에 미치는 영향을 분석한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H06"
+      ]
+    },
+    {
+      "id": "CMT-DN-U10-O01",
+      "learning_unit": "U10",
+      "text": "실행 artifact의 버전과 빌드 식별자를 trace한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H06",
+        "H07"
+      ]
+    },
+    {
+      "id": "CMT-DN-U10-O02",
+      "learning_unit": "U10",
+      "text": "hash 기반 동일성 확인과 출처 인증을 구분한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H06",
+        "H07"
+      ]
+    },
+    {
+      "id": "CMT-DN-U10-O03",
+      "learning_unit": "U10",
+      "text": "업데이트·검증·롤백의 실패 경로를 시험한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H06",
+        "H07"
+      ]
+    },
+    {
+      "id": "CMT-DN-U10-O04",
+      "learning_unit": "U10",
+      "text": "구성 변경이 기존 시험 결과를 무효화하는지 판단한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H06",
+        "H07"
+      ]
+    },
+    {
+      "id": "CMT-DN-U11-O01",
+      "learning_unit": "U11",
+      "text": "시험 절차의 사전조건·행동·기대결과를 작성한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H01",
+        "H08"
+      ]
+    },
+    {
+      "id": "CMT-DN-U11-O02",
+      "learning_unit": "U11",
+      "text": "관찰 원자료의 출처·시점·환경을 기록한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H01",
+        "H08"
+      ]
+    },
+    {
+      "id": "CMT-DN-U11-O03",
+      "learning_unit": "U11",
+      "text": "증거의 재현성과 민감정보 노출 위험을 평가한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H01",
+        "H08"
+      ]
+    },
+    {
+      "id": "CMT-DN-U11-O04",
+      "learning_unit": "U11",
+      "text": "공급자 주장과 독립 관찰을 증거 class로 분리한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H01",
+        "H08"
+      ]
+    },
+    {
+      "id": "CMT-DN-U12-O01",
+      "learning_unit": "U12",
+      "text": "finding에 현상·요구사항·영향을 연결한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H08",
+        "H05"
+      ]
+    },
+    {
+      "id": "CMT-DN-U12-O02",
+      "learning_unit": "U12",
+      "text": "증거 부족과 구현 결함을 구분한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H08",
+        "H05"
+      ]
+    },
+    {
+      "id": "CMT-DN-U12-O03",
+      "learning_unit": "U12",
+      "text": "수정 diff에서 retest 범위를 도출한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H08",
+        "H05"
+      ]
+    },
+    {
+      "id": "CMT-DN-U12-O04",
+      "learning_unit": "U12",
+      "text": "종합 결론의 범위를 확보된 증거에 맞춰 정당화한다.",
+      "measurable": true,
+      "source_boundary": "SOURCE_COVERAGE_INFORMED_INDEPENDENT_OBJECTIVE",
+      "legacy_lineage": [
+        "H08",
+        "H05"
+      ]
+    }
+  ],
+  "count": 48,
+  "source_provenance": "Source coverage informed; independently authored measurable outcomes."
+}

@@ -1,0 +1,668 @@
+{
+  "schema": "securium.crypto_module_tester.theory_authority.v1",
+  "authority_count": 1,
+  "course_id": "course-crypto-module-tester",
+  "status": "DRAFT",
+  "units": [
+    {
+      "id": "U01",
+      "title": "시험 범위·보증목표·판정 구조",
+      "structure_authority": "SECURIUM_PEDAGOGICAL",
+      "official_claim_boundary": "이 학습단위는 KISA 공식 12개 분야 또는 공식 시간표가 아니다. source evidence에서 안전하게 추출한 coverage를 Securium이 독립적으로 조직한 구조다.",
+      "purpose": "암호모듈 시험의 대상과 제외범위를 정하고 요구사항을 시험 가능한 주장과 증적으로 바꾼다.",
+      "core_concepts": [
+        "암호모듈 범위·보증경계",
+        "요구사항 해석과 시험목표",
+        "증적·finding·retest·보고서"
+      ],
+      "key_terms": [
+        "암호모듈",
+        "보증경계",
+        "시험목표",
+        "관찰",
+        "finding",
+        "retest"
+      ],
+      "principles": [
+        "강한 알고리즘과 검증된 구현의 assurance는 별개의 주장이다.",
+        "요구사항은 주장·조건·관찰방법·판정기준으로 분해해야 재현 가능한 시험이 된다.",
+        "관찰, 해석, finding, 결론은 서로 다른 기록이다."
+      ],
+      "tester_perspective": "시험자는 제품 소개나 공급자 선언을 결론으로 받아들이지 않고, 적용 범위와 판단 기준을 먼저 고정한다.",
+      "evidence_to_check": [
+        "버전이 식별된 명세",
+        "평가 범위/제외 범위",
+        "요구사항-시험목표 trace",
+        "관찰 원자료와 환경 조건",
+        "판정 기준 및 승인 기록"
+      ],
+      "common_misconceptions": [
+        "시험계획서가 있으면 시험이 완료된 것으로 보는 것",
+        "알고리즘 승인만으로 모듈 전체 assurance를 결론 내리는 것",
+        "관찰과 해석을 한 문장으로 합치는 것"
+      ],
+      "judgment_points": [
+        "경계 밖 구성요소가 결과에 영향을 주는지",
+        "시험 조건이 요구사항의 전제와 일치하는지",
+        "결론에 직접 증거가 연결되는지"
+      ],
+      "practical_example": "가상 모듈 v3.2가 HSM 서비스와 관리 콘솔을 함께 제공할 때, 암호 경계·관리 경계·시험 대상 인터페이스를 분리해 범위표를 만든다.",
+      "learning_checkpoints": [
+        "경계를 한 문장으로 설명한다.",
+        "요구사항 하나를 시험목표와 판정기준으로 분해한다.",
+        "관찰과 conclusion을 별도 필드로 기록한다."
+      ],
+      "legacy_lineage": [
+        "H01",
+        "H08"
+      ],
+      "authoring_note": "독립저작. source question wording, choices, answer, screenshot text를 사용하지 않음."
+    },
+    {
+      "id": "U02",
+      "title": "기준·표준·요구사항 해석",
+      "structure_authority": "SECURIUM_PEDAGOGICAL",
+      "official_claim_boundary": "이 학습단위는 KISA 공식 12개 분야 또는 공식 시간표가 아니다. source evidence에서 안전하게 추출한 coverage를 Securium이 독립적으로 조직한 구조다.",
+      "purpose": "KS X ISO/IEC 19790/24759와 관련 요구사항을 독립적 설명으로 해석하고 시험절차에 연결한다.",
+      "core_concepts": [
+        "요구사항 해석과 시험목표",
+        "암호알고리즘·매개변수·적합성",
+        "소프트웨어/펌웨어·수명주기 보증"
+      ],
+      "key_terms": [
+        "KS X ISO/IEC 19790",
+        "KS X ISO/IEC 24759",
+        "요구사항",
+        "적합성",
+        "traceability",
+        "판정기준"
+      ],
+      "principles": [
+        "표준은 시험 범위의 기준을 제공하지만, 시험자가 확인할 구현 증거가 별도로 필요하다.",
+        "표준 구조와 교육과정 구조를 같은 것으로 단정하지 않는다.",
+        "한 요구사항에 여러 시험절차가 필요할 수 있고 한 절차가 여러 증거를 만들 수 있다."
+      ],
+      "tester_perspective": "시험자는 조항을 암기하는 사람이 아니라 적용 조건과 증거 요구를 정확히 연결하는 사람이다.",
+      "evidence_to_check": [
+        "적용 표준/버전",
+        "요구사항 해석 메모",
+        "요구사항-절차-증거 trace",
+        "예외·전제조건 기록",
+        "검토자 확인"
+      ],
+      "common_misconceptions": [
+        "표준 이름이 문서에 있으면 자동 적합이라고 보는 것",
+        "표준 문장을 길게 복사하는 것을 해석으로 오인하는 것",
+        "모든 요구사항에 동일한 시험을 적용하는 것"
+      ],
+      "judgment_points": [
+        "요구사항의 주어와 대상이 무엇인지",
+        "필수 조건과 권고 조건을 구분했는지",
+        "판정에 필요한 최소 증거가 무엇인지"
+      ],
+      "practical_example": "가상 구현이 표준 버전은 선언하지만 특정 모드의 입력 길이 조건을 문서화하지 않았다면, 선언과 적합성 증거의 gap을 분리한다.",
+      "learning_checkpoints": [
+        "표준 관련 설명을 독립적으로 요약한다.",
+        "요구사항을 testable claim으로 바꾼다.",
+        "문서 인용과 구현 증거를 구분한다."
+      ],
+      "legacy_lineage": [
+        "H01",
+        "H02",
+        "H08"
+      ],
+      "authoring_note": "독립저작. source question wording, choices, answer, screenshot text를 사용하지 않음."
+    },
+    {
+      "id": "U03",
+      "title": "모듈 명세·경계·인터페이스 모델",
+      "structure_authority": "SECURIUM_PEDAGOGICAL",
+      "official_claim_boundary": "이 학습단위는 KISA 공식 12개 분야 또는 공식 시간표가 아니다. source evidence에서 안전하게 추출한 coverage를 Securium이 독립적으로 조직한 구조다.",
+      "purpose": "논리적/물리적 경계와 인터페이스를 데이터 흐름 및 상태 변화로 모델링한다.",
+      "core_concepts": [
+        "모듈 명세와 보안기능",
+        "인터페이스·데이터 흐름",
+        "암호모듈 범위·보증경계"
+      ],
+      "key_terms": [
+        "module boundary",
+        "논리적 경계",
+        "물리적 경계",
+        "입력",
+        "출력",
+        "제어",
+        "상태"
+      ],
+      "principles": [
+        "경계는 그림의 외곽선만이 아니라 책임·데이터·상태의 경계다.",
+        "입력/출력/제어/상태 인터페이스는 같은 시험 질문을 갖지 않는다.",
+        "경계 밖 의존성이 보안 기능에 미치는 영향은 별도로 추적해야 한다."
+      ],
+      "tester_perspective": "시험자는 API 목록을 보는 데서 끝나지 않고 민감정보가 어느 경계를 통과하고 어디에 남는지 확인한다.",
+      "evidence_to_check": [
+        "경계 정의와 구성요소 목록",
+        "인터페이스 계약",
+        "데이터 흐름·상태 전이",
+        "외부 의존성",
+        "빌드/배포 식별정보"
+      ],
+      "common_misconceptions": [
+        "논리적 경계와 물리적 경계가 항상 같다고 보는 것",
+        "API 이름만으로 민감정보 흐름을 확정하는 것",
+        "관리 인터페이스를 시험 범위 밖으로 자동 제외하는 것"
+      ],
+      "judgment_points": [
+        "동일 입력이 어느 인터페이스를 통해 들어왔는지",
+        "출력과 오류 응답이 민감정보를 누설하지 않는지",
+        "상태 전이가 경계를 우회하지 않는지"
+      ],
+      "practical_example": "가상 SDK·프로세스·보안 저장소·관리 콘솔이 있는 모듈의 경계도를 그리고, 각 경로에 증적을 배치한다.",
+      "learning_checkpoints": [
+        "경계와 의존성을 말로 설명한다.",
+        "네 종류의 인터페이스를 분류한다.",
+        "민감정보 흐름 하나를 처음부터 끝까지 추적한다."
+      ],
+      "legacy_lineage": [
+        "H03",
+        "H01"
+      ],
+      "authoring_note": "독립저작. source question wording, choices, answer, screenshot text를 사용하지 않음."
+    },
+    {
+      "id": "U04",
+      "title": "서비스·역할·인증·접근통제",
+      "structure_authority": "SECURIUM_PEDAGOGICAL",
+      "official_claim_boundary": "이 학습단위는 KISA 공식 12개 분야 또는 공식 시간표가 아니다. source evidence에서 안전하게 추출한 coverage를 Securium이 독립적으로 조직한 구조다.",
+      "purpose": "서비스가 어떤 역할과 인증 상태에서 허용되는지 검토하고 권한 오류와 인증 오류를 구분한다.",
+      "core_concepts": [
+        "인터페이스·데이터 흐름",
+        "역할·서비스·인증·접근통제",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "key_terms": [
+        "role",
+        "service",
+        "authentication",
+        "authorization",
+        "trusted path",
+        "least privilege"
+      ],
+      "principles": [
+        "인증은 주체 확인이고 권한부여는 수행 가능한 행위 결정이다.",
+        "서비스 matrix는 역할·인증상태·민감 매개변수 접근을 함께 보여줘야 한다.",
+        "관리자라는 이름은 권한의 증거가 아니다."
+      ],
+      "tester_perspective": "시험자는 정상 성공뿐 아니라 거부·오류·경계 조건에서 서비스가 일관되게 제한되는지 확인한다.",
+      "evidence_to_check": [
+        "역할 정의",
+        "서비스 목록",
+        "인증 흐름",
+        "허용/거부 응답",
+        "권한 변경 로그",
+        "CSP 접근 trace"
+      ],
+      "common_misconceptions": [
+        "인증 성공이면 모든 서비스가 허용된다고 보는 것",
+        "권한 오류와 인증 오류를 같은 finding으로 기록하는 것",
+        "UI에서 숨긴 기능은 통제된다고 보는 것"
+      ],
+      "judgment_points": [
+        "인증 전/후 상태가 명확한지",
+        "서비스가 역할에 최소 권한으로 매핑되는지",
+        "거부 시 민감정보·상태가 변하지 않는지"
+      ],
+      "practical_example": "가상 operator와 auditor가 동일 API를 호출할 때, 인증은 성공하지만 CSP export만 거부되어야 하는 matrix를 검증한다.",
+      "learning_checkpoints": [
+        "role/service/authentication/authorization을 각각 정의한다.",
+        "허용·거부 증거를 나란히 비교한다.",
+        "최소권한 결론을 증거로 정당화한다."
+      ],
+      "legacy_lineage": [
+        "H04",
+        "H03"
+      ],
+      "authoring_note": "독립저작. source question wording, choices, answer, screenshot text를 사용하지 않음."
+    },
+    {
+      "id": "U05",
+      "title": "민감 보안 매개변수와 키 수명주기",
+      "structure_authority": "SECURIUM_PEDAGOGICAL",
+      "official_claim_boundary": "이 학습단위는 KISA 공식 12개 분야 또는 공식 시간표가 아니다. source evidence에서 안전하게 추출한 coverage를 Securium이 독립적으로 조직한 구조다.",
+      "purpose": "CSP와 키가 생성부터 폐기까지 어떤 보호 상태를 거치는지 검토하고 zeroization 주장을 검증한다.",
+      "core_concepts": [
+        "역할·서비스·인증·접근통제",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "key_terms": [
+        "CSP",
+        "키 생성",
+        "저장",
+        "사용",
+        "백업",
+        "복구",
+        "폐기",
+        "zeroization"
+      ],
+      "principles": [
+        "키 수명주기 각 단계는 서로 다른 위험과 증거를 갖는다.",
+        "설계 문서의 zeroization 문구는 실행된 zeroization 시험의 대체물이 아니다.",
+        "백업·복구 경로는 원래 운영 경로와 별도로 시험해야 한다."
+      ],
+      "tester_perspective": "시험자는 키가 존재한다는 사실보다 생성 경로, 접근 주체, 잔존 가능성, 삭제 후 검증을 증거화한다.",
+      "evidence_to_check": [
+        "키 생성 trace",
+        "보호 저장소 설정",
+        "접근통제 로그",
+        "백업/복구 정책",
+        "삭제 명령과 관찰",
+        "메모리 잔존 검토"
+      ],
+      "common_misconceptions": [
+        "암호화되어 저장되면 수명주기 통제가 완전하다고 보는 것",
+        "삭제 API 호출을 zeroization 완료로 보는 것",
+        "백업을 키 수명주기 밖으로 보는 것"
+      ],
+      "judgment_points": [
+        "폐기 후 복구·캐시·로그에 잔존하는지",
+        "키 사용 목적과 수명이 분리되는지",
+        "시험 관찰이 저장·메모리·백업을 모두 커버하는지"
+      ],
+      "practical_example": "가상 키 rotation 후 이전 키가 캐시와 진단 로그에 남는 상황에서, 재현 절차와 finding 범위를 설계한다.",
+      "learning_checkpoints": [
+        "CSP와 일반 데이터를 구분한다.",
+        "수명주기 단계별 증거를 나열한다.",
+        "zeroization 결론의 전제와 한계를 명시한다."
+      ],
+      "legacy_lineage": [
+        "H02",
+        "H04",
+        "H07"
+      ],
+      "authoring_note": "독립저작. source question wording, choices, answer, screenshot text를 사용하지 않음."
+    },
+    {
+      "id": "U06",
+      "title": "알고리즘·매개변수·구현 적합성",
+      "structure_authority": "SECURIUM_PEDAGOGICAL",
+      "official_claim_boundary": "이 학습단위는 KISA 공식 12개 분야 또는 공식 시간표가 아니다. source evidence에서 안전하게 추출한 coverage를 Securium이 독립적으로 조직한 구조다.",
+      "purpose": "알고리즘 강도, 승인/적합성, 구현 경로 및 매개변수 검증을 서로 다른 판단으로 수행한다.",
+      "core_concepts": [
+        "암호알고리즘·매개변수·적합성",
+        "엔트로피·RNG·DRBG",
+        "모듈 명세와 보안기능"
+      ],
+      "key_terms": [
+        "대칭키",
+        "공개키",
+        "해시",
+        "MAC",
+        "모드",
+        "키 길이",
+        "nonce",
+        "parameter validation"
+      ],
+      "principles": [
+        "해시 일치만으로 authenticity가 보장되지는 않는다.",
+        "알고리즘 이름이 맞아도 모드·키 길이·nonce 처리·호출 경로가 부적합할 수 있다.",
+        "알고리즘 승인과 모듈 전체 검증은 다른 assurance 주장이다."
+      ],
+      "tester_perspective": "시험자는 알려진 강한 알고리즘의 존재보다 실제 서비스가 승인된 조합과 매개변수 검증을 사용하는지 확인한다.",
+      "evidence_to_check": [
+        "알고리즘/모드/매개변수 선언",
+        "실제 호출 trace",
+        "경계값 거부 결과",
+        "known-answer test 결과",
+        "키 용도 매핑"
+      ],
+      "common_misconceptions": [
+        "키 길이가 길면 모든 구현 문제가 사라진다고 보는 것",
+        "hash가 있으면 발신자 인증이 된다고 보는 것",
+        "성공 응답 하나로 모든 매개변수 경로를 검증했다고 보는 것"
+      ],
+      "judgment_points": [
+        "선언과 실제 실행이 같은지",
+        "경계값과 잘못된 입력을 거부하는지",
+        "검증된 primitive가 올바른 서비스에 연결되는지"
+      ],
+      "practical_example": "가상 MAC API가 정상 길이에서는 성공하지만 빈 메시지와 잘못된 tag 길이를 혼동하는 경우, 입력 검증과 인증 판단을 나눈다.",
+      "learning_checkpoints": [
+        "primitive 목적을 설명한다.",
+        "알고리즘 강도와 구현 assurance를 구분한다.",
+        "매개변수 경계 시험을 설계한다."
+      ],
+      "legacy_lineage": [
+        "H02",
+        "H07"
+      ],
+      "authoring_note": "독립저작. source question wording, choices, answer, screenshot text를 사용하지 않음."
+    },
+    {
+      "id": "U07",
+      "title": "엔트로피·RNG·DRBG 검증",
+      "structure_authority": "SECURIUM_PEDAGOGICAL",
+      "official_claim_boundary": "이 학습단위는 KISA 공식 12개 분야 또는 공식 시간표가 아니다. source evidence에서 안전하게 추출한 coverage를 Securium이 독립적으로 조직한 구조다.",
+      "purpose": "엔트로피 source, 초기화 입력, DRBG 상태, 출력 및 오류 처리를 분리하여 평가한다.",
+      "core_concepts": [
+        "엔트로피·RNG·DRBG",
+        "CSP·키 수명주기·zeroization"
+      ],
+      "key_terms": [
+        "entropy source",
+        "conditioning",
+        "seed",
+        "reseed",
+        "DRBG",
+        "prediction resistance",
+        "health test"
+      ],
+      "principles": [
+        "난수처럼 보이는 출력은 entropy source의 품질을 증명하지 않는다.",
+        "DRBG는 입력 source·상태·재시드 정책과 함께 평가해야 한다.",
+        "통계적 출력 검사는 필요한 일부 증거일 뿐 단독 결론이 아니다."
+      ],
+      "tester_perspective": "시험자는 source와 deterministic generator를 하나의 “RNG”로 뭉뚱그리지 않고 각 단계의 증거와 실패 경로를 요구한다.",
+      "evidence_to_check": [
+        "source 구성과 건강시험",
+        "초기화/재시드 trace",
+        "DRBG 상태 전이",
+        "출력 생성 조건",
+        "오류·차단 응답",
+        "시험 환경 entropy 가정"
+      ],
+      "common_misconceptions": [
+        "출력이 다양하면 entropy가 충분하다고 보는 것",
+        "DRBG 이름만으로 seed 보호를 가정하는 것",
+        "재시드 실패 후 계속 출력하는 것을 정상으로 보는 것"
+      ],
+      "judgment_points": [
+        "source 고장과 DRBG 상태 오류를 구분하는지",
+        "초기화 전 출력이 차단되는지",
+        "실패 시 민감정보와 출력이 안전하게 처리되는지"
+      ],
+      "practical_example": "가상 모듈이 초기화 완료 전에도 토큰을 생성하면, 출력 분포보다 상태·초기화 순서·실패 차단을 우선 시험한다.",
+      "learning_checkpoints": [
+        "entropy와 DRBG를 구분한다.",
+        "초기화와 재시드 증거를 추적한다.",
+        "출력 품질과 source assurance의 한계를 설명한다."
+      ],
+      "legacy_lineage": [
+        "H02",
+        "H07"
+      ],
+      "authoring_note": "독립저작. source question wording, choices, answer, screenshot text를 사용하지 않음."
+    },
+    {
+      "id": "U08",
+      "title": "self-test·무결성 검증·오류상태",
+      "structure_authority": "SECURIUM_PEDAGOGICAL",
+      "official_claim_boundary": "이 학습단위는 KISA 공식 12개 분야 또는 공식 시간표가 아니다. source evidence에서 안전하게 추출한 coverage를 Securium이 독립적으로 조직한 구조다.",
+      "purpose": "기동/조건부 self-test와 무결성 검증의 목적, 실패 후 상태 전이, 서비스 차단을 해석한다.",
+      "core_concepts": [
+        "self-test·무결성·오류상태",
+        "증적·finding·retest·보고서"
+      ],
+      "key_terms": [
+        "power-up self-test",
+        "conditional test",
+        "integrity verification",
+        "error state",
+        "fail-closed",
+        "recovery"
+      ],
+      "principles": [
+        "self-test PASS는 시험된 조건에서의 결과이지 전체 구현 보안성의 증명은 아니다.",
+        "실패 후 서비스 차단·상태 표시·복구 조건이 시험 대상이다.",
+        "무결성 hash 계산과 authenticity 검증은 목적이 다를 수 있다."
+      ],
+      "tester_perspective": "시험자는 PASS 로그의 존재보다 실행 조건, 시험 대상, 실패 시 observable behavior, 이후 허용된 상태를 확인한다.",
+      "evidence_to_check": [
+        "시험 목록과 실행 조건",
+        "self-test 입력/기대 결과",
+        "무결성 대상과 검증 경로",
+        "오류 상태 진입·해제 기록",
+        "서비스 차단 증적"
+      ],
+      "common_misconceptions": [
+        "로그에 PASS가 있으면 모든 시험이 통과했다고 보는 것",
+        "오류 상태에서 재시작만 하면 자동 복구라고 보는 것",
+        "무결성 hash를 서명·인증과 같은 것으로 설명하는 것"
+      ],
+      "judgment_points": [
+        "실패가 실제로 차단을 유발하는지",
+        "오류 상태에서 민감 서비스가 남아 있는지",
+        "복구 승인과 재시험 범위가 정당한지"
+      ],
+      "practical_example": "가상 모듈의 조건부 pairwise test가 실패했지만 기존 세션이 계속 암호화 서비스를 호출하는 경우, 상태와 서비스별 차단을 확인한다.",
+      "learning_checkpoints": [
+        "self-test 종류를 구분한다.",
+        "실패 후 상태 전이를 설명한다.",
+        "PASS의 assurance 범위를 제한해서 결론 낸다."
+      ],
+      "legacy_lineage": [
+        "H05",
+        "H08"
+      ],
+      "authoring_note": "독립저작. source question wording, choices, answer, screenshot text를 사용하지 않음."
+    },
+    {
+      "id": "U09",
+      "title": "물리·운영·환경·비침투 보안",
+      "structure_authority": "SECURIUM_PEDAGOGICAL",
+      "official_claim_boundary": "이 학습단위는 KISA 공식 12개 분야 또는 공식 시간표가 아니다. source evidence에서 안전하게 추출한 coverage를 Securium이 독립적으로 조직한 구조다.",
+      "purpose": "물리적 접근, 운영 절차, 구성 관리, 환경 조건과 비침투 공격 완화 주장을 시험 증거로 평가한다.",
+      "core_concepts": [
+        "물리·운영·환경·비침투 보안",
+        "소프트웨어/펌웨어·수명주기 보증"
+      ],
+      "key_terms": [
+        "physical boundary",
+        "tamper evidence",
+        "operational environment",
+        "configuration",
+        "non-invasive attack",
+        "maintenance"
+      ],
+      "principles": [
+        "물리적 보호와 운영 통제는 서로 대체되지 않는다.",
+        "변경 흔적이 없다는 관찰과 공격 완화가 입증되었다는 결론은 다르다.",
+        "환경 조건은 시험 설정과 실제 운영 가정에 함께 연결해야 한다."
+      ],
+      "tester_perspective": "시험자는 장치 외관만 보지 않고 설치·운영·유지보수·폐기 절차가 보안 경계와 일치하는지 확인한다.",
+      "evidence_to_check": [
+        "설치/운영 절차",
+        "물리적 접근 통제",
+        "환경 조건 기록",
+        "유지보수 승인",
+        "구성 기준선",
+        "공격 완화 분석"
+      ],
+      "common_misconceptions": [
+        "tamper-evident 표시만으로 tamper response를 보장한다고 보는 것",
+        "정책 문서만으로 실제 운영 통제를 입증했다고 보는 것",
+        "환경 조건을 시험 결과와 무관하다고 보는 것"
+      ],
+      "judgment_points": [
+        "관찰된 보호가 요구된 위협을 커버하는지",
+        "구성 변경이 승인·추적되는지",
+        "시험 환경이 운영 가정을 재현하는지"
+      ],
+      "practical_example": "가상 장비의 봉인 상태는 유지되지만 유지보수 계정이 무승인 설정 변경을 허용하는 경우 물리/운영 finding을 분리한다.",
+      "learning_checkpoints": [
+        "물리·운영·환경 통제를 구분한다.",
+        "구성 기준선과 변경 증적을 확인한다.",
+        "관찰 범위를 넘어선 공격 완화를 주장하지 않는다."
+      ],
+      "legacy_lineage": [
+        "H06"
+      ],
+      "authoring_note": "독립저작. source question wording, choices, answer, screenshot text를 사용하지 않음."
+    },
+    {
+      "id": "U10",
+      "title": "소프트웨어·펌웨어·구성 수명주기",
+      "structure_authority": "SECURIUM_PEDAGOGICAL",
+      "official_claim_boundary": "이 학습단위는 KISA 공식 12개 분야 또는 공식 시간표가 아니다. source evidence에서 안전하게 추출한 coverage를 Securium이 독립적으로 조직한 구조다.",
+      "purpose": "빌드 식별, 서명/검증, 배포, 업데이트, 롤백 및 구성 변경의 assurance를 추적한다.",
+      "core_concepts": [
+        "소프트웨어/펌웨어·수명주기 보증",
+        "모듈 명세와 보안기능",
+        "증적·finding·retest·보고서"
+      ],
+      "key_terms": [
+        "version identity",
+        "build provenance",
+        "update",
+        "rollback",
+        "configuration baseline",
+        "integrity"
+      ],
+      "principles": [
+        "파일 hash는 동일성/무결성 검증에 쓰일 수 있지만 출처 인증의 전부는 아니다.",
+        "업데이트 성공과 보안 검증 성공은 별개의 결과다.",
+        "버전 문자열과 실제 실행 binary의 동일성을 trace해야 한다."
+      ],
+      "tester_perspective": "시험자는 문서 버전, 배포 artifact, 실행 중인 artifact, 변경 승인 기록을 하나의 trace로 연결한다.",
+      "evidence_to_check": [
+        "릴리스 식별자",
+        "빌드 manifest",
+        "업데이트 검증 로그",
+        "롤백 조건",
+        "구성 baseline/diff",
+        "서명·키 관리 증거"
+      ],
+      "common_misconceptions": [
+        "버전 번호만 맞으면 binary가 같다고 보는 것",
+        "hash가 맞으면 signer가 신뢰된다고 보는 것",
+        "롤백 기능이 있으면 안전한 롤백이라고 보는 것"
+      ],
+      "judgment_points": [
+        "업데이트 전후 보안 경계가 동일한지",
+        "실패·중단 시 이전 상태가 안전한지",
+        "구성 변경이 시험 범위를 무효화하는지"
+      ],
+      "practical_example": "가상 펌웨어 업데이트가 서명 검증은 하지만 downgrade를 허용할 때, integrity와 lifecycle policy를 별도 finding으로 기록한다.",
+      "learning_checkpoints": [
+        "artifact identity를 추적한다.",
+        "hash와 authenticity의 차이를 설명한다.",
+        "update/rollback 조건을 시험한다."
+      ],
+      "legacy_lineage": [
+        "H06",
+        "H07"
+      ],
+      "authoring_note": "독립저작. source question wording, choices, answer, screenshot text를 사용하지 않음."
+    },
+    {
+      "id": "U11",
+      "title": "시험 실행·관찰·증거 관리",
+      "structure_authority": "SECURIUM_PEDAGOGICAL",
+      "official_claim_boundary": "이 학습단위는 KISA 공식 12개 분야 또는 공식 시간표가 아니다. source evidence에서 안전하게 추출한 coverage를 Securium이 독립적으로 조직한 구조다.",
+      "purpose": "요구사항에서 재현 가능한 절차를 만들고 관찰·증거·finding을 시간축과 trace로 관리한다.",
+      "core_concepts": [
+        "요구사항 해석과 시험목표",
+        "증적·finding·retest·보고서",
+        "암호모듈 범위·보증경계"
+      ],
+      "key_terms": [
+        "test objective",
+        "precondition",
+        "procedure",
+        "observation",
+        "evidence",
+        "traceability"
+      ],
+      "principles": [
+        "절차는 사전조건·행동·기대결과·실제관찰·판정기준을 가져야 한다.",
+        "증거의 출처·시점·무결성·재현성을 기록해야 한다.",
+        "테스터의 해석과 피시험자의 설명은 서로 다른 evidence class다."
+      ],
+      "tester_perspective": "시험자는 “동작했다”가 아니라 누가, 어떤 빌드에서, 어떤 입력과 환경으로, 무엇을 관찰했는지를 남긴다.",
+      "evidence_to_check": [
+        "시험환경 fingerprint",
+        "입력/출력 trace",
+        "로그 원본과 수집시각",
+        "도구 버전",
+        "관찰자 기록",
+        "traceability ID"
+      ],
+      "common_misconceptions": [
+        "스크린샷 한 장을 재현 가능한 증거로 보는 것",
+        "공급자 설명을 관찰 결과로 기록하는 것",
+        "절차가 없더라도 결과만 있으면 충분하다고 보는 것"
+      ],
+      "judgment_points": [
+        "증거가 주장과 직접 연결되는지",
+        "재현에 필요한 조건이 빠지지 않았는지",
+        "민감정보가 증거에 노출되지 않는지"
+      ],
+      "practical_example": "가상 시험 로그에 timestamp와 build ID가 없을 때, 결과의 기술적 가능성과 증거의 재현성을 분리해 판단한다.",
+      "learning_checkpoints": [
+        "절차의 구성요소를 나열한다.",
+        "관찰과 해석을 분리한다.",
+        "증거 chain을 요구사항까지 trace한다."
+      ],
+      "legacy_lineage": [
+        "H01",
+        "H08"
+      ],
+      "authoring_note": "독립저작. source question wording, choices, answer, screenshot text를 사용하지 않음."
+    },
+    {
+      "id": "U12",
+      "title": "finding·재시험·종합 보고서 판단",
+      "structure_authority": "SECURIUM_PEDAGOGICAL",
+      "official_claim_boundary": "이 학습단위는 KISA 공식 12개 분야 또는 공식 시간표가 아니다. source evidence에서 안전하게 추출한 coverage를 Securium이 독립적으로 조직한 구조다.",
+      "purpose": "결함, 구성 문제, 증거 부족을 구분하고 수정 후 retest 범위와 최종 결론을 정당화한다.",
+      "core_concepts": [
+        "증적·finding·retest·보고서",
+        "요구사항 해석과 시험목표",
+        "self-test·무결성·오류상태"
+      ],
+      "key_terms": [
+        "finding",
+        "root cause",
+        "scope",
+        "severity",
+        "corrective action",
+        "retest",
+        "conclusion"
+      ],
+      "principles": [
+        "증거 부족은 곧 구현 결함과 같지 않지만, 요구된 결론을 지지하지 못하는 별도 finding이 될 수 있다.",
+        "수정 범위가 영향 경계를 결정하며, retest는 변경 영향에 비례해야 한다.",
+        "종합 결론은 개별 PASS의 합보다 강한 주장을 해서는 안 된다."
+      ],
+      "tester_perspective": "시험자는 실패를 과장하지도 축소하지도 않고 요구사항·영향·증거·수정 diff를 묶어 판단한다.",
+      "evidence_to_check": [
+        "finding statement",
+        "재현 절차",
+        "영향 분석",
+        "수정 diff",
+        "retest 결과",
+        "잔여 위험과 제한"
+      ],
+      "common_misconceptions": [
+        "로그가 없으면 무조건 결함이라고 단정하는 것",
+        "한 경로 수정 후 모든 경로를 retest했다고 보는 것",
+        "개별 시험 PASS를 전체 검증으로 일반화하는 것"
+      ],
+      "judgment_points": [
+        "현상·원인·요구사항·영향을 구분했는지",
+        "수정이 실제 원인을 커버하는지",
+        "최종 보고서가 증거보다 앞서지 않는지"
+      ],
+      "practical_example": "가상 모듈은 오류 상태 차단을 수정했지만 관리 API만 재시험했다면, 암호서비스·세션·재시작 경로의 추가 retest 필요성을 판단한다.",
+      "learning_checkpoints": [
+        "finding을 재현 가능하게 작성한다.",
+        "수정 diff에서 retest 범위를 도출한다.",
+        "결론의 범위를 증거에 맞춰 제한한다."
+      ],
+      "legacy_lineage": [
+        "H08",
+        "H05"
+      ],
+      "authoring_note": "독립저작. source question wording, choices, answer, screenshot text를 사용하지 않음."
+    }
+  ],
+  "source_provenance": "Topic-level only. No unit claims to be an official KISA 12-field module."
+}

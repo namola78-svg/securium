@@ -1,0 +1,103 @@
+{
+  "schema": "securium.crypto_module_tester.legacy_8h_classification.v1",
+  "course_authority_count": 1,
+  "theory_authority_count": 1,
+  "objective_authority_count": 1,
+  "assessment_authority_count": 1,
+  "mock_profile_authority_count": 1,
+  "duration_neutral_authority_count": 1,
+  "legacy_8h_active_authority_count": 0,
+  "artifacts": [
+    {
+      "path": "content-drafts/crypto-module-tester/assessment-authority.json",
+      "classification": "SUPERSEDED",
+      "audit_retention": "HISTORICAL_EVIDENCE",
+      "commit_decision": "EXCLUDE",
+      "reason": "contains unsupported course-crypto-module-tester-8h/H01-H08/480 structure"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester/concept-candidates.json",
+      "classification": "SUPERSEDED",
+      "audit_retention": "HISTORICAL_EVIDENCE",
+      "commit_decision": "EXCLUDE",
+      "reason": "contains unsupported course-crypto-module-tester-8h/H01-H08/480 structure"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester/course.json",
+      "classification": "SUPERSEDED",
+      "audit_retention": "HISTORICAL_EVIDENCE",
+      "commit_decision": "EXCLUDE",
+      "reason": "contains unsupported course-crypto-module-tester-8h/H01-H08/480 structure"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester/labs/labs.json",
+      "classification": "SUPERSEDED",
+      "audit_retention": "HISTORICAL_EVIDENCE",
+      "commit_decision": "EXCLUDE",
+      "reason": "contains unsupported course-crypto-module-tester-8h/H01-H08/480 structure"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester/modules/H01.md",
+      "classification": "SUPERSEDED",
+      "audit_retention": "HISTORICAL_EVIDENCE",
+      "commit_decision": "EXCLUDE",
+      "reason": "contains unsupported course-crypto-module-tester-8h/H01-H08/480 structure"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester/modules/H02.md",
+      "classification": "SUPERSEDED",
+      "audit_retention": "HISTORICAL_EVIDENCE",
+      "commit_decision": "EXCLUDE",
+      "reason": "contains unsupported course-crypto-module-tester-8h/H01-H08/480 structure"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester/modules/H03.md",
+      "classification": "SUPERSEDED",
+      "audit_retention": "HISTORICAL_EVIDENCE",
+      "commit_decision": "EXCLUDE",
+      "reason": "contains unsupported course-crypto-module-tester-8h/H01-H08/480 structure"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester/modules/H04.md",
+      "classification": "SUPERSEDED",
+      "audit_retention": "HISTORICAL_EVIDENCE",
+      "commit_decision": "EXCLUDE",
+      "reason": "contains unsupported course-crypto-module-tester-8h/H01-H08/480 structure"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester/modules/H05.md",
+      "classification": "SUPERSEDED",
+      "audit_retention": "HISTORICAL_EVIDENCE",
+      "commit_decision": "EXCLUDE",
+      "reason": "contains unsupported course-crypto-module-tester-8h/H01-H08/480 structure"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester/modules/H06.md",
+      "classification": "SUPERSEDED",
+      "audit_retention": "HISTORICAL_EVIDENCE",
+      "commit_decision": "EXCLUDE",
+      "reason": "contains unsupported course-crypto-module-tester-8h/H01-H08/480 structure"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester/modules/H07.md",
+      "classification": "SUPERSEDED",
+      "audit_retention": "HISTORICAL_EVIDENCE",
+      "commit_decision": "EXCLUDE",
+      "reason": "contains unsupported course-crypto-module-tester-8h/H01-H08/480 structure"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester/modules/H08.md",
+      "classification": "SUPERSEDED",
+      "audit_retention": "HISTORICAL_EVIDENCE",
+      "commit_decision": "EXCLUDE",
+      "reason": "contains unsupported course-crypto-module-tester-8h/H01-H08/480 structure"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester/objectives.json",
+      "classification": "SUPERSEDED",
+      "audit_retention": "HISTORICAL_EVIDENCE",
+      "commit_decision": "EXCLUDE",
+      "reason": "contains unsupported course-crypto-module-tester-8h/H01-H08/480 structure"
+    }
+  ]
+}
