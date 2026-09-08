@@ -1,0 +1,22 @@
+{
+  "schema": "securium.crypto_module_tester.commit_authority_counts.v1",
+  "course_authority_count": 1,
+  "theory_authority_count": 1,
+  "objective_authority_count": 1,
+  "assessment_authority_count": 1,
+  "mock_profile_authority_count": 1,
+  "duration_neutral_authority_count": 1,
+  "legacy_8h_active_authority_count": 0,
+  "theory_units": 12,
+  "objectives": 48,
+  "questions": 120,
+  "distribution": {
+    "MULTIPLE_CHOICE": 60,
+    "SHORT_ANSWER": 36,
+    "DESCRIPTIVE": 24
+  },
+  "explanations": "120/120",
+  "rubrics": "24/24",
+  "duplicates": "0/0/0",
+  "semantic_hash": "15af4398a54727017b7ddb1fbc880e85eb794e9d3887605160f65c90c36b6d98"
+}

@@ -1,0 +1,205 @@
+{
+  "schema": "securium.crypto_module_tester.source_derived_knowledge_taxonomy.v1",
+  "name": "SECURIUM_SOURCE_DERIVED_KNOWLEDGE_TAXONOMY",
+  "authority_boundary": "Not KISA official 12-field curriculum. Exact official 12 labels remain unknown.",
+  "domains": [
+    {
+      "id": "CMT-DN-C01",
+      "label": "암호모듈 범위·보증경계",
+      "density": "HIGH",
+      "evidence": "반복적으로 보이는 모듈 설명·구성·범위 검토 형식과 기존 source-safe concept inventory",
+      "units": [
+        "U01",
+        "U03",
+        "U12"
+      ],
+      "structure_authority": "SOURCE_DERIVED",
+      "pedagogical_units": [
+        "U01",
+        "U03",
+        "U12"
+      ],
+      "official_12_field_label": false
+    },
+    {
+      "id": "CMT-DN-C02",
+      "label": "요구사항 해석과 시험목표",
+      "density": "HIGH",
+      "evidence": "요구사항/관찰/판정 연결을 요구하는 반복적 시험 문서 형식",
+      "units": [
+        "U01",
+        "U02",
+        "U12"
+      ],
+      "structure_authority": "SOURCE_DERIVED",
+      "pedagogical_units": [
+        "U01",
+        "U02",
+        "U12"
+      ],
+      "official_12_field_label": false
+    },
+    {
+      "id": "CMT-DN-C03",
+      "label": "모듈 명세와 보안기능",
+      "density": "HIGH",
+      "evidence": "모듈 명세 및 기능 설명을 다루는 반복적 페이지 구조",
+      "units": [
+        "U01",
+        "U03",
+        "U06"
+      ],
+      "structure_authority": "SOURCE_DERIVED",
+      "pedagogical_units": [
+        "U01",
+        "U03",
+        "U06"
+      ],
+      "official_12_field_label": false
+    },
+    {
+      "id": "CMT-DN-C04",
+      "label": "인터페이스·데이터 흐름",
+      "density": "HIGH",
+      "evidence": "입력·출력·제어·상태 경로를 구분하는 반복적 기술 형식",
+      "units": [
+        "U03",
+        "U04"
+      ],
+      "structure_authority": "SOURCE_DERIVED",
+      "pedagogical_units": [
+        "U03",
+        "U04"
+      ],
+      "official_12_field_label": false
+    },
+    {
+      "id": "CMT-DN-C05",
+      "label": "역할·서비스·인증·접근통제",
+      "density": "HIGH",
+      "evidence": "역할과 서비스·권한을 함께 비교하는 반복적 표/사례 형식",
+      "units": [
+        "U04",
+        "U05"
+      ],
+      "structure_authority": "SOURCE_DERIVED",
+      "pedagogical_units": [
+        "U04",
+        "U05"
+      ],
+      "official_12_field_label": false
+    },
+    {
+      "id": "CMT-DN-C06",
+      "label": "암호알고리즘·매개변수·적합성",
+      "density": "HIGH",
+      "evidence": "알고리즘 이름보다 모드·매개변수·사용경로의 적합성을 판단하는 형식",
+      "units": [
+        "U02",
+        "U06"
+      ],
+      "structure_authority": "SOURCE_DERIVED",
+      "pedagogical_units": [
+        "U02",
+        "U06"
+      ],
+      "official_12_field_label": false
+    },
+    {
+      "id": "CMT-DN-C07",
+      "label": "CSP·키 수명주기·zeroization",
+      "density": "HIGH",
+      "evidence": "민감정보 취급·저장·사용·폐기와 증적을 구분하는 형식",
+      "units": [
+        "U05",
+        "U07"
+      ],
+      "structure_authority": "SOURCE_DERIVED",
+      "pedagogical_units": [
+        "U05",
+        "U07"
+      ],
+      "official_12_field_label": false
+    },
+    {
+      "id": "CMT-DN-C08",
+      "label": "엔트로피·RNG·DRBG",
+      "density": "MEDIUM",
+      "evidence": "초기화·입력·출력·상태를 분리해서 검토하는 source-safe coverage",
+      "units": [
+        "U06",
+        "U08"
+      ],
+      "structure_authority": "SOURCE_DERIVED",
+      "pedagogical_units": [
+        "U06",
+        "U08"
+      ],
+      "official_12_field_label": false
+    },
+    {
+      "id": "CMT-DN-C09",
+      "label": "self-test·무결성·오류상태",
+      "density": "HIGH",
+      "evidence": "기동/조건부 시험, 실패 차단, 복구·상태 판정을 비교하는 형식",
+      "units": [
+        "U09",
+        "U12"
+      ],
+      "structure_authority": "SOURCE_DERIVED",
+      "pedagogical_units": [
+        "U09",
+        "U12"
+      ],
+      "official_12_field_label": false
+    },
+    {
+      "id": "CMT-DN-C10",
+      "label": "물리·운영·환경·비침투 보안",
+      "density": "MEDIUM",
+      "evidence": "운영환경·구성·물리적 접근·변경 징후를 함께 검토하는 형식",
+      "units": [
+        "U10",
+        "U11"
+      ],
+      "structure_authority": "SOURCE_DERIVED",
+      "pedagogical_units": [
+        "U10",
+        "U11"
+      ],
+      "official_12_field_label": false
+    },
+    {
+      "id": "CMT-DN-C11",
+      "label": "소프트웨어/펌웨어·수명주기 보증",
+      "density": "MEDIUM",
+      "evidence": "버전·배포·변경·검증 증적을 추적하는 형식",
+      "units": [
+        "U02",
+        "U11"
+      ],
+      "structure_authority": "SOURCE_DERIVED",
+      "pedagogical_units": [
+        "U02",
+        "U11"
+      ],
+      "official_12_field_label": false
+    },
+    {
+      "id": "CMT-DN-C12",
+      "label": "증적·finding·retest·보고서",
+      "density": "HIGH",
+      "evidence": "관찰과 결론을 분리하고 재시험 범위를 판단하는 반복적 시험자 관점",
+      "units": [
+        "U01",
+        "U12"
+      ],
+      "structure_authority": "SOURCE_DERIVED",
+      "pedagogical_units": [
+        "U01",
+        "U12"
+      ],
+      "official_12_field_label": false
+    }
+  ]
+}

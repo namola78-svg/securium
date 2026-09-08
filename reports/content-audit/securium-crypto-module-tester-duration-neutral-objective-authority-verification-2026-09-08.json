@@ -1,0 +1,10 @@
+{
+  "schema": "securium.crypto_module_tester.objective_authority_verification.v1",
+  "authority_count": 1,
+  "count": 48,
+  "unique_ids": 48,
+  "measurable_count": 48,
+  "unknown_unit_bindings": [],
+  "stable_id_pattern_pass": true,
+  "status": "PASS"
+}

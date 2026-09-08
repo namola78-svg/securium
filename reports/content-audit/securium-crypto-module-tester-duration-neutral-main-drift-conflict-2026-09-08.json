@@ -1,0 +1,32 @@
+{
+  "decision": "NO_MATERIAL_CONFLICT",
+  "origin_main_files": [
+    "docs/content/securium-canonical-ontology-concept-dataset-seed-restore-2026-09-08.md",
+    "docs/content/securium-canonical-ontology-concept-dataset-seed-restore-final-review-2026-09-08.md",
+    "docs/content/securium-canonical-ontology-seed-evidence-restore-and-provenance-binding-repair-2026-09-08.md",
+    "lib/data/securium-canonical-concept-dataset-archival-guard.mjs",
+    "lib/data/securium-canonical-concept-dataset-seed.mjs",
+    "package-lock.json",
+    "package.json",
+    "reports/content-audit/securium-canonical-ontology-concept-dataset-manifest-2026-09-08.json",
+    "reports/content-audit/securium-canonical-ontology-concept-dataset-seed-restore-2026-09-08.json",
+    "reports/content-audit/securium-canonical-ontology-concept-dataset-seed-restore-final-review-2026-09-08.json",
+    "reports/content-audit/securium-canonical-ontology-dataset-a-archival-commit-candidate-2026-09-08.json",
+    "reports/content-audit/securium-canonical-ontology-dataset-a-archival-commit-exclusions-2026-09-08.json",
+    "reports/content-audit/securium-canonical-ontology-dataset-a-archival-commit-review-2026-09-08.json",
+    "reports/content-audit/securium-canonical-ontology-dataset-a-archival-commit-review-2026-09-08.md",
+    "reports/content-audit/securium-canonical-ontology-dataset-a-archival-commit-review-2026-09-08.sha256",
+    "reports/content-audit/securium-canonical-ontology-legacy-dataset-worktree-archival-review-2026-09-08.json",
+    "reports/content-audit/securium-canonical-ontology-legacy-dataset-worktree-archival-review-2026-09-08.md",
+    "reports/content-audit/securium-canonical-ontology-legacy-dataset-worktree-archival-review-2026-09-08.sha256",
+    "reports/content-audit/securium-canonical-ontology-legacy-dataset-worktree-authority-closure-2026-09-08.json",
+    "reports/content-audit/securium-canonical-ontology-legacy-dataset-worktree-authority-closure-2026-09-08.md",
+    "reports/content-audit/securium-canonical-ontology-legacy-dataset-worktree-authority-closure-2026-09-08.sha256",
+    "reports/content-audit/securium-canonical-ontology-seed-evidence-restore-and-provenance-binding-repair-2026-09-08.json",
+    "scripts/build-securium-canonical-ontology-legacy-authority-closure-report.mjs",
+    "tests/securium-canonical-concept-dataset-seed.test.mjs",
+    "tests/securium-canonical-ontology-legacy-authority.test.mjs"
+  ],
+  "candidate_overlap": [],
+  "note": "origin/main changes are canonical-ontology archival and package metadata; no crypto authority path overlap."
+}

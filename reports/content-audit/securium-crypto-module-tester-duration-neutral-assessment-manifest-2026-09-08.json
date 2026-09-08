@@ -1,0 +1,17 @@
+{
+  "schema": "securium.crypto_module_tester.assessment_manifest.v1",
+  "authority_path": "content-drafts/crypto-module-tester-duration-neutral/assessment-authority.json",
+  "authority_count": 1,
+  "question_count": 120,
+  "type_counts": {
+    "MULTIPLE_CHOICE": 60,
+    "SHORT_ANSWER": 36,
+    "DESCRIPTIVE": 24
+  },
+  "source_question_ingestion": 0,
+  "source_question_reconstruction": 0,
+  "source_image_dependency": 0,
+  "explanations": "120/120",
+  "descriptive_rubrics": "24/24",
+  "semantic_hash": "15af4398a54727017b7ddb1fbc880e85eb794e9d3887605160f65c90c36b6d98"
+}

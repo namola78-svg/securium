@@ -1,0 +1,19 @@
+{
+  "schema": "securium.crypto_module_tester.rights_data_trust_verification.v1",
+  "source_rights": "REFERENCE_ONLY / UNKNOWN_RIGHTS / FAIL_CLOSED",
+  "source_mutation": 0,
+  "kisa_attribution": "VERIFIED for official course existence/publication only; not all 493 images",
+  "korean_crypto_forum_attribution": "NOT_VERIFIED",
+  "taxonomy_authority": "SECURIUM_SOURCE_DERIVED_KNOWLEDGE_TAXONOMY",
+  "taxonomy_not_official_curriculum": "Not KISA official 12-field curriculum. Exact official 12 labels remain unknown.",
+  "official_12_field_status": "UNKNOWN",
+  "official_duration_status": "UNESTABLISHED",
+  "direct_source_ingestion": 0,
+  "source_question_reconstruction": 0,
+  "ocr_canonicalization": 0,
+  "source_image_exposure": 0,
+  "active_unsupported_official_claims": 0,
+  "official_mock_claim_count": 0,
+  "data_trust_critical_high": "0/0",
+  "rights_critical_high": "0/0"
+}

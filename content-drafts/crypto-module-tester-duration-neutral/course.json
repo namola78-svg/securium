@@ -1,0 +1,55 @@
+{
+  "schema": "securium.crypto_module_tester.duration_neutral_course.v1",
+  "course_id": "course-crypto-module-tester",
+  "display_name": "암호모듈 시험자 학습 콘텐츠",
+  "official_name_boundary": "공식 KISA 과정명·공식 12개 분야를 대체하거나 동일시하지 않음. KISA의 공식 과정 존재·5일 일정·필기시험 사실과 Securium의 독립 학습 설계를 분리한다.",
+  "lifecycle": "DRAFT",
+  "duration_status": "UNESTABLISHED",
+  "duration_minutes": null,
+  "training_days": null,
+  "structure_authority": "SECURIUM_PEDAGOGICAL",
+  "official_curriculum_binding": "WAIT_FOR_EXACT_12_FIELD_AUTHORITY",
+  "source_evidence_root": "C:/Users/user/Documents/Codex/2026-07-24/1-2-3-4-5-6/source-evidence-original/crypto-module-tester",
+  "source_rights": "REFERENCE_ONLY / UNKNOWN_RIGHTS / FAIL_CLOSED",
+  "source_use": "coverage and concept identification only; no source question or image republished",
+  "standards_reference": [
+    "KS X ISO/IEC 19790",
+    "KS X ISO/IEC 24759"
+  ],
+  "official_event_reference": "2026 KISA 암호모듈 시험자 양성교육 및 필기시험",
+  "official_exam_boundary": "official question count, weighting, format details, pass score and time limit are not asserted by this content",
+  "examinee_observation_profile": {
+    "question_count": 25,
+    "duration_minutes": 150,
+    "observed_types": [
+      "MULTIPLE_CHOICE",
+      "SHORT_ANSWER",
+      "DESCRIPTIVE"
+    ],
+    "observed_pass_score": "70 or higher",
+    "authority": "EXAMINEE_OBSERVATION",
+    "status": "NOT_OFFICIAL_VERIFIED",
+    "label": "응시 경험 기반"
+  },
+  "content_authority": "Securium independently authored theory/objectives/assessment/lab specifications",
+  "theory_authority_path": "theory-authority.json",
+  "objective_authority_path": "objective-authority.json",
+  "assessment_authority_path": "assessment-authority.json",
+  "mock_profile_path": "mock-exam-profile.json",
+  "generated_projection_policy": "GENERATED_READ_ONLY_PROJECTION",
+  "mutation_boundaries": {
+    "canonical_concept": 0,
+    "concept_mapping": 0,
+    "skill": 0,
+    "role": 0,
+    "evidence": 0,
+    "mastery": 0,
+    "user_skill_state": 0,
+    "schema": 0,
+    "migration": 0,
+    "production_db": "NO",
+    "deployment": "NO",
+    "publication": "NO",
+    "executable_labs": 0
+  }
+}

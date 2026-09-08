@@ -1,0 +1,91 @@
+{
+  "schema": "securium.crypto_module_tester.concept_candidate_dry_run.v1",
+  "canonical_concept_mutation": 0,
+  "mapping_writes": 0,
+  "candidates": [
+    {
+      "candidate_id": "CMT-DN-C01",
+      "label": "암호모듈 범위·보증경계",
+      "dry_run_result": "UNRESOLVED",
+      "canonical_id": null,
+      "reason": "Local candidate staging only; Dataset B/canonical ontology authority not written."
+    },
+    {
+      "candidate_id": "CMT-DN-C02",
+      "label": "요구사항 해석과 시험목표",
+      "dry_run_result": "UNRESOLVED",
+      "canonical_id": null,
+      "reason": "Local candidate staging only; Dataset B/canonical ontology authority not written."
+    },
+    {
+      "candidate_id": "CMT-DN-C03",
+      "label": "모듈 명세와 보안기능",
+      "dry_run_result": "UNRESOLVED",
+      "canonical_id": null,
+      "reason": "Local candidate staging only; Dataset B/canonical ontology authority not written."
+    },
+    {
+      "candidate_id": "CMT-DN-C04",
+      "label": "인터페이스·데이터 흐름",
+      "dry_run_result": "UNRESOLVED",
+      "canonical_id": null,
+      "reason": "Local candidate staging only; Dataset B/canonical ontology authority not written."
+    },
+    {
+      "candidate_id": "CMT-DN-C05",
+      "label": "역할·서비스·인증·접근통제",
+      "dry_run_result": "UNRESOLVED",
+      "canonical_id": null,
+      "reason": "Local candidate staging only; Dataset B/canonical ontology authority not written."
+    },
+    {
+      "candidate_id": "CMT-DN-C06",
+      "label": "암호알고리즘·매개변수·적합성",
+      "dry_run_result": "UNRESOLVED",
+      "canonical_id": null,
+      "reason": "Local candidate staging only; Dataset B/canonical ontology authority not written."
+    },
+    {
+      "candidate_id": "CMT-DN-C07",
+      "label": "CSP·키 수명주기·zeroization",
+      "dry_run_result": "UNRESOLVED",
+      "canonical_id": null,
+      "reason": "Local candidate staging only; Dataset B/canonical ontology authority not written."
+    },
+    {
+      "candidate_id": "CMT-DN-C08",
+      "label": "엔트로피·RNG·DRBG",
+      "dry_run_result": "ALIAS_OR_UNRESOLVED",
+      "canonical_id": null,
+      "reason": "Local candidate staging only; Dataset B/canonical ontology authority not written."
+    },
+    {
+      "candidate_id": "CMT-DN-C09",
+      "label": "self-test·무결성·오류상태",
+      "dry_run_result": "UNRESOLVED",
+      "canonical_id": null,
+      "reason": "Local candidate staging only; Dataset B/canonical ontology authority not written."
+    },
+    {
+      "candidate_id": "CMT-DN-C10",
+      "label": "물리·운영·환경·비침투 보안",
+      "dry_run_result": "UNRESOLVED",
+      "canonical_id": null,
+      "reason": "Local candidate staging only; Dataset B/canonical ontology authority not written."
+    },
+    {
+      "candidate_id": "CMT-DN-C11",
+      "label": "소프트웨어/펌웨어·수명주기 보증",
+      "dry_run_result": "UNRESOLVED",
+      "canonical_id": null,
+      "reason": "Local candidate staging only; Dataset B/canonical ontology authority not written."
+    },
+    {
+      "candidate_id": "CMT-DN-C12",
+      "label": "증적·finding·retest·보고서",
+      "dry_run_result": "UNRESOLVED",
+      "canonical_id": null,
+      "reason": "Local candidate staging only; Dataset B/canonical ontology authority not written."
+    }
+  ]
+}

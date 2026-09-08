@@ -1,0 +1,61 @@
+{
+  "schema": "securium.crypto_module_tester.practice_mock_profile.v1",
+  "course_id": "course-crypto-module-tester",
+  "status": "DRAFT_PRACTICE_ONLY",
+  "authority": "EXAMINEE_OBSERVATION",
+  "official_status": "NOT_OFFICIAL_VERIFIED",
+  "label": "응시 경험 기반 Securium practice mock",
+  "observed_profile": {
+    "question_count": 25,
+    "duration_minutes": 150,
+    "pass_score_observed": "70 or higher",
+    "types": [
+      "MULTIPLE_CHOICE",
+      "SHORT_ANSWER",
+      "DESCRIPTIVE"
+    ]
+  },
+  "scoring": {
+    "model": "SECURIUM_PRACTICE_SCORING",
+    "total_points": 100,
+    "pass_threshold": 70,
+    "weights": {
+      "MULTIPLE_CHOICE": 2,
+      "SHORT_ANSWER": 4,
+      "DESCRIPTIVE": 8
+    },
+    "note": "공식 배점·합격기준 주장이 아니다."
+  },
+  "selection": {
+    "question_ids": [
+      "CMT-DN-Q001",
+      "CMT-DN-Q011",
+      "CMT-DN-Q021",
+      "CMT-DN-Q031",
+      "CMT-DN-Q041",
+      "CMT-DN-Q051",
+      "CMT-DN-Q061",
+      "CMT-DN-Q071",
+      "CMT-DN-Q081",
+      "CMT-DN-Q091",
+      "CMT-DN-Q101",
+      "CMT-DN-Q111",
+      "CMT-DN-Q008",
+      "CMT-DN-Q018",
+      "CMT-DN-Q028",
+      "CMT-DN-Q038",
+      "CMT-DN-Q048",
+      "CMT-DN-Q058",
+      "CMT-DN-Q068",
+      "CMT-DN-Q070",
+      "CMT-DN-Q080",
+      "CMT-DN-Q090",
+      "CMT-DN-Q100",
+      "CMT-DN-Q110",
+      "CMT-DN-Q120"
+    ],
+    "count": 25,
+    "rule": "12 unit breadth: one MCQ per unit, seven short answers, six descriptive questions; deterministic selection from the larger bank.",
+    "coverage_rule": "Each unit appears at least once; higher-order reasoning appears in seven short and six descriptive items."
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "schema": "securium.crypto_module_tester.duration_neutral_lab_review.v1",
+  "course_id": "course-crypto-module-tester",
+  "existing_lab_authority_count": 1,
+  "executable_labs": 0,
+  "wave_b": "SUSPENDED",
+  "labs": [
+    {
+      "id": "CMT-L01",
+      "legacy_module": "H01",
+      "proposed_learning_units": [
+        "U01",
+        "U02"
+      ],
+      "classification": "REBIND",
+      "status": "NON_EXECUTABLE_PEDAGOGICAL_ASSET",
+      "semantic_mutation": 0,
+      "reason": "Existing synthetic/offline lab spec remains reusable after curriculum identity correction; no official Lab count asserted."
+    },
+    {
+      "id": "CMT-L02",
+      "legacy_module": "H02",
+      "proposed_learning_units": [
+        "U02",
+        "U03"
+      ],
+      "classification": "REBIND",
+      "status": "NON_EXECUTABLE_PEDAGOGICAL_ASSET",
+      "semantic_mutation": 0,
+      "reason": "Existing synthetic/offline lab spec remains reusable after curriculum identity correction; no official Lab count asserted."
+    },
+    {
+      "id": "CMT-L03",
+      "legacy_module": "H03",
+      "proposed_learning_units": [
+        "U03",
+        "U04"
+      ],
+      "classification": "REBIND",
+      "status": "NON_EXECUTABLE_PEDAGOGICAL_ASSET",
+      "semantic_mutation": 0,
+      "reason": "Existing synthetic/offline lab spec remains reusable after curriculum identity correction; no official Lab count asserted."
+    },
+    {
+      "id": "CMT-L04",
+      "legacy_module": "H04",
+      "proposed_learning_units": [
+        "U04",
+        "U05"
+      ],
+      "classification": "REBIND",
+      "status": "NON_EXECUTABLE_PEDAGOGICAL_ASSET",
+      "semantic_mutation": 0,
+      "reason": "Existing synthetic/offline lab spec remains reusable after curriculum identity correction; no official Lab count asserted."
+    },
+    {
+      "id": "CMT-L05",
+      "legacy_module": "H05",
+      "proposed_learning_units": [
+        "U05",
+        "U06"
+      ],
+      "classification": "EXPAND",
+      "status": "NON_EXECUTABLE_PEDAGOGICAL_ASSET",
+      "semantic_mutation": 0,
+      "reason": "Existing synthetic/offline lab spec remains reusable after curriculum identity correction; no official Lab count asserted."
+    },
+    {
+      "id": "CMT-L06",
+      "legacy_module": "H06",
+      "proposed_learning_units": [
+        "U06",
+        "U07"
+      ],
+      "classification": "EXPAND",
+      "status": "NON_EXECUTABLE_PEDAGOGICAL_ASSET",
+      "semantic_mutation": 0,
+      "reason": "Existing synthetic/offline lab spec remains reusable after curriculum identity correction; no official Lab count asserted."
+    },
+    {
+      "id": "CMT-L07",
+      "legacy_module": "H07",
+      "proposed_learning_units": [
+        "U07",
+        "U08"
+      ],
+      "classification": "EXPAND",
+      "status": "NON_EXECUTABLE_PEDAGOGICAL_ASSET",
+      "semantic_mutation": 0,
+      "reason": "Existing synthetic/offline lab spec remains reusable after curriculum identity correction; no official Lab count asserted."
+    },
+    {
+      "id": "CMT-L08",
+      "legacy_module": "H08",
+      "proposed_learning_units": [
+        "U08",
+        "U09"
+      ],
+      "classification": "EXPAND",
+      "status": "NON_EXECUTABLE_PEDAGOGICAL_ASSET",
+      "semantic_mutation": 0,
+      "reason": "Existing synthetic/offline lab spec remains reusable after curriculum identity correction; no official Lab count asserted."
+    }
+  ],
+  "additional_candidates": [
+    {
+      "id": "CMT-LC-09",
+      "title": "요구사항-증거 trace matrix 검토",
+      "status": "PROPOSED_NON_EXECUTABLE",
+      "safety": "synthetic artifacts only"
+    },
+    {
+      "id": "CMT-LC-10",
+      "title": "업데이트 중단·rollback 영향 분석",
+      "status": "PROPOSED_NON_EXECUTABLE",
+      "safety": "offline state traces only"
+    },
+    {
+      "id": "CMT-LC-11",
+      "title": "CSP 잔존·zeroization evidence review",
+      "status": "PROPOSED_NON_EXECUTABLE",
+      "safety": "synthetic memory/log artifacts only"
+    },
+    {
+      "id": "CMT-LC-12",
+      "title": "RNG 초기화·reseed·오류 trace review",
+      "status": "PROPOSED_NON_EXECUTABLE",
+      "safety": "synthetic traces only"
+    }
+  ]
+}

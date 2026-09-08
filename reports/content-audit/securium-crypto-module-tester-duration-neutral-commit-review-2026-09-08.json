@@ -1,0 +1,180 @@
+{
+  "schema": "securium.crypto_module_tester.bounded_commit_review.v1",
+  "review_date": "2026-09-08",
+  "final_status": "SECURIUM_CRYPTO_MODULE_TESTER_DURATION_NEUTRAL_CONTENT_FOUNDATION_BOUNDED_COMMIT_REVIEW_PASS",
+  "decision": "PASS",
+  "baseline": {
+    "worktree": "securium-crypto-module-tester-content-v1",
+    "branch": "content/crypto-module-tester-v1",
+    "head": "980ef6adb94d87a923d7a973edaf4419f03fff9d",
+    "origin_main": "4106b5be3dcbc699e816ad661abc3cb4e82a80f5",
+    "ahead": 0,
+    "behind": 2,
+    "tracked_changes": 0,
+    "staged_files": 0,
+    "untracked_files": 207,
+    "stash_count": 3,
+    "merge_rebase_reset_clean": "NOT_PERFORMED"
+  },
+  "file_accounting": {
+    "total_paths": 207,
+    "candidate_count": 36,
+    "exclusion_count": 171,
+    "category_counts": {
+      "MUST_COMMIT_ASSESSMENT_AUTHORITY": 1,
+      "MUST_COMMIT_COURSE_AUTHORITY": 1,
+      "MUST_COMMIT_MOCK_PROFILE": 1,
+      "MUST_COMMIT_OBJECTIVE_AUTHORITY": 1,
+      "GENERATED_PROJECTION_OPTIONAL": 123,
+      "MUST_COMMIT_REQUIRED_PROJECTION": 1,
+      "MUST_COMMIT_THEORY_AUTHORITY": 1,
+      "SUPERSEDED_8H_ARTIFACT": 14,
+      "HISTORICAL_REPORT": 28,
+      "MUST_COMMIT_PROVENANCE_RIGHTS": 7,
+      "SHOULD_COMMIT_FINAL_REVIEW_EVIDENCE": 20,
+      "INTERMEDIATE": 6,
+      "MUST_COMMIT_VALIDATOR": 3
+    },
+    "duplicates": 0,
+    "missing": 0,
+    "manifest": "reports/content-audit/securium-crypto-module-tester-duration-neutral-commit-candidate-2026-09-08.json"
+  },
+  "authorities": {
+    "schema": "securium.crypto_module_tester.commit_authority_counts.v1",
+    "course_authority_count": 1,
+    "theory_authority_count": 1,
+    "objective_authority_count": 1,
+    "assessment_authority_count": 1,
+    "mock_profile_authority_count": 1,
+    "duration_neutral_authority_count": 1,
+    "legacy_8h_active_authority_count": 0,
+    "theory_units": 12,
+    "objectives": 48,
+    "questions": 120,
+    "distribution": {
+      "MULTIPLE_CHOICE": 60,
+      "SHORT_ANSWER": 36,
+      "DESCRIPTIVE": 24
+    },
+    "explanations": "120/120",
+    "rubrics": "24/24",
+    "duplicates": "0/0/0",
+    "semantic_hash": "15af4398a54727017b7ddb1fbc880e85eb794e9d3887605160f65c90c36b6d98"
+  },
+  "source": {
+    "binary_count": 493,
+    "hash_integrity": "493/493 PASS",
+    "rights": "REFERENCE_ONLY / UNKNOWN_RIGHTS / FAIL_CLOSED",
+    "mutation": 0,
+    "direct_ingestion": 0,
+    "reconstruction": 0,
+    "ocr_canonicalization": 0,
+    "product_image_exposure": 0,
+    "treatment": "EXCLUDE_SOURCE_BINARIES"
+  },
+  "mock": {
+    "questions": 25,
+    "duration_minutes": 150,
+    "passing_score": "70 or higher",
+    "evidence": "EXAMINEE_OBSERVATION",
+    "official_verification": "NOT_OFFICIAL_VERIFIED",
+    "official_claim_count": 0,
+    "distinct_from_bank": "PASS"
+  },
+  "official_boundary": {
+    "exact_12_field_status": "UNKNOWN",
+    "unsupported_active_12_field_claims": 0,
+    "official_duration_status": "UNESTABLISHED",
+    "kisa": "VERIFIED",
+    "korean_crypto_forum": "NOT_VERIFIED",
+    "legacy_8h_active_authority_count": 0
+  },
+  "labs": {
+    "count": 8,
+    "classification": "SECURIUM_PEDAGOGICAL_ASSET",
+    "executable": 0,
+    "decision": "SEPARATE_LATER",
+    "wave_b": "WAIT_FOR_CURRICULUM_REBIND"
+  },
+  "projection": {
+    "required": "content-drafts/crypto-module-tester-duration-neutral/projections/theory.md",
+    "authority_only": "PASS",
+    "deterministic": "PASS",
+    "projection_authority": "READ_ONLY"
+  },
+  "validation": {
+    "validator": "PASS",
+    "mutation_tests": {
+      "missing_unit": "PASS_REJECTED",
+      "duplicate_question_id": "PASS_REJECTED",
+      "missing_explanation": "PASS_REJECTED",
+      "wrong_binding": "PASS_REJECTED",
+      "unsupported_duration": "PASS_REJECTED",
+      "prohibited_source_field": "PASS_REJECTED"
+    },
+    "semantic_hash": "15af4398a54727017b7ddb1fbc880e85eb794e9d3887605160f65c90c36b6d98",
+    "prohibited_assessment_fields": false,
+    "question_count": 120
+  },
+  "conflict": {
+    "decision": "NO_MATERIAL_CONFLICT",
+    "origin_main_files": [
+      "docs/content/securium-canonical-ontology-concept-dataset-seed-restore-2026-09-08.md",
+      "docs/content/securium-canonical-ontology-concept-dataset-seed-restore-final-review-2026-09-08.md",
+      "docs/content/securium-canonical-ontology-seed-evidence-restore-and-provenance-binding-repair-2026-09-08.md",
+      "lib/data/securium-canonical-concept-dataset-archival-guard.mjs",
+      "lib/data/securium-canonical-concept-dataset-seed.mjs",
+      "package-lock.json",
+      "package.json",
+      "reports/content-audit/securium-canonical-ontology-concept-dataset-manifest-2026-09-08.json",
+      "reports/content-audit/securium-canonical-ontology-concept-dataset-seed-restore-2026-09-08.json",
+      "reports/content-audit/securium-canonical-ontology-concept-dataset-seed-restore-final-review-2026-09-08.json",
+      "reports/content-audit/securium-canonical-ontology-dataset-a-archival-commit-candidate-2026-09-08.json",
+      "reports/content-audit/securium-canonical-ontology-dataset-a-archival-commit-exclusions-2026-09-08.json",
+      "reports/content-audit/securium-canonical-ontology-dataset-a-archival-commit-review-2026-09-08.json",
+      "reports/content-audit/securium-canonical-ontology-dataset-a-archival-commit-review-2026-09-08.md",
+      "reports/content-audit/securium-canonical-ontology-dataset-a-archival-commit-review-2026-09-08.sha256",
+      "reports/content-audit/securium-canonical-ontology-legacy-dataset-worktree-archival-review-2026-09-08.json",
+      "reports/content-audit/securium-canonical-ontology-legacy-dataset-worktree-archival-review-2026-09-08.md",
+      "reports/content-audit/securium-canonical-ontology-legacy-dataset-worktree-archival-review-2026-09-08.sha256",
+      "reports/content-audit/securium-canonical-ontology-legacy-dataset-worktree-authority-closure-2026-09-08.json",
+      "reports/content-audit/securium-canonical-ontology-legacy-dataset-worktree-authority-closure-2026-09-08.md",
+      "reports/content-audit/securium-canonical-ontology-legacy-dataset-worktree-authority-closure-2026-09-08.sha256",
+      "reports/content-audit/securium-canonical-ontology-seed-evidence-restore-and-provenance-binding-repair-2026-09-08.json",
+      "scripts/build-securium-canonical-ontology-legacy-authority-closure-report.mjs",
+      "tests/securium-canonical-concept-dataset-seed.test.mjs",
+      "tests/securium-canonical-ontology-legacy-authority.test.mjs"
+    ],
+    "candidate_overlap": [],
+    "note": "origin/main changes are canonical-ontology archival and package metadata; no crypto authority path overlap."
+  },
+  "strategy": {
+    "commit_strategy": "READY_FOR_ONE_BOUNDED_COMMIT",
+    "commit_readiness": "READY_FOR_BOUNDED_COMMIT",
+    "rebase_timing": "REBASE_BEFORE_COMMIT",
+    "proposed_message": "feat(content): add crypto module tester foundation",
+    "next_gate": "COMMIT_SECURIUM_CRYPTO_MODULE_TESTER_DURATION_NEUTRAL_CONTENT_FOUNDATION"
+  },
+  "governance": {
+    "canonical_concept": 0,
+    "skill": 0,
+    "role": 0,
+    "evidence": 0,
+    "mastery": 0,
+    "db_schema_migration": "0/0/0",
+    "production_db": "NO",
+    "deployment": "NO",
+    "publication": "NO",
+    "stage": "NO",
+    "commit": "NO",
+    "push": "NO",
+    "pr": "NO"
+  },
+  "risks": {
+    "security_critical_high": "0/0",
+    "data_trust_critical_high": "0/0",
+    "privacy_critical_high": "0/0",
+    "p0_p1_p2": "0/0/0"
+  },
+  "completion": "CRYPTO_MODULE_TESTER_DURATION_NEUTRAL_CONTENT_FOUNDATION_COMPLETE"
+}

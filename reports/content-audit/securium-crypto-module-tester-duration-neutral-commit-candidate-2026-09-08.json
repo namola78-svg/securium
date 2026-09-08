@@ -1,0 +1,189 @@
+{
+  "schema": "securium.crypto_module_tester.bounded_commit_candidate.v1",
+  "decision": "READY_FOR_ONE_BOUNDED_COMMIT",
+  "candidate_count": 36,
+  "duplicate_paths": 0,
+  "unknown_paths": [],
+  "paths": [
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/assessment-authority.json",
+      "category": "MUST_COMMIT_ASSESSMENT_AUTHORITY",
+      "role": "active_authority"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/course.json",
+      "category": "MUST_COMMIT_COURSE_AUTHORITY",
+      "role": "active_authority"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/mock-exam-profile.json",
+      "category": "MUST_COMMIT_MOCK_PROFILE",
+      "role": "active_authority"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/objective-authority.json",
+      "category": "MUST_COMMIT_OBJECTIVE_AUTHORITY",
+      "role": "active_authority"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/projections/theory.md",
+      "category": "MUST_COMMIT_REQUIRED_PROJECTION",
+      "role": "required_projection"
+    },
+    {
+      "path": "content-drafts/crypto-module-tester-duration-neutral/theory-authority.json",
+      "category": "MUST_COMMIT_THEORY_AUTHORITY",
+      "role": "active_authority"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-concept-candidate-dry-run-2026-09-08.json",
+      "category": "MUST_COMMIT_PROVENANCE_RIGHTS",
+      "role": "governance_evidence"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-duration-neutral-assessment-authority-verification-2026-09-08.json",
+      "category": "SHOULD_COMMIT_FINAL_REVIEW_EVIDENCE",
+      "role": "governance_evidence"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-duration-neutral-assessment-manifest-2026-09-08.json",
+      "category": "MUST_COMMIT_PROVENANCE_RIGHTS",
+      "role": "governance_evidence"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-duration-neutral-authority-counts-2026-09-08.json",
+      "category": "SHOULD_COMMIT_FINAL_REVIEW_EVIDENCE",
+      "role": "governance_evidence"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-duration-neutral-commit-candidate-2026-09-08.json",
+      "category": "SHOULD_COMMIT_FINAL_REVIEW_EVIDENCE",
+      "role": "governance_evidence"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-duration-neutral-commit-exclusions-2026-09-08.json",
+      "category": "SHOULD_COMMIT_FINAL_REVIEW_EVIDENCE",
+      "role": "governance_evidence"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-duration-neutral-commit-review-2026-09-08.json",
+      "category": "SHOULD_COMMIT_FINAL_REVIEW_EVIDENCE",
+      "role": "governance_evidence"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-duration-neutral-commit-review-2026-09-08.md",
+      "category": "SHOULD_COMMIT_FINAL_REVIEW_EVIDENCE",
+      "role": "governance_evidence"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-duration-neutral-commit-review-sha256-2026-09-08.txt",
+      "category": "SHOULD_COMMIT_FINAL_REVIEW_EVIDENCE",
+      "role": "governance_evidence"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-duration-neutral-downstream-readiness-2026-09-08.json",
+      "category": "SHOULD_COMMIT_FINAL_REVIEW_EVIDENCE",
+      "role": "governance_evidence"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-duration-neutral-legacy-8h-classification-2026-09-08.json",
+      "category": "SHOULD_COMMIT_FINAL_REVIEW_EVIDENCE",
+      "role": "governance_evidence"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-duration-neutral-main-drift-conflict-2026-09-08.json",
+      "category": "SHOULD_COMMIT_FINAL_REVIEW_EVIDENCE",
+      "role": "governance_evidence"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-duration-neutral-mock-profile-evidence-verification-2026-09-08.json",
+      "category": "SHOULD_COMMIT_FINAL_REVIEW_EVIDENCE",
+      "role": "governance_evidence"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-duration-neutral-objective-authority-verification-2026-09-08.json",
+      "category": "SHOULD_COMMIT_FINAL_REVIEW_EVIDENCE",
+      "role": "governance_evidence"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-duration-neutral-projection-determinism-2026-09-08.json",
+      "category": "SHOULD_COMMIT_FINAL_REVIEW_EVIDENCE",
+      "role": "governance_evidence"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-duration-neutral-question-quality-duplicate-review-2026-09-08.json",
+      "category": "SHOULD_COMMIT_FINAL_REVIEW_EVIDENCE",
+      "role": "governance_evidence"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-duration-neutral-rights-data-trust-verification-2026-09-08.json",
+      "category": "SHOULD_COMMIT_FINAL_REVIEW_EVIDENCE",
+      "role": "governance_evidence"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-duration-neutral-source-binary-exclusion-2026-09-08.json",
+      "category": "SHOULD_COMMIT_FINAL_REVIEW_EVIDENCE",
+      "role": "governance_evidence"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-duration-neutral-theory-authority-verification-2026-09-08.json",
+      "category": "SHOULD_COMMIT_FINAL_REVIEW_EVIDENCE",
+      "role": "governance_evidence"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-duration-neutral-validator-result-2026-09-08.json",
+      "category": "SHOULD_COMMIT_FINAL_REVIEW_EVIDENCE",
+      "role": "governance_evidence"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-practical-lab-review-2026-09-08.json",
+      "category": "MUST_COMMIT_PROVENANCE_RIGHTS",
+      "role": "governance_evidence"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-source-derived-taxonomy-2026-09-08.json",
+      "category": "MUST_COMMIT_PROVENANCE_RIGHTS",
+      "role": "governance_evidence"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-source-knowledge-coverage-2026-09-08.json",
+      "category": "MUST_COMMIT_PROVENANCE_RIGHTS",
+      "role": "governance_evidence"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-source-package-sha256-2026-09-08.txt",
+      "category": "MUST_COMMIT_PROVENANCE_RIGHTS",
+      "role": "governance_evidence"
+    },
+    {
+      "path": "reports/content-audit/securium-crypto-module-tester-theory-gap-analysis-2026-09-08.json",
+      "category": "MUST_COMMIT_PROVENANCE_RIGHTS",
+      "role": "governance_evidence"
+    },
+    {
+      "path": "scripts/author-crypto-module-tester-duration-neutral.mjs",
+      "category": "MUST_COMMIT_VALIDATOR",
+      "role": "reproducible_control"
+    },
+    {
+      "path": "scripts/project-crypto-module-tester-duration-neutral.mjs",
+      "category": "MUST_COMMIT_VALIDATOR",
+      "role": "reproducible_control"
+    },
+    {
+      "path": "scripts/review-crypto-module-tester-duration-neutral-commit.mjs",
+      "category": "SHOULD_COMMIT_FINAL_REVIEW_EVIDENCE",
+      "role": "reproducible_control"
+    },
+    {
+      "path": "scripts/review-crypto-module-tester-duration-neutral-content-foundation.mjs",
+      "category": "SHOULD_COMMIT_FINAL_REVIEW_EVIDENCE",
+      "role": "reproducible_control"
+    },
+    {
+      "path": "scripts/validate-crypto-module-tester-duration-neutral.mjs",
+      "category": "MUST_COMMIT_VALIDATOR",
+      "role": "reproducible_control"
+    }
+  ]
+}

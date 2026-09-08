@@ -1,0 +1,26 @@
+{
+  "schema": "securium.crypto_module_tester.projection_determinism_verification.v1",
+  "policy": "GENERATED_READ_ONLY_PROJECTION",
+  "authority_inputs": [
+    "theory-authority.json",
+    "assessment-authority.json"
+  ],
+  "editable_projection_inputs": 0,
+  "projection_file_count": 124,
+  "deterministic": true,
+  "theory_projection": {
+    "path": "content-drafts/crypto-module-tester-duration-neutral/projections/theory.md",
+    "generated_marker": true,
+    "official_12_claim": "NONE"
+  },
+  "assessment_projection_types": [
+    "multiple-choice.json",
+    "short-answer.json",
+    "descriptive.json"
+  ],
+  "readback_parity": {
+    "assessment_projection_question_ids": 120,
+    "theory_projection_unit_titles": 12,
+    "semantic_hash": "15af4398a54727017b7ddb1fbc880e85eb794e9d3887605160f65c90c36b6d98"
+  }
+}
