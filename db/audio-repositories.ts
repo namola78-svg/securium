@@ -18,6 +18,7 @@ import {
   validateAudioUrl,
 } from "@/lib/services/audio-service";
 import { getLatestPublishedRevision } from "./content-revision-repositories";
+import { isSamePersistedMediaProgressState } from "@/lib/media-progress-checkpoint";
 
 async function requireAccessibleAudio(
   userId: string,
@@ -201,15 +202,35 @@ export async function updateAudioProgress(input: {
       ),
     )
     .limit(1);
-  const now = new Date().toISOString();
-  const completed = Boolean(current?.completed || input.complete);
-  const completedAt = current?.completedAt ?? (completed ? now : null);
   const latestRevision = current?.completed
     ? null
     : await getLatestPublishedRevision("AUDIO_CONTENT", input.audioContentId);
+  const now = new Date().toISOString();
+  const completed = Boolean(current?.completed || input.complete);
+  const completedAt = current?.completedAt ?? (completed ? now : null);
   const contentRevisionId = current?.completed
-    ? current.contentRevisionId
+    ? current.contentRevisionId ?? null
     : latestRevision?.id ?? null;
+  if (
+    current &&
+    isSamePersistedMediaProgressState(
+      { position, complete: completed, contentRevisionId },
+      {
+        position: current.currentPositionSeconds,
+        complete: Boolean(current.completed),
+        contentRevisionId: current.contentRevisionId ?? null,
+      },
+    )
+  ) {
+    return {
+      audioContentId: input.audioContentId,
+      currentPositionSeconds: current.currentPositionSeconds,
+      completed: Boolean(current.completed),
+      completedAt: current.completedAt,
+      contentRevisionId: current.contentRevisionId ?? null,
+      idempotentReplay: true,
+    };
+  }
   await getDb()
     .insert(audioProgress)
     .values({
@@ -239,6 +260,7 @@ export async function updateAudioProgress(input: {
     currentPositionSeconds: position,
     completed,
     completedAt,
+    contentRevisionId,
     idempotentReplay: Boolean(current?.completed && input.complete),
   };
 }

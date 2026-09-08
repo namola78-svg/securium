@@ -5,6 +5,11 @@ import {
   supportsSpeechSynthesis,
   type TranscriptSegment,
 } from "@/lib/services/audio-service";
+import {
+  isSameMediaProgressState,
+  MEDIA_PROGRESS_CHECKPOINT_INTERVAL_MS,
+  retryDelayAfterFailure,
+} from "@/lib/media-progress-checkpoint";
 import { publicCopy } from "@/lib/public-copy";
 
 type AudioLearningItem = {
@@ -35,7 +40,7 @@ export function AudioLearningPlayer({
           <p className="eyebrow">AUDIO LEARNING</p>
           <h2 id="audio-heading">오디오 학습</h2>
         </div>
-        <p>재생 위치는 계정별로 저장되며 15초 간격으로 업데이트됩니다.</p>
+        <p>재생 위치는 계정별로 저장되며 재생 중에도 주기적으로 업데이트됩니다.</p>
       </div>
       <div className="audio-learning-list">
         {items.map((item) => (
@@ -94,7 +99,6 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
   async function persist(
     nextPosition: number,
     complete: boolean,
-    force = false,
   ) {
     const position = Math.max(
       0,
@@ -104,11 +108,7 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
       position,
       complete: lastPersistedRef.current.complete || complete,
     };
-    if (
-      !force &&
-      desired.position === lastPersistedRef.current.position &&
-      desired.complete === lastPersistedRef.current.complete
-    ) {
+    if (isSameMediaProgressState(desired, lastPersistedRef.current)) {
       return;
     }
     if (inFlightRef.current) {
@@ -117,6 +117,7 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
     }
     inFlightRef.current = true;
     lastSavedAtRef.current = Date.now();
+    let requestSucceeded = false;
     try {
       const response = await fetch("/api/audio/progress", {
         method: "POST",
@@ -149,12 +150,25 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
             ? "오디오 학습 완료를 저장했습니다."
             : "재생 위치를 저장했습니다.",
         );
+        requestSucceeded = true;
       }
     } finally {
       inFlightRef.current = false;
       const queued = queuedSaveRef.current;
       queuedSaveRef.current = null;
-      if (queued) void persist(queued.position, queued.complete);
+      if (requestSucceeded && queued) {
+        void persist(queued.position, queued.complete);
+      } else if (!requestSucceeded) {
+        const retryState = queued ?? desired;
+        desiredSaveRef.current = retryState;
+        if (!pendingSaveRef.current) {
+          pendingSaveRef.current = setTimeout(() => {
+            pendingSaveRef.current = null;
+            const latest = desiredSaveRef.current;
+            void persist(latest.position, latest.complete);
+          }, retryDelayAfterFailure(Date.now() - lastSavedAtRef.current));
+        }
+      }
     }
   }
 
@@ -169,13 +183,13 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
     };
     if (!force && !isPlayingRef.current) return;
     const elapsed = Date.now() - lastSavedAtRef.current;
-    if (force || elapsed >= 15_000) {
+    if (force || elapsed >= MEDIA_PROGRESS_CHECKPOINT_INTERVAL_MS) {
       if (pendingSaveRef.current) {
         clearTimeout(pendingSaveRef.current);
         pendingSaveRef.current = null;
       }
       const desired = desiredSaveRef.current;
-      void persist(desired.position, desired.complete, force);
+      void persist(desired.position, desired.complete);
       return;
     }
     if (!pendingSaveRef.current) {
@@ -183,7 +197,7 @@ function AudioLearningItem({ item }: { item: AudioLearningItem }) {
         pendingSaveRef.current = null;
         const desired = desiredSaveRef.current;
         void persist(desired.position, desired.complete);
-      }, 15_000 - elapsed);
+      }, MEDIA_PROGRESS_CHECKPOINT_INTERVAL_MS - elapsed);
     }
   }
 
