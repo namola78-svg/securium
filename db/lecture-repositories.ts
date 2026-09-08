@@ -31,6 +31,7 @@ import {
   validateLecturePosition,
 } from "@/lib/services/video-provider-service";
 import { getLatestPublishedRevision } from "./content-revision-repositories";
+import { isSamePersistedMediaProgressState } from "@/lib/media-progress-checkpoint";
 
 type LectureFilters = {
   subjectId?: string;
@@ -208,6 +209,7 @@ export async function getPublishedLecture(
         currentPositionSeconds:
           sql<number>`coalesce(${lectureProgress.currentPositionSeconds}, 0)`,
         completed: sql<boolean>`coalesce(${lectureProgress.completed}, 0)`,
+        progressContentRevisionId: lectureProgress.contentRevisionId,
         completedAt: lectureProgress.completedAt,
         lastPlayedAt: lectureProgress.lastPlayedAt,
         bookmarked: sql<boolean>`case when ${lectureBookmarks.id} is null then 0 else 1 end`,
@@ -431,15 +433,35 @@ export async function updateLectureProgress(input: {
       ),
     )
     .limit(1);
-  const now = new Date().toISOString();
-  const completed = Boolean(current?.completed || input.complete);
-  const completedAt = current?.completedAt ?? (completed ? now : null);
   const latestRevision = current?.completed
     ? null
     : await getLatestPublishedRevision("LECTURE", input.lectureId);
+  const now = new Date().toISOString();
+  const completed = Boolean(current?.completed || input.complete);
+  const completedAt = current?.completedAt ?? (completed ? now : null);
   const contentRevisionId = current?.completed
-    ? current.contentRevisionId
+    ? current.contentRevisionId ?? null
     : latestRevision?.id ?? null;
+  if (
+    current &&
+    isSamePersistedMediaProgressState(
+      { position, complete: completed, contentRevisionId },
+      {
+        position: current.currentPositionSeconds,
+        complete: Boolean(current.completed),
+        contentRevisionId: current.contentRevisionId ?? null,
+      },
+    )
+  ) {
+    return {
+      lectureId: input.lectureId,
+      currentPositionSeconds: current.currentPositionSeconds,
+      completed: Boolean(current.completed),
+      completedAt: current.completedAt,
+      contentRevisionId: current.contentRevisionId ?? null,
+      idempotentReplay: true,
+    };
+  }
   await getDb()
     .insert(lectureProgress)
     .values({
@@ -467,6 +489,7 @@ export async function updateLectureProgress(input: {
     currentPositionSeconds: position,
     completed,
     completedAt,
+    contentRevisionId,
     idempotentReplay: Boolean(current?.completed && input.complete),
   };
 }

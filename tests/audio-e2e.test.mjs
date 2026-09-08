@@ -143,6 +143,77 @@ async function read(headers, audioContentId) {
   return { response, payload: await response.json() };
 }
 
+async function runLocalSql(command) {
+  const child = spawn(
+    process.execPath,
+    [
+      "scripts/run-wrangler.mjs",
+      "d1",
+      "execute",
+      "DB",
+      "--local",
+      "--config",
+      "wrangler.local.jsonc",
+      "--command",
+      command,
+    ],
+    { env: process.env, stdio: ["ignore", "ignore", "pipe"], windowsHide: true },
+  );
+  let stderr = "";
+  child.stderr.on("data", (chunk) => { stderr += chunk.toString(); });
+  return new Promise((resolve, reject) => {
+    child.on("error", reject);
+    child.on("exit", (code, signal) => {
+      if (signal) reject(new Error(`Local SQL stopped by ${signal}.`));
+      else if (code !== 0) reject(new Error(`Local SQL failed with ${code}. ${stderr}`));
+      else resolve();
+    });
+  });
+}
+
+test("same audio progress writes when the canonical published revision changes", async () => {
+  const audioRevisionId = `revision-audio-${piaAudioId}`;
+  const nextRevisionId = "test-revision-audio-v2";
+  const first = await save(user1, {
+    audioContentId: piaAudioId,
+    currentPositionSeconds: 50,
+    complete: false,
+  });
+  assert.equal(first.response.status, 200, JSON.stringify(first.payload));
+
+  await runLocalSql(`
+    UPDATE content_revisions
+    SET is_latest = 0, revision_status = 'superseded', superseded_at = '2026-09-08T00:00:00.000Z'
+    WHERE id = '${audioRevisionId}';
+    INSERT INTO content_revisions
+      (id, content_type, content_id, course_id, title, content_date, version,
+       revision_status, snapshot_json, reviewed_at, reviewed_by, published_at,
+       change_summary, is_latest, created_by)
+    SELECT '${nextRevisionId}', content_type, content_id, course_id, title,
+      content_date, '2', 'published', snapshot_json, reviewed_at, reviewed_by,
+      '2026-09-08T00:00:00.000Z', 'revision transition test', 1, created_by
+    FROM content_revisions
+    WHERE id = '${audioRevisionId}';
+  `);
+
+  const revisionChanged = await save(user1, {
+    audioContentId: piaAudioId,
+    currentPositionSeconds: 50,
+    complete: false,
+  });
+  assert.equal(revisionChanged.response.status, 200, JSON.stringify(revisionChanged.payload));
+  assert.equal(revisionChanged.payload.result.idempotentReplay, false);
+  assert.equal(revisionChanged.payload.result.contentRevisionId, nextRevisionId);
+
+  const equalReplay = await save(user1, {
+    audioContentId: piaAudioId,
+    currentPositionSeconds: 50,
+    complete: false,
+  });
+  assert.equal(equalReplay.payload.result.idempotentReplay, true);
+  assert.equal(equalReplay.payload.result.contentRevisionId, nextRevisionId);
+});
+
 test("오디오 재생 위치를 저장하고 레슨에서 이어 듣기를 표시한다", async () => {
   const saved = await save(user1, {
     audioContentId: piaAudioId,
@@ -155,6 +226,14 @@ test("오디오 재생 위치를 저장하고 레슨에서 이어 듣기를 표�
   const readBack = await read(user1, piaAudioId);
   assert.equal(readBack.response.status, 200, JSON.stringify(readBack.payload));
   assert.equal(readBack.payload.result.currentPositionSeconds, 32);
+
+  const equalReplay = await save(user1, {
+    audioContentId: piaAudioId,
+    currentPositionSeconds: 32,
+    complete: false,
+  });
+  assert.equal(equalReplay.response.status, 200, JSON.stringify(equalReplay.payload));
+  assert.equal(equalReplay.payload.result.idempotentReplay, true);
 
   const page = await fetch(
     `${baseUrl}/learn/privacy-impact-assessment/lessons/course-pia-subject-foundation-topic-core-lesson-01`,

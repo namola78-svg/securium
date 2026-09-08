@@ -75,6 +75,104 @@ async function post(path, headers, body) {
   return { response, payload: await response.json() };
 }
 
+async function runLocalSql(command) {
+  const child = spawn(
+    process.execPath,
+    [
+      "scripts/run-wrangler.mjs",
+      "d1",
+      "execute",
+      "DB",
+      "--local",
+      "--config",
+      "wrangler.local.jsonc",
+      "--command",
+      command,
+    ],
+    { env: process.env, stdio: ["ignore", "ignore", "pipe"], windowsHide: true },
+  );
+  let stderr = "";
+  child.stderr.on("data", (chunk) => { stderr += chunk.toString(); });
+  return new Promise((resolve, reject) => {
+    child.on("error", reject);
+    child.on("exit", (code, signal) => {
+      if (signal) reject(new Error(`Local SQL stopped by ${signal}.`));
+      else if (code !== 0) reject(new Error(`Local SQL failed with ${code}. ${stderr}`));
+      else resolve();
+    });
+  });
+}
+
+test("same lecture progress writes when the canonical published revision changes", async () => {
+  const lectureRevisionId = `revision-lecture-${piaFreeLecture}`;
+  const nextRevisionId = "test-revision-lecture-v2";
+  const first = await post("/api/lectures/progress", user1, {
+    lectureId: piaFreeLecture,
+    currentPositionSeconds: 42,
+    complete: false,
+  });
+  assert.equal(first.response.status, 200, JSON.stringify(first.payload));
+  assert.equal(first.payload.result.idempotentReplay, false);
+
+  await runLocalSql(`
+    UPDATE content_revisions
+    SET is_latest = 0, revision_status = 'superseded', superseded_at = '2026-09-08T00:00:00.000Z'
+    WHERE id = '${lectureRevisionId}';
+    INSERT INTO content_revisions
+      (id, content_type, content_id, course_id, title, content_date, version,
+       revision_status, snapshot_json, reviewed_at, reviewed_by, published_at,
+       change_summary, is_latest, created_by)
+    SELECT '${nextRevisionId}', content_type, content_id, course_id, title,
+      content_date, '2', 'published', snapshot_json, reviewed_at, reviewed_by,
+      '2026-09-08T00:00:00.000Z', 'revision transition test', 1, created_by
+    FROM content_revisions
+    WHERE id = '${lectureRevisionId}';
+  `);
+
+  const revisionChanged = await post("/api/lectures/progress", user1, {
+    lectureId: piaFreeLecture,
+    currentPositionSeconds: 42,
+    complete: false,
+  });
+  assert.equal(revisionChanged.response.status, 200, JSON.stringify(revisionChanged.payload));
+  assert.equal(revisionChanged.payload.result.idempotentReplay, false);
+  assert.equal(revisionChanged.payload.result.contentRevisionId, nextRevisionId);
+
+  const equalReplay = await post("/api/lectures/progress", user1, {
+    lectureId: piaFreeLecture,
+    currentPositionSeconds: 42,
+    complete: false,
+  });
+  assert.equal(equalReplay.payload.result.idempotentReplay, true);
+  assert.equal(equalReplay.payload.result.contentRevisionId, nextRevisionId);
+
+  await runLocalSql(`UPDATE lecture_progress SET content_revision_id = NULL WHERE user_id = 'user-learner-1' AND lecture_id = '${piaFreeLecture}';`);
+  const nullToRevision = await post("/api/lectures/progress", user1, {
+    lectureId: piaFreeLecture,
+    currentPositionSeconds: 42,
+    complete: false,
+  });
+  assert.equal(nullToRevision.payload.result.idempotentReplay, false);
+  assert.equal(nullToRevision.payload.result.contentRevisionId, nextRevisionId);
+
+  await runLocalSql(`UPDATE content_revisions SET is_latest = 0, revision_status = 'superseded', superseded_at = '2026-09-08T00:00:00.000Z' WHERE id = '${nextRevisionId}';`);
+  const revisionToNull = await post("/api/lectures/progress", user1, {
+    lectureId: piaFreeLecture,
+    currentPositionSeconds: 42,
+    complete: false,
+  });
+  assert.equal(revisionToNull.payload.result.idempotentReplay, false);
+  assert.equal(revisionToNull.payload.result.contentRevisionId, null);
+
+  const nullReplay = await post("/api/lectures/progress", user1, {
+    lectureId: piaFreeLecture,
+    currentPositionSeconds: 42,
+    complete: false,
+  });
+  assert.equal(nullReplay.payload.result.idempotentReplay, true);
+  assert.equal(nullReplay.payload.result.contentRevisionId, null);
+});
+
 test("과정별 강의 목록은 검색·과목·주제 필터와 접근 상태를 표시한다", async () => {
   const response = await fetch(
     `${baseUrl}/lectures/privacy-impact-assessment?query=Mock&subjectId=course-pia-subject-foundation&topicId=course-pia-subject-foundation-topic-core`,
@@ -156,6 +254,14 @@ test("이어보기 진도는 사용자별로 저장한다", async () => {
     { headers: user1 },
   ).then((response) => response.json());
   assert.equal(own.result.progress.currentPositionSeconds, 120);
+
+  const equalReplay = await post("/api/lectures/progress", user1, {
+    lectureId: piaPaidLecture,
+    currentPositionSeconds: 120,
+    complete: false,
+  });
+  assert.equal(equalReplay.response.status, 200, JSON.stringify(equalReplay.payload));
+  assert.equal(equalReplay.payload.result.idempotentReplay, true);
 
   const other = await fetch(
     `${baseUrl}/api/lectures/progress?lectureId=${piaPaidLecture}`,
