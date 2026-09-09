@@ -5,6 +5,7 @@ import { AppError } from "@/lib/errors";
 
 const HASH = /^[0-9a-f]{64}$/;
 const STATUSES = new Set(["DRAFT", "ACTIVE", "RETIRED"]);
+export const CONCEPT_PERSISTENCE_ROLE = "STAGING_COMPATIBILITY_ONLY" as const;
 
 function required(value: string, field: string) {
   if (!value.trim()) throw new AppError(`${field} is required.`, 400, "CP_INVALID_INPUT");
@@ -16,6 +17,17 @@ function status(value: string) {
   return value;
 }
 
+function stagingStatus(value: string) {
+  if (status(value) !== "DRAFT") {
+    throw new AppError(
+      "CP-A concept persistence is staging-only; canonical Concept lifecycle is governed by ontology_concepts.",
+      409,
+      "CP_CANONICAL_AUTHORITY_BOUNDARY",
+    );
+  }
+  return "DRAFT";
+}
+
 function hash(value: string) {
   if (!HASH.test(value)) throw new AppError("Semantic hash must be lowercase SHA-256 hex.", 400, "CP_INVALID_HASH");
   return value;
@@ -23,7 +35,7 @@ function hash(value: string) {
 
 export async function createConcept(input: { id: string; stableKey: string; status?: string }) {
   const stableKey = required(input.stableKey, "stableKey");
-  await getDb().insert(concepts).values({ id: required(input.id, "id"), stableKey, status: status(input.status ?? "DRAFT") });
+  await getDb().insert(concepts).values({ id: required(input.id, "id"), stableKey, status: stagingStatus(input.status ?? "DRAFT") });
   return { id: input.id, stableKey };
 }
 
@@ -33,11 +45,11 @@ export async function createConceptVersion(input: { id: string; conceptId: strin
   const db = getDb();
   const [parent] = await db.select({ id: concepts.id }).from(concepts).where(eq(concepts.id, input.conceptId)).limit(1);
   if (!parent) throw new AppError("Concept was not found.", 404, "CP_UNKNOWN_PARENT");
-  await db.insert(conceptVersions).values({ id: required(input.id, "id"), conceptId: input.conceptId, version: input.version, semanticHash, definition: required(input.definition, "definition"), scope: required(input.scope, "scope"), status: status(input.status ?? "DRAFT") });
+  await db.insert(conceptVersions).values({ id: required(input.id, "id"), conceptId: input.conceptId, version: input.version, semanticHash, definition: required(input.definition, "definition"), scope: required(input.scope, "scope"), status: stagingStatus(input.status ?? "DRAFT") });
   return { id: input.id, conceptId: input.conceptId, version: input.version };
 }
 
 export async function addConceptLabel(input: { id: string; conceptId: string; language: string; label: string; normalizedLabel: string; labelType?: "PREF" | "ALT"; status?: string }) {
-  await getDb().insert(conceptLabels).values({ id: required(input.id, "id"), conceptId: input.conceptId, language: required(input.language, "language"), label: required(input.label, "label"), normalizedLabel: required(input.normalizedLabel, "normalizedLabel"), labelType: input.labelType ?? "PREF", status: status(input.status ?? "DRAFT") });
+  await getDb().insert(conceptLabels).values({ id: required(input.id, "id"), conceptId: input.conceptId, language: required(input.language, "language"), label: required(input.label, "label"), normalizedLabel: required(input.normalizedLabel, "normalizedLabel"), labelType: input.labelType ?? "PREF", status: stagingStatus(input.status ?? "DRAFT") });
   return { id: input.id, conceptId: input.conceptId };
 }
