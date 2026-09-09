@@ -26,6 +26,14 @@ function canonicalJson(value: unknown): string {
   return JSON.stringify(value);
 }
 
+type NormalizedPracticalChoice = {
+  id: string;
+  content: string;
+  displayOrder: number;
+  isCorrect: boolean;
+  explanation: string;
+};
+
 function canonicalSha256(value: unknown): string {
   return createHash("sha256").update(canonicalJson(value), "utf8").digest("hex");
 }
@@ -143,6 +151,152 @@ test("practical security questions remain linked to practical content", () => {
       );
     }
   }
+});
+
+test("auto-graded practical choices keep normalized grading fields", () => {
+  const autoGradedQuestions = practicalSecurityQuestionSamples.filter(
+    (question) => question.type !== "SHORT_ANSWER",
+  );
+
+  assert.equal(autoGradedQuestions.length, 18);
+
+  for (const question of autoGradedQuestions) {
+    assert.equal(question.choices.length > 0, true, `${question.id} should have choices`);
+    for (const [index, choice] of question.choices.entries() as Iterable<
+      [number, NormalizedPracticalChoice]
+    >) {
+      assert.equal(Array.isArray(choice), false, `${question.id} choice ${index + 1} should be normalized`);
+      assert.equal(typeof choice.id, "string");
+      assert.equal(typeof choice.content, "string");
+      assert.equal(choice.displayOrder, index + 1);
+      assert.equal(typeof choice.isCorrect, "boolean");
+      assert.equal(typeof choice.explanation, "string");
+    }
+  }
+});
+
+test("affected practical questions preserve correct-answer identity in shared grading", () => {
+  const affectedIds = new Set([
+    "practical-security-official-subitem-q01",
+    "practical-security-official-subitem-q02",
+    "practical-security-official-subitem-q03",
+    "practical-security-official-subitem-q05",
+    "practical-security-official-subitem-q06",
+    "practical-security-official-subitem-q07",
+    "practical-security-official-subitem-q09",
+    "practical-security-official-subitem-q10",
+    "practical-security-official-subitem-q11",
+    "practical-security-official-engineer-q01",
+    "practical-security-official-engineer-q02",
+    "practical-security-official-engineer-q04",
+  ]);
+  const affectedQuestions = practicalSecurityQuestionSamples.filter((question) =>
+    affectedIds.has(question.id),
+  );
+
+  assert.equal(affectedQuestions.length, 12);
+  for (const question of affectedQuestions) {
+    const gradingQuestion = toPracticalSecurityGradingQuestion(question);
+    const correctIds: string[] = gradingQuestion.choices
+      .filter((choice: NormalizedPracticalChoice) => choice.isCorrect)
+      .map((choice: NormalizedPracticalChoice) => choice.id);
+    const correctAnswer =
+      question.type === "MULTIPLE_CHOICE"
+        ? correctIds
+        : (correctIds[0] ?? "invalid-choice");
+
+    assert.equal(
+      gradeQuestion(gradingQuestion, correctAnswer).isCorrect,
+      true,
+      `${question.id} should accept its authored correct answer`,
+    );
+
+    const incorrectAnswer =
+      question.type === "MULTIPLE_CHOICE"
+        ? correctIds.slice(0, -1)
+        : gradingQuestion.choices.find(
+            (choice: NormalizedPracticalChoice) => !choice.isCorrect,
+          )?.id ??
+          "invalid-choice";
+    assert.equal(
+      gradeQuestion(gradingQuestion, incorrectAnswer).isCorrect,
+      false,
+      `${question.id} should reject an incorrect answer`,
+    );
+  }
+});
+
+test("practical grading rejects invalid choice mutations closed", () => {
+  const sourceQuestion = practicalSecurityQuestionSamples.find(
+    (question) => question.id === "practical-security-official-engineer-q02",
+  );
+  assert.ok(sourceQuestion);
+
+  const clone = () => ({
+    ...sourceQuestion,
+    choices: sourceQuestion.choices.map(
+      (choice: NormalizedPracticalChoice) => ({ ...choice }),
+    ),
+  });
+
+  assert.throws(
+    () =>
+      toPracticalSecurityGradingQuestion({
+        ...clone(),
+        choices: [...clone().choices].reverse(),
+      }),
+    /deterministic/,
+  );
+  assert.throws(
+    () =>
+      toPracticalSecurityGradingQuestion({
+        ...clone(),
+        choices: [["raw", true, "raw tuple"]],
+      }),
+    /not normalized/,
+  );
+  assert.throws(
+    () =>
+      toPracticalSecurityGradingQuestion({
+        ...clone(),
+        choices: [
+          ...clone().choices,
+          { ...clone().choices[0], id: `${sourceQuestion.id}-choice-05` },
+        ],
+      }),
+    /duplicate choices/,
+  );
+  assert.throws(
+    () =>
+      toPracticalSecurityGradingQuestion({
+        ...clone(),
+        choices: clone().choices.map(
+          (choice: NormalizedPracticalChoice) => ({ ...choice, isCorrect: false }),
+        ),
+      }),
+    /correct choices/,
+  );
+  assert.throws(
+    () =>
+      toPracticalSecurityGradingQuestion({
+        ...clone(),
+        choices: clone().choices.map(
+          (choice: NormalizedPracticalChoice, index: number) =>
+            index === 0
+              ? { ...choice, id: "other-practical-question-choice-01" }
+              : choice,
+        ),
+      }),
+    /invalid identity/,
+  );
+  assert.throws(
+    () =>
+      toPracticalSecurityGradingQuestion({
+        ...clone(),
+        choices: "unexpected-raw-type",
+      }),
+    /normalized objects/,
+  );
 });
 
 test("practical security sub item questions cover shared and engineer-only official content", () => {
