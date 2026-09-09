@@ -84,7 +84,7 @@ export const occupationalRoleAliases = sqliteTable(
     id: text("id").primaryKey(),
     roleId: text("role_id")
       .notNull()
-      .references(() => occupationalRoles.id, { onDelete: "restrict" }),
+      .references(() => occupationalRoles.id, { onDelete: "cascade" }),
     alias: text("alias").notNull(),
     normalizedAlias: text("normalized_alias").notNull(),
     language: text("language").notNull().default("und"),
