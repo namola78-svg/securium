@@ -1,0 +1,96 @@
+{
+  "finalStatus": "ENGINEERING-GATE-TERMINAL-EVIDENCE-001_NOT_CLOSED",
+  "reviewDecision": "PASS_WITH_REMAINING_P1",
+  "snapshotDate": "2026-09-08",
+  "worktree": "securium-skill-graph-foundation",
+  "branch": "architecture/role-skill-concept-graph-foundation",
+  "head": "9756970ce19a64d6ac0e913631193b606dc78e7c",
+  "originMain": "980ef6adb94d87a923d7a973edaf4419f03fff9d",
+  "aheadBehind": "0/2",
+  "implementationMutationDuringGate": 0,
+  "finalApprovalReportHashes": {
+    "markdown": {
+      "expected": "41F6DBF81900F4D138732A21EA94962B691B1FC920F70D632D5F5681A188A29B",
+      "observed": "41F6DBF81900F4D138732A21EA94962B691B1FC920F70D632D5F5681A188A29B",
+      "status": "PASS"
+    },
+    "json": {
+      "expected": "C3CDC019E8014E8BBFE834401DCBBDC2F41AD91C20E1E628CE2897CA4BF11724",
+      "observed": "C3CDC019E8014E8BBFE834401DCBBDC2F41AD91C20E1E628CE2897CA4BF11724",
+      "status": "PASS"
+    }
+  },
+  "engineeringGates": {
+    "unit": {
+      "command": "npm run test:unit",
+      "status": "COMPLETE_NONZERO",
+      "exitCode": 1,
+      "tests": 445,
+      "passed": 444,
+      "failed": 0,
+      "cancelled": 1,
+      "failingOrCancelledTest": "tests/isms-p-batch1-runtime-materializer.test.ts",
+      "error": "Promise resolution is still pending but the event loop has already resolved",
+      "classification": "RUNNER_LIFECYCLE_PRE_EXISTING_NON_CAUSAL"
+    },
+    "integration": {
+      "command": "npm run test:integration",
+      "status": "COMPLETE_NONZERO",
+      "exitCode": 1,
+      "tests": 59,
+      "passed": 36,
+      "failed": 23,
+      "cancelled": 0,
+      "error": "E2E server did not become ready",
+      "affectedTestFile": "tests/rendered-html.test.mjs",
+      "classification": "ENVIRONMENT_CONTENTION_OR_RUNNER_LIFECYCLE_NON_CAUSAL"
+    },
+    "lint": {
+      "command": "npm run lint -- --quiet",
+      "status": "COMPLETE",
+      "exitCode": 0,
+      "classification": "PASS_EXIT_0"
+    },
+    "build": {
+      "command": "npm run build",
+      "status": "COMPLETE",
+      "exitCode": 0,
+      "compilation": "PASS",
+      "typescript": "PASS",
+      "staticGeneration": "63/63",
+      "optimization": "PASS",
+      "classification": "PASS_EXIT_0"
+    }
+  },
+  "existingEvidence": {
+    "combinedSkillRoleConceptRegression": "37/37 PASS",
+    "postgresValidation": "PASS_EXIT_0",
+    "dbCheck": "PASS",
+    "canonicalSkillAuthority": "skills / skill_aliases",
+    "authorityCount": 1,
+    "skillSeed": 0,
+    "roleSkillRelations": 0,
+    "skillConceptRelations": 0,
+    "userSkillState": "ABSENT",
+    "securityCriticalHigh": "0/0",
+    "dataTrustCriticalHigh": "0/0"
+  },
+  "processAudit": {
+    "lingeringTestOrMigrationChildrenObserved": true,
+    "automaticallyKilled": false,
+    "classification": "RUNNER_LIFECYCLE_OR_ENVIRONMENT_CONTENTION"
+  },
+  "finding": {
+    "id": "ENGINEERING-GATE-TERMINAL-EVIDENCE-001",
+    "status": "NOT_CLOSED",
+    "severity": "P1",
+    "causalSkillDefect": false,
+    "reason": "Unit and integration did not return exit 0, and runner lifecycle residue was observed."
+  },
+  "recommendedNextGate": "RETRY_ENGINEERING_GATE_TERMINAL_EVIDENCE_IN_CLEAN_PROCESS_ENVIRONMENT",
+  "commit": "NO",
+  "push": "NO",
+  "pullRequest": "NO",
+  "deployment": "NO",
+  "productionDatabase": "NO"
+}

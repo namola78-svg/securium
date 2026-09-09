@@ -1,0 +1,575 @@
+{
+  "gate": "TYPED_RELATIONS_WAVE_B_BOUNDED_ARCHIVAL_STATE",
+  "status": "HASHED_CANDIDATE",
+  "candidateCount": 111,
+  "files": [
+    {
+      "path": "db/concept-persistence-repositories.ts",
+      "sha256": "24F7E654A64E8AC2CB0D8CC148E3C271C394533274367FAE23B5DA866986BA82",
+      "bytes": 3009
+    },
+    {
+      "path": "db/schema.ts",
+      "sha256": "94BA5BF522CADFCACDD86CE623E9B7B26875351F85EBA7ED663A288C853BB1D7",
+      "bytes": 180078
+    },
+    {
+      "path": "drizzle/meta/_journal.json",
+      "sha256": "0D04F86C47396743AB0B3C1AE2C8228DEEAEE72A107403A94A49DD2618294964",
+      "bytes": 7092
+    },
+    {
+      "path": "db/canonical-concept-repositories.ts",
+      "sha256": "524154626C8DA7774025D4402E34C4660AC52010AF3A9443A2B5673724FA3735",
+      "bytes": 6570
+    },
+    {
+      "path": "db/occupational-role-repositories.ts",
+      "sha256": "06915462D9C95578C2A49B148CC82051CF2DFFCBA3A0B28B4025BDF8343BC166",
+      "bytes": 6746
+    },
+    {
+      "path": "db/postgres/migrations/0034_occupational_role_foundation.sql",
+      "sha256": "3D25182BF8532BCC955025319D25CDA10B6FFA26D427F9DB9C7520E2F219BE9F",
+      "bytes": 2822
+    },
+    {
+      "path": "db/postgres/migrations/0035_occupational_role_identity_hardening.sql",
+      "sha256": "212C780ECEA2D95A2C96A82E12017CD4159B240D54DA93554DC728909CBAD380",
+      "bytes": 1512
+    },
+    {
+      "path": "db/postgres/migrations/0036_occupational_role_alias_hardening.sql",
+      "sha256": "319F0FD95078FA2EA73DCA0092604FD852FC9CFFA381B6897AE26C9EB9F0D13C",
+      "bytes": 978
+    },
+    {
+      "path": "db/postgres/migrations/0038_skill_foundation.sql",
+      "sha256": "A796C83B20274B6D1B772BE4EBEDB1E8A50D70C4EC4D07C2C2A2A97FCB631CE4",
+      "bytes": 2962
+    },
+    {
+      "path": "db/postgres/migrations/0042_typed_role_skill_concept_relations.sql",
+      "sha256": "0F842C9913A0F0B776970C267A2371BE8E9A3DAA4914BC28A024F94336FF1E15",
+      "bytes": 4374
+    },
+    {
+      "path": "db/skill-repositories.ts",
+      "sha256": "3ABE92AC270DC8EE63000B4FED2F360DABE13922335685D873282797A224283B",
+      "bytes": 2616
+    },
+    {
+      "path": "db/typed-relation-repositories.ts",
+      "sha256": "CE069B4571914AA4618D221410BE759B53CA83C6A02DD49CD85DAD867FF2C867",
+      "bytes": 4008
+    },
+    {
+      "path": "docs/architecture/securium-graph-canonical-authority-repair-2026-09-07.md",
+      "sha256": "9B9C5F169DEC56F04F4A420D6838BA3229C6A064E68E67DF66620E3875708D48",
+      "bytes": 11076
+    },
+    {
+      "path": "docs/architecture/securium-graph-canonical-authority-repair-final-rereview-2026-09-07.md",
+      "sha256": "05AC2B9CC935D569764818CEB97557C86E3F1EFF7068374411B7E99B27479A2E",
+      "bytes": 20346
+    },
+    {
+      "path": "docs/architecture/securium-occupational-role-alias-d1-migration-collision-rollback-and-evidence-sync-final-rereview-2026-09-08.md",
+      "sha256": "705A81EA25B2C6D12997CE2B50149DCF75F2F682A245896AD2CD601941CF4891",
+      "bytes": 9303
+    },
+    {
+      "path": "docs/architecture/securium-occupational-role-alias-d1-migration-collision-rollback-and-evidence-sync-repair-2026-09-08.md",
+      "sha256": "DAE6B4E6F48C7CD3DAA6B1B6E950789A802F78FE4BE581B7CB96E67DC1A440B6",
+      "bytes": 9285
+    },
+    {
+      "path": "docs/architecture/securium-occupational-role-foundation-wave-a-final-rereview-2026-09-08.md",
+      "sha256": "69469215ACB55562323EE231B2F3E5CB5F669312E4E718613EBEDDC9261E0383",
+      "bytes": 16163
+    },
+    {
+      "path": "docs/architecture/securium-occupational-role-foundation-wave-a-implementation-2026-09-08.md",
+      "sha256": "CD3A8345C522EB77998DA78851FEC6BE732D165CA194E372FD5C5AB97315BF74",
+      "bytes": 13424
+    },
+    {
+      "path": "docs/architecture/securium-occupational-role-foundation-wave-a-p1-repair-2026-09-08.md",
+      "sha256": "875D5BE78605894009C4760577A60903510FD2A26CE1FC51530D18658C10BB7D",
+      "bytes": 12899
+    },
+    {
+      "path": "docs/architecture/securium-occupational-role-foundation-wave-a-p1-repair-final-rereview-2026-09-08.md",
+      "sha256": "F9891F02DEADA9D3AF29A05866440A4C7C746534141CBDE5E61DF759B307B027",
+      "bytes": 14490
+    },
+    {
+      "path": "docs/architecture/securium-role-skill-concept-graph-foundation-audit-2026-09-07.md",
+      "sha256": "CFC8DD5AB9E0D13AC2308E057BF9695402576E3442D8B50B3C579B876361395C",
+      "bytes": 22880
+    },
+    {
+      "path": "docs/architecture/securium-typed-relations-wave-b-bounded-archival-preservation-2026-09-09.md",
+      "sha256": "FDB2B2646BB1266C10B2D49F4E6CD9CC933C2E6BCD47D4B3CCD8E4AB87E90DE4",
+      "bytes": 3011
+    },
+    {
+      "path": "docs/architecture/securium-typed-relations-wave-b-mainline-dependency-reconciliation-2026-09-09.md",
+      "sha256": "6DB53A7E742FB303B71E684059AD541D2ABF6B3726FA26C3131C809A6DF26E83",
+      "bytes": 7893
+    },
+    {
+      "path": "docs/architecture/securium-typed-role-skill-concept-relations-wave-b-final-rereview-after-fk-policy-repair-2026-09-08.md",
+      "sha256": "6CB48356A15CB208B692CBA994DDF96931698DF2F0C68D8B4F2263102C534BC6",
+      "bytes": 5478
+    },
+    {
+      "path": "docs/architecture/securium-typed-role-skill-concept-relations-wave-b-fk-deletion-policy-p1-repair-2026-09-08.md",
+      "sha256": "884114F70007C291B4AE897A0D8B8BCA28CA11DE242BC73902266BE2CC043A36",
+      "bytes": 5440
+    },
+    {
+      "path": "drizzle/0045_occupational_role_foundation.sql",
+      "sha256": "C4DC6643DD3A0D3CD7BE1CE8AF90F08721F6B49F2B0F251274848AD1E2B2553C",
+      "bytes": 2295
+    },
+    {
+      "path": "drizzle/0046_occupational_role_identity_hardening.sql",
+      "sha256": "BE48E5EBDA208BC976A2E9E107BBA1E6437CA106575149274A5D5B2CBCA01DF9",
+      "bytes": 5297
+    },
+    {
+      "path": "drizzle/0047_occupational_role_alias_hardening.sql",
+      "sha256": "E34CAA46953D4F6A6CEE9197F12C4523AD88DFD104ABB536C34A2CDE214C2FDA",
+      "bytes": 2843
+    },
+    {
+      "path": "drizzle/0050_skill_foundation.sql",
+      "sha256": "A1992CEB448AE5C175C45AD7C79A5C918C5C5019A79CEDF72BEF8AED5C881B71",
+      "bytes": 2822
+    },
+    {
+      "path": "drizzle/0051_typed_role_skill_concept_relations.sql",
+      "sha256": "40904EAF86CBA9806F612ED8E90497667A3F1243C83EE8AF51FACEAA74BC666D",
+      "bytes": 3917
+    },
+    {
+      "path": "drizzle/meta/0045_snapshot.json",
+      "sha256": "4E6976DE764AC6F98D1BFFFD37E8C8EDF8F7AB50C8E4A84178D25FCDA74E6C99",
+      "bytes": 520631
+    },
+    {
+      "path": "drizzle/meta/0046_snapshot.json",
+      "sha256": "0081A24B578CF8A25BF7001B0D5745FE56E98C6DEA68054153A554E59D4A104B",
+      "bytes": 522188
+    },
+    {
+      "path": "drizzle/meta/0047_snapshot.json",
+      "sha256": "9F6DA316923C35D8B19F639E7DD9350101C63865D24459A16B1795CAE1CF01AC",
+      "bytes": 521829
+    },
+    {
+      "path": "lib/services/canonical-concept-authority.ts",
+      "sha256": "C547C681D29978B1F94F39A1A97308E9A982F90CEF49168ED794276B344F1C66",
+      "bytes": 7956
+    },
+    {
+      "path": "lib/services/occupational-role-authority.ts",
+      "sha256": "F6D661CD8EDECC4144ED1C96B2810846BCAC81FA737E87F8263EC454F4AF7902",
+      "bytes": 5979
+    },
+    {
+      "path": "lib/services/skill-authority.ts",
+      "sha256": "28E8300E9C205356CC963EC0E5105B9D757B4ED68D28E70CDD4982F1B1C647C4",
+      "bytes": 3722
+    },
+    {
+      "path": "lib/services/typed-relation-authority.ts",
+      "sha256": "2AEF3E2174B0B271DF06783C8923D49AED35EFE1C7CF651D52B47D25B7EB5870",
+      "bytes": 1933
+    },
+    {
+      "path": "reports/architecture/securium-graph-canonical-authority-repair-2026-09-07.json",
+      "sha256": "F1440FE9D56C64CED707427F21F159DFF463019CC953AE3E214F0F864162CC35",
+      "bytes": 8927
+    },
+    {
+      "path": "reports/architecture/securium-graph-canonical-authority-repair-final-rereview-2026-09-07.json",
+      "sha256": "73AE9A7BF4CB38A87B3C74A3780F169B4845BBFE3E4B16B0106BABA439108DCC",
+      "bytes": 8156
+    },
+    {
+      "path": "reports/architecture/securium-occupational-role-alias-d1-migration-collision-rollback-and-evidence-sync-final-rereview-2026-09-08.json",
+      "sha256": "98118C86F1BAEFFD030E09B5EC5DC7AE8417BD4794B8888DCE4869643559C1B4",
+      "bytes": 6763
+    },
+    {
+      "path": "reports/architecture/securium-occupational-role-alias-d1-migration-collision-rollback-and-evidence-sync-repair-2026-09-08.json",
+      "sha256": "CE60A7FB9CFE921F053DB0139C84DFFED96903D6886D05798E2F2F9565152507",
+      "bytes": 6097
+    },
+    {
+      "path": "reports/architecture/securium-occupational-role-alias-db-normalization-and-collision-repair-2026-09-08.json",
+      "sha256": "5B22B98F6167B4036CFACA38FA5DCD1F229FDD917AEBA2695568428B455ED1A4",
+      "bytes": 6422
+    },
+    {
+      "path": "reports/architecture/securium-occupational-role-alias-db-normalization-and-collision-repair-final-rereview-2026-09-08.json",
+      "sha256": "1468A2F65FB23B53A4AB0EA560C688AB78FFA91396CA21D6D90286C3DF53A376",
+      "bytes": 9603
+    },
+    {
+      "path": "reports/architecture/securium-occupational-role-foundation-wave-a-final-rereview-2026-09-08.json",
+      "sha256": "12B57EA4DC70C8CDFC6E28771E93F413FEED74973CA96AB45CFA72C823D4785E",
+      "bytes": 13687
+    },
+    {
+      "path": "reports/architecture/securium-occupational-role-foundation-wave-a-implementation-2026-09-08.json",
+      "sha256": "0E6851DDC71DCF3D17E3B7F931E0BCDD44A52A80915136664EACE7167B2AEEF9",
+      "bytes": 4324
+    },
+    {
+      "path": "reports/architecture/securium-occupational-role-foundation-wave-a-p1-repair-2026-09-08.json",
+      "sha256": "062F85F1AB4B71909E17C442CE89FD8F9A6FB2DC973C189423CC17B01C511F64",
+      "bytes": 8841
+    },
+    {
+      "path": "reports/architecture/securium-occupational-role-foundation-wave-a-p1-repair-final-rereview-2026-09-08.json",
+      "sha256": "060F3284BB30F42EC892738819B355A7E82EB3F30D53078DFF1D8BA9EA5EB6A7",
+      "bytes": 7753
+    },
+    {
+      "path": "reports/architecture/securium-role-skill-concept-graph-foundation-audit-2026-09-07.json",
+      "sha256": "9F5A905D71B98D80EAEFF35B83EFA5423102879803A6F2BB785A76CE5B38C0CE",
+      "bytes": 12213
+    },
+    {
+      "path": "reports/architecture/securium-skill-foundation-d1-migration-0050-orphan-ownership-repair-2026-09-08.json",
+      "sha256": "3F1ADFD6317030DCD61328EF92924C3DCE7124566937EF7EDBFACF7556009944",
+      "bytes": 7667
+    },
+    {
+      "path": "reports/architecture/securium-skill-foundation-engineering-gate-terminal-evidence-2026-09-08.json",
+      "sha256": "3EC1DEA7BA462E4B1585CD23D4CF167CB55BA073956C92DD5F617E94F4FF36DF",
+      "bytes": 3261
+    },
+    {
+      "path": "reports/architecture/securium-skill-foundation-engineering-gate-terminal-evidence-closure-2026-09-08.json",
+      "sha256": "2151FA2F1198AFD834F3293626FE21065443F84CD8C8B71BBC30D80D7EAB68DB",
+      "bytes": 3726
+    },
+    {
+      "path": "reports/architecture/securium-skill-foundation-engineering-gate-terminal-evidence-retry-clean-process-2026-09-08.json",
+      "sha256": "FB1BDF5D74FCA3840AFEFCCCC202620B0BF594FC994A42673EE7A7E7A68A5D29",
+      "bytes": 6184
+    },
+    {
+      "path": "reports/architecture/securium-skill-foundation-postgres-checksum-drift-and-clean-e2e-validation-repair-2026-09-08.json",
+      "sha256": "E101AFCC66933F7396D9BA228BB55FD8A92707B81C8C557E1754C67D2E4AA504",
+      "bytes": 3765
+    },
+    {
+      "path": "reports/architecture/securium-skill-foundation-postgres-migration-ledger-integrity-repair-2026-09-08.json",
+      "sha256": "E9A0DB020692FF8F9643BDB608BF8D2BE1DE56D20224483DA7FF5CCF85278209",
+      "bytes": 3418
+    },
+    {
+      "path": "reports/architecture/securium-skill-foundation-wave-a-after-postgres-ledger-final-rereview-2026-09-08.json",
+      "sha256": "8DB846B4D9DE95FC746213B23863907BAB9F04904F22E6AAB215B4C457A345C2",
+      "bytes": 5163
+    },
+    {
+      "path": "reports/architecture/securium-skill-foundation-wave-a-final-approval-2026-09-08.json",
+      "sha256": "C3CDC019E8014E8BBFE834401DCBBDC2F41AD91C20E1E628CE2897CA4BF11724",
+      "bytes": 5358
+    },
+    {
+      "path": "reports/architecture/securium-skill-foundation-wave-a-final-closure-2026-09-08.json",
+      "sha256": "5E49F87417A5D3A0160020361781252333B13DCDAEEAB4E9C6DAB155AFC6BA8B",
+      "bytes": 4253
+    },
+    {
+      "path": "reports/architecture/securium-skill-foundation-wave-a-final-review-2026-09-08.json",
+      "sha256": "7DC5F5AD1C6A9979C0EF6D75B0F88E0200861C96B1CFE597008BCAF88C6F39EF",
+      "bytes": 6237
+    },
+    {
+      "path": "reports/architecture/securium-skill-foundation-wave-a-implementation-2026-09-08.json",
+      "sha256": "31DE99FE1B7E96A3919BC626170AAB55B29F058561C77A48FCAE09C0DF7889FC",
+      "bytes": 5376
+    },
+    {
+      "path": "reports/architecture/securium-typed-relations-wave-b-bounded-archival-preservation-2026-09-09.json",
+      "sha256": "67A144824B0EF4EE4584B3AE76C09DBFF3B490A48043F1579C86F59DD1373033",
+      "bytes": 1481
+    },
+    {
+      "path": "reports/architecture/securium-typed-relations-wave-b-bounded-archival-preservation-sha256-2026-09-09.json",
+      "sha256": "E0A9CE7C5353435135E8385061AA8481801AADF3CE1576706F9D218557519D1B",
+      "bytes": 916
+    },
+    {
+      "path": "reports/architecture/securium-typed-relations-wave-b-dependency-matrix-2026-09-09.json",
+      "sha256": "024D9F83836351114F51D8DEDF240DC3995A531EE8D364F97D5EC2EFE6AC20F8",
+      "bytes": 1087
+    },
+    {
+      "path": "reports/architecture/securium-typed-relations-wave-b-dirty-untracked-preservation-2026-09-09.json",
+      "sha256": "BB137171270221C5853D23194F318351F763B63AD6D4A14EB611C5277A8B0468",
+      "bytes": 2491
+    },
+    {
+      "path": "reports/architecture/securium-typed-relations-wave-b-mainline-commit-classification-2026-09-09.json",
+      "sha256": "60D9D86D4BBECE2656820F0C6AD251F56865BF47B8B443557DFB286BC9C77745",
+      "bytes": 1191
+    },
+    {
+      "path": "reports/architecture/securium-typed-relations-wave-b-mainline-dependency-reconciliation-2026-09-09.json",
+      "sha256": "FDC50F692D7E0368D4F0EB074C96BD5DA615D50C5F524B1CE1B6E6A7C0A34AEA",
+      "bytes": 3370
+    },
+    {
+      "path": "reports/architecture/securium-typed-relations-wave-b-mainline-dependency-reconciliation-sha256-2026-09-09.json",
+      "sha256": "DD37FD3F6D5611D2F4066BDA6889DC67128A9C4E341A04A1EB0BD9628A4B2226",
+      "bytes": 1477
+    },
+    {
+      "path": "reports/architecture/securium-typed-relations-wave-b-mainline-path-overlap-2026-09-09.json",
+      "sha256": "59ECE6749BE2FC378D836CDA287F054089CFB022F2C1FF3B5FA4904D38FB6DBF",
+      "bytes": 647
+    },
+    {
+      "path": "reports/architecture/securium-typed-relations-wave-b-migration-ownership-reconciliation-2026-09-09.json",
+      "sha256": "17E1F61269D0DA33245E9F7DCEFE0D819AD431BE9093F3F766315891E5329F10",
+      "bytes": 541
+    },
+    {
+      "path": "reports/architecture/securium-typed-relations-wave-b-recommended-git-strategy-2026-09-09.json",
+      "sha256": "B4EF638CE77E7070B25EFF6F0F24C330751357D0C6E09F65E4581BFC31CD07DD",
+      "bytes": 991
+    },
+    {
+      "path": "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-authority-manifest-2026-09-08.json",
+      "sha256": "07F438C0F9233698DF22FD885B3C30E210AF5C55B8676CC7EC93A8186041835D",
+      "bytes": 2407
+    },
+    {
+      "path": "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-deletion-behavior-regression-2026-09-08.json",
+      "sha256": "4FF1677C8BCEA12DD1B4DBBB174B284888A910D966301E8DA8C23D24E2FA6F7F",
+      "bytes": 473
+    },
+    {
+      "path": "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-final-implementation-2026-09-08.json",
+      "sha256": "BB2501FA1B9B56DA5E44F01809BF2C49EC7E5983E078C1BB6593FD573351A25A",
+      "bytes": 6557
+    },
+    {
+      "path": "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-final-rereview-after-fk-policy-repair-2026-09-08.json",
+      "sha256": "37DA973A5FECDCDBE8BE8FE2A0B12F8FC82AC5407BF20832B06D2DEEF5923B3F",
+      "bytes": 4712
+    },
+    {
+      "path": "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-final-rereview-deletion-behavior-2026-09-08.json",
+      "sha256": "C022885B964EEEC471DA61FB3B12276314CD92A13504C9A1CD52D5A7DDBDFA8E",
+      "bytes": 439
+    },
+    {
+      "path": "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-final-rereview-downstream-readiness-2026-09-08.json",
+      "sha256": "A06BE8090FF1FA5496E4B110AB13913ECEEFC3503A63C55F1F9024B65F750317",
+      "bytes": 577
+    },
+    {
+      "path": "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-final-rereview-fk-parity-2026-09-08.json",
+      "sha256": "29195091E0CE26DEB88F0F34EFF196F46C868364B43541FED633DD86CFD1E4E3",
+      "bytes": 1177
+    },
+    {
+      "path": "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-final-rereview-migration-ownership-2026-09-08.json",
+      "sha256": "9A8D9FC151E81CE62BB845F30FAE3FE24BC11F5B096C92C36C24EBC12C708B1B",
+      "bytes": 519
+    },
+    {
+      "path": "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-final-rereview-sha256-2026-09-08.json",
+      "sha256": "CEBAC5646DAD4F49689F1A6C629F6618ECCC2D1F14BECC368DD40AEA1D64C2CC",
+      "bytes": 1280
+    },
+    {
+      "path": "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-fk-deletion-policy-p1-repair-2026-09-08.json",
+      "sha256": "67515D767D15B0199F22A49F879C732253EFE2D74603DA5B988DFF3CCA8FE004",
+      "bytes": 4203
+    },
+    {
+      "path": "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-fk-deletion-policy-p1-repair-sha256-2026-09-08.json",
+      "sha256": "372428B0286D8BC698324EB036E1C8C87F67102EBAF20D786DD433E7C828EB1B",
+      "bytes": 1063
+    },
+    {
+      "path": "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-fk-policy-parity-matrix-2026-09-08.json",
+      "sha256": "98087DBB6B2287A623535EC4205B045EB5AD70FB8F87038113137E7545D396F9",
+      "bytes": 1242
+    },
+    {
+      "path": "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-implementation-2026-09-08.json",
+      "sha256": "26464503CA94CED961D795EF0075BFDAB09F57E54EBA29A7120A4ACF9FC9A2E4",
+      "bytes": 3468
+    },
+    {
+      "path": "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-independent-downstream-readiness-2026-09-08.json",
+      "sha256": "67B2B0D7B8C50C502D43F31F608D556263B48BD29B36F3BFB10E7DB3873BD609",
+      "bytes": 757
+    },
+    {
+      "path": "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-independent-final-review-2026-09-08.json",
+      "sha256": "BAF4ED28699C8D016FE42711DFB2261D16AB50BC77EA24F010E55584B1B38F77",
+      "bytes": 7751
+    },
+    {
+      "path": "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-independent-migration-ownership-verification-2026-09-08.json",
+      "sha256": "C4A2E75AFD822FD5D54DF57268A29177B0180DDFD38C23F6B53E2DF6443296D7",
+      "bytes": 963
+    },
+    {
+      "path": "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-independent-relation-authority-verification-2026-09-08.json",
+      "sha256": "A687393608937E866D3B7A618E3EBA25044921264550024898E4E7E68C867536",
+      "bytes": 962
+    },
+    {
+      "path": "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-independent-resolver-endpoint-type-verification-2026-09-08.json",
+      "sha256": "980F9B52AE30D732B1E7E8761BF0C6CEDB949D5575A082513D08E072FD7F592A",
+      "bytes": 726
+    },
+    {
+      "path": "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-independent-sha256-2026-09-08.json",
+      "sha256": "F8D2E67190A5DFAD1C1F25AC68F6632DE347EBDF80AB1B3909DEC77485DC27E0",
+      "bytes": 2678
+    },
+    {
+      "path": "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-migration-ownership-manifest-2026-09-08.json",
+      "sha256": "D2A53B66480CA1DC9FA3C8B032EE97BFD2599B1DF2A7E6440B3903C8A33ACA66",
+      "bytes": 1560
+    },
+    {
+      "path": "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-migration-ownership-regression-2026-09-08.json",
+      "sha256": "D61EDAFBEF632F03B857F5178FDF5E132978F447785C9342B2CCECB46B2AA050",
+      "bytes": 744
+    },
+    {
+      "path": "tests/canonical-concept-authority.test.ts",
+      "sha256": "50C2E3A0527869B79546CED1DB95DDE415CA11E0CAE081879E87FA972D9DBDDF",
+      "bytes": 3804
+    },
+    {
+      "path": "tests/occupational-role-authority.test.ts",
+      "sha256": "BF3D9538A47B48F949EEE49241C67E7B3433BD2AF34FD8EE796272902C87E71B",
+      "bytes": 6866
+    },
+    {
+      "path": "tests/occupational-role-identity-database.test.mjs",
+      "sha256": "E215E044E68A5006EE337E181E2349B727D71475D9A7858D0C1C413EED2C94C2",
+      "bytes": 9747
+    },
+    {
+      "path": "tests/occupational-role-postgres-disposable.test.mjs",
+      "sha256": "CC023E482123A5F8FBE6AB79C9799B971D8962FC5EDDBA3ED16011642D5B7A67",
+      "bytes": 6800
+    },
+    {
+      "path": "tests/occupational-role-schema.test.mjs",
+      "sha256": "F7FE2820128C84D24DD21BF211DFCB89B1BE4A8F0A351D096824507B18F158CF",
+      "bytes": 3183
+    },
+    {
+      "path": "tests/postgres-migration-checksum.test.mjs",
+      "sha256": "06A7B6499BBFE0B85A666F2995E28ED1BC99B62E0BB09B6F21592C531E38A1FC",
+      "bytes": 1845
+    },
+    {
+      "path": "tests/skill-authority.test.ts",
+      "sha256": "3B0BD3A0D9A604C874CE65366AA081063CD6EB2F97B3DE468EB0CD74B01C1AFC",
+      "bytes": 2678
+    },
+    {
+      "path": "tests/skill-identity-database.test.mjs",
+      "sha256": "91E5A6890FBB3CEEF7D239C11C986D9178CA2322038B7F50662E83B047E28E3D",
+      "bytes": 2520
+    },
+    {
+      "path": "tests/skill-postgres-disposable.test.mjs",
+      "sha256": "50FDEEEA8802A09ABD70F3A83DADF85CFDB8DF7E2A0E8DD590B27074D420FB61",
+      "bytes": 3746
+    },
+    {
+      "path": "tests/typed-relation-authority.test.ts",
+      "sha256": "261FA9F73495BDA2BDA3C996892D5F25114D8499A12F56D74F7B0401375E2DAD",
+      "bytes": 2183
+    },
+    {
+      "path": "tests/typed-relation-database.test.mjs",
+      "sha256": "6A3935469AE134739269F8F37E022AE1473AD7615E14025019402D83D7405BCB",
+      "bytes": 4813
+    },
+    {
+      "path": "tests/typed-relation-postgres-disposable.test.mjs",
+      "sha256": "9CC85816F7209658E17A34347AC229A41FDFC3B3378571CB02A19A570D2D03AE",
+      "bytes": 5747
+    },
+    {
+      "path": "tests/typed-relation-schema.test.mjs",
+      "sha256": "279F6B525F40440DC798EE2D158F0DD66551BB475A350983A3E8B811C9C3F0BC",
+      "bytes": 4627
+    },
+    {
+      "path": "docs/architecture/securium-typed-relations-wave-b-bounded-archival-commit-preservation-2026-09-09.md",
+      "sha256": "246F6A3A7539FD9497D0451D35531EA76A2C8CBE9B5D66473A8438609D5AEC56",
+      "bytes": 2037
+    },
+    {
+      "path": "reports/architecture/securium-typed-relations-wave-b-bounded-archival-commit-preservation-2026-09-09.json",
+      "sha256": "F6A59E8023AC03C9F27F31FBC3D34A88F3A9FBBAEBD161FA6613A994C5E0DB4B",
+      "bytes": 1443
+    },
+    {
+      "path": "reports/architecture/securium-typed-relations-wave-b-bounded-archival-commit-candidate-2026-09-09.json",
+      "sha256": "43A7497DCD1CA1B7EB6B0932FF4F732CBB54B7372BC7EB4D7B10573DF036C750",
+      "bytes": 40612
+    },
+    {
+      "path": "reports/architecture/securium-typed-relations-wave-b-bounded-archival-commit-exclusions-2026-09-09.json",
+      "sha256": "C010A68E7C14F7FD77E2F33D4554EA5A6C15E460E336FE63A67BCC7CED26FB22",
+      "bytes": 8467
+    },
+    {
+      "path": "reports/architecture/securium-typed-relations-wave-b-bounded-archival-commit-package-overlap-2026-09-09.json",
+      "sha256": "7C2A4F7967D0236CA60E61A375939EE80457FE6C95A3FA7C7B6442E655D84410",
+      "bytes": 592
+    },
+    {
+      "path": "reports/architecture/securium-typed-relations-wave-b-bounded-archival-commit-unique-evidence-2026-09-09.json",
+      "sha256": "50F99E405A2B4CF35CF94AA7DC613D39615FC486C2BB7B8BF237D434414FC785",
+      "bytes": 679
+    },
+    {
+      "path": "reports/architecture/securium-typed-relations-wave-b-bounded-archival-commit-path-equality-2026-09-09.json",
+      "sha256": "3F9CF2FA00F164B7554A451C4D76BD723D287DA96BB020A0D8F73B9373FCEC42",
+      "bytes": 394
+    },
+    {
+      "path": "reports/architecture/securium-typed-relations-wave-b-bounded-archival-commit-sha256-2026-09-09.json",
+      "sha256": "EA82E119EE4D8C09BD3118D4C49B0E5B667045B46D29861D8615AF93FE28B9A8",
+      "bytes": 28915
+    }
+  ],
+  "migrationHashes": {
+    "pg0042": "0F842C9913A0F0B776970C267A2371BE8E9A3DAA4914BC28A024F94336FF1E15",
+    "d10051": "40904EAF86CBA9806F612ED8E90497667A3F1243C83EE8AF51FACEAA74BC666D"
+  },
+  "externalArchive": {
+    "path": "C:\\Users\\user\\Documents\\Codex\\archives\\securium-typed-relations-wave-b-bounded-archival-state-2026-09-09-v2.zip",
+    "sha256": "716176E79CE4DF04EFBCD6D0820002D3100C551105C5E3E6BE56D64F8DCD9241",
+    "fileCount": 116,
+    "missing": 0,
+    "unexpected": 0,
+    "duplicates": 0
+  },
+  "manifestSha256": "COMPUTE_AFTER_FINAL_WRITE"
+}

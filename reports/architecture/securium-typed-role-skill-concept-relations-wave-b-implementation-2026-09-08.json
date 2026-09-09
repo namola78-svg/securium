@@ -1,0 +1,100 @@
+{
+  "finalStatus": "SECURIUM_TYPED_ROLE_SKILL_CONCEPT_RELATIONS_WAVE_B_IMPLEMENTED",
+  "decision": "PASS",
+  "gitBaseline": {
+    "branch": "architecture/role-skill-concept-graph-foundation",
+    "head": "9756970ce19a64d6ac0e913631193b606dc78e7c",
+    "originMain": "ac65766b8e406968dd66fd906249c48b91fa6b38",
+    "ahead": 0,
+    "behind": 3
+  },
+  "canonicalAuthorities": {
+    "role": "occupational_roles / occupational_role_aliases",
+    "skill": "skills / skill_aliases",
+    "concept": "ontology_concepts / ontology_aliases",
+    "relations": "role_skill_relations / skill_concept_relations"
+  },
+  "relations": {
+    "roleToSkill": {
+      "table": "role_skill_relations",
+      "type": "ROLE_REQUIRES_SKILL",
+      "direction": "occupational_roles.id -> skills.id",
+      "uniqueEdge": "role_id, skill_id, relation_type"
+    },
+    "skillToConcept": {
+      "table": "skill_concept_relations",
+      "type": "SKILL_REQUIRES_CONCEPT",
+      "direction": "skills.id -> ontology_concepts.id",
+      "uniqueEdge": "skill_id, concept_id, relation_type"
+    },
+    "genericOntologyEdgesExtended": false,
+    "inverseRowsStored": false,
+    "relationTypesArbitrary": false
+  },
+  "governance": {
+    "lifecycle": ["DRAFT", "ACTIVE", "RETIRED"],
+    "writer": "server-only db/typed-relation-repositories.ts",
+    "writerStatus": "DRAFT_ONLY",
+    "provenanceRequired": true,
+    "activeReviewRequired": true,
+    "learnerState": "ABSENT",
+    "seedRows": 0
+  },
+  "migrations": {
+    "postgres": "db/postgres/migrations/0041_typed_role_skill_concept_relations.sql",
+    "postgresSha256": "3B6EEDB9BD97FF7E32C42E1D3CC474380A0BE45E44D1B6167FBCB459CBE07E21",
+    "d1": "drizzle/0051_typed_role_skill_concept_relations.sql",
+    "d1Sha256": "535E69FFE89CBE6953B69491D41CF12924ABBED73CE49A3D1DAF844EC2EA40FB",
+    "d1Journal": {"idx": 51, "tag": "0051_typed_role_skill_concept_relations"},
+    "postgresChecksum": "typed-role-skill-concept-relations-v1",
+    "namespace": "PASS; PostgreSQL 34, D1 46, journal 46"
+  },
+  "verification": {
+    "typedRelationFocused": "7/7 PASS",
+    "combinedRegression": "43/43 PASS",
+    "unit": "448/448 PASS_EXIT_0",
+    "integration": "59/59 PASS_EXIT_0",
+    "postgresGuard": "10/10 PASS_EXIT_0",
+    "typecheck": "PASS",
+    "lint": "PASS_EXIT_0",
+    "build": "PASS_EXIT_0",
+    "dbCheck": "PASS",
+    "postgresValidate": "PASS_EXIT_0",
+    "namespaceGuard": "PASS",
+    "gitDiffCheck": "PASS",
+    "newSkipsOnlyTodo": "0/0/0"
+  },
+  "d1Disposable": {
+    "apply": "PASS through 0051",
+    "readback": ["role_skill_relations", "skill_concept_relations"],
+    "reapply": "PASS; No migrations to apply!",
+    "seededRows": 0
+  },
+  "postgresDisposable": {
+    "apply": "PASS through 0041",
+    "readback": "PASS",
+    "arbitraryRelationRejected": true,
+    "duplicateEdgeRejected": true,
+    "rlsAndPrivileges": "PASS"
+  },
+  "scope": {
+    "skillSchemaMutation": 0,
+    "ontologyMutation": 0,
+    "userSkillState": "ABSENT",
+    "credential": "ABSENT",
+    "learnerTwin": "ABSENT",
+    "productionDb": "NONE",
+    "deployment": "NONE",
+    "commit": "NONE",
+    "push": "NONE",
+    "pr": "NONE"
+  },
+  "nextGate": "GOVERN_TYPED_RELATION_ACTIVATION_AND_APPROVED_TAXONOMY_SEED",
+  "remainingFutureWork": [
+    "governed ACTIVE relation activation",
+    "approved Role/Skill/Concept taxonomy seed",
+    "relation query/read model",
+    "certification and content projections",
+    "learner Skill State after separate authorization"
+  ]
+}

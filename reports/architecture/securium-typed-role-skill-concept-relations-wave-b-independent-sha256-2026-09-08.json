@@ -1,0 +1,19 @@
+{
+  "manifestType": "SECURIUM_TYPED_RELATIONS_WAVE_B_INDEPENDENT_REVIEW_SHA256",
+  "algorithm": "SHA-256",
+  "previousImplementationArtifacts": {
+    "markdown": { "path": "docs/architecture/securium-typed-role-skill-concept-relations-wave-b-final-implementation-2026-09-08.md", "sha256": "B1D19F5CC7C75FFB4C524CC564BEA2264C8537A3C5F9B0955E72EBAFB35CB798" },
+    "json": { "path": "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-final-implementation-2026-09-08.json", "sha256": "BB2501FA1B9B56DA5E44F01809BF2C49EC7E5983E078C1BB6593FD573351A25A" },
+    "authority": { "path": "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-authority-manifest-2026-09-08.json", "sha256": "07F438C0F9233698DF22FD885B3C30E210AF5C55B8676CC7EC93A8186041835D" },
+    "ownership": { "path": "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-migration-ownership-manifest-2026-09-08.json", "sha256": "D2A53B66480CA1DC9FA3C8B032EE97BFD2599B1DF2A7E6440B3903C8A33ACA66" }
+  },
+  "independentReviewArtifacts": {
+    "markdown": { "path": "docs/architecture/securium-typed-role-skill-concept-relations-wave-b-independent-final-review-2026-09-08.md", "sha256": "2E8BBFE651472018226F795E5461182549C52C41A6FB11842DBE68C93C1E6707" },
+    "json": { "path": "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-independent-final-review-2026-09-08.json", "sha256": "BAF4ED28699C8D016FE42711DFB2261D16AB50BC77EA24F010E55584B1B38F77" },
+    "relationAuthority": { "path": "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-independent-relation-authority-verification-2026-09-08.json", "sha256": "A687393608937E866D3B7A618E3EBA25044921264550024898E4E7E68C867536" },
+    "migrationOwnership": { "path": "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-independent-migration-ownership-verification-2026-09-08.json", "sha256": "C4A2E75AFD822FD5D54DF57268A29177B0180DDFD38C23F6B53E2DF6443296D7" },
+    "resolverEndpoint": { "path": "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-independent-resolver-endpoint-type-verification-2026-09-08.json", "sha256": "980F9B52AE30D732B1E7E8761BF0C6CEDB949D5575A082513D08E072FD7F592A" },
+    "downstreamReadiness": { "path": "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-independent-downstream-readiness-2026-09-08.json", "sha256": "67B2B0D7B8C50C502D43F31F608D556263B48BD29B36F3BFB10E7DB3873BD609" },
+    "sha256Manifest": { "path": "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-independent-sha256-2026-09-08.json", "sha256": "SELF_HASH_REPORTED_SEPARATELY" }
+  }
+}

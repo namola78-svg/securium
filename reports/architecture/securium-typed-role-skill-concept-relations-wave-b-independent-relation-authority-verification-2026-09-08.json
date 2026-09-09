@@ -1,0 +1,21 @@
+{
+  "manifestType": "INDEPENDENT_RELATION_AUTHORITY_VERIFICATION",
+  "decision": "PASS_WITH_P1_REPAIRS",
+  "authorityCount": 1,
+  "stores": ["role_skill_relations", "skill_concept_relations"],
+  "types": { "roleSkill": "ROLE_REQUIRES_SKILL", "skillConcept": "SKILL_REQUIRES_CONCEPT" },
+  "direction": "ROLE -> SKILL -> CONCEPT",
+  "endpointAuthorities": { "role": "occupational_roles", "skill": "skills", "concept": "ontology_concepts" },
+  "stableIDs": true,
+  "labelsAsAuthority": false,
+  "autoCreateEndpoint": false,
+  "wrongType": "FK/type constrained",
+  "duplicate": "unique endpoint pair/type",
+  "provenance": "required",
+  "lifecycle": ["DRAFT", "ACTIVE", "RETIRED"],
+  "reverseRows": false,
+  "readModel": ["skillsForRole", "conceptsForSkill", "rolesForSkill", "skillsForConcept"],
+  "relationSeedCount": 0,
+  "learnerState": "ABSENT",
+  "finding": "WAVE-B-P1-001: db/schema.ts roleSkillRelations endpoint FKs cascade while SQL migrations restrict"
+}

@@ -1,0 +1,111 @@
+{
+  "finalStatus": "SECURIUM_TYPED_ROLE_SKILL_CONCEPT_RELATIONS_WAVE_B_FINAL_REREVIEW_PASS",
+  "decision": "PASS",
+  "completion": "TYPED_ROLE_SKILL_CONCEPT_RELATIONS_WAVE_B_COMPLETE",
+  "historicalP1": {"id":"WAVE-B-P1-001","status":"CLOSED"},
+  "newP1": 0,
+  "severity": {"p0":0,"p1":0,"p2":0},
+  "gitBaseline": {
+    "worktree":"securium-skill-graph-foundation",
+    "branch":"architecture/role-skill-concept-graph-foundation",
+    "head":"9756970ce19a64d6ac0e913631193b606dc78e7c",
+    "originMain":"ac65766b8e406968dd66fd906249c48b91fa6b38",
+    "ahead":0,
+    "behind":3,
+    "stagedFiles":0,
+    "trackedChanges":"PRE_EXISTING_WAVE_FOUNDATION_DIRTY_STATE",
+    "untrackedChanges":"PRE_EXISTING_WAVE_FOUNDATION_ARTIFACTS",
+    "stashRelevance":"NONE_USED",
+    "mutation":"NONE"
+  },
+  "repairArtifactIntegrity": {"mismatchCount":0,"status":"PASS"},
+  "fkParity": {
+    "hiddenCascadeCount":0,
+    "rows":[
+      {"relation":"Role→Skill","endpoint":"role_id→occupational_roles.id","drizzle":"restrict","pg":"RESTRICT","d1":"restrict","match":true},
+      {"relation":"Role→Skill","endpoint":"skill_id→skills.id","drizzle":"restrict","pg":"RESTRICT","d1":"restrict","match":true},
+      {"relation":"Role→Skill","endpoint":"reviewed_by→users.id","drizzle":"restrict","pg":"RESTRICT","d1":"restrict","match":true},
+      {"relation":"Skill→Concept","endpoint":"skill_id→skills.id","drizzle":"restrict","pg":"RESTRICT","d1":"restrict","match":true},
+      {"relation":"Skill→Concept","endpoint":"concept_id→ontology_concepts.id","drizzle":"restrict","pg":"RESTRICT","d1":"restrict","match":true},
+      {"relation":"Skill→Concept","endpoint":"reviewed_by→users.id","drizzle":"restrict","pg":"RESTRICT","d1":"restrict","match":true}
+    ],
+    "mismatchCount":0
+  },
+  "migrations": {
+    "pg0042":"UNCHANGED",
+    "d10051":"UNCHANGED",
+    "providerPair":"VALID_PAIR",
+    "ownerCounts":{"pg0042":1,"d10051":1},
+    "collisions":{"pg":0,"d1":0},
+    "orphans":{"pg":0,"d1":0},
+    "checksumGuard":"PASS",
+    "pg0042Sha256":"0F842C9913A0F0B776970C267A2371BE8E9A3DAA4914BC28A024F94336FF1E15",
+    "d10051Sha256":"40904EAF86CBA9806F612ED8E90497667A3F1243C83EE8AF51FACEAA74BC666D"
+  },
+  "deletionBehavior": {
+    "roleDelete":"RESTRICT_FK_FAILURE_RELATION_UNCHANGED",
+    "skillDelete":"RESTRICT_FK_FAILURE_RELATION_UNCHANGED",
+    "explicitRelationDelete":"AUTHORIZED_SUPPORTED",
+    "silentCascade":0,
+    "endpointRetirement":"DRAFT_ACTIVE_RETIRED_LIFECYCLE"
+  },
+  "authorities": {"relation":1,"role":1,"skill":1,"concept":1},
+  "semantics": {
+    "roleSkillType":"ROLE_REQUIRES_SKILL",
+    "skillConceptType":"SKILL_REQUIRES_CONCEPT",
+    "directionality":"EXPLICIT_DIRECTED",
+    "stableIdentity":"CANONICAL_ENDPOINT_IDS",
+    "labelAuthority":0,
+    "endpointAutoCreate":0,
+    "unknown":"FAIL_CLOSED",
+    "ambiguous":"FAIL_CLOSED",
+    "wrongType":"FAIL_CLOSED",
+    "duplicateRelations":0,
+    "provenance":"UNCHANGED",
+    "lifecycle":"UNCHANGED"
+  },
+  "boundary": {
+    "relationSeeds":0,
+    "curriculumMapping":0,
+    "swSecurityWeaknessMapping":0,
+    "digitalForensicsMapping":0,
+    "webPentestMapping":0,
+    "secureCodingMapping":0,
+    "cppgMapping":0,
+    "informationSystemsAuditorMapping":0,
+    "evidenceMutation":0,
+    "masteryMutation":0,
+    "userSkillState":"ABSENT",
+    "credentialTwinMutation":0,
+    "ontologyDatasetMutation":0
+  },
+  "regressions": {
+    "focused":{"pass":8,"total":8,"exit":0},
+    "skill":{"pass":8,"total":8,"exit":0},
+    "role":{"pass":21,"total":21,"exit":0},
+    "concept":{"pass":19,"total":19,"exit":0},
+    "unit":{"pass":448,"total":448,"exit":0},
+    "integration":{"pass":59,"total":59,"exit":0},
+    "postgresGuard":{"pass":10,"total":10,"exit":0},
+    "typecheck":"PASS",
+    "lint":"PASS_WITH_EXISTING_WARNING_ZERO_ERRORS",
+    "build":"PASS_EXIT_0",
+    "dbCheck":"PASS",
+    "postgresValidation":"PASS",
+    "namespaceGuard":"PASS",
+    "diffCheck":"PASS",
+    "newSkipOnlyTodo":"0/0/0",
+    "initialParallelIntegrationAttempt":"EXIT_1_WITHOUT_RETAINED_ASSERTION_FAILURE",
+    "cleanIntegrationRetry":"PASS_EXIT_0"
+  },
+  "reviews": {"securityCriticalHigh":"0/0","dataTrustCriticalHigh":"0/0","privacyCriticalHigh":"0/0"},
+  "readiness": {
+    "skillState":"READY_FOR_SKILL_STATE_FOUNDATION",
+    "swSkillMapping":"READY_FOR_SW_SECURITY_WEAKNESS_SKILL_MAPPING",
+    "masteryToSkill":"READY_FOR_MASTERY_TO_SKILL_PROJECTION_DESIGN",
+    "commit":"WAIT_FOR_DEPENDENCY",
+    "repositoryDependency":"WAIT_FOR_DEPENDENCY",
+    "recommendedNextGate":"WAIT_FOR_MAINLINE_DEPENDENCY_RECONCILIATION_BEFORE_COMMIT_REVIEW"
+  },
+  "delivery": {"commit":"NONE","push":"NONE","pr":"NONE","deployment":"NONE","productionDb":"NONE"}
+}

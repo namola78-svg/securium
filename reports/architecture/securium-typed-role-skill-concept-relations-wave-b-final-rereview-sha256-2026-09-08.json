@@ -1,0 +1,12 @@
+{
+  "algorithm":"SHA-256",
+  "artifacts":{
+    "docs/architecture/securium-typed-role-skill-concept-relations-wave-b-final-rereview-after-fk-policy-repair-2026-09-08.md":"6CB48356A15CB208B692CBA994DDF96931698DF2F0C68D8B4F2263102C534BC6",
+    "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-final-rereview-after-fk-policy-repair-2026-09-08.json":"37DA973A5FECDCDBE8BE8FE2A0B12F8FC82AC5407BF20832B06D2DEEF5923B3F",
+    "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-final-rereview-fk-parity-2026-09-08.json":"29195091E0CE26DEB88F0F34EFF196F46C868364B43541FED633DD86CFD1E4E3",
+    "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-final-rereview-deletion-behavior-2026-09-08.json":"C022885B964EEEC471DA61FB3B12276314CD92A13504C9A1CD52D5A7DDBDFA8E",
+    "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-final-rereview-migration-ownership-2026-09-08.json":"9A8D9FC151E81CE62BB845F30FAE3FE24BC11F5B096C92C36C24EBC12C708B1B",
+    "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-final-rereview-downstream-readiness-2026-09-08.json":"A06BE8090FF1FA5496E4B110AB13913ECEEFC3503A63C55F1F9024B65F750317"
+  },
+  "selfHash":"REPORTED_SEPARATELY_TO_AVOID_SELF_REFERENCE"
+}

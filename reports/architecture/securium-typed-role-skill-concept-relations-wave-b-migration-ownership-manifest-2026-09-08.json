@@ -1,0 +1,23 @@
+{
+  "manifestType": "SECURIUM_TYPED_RELATION_MIGRATION_OWNERSHIP_MANIFEST",
+  "version": 1,
+  "status": "OWNED_AND_COLLISION_FREE",
+  "semanticOwner": "securium-skill-graph-foundation / Typed Role-Skill-Concept Relations Wave B",
+  "ownerWorktree": "C:/Users/user/Documents/Codex/2026-07-24/1-2-3-4-5-6/securium-skill-graph-foundation",
+  "pair": {
+    "postgres": { "id": "0042_typed_role_skill_concept_relations", "path": "db/postgres/migrations/0042_typed_role_skill_concept_relations.sql", "ledgerChecksum": "typed-role-skill-concept-relations-v1", "sha256": "0F842C9913A0F0B776970C267A2371BE8E9A3DAA4914BC28A024F94336FF1E15" },
+    "d1": { "id": "0051_typed_role_skill_concept_relations", "path": "drizzle/0051_typed_role_skill_concept_relations.sql", "journalEntry": "idx=51/tag=0051_typed_role_skill_concept_relations", "sha256": "40904EAF86CBA9806F612ED8E90497667A3F1243C83EE8AF51FACEAA74BC666D" },
+    "validPair": true
+  },
+  "globalClaims": {
+    "pg0042": { "claimCount": 0, "semanticClaims": 0 },
+    "d10051": { "claimCount": 1, "semanticClaims": 1 },
+    "currentPairSemanticClaims": 1,
+    "pg0041UnrelatedClaims": 2,
+    "d10051DuplicateClaims": 0
+  },
+  "namespace": { "pgCollisions": 0, "d1Collisions": 0, "pgOrphans": 0, "d1Orphans": 0, "guard": "PASS" },
+  "journalSha256": "0D04F86C47396743AB0B3C1AE2C8228DEEAEE72A107403A94A49DD2618294964",
+  "renumbering": { "required": true, "reason": "PG0041 was globally claimed by two unrelated semantic owners", "selected": "PG0042", "d1Renumbered": false },
+  "productionDatabaseTouched": false
+}

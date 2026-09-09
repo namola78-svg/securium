@@ -1,0 +1,17 @@
+{
+  "manifestType": "INDEPENDENT_MIGRATION_OWNERSHIP_VERIFICATION",
+  "decision": "PASS_WITH_P1_REPAIRS",
+  "pair": "PG0042 / D10051",
+  "pgPath": "db/postgres/migrations/0042_typed_role_skill_concept_relations.sql",
+  "d1Path": "drizzle/0051_typed_role_skill_concept_relations.sql",
+  "pg0041": { "classification": "REJECTED_GLOBAL_COLLISION", "unrelatedClaims": 2 },
+  "pg0042": { "globalClaimCount": 1, "semanticOwner": "securium-skill-graph-foundation / Typed Role-Skill-Concept Relations Wave B" },
+  "d10051": { "globalClaimCount": 1, "semanticOwner": "securium-skill-graph-foundation / Typed Role-Skill-Concept Relations Wave B", "journal": "idx=51/tag=0051_typed_role_skill_concept_relations" },
+  "ledger": { "status": "PASS", "checksum": "typed-role-skill-concept-relations-v1" },
+  "checksumDrift": "FAIL_CLOSED",
+  "collisions": "0/0",
+  "orphans": "0/0",
+  "semanticParity": "PASS",
+  "productionTouched": false,
+  "renumberingDuringReview": false
+}

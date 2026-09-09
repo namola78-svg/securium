@@ -1,0 +1,9 @@
+{
+  "status":"PASS",
+  "roleDelete":{"result":"RESTRICTED_FK_FAILURE","relationCountUnchanged":true},
+  "skillDelete":{"result":"RESTRICTED_FK_FAILURE","relationCountUnchanged":true},
+  "explicitRelationDelete":{"result":"AUTHORIZED_SUPPORTED","relationRemovedOnlyAfterExplicitDelete":true},
+  "silentCascadeCount":0,
+  "retirement":"DRAFT_ACTIVE_RETIRED_LIFECYCLE_REMAINS_AVAILABLE",
+  "focusedRegression":{"pass":8,"total":8,"exit":0}
+}

@@ -1,0 +1,21 @@
+{
+  "classification": "WAVE_B_PACKAGE_CHANGE_NOT_REQUIRED",
+  "currentDelta": [
+    "test:occupational-role",
+    "test:typed-relations"
+  ],
+  "dependencyDelta": [],
+  "mainlineDelta": [
+    "Next.js 16.3.4",
+    "canonical ontology legacy closure script",
+    "legacy Concept RLS hardening",
+    "migration checksum fail-closed guard"
+  ],
+  "action": "EXCLUDE_PACKAGE_JSON_FROM_ARCHIVAL_COMMIT",
+  "laterAction": "Reconcile local test scripts manually on fresh origin/main.",
+  "rollbackProtection": {
+    "nextRollback": 0,
+    "dependencyRollback": 0,
+    "securityFixRollback": 0
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "status":"PASS_WITH_PRESERVATION_REQUIRED",
+  "rows":[
+    {"dependency":"latest origin/main","state":"PRESENT","requiredAction":"reconcile after preservation"},
+    {"dependency":"Next.js 16.3.4","state":"PRESENT","waveBImpact":"compatible runtime dependency"},
+    {"dependency":"Dataset A archival hardening","state":"PRESENT","waveBImpact":"compatible; Dataset B remains canonical"},
+    {"dependency":"Learning Evidence migrations/authorities","state":"PRESENT","waveBImpact":"not required for Wave B commit"},
+    {"dependency":"Concept Mastery","state":"NOT_REQUIRED_FOR_WAVE_B_COMMIT","waveBImpact":"independent downstream layer"},
+    {"dependency":"Role authority","state":"PRESENT","count":1},
+    {"dependency":"Skill authority","state":"PRESENT","count":1},
+    {"dependency":"Concept authority","state":"PRESENT","count":1},
+    {"dependency":"Relation authority","state":"PRESENT","count":1},
+    {"dependency":"PG0042/D10051 ownership","state":"PRESENT","pair":"VALID_PAIR"}
+  ],
+  "waveBCompletion":"UNCHANGED_COMPLETE",
+  "downstreamImplementation":"NOT_STARTED"
+}

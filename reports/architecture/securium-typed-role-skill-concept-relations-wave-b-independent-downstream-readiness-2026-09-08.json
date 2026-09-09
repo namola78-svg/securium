@@ -1,0 +1,13 @@
+{
+  "manifestType": "INDEPENDENT_DOWNSTREAM_READINESS",
+  "waveBDecision": "PASS_WITH_P1_REPAIRS",
+  "waveBComplete": false,
+  "skillStateReadiness": "NOT_READY",
+  "swSkillMappingReadiness": "WAIT",
+  "masteryToSkillReadiness": "WAIT",
+  "reason": "Wave B endpoint deletion policy is inconsistent between canonical Drizzle schema and SQL migrations",
+  "requiredRepair": "align role_skill_relations Role/Skill Drizzle FK deletion behavior with RESTRICT, without changing migration numbering or relation semantics",
+  "nextReview": "REVIEW_SECURIUM_TYPED_ROLE_SKILL_CONCEPT_RELATIONS_WAVE_B",
+  "futureGates": ["AUTHORIZE_SECURIUM_SW_SECURITY_WEAKNESS_SKILL_MAPPING", "AUTHORIZE_SECURIUM_SKILL_STATE_FOUNDATION_WAVE_D"],
+  "executedDownstreamWork": false
+}

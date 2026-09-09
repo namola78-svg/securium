@@ -1,0 +1,140 @@
+{
+  "gate": "TYPED_RELATIONS_WAVE_B_BOUNDED_ARCHIVAL_STATE",
+  "excludedCount": 21,
+  "paths": [
+    {
+      "path": "package.json",
+      "classification": "MAINLINE_OVERLAP",
+      "reason": "Wave B only adds local test scripts; latest main independently changes dependency/security state."
+    },
+    {
+      "path": "lib/services/server-knowledge-query-service.ts",
+      "classification": "MAINLINE_OVERLAP",
+      "reason": "Current canonical Concept delegation overlaps latest main legacy Concept hardening."
+    },
+    {
+      "path": "scripts/postgres-migration-guard.mjs",
+      "classification": "MAINLINE_OVERLAP",
+      "reason": "Current checksum guard changes overlap latest main fail-closed checksum implementation."
+    },
+    {
+      "path": "tests/migration-namespace-guard.test.mjs",
+      "classification": "MAINLINE_OVERLAP",
+      "reason": "Current namespace counts overlap latest main migration 0041."
+    },
+    {
+      "path": "docs/architecture/securium-occupational-role-alias-db-normalization-and-collision-repair-2026-09-08.md",
+      "classification": "EXCLUDE",
+      "reason": "Historical review evidence has pre-existing whitespace detected by git diff --check; exact bytes remain in the verified external v2 archive."
+    },
+    {
+      "path": "docs/architecture/securium-occupational-role-alias-db-normalization-and-collision-repair-final-rereview-2026-09-08.md",
+      "classification": "EXCLUDE",
+      "reason": "Historical review evidence has pre-existing whitespace detected by git diff --check; exact bytes remain in the verified external v2 archive."
+    },
+    {
+      "path": "docs/architecture/securium-skill-foundation-d1-migration-0050-orphan-ownership-repair-2026-09-08.md",
+      "classification": "EXCLUDE",
+      "reason": "Historical review evidence has pre-existing whitespace detected by git diff --check; exact bytes remain in the verified external v2 archive."
+    },
+    {
+      "path": "docs/architecture/securium-skill-foundation-engineering-gate-terminal-evidence-2026-09-08.md",
+      "classification": "EXCLUDE",
+      "reason": "Historical review evidence has pre-existing whitespace detected by git diff --check; exact bytes remain in the verified external v2 archive."
+    },
+    {
+      "path": "docs/architecture/securium-skill-foundation-engineering-gate-terminal-evidence-closure-2026-09-08.md",
+      "classification": "EXCLUDE",
+      "reason": "Historical review evidence has pre-existing whitespace detected by git diff --check; exact bytes remain in the verified external v2 archive."
+    },
+    {
+      "path": "docs/architecture/securium-skill-foundation-engineering-gate-terminal-evidence-retry-clean-process-2026-09-08.md",
+      "classification": "EXCLUDE",
+      "reason": "Historical review evidence has pre-existing whitespace detected by git diff --check; exact bytes remain in the verified external v2 archive."
+    },
+    {
+      "path": "docs/architecture/securium-skill-foundation-postgres-checksum-drift-and-clean-e2e-validation-repair-2026-09-08.md",
+      "classification": "EXCLUDE",
+      "reason": "Historical review evidence has pre-existing whitespace detected by git diff --check; exact bytes remain in the verified external v2 archive."
+    },
+    {
+      "path": "docs/architecture/securium-skill-foundation-postgres-migration-ledger-integrity-repair-2026-09-08.md",
+      "classification": "EXCLUDE",
+      "reason": "Historical review evidence has pre-existing whitespace detected by git diff --check; exact bytes remain in the verified external v2 archive."
+    },
+    {
+      "path": "docs/architecture/securium-skill-foundation-wave-a-after-postgres-ledger-final-rereview-2026-09-08.md",
+      "classification": "EXCLUDE",
+      "reason": "Historical review evidence has pre-existing whitespace detected by git diff --check; exact bytes remain in the verified external v2 archive."
+    },
+    {
+      "path": "docs/architecture/securium-skill-foundation-wave-a-final-approval-2026-09-08.md",
+      "classification": "EXCLUDE",
+      "reason": "Historical review evidence has pre-existing whitespace detected by git diff --check; exact bytes remain in the verified external v2 archive."
+    },
+    {
+      "path": "docs/architecture/securium-skill-foundation-wave-a-final-closure-2026-09-08.md",
+      "classification": "EXCLUDE",
+      "reason": "Historical review evidence has pre-existing whitespace detected by git diff --check; exact bytes remain in the verified external v2 archive."
+    },
+    {
+      "path": "docs/architecture/securium-skill-foundation-wave-a-final-review-2026-09-08.md",
+      "classification": "EXCLUDE",
+      "reason": "Historical review evidence has pre-existing whitespace detected by git diff --check; exact bytes remain in the verified external v2 archive."
+    },
+    {
+      "path": "docs/architecture/securium-skill-foundation-wave-a-implementation-2026-09-08.md",
+      "classification": "EXCLUDE",
+      "reason": "Historical review evidence has pre-existing whitespace detected by git diff --check; exact bytes remain in the verified external v2 archive."
+    },
+    {
+      "path": "docs/architecture/securium-typed-role-skill-concept-relations-wave-b-final-implementation-2026-09-08.md",
+      "classification": "EXCLUDE",
+      "reason": "Historical review evidence has pre-existing whitespace detected by git diff --check; exact bytes remain in the verified external v2 archive."
+    },
+    {
+      "path": "docs/architecture/securium-typed-role-skill-concept-relations-wave-b-implementation-2026-09-08.md",
+      "classification": "EXCLUDE",
+      "reason": "Historical review evidence has pre-existing whitespace detected by git diff --check; exact bytes remain in the verified external v2 archive."
+    },
+    {
+      "path": "docs/architecture/securium-typed-role-skill-concept-relations-wave-b-independent-final-review-2026-09-08.md",
+      "classification": "EXCLUDE",
+      "reason": "Historical review evidence has pre-existing whitespace detected by git diff --check; exact bytes remain in the verified external v2 archive."
+    },
+    {
+      "path": "reports/role-skill-concept-graph-foundation-audit-2026-09-07.md",
+      "classification": "EXCLUDE",
+      "reason": "Historical review evidence has pre-existing whitespace detected by git diff --check; exact bytes remain in the verified external v2 archive."
+    }
+  ],
+  "overlapExcluded": [
+    "package.json",
+    "lib/services/server-knowledge-query-service.ts",
+    "scripts/postgres-migration-guard.mjs",
+    "tests/migration-namespace-guard.test.mjs"
+  ],
+  "formattingExcluded": [
+    "docs/architecture/securium-occupational-role-alias-db-normalization-and-collision-repair-2026-09-08.md",
+    "docs/architecture/securium-occupational-role-alias-db-normalization-and-collision-repair-final-rereview-2026-09-08.md",
+    "docs/architecture/securium-skill-foundation-d1-migration-0050-orphan-ownership-repair-2026-09-08.md",
+    "docs/architecture/securium-skill-foundation-engineering-gate-terminal-evidence-2026-09-08.md",
+    "docs/architecture/securium-skill-foundation-engineering-gate-terminal-evidence-closure-2026-09-08.md",
+    "docs/architecture/securium-skill-foundation-engineering-gate-terminal-evidence-retry-clean-process-2026-09-08.md",
+    "docs/architecture/securium-skill-foundation-postgres-checksum-drift-and-clean-e2e-validation-repair-2026-09-08.md",
+    "docs/architecture/securium-skill-foundation-postgres-migration-ledger-integrity-repair-2026-09-08.md",
+    "docs/architecture/securium-skill-foundation-wave-a-after-postgres-ledger-final-rereview-2026-09-08.md",
+    "docs/architecture/securium-skill-foundation-wave-a-final-approval-2026-09-08.md",
+    "docs/architecture/securium-skill-foundation-wave-a-final-closure-2026-09-08.md",
+    "docs/architecture/securium-skill-foundation-wave-a-final-review-2026-09-08.md",
+    "docs/architecture/securium-skill-foundation-wave-a-implementation-2026-09-08.md",
+    "docs/architecture/securium-typed-role-skill-concept-relations-wave-b-final-implementation-2026-09-08.md",
+    "docs/architecture/securium-typed-role-skill-concept-relations-wave-b-implementation-2026-09-08.md",
+    "docs/architecture/securium-typed-role-skill-concept-relations-wave-b-independent-final-review-2026-09-08.md",
+    "reports/role-skill-concept-graph-foundation-audit-2026-09-07.md"
+  ],
+  "noLoss": {
+    "recoverableInExternalV2Archive": true,
+    "uniqueEvidenceOutsidePreservation": 0
+  }
+}

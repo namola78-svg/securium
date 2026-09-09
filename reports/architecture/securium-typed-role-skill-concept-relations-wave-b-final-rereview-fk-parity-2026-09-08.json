@@ -1,0 +1,14 @@
+{
+  "status":"PASS",
+  "source":"independent final rereview",
+  "hiddenGovernedCascadeCount":0,
+  "matrix":[
+    {"relation":"Role→Skill","endpoint":"role_skill_relations.role_id→occupational_roles.id","drizzle":"restrict","pg0042":"RESTRICT","d10051":"restrict","parity":"MATCH"},
+    {"relation":"Role→Skill","endpoint":"role_skill_relations.skill_id→skills.id","drizzle":"restrict","pg0042":"RESTRICT","d10051":"restrict","parity":"MATCH"},
+    {"relation":"Role→Skill","endpoint":"role_skill_relations.reviewed_by→users.id","drizzle":"restrict","pg0042":"RESTRICT","d10051":"restrict","parity":"MATCH"},
+    {"relation":"Skill→Concept","endpoint":"skill_concept_relations.skill_id→skills.id","drizzle":"restrict","pg0042":"RESTRICT","d10051":"restrict","parity":"MATCH"},
+    {"relation":"Skill→Concept","endpoint":"skill_concept_relations.concept_id→ontology_concepts.id","drizzle":"restrict","pg0042":"RESTRICT","d10051":"restrict","parity":"MATCH"},
+    {"relation":"Skill→Concept","endpoint":"skill_concept_relations.reviewed_by→users.id","drizzle":"restrict","pg0042":"RESTRICT","d10051":"restrict","parity":"MATCH"}
+  ],
+  "mismatchCount":0
+}

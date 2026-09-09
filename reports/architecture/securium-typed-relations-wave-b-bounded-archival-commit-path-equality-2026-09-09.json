@@ -1,0 +1,10 @@
+{
+  "gate": "TYPED_RELATIONS_WAVE_B_BOUNDED_ARCHIVAL_STATE",
+  "candidateManifest": "reports/architecture/securium-typed-relations-wave-b-bounded-archival-commit-candidate-2026-09-09.json",
+  "expectedStagedCount": 111,
+  "actualStagedCount": 111,
+  "missingStagedPaths": 0,
+  "unexpectedStagedPaths": 0,
+  "equalityRule": "staged paths must equal candidatePaths exactly",
+  "status": "PASS"
+}

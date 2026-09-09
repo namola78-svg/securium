@@ -1,0 +1,12 @@
+{
+  "status":"PASS",
+  "commits":[
+    {"sha":"4106b5be3dcbc699e816ad661abc3cb4e82a80f5","title":"fix(security): update Next.js to 16.3.4","classification":"COMPATIBLE_FOUNDATION_CHANGE","paths":["package-lock.json","package.json"],"semanticDomain":"dependency/security runtime","waveBOverlap":"package.json only"},
+    {"sha":"ac65766b8e406968dd66fd906249c48b91fa6b38","title":"chore(ontology): preserve historical Dataset A archival evidence","classification":"COMPATIBLE_FOUNDATION_CHANGE","pathCount":24,"semanticDomain":"ontology archival governance","waveBOverlap":"none; canonical Dataset B remains authoritative"},
+    {"sha":"980ef6adb94d87a923d7a973edaf4419f03fff9d","title":"fix(media): harden progress checkpoint identity and no-op semantics","classification":"UNRELATED","pathCount":19,"semanticDomain":"media progress","waveBOverlap":"none"},
+    {"sha":"67686548da982cd9f3c11806ac21b95cf4be526a","title":"feat(governance): add fail-closed ISE review runtime (#95)","classification":"SECURITY_FIX","pathCount":49,"semanticDomain":"ISE governance/runtime","waveBOverlap":"none"}
+  ],
+  "conflictingCommitCount":0,
+  "unknownCommitCount":0,
+  "migrationOwnershipChangeCount":0
+}

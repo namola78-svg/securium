@@ -1,0 +1,38 @@
+{
+  "manifestType": "SECURIUM_TYPED_RELATION_AUTHORITY_MANIFEST",
+  "version": 1,
+  "status": "IMPLEMENTED_PENDING_INDEPENDENT_REVIEW",
+  "authorityCount": 1,
+  "canonicalEndpointAuthorities": {
+    "role": { "table": "occupational_roles", "identity": "occupational_roles.id / role_key", "aliasTable": "occupational_role_aliases" },
+    "skill": { "table": "skills", "identity": "skills.id / skill_key", "aliasTable": "skill_aliases" },
+    "concept": { "table": "ontology_concepts", "identity": "ontology_concepts.id / concept_key", "aliasTable": "ontology_aliases" }
+  },
+  "relationAuthority": {
+    "stores": ["role_skill_relations", "skill_concept_relations"],
+    "count": 1,
+    "roleSkill": { "type": "ROLE_REQUIRES_SKILL", "semantics": "an occupational Role requires a canonical Skill", "direction": "ROLE -> SKILL" },
+    "skillConcept": { "type": "SKILL_REQUIRES_CONCEPT", "semantics": "a canonical Skill requires a canonical Concept", "direction": "SKILL -> CONCEPT" },
+    "inverseRows": false,
+    "identity": "endpoint IDs plus fixed relation type; unique per semantic edge",
+    "versioning": "current governed row with positive relation_version; no append-only duplicate rows",
+    "lifecycle": ["DRAFT", "ACTIVE", "RETIRED"],
+    "provenance": ["source_type", "source_id", "provenance_json", "reviewed_by", "reviewed_at", "review_evidence_json"],
+    "readModel": ["skillsForRole", "conceptsForSkill", "rolesForSkill", "skillsForConcept"],
+    "readDefault": "ACTIVE",
+    "writer": "server-only DRAFT writers; endpoints must already exist",
+    "localEndpointCreation": false,
+    "learnerState": false
+  },
+  "providerParity": { "postgres": "canonical runtime authority", "d1": "local compatibility and rollback path", "semanticParity": "PASS" },
+  "seedCount": 0,
+  "securityCriticalHigh": "0/0",
+  "dataTrustCriticalHigh": "0/0",
+  "privacyCriticalHigh": "0/0",
+  "hashAlgorithm": "SHA-256",
+  "sourceFiles": {
+    "postgresMigration": { "path": "db/postgres/migrations/0042_typed_role_skill_concept_relations.sql", "sha256": "0F842C9913A0F0B776970C267A2371BE8E9A3DAA4914BC28A024F94336FF1E15" },
+    "d1Migration": { "path": "drizzle/0051_typed_role_skill_concept_relations.sql", "sha256": "40904EAF86CBA9806F612ED8E90497667A3F1243C83EE8AF51FACEAA74BC666D" },
+    "schema": { "path": "db/schema.ts", "sha256": "047E4003163B93E64D2BA27147078337CA4D5F9A55A5435D54E31699FC1F1130" }
+  }
+}

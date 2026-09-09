@@ -1,0 +1,49 @@
+{
+  "gate": "TYPED_RELATIONS_WAVE_B_BOUNDED_ARCHIVAL_STATE",
+  "status": "CANDIDATE_READY",
+  "decision": "ARCHIVAL_COMMIT_REQUIRED_FIRST",
+  "completion": "TYPED_ROLE_SKILL_CONCEPT_RELATIONS_WAVE_B_COMPLETE",
+  "baseline": {
+    "head": "9756970ce19a64d6ac0e913631193b606dc78e7c",
+    "originMain": "8fda64b163744f5530988ac5a11df000ab31d1ab",
+    "ahead": 0,
+    "behind": 7
+  },
+  "candidateCount": 111,
+  "excludedCount": 21,
+  "packageClassification": "WAVE_B_PACKAGE_CHANGE_NOT_REQUIRED",
+  "migration": {
+    "pg0042Owner": 1,
+    "d10051Owner": 1,
+    "mutation": 0,
+    "collisionOrphan": "0/0"
+  },
+  "semantics": {
+    "fkParity": "6/6 MATCH",
+    "governedCascade": 0,
+    "relationAuthority": 1,
+    "roleAuthority": 1,
+    "skillAuthority": 1,
+    "conceptAuthority": 1,
+    "relationSeeds": 0,
+    "curriculumMappings": 0,
+    "learnerState": "ABSENT"
+  },
+  "regression": {
+    "focusedRole": "21/21 PASS",
+    "focusedTypedRelations": "8/8 PASS",
+    "unit": "448/448 PASS_EXIT_0",
+    "integration": "59/59 PASS_EXIT_0",
+    "postgresGuard": "10/10 PASS",
+    "typecheck": "PASS",
+    "lint": "PASS_WITH_EXISTING_WARNING_ZERO_ERRORS",
+    "build": "PASS_EXIT_0",
+    "dbCheck": "PASS",
+    "postgresValidation": "PASS",
+    "namespace": "PASS",
+    "diffCheck": "PASS",
+    "cachedDiffCheck": "PASS",
+    "newSkipOnlyTodo": "0/0/0"
+  },
+  "nextGate": "REAUTHOR_OR_CHERRY_PICK_SECURIUM_TYPED_RELATIONS_WAVE_B_ON_LATEST_MAIN"
+}

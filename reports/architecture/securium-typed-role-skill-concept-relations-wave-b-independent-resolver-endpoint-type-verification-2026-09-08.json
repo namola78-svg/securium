@@ -1,0 +1,11 @@
+{
+  "manifestType": "INDEPENDENT_RESOLVER_ENDPOINT_TYPE_VERIFICATION",
+  "role": { "id": "PASS", "key": "PASS", "alias": "PASS", "unknown": "FAIL_CLOSED", "ambiguous": "FAIL_CLOSED" },
+  "skill": { "id": "PASS", "key": "PASS", "registeredAlias": "PASS", "unknown": "FAIL_CLOSED", "ambiguous": "FAIL_CLOSED" },
+  "concept": { "id": "PASS", "key": "PASS", "registeredAlias": "PASS", "unknown": "FAIL_CLOSED", "ambiguous": "FAIL_CLOSED", "labelOnly": "FAIL_CLOSED" },
+  "endpointType": { "conceptAsRole": "REJECTED_BY_ROLE_FK", "roleAsSkill": "REJECTED_BY_SKILL_FK", "skillAsConcept": "REJECTED_BY_CONCEPT_FK" },
+  "labelAuthority": "NONE",
+  "localEndpointCreation": 0,
+  "relationAuthorityCount": 1,
+  "relationSeedCount": 0
+}

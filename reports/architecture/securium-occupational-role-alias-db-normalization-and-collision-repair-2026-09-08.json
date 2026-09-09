@@ -1,0 +1,163 @@
+{
+  "finalStatus": "SECURIUM_OCCUPATIONAL_ROLE_ALIAS_DB_NORMALIZATION_AND_COLLISION_REPAIR_PASS_READY_FOR_FINAL_REREVIEW",
+  "repairDecision": "PASS_READY_FOR_FINAL_REREVIEW",
+  "snapshotDate": "2026-09-08",
+  "gitBaseline": {
+    "worktree": "C:\\Users\\user\\Documents\\Codex\\2026-07-24\\1-2-3-4-5-6\\securium-skill-graph-foundation",
+    "branch": "architecture/role-skill-concept-graph-foundation",
+    "head": "9756970ce19a64d6ac0e913631193b606dc78e7c",
+    "freshOriginMain": "980ef6adb94d87a923d7a973edaf4419f03fff9d",
+    "ahead": 0,
+    "behind": 2,
+    "mainDrift": "NON_CONFLICTING_DRIFT",
+    "dirtyBeforeRepair": true,
+    "historicalMigrationMutation": 0
+  },
+  "scopeIntegrity": {
+    "authorized": [
+      "alias normalization DB enforcement",
+      "normalized alias uniqueness",
+      "forward migrations",
+      "focused tests",
+      "repair reports"
+    ],
+    "outOfScopeMutation": {
+      "skill": 0,
+      "roleRelations": 0,
+      "graphProjection": 0,
+      "conceptAuthority": 0,
+      "rbac": 0,
+      "evidence": 0,
+      "learnerState": 0,
+      "production": 0
+    }
+  },
+  "p103Before": {
+    "status": "NOT_CLOSED",
+    "issues": [
+      "Database did not independently reproduce or bound the application NFKC alias contract",
+      "Different Roles could store the same normalized_alias",
+      "Resolver failed closed, but canonical DB state itself could remain ambiguous"
+    ]
+  },
+  "appNormalizationContract": {
+    "function": "normalizeOccupationalRoleLookup",
+    "steps": ["Unicode NFKC", "trim", "lowercase", "collapse whitespace runs to one space"],
+    "persistedValidation": "assertOccupationalRoleAlias additionally requires printable ASCII U+0020-U+007E and max length 300"
+  },
+  "unicodeNfkcStrategy": {
+    "classification": "POSTGRES_CAN_ENFORCE_CANONICAL_NORMALIZED_COLUMN_WITH_APP_SUPPLIED_VALUE",
+    "reason": "PostgreSQL and D1 do not recompute full Unicode NFKC; both enforce the bounded printable ASCII canonical language and alias = normalized_alias, so direct writers cannot persist accepted non-ASCII compatibility forms"
+  },
+  "canonicalNormalizedAliasRepresentation": {
+    "column": "occupational_role_aliases.normalized_alias",
+    "storedInvariant": "alias = normalized_alias",
+    "grammar": "non-empty printable ASCII U+0020-U+007E, lowercase, trimmed, no repeated spaces, max 300 characters"
+  },
+  "dbEnforcementStrategy": {
+    "postgres": "0032 check constraint plus unique index occupational_role_aliases_normalized_unique",
+    "d1": "0043 table rebuild with equivalent check constraint plus unique index occupational_role_aliases_normalized_unique"
+  },
+  "crossRoleUniquenessStrategy": "UNIQUE(normalized_alias) across all occupational roles; same-role and cross-role duplicates are rejected",
+  "existingCollisionScan": {
+    "repositorySeeds": "NONE_FOUND",
+    "localD1": "NONE_FOUND",
+    "cleanDisposablePostgres": "NONE_FOUND",
+    "productionQueried": false
+  },
+  "legacyCollisionHandling": "No rows are silently deleted or winner-selected. Unsafe pre-existing rows would fail closed during migration and require separately governed remediation before deployment.",
+  "postgresMigration": "db/postgres/migrations/0032_occupational_role_alias_hardening.sql",
+  "d1Migration": "drizzle/0043_occupational_role_alias_hardening.sql",
+  "historicalMigrationMutation": 0,
+  "migrationNamespaceSafety": {
+    "result": "NO_COLLISION_OBSERVED",
+    "postgres": "0032",
+    "d1": "0043",
+    "originMainConflictingFiles": 0,
+    "namespaceGuard": "2/2 PASS"
+  },
+  "parity": {
+    "appPostgres": "PASS",
+    "appD1": "PASS",
+    "postgresD1": "LOGICALLY_ALIGNED",
+    "knownBoundedDifference": "Neither engine recomputes NFKC; both independently enforce the same persisted ASCII canonical language"
+  },
+  "tests": {
+    "focusedAliasTests": "19/19 PASS",
+    "roleBehavioralTests": "included in focused suite; PASS",
+    "graphRegression": "63/63 PASS",
+    "unit": "448/448 PASS",
+    "integration": "59/59 PASS",
+    "postgresMigrationGuard": "10/10 PASS",
+    "namespaceGuard": "2/2 PASS",
+    "cleanD1Migration": "PASS through 0043",
+    "dbCheck": "PASS",
+    "postgresValidation": "POSTGRES_MIGRATIONS_VALID files=32 tables=92 checksum=b8820eb5236b685e",
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "build": "PASS",
+    "gitDiffCheck": "PASS",
+    "newSkipsOnlyTodo": "0/0/0"
+  },
+  "aliasTests": {
+    "validCanonicalAlias": "PASS",
+    "nonNormalizedAlias": "DB REJECTED",
+    "sameRoleDuplicate": "DB REJECTED",
+    "crossRoleExactCollision": "DB REJECTED",
+    "crossRoleNfkcCollision": "APP REJECTED OR DB REJECTED FOR NON_CANONICAL FORM",
+    "caseWhitespaceCollision": "DB REJECTED UNLESS SINGLE CANONICAL FORM",
+    "directSqlBypass": "BLOCKED",
+    "repositoryWriter": "BOUNDED OCCUPATIONAL_ROLE_ALIAS_CONFLICT",
+    "aliasUpdateCollision": "DB REJECTED",
+    "resolverCompatibility": "PASS; exact alias resolves and legacy ambiguity remains fail-closed"
+  },
+  "regressions": {
+    "roleKeyGrammar": "PASS",
+    "roleKeyImmutability": "PASS",
+    "p101": "PASS",
+    "p102": "PASS",
+    "rbac": "UNCHANGED/PASS",
+    "conceptAuthority": "UNCHANGED/PASS",
+    "cpA": "UNCHANGED/PASS",
+    "skillMutation": 0,
+    "roleRelationMutation": 0,
+    "graphProjectionMutation": 0,
+    "unsafeActiveWriters": 0
+  },
+  "stale0033Assertion": {
+    "classification": "PRE_EXISTING_NON_CAUSAL",
+    "result": "4/5",
+    "cause": "Historical CP-A test expects no 0033 migration while repository already contains migrations through 0043",
+    "repairCausality": "NONE"
+  },
+  "findings": {
+    "p0": [],
+    "p1Before": ["P1-03"],
+    "p1Closed": ["P1-03"],
+    "p1Remaining": [],
+    "p2": []
+  },
+  "riskReview": {
+    "securityCriticalHigh": "0/0",
+    "dataTrustCriticalHigh": "0/0",
+    "privacyCriticalHigh": "0/0"
+  },
+  "readiness": {
+    "p103FinalStatus": "CLOSED",
+    "skillFoundation": "READY_AFTER_FINAL_REREVIEW",
+    "recommendedFinalRereviewGate": "FINAL_REREVIEW_SECURIUM_OCCUPATIONAL_ROLE_ALIAS_DB_NORMALIZATION_AND_COLLISION_REPAIR",
+    "nextMajorGateAfterFinalRereview": "AUTHORIZE_SECURIUM_SKILL_FOUNDATION_WAVE_A"
+  },
+  "release": {
+    "productionDb": "NO",
+    "deployment": "NO",
+    "commit": "NO",
+    "push": "NO",
+    "pr": "NO"
+  },
+  "reportHashes": {
+    "markdownSha256": null,
+    "machineSha256": null,
+    "note": "Calculated after final report materialization and recorded in final handoff"
+  }
+}

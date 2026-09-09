@@ -1,0 +1,14 @@
+{
+  "algorithm":"SHA-256",
+  "artifacts":{
+    "docs/architecture/securium-typed-relations-wave-b-mainline-dependency-reconciliation-2026-09-09.md":"6DB53A7E742FB303B71E684059AD541D2ABF6B3726FA26C3131C809A6DF26E83",
+    "reports/architecture/securium-typed-relations-wave-b-mainline-dependency-reconciliation-2026-09-09.json":"FDC50F692D7E0368D4F0EB074C96BD5DA615D50C5F524B1CE1B6E6A7C0A34AEA",
+    "reports/architecture/securium-typed-relations-wave-b-mainline-commit-classification-2026-09-09.json":"60D9D86D4BBECE2656820F0C6AD251F56865BF47B8B443557DFB286BC9C77745",
+    "reports/architecture/securium-typed-relations-wave-b-mainline-path-overlap-2026-09-09.json":"59ECE6749BE2FC378D836CDA287F054089CFB022F2C1FF3B5FA4904D38FB6DBF",
+    "reports/architecture/securium-typed-relations-wave-b-migration-ownership-reconciliation-2026-09-09.json":"17E1F61269D0DA33245E9F7DCEFE0D819AD431BE9093F3F766315891E5329F10",
+    "reports/architecture/securium-typed-relations-wave-b-dirty-untracked-preservation-2026-09-09.json":"BB137171270221C5853D23194F318351F763B63AD6D4A14EB611C5277A8B0468",
+    "reports/architecture/securium-typed-relations-wave-b-dependency-matrix-2026-09-09.json":"024D9F83836351114F51D8DEDF240DC3995A531EE8D364F97D5EC2EFE6AC20F8",
+    "reports/architecture/securium-typed-relations-wave-b-recommended-git-strategy-2026-09-09.json":"B4EF638CE77E7070B25EFF6F0F24C330751357D0C6E09F65E4581BFC31CD07DD"
+  },
+  "selfHash":"REPORTED_SEPARATELY_TO_AVOID_SELF_REFERENCE"
+}

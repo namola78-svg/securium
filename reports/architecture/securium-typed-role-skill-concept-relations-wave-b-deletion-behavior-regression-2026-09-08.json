@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "fixture": "disposable PostgreSQL and local D1",
+  "roleDelete": {"result":"RESTRICTED_FK","error":"23503","relationPreserved":true},
+  "skillDelete": {"result":"RESTRICTED_FK","error":"23503","relationPreserved":true},
+  "explicitRelationDelete": {"result":"AUTHORIZED","relationCountAfter":0},
+  "silentCascadeCount": 0,
+  "d1EndpointDelete": "RESTRICTED_FK",
+  "ormMigrationParity": "PASS",
+  "focusedRegression": {"pass":8,"total":8,"exit":0}
+}

@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "pg": {"id":"0042_typed_role_skill_concept_relations","migration":"PG0042","owner":"securium-skill-graph-foundation","claimCount":1,"orphanCount":0,"collisionCount":0,"sha256":"0F842C9913A0F0B776970C267A2371BE8E9A3DAA4914BC28A024F94336FF1E15"},
+  "d1": {"id":"0051_typed_role_skill_concept_relations","migration":"D10051","owner":"securium-skill-graph-foundation","claimCount":1,"orphanCount":0,"collisionCount":0,"sha256":"40904EAF86CBA9806F612ED8E90497667A3F1243C83EE8AF51FACEAA74BC666D"},
+  "providerPair": "VALID_PAIR",
+  "renumbering": 0,
+  "migrationMutation": {"pg0042":0,"d10051":0},
+  "checksumGuard": "PASS",
+  "pg0041Classification": "REJECTED_UNRELATED_GLOBAL_OWNERSHIP_CLAIMS",
+  "namespaceGuard": "PASS"
+}

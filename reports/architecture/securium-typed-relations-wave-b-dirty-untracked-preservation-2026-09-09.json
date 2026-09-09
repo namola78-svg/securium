@@ -1,0 +1,15 @@
+{
+  "status":"PRESERVE_BEFORE_RECONCILIATION",
+  "currentStatusPathCount":112,
+  "staged":[],
+  "trackedModified":["db/concept-persistence-repositories.ts","db/schema.ts","drizzle/meta/_journal.json","lib/services/server-knowledge-query-service.ts","package.json","scripts/postgres-migration-guard.mjs","tests/migration-namespace-guard.test.mjs"],
+  "waveFoundationUniqueImplementation":[
+    "db/canonical-concept-repositories.ts","db/occupational-role-repositories.ts","db/skill-repositories.ts","db/typed-relation-repositories.ts","db/schema.ts","lib/services/canonical-concept-authority.ts","lib/services/occupational-role-authority.ts","lib/services/skill-authority.ts","lib/services/typed-relation-authority.ts","db/postgres/migrations/0034_occupational_role_foundation.sql","db/postgres/migrations/0035_occupational_role_identity_hardening.sql","db/postgres/migrations/0036_occupational_role_alias_hardening.sql","db/postgres/migrations/0038_skill_foundation.sql","db/postgres/migrations/0042_typed_role_skill_concept_relations.sql","drizzle/0045_occupational_role_foundation.sql","drizzle/0046_occupational_role_identity_hardening.sql","drizzle/0047_occupational_role_alias_hardening.sql","drizzle/0050_skill_foundation.sql","drizzle/0051_typed_role_skill_concept_relations.sql","drizzle/meta/0045_snapshot.json","drizzle/meta/_journal.json"
+  ],
+  "waveFoundationUniqueTests":["tests/canonical-concept-authority.test.ts","tests/occupational-role-authority.test.ts","tests/occupational-role-identity-database.test.mjs","tests/occupational-role-postgres-disposable.test.mjs","tests/occupational-role-schema.test.mjs","tests/skill-authority.test.ts","tests/skill-identity-database.test.mjs","tests/skill-postgres-disposable.test.mjs","tests/typed-relation-authority.test.ts","tests/typed-relation-database.test.mjs","tests/typed-relation-postgres-disposable.test.mjs","tests/typed-relation-schema.test.mjs","tests/migration-namespace-guard.test.mjs"],
+  "sharedGovernanceFiles":["package.json","scripts/postgres-migration-guard.mjs","db/concept-persistence-repositories.ts","lib/services/server-knowledge-query-service.ts"],
+  "reviewEvidencePattern":"docs/architecture/securium-*foundation*, docs/architecture/securium-typed-role-skill-concept-relations*, reports/architecture/securium-*foundation*, reports/architecture/securium-typed-role-skill-concept-relations*",
+  "uniqueEvidenceLostIfDiscarded":0,
+  "preservationRequired":true,
+  "doNotUse":"reset/clean/blind-rebase/stash"
+}

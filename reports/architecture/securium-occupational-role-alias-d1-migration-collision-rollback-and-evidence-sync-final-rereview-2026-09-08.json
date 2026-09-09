@@ -1,0 +1,177 @@
+{
+  "finalStatus": "SECURIUM_OCCUPATIONAL_ROLE_ALIAS_D1_MIGRATION_COLLISION_ROLLBACK_AND_EVIDENCE_SYNC_FINAL_REREVIEW_PASS",
+  "reviewDecision": "PASS",
+  "snapshotDate": "2026-09-08",
+  "worktree": "C:\\Users\\user\\Documents\\Codex\\2026-07-24\\1-2-3-4-5-6\\securium-skill-graph-foundation",
+  "branch": "architecture/role-skill-concept-graph-foundation",
+  "head": "9756970ce19a64d6ac0e913631193b606dc78e7c",
+  "freshOriginMain": "980ef6adb94d87a923d7a973edaf4419f03fff9d",
+  "aheadBehind": "0 / 2",
+  "mainDrift": "NON_CONFLICTING_DRIFT",
+  "repairHashVerification": {
+    "markdown": "DAE6B4E6F48C7CD3DAA6B1B6E950789A802F78FE4BE581B7CB96E67DC1A440B6",
+    "machine": "CE60A7FB9CFE921F053DB0139C84DFFED96903D6886D05798E2F2F9565152507",
+    "status": "PASS"
+  },
+  "previousFinalRereviewHashVerification": {
+    "markdown": "C57FB609FCDADBFEB449231838C7EFB52344487673CC148158B006E2BFA8E3EC",
+    "machine": "1468A2F65FB23B53A4AB0EA560C688AB78FFA91396CA21D6D90286C3DF53A376",
+    "status": "PASS"
+  },
+  "currentMigrations": {
+    "postgres": {
+      "path": "db/postgres/migrations/0036_occupational_role_alias_hardening.sql",
+      "sha256": "319F0FD95078FA2EA73DCA0092604FD852FC9CFFA381B6897AE26C9EB9F0D13C"
+    },
+    "d1": {
+      "path": "drizzle/0047_occupational_role_alias_hardening.sql",
+      "sha256": "E34CAA46953D4F6A6CEE9197F12C4523AD88DFD104ABB536C34A2CDE214C2FDA"
+    },
+    "namespace": "CURRENT_ROLE_MIGRATION_NAMESPACE_SAFE",
+    "crossWorktreeOwners": {
+      "postgres0036": 1,
+      "d10047": 1
+    }
+  },
+  "evidenceSync": {
+    "before": "EVIDENCE_DRIFT_CONFIRMED",
+    "after": "CLOSED",
+    "stale0032ActiveCurrentClaims": 0,
+    "stale0043ActiveCurrentClaims": 0,
+    "historical0032MentionsInCurrentRepairMarkdown": 2,
+    "historical0043MentionsInCurrentRepairMarkdown": 2,
+    "current0036Mentions": {
+      "markdown": 3,
+      "json": 2
+    },
+    "current0047Mentions": {
+      "markdown": 8,
+      "json": 5
+    }
+  },
+  "canonicalAuthorities": {
+    "role": "occupational_roles",
+    "alias": "occupational_role_aliases",
+    "roleAuthorityCount": 1,
+    "concept": "ontology_concepts / ontology_aliases",
+    "conceptMutation": 0
+  },
+  "scopeIntegrity": {
+    "d1AliasMigrationSafety": "BOUNDED",
+    "skillMutation": 0,
+    "roleRelationMutation": 0,
+    "graphProjectionMutation": 0,
+    "rbacMutation": 0,
+    "learnerStateMutation": 0,
+    "domainSemanticMutationOutsideAliasMigration": 0
+  },
+  "d1PrecheckReview": {
+    "strategy": "PRECHECK_COLLISIONS_BEFORE_TABLE_REBUILD",
+    "queryMechanism": "temporary UNIQUE index on occupational_role_aliases.normalized_alias",
+    "precheckBeforeDestructiveReplacement": true,
+    "transactionalityReliedUpon": false,
+    "atomicityClassification": "PRECHECK_PREVENTS_DESTRUCTIVE_FAILURE",
+    "newTableUniqueIndexBeforeOldDrop": true,
+    "swapPreconditions": [
+      "collision precheck passes",
+      "replacement table creation and copy succeed",
+      "replacement global uniqueness succeeds"
+    ]
+  },
+  "collisionTests": {
+    "exactCrossRole": "PASS_SAFE_PRECHECK_FAILURE",
+    "nfkcCompatibilityLegacyForm": "PASS_SAFE_FAILURE_BEFORE_REPLACEMENT",
+    "caseEquivalent": "PASS",
+    "whitespaceEquivalent": "PASS",
+    "sameRoleDuplicate": "PASS_REJECTED_BY_GLOBAL_UNIQUENESS",
+    "aliasUpdateCollision": "PASS_REJECTED",
+    "directPostMigrationInsert": "PASS_REJECTED",
+    "directPostMigrationUpdate": "PASS_REJECTED"
+  },
+  "failureState": {
+    "originalCanonicalAliasTablePreserved": true,
+    "originalRowsPreserved": true,
+    "partialCanonicalTableReplacement": false,
+    "replacementTableAfterCollisionFailure": false,
+    "oldPerRoleIndexPreserved": true,
+    "newGlobalIndexAfterCollisionFailure": false,
+    "temporaryArtifactAccumulation": false,
+    "repeatedFailure": "PASS",
+    "failedMigrationMarker": "NOT_APPLIED; completion marker is reached only after successful migration completion",
+    "governedCleanupRetry": "PASS",
+    "newCollisionIntroduced": 0
+  },
+  "successfulD1Path": {
+    "cleanFullChainThrough0047": "PASS",
+    "aliasesPreserved": true,
+    "globalNormalizedAliasUnique": true,
+    "postMigrationDirectDuplicateRejected": true
+  },
+  "postgresRegression": {
+    "migration0036": "PASS",
+    "normalization": "PASS",
+    "crossRoleCollision": "PASS_REJECTED",
+    "updateCollision": "PASS_REJECTED",
+    "roleKeyGrammar": "PASS",
+    "roleKeyImmutability": "PASS"
+  },
+  "parity": {
+    "postgresD1": "LOGICALLY_ALIGNED",
+    "operationalDifference": "PostgreSQL transaction versus D1 collision precheck before destructive rebuild",
+    "koreanPreferredLabels": "SUPPORTED",
+    "koreanCanonicalAliases": "INTENTIONALLY_REJECTED_BY_EXISTING_PRINTABLE_ASCII_POLICY"
+  },
+  "resolverRegression": {
+    "legacyAmbiguousState": "FAIL_CLOSED",
+    "postMigrationDbValidState": "NO_CROSS_ROLE_ALIAS_AMBIGUITY",
+    "p101": "CLOSED",
+    "p102": "CLOSED",
+    "p103": "CLOSED"
+  },
+  "tests": {
+    "roleFocused": "21/21 PASS",
+    "d1IdentityDirect": "7/7 PASS",
+    "cleanD1RoleWrapper": "7/7 PASS",
+    "selectedGraphConceptOntology": "45/45 PASS",
+    "unitStableSubset": "441/441 PASS",
+    "unitFullRunner": "NON_TERMINATING_PRE_EXISTING_UNRELATED_WRANGLER_RUNTIME_TEST; assertions emitted, no Role failure",
+    "integrationRoleRelevant": "PASS via clean D1 Role wrapper",
+    "integrationFullRunner": "NON_TERMINATING_PRE_EXISTING_WRANGLER_TEST_LIFECYCLE; no Role/D1 assertion failure observed",
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "build": "PASS; 63/63 routes",
+    "dbCheck": "PASS",
+    "postgresValidation": "PASS; files=32 tables=92 checksum=550ddb7f8ef1d3c5",
+    "migrationGuard": "10/10 PASS",
+    "namespaceGuard": "2/2 PASS",
+    "gitDiffCheck": "PASS",
+    "newSkipOnlyTodo": "0/0/0 semantic bypass count",
+    "staleCpaAssertion": "PRE_EXISTING_NON_CAUSAL"
+  },
+  "riskReview": {
+    "securityCriticalHigh": "0/0",
+    "dataTrustCriticalHigh": "0/0",
+    "privacyCriticalHigh": "0/0",
+    "p0": "NONE",
+    "p1Before": [
+      "D1 collision migration could leave a replaced ambiguous canonical alias table",
+      "repair evidence referenced stale migration numbers"
+    ],
+    "p1Closed": [
+      "D1 precheck prevents destructive collision failure",
+      "current evidence is synchronized to PG0036 and D10047"
+    ],
+    "p1Remaining": "NONE",
+    "p2": "NONE_NEW"
+  },
+  "occupationalRoleFoundation": "OCCUPATIONAL_ROLE_FOUNDATION_COMPLETE",
+  "skillFoundationReadiness": "READY_FOR_SKILL_FOUNDATION",
+  "recommendedNextGate": "AUTHORIZE_SECURIUM_SKILL_FOUNDATION_WAVE_A",
+  "commit": "NO",
+  "push": "NO",
+  "pr": "NO",
+  "deployment": "NO",
+  "productionDb": "NO",
+  "reportSha256": "CALCULATE_AFTER_FINAL_MATERIALIZATION",
+  "machineReportSha256": "CALCULATE_AFTER_FINAL_MATERIALIZATION"
+}

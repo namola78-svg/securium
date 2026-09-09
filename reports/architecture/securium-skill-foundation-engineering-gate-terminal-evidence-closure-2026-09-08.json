@@ -1,0 +1,116 @@
+{
+  "finalStatus": "ENGINEERING_ENVIRONMENT_BLOCKED",
+  "decision": "PASS_WITH_REMAINING_P1",
+  "snapshotDate": "2026-09-08",
+  "gate": "ENGINEERING-GATE-TERMINAL-EVIDENCE-001",
+  "gitBaseline": {
+    "branch": "architecture/role-skill-concept-graph-foundation",
+    "head": "9756970ce19a64d6ac0e913631193b606dc78e7c",
+    "originMain": "980ef6adb94d87a923d7a973edaf4419f03fff9d",
+    "aheadBehind": "0/2"
+  },
+  "priorApprovalReportHashVerification": {
+    "markdown": "41F6DBF81900F4D138732A21EA94962B691B1FC920F70D632D5F5681A188A29B",
+    "json": "C3CDC019E8014E8BBFE834401DCBBDC2F41AD91C20E1E628CE2897CA4BF11724",
+    "status": "PASS"
+  },
+  "implementationMutationDuringClosure": 0,
+  "existingProcessInventory": {
+    "unitRunnerLiveAtFinalPoll": true,
+    "integrationRunnerAccessibleExit": false,
+    "wranglerOrD1ChildrenObserved": true,
+    "unrelatedProcessesKilled": 0,
+    "classification": "RUNNER_LIFECYCLE_OR_ENVIRONMENT_CONTENTION"
+  },
+  "unit": {
+    "command": "npm run test:unit",
+    "terminalCompletion": "NO_CURRENT_RETRY_COMPLETION",
+    "currentRetryExit": null,
+    "lastCompletedTotal": 445,
+    "lastCompletedPass": 444,
+    "lastCompletedFail": 0,
+    "lastCompletedSkip": 0,
+    "lastCompletedCancelled": 1,
+    "lastCompletedExit": 1,
+    "cancelledTest": "tests/isms-p-batch1-runtime-materializer.test.ts",
+    "classification": "RUNNER_LIFECYCLE_PRE_EXISTING_NON_CAUSAL"
+  },
+  "integration": {
+    "command": "npm run test:integration",
+    "terminalCompletion": "PRIOR_COMPLETION_ONLY",
+    "currentRetryExit": null,
+    "lastCompletedTotal": 59,
+    "lastCompletedPass": 36,
+    "lastCompletedFail": 23,
+    "lastCompletedSkip": 0,
+    "lastCompletedExit": 1,
+    "lifecycleClassification": "E2E_SERVER_READINESS_OR_RUNNER_LIFECYCLE",
+    "error": "E2E server did not become ready"
+  },
+  "lint": {
+    "command": "npm run lint -- --quiet",
+    "errors": 0,
+    "warnings": 0,
+    "terminalCompletion": "YES",
+    "exit": 0
+  },
+  "build": {
+    "command": "npm run build",
+    "compilation": "PASS",
+    "routePageGeneration": "63/63",
+    "terminalCompletion": "YES",
+    "exit": 0,
+    "causality": "NON_CAUSAL_TO_SKILL"
+  },
+  "skillFocusedRegression": "37/37 PASS",
+  "dbPostgresValidate": "PASS_EXIT_0",
+  "dbCheck": "PASS",
+  "pg0038Collision": 0,
+  "d10050Collision": 0,
+  "gitDiffCheck": "PASS",
+  "dirtyStateAttribution": {
+    "preExistingImplementationOrTests": 33,
+    "reports": 20,
+    "unrelated": 0,
+    "unknown": 0
+  },
+  "newSkipOnlyTodo": {
+    "skip": 0,
+    "only": 0,
+    "todo": 0,
+    "note": "The only TODO text is in a test assertion checking for forbidden placeholder text."
+  },
+  "securityCriticalHigh": "0/0",
+  "dataTrustCriticalHigh": "0/0",
+  "privacyCriticalHigh": "0/0",
+  "finding": {
+    "id": "ENGINEERING-GATE-TERMINAL-EVIDENCE-001",
+    "status": "NOT_CLOSED",
+    "requiredForClosure": [
+      "unit exit 0",
+      "integration exit 0",
+      "lint exit 0",
+      "build exit 0"
+    ],
+    "causalSkillRegression": false
+  },
+  "p0": [],
+  "p1": [
+    {
+      "id": "ENGINEERING-GATE-TERMINAL-EVIDENCE-001",
+      "severity": "P1",
+      "status": "OPEN",
+      "impact": "Final Skill Foundation approval cannot be issued until full unit and integration commands have terminal exit 0 evidence.",
+      "recommendedRepairGate": "RETRY_ENGINEERING_GATE_TERMINAL_EVIDENCE_IN_CLEAN_PROCESS_ENVIRONMENT"
+    }
+  ],
+  "p2": [],
+  "skillFoundationCompletion": "NOT_ISSUED",
+  "typedRelationsReadiness": "WAIT_FOR_ONTOLOGY_SEMANTIC_INTEGRATION",
+  "recommendedNextGate": "RETRY_ENGINEERING_GATE_TERMINAL_EVIDENCE_IN_CLEAN_PROCESS_ENVIRONMENT",
+  "commit": "NO",
+  "push": "NO",
+  "pullRequest": "NO",
+  "deployment": "NO",
+  "productionDatabase": "NO"
+}

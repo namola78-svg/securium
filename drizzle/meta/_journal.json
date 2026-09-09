@@ -288,6 +288,41 @@
       "when": 1789000000005,
       "tag": "0040_generic_review_currentness_domain",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "6",
+      "when": 1788825502265,
+      "tag": "0045_occupational_role_foundation",
+      "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "6",
+      "when": 1788829308191,
+      "tag": "0046_occupational_role_identity_hardening",
+      "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "6",
+      "when": 1788832809003,
+      "tag": "0047_occupational_role_alias_hardening",
+      "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "6",
+      "when": 1788846497500,
+      "tag": "0050_skill_foundation",
+      "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "6",
+      "when": 1788860000000,
+      "tag": "0051_typed_role_skill_concept_relations",
+      "breakpoints": true
     }
   ]
 }

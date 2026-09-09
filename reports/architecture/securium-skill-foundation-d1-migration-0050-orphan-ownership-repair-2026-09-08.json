@@ -1,0 +1,126 @@
+{
+  "finalStatus": "SECURIUM_SKILL_FOUNDATION_D1_MIGRATION_0050_ORPHAN_OWNERSHIP_REPAIR_PASS_READY_FOR_FINAL_APPROVAL",
+  "repairDecision": "PASS_READY_FOR_FINAL_APPROVAL",
+  "gitBaseline": {
+    "worktree": "C:/Users/user/Documents/Codex/2026-07-24/1-2-3-4-5-6/securium-skill-graph-foundation",
+    "branch": "architecture/role-skill-concept-graph-foundation",
+    "head": "9756970ce19a64d6ac0e913631193b606dc78e7c",
+    "originMain": "980ef6adb94d87a923d7a973edaf4419f03fff9d",
+    "ahead": 0,
+    "behind": 2,
+    "dirtyEntriesBeforeReport": 74,
+    "trackedModifications": 7,
+    "untrackedPaths": 67,
+    "unrelated": 0,
+    "unknown": 0
+  },
+  "priorRetryHashVerification": {
+    "markdown": "D48C822735A2437E11D424C4BD0C4FDE59A48F6B475A27745DCC786C5DC0DF26",
+    "json": "FB1BDF5D74FCA3840AFEFCCCC202620B0BF594FC994A42673EE7A7E7A68A5D29",
+    "verified": true
+  },
+  "orphanReproduction": {
+    "command": "node --test --test-concurrency=1 tests/migration-namespace-guard.test.mjs",
+    "beforeRepair": { "tests": 2, "pass": 1, "fail": 1, "exit": 1, "error": "D1_MIGRATION_ORPHAN:0050_skill_foundation" },
+    "afterRepair": { "tests": 2, "pass": 2, "fail": 0, "exit": 0 }
+  },
+  "d10050": {
+    "path": "drizzle/0050_skill_foundation.sql",
+    "sha256": "A1992CEB448AE5C175C45AD7C79A5C918C5C5019A79CEDF72BEF8AED5C881B71",
+    "semanticChecksum": "NO_SEPARATE_D1_SEMANTIC_CHECKSUM; SQL SHA256 IS THE FROZEN CONTENT CHECKSUM",
+    "ownership": "OWNED",
+    "journalEntry": { "idx": 50, "version": "6", "tag": "0050_skill_foundation", "breakpoints": true },
+    "globalClaims": { "claimCount": 1, "semanticOwners": 1, "duplicateIds": 0, "duplicateSemanticClaims": 0 }
+  },
+  "pg0038": {
+    "path": "db/postgres/migrations/0038_skill_foundation.sql",
+    "sha256": "A796C83B20274B6D1B772BE4EBEDB1E8A50D70C4EC4D07C2C2A2A97FCB631CE4",
+    "semanticChecksum": "skill-foundation-v1",
+    "globalClaims": { "claimCount": 1, "semanticOwners": 1, "duplicateIds": 0, "duplicateSemanticClaims": 0 }
+  },
+  "pair": {
+    "conceptual": "PG0038 ↔ D10050",
+    "status": "VALID_PAIR",
+    "explicitProviderPairRegistry": false,
+    "governance": "canonical filenames plus provider-specific migration registration"
+  },
+  "orphanDefinition": "A numerically named drizzle SQL migration tag absent from drizzle/meta/_journal.json",
+  "rootCause": "MISSING_OWNERSHIP_REGISTRY",
+  "collisionVsOrphan": { "before": { "collision": 0, "orphan": 1 }, "after": { "d1Collision": 0, "d1Orphan": 0, "pgCollision": 0, "pgOrphan": 0 } },
+  "ownershipRegistry": "drizzle/meta/_journal.json",
+  "providerPairRegistry": "NONE_SEPARATE; canonical provider filename/registration convention",
+  "historicalNamespaceEvidence": "Skill PG0038 and D10050 were reserved uniquely; current scan confirms one claim each",
+  "parallelWorktreeDrift": "No competing claim in 170 visible worktrees; other process jobs were not terminated",
+  "repairScope": [
+    "Add existing 0050_skill_foundation tag to canonical Drizzle journal",
+    "Update pre-existing namespace test counts to 33 PG / 45 D1 / 45 journal",
+    "Do not modify D1 SQL, PG SQL, guard logic, schema, resolver, seeds, relations, or infrastructure"
+  ],
+  "renumberingDecision": "NO_RENUMBERING",
+  "historicalMigrationMutation": 0,
+  "semanticDelta": { "d1": 0, "pg": 0, "skillSchema": 0 },
+  "skillBoundaries": { "skillSeed": 0, "roleToSkill": 0, "skillToConcept": 0, "userSkillState": "ABSENT" },
+  "d1": {
+    "ownership": "OWNED",
+    "orphanCount": 0,
+    "collisionCount": 0,
+    "cleanMigration": { "status": "PASS", "migrationCount": 45, "includes": "0050_skill_foundation.sql" },
+    "schemaReadback": { "status": "PASS", "tables": ["skills", "skill_aliases"], "indexes": ["skill_aliases_lookup_idx", "skill_aliases_normalized_unique", "skills_key_unique", "skills_source_idx", "skills_status_idx"] },
+    "idempotency": { "status": "PASS", "reapply": "No migrations to apply!", "exit": 0 },
+    "constraintRegression": "PASS"
+  },
+  "pg": { "orphanCount": 0, "collisionCount": 0, "regression": "PASS", "ledgerChecksum": "skill-foundation-v1" },
+  "checksumGuard": { "tests": 13, "pass": 13, "fail": 0, "sameIdSameChecksum": "PASS", "sameIdDifferentChecksum": "FAIL_CLOSED", "exit": 0 },
+  "focusedRegression": { "tests": 37, "pass": 37, "fail": 0, "exit": 0 },
+  "unit": { "command": "npm run test:unit", "tests": 448, "pass": 448, "fail": 0, "skip": 0, "todo": 0, "assertions": "PASS", "process": "TERMINATED_NATURALLY", "exit": 0, "classification": "PASS_EXIT_0" },
+  "integration": {
+    "command": "npm run test:integration",
+    "final": { "d1Tests": 59, "d1Pass": 59, "d1Fail": 0, "postgresGuardTests": 10, "postgresGuardPass": 10, "postgresGuardFail": 0, "exit": 0, "classification": "PASS_EXIT_0" },
+    "firstPostRepairRetry": { "pass": 36, "fail": 23, "exit": 1, "error": "E2E server did not become ready", "boundary": "VINEXT_RENDERED_HTML_READINESS / ENVIRONMENT_CONTENTION" },
+    "finalReadinessUrl": "http://localhost:33120"
+  },
+  "typecheck": { "status": "PASS_EXIT_0", "exit": 0 },
+  "lint": { "status": "PASS_EXIT_0", "exit": 0 },
+  "build": { "status": "PASS_EXIT_0", "exit": 0, "staticPages": 63 },
+  "dbCheck": { "status": "PASS_EXIT_0", "exit": 0, "output": "Everything's fine" },
+  "postgresValidation": { "status": "PASS_EXIT_0", "exit": 0, "output": "POSTGRES_MIGRATIONS_VALID files=33 tables=92 checksum=dde4413162d9ad32" },
+  "migrationGuard": { "status": "PASS_EXIT_0", "postgresFiles": 33, "d1Files": 45, "journalEntries": 45 },
+  "namespaceGuard": { "status": "PASS_EXIT_0", "tests": 2, "pass": 2, "fail": 0 },
+  "globalNamespaceScan": { "pgSemanticCollisions": 0, "d1SemanticCollisions": 0, "pgOrphan": 0, "d1Orphan": 0 },
+  "gitDiffCheck": "PASS",
+  "newSkipsOnlyTodo": { "skip": 0, "only": 0, "todo": 0 },
+  "securityCriticalHigh": { "critical": 0, "high": 0 },
+  "dataTrustCriticalHigh": { "critical": 0, "high": 0 },
+  "privacyCriticalHigh": { "critical": 0, "high": 0 },
+  "findings": {
+    "D1_MIGRATION_ORPHAN": "CLOSED",
+    "ENGINEERING-GATE-TERMINAL-EVIDENCE-001": "CLOSED",
+    "p0": 0,
+    "p1": 0,
+    "p2": 0
+  },
+  "completion": "SECURIUM_SKILL_FOUNDATION_WAVE_A_COMPLETE",
+  "skillFoundationTechnicalIntegrity": "PASS",
+  "repositoryEngineeringGate": "PASS / CLOSED",
+  "typedRelationsReadiness": "WAIT_FOR_ONTOLOGY_REVIEW",
+  "recommendedNextGate": "FINAL_CLOSE_SECURIUM_SKILL_FOUNDATION_WAVE_A_AFTER_D1_MIGRATION_OWNERSHIP_REPAIR",
+  "processInventory": {
+    "worktreeSpecificOpenServerAtFinal": 0,
+    "requestedE2EPort33120ListenerAtFinal": 0,
+    "node": "parallel Node test processes observed; no unrelated process terminated",
+    "next": "no worktree-specific Next server retained",
+    "vitestJest": "none identified",
+    "wranglerMiniflare": "temporary disposable D1/Wrangler processes observed during tests and cleaned by runners",
+    "childProcesses": "present under parallel jobs; not terminated",
+    "noAutomaticKill": true
+  },
+  "genericHarnessBoundary": "Global rendered-HTML/Vinext readiness harness and environment contention; no Skill implementation lifecycle defect proven",
+  "previousExit1RootCause": "The prior integration exit 1 was caused by 23 rendered-html tests timing out before vinext dev emitted a readiness URL; the final independent retry reached http://localhost:33120 and passed all 59. The previous orphan exit 1 was caused by missing D1 journal ownership metadata.",
+  "recommendedSeparateRepairGate": "REPAIR_SECURIUM_TEST_RUNNER_LIFECYCLE_OPEN_HANDLE_CLEANUP",
+  "forceExitUsed": false,
+  "commit": "NOT PERFORMED",
+  "push": "NOT PERFORMED",
+  "pr": "NOT PERFORMED",
+  "deployment": "NOT PERFORMED",
+  "productionDb": "NOT ACCESSED"
+}

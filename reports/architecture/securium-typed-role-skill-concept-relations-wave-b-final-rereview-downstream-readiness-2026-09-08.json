@@ -1,0 +1,11 @@
+{
+  "waveB":"COMPLETE",
+  "skillState":"READY_FOR_SKILL_STATE_FOUNDATION",
+  "swSkillMapping":"READY_FOR_SW_SECURITY_WEAKNESS_SKILL_MAPPING",
+  "masteryToSkill":"READY_FOR_MASTERY_TO_SKILL_PROJECTION_DESIGN",
+  "implementationStarted":false,
+  "commitReadiness":"WAIT_FOR_DEPENDENCY",
+  "repositoryDependency":"WAIT_FOR_DEPENDENCY",
+  "reason":"Worktree is 0 ahead/3 behind fresh origin/main and Wave Foundation artifacts remain dirty/untracked rather than independently committed.",
+  "recommendedNextGate":"WAIT_FOR_MAINLINE_DEPENDENCY_RECONCILIATION_BEFORE_COMMIT_REVIEW"
+}

@@ -1,0 +1,11 @@
+{
+  "algorithm": "SHA-256",
+  "artifacts": {
+    "docs/architecture/securium-typed-role-skill-concept-relations-wave-b-fk-deletion-policy-p1-repair-2026-09-08.md": "884114F70007C291B4AE897A0D8B8BCA28CA11DE242BC73902266BE2CC043A36",
+    "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-fk-deletion-policy-p1-repair-2026-09-08.json": "67515D767D15B0199F22A49F879C732253EFE2D74603DA5B988DFF3CCA8FE004",
+    "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-fk-policy-parity-matrix-2026-09-08.json": "98087DBB6B2287A623535EC4205B045EB5AD70FB8F87038113137E7545D396F9",
+    "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-deletion-behavior-regression-2026-09-08.json": "4FF1677C8BCEA12DD1B4DBBB174B284888A910D966301E8DA8C23D24E2FA6F7F",
+    "reports/architecture/securium-typed-role-skill-concept-relations-wave-b-migration-ownership-regression-2026-09-08.json": "D61EDAFBEF632F03B857F5178FDF5E132978F447785C9342B2CCECB46B2AA050"
+  },
+  "selfHash": "REPORTED_SEPARATELY_TO_AVOID_SELF_REFERENCE"
+}

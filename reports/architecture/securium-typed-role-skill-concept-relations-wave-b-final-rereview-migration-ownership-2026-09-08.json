@@ -1,0 +1,10 @@
+{
+  "status":"PASS",
+  "pg0042":{"ownerCount":1,"collisionCount":0,"orphanCount":0,"semanticMutation":0,"sha256":"0F842C9913A0F0B776970C267A2371BE8E9A3DAA4914BC28A024F94336FF1E15"},
+  "d10051":{"ownerCount":1,"collisionCount":0,"orphanCount":0,"semanticMutation":0,"sha256":"40904EAF86CBA9806F612ED8E90497667A3F1243C83EE8AF51FACEAA74BC666D"},
+  "providerPair":"VALID_PAIR",
+  "checksumGuard":"PASS",
+  "renumbering":0,
+  "namespaceGuard":"PASS",
+  "pg0041":"UNRELATED_GLOBAL_OWNERSHIP_CLAIMS; NOT A WAVE B COLLISION"
+}

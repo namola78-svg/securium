@@ -1,0 +1,10 @@
+{
+  "status":"PASS",
+  "currentStatusPathCount":112,
+  "mainlinePathCount":93,
+  "exactOverlapCount":1,
+  "overlappingPaths":[{"path":"package.json","mainlineChanges":["Next.js 16.3.4 dependency","canonical ontology legacy closure npm script"],"waveBChanges":["test:occupational-role npm script","test:typed-relations npm script"],"semanticConflict":false}],
+  "waveBCoreOverlapCount":0,
+  "nonOverlappingWaveBPaths":"All Wave B core authority, relation, migration, RLS, resolver, test, and evidence paths are absent from mainline commit diffs.",
+  "resolution":"manual package.json preservation during later bounded cherry-pick/reconciliation"
+}

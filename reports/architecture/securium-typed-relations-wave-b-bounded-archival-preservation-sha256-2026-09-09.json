@@ -1,0 +1,23 @@
+{
+  "gate": "PRESERVE_SECURIUM_TYPED_RELATIONS_WAVE_B_BOUNDED_ARCHIVAL_STATE",
+  "status": "COMPLETE",
+  "artifacts": {
+    "markdown": {
+      "path": "docs/architecture/securium-typed-relations-wave-b-bounded-archival-preservation-2026-09-09.md",
+      "sha256": "FDB2B2646BB1266C10B2D49F4E6CD9CC933C2E6BCD47D4B3CCD8E4AB87E90DE4"
+    },
+    "json": {
+      "path": "reports/architecture/securium-typed-relations-wave-b-bounded-archival-preservation-2026-09-09.json",
+      "sha256": "67A144824B0EF4EE4584B3AE76C09DBFF3B490A48043F1579C86F59DD1373033"
+    },
+    "archive": {
+      "path": "C:\\Users\\user\\Documents\\Codex\\archives\\securium-typed-relations-wave-b-bounded-archival-state-2026-09-09-v2.zip",
+      "sha256": "716176E79CE4DF04EFBCD6D0820002D3100C551105C5E3E6BE56D64F8DCD9241",
+      "fileCount": 116,
+      "missing": 0,
+      "unexpected": 0,
+      "duplicates": 0
+    }
+  },
+  "selfSha256": ""
+}

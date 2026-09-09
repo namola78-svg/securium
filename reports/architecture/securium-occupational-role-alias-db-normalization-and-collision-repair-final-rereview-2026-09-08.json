@@ -1,0 +1,213 @@
+{
+  "finalStatus": "FAIL",
+  "reviewDecision": "FAIL",
+  "snapshotDate": "2026-09-08",
+  "gitBaseline": {
+    "worktree": "C:\\Users\\user\\Documents\\Codex\\2026-07-24\\1-2-3-4-5-6\\securium-skill-graph-foundation",
+    "branch": "architecture/role-skill-concept-graph-foundation",
+    "head": "9756970ce19a64d6ac0e913631193b606dc78e7c",
+    "freshOriginMain": "980ef6adb94d87a923d7a973edaf4419f03fff9d",
+    "ahead": 0,
+    "behind": 2,
+    "mainDrift": "NON_CONFLICTING_DRIFT",
+    "dirty": true,
+    "productionDb": "NO",
+    "deployment": "NO",
+    "commit": "NO",
+    "push": "NO",
+    "pr": "NO"
+  },
+  "scopeIntegrity": {
+    "roleAuthorityCount": 1,
+    "conceptMutation": 0,
+    "rbacMutation": 0,
+    "skillMutation": 0,
+    "roleRelationMutation": 0,
+    "graphProjectionMutation": 0,
+    "learnerStateMutation": 0,
+    "reviewImplementationMutation": 0
+  },
+  "repairReportHashVerification": {
+    "markdownExpected": "2CCB9A786546F11F13712D5495200DBA70C4703AEBC03044CE34BB10123AF055",
+    "markdownActual": "2CCB9A786546F11F13712D5495200DBA70C4703AEBC03044CE34BB10123AF055",
+    "machineExpected": "5B22B98F6167B4036CFACA38FA5DCD1F229FDD917AEBA2695568428B455ED1A4",
+    "machineActual": "5B22B98F6167B4036CFACA38FA5DCD1F229FDD917AEBA2695568428B455ED1A4",
+    "result": "PASS"
+  },
+  "previousFinalRereviewHashVerification": {
+    "markdown": "F9891F02DEADA9D3AF29A05866440A4C7C746534141CBDE5E61DF759B307B027",
+    "machine": "060F3284BB30F42EC892738819B355A7E82EB3F30D53078DFF1D8BA9EA5EB6A7",
+    "result": "PASS"
+  },
+  "canonicalRoleAuthority": "occupational_roles",
+  "canonicalRoleAuthorityCount": 1,
+  "aliasAuthority": "occupational_role_aliases",
+  "applicationNormalizer": {
+    "function": "normalizeOccupationalRoleLookup",
+    "transformationOrder": ["Unicode NFKC", "trim", "lowercase", "collapse whitespace runs"],
+    "validation": "assertOccupationalRoleAlias requires printable ASCII U+0020-U+007E and max 300 characters"
+  },
+  "printableAsciiPolicy": "NON_ASCII_ALIASES_REJECTED",
+  "koreanUnicodePolicy": {
+    "koreanPreferredLabel": "ACCEPTED",
+    "koreanAlias": "REJECTED_WITH_OCCUPATIONAL_ROLE_ALIAS_INVALID",
+    "rawDisplayAliasStorage": "NONE",
+    "canonicalAliasStorage": "alias equals normalized_alias printable ASCII canonical lookup key",
+    "assessment": "BOUNDED_AND_INTENTIONAL_FOR_CURRENT_WAVE; localized preferred labels remain in occupational_roles.label"
+  },
+  "postgresMigration": {
+    "reported": "0032",
+    "actual": "0036_occupational_role_alias_hardening.sql",
+    "review": "PASS for clean state; transactional BEGIN/COMMIT and global normalized_alias uniqueness"
+  },
+  "d1Migration": {
+    "reported": "0043",
+    "actual": "0047_occupational_role_alias_hardening.sql",
+    "review": "FAIL for pre-existing collision failure safety; clean state constraints pass"
+  },
+  "historicalMigrationMutation": 0,
+  "migrationNamespaceSafety": {
+    "result": "MIGRATION_NAMESPACE_SAFE",
+    "currentPostgresRoleFiles": ["0034_occupational_role_foundation.sql", "0035_occupational_role_identity_hardening.sql", "0036_occupational_role_alias_hardening.sql"],
+    "currentD1RoleFiles": ["0045_occupational_role_foundation.sql", "0046_occupational_role_identity_hardening.sql", "0047_occupational_role_alias_hardening.sql"],
+    "namespaceGuard": "2/2 PASS",
+    "evidenceDrift": "Repair report claims 0032/0043; current worktree uses 0036/0047"
+  },
+  "crossWorktreeMigrationScan": {
+    "result": "NO_COLLISION_OBSERVED_FOR_CURRENT_ROLE_FILES",
+    "checked": [
+      "architecture/learning-evidence-foundation",
+      "architecture/canonical-ontology-dataset",
+      "architecture/canonical-ontology-dataset-foundation",
+      "audit/migration-slot-coordination",
+      "integration/migration-reconciliation",
+      "feat/evidence-e2-a-recompute-operations",
+      "feat/evidence-projection-pr-b",
+      "origin/main"
+    ],
+    "note": "Other branches contain older CP-A/evidence slots but no conflicting current Role alias filename"
+  },
+  "nfkcCorpus": {
+    "result": "PASS_FOR_ACCEPTED_ASCII_CANONICAL_FORM",
+    "fullwidthAndNbsp": "Application canonicalizes to ASCII where applicable; direct non-canonical DB forms reject",
+    "appPostgresD1Parity": "PASS for bounded persisted contract"
+  },
+  "normalizationTests": {
+    "case": "PASS",
+    "trim": "PASS",
+    "whitespace": "PASS",
+    "unicodeCompatibilityCollision": "PASS",
+    "exactCrossRoleCollision": "DB REJECTED",
+    "sameRoleDuplicate": "DB REJECTED",
+    "aliasUpdateCollision": "DB REJECTED",
+    "deleteReassign": "NO_RUNTIME_DELETE_REASSIGN_AUTHORITY_IN_WAVE_A",
+    "confusableBoundary": "Non-ASCII confusables are rejected, not fuzzy-collapsed",
+    "determinism": "PASS"
+  },
+  "directBypass": {
+    "postgres": "BLOCKED",
+    "d1CleanState": "BLOCKED",
+    "d1ExistingCollisionMigration": {
+      "result": "FAIL",
+      "error": "UNIQUE constraint failed: occupational_role_aliases.normalized_alias",
+      "postFailureTable": "replacement occupational_role_aliases remains",
+      "postFailureRows": 2,
+      "postFailureUniqueIndex": "NOT_CREATED",
+      "canonicalCollisionCount": 1
+    }
+  },
+  "dbNormalizationAuthority": "Application supplies canonical normalized value; PostgreSQL/D1 independently validate bounded persisted form and uniqueness. Neither engine recomputes full Unicode NFKC.",
+  "appDbEquivalence": "PASS for the accepted bounded ASCII canonical language; full engine-side NFKC recomputation is not present",
+  "resolverDefense": "PASS; exact namespace conflicts and legacy ambiguous aliases remain AMBIGUOUS/fail-closed",
+  "p102Regression": "CLOSED",
+  "roleKeyGrammarRegression": "PASS",
+  "roleKeyImmutabilityRegression": "PASS",
+  "p101Regression": "CLOSED",
+  "existingCollisionScan": {
+    "repositorySeeds": 0,
+    "persistentLocalD1": 0,
+    "cleanDisposableFixturesBeforeCollisionFixture": 0,
+    "independentPreMigrationCollisionFixture": 1,
+    "silentWinnerSelection": false
+  },
+  "existingCollisionMigrationBehavior": "NOT_SAFE_ON_D1; migration fails after replacement-table copy and leaves duplicate rows without global unique index",
+  "canonicalCollisionCount": {
+    "cleanPostMigration": 0,
+    "failedD1PreExistingCollisionMigration": 1
+  },
+  "resolverAmbiguityCount": {
+    "dbValidCleanState": 0,
+    "legacyInvalidFixture": "AMBIGUOUS as expected"
+  },
+  "postgresD1Parity": "PARITY_DEFECT for pre-existing D1 collision migration rollback; clean-state insert/update semantics are aligned",
+  "tests": {
+    "focusedRole": "19/19 PASS",
+    "graphRegression": "63/63 PASS",
+    "unit": "448/448 PASS",
+    "integrationBody": "59/59 PASS",
+    "postgresMigrationGuard": "10/10 PASS on isolated rerun",
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "build": "PASS",
+    "dbCheck": "PASS",
+    "postgresValidation": "POSTGRES_MIGRATIONS_VALID files=32 tables=92 checksum=550ddb7f8ef1d3c5",
+    "namespaceGuard": "2/2 PASS",
+    "cleanD1Migration": "PASS through current 0047",
+    "gitDiffCheck": "PASS",
+    "newSkipsOnlyTodo": "0/0/0"
+  },
+  "staleCpaAssertion": {
+    "classification": "PRE_EXISTING_NON_CAUSAL",
+    "result": "4/5",
+    "cause": "Historical test expects no 0033 migration while repository contains later migrations",
+    "changedByReview": false
+  },
+  "riskReview": {
+    "securityCriticalHigh": "0/0",
+    "dataTrustCriticalHigh": "0/1",
+    "privacyCriticalHigh": "0/0"
+  },
+  "findings": {
+    "p0": [],
+    "p1": [
+      {
+        "id": "P1-03-D1-MIGRATION-ROLLBACK",
+        "severity": "P1",
+        "path": "drizzle/0047_occupational_role_alias_hardening.sql",
+        "evidence": "Pre-seeded cross-role duplicate causes unique-index failure after replacement table is renamed; duplicate rows remain and the unique index is absent",
+        "violatedInvariant": "Migration failure must not leave canonical alias state ambiguous or unprotected",
+        "impact": "Canonical D1 storage can remain ambiguous after failed migration",
+        "requiredRepair": "Preflight collisions before rebuild or make the migration atomic/rollback-safe; add a failure-preservation test",
+        "blocksSkillFoundation": true,
+        "verification": "Pre-existing collision migration fails closed while preserving protected old state or rolls back completely"
+      },
+      {
+        "id": "P1-EVIDENCE-MIGRATION-PATH-DRIFT",
+        "severity": "P1",
+        "path": "repair report versus current migration/test paths",
+        "evidence": "Report claims 0032/0043; current worktree uses 0036/0047 and tests/journal were changed accordingly during review",
+        "violatedInvariant": "Final approval evidence must identify the actual reviewed migration artifacts",
+        "impact": "The supplied repair evidence is stale at migration-path level",
+        "requiredRepair": "Reconcile migration namespace and regenerate repair evidence before final approval",
+        "blocksSkillFoundation": true,
+        "verification": "Report hashes and actual migration paths agree"
+      }
+    ],
+    "p1Remaining": ["P1-03-D1-MIGRATION-ROLLBACK", "P1-EVIDENCE-MIGRATION-PATH-DRIFT"],
+    "p2": []
+  },
+  "p1Closure": {
+    "p101": "CLOSED",
+    "p102": "CLOSED",
+    "p103": "NOT_CLOSED",
+    "allRoleP1Closed": false
+  },
+  "occupationalRoleFoundationCompletion": "NOT_COMPLETE",
+  "skillFoundationReadiness": "BLOCKED",
+  "recommendedNextGate": "REPAIR_SECURIUM_OCCUPATIONAL_ROLE_ALIAS_D1_MIGRATION_COLLISION_ROLLBACK_AND_EVIDENCE_SYNC",
+  "reportHashes": {
+    "markdownSha256": null,
+    "machineSha256": null,
+    "note": "Calculated after final report materialization and recorded in final handoff"
+  }
+}

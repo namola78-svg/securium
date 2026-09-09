@@ -40,6 +40,158 @@ export const roles = sqliteTable("roles", {
   ...timestamps,
 });
 
+/** Occupational learning/career roles. This is intentionally separate from RBAC roles. */
+export const occupationalRoles = sqliteTable(
+  "occupational_roles",
+  {
+    id: text("id").primaryKey(),
+    roleKey: text("role_key").notNull(),
+    label: text("label").notNull(),
+    description: text("description").notNull().default(""),
+    status: text("status").notNull().default("DRAFT"),
+    sourceType: text("source_type").notNull().default("SECURIUM_AUTHORED"),
+    sourceId: text("source_id"),
+    provenanceJson: text("provenance_json").notNull().default("{}"),
+    reviewedBy: text("reviewed_by").references(() => users.id, {
+      onDelete: "restrict",
+    }),
+    reviewedAt: text("reviewed_at"),
+    reviewEvidenceJson: text("review_evidence_json").notNull().default("[]"),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("occupational_roles_key_unique").on(table.roleKey),
+    index("occupational_roles_status_idx").on(table.status, table.roleKey),
+    index("occupational_roles_source_idx").on(table.sourceType, table.sourceId),
+    check(
+      "occupational_roles_status_check",
+      sql`${table.status} IN ('DRAFT', 'ACTIVE', 'RETIRED')`,
+    ),
+    check(
+      "occupational_roles_identity_check",
+      sql`length(trim(${table.roleKey})) = length(${table.roleKey}) AND length(${table.roleKey}) BETWEEN 8 AND 255 AND substr(${table.roleKey}, 1, 5) = 'role:' AND ${table.roleKey} NOT GLOB '*[^a-z0-9._:-]*' AND instr(substr(${table.roleKey}, 6), ':') > 1 AND instr(substr(${table.roleKey}, 6), ':') < length(substr(${table.roleKey}, 6)) AND instr(substr(${table.roleKey}, 6 + instr(substr(${table.roleKey}, 6), ':')), ':') = 0 AND length(trim(${table.label})) > 0`,
+    ),
+    check(
+      "occupational_roles_active_review_check",
+      sql`${table.status} <> 'ACTIVE' OR (${table.reviewedBy} IS NOT NULL AND ${table.reviewedAt} IS NOT NULL AND length(trim(${table.reviewEvidenceJson})) > 2)`,
+    ),
+  ],
+);
+
+export const occupationalRoleAliases = sqliteTable(
+  "occupational_role_aliases",
+  {
+    id: text("id").primaryKey(),
+    roleId: text("role_id")
+      .notNull()
+      .references(() => occupationalRoles.id, { onDelete: "restrict" }),
+    alias: text("alias").notNull(),
+    normalizedAlias: text("normalized_alias").notNull(),
+    language: text("language").notNull().default("und"),
+    source: text("source").notNull().default("manual"),
+    ...timestamps,
+  },
+  (table) => [
+    check(
+      "occupational_role_aliases_identity_check",
+      sql`length(trim(${table.alias})) > 0 AND length(${table.alias}) <= 300 AND ${table.alias} = trim(${table.alias}) AND ${table.alias} = lower(${table.alias}) AND ${table.alias} NOT GLOB '*[^ -~]*' AND ${table.alias} NOT GLOB '*  *' AND ${table.normalizedAlias} = ${table.alias}`,
+    ),
+    uniqueIndex("occupational_role_aliases_normalized_unique").on(table.normalizedAlias),
+    index("occupational_role_aliases_lookup_idx").on(table.normalizedAlias),
+  ],
+);
+
+/** Canonical reusable security capabilities. Intentionally separate from Roles and Concepts. */
+export const skills = sqliteTable(
+  "skills",
+  {
+    id: text("id").primaryKey(),
+    skillKey: text("skill_key").notNull(),
+    label: text("label").notNull(),
+    description: text("description").notNull().default(""),
+    status: text("status").notNull().default("DRAFT"),
+    sourceType: text("source_type").notNull(),
+    sourceId: text("source_id"),
+    provenanceJson: text("provenance_json").notNull(),
+    reviewedBy: text("reviewed_by").references(() => users.id, { onDelete: "restrict" }),
+    reviewedAt: text("reviewed_at"),
+    reviewEvidenceJson: text("review_evidence_json").notNull().default("[]"),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("skills_key_unique").on(table.skillKey),
+    index("skills_status_idx").on(table.status, table.skillKey),
+    index("skills_source_idx").on(table.sourceType, table.sourceId),
+    check("skills_status_check", sql`${table.status} IN ('DRAFT', 'ACTIVE', 'RETIRED')`),
+    check(
+      "skills_identity_check",
+      sql`length(trim(${table.skillKey})) = length(${table.skillKey}) AND length(${table.skillKey}) BETWEEN 9 AND 255 AND substr(${table.skillKey}, 1, 6) = 'skill:' AND ${table.skillKey} NOT GLOB '*[^a-z0-9._:-]*' AND instr(substr(${table.skillKey}, 7), ':') > 1 AND instr(substr(${table.skillKey}, 7), ':') < length(substr(${table.skillKey}, 7)) AND instr(substr(${table.skillKey}, 7 + instr(substr(${table.skillKey}, 7), ':')), ':') = 0 AND length(trim(${table.label})) > 0 AND length(trim(${table.sourceType})) > 0 AND length(trim(${table.provenanceJson})) > 2`,
+    ),
+    check(
+      "skills_active_review_check",
+      sql`${table.status} <> 'ACTIVE' OR (${table.reviewedBy} IS NOT NULL AND ${table.reviewedAt} IS NOT NULL AND length(trim(${table.reviewEvidenceJson})) > 2)`,
+    ),
+  ],
+);
+
+export const skillAliases = sqliteTable(
+  "skill_aliases",
+  {
+    id: text("id").primaryKey(),
+    skillId: text("skill_id").notNull().references(() => skills.id, { onDelete: "cascade" }),
+    alias: text("alias").notNull(),
+    normalizedAlias: text("normalized_alias").notNull(),
+    language: text("language").notNull().default("und"),
+    source: text("source").notNull().default("manual"),
+    ...timestamps,
+  },
+  (table) => [
+    check(
+      "skill_aliases_identity_check",
+      sql`length(trim(${table.alias})) > 0 AND length(${table.alias}) <= 300 AND ${table.alias} = trim(${table.alias}) AND ${table.alias} = lower(${table.alias}) AND ${table.alias} NOT GLOB '*[^ -~]*' AND ${table.alias} NOT GLOB '*  *' AND ${table.normalizedAlias} = ${table.alias}`,
+    ),
+    uniqueIndex("skill_aliases_normalized_unique").on(table.normalizedAlias),
+    index("skill_aliases_lookup_idx").on(table.normalizedAlias),
+  ],
+);
+
+/** Canonical directed Role -> Skill relation authority for Typed Relations Wave B. */
+export const roleSkillRelations = sqliteTable(
+  "role_skill_relations",
+  {
+    id: text("id").primaryKey(),
+    roleId: text("role_id")
+      .notNull()
+      .references(() => occupationalRoles.id, { onDelete: "restrict" }),
+    skillId: text("skill_id")
+      .notNull()
+      .references(() => skills.id, { onDelete: "restrict" }),
+    relationType: text("relation_type").notNull().default("ROLE_REQUIRES_SKILL"),
+    relationVersion: integer("relation_version").notNull().default(1),
+    status: text("status").notNull().default("DRAFT"),
+    sourceType: text("source_type").notNull().default("SECURIUM_AUTHORED"),
+    sourceId: text("source_id"),
+    provenanceJson: text("provenance_json").notNull().default("{}"),
+    reviewedBy: text("reviewed_by").references(() => users.id, { onDelete: "restrict" }),
+    reviewedAt: text("reviewed_at"),
+    reviewEvidenceJson: text("review_evidence_json").notNull().default("[]"),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("role_skill_relations_edge_unique").on(table.roleId, table.skillId, table.relationType),
+    index("role_skill_relations_role_status_idx").on(table.roleId, table.status),
+    index("role_skill_relations_skill_status_idx").on(table.skillId, table.status),
+    check("role_skill_relations_type_check", sql`${table.relationType} = 'ROLE_REQUIRES_SKILL'`),
+    check("role_skill_relations_version_check", sql`${table.relationVersion} > 0`),
+    check("role_skill_relations_status_check", sql`${table.status} IN ('DRAFT', 'ACTIVE', 'RETIRED')`),
+    check("role_skill_relations_provenance_check", sql`length(trim(${table.sourceType})) > 0 AND length(trim(${table.provenanceJson})) > 2`),
+    check(
+      "role_skill_relations_active_review_check",
+      sql`${table.status} <> 'ACTIVE' OR (${table.reviewedBy} IS NOT NULL AND ${table.reviewedAt} IS NOT NULL AND length(trim(${table.reviewEvidenceJson})) > 2)`,
+    ),
+  ],
+);
+
 const governedStatuses = sql`'DRAFT', 'ACTIVE', 'RETIRED'`;
 const governedLabelTypes = sql`'PREF', 'ALT'`;
 
@@ -3333,6 +3485,43 @@ export const ontologyAliases = sqliteTable(
       table.normalizedAlias,
     ),
     index("ontology_aliases_lookup_idx").on(table.normalizedAlias),
+  ],
+);
+
+/** Canonical directed Skill -> Concept relation authority for Typed Relations Wave B. */
+export const skillConceptRelations = sqliteTable(
+  "skill_concept_relations",
+  {
+    id: text("id").primaryKey(),
+    skillId: text("skill_id")
+      .notNull()
+      .references(() => skills.id, { onDelete: "restrict" }),
+    conceptId: text("concept_id")
+      .notNull()
+      .references(() => ontologyConcepts.id, { onDelete: "restrict" }),
+    relationType: text("relation_type").notNull().default("SKILL_REQUIRES_CONCEPT"),
+    relationVersion: integer("relation_version").notNull().default(1),
+    status: text("status").notNull().default("DRAFT"),
+    sourceType: text("source_type").notNull().default("SECURIUM_AUTHORED"),
+    sourceId: text("source_id"),
+    provenanceJson: text("provenance_json").notNull().default("{}"),
+    reviewedBy: text("reviewed_by").references(() => users.id, { onDelete: "restrict" }),
+    reviewedAt: text("reviewed_at"),
+    reviewEvidenceJson: text("review_evidence_json").notNull().default("[]"),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("skill_concept_relations_edge_unique").on(table.skillId, table.conceptId, table.relationType),
+    index("skill_concept_relations_skill_status_idx").on(table.skillId, table.status),
+    index("skill_concept_relations_concept_status_idx").on(table.conceptId, table.status),
+    check("skill_concept_relations_type_check", sql`${table.relationType} = 'SKILL_REQUIRES_CONCEPT'`),
+    check("skill_concept_relations_version_check", sql`${table.relationVersion} > 0`),
+    check("skill_concept_relations_status_check", sql`${table.status} IN ('DRAFT', 'ACTIVE', 'RETIRED')`),
+    check("skill_concept_relations_provenance_check", sql`length(trim(${table.sourceType})) > 0 AND length(trim(${table.provenanceJson})) > 2`),
+    check(
+      "skill_concept_relations_active_review_check",
+      sql`${table.status} <> 'ACTIVE' OR (${table.reviewedBy} IS NOT NULL AND ${table.reviewedAt} IS NOT NULL AND length(trim(${table.reviewEvidenceJson})) > 2)`,
+    ),
   ],
 );
 

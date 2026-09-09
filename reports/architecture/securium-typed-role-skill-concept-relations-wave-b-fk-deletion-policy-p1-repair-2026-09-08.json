@@ -1,0 +1,81 @@
+{
+  "finalStatus": "SECURIUM_TYPED_ROLE_SKILL_CONCEPT_RELATIONS_WAVE_B_FK_DELETION_POLICY_REPAIR_PASS_READY_FOR_FINAL_REREVIEW",
+  "repairDecision": "PASS_READY_FOR_FINAL_REREVIEW",
+  "finding": {"id": "WAVE-B-P1-001", "status": "CLOSED", "rootCause": "ORM_MIGRATION_DELETION_POLICY_MISMATCH"},
+  "completion": "TYPED_ROLE_SKILL_CONCEPT_RELATIONS_WAVE_B_PENDING_FINAL_REREVIEW",
+  "gitBaseline": {
+    "worktree": "securium-skill-graph-foundation",
+    "branch": "architecture/role-skill-concept-graph-foundation",
+    "head": "9756970ce19a64d6ac0e913631193b606dc78e7c",
+    "originMain": "ac65766b8e406968dd66fd906249c48b91fa6b38",
+    "ahead": 3,
+    "behind": 0,
+    "dirtyPreExisting": true,
+    "repairFiles": ["db/schema.ts", "tests/typed-relation-schema.test.mjs", "tests/typed-relation-postgres-disposable.test.mjs"]
+  },
+  "repairScope": {
+    "roleSkillRoleIdBefore": "cascade",
+    "roleSkillRoleIdAfter": "restrict",
+    "roleSkillSkillIdBefore": "cascade",
+    "roleSkillSkillIdAfter": "restrict",
+    "skillConceptFkAudit": "ALL_RESTRICT_ALREADY_MATCHED",
+    "pg0042Mutation": 0,
+    "d10051Mutation": 0,
+    "migrationRenumbering": 0,
+    "relationSemanticsChanged": false,
+    "dbGenerate": "NOT_RUN_WRITE_PRODUCING_COMMAND",
+    "dbCheck": "PASS_NO_SCHEMA_DRIFT"
+  },
+  "fkMatrix": [
+    {"relation":"Role→Skill","endpoint":"role_skill_relations.role_id→occupational_roles.id","drizzle":"restrict","pg":"RESTRICT","d1":"restrict","match":true},
+    {"relation":"Role→Skill","endpoint":"role_skill_relations.skill_id→skills.id","drizzle":"restrict","pg":"RESTRICT","d1":"restrict","match":true},
+    {"relation":"Role→Skill","endpoint":"role_skill_relations.reviewed_by→users.id","drizzle":"restrict","pg":"RESTRICT","d1":"restrict","match":true},
+    {"relation":"Skill→Concept","endpoint":"skill_concept_relations.skill_id→skills.id","drizzle":"restrict","pg":"RESTRICT","d1":"restrict","match":true},
+    {"relation":"Skill→Concept","endpoint":"skill_concept_relations.concept_id→ontology_concepts.id","drizzle":"restrict","pg":"RESTRICT","d1":"restrict","match":true},
+    {"relation":"Skill→Concept","endpoint":"skill_concept_relations.reviewed_by→users.id","drizzle":"restrict","pg":"RESTRICT","d1":"restrict","match":true}
+  ],
+  "migrationAuthority": {
+    "pgMigration": "PG0042",
+    "d1Migration": "D10051",
+    "pair": "VALID_PAIR",
+    "pgPath": "db/postgres/migrations/0042_typed_role_skill_concept_relations.sql",
+    "d1Path": "drizzle/0051_typed_role_skill_concept_relations.sql",
+    "pgSha256": "0F842C9913A0F0B776970C267A2371BE8E9A3DAA4914BC28A024F94336FF1E15",
+    "d1Sha256": "40904EAF86CBA9806F612ED8E90497667A3F1243C83EE8AF51FACEAA74BC666D",
+    "namespaceCollisions": {"pg": 0, "d1": 0},
+    "providerOrphans": {"pg": 0, "d1": 0},
+    "ownership": {"pg": 1, "d1": 1},
+    "checksumGuard": "PASS"
+  },
+  "deletionBehavior": {
+    "roleDelete": "PASS_RESTRICTED_FK",
+    "skillDelete": "PASS_RESTRICTED_FK",
+    "explicitRelationDelete": "PASS_AUTHORIZED",
+    "silentCascadeCount": 0,
+    "relationRemainsAfterEndpointDeleteAttempt": true,
+    "ormMigrationParity": "PASS"
+  },
+  "relationAuthority": {"count": 1, "seedCount": 0, "curriculumMappingCount": 0, "learnerState": "ABSENT"},
+  "verification": {
+    "focused": {"pass": 8, "total": 8, "exit": 0},
+    "unit": {"pass": 448, "total": 448, "exit": 0},
+    "integration": {"pass": 59, "total": 59, "exit": 0},
+    "postgresGuard": {"pass": 10, "total": 10, "exit": 0},
+    "typecheck": "PASS",
+    "lint": "PASS_WITH_EXISTING_WARNING_ZERO_ERRORS",
+    "build": {"status":"PASS_EXIT_0","exit":0},
+    "dbCheck": "PASS",
+    "postgresValidation": "PASS",
+    "namespaceGuard": "PASS",
+    "diffCheck": "PASS",
+    "newSkipOnlyTodo": "0/0/0"
+  },
+  "reviews": {
+    "securityCriticalHigh": "0/0",
+    "dataTrustCriticalHigh": "0/0",
+    "privacyCriticalHigh": "0/0",
+    "p0P1P2": "0/0/0"
+  },
+  "downstream": {"skillState":"WAIT","swSkillMapping":"WAIT","masteryToSkill":"WAIT","nextGate":"FINAL_REREVIEW_SECURIUM_TYPED_ROLE_SKILL_CONCEPT_RELATIONS_WAVE_B_AFTER_FK_POLICY_REPAIR"},
+  "delivery": {"commit":"NONE","push":"NONE","pr":"NONE","deployment":"NONE","productionDb":"NONE"}
+}

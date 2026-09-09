@@ -1,0 +1,26 @@
+{
+  "gate":"WAIT_FOR_MAINLINE_DEPENDENCY_RECONCILIATION_BEFORE_COMMIT_REVIEW",
+  "status":"SECURIUM_TYPED_RELATIONS_WAVE_B_MAINLINE_DEPENDENCY_RECONCILIATION_PASS",
+  "waveB":"TYPED_ROLE_SKILL_CONCEPT_RELATIONS_WAVE_B_COMPLETE",
+  "finalReconciliationDecision":"ARCHIVAL_COMMIT_REQUIRED_FIRST",
+  "commitReadiness":"WAIT",
+  "git":{"branch":"architecture/role-skill-concept-graph-foundation","head":"9756970ce19a64d6ac0e913631193b606dc78e7c","originMain":"4106b5be3dcbc699e816ad661abc3cb4e82a80f5","mergeBase":"9756970ce19a64d6ac0e913631193b606dc78e7c","ahead":0,"behind":4,"staged":0,"trackedModified":7,"untracked":105,"statusPaths":112,"stashCount":3,"mutation":"NONE"},
+  "mainlineCommits":[
+    {"sha":"4106b5be3dcbc699e816ad661abc3cb4e82a80f5","title":"fix(security): update Next.js to 16.3.4","classification":"COMPATIBLE_FOUNDATION_CHANGE","domain":"dependency/security runtime","waveBEffect":"none; package.json path overlap only","changedPaths":["package-lock.json","package.json"]},
+    {"sha":"ac65766b8e406968dd66fd906249c48b91fa6b38","title":"chore(ontology): preserve historical Dataset A archival evidence","classification":"COMPATIBLE_FOUNDATION_CHANGE","domain":"ontology archival governance","waveBEffect":"Dataset A archival-only; Dataset B canonical","changedPathCount":24},
+    {"sha":"980ef6adb94d87a923d7a973edaf4419f03fff9d","title":"fix(media): harden progress checkpoint identity and no-op semantics","classification":"UNRELATED","domain":"media progress","waveBEffect":"none","changedPathCount":19},
+    {"sha":"67686548da982cd9f3c11806ac21b95cf4be526a","title":"feat(governance): add fail-closed ISE review runtime (#95)","classification":"SECURITY_FIX","domain":"ISE governance/runtime","waveBEffect":"none","changedPathCount":49}
+  ],
+  "pathOverlap":{"currentStatusPaths":112,"mainlinePaths":93,"overlapCount":1,"overlappingPaths":["package.json"],"waveBCoreOverlapCount":0,"migrationOverlapCount":0,"relationRlsResolverOverlapCount":0},
+  "semanticOverlap":{"roleAuthority":"UNCHANGED","skillAuthority":"UNCHANGED","conceptAuthority":"ARCHIVAL_ONLY_COMPATIBLE","relationArchitecture":"UNCHANGED","drizzleSchema":"UNCHANGED","pgD1Migrations":"UNCHANGED","migrationRegistries":"UNCHANGED","checksumLedger":"UNCHANGED","namespaceGuard":"UNCHANGED","rls":"UNCHANGED","resolvers":"UNCHANGED"},
+  "migration":{"pg0042OwnerCount":1,"d10051OwnerCount":1,"newMainMigrationIds":0,"collisionWithWaveB":0,"semanticCollision":0,"providerOrphans":0,"providerPair":"VALID_PAIR"},
+  "authorities":{"role":1,"skill":1,"concept":1,"relation":1},
+  "dependencies":{"learningEvidence":"PRESENT_NOT_REQUIRED_FOR_WAVE_B_COMMIT","conceptMastery":"NOT_REQUIRED_FOR_RELATION_FOUNDATION","legacyConceptHardening":"COMPATIBLE","nextJsUpdate":"COMPATIBLE_SECURITY_RUNTIME_CHANGE"},
+  "preservation":{"uniqueWaveBEvidenceLost":0,"requiresCompleteManifest":true,"manifest":"reports/architecture/securium-typed-relations-wave-b-dirty-untracked-preservation-2026-09-09.json"},
+  "security":{"criticalHigh":"0/0"},
+  "dataTrust":{"criticalHigh":"0/0"},
+  "waveBSeverity":{"p0":0,"p1":0,"p2":0},
+  "recommendedStrategy":"BOUNDED_LOCAL_ARCHIVAL_COMMIT_FIRST_THEN_CHERRY_PICK_TO_FRESH_MAIN",
+  "nextGate":"PRESERVE_SECURIUM_TYPED_RELATIONS_WAVE_B_BOUNDED_ARCHIVAL_STATE",
+  "delivery":{"commit":"NONE","push":"NONE","pr":"NONE","deployment":"NONE","productionDb":"NONE"}
+}

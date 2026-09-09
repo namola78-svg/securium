@@ -1,0 +1,24 @@
+{
+  "status": "PASS",
+  "candidateCount": 111,
+  "excludedCount": 21,
+  "uniqueEvidenceOutsidePreservation": 0,
+  "recoverableSources": [
+    "C:\\\\Users\\\\user\\\\Documents\\\\Codex\\\\archives\\\\securium-typed-relations-wave-b-bounded-archival-state-2026-09-09-v2.zip",
+    "reports/architecture/securium-typed-relations-wave-b-dirty-untracked-preservation-2026-09-09.json"
+  ],
+  "preservedDomains": [
+    "canonical Concept",
+    "canonical Role",
+    "canonical Skill",
+    "PG0038",
+    "PG0042",
+    "D10050",
+    "D10051",
+    "Typed Relations",
+    "FK parity",
+    "focused regressions",
+    "final review evidence"
+  ],
+  "excludedFormattingStillRecoverable": 17
+}
