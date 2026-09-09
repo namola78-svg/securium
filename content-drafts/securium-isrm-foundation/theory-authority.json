@@ -1,0 +1,16 @@
+{
+  "authorityId": "SECURIUM_ISRM_THEORY_AUTHORITY_V1",
+  "courseId": "course-isrm",
+  "type": "THEORY_AUTHORITY",
+  "assetCount": 3,
+  "authorityStatus": "SECURIUM_INDEPENDENT_REAUTHOR_METADATA",
+  "officialDetailedScopeClaim": false,
+  "assets": [
+    { "id": "isrm-theory-foundation-v2", "type": "SECURIUM_THEORY_ASSET", "decision": "ACCEPT_INDEPENDENT_REAUTHOR", "authoring": "SECURIUM_INDEPENDENT", "sourceExpressionReuse": 0, "provenance": "official subject fact plus Securium-authored pedagogy", "currentness": "PARTIALLY_ALIGNED", "mappingStatus": "INDEPENDENT_REVIEW_VERIFIED", "bodyContentAddedInThisGate": false },
+    { "id": "isrm-theory-practice-v2", "type": "SECURIUM_THEORY_ASSET", "decision": "ACCEPT_INDEPENDENT_REAUTHOR", "authoring": "SECURIUM_INDEPENDENT", "sourceExpressionReuse": 0, "provenance": "official subject fact plus Securium-authored pedagogy", "currentness": "PARTIALLY_ALIGNED", "mappingStatus": "INDEPENDENT_REVIEW_VERIFIED", "bodyContentAddedInThisGate": false },
+    { "id": "isrm-theory-review-v2", "type": "SECURIUM_THEORY_ASSET", "decision": "ACCEPT_INDEPENDENT_REAUTHOR", "authoring": "SECURIUM_INDEPENDENT", "sourceExpressionReuse": 0, "provenance": "official subject fact plus Securium-authored pedagogy", "currentness": "PARTIALLY_ALIGNED", "mappingStatus": "INDEPENDENT_REVIEW_VERIFIED", "bodyContentAddedInThisGate": false }
+  ],
+  "deferredOrRejectedExpression": "No official or commercial prose, reconstruction, or close paraphrase is accepted.",
+  "contentMaterialization": "REVIEWED_ASSET_AUTHORITY_METADATA_ONLY_NO_NEW_THEORY_ADDED",
+  "limitations": ["DETAILED_OFFICIAL_SCOPE_PARTIAL", "OFFICIAL_SOURCE_SEMANTIC_VERSION_UNKNOWN"]
+}

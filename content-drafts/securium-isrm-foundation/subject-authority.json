@@ -1,0 +1,23 @@
+{
+  "authorityId": "SECURIUM_ISRM_SUBJECT_AUTHORITY_V1",
+  "courseId": "course-isrm",
+  "type": "SUBJECT_AUTHORITY",
+  "subjectCount": 5,
+  "allocationMeaning": "OFFICIAL_EXAM_METADATA_ONLY",
+  "learningWeightMeaning": "NOT_DERIVED_FROM_OFFICIAL_ALLOCATION",
+  "officialDetailedScope": "PARTIAL",
+  "sourceAuthority": "SECURIUM_ISRM_SOURCE_MANIFEST_V1",
+  "subjects": [
+    { "id": "isrm-2025-2027-s01", "order": 1, "type": "OFFICIAL_SUBJECT", "officialName": "정보보호 위험관리 계획", "allocation": 20, "allocationClassification": "OFFICIAL_EXAM_METADATA", "identityStatus": "CURRENT_CONFIRMED", "scopeClaim": "IDENTITY_ONLY" },
+    { "id": "isrm-2025-2027-s02", "order": 2, "type": "OFFICIAL_SUBJECT", "officialName": "정보보호 위험평가", "allocation": 20, "allocationClassification": "OFFICIAL_EXAM_METADATA", "identityStatus": "CURRENT_CONFIRMED", "scopeClaim": "IDENTITY_ONLY" },
+    { "id": "isrm-2025-2027-s03", "order": 3, "type": "OFFICIAL_SUBJECT", "officialName": "정보보호 위험대응", "allocation": 20, "allocationClassification": "OFFICIAL_EXAM_METADATA", "identityStatus": "CURRENT_CONFIRMED", "scopeClaim": "IDENTITY_ONLY" },
+    { "id": "isrm-2025-2027-s04", "order": 4, "type": "OFFICIAL_SUBJECT", "officialName": "정보보호 관리체계운영", "allocation": 10, "allocationClassification": "OFFICIAL_EXAM_METADATA", "identityStatus": "CURRENT_CONFIRMED", "scopeClaim": "IDENTITY_ONLY" },
+    { "id": "isrm-2025-2027-s05", "order": 5, "type": "OFFICIAL_SUBJECT", "officialName": "정보보호 위험대책관리", "allocation": 10, "allocationClassification": "OFFICIAL_EXAM_METADATA", "identityStatus": "CURRENT_CONFIRMED", "scopeClaim": "IDENTITY_ONLY" }
+  ],
+  "prohibitedTransformations": [
+    "renaming official subject identities",
+    "turning allocations into arbitrary learning weights",
+    "claiming the 12-unit decomposition is official detailed scope"
+  ],
+  "provenance": "OFFICIAL_FACTS_PLUS_SECURium_REPRESENTATION_METADATA"
+}

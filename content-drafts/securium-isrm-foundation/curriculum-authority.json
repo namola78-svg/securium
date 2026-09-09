@@ -1,0 +1,26 @@
+{
+  "authorityId": "SECURIUM_ISRM_CURRICULUM_AUTHORITY_V1",
+  "courseId": "course-isrm",
+  "type": "CURRICULUM_AUTHORITY",
+  "authorityStatus": "SECURIUM_PEDAGOGICAL_NOT_OFFICIAL_DETAILED_SCOPE",
+  "unitCount": 12,
+  "officialDetailedScope": "PARTIAL",
+  "officialSourceSemanticVersion": "OFFICIAL_SOURCE_SEMANTIC_VERSION_UNKNOWN",
+  "sourceAuthority": "SECURIUM_ISRM_SOURCE_MANIFEST_V1",
+  "units": [
+    { "id": "isrm-2025-2027-s01-u01", "subjectId": "isrm-2025-2027-s01", "type": "SECURIUM_LEARNING_UNIT", "classification": "SECURIUM_PEDAGOGICAL", "officialFactAnchor": "confirmed subject identity only", "currentness": "CURRENTNESS_UNPROVEN", "unsupportedOfficialClaim": false },
+    { "id": "isrm-2025-2027-s01-u02", "subjectId": "isrm-2025-2027-s01", "type": "SECURIUM_LEARNING_UNIT", "classification": "SECURIUM_PEDAGOGICAL", "officialFactAnchor": "confirmed subject identity only", "currentness": "CURRENTNESS_UNPROVEN", "unsupportedOfficialClaim": false },
+    { "id": "isrm-2025-2027-s01-u03", "subjectId": "isrm-2025-2027-s01", "type": "SECURIUM_LEARNING_UNIT", "classification": "SECURIUM_PEDAGOGICAL", "officialFactAnchor": "confirmed subject identity only", "currentness": "CURRENTNESS_UNPROVEN", "unsupportedOfficialClaim": false },
+    { "id": "isrm-2025-2027-s02-u01", "subjectId": "isrm-2025-2027-s02", "type": "SECURIUM_LEARNING_UNIT", "classification": "SECURIUM_PEDAGOGICAL", "officialFactAnchor": "confirmed subject identity only", "currentness": "CURRENTNESS_UNPROVEN", "unsupportedOfficialClaim": false },
+    { "id": "isrm-2025-2027-s02-u02", "subjectId": "isrm-2025-2027-s02", "type": "SECURIUM_LEARNING_UNIT", "classification": "SECURIUM_PEDAGOGICAL", "officialFactAnchor": "confirmed subject identity only", "currentness": "CURRENTNESS_UNPROVEN", "unsupportedOfficialClaim": false },
+    { "id": "isrm-2025-2027-s03-u01", "subjectId": "isrm-2025-2027-s03", "type": "SECURIUM_LEARNING_UNIT", "classification": "SECURIUM_PEDAGOGICAL", "officialFactAnchor": "confirmed subject identity only", "currentness": "CURRENTNESS_UNPROVEN", "unsupportedOfficialClaim": false },
+    { "id": "isrm-2025-2027-s03-u02", "subjectId": "isrm-2025-2027-s03", "type": "SECURIUM_LEARNING_UNIT", "classification": "SECURIUM_PEDAGOGICAL", "officialFactAnchor": "confirmed subject identity only", "currentness": "CURRENTNESS_UNPROVEN", "unsupportedOfficialClaim": false },
+    { "id": "isrm-2025-2027-s03-u03", "subjectId": "isrm-2025-2027-s03", "type": "SECURIUM_LEARNING_UNIT", "classification": "SECURIUM_PEDAGOGICAL", "officialFactAnchor": "confirmed subject identity only", "currentness": "CURRENTNESS_UNPROVEN", "unsupportedOfficialClaim": false },
+    { "id": "isrm-2025-2027-s03-u04", "subjectId": "isrm-2025-2027-s03", "type": "SECURIUM_LEARNING_UNIT", "classification": "SECURIUM_PEDAGOGICAL", "officialFactAnchor": "confirmed subject identity only", "currentness": "CURRENTNESS_UNPROVEN", "unsupportedOfficialClaim": false },
+    { "id": "isrm-2025-2027-s04-u01", "subjectId": "isrm-2025-2027-s04", "type": "SECURIUM_LEARNING_UNIT", "classification": "SECURIUM_PEDAGOGICAL", "officialFactAnchor": "confirmed subject identity only", "currentness": "CURRENTNESS_UNPROVEN", "unsupportedOfficialClaim": false },
+    { "id": "isrm-2025-2027-s04-u02", "subjectId": "isrm-2025-2027-s04", "type": "SECURIUM_LEARNING_UNIT", "classification": "SECURIUM_PEDAGOGICAL", "officialFactAnchor": "confirmed subject identity only", "currentness": "CURRENTNESS_UNPROVEN", "unsupportedOfficialClaim": false },
+    { "id": "isrm-2025-2027-s05-u01", "subjectId": "isrm-2025-2027-s05", "type": "SECURIUM_LEARNING_UNIT", "classification": "SECURIUM_PEDAGOGICAL", "officialFactAnchor": "confirmed subject identity only", "currentness": "CURRENTNESS_UNPROVEN", "unsupportedOfficialClaim": false }
+  ],
+  "contentMaterialization": "IDENTITY_AND_BOUNDARY_METADATA_ONLY_NO_NEW_CURRICULUM_CONTENT_ADDED",
+  "provenance": "CONFIRMED_SUBJECT_FACTS_PLUS_SECURIUM_PEDAGOGICAL_DECOMPOSITION"
+}

@@ -1,0 +1,25 @@
+{
+  "authorityId": "SECURIUM_ISRM_PRACTICAL_SPEC_AUTHORITY_V1",
+  "courseId": "course-isrm",
+  "type": "PRACTICAL_SPEC_AUTHORITY",
+  "practicalCount": 10,
+  "classification": "SYNTHETIC / SPEC_ONLY / NOT_OFFICIAL_EXAM_CONTENT",
+  "executableRegistration": 0,
+  "execution": 0,
+  "officialExamContent": false,
+  "contentMaterialization": "REVIEWED_SPEC_AUTHORITY_METADATA_ONLY_NO_NEW_PRACTICALS_ADDED",
+  "practicals": [
+    { "id": "isrm-practical-v2-01", "classification": "SYNTHETIC", "mode": "SPEC_ONLY", "officialExamContent": false },
+    { "id": "isrm-practical-v2-02", "classification": "SYNTHETIC", "mode": "SPEC_ONLY", "officialExamContent": false },
+    { "id": "isrm-practical-v2-03", "classification": "SYNTHETIC", "mode": "SPEC_ONLY", "officialExamContent": false },
+    { "id": "isrm-practical-v2-04", "classification": "SYNTHETIC", "mode": "SPEC_ONLY", "officialExamContent": false },
+    { "id": "isrm-practical-v2-05", "classification": "SYNTHETIC", "mode": "SPEC_ONLY", "officialExamContent": false },
+    { "id": "isrm-practical-v2-06", "classification": "SYNTHETIC", "mode": "SPEC_ONLY", "officialExamContent": false },
+    { "id": "isrm-practical-v2-07", "classification": "SYNTHETIC", "mode": "SPEC_ONLY", "officialExamContent": false },
+    { "id": "isrm-practical-v2-08", "classification": "SYNTHETIC", "mode": "SPEC_ONLY", "officialExamContent": false },
+    { "id": "isrm-practical-v2-09", "classification": "SYNTHETIC", "mode": "SPEC_ONLY", "officialExamContent": false },
+    { "id": "isrm-practical-v2-10", "classification": "SYNTHETIC", "mode": "SPEC_ONLY", "officialExamContent": false }
+  ],
+  "prohibitedActions": ["runtime registration", "execution", "official-exam claim", "database writes"],
+  "provenance": "SECURIUM_SYNTHETIC_SPECIFICATION"
+}
