@@ -66,6 +66,92 @@ function canonicalSha256(value: unknown): string {
   return sha256(canonicalJson(value));
 }
 
+function canonicalPracticalChoicesForHash(question: Record<string, unknown>) {
+  if (typeof question.id !== "string" || question.id.length === 0) {
+    throw new TypeError("question identity is required for semantic hashing");
+  }
+  if (!Array.isArray(question.choices)) {
+    throw new TypeError("question choices are required for semantic hashing");
+  }
+
+  const seenIds = new Set<string>();
+  const seenContents = new Set<string>();
+  return question.choices.map((choice: unknown, index) => {
+    let normalizedChoice: {
+      id: string;
+      content: string;
+      displayOrder: number;
+      isCorrect: boolean;
+      explanation: string;
+    };
+
+    if (Array.isArray(choice)) {
+      if (choice.length !== 3) {
+        throw new TypeError("raw choice tuple must contain three values");
+      }
+      const [content, isCorrect, explanation] = choice;
+      if (
+        typeof content !== "string" ||
+        typeof isCorrect !== "boolean" ||
+        typeof explanation !== "string"
+      ) {
+        throw new TypeError("raw choice tuple has invalid fields");
+      }
+      normalizedChoice = {
+        id: `${question.id}-choice-${String(index + 1).padStart(2, "0")}`,
+        content,
+        displayOrder: index + 1,
+        isCorrect,
+        explanation,
+      };
+    } else {
+      if (!choice || typeof choice !== "object") {
+        throw new TypeError("normalized choice object is required");
+      }
+      const objectChoice = choice as Record<string, unknown>;
+      if (
+        typeof objectChoice.id !== "string" ||
+        typeof objectChoice.content !== "string" ||
+        typeof objectChoice.displayOrder !== "number" ||
+        typeof objectChoice.isCorrect !== "boolean" ||
+        typeof objectChoice.explanation !== "string"
+      ) {
+        throw new TypeError("normalized choice object has invalid fields");
+      }
+      if (objectChoice.displayOrder !== index + 1) {
+        throw new TypeError("normalized choice order is not deterministic");
+      }
+      normalizedChoice = {
+        id: objectChoice.id,
+        content: objectChoice.content,
+        displayOrder: objectChoice.displayOrder,
+        isCorrect: objectChoice.isCorrect,
+        explanation: objectChoice.explanation,
+      };
+    }
+
+    if (normalizedChoice.content.trim().length === 0) {
+      throw new TypeError("choice content is required");
+    }
+    if (seenIds.has(normalizedChoice.id)) {
+      throw new TypeError("duplicate choice identity");
+    }
+    if (seenContents.has(normalizedChoice.content)) {
+      throw new TypeError("duplicate choice content");
+    }
+    seenIds.add(normalizedChoice.id);
+    seenContents.add(normalizedChoice.content);
+    return normalizedChoice;
+  });
+}
+
+function canonicalPracticalQuestionForHash(question: Record<string, unknown>) {
+  return {
+    ...question,
+    choices: canonicalPracticalChoicesForHash(question),
+  };
+}
+
 function questionCorePayload(question: Record<string, unknown>) {
   return {
     source: question.source,
@@ -78,6 +164,13 @@ function questionCorePayload(question: Record<string, unknown>) {
     content: question.content,
     type: question.type,
     difficulty: question.difficulty,
+  };
+}
+
+function canonicalPracticalQuestionCoreForHash(question: Record<string, unknown>) {
+  return {
+    ...questionCorePayload(question),
+    choices: canonicalPracticalChoicesForHash(question),
   };
 }
 
@@ -295,12 +388,142 @@ test("PR-A preserves the existing supplemental Question canonical and core hashe
   ) as Record<string, unknown> | undefined;
   assert.ok(question);
   assert.equal(
-    canonicalSha256(question),
-    "61029373e2bb1671d0079feb943cac7612351e4884ea2258e0158ba54a620cbd",
+    canonicalSha256(canonicalPracticalQuestionForHash(question)),
+    "17224c7ac57b35633e748bdb9e34908a65f0ba3a1863538cf88c02723d09e712",
   );
   assert.equal(
-    canonicalSha256(questionCorePayload(question)),
-    "3f0a143f9814eff6af11f944ae633e4ca0fffba5ea0af1f1d2a8d4c9e2847719",
+    canonicalSha256(canonicalPracticalQuestionCoreForHash(question)),
+    "603d91cc8dc17b82152527e5de2a4221870f4be85a9aa5cc2175f53238623e2b",
+  );
+});
+
+test("PR-A semantic hash treats legacy tuples and normalized choices as equivalent", () => {
+  const question = practicalSecurityQuestionSamples.find(
+    (candidate) => candidate.id === LEGACY_QUESTION_ID,
+  ) as Record<string, unknown> | undefined;
+  assert.ok(question);
+
+  const normalizedHash = canonicalSha256(canonicalPracticalQuestionForHash(question));
+  const rawChoices = (question.choices as Array<Record<string, unknown>>).map(
+    (choice) => [choice.content, choice.isCorrect, choice.explanation],
+  );
+  const legacyTupleQuestion = { ...question, choices: rawChoices };
+
+  assert.equal(
+    canonicalSha256(canonicalPracticalQuestionForHash(legacyTupleQuestion)),
+    normalizedHash,
+  );
+  assert.equal(
+    canonicalSha256(canonicalPracticalQuestionCoreForHash(legacyTupleQuestion)),
+    canonicalSha256(canonicalPracticalQuestionCoreForHash(question)),
+  );
+});
+
+test("PR-A semantic hash remains compatible across all affected practical questions", () => {
+  const affectedIds = new Set([
+    "practical-security-official-subitem-q01",
+    "practical-security-official-subitem-q02",
+    "practical-security-official-subitem-q03",
+    "practical-security-official-subitem-q05",
+    "practical-security-official-subitem-q06",
+    "practical-security-official-subitem-q07",
+    "practical-security-official-subitem-q09",
+    "practical-security-official-subitem-q10",
+    "practical-security-official-subitem-q11",
+    "practical-security-official-engineer-q01",
+    "practical-security-official-engineer-q02",
+    "practical-security-official-engineer-q04",
+  ]);
+  const affectedQuestions = practicalSecurityQuestionSamples.filter((candidate) =>
+    affectedIds.has(candidate.id),
+  );
+
+  assert.equal(affectedQuestions.length, 12);
+  for (const question of affectedQuestions) {
+    const normalizedHash = canonicalSha256(
+      canonicalPracticalQuestionForHash(question),
+    );
+    const rawChoices = (question.choices as Array<Record<string, unknown>>).map(
+      (choice) => [choice.content, choice.isCorrect, choice.explanation],
+    );
+
+    assert.equal(
+      canonicalSha256(
+        canonicalPracticalQuestionForHash({ ...question, choices: rawChoices }),
+      ),
+      normalizedHash,
+      `${question.id} must have representation-independent semantic identity`,
+    );
+  }
+});
+
+test("PR-A semantic hash detects choice mutations and rejects invalid choice data", () => {
+  const question = practicalSecurityQuestionSamples.find(
+    (candidate) => candidate.id === LEGACY_QUESTION_ID,
+  ) as Record<string, unknown> | undefined;
+  assert.ok(question);
+
+  const canonicalQuestion = canonicalPracticalQuestionForHash(question);
+  const baselineHash = canonicalSha256(canonicalQuestion);
+  const choices = canonicalQuestion.choices as Array<Record<string, unknown>>;
+
+  assert.notEqual(
+    canonicalSha256({
+      ...canonicalQuestion,
+      choices: choices.map((choice, index) =>
+        index === 0 ? { ...choice, content: `${choice.content}-mutated` } : choice,
+      ),
+    }),
+    baselineHash,
+  );
+  assert.notEqual(
+    canonicalSha256({
+      ...canonicalQuestion,
+      choices: choices.map((choice, index) =>
+        index === 0 ? { ...choice, isCorrect: !choice.isCorrect } : choice,
+      ),
+    }),
+    baselineHash,
+  );
+
+  const reorderedChoices = [...choices]
+    .reverse()
+    .map((choice, index) => ({ ...choice, displayOrder: index + 1 }));
+  assert.notEqual(
+    canonicalSha256({ ...canonicalQuestion, choices: reorderedChoices }),
+    baselineHash,
+  );
+
+  const reorderedObjectKeys = choices.map((choice) =>
+    Object.fromEntries(Object.entries(choice).reverse()),
+  );
+  assert.equal(
+    canonicalSha256({ ...canonicalQuestion, choices: reorderedObjectKeys }),
+    baselineHash,
+  );
+
+  assert.throws(
+    () =>
+      canonicalPracticalQuestionForHash({
+        ...canonicalQuestion,
+        choices: [["malformed", true]],
+      }),
+    /three values/,
+  );
+  assert.throws(
+    () =>
+      canonicalPracticalQuestionForHash({
+        ...canonicalQuestion,
+        choices: [
+          ...choices,
+          {
+            ...choices[0],
+            id: "q09-duplicate",
+            displayOrder: choices.length + 1,
+          },
+        ],
+      }),
+    /duplicate choice content/,
   );
 });
 
