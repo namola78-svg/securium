@@ -1,0 +1,26 @@
+{
+  "manifestId": "SECURIUM_ISRM_SOURCE_MANIFEST_V1",
+  "manifestType": "SOURCE_EVIDENCE_AUTHORITY",
+  "authorityBoundary": "SOURCE_EVIDENCE_AUTHORITY",
+  "contentSourceOfTruth": false,
+  "runtimeContentAuthority": false,
+  "certification": "ISRM",
+  "issuer": "KCA",
+  "registration": "2024-004467",
+  "registrationCurrentness": "CURRENT",
+  "applicability": { "from": "2025-01-01", "to": "2027-12-31", "classification": "SOURCE_EVIDENCE_APPLICABILITY_ONLY" },
+  "officialSourceSemanticVersion": "OFFICIAL_SOURCE_SEMANTIC_VERSION_UNKNOWN",
+  "detailedOfficialScope": "PARTIAL",
+  "rightsClassification": "FACTUAL_USE_ONLY",
+  "sourceExpressionReuse": "REQUIRES_PERMISSION",
+  "officialSources": [
+    { "sourceId": "kca-guidebook", "identity": "Official KCA ISRM guidebook", "issuer": "KCA", "sha256": "BD15551DCA7A7E72197C713244D5AB165D7C26C89DA56A174CA15BB4E4AC82D0", "rightsClassification": "FACTUAL_USE_ONLY", "currentnessClassification": "CURRENT_SUPPORTING_WITH_LIMITATIONS", "officialExpressionAuthority": false, "canonicalAuthoringUse": "FACTUAL_BOUNDARY_ONLY" },
+    { "sourceId": "kca-sample-problems", "identity": "Official KCA ISRM sample problems", "issuer": "KCA", "sha256": "DDA6DF2C6163D32F361F5773FDDA648884AB2E72D0C523F5C52297FD1D148C61", "rightsClassification": "FACTUAL_USE_ONLY", "currentnessClassification": "CURRENT_SUPPORTING_WITH_LIMITATIONS", "officialExpressionAuthority": false, "canonicalAuthoringUse": "IDENTITY_AND_FACTUAL_BOUNDARY_ONLY" },
+    { "sourceId": "kca-exam-criteria", "identity": "Official KCA ISRM written-exam criteria", "issuer": "KCA", "sha256": "1FF4981397462274BFDE7BBA35753EC613D834AFB7FBDB309687AB4BD83F6DA3", "rightsClassification": "FACTUAL_USE_ONLY", "currentnessClassification": "CURRENT_SUPPORTING_WITH_LIMITATIONS", "officialExpressionAuthority": false, "canonicalAuthoringUse": "SUBJECT_IDENTITY_ALLOCATION_AND_FACTUAL_BOUNDARY_ONLY" }
+  ],
+  "excludedSources": [
+    { "sourceId": "commercial-2026-practice", "classification": "COMMERCIAL_RESTRICTED", "rightsClassification": "COMMERCIAL_RESTRICTED", "canonicalAuthoringAuthority": false, "contentUsed": false },
+    { "sourceId": "commercial-2026-book", "classification": "COMMERCIAL_RESTRICTED", "rightsClassification": "COMMERCIAL_RESTRICTED", "canonicalAuthoringAuthority": false, "contentUsed": false }
+  ],
+  "limitationFlags": ["DETAILED_OFFICIAL_SCOPE_PARTIAL", "OFFICIAL_SOURCE_SEMANTIC_VERSION_UNKNOWN", "OFFICIAL_EXPRESSION_REUSE_REQUIRES_PERMISSION", "COMMERCIAL_PDFS_EXCLUDED", "APPLICABILITY_IS_SOURCE_EVIDENCE_ONLY", "NO_OCR", "NO_RUNTIME_DB_ACCESS"]
+}

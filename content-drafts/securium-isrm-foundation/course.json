@@ -1,0 +1,33 @@
+{
+  "authorityId": "SECURIUM_ISRM_COURSE_AUTHORITY_V1",
+  "courseId": "course-isrm",
+  "code": "ISRM",
+  "slug": "isrm",
+  "qualification": "ISRM",
+  "issuer": "KCA",
+  "registration": "2024-004467",
+  "registrationCurrentness": "CURRENT",
+  "authorityStatus": "CURRENT_MAIN_IDENTITY_REUSED_EXACTLY",
+  "courseAuthorityCount": 1,
+  "subjectCount": 5,
+  "pedagogicalUnitCount": 12,
+  "theoryAssetCount": 3,
+  "questionCount": 30,
+  "practicalSpecCount": 10,
+  "officialFactBoundary": [
+    "ISRM qualification identity",
+    "KCA issuer",
+    "current registration 2024-004467",
+    "five confirmed official subject identities",
+    "official subject allocations as examination metadata"
+  ],
+  "pedagogicalBoundary": "Lower-level learning structure is Securium-authored and does not claim complete official KCA examination scope.",
+  "detailedOfficialScope": "PARTIAL",
+  "officialSourceSemanticVersion": "OFFICIAL_SOURCE_SEMANTIC_VERSION_UNKNOWN",
+  "applicability": { "from": "2025-01-01", "to": "2027-12-31", "classification": "SOURCE_EVIDENCE_APPLICABILITY_ONLY" },
+  "rights": "FACTUAL_USE_ONLY",
+  "sourceExpressionReuse": "REQUIRES_PERMISSION",
+  "runtimeRegistration": 0,
+  "publication": "NOT_AUTHORIZED",
+  "provenance": { "identity": "CURRENT_MAIN_REUSED_IDENTITY", "pedagogy": "SECURIUM_INDEPENDENT_AUTHORSHIP" }
+}

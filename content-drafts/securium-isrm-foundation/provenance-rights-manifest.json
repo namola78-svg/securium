@@ -1,0 +1,17 @@
+{
+  "manifestId": "SECURIUM_ISRM_PROVENANCE_RIGHTS_MANIFEST_V1",
+  "courseId": "course-isrm",
+  "unknownProvenanceAccepted": 0,
+  "commercialInfluence": 0,
+  "officialExpressionReproduction": 0,
+  "rows": [
+    { "asset": "course identity", "authority": "current-main course-isrm identity", "classification": "REUSED_IDENTITY_ONLY", "provenance": "CURRENT_MAIN" },
+    { "asset": "five subject identities and allocations", "authority": "KCA factual evidence", "classification": "OFFICIAL_FACT_PLUS_SECURium_METADATA", "provenance": "OFFICIAL_FACTS_PLUS_SECURium_REPRESENTATION_METADATA" },
+    { "asset": "12 pedagogical units", "authority": "confirmed subject anchors only", "classification": "SECURIUM_PEDAGOGICAL_NOT_OFFICIAL_SCOPE", "provenance": "OFFICIAL_SUBJECT_FACTS_PLUS_SECURium_PEDAGOGICAL_DECOMPOSITION" },
+    { "asset": "3 theory assets", "authority": "none as official scope", "classification": "SECURIUM_AUTHORED_CANDIDATE", "provenance": "SECURIUM_INDEPENDENT_REAUTHORING" },
+    { "asset": "30 questions", "authority": "none as official questions", "classification": "SECURIUM_AUTHORED_NON_OFFICIAL", "provenance": "SECURIUM_INDEPENDENT_AUTHORSHIP" },
+    { "asset": "10 practical specs", "authority": "none as official exam content", "classification": "SYNTHETIC_SPEC_ONLY", "provenance": "SECURIUM_SYNTHETIC_SPECIFICATION" }
+  ],
+  "rights": { "officialMaterial": "FACTUAL_USE_ONLY", "sourceExpressionReuse": "REQUIRES_PERMISSION", "commercialPdfs": "COMMERCIAL_RESTRICTED", "commercialCanonicalDependency": 0, "ocr": 0 },
+  "limitations": { "officialSourceSemanticVersion": "OFFICIAL_SOURCE_SEMANTIC_VERSION_UNKNOWN", "detailedOfficialScope": "PARTIAL", "applicability": "SOURCE_EVIDENCE_ONLY" }
+}
