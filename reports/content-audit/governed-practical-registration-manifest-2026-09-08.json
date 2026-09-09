@@ -1,0 +1,390 @@
+{
+  "manifestVersion": "GOVERNED_PRACTICAL_REGISTRATION_V1",
+  "authority": {
+    "practical": "canonical_practicals",
+    "version": "practical_governance_versions",
+    "conceptBinding": "practical_version_concept_bindings",
+    "conceptAuthority": [
+      "ontology_concepts",
+      "ontology_aliases"
+    ]
+  },
+  "sourceHashes": {
+    "labsJson": "CBFC2E8D3D70A35BB190EDDF5F82DDCF6D4C8F52773872C5D15A9298849B92CB",
+    "runtime": "F945288C62ACF30F460FB8130F6C9344A36A5D49375DB1281C07B5FA14E2E754",
+    "waveBReport": "BE87563C44141CF3F1BF48921D85B66EFCF05E862B8515976A4DC1449450A325",
+    "canonicalManifest": "DF1EDE13ED0305577D1BB525085DE52D6D45EDA2A104F5C2867011784F0BA224",
+    "canonicalSemantic": "50e2ade70519bc23efcdd417b2e04883b6016bf969e96b45393014467aef35f1"
+  },
+  "registrationPolicy": "Approved executable Lab Specs only; canonical ID/key/registered alias only; PENDING bindings are governance mappings, not learner Evidence or Mastery.",
+  "registrations": [
+    {
+      "courseId": "course-digital-forensics-8h",
+      "memberIdentity": "DF-L01",
+      "memberType": "EXECUTABLE_LAB",
+      "namespace": "digital-forensics",
+      "intentKey": "lab-01",
+      "semanticKey": "practical.digital-forensics.lab-01",
+      "governance": {
+        "version": 1,
+        "semanticHash": "8d16dc0fce56bb1dc39be41724406832d992dc0415e7041714ae9ac0c5a568d1",
+        "humanReviewHash": "cc4bce6d0569efaa3d93c9b9860683abcc5f107a4e373b7d944241707e4101e8",
+        "safetyReviewHash": "7aff905170981a38a76c1932a7bab08686bb8b6d53d904f4704686a784b392c1",
+        "rightsBinding": "INDEPENDENT_AUTHORING:DF_WAVE_B_APPROVED",
+        "provenanceBinding": "digital-forensics:DF-L01:wave-b:BE87563C44141CF3F1BF48921D85B66EFCF05E862B8515976A4DC1449450A325",
+        "theoryDependencyJson": "{\"courseId\":\"course-digital-forensics-8h\",\"moduleId\":\"H01\",\"source\":\"approved-wave-a\"}",
+        "currentnessReference": "digital-forensics:wave-b:2026-09-08",
+        "lifecycle": "HUMAN_APPROVED",
+        "createdBy": "system:content-governance",
+        "rubricVersionId": "rubric-version:rubric:digital-forensics:lab-01:v1",
+        "rubricId": "rubric:digital-forensics:lab-01",
+        "rubricVersion": 1,
+        "evaluationSemanticHash": "9d10786212010e289f3b2e7eaf30186b274f12f962f12151b2b0e4ac4d540743",
+        "evaluationMethod": "RULE_BASED",
+        "evidenceClassification": "ELIGIBLE_PERFORMANCE_EVIDENCE",
+        "rubricSnapshotJson": "{\"dimensions\":[{\"contributesToEvidence\":true,\"evaluationMode\":\"DETERMINISTIC\",\"key\":\"digital-forensics:lab-01\",\"required\":true,\"supportsDeterministic\":true,\"supportsQualitative\":false}],\"id\":\"rubric:digital-forensics:lab-01\",\"version\":1}",
+        "rubricSnapshotDigest": "ad73884da01004a65af2066a1edc1fc90e0c57a6c3a30a241e4062b3d899c52f",
+        "reviewerMaterialId": "reviewer-material:digital-forensics:lab-01:v1",
+        "reviewerMaterialJson": "{\"canonicalManifestSemanticHash\":\"50e2ade70519bc23efcdd417b2e04883b6016bf969e96b45393014467aef35f1\",\"labId\":\"DF-L01\",\"labSpecDigest\":\"6612dc84df0f1d564c39e03566be754d7c545e221174a9e51ef932f9b54e2621\",\"module\":\"H01\",\"source\":{\"labs\":\"content-drafts/digital-forensics/labs.json\",\"runtime\":\"lib/digital-forensics/digital-forensics-lab-engine.mjs\",\"waveBReport\":\"content-drafts/digital-forensics/executable-labs-wave-b-final-rereview-report.md\"}}",
+        "reviewerMaterialDigest": "0521a0dc4bc15a7a99abd957987400307a7576cd750a3d227ea960218ae6772b"
+      },
+      "conceptCandidates": [
+        {
+          "reference": {
+            "registeredAlias": "Digital Forensics"
+          },
+          "mappingSource": "canonical-manifest:50e2ade70519bc23efcdd417b2e04883b6016bf969e96b45393014467aef35f1",
+          "qualification": {
+            "sourceMember": "DF-L01",
+            "module": "H01",
+            "candidateKey": "digital-forensics",
+            "semanticDefinition": "Evidence-preserving examination and analysis of digital sources for bounded findings."
+          },
+          "mappingStatus": "PENDING"
+        }
+      ]
+    },
+    {
+      "courseId": "course-digital-forensics-8h",
+      "memberIdentity": "DF-L02",
+      "memberType": "EXECUTABLE_LAB",
+      "namespace": "digital-forensics",
+      "intentKey": "lab-02",
+      "semanticKey": "practical.digital-forensics.lab-02",
+      "governance": {
+        "version": 1,
+        "semanticHash": "963398d086ea9e4792d61bee3a80cfd1f4a8c085ba54dbf47545d33afd742b66",
+        "humanReviewHash": "b253fe090b4c91d70faf8938d6469a5d82ef3204dce317a377282899e0657a82",
+        "safetyReviewHash": "78137703a561166f66b3d3371cd7e59fd10e923f4bec6317ab8f529733debbd2",
+        "rightsBinding": "INDEPENDENT_AUTHORING:DF_WAVE_B_APPROVED",
+        "provenanceBinding": "digital-forensics:DF-L02:wave-b:BE87563C44141CF3F1BF48921D85B66EFCF05E862B8515976A4DC1449450A325",
+        "theoryDependencyJson": "{\"courseId\":\"course-digital-forensics-8h\",\"moduleId\":\"H02\",\"source\":\"approved-wave-a\"}",
+        "currentnessReference": "digital-forensics:wave-b:2026-09-08",
+        "lifecycle": "HUMAN_APPROVED",
+        "createdBy": "system:content-governance",
+        "rubricVersionId": "rubric-version:rubric:digital-forensics:lab-02:v1",
+        "rubricId": "rubric:digital-forensics:lab-02",
+        "rubricVersion": 1,
+        "evaluationSemanticHash": "91ab68d37f1e63d1916d45291f255b97f98dca55a83974d2540bab55ba3151d0",
+        "evaluationMethod": "RULE_BASED",
+        "evidenceClassification": "ELIGIBLE_PERFORMANCE_EVIDENCE",
+        "rubricSnapshotJson": "{\"dimensions\":[{\"contributesToEvidence\":true,\"evaluationMode\":\"DETERMINISTIC\",\"key\":\"digital-forensics:lab-02\",\"required\":true,\"supportsDeterministic\":true,\"supportsQualitative\":false}],\"id\":\"rubric:digital-forensics:lab-02\",\"version\":1}",
+        "rubricSnapshotDigest": "e8d37036baa2582d5d9b5470caf1e10978d92494467f7c7742791129ac41cbd7",
+        "reviewerMaterialId": "reviewer-material:digital-forensics:lab-02:v1",
+        "reviewerMaterialJson": "{\"canonicalManifestSemanticHash\":\"50e2ade70519bc23efcdd417b2e04883b6016bf969e96b45393014467aef35f1\",\"labId\":\"DF-L02\",\"labSpecDigest\":\"bf4b90f41e8fca162147da2ebb523a4bbdcc28463a642ed9c54c5d94058eaf22\",\"module\":\"H02\",\"source\":{\"labs\":\"content-drafts/digital-forensics/labs.json\",\"runtime\":\"lib/digital-forensics/digital-forensics-lab-engine.mjs\",\"waveBReport\":\"content-drafts/digital-forensics/executable-labs-wave-b-final-rereview-report.md\"}}",
+        "reviewerMaterialDigest": "0df9b27bf066b55656ad6a56251e65ad0f7868852c0ef18984d2f830a18b8b69"
+      },
+      "conceptCandidates": [
+        {
+          "reference": {
+            "registeredAlias": "Digital Forensics"
+          },
+          "mappingSource": "canonical-manifest:50e2ade70519bc23efcdd417b2e04883b6016bf969e96b45393014467aef35f1",
+          "qualification": {
+            "sourceMember": "DF-L02",
+            "module": "H02",
+            "candidateKey": "digital-forensics",
+            "semanticDefinition": "Evidence-preserving examination and analysis of digital sources for bounded findings."
+          },
+          "mappingStatus": "PENDING"
+        }
+      ]
+    },
+    {
+      "courseId": "course-digital-forensics-8h",
+      "memberIdentity": "DF-L03",
+      "memberType": "EXECUTABLE_LAB",
+      "namespace": "digital-forensics",
+      "intentKey": "lab-03",
+      "semanticKey": "practical.digital-forensics.lab-03",
+      "governance": {
+        "version": 1,
+        "semanticHash": "7d405a6a1ddc409ff3f84d592d6ffbc022ab85cfeba2020bdbea5446adefab2f",
+        "humanReviewHash": "f175e86dca1e7ee3e90b2030e088248ea320e6a77ad27c9b4b8bacce9ac189e4",
+        "safetyReviewHash": "1fab0e16e5bbe892969fa00b5031c92d2ee198e6a0db3199a38e686d16c7c3f7",
+        "rightsBinding": "INDEPENDENT_AUTHORING:DF_WAVE_B_APPROVED",
+        "provenanceBinding": "digital-forensics:DF-L03:wave-b:BE87563C44141CF3F1BF48921D85B66EFCF05E862B8515976A4DC1449450A325",
+        "theoryDependencyJson": "{\"courseId\":\"course-digital-forensics-8h\",\"moduleId\":\"H03\",\"source\":\"approved-wave-a\"}",
+        "currentnessReference": "digital-forensics:wave-b:2026-09-08",
+        "lifecycle": "HUMAN_APPROVED",
+        "createdBy": "system:content-governance",
+        "rubricVersionId": "rubric-version:rubric:digital-forensics:lab-03:v1",
+        "rubricId": "rubric:digital-forensics:lab-03",
+        "rubricVersion": 1,
+        "evaluationSemanticHash": "ac8a23adc6eff54e21644e8e5a09f05392649d50e1d71dffc6e30834b942bbe3",
+        "evaluationMethod": "RULE_BASED",
+        "evidenceClassification": "ELIGIBLE_PERFORMANCE_EVIDENCE",
+        "rubricSnapshotJson": "{\"dimensions\":[{\"contributesToEvidence\":true,\"evaluationMode\":\"DETERMINISTIC\",\"key\":\"digital-forensics:lab-03\",\"required\":true,\"supportsDeterministic\":true,\"supportsQualitative\":false}],\"id\":\"rubric:digital-forensics:lab-03\",\"version\":1}",
+        "rubricSnapshotDigest": "5ddb62ee9044fc13e95b5b359915332174d756080107284013eb6fac9c9fd1ae",
+        "reviewerMaterialId": "reviewer-material:digital-forensics:lab-03:v1",
+        "reviewerMaterialJson": "{\"canonicalManifestSemanticHash\":\"50e2ade70519bc23efcdd417b2e04883b6016bf969e96b45393014467aef35f1\",\"labId\":\"DF-L03\",\"labSpecDigest\":\"8736d6228083d72c2a766332dc78e44ba6c3134927e58e4c4ff5911872bd9d07\",\"module\":\"H03\",\"source\":{\"labs\":\"content-drafts/digital-forensics/labs.json\",\"runtime\":\"lib/digital-forensics/digital-forensics-lab-engine.mjs\",\"waveBReport\":\"content-drafts/digital-forensics/executable-labs-wave-b-final-rereview-report.md\"}}",
+        "reviewerMaterialDigest": "f9bf714e58f6e2cdc41d4991f0edc6f8beb2e13fc90f439c373d5adaf8eb9589"
+      },
+      "conceptCandidates": [
+        {
+          "reference": {
+            "registeredAlias": "Digital Forensics"
+          },
+          "mappingSource": "canonical-manifest:50e2ade70519bc23efcdd417b2e04883b6016bf969e96b45393014467aef35f1",
+          "qualification": {
+            "sourceMember": "DF-L03",
+            "module": "H03",
+            "candidateKey": "digital-forensics",
+            "semanticDefinition": "Evidence-preserving examination and analysis of digital sources for bounded findings."
+          },
+          "mappingStatus": "PENDING"
+        }
+      ]
+    },
+    {
+      "courseId": "course-digital-forensics-8h",
+      "memberIdentity": "DF-L04",
+      "memberType": "EXECUTABLE_LAB",
+      "namespace": "digital-forensics",
+      "intentKey": "lab-04",
+      "semanticKey": "practical.digital-forensics.lab-04",
+      "governance": {
+        "version": 1,
+        "semanticHash": "282f37b35f9ba08c5daa3ff45544f14ac171c503f0f2f8459bd51e302ed4e756",
+        "humanReviewHash": "3168b4a0f96b12a12fe43614e64bcf6049a2c191fdb7000370ccc5fe6bd1785e",
+        "safetyReviewHash": "c66f087efa0a68ec011795314e742c2b0766d7f97c35b5ea1a1a33f315c21091",
+        "rightsBinding": "INDEPENDENT_AUTHORING:DF_WAVE_B_APPROVED",
+        "provenanceBinding": "digital-forensics:DF-L04:wave-b:BE87563C44141CF3F1BF48921D85B66EFCF05E862B8515976A4DC1449450A325",
+        "theoryDependencyJson": "{\"courseId\":\"course-digital-forensics-8h\",\"moduleId\":\"H04\",\"source\":\"approved-wave-a\"}",
+        "currentnessReference": "digital-forensics:wave-b:2026-09-08",
+        "lifecycle": "HUMAN_APPROVED",
+        "createdBy": "system:content-governance",
+        "rubricVersionId": "rubric-version:rubric:digital-forensics:lab-04:v1",
+        "rubricId": "rubric:digital-forensics:lab-04",
+        "rubricVersion": 1,
+        "evaluationSemanticHash": "6c20cf0b28430554f1abfebee68b724b04e900b5ec8ddb3fb40caef1f8b9d044",
+        "evaluationMethod": "RULE_BASED",
+        "evidenceClassification": "ELIGIBLE_PERFORMANCE_EVIDENCE",
+        "rubricSnapshotJson": "{\"dimensions\":[{\"contributesToEvidence\":true,\"evaluationMode\":\"DETERMINISTIC\",\"key\":\"digital-forensics:lab-04\",\"required\":true,\"supportsDeterministic\":true,\"supportsQualitative\":false}],\"id\":\"rubric:digital-forensics:lab-04\",\"version\":1}",
+        "rubricSnapshotDigest": "c44c1ca130eddcf7c03f3e253893514c26cbc8e1bcc487c5a619b3c64c1a5565",
+        "reviewerMaterialId": "reviewer-material:digital-forensics:lab-04:v1",
+        "reviewerMaterialJson": "{\"canonicalManifestSemanticHash\":\"50e2ade70519bc23efcdd417b2e04883b6016bf969e96b45393014467aef35f1\",\"labId\":\"DF-L04\",\"labSpecDigest\":\"7bb9c5aa4ab8f73c7dae76c786f314af4bc86e6f80f99d881de09ac81d21a053\",\"module\":\"H04\",\"source\":{\"labs\":\"content-drafts/digital-forensics/labs.json\",\"runtime\":\"lib/digital-forensics/digital-forensics-lab-engine.mjs\",\"waveBReport\":\"content-drafts/digital-forensics/executable-labs-wave-b-final-rereview-report.md\"}}",
+        "reviewerMaterialDigest": "005dd0fb968c4871ed3780ff4c1030a24c80067157c69b725d587b878e46e056"
+      },
+      "conceptCandidates": [
+        {
+          "reference": {
+            "registeredAlias": "Digital Forensics"
+          },
+          "mappingSource": "canonical-manifest:50e2ade70519bc23efcdd417b2e04883b6016bf969e96b45393014467aef35f1",
+          "qualification": {
+            "sourceMember": "DF-L04",
+            "module": "H04",
+            "candidateKey": "digital-forensics",
+            "semanticDefinition": "Evidence-preserving examination and analysis of digital sources for bounded findings."
+          },
+          "mappingStatus": "PENDING"
+        }
+      ]
+    },
+    {
+      "courseId": "course-digital-forensics-8h",
+      "memberIdentity": "DF-L05",
+      "memberType": "EXECUTABLE_LAB",
+      "namespace": "digital-forensics",
+      "intentKey": "lab-05",
+      "semanticKey": "practical.digital-forensics.lab-05",
+      "governance": {
+        "version": 1,
+        "semanticHash": "af7930e1fe70f7619b4b3c337851d8a4b2e753b139d9616953d156385272f4ff",
+        "humanReviewHash": "0740bf47d73dcd559ba536e2e03584452f4bd87d2d3fbb0e98250e182c2b2882",
+        "safetyReviewHash": "695531b7bcc0546e2f005a356a736713a214bd37da70bbbf689f2066534c92c3",
+        "rightsBinding": "INDEPENDENT_AUTHORING:DF_WAVE_B_APPROVED",
+        "provenanceBinding": "digital-forensics:DF-L05:wave-b:BE87563C44141CF3F1BF48921D85B66EFCF05E862B8515976A4DC1449450A325",
+        "theoryDependencyJson": "{\"courseId\":\"course-digital-forensics-8h\",\"moduleId\":\"H05\",\"source\":\"approved-wave-a\"}",
+        "currentnessReference": "digital-forensics:wave-b:2026-09-08",
+        "lifecycle": "HUMAN_APPROVED",
+        "createdBy": "system:content-governance",
+        "rubricVersionId": "rubric-version:rubric:digital-forensics:lab-05:v1",
+        "rubricId": "rubric:digital-forensics:lab-05",
+        "rubricVersion": 1,
+        "evaluationSemanticHash": "6aaee550496b1085ca5396382cf4912164655e6bdad1cb498d3c01c22f203efb",
+        "evaluationMethod": "RULE_BASED",
+        "evidenceClassification": "ELIGIBLE_PERFORMANCE_EVIDENCE",
+        "rubricSnapshotJson": "{\"dimensions\":[{\"contributesToEvidence\":true,\"evaluationMode\":\"DETERMINISTIC\",\"key\":\"digital-forensics:lab-05\",\"required\":true,\"supportsDeterministic\":true,\"supportsQualitative\":false}],\"id\":\"rubric:digital-forensics:lab-05\",\"version\":1}",
+        "rubricSnapshotDigest": "e11496d7b3c8dcf179255c945fd0ff1457f7f1d5f0b2bbcfded04e69909a49a1",
+        "reviewerMaterialId": "reviewer-material:digital-forensics:lab-05:v1",
+        "reviewerMaterialJson": "{\"canonicalManifestSemanticHash\":\"50e2ade70519bc23efcdd417b2e04883b6016bf969e96b45393014467aef35f1\",\"labId\":\"DF-L05\",\"labSpecDigest\":\"fc5e5a615d3f069b23a6f1f72a6aa5d407192009af4cf33abcb2614b2601cd52\",\"module\":\"H05\",\"source\":{\"labs\":\"content-drafts/digital-forensics/labs.json\",\"runtime\":\"lib/digital-forensics/digital-forensics-lab-engine.mjs\",\"waveBReport\":\"content-drafts/digital-forensics/executable-labs-wave-b-final-rereview-report.md\"}}",
+        "reviewerMaterialDigest": "0a8cef0cf1ffcb0faa3547cbe15b4e0dccf26209493fb67648387917453ab9e8"
+      },
+      "conceptCandidates": [
+        {
+          "reference": {
+            "registeredAlias": "Digital Forensics"
+          },
+          "mappingSource": "canonical-manifest:50e2ade70519bc23efcdd417b2e04883b6016bf969e96b45393014467aef35f1",
+          "qualification": {
+            "sourceMember": "DF-L05",
+            "module": "H05",
+            "candidateKey": "digital-forensics",
+            "semanticDefinition": "Evidence-preserving examination and analysis of digital sources for bounded findings."
+          },
+          "mappingStatus": "PENDING"
+        }
+      ]
+    },
+    {
+      "courseId": "course-digital-forensics-8h",
+      "memberIdentity": "DF-L06",
+      "memberType": "EXECUTABLE_LAB",
+      "namespace": "digital-forensics",
+      "intentKey": "lab-06",
+      "semanticKey": "practical.digital-forensics.lab-06",
+      "governance": {
+        "version": 1,
+        "semanticHash": "283636846009df9dc409ad8acf208afeb402935f80246ba083fbb51353ba40ce",
+        "humanReviewHash": "ad7577db6f131f0ec32e34ffdd8aeae6f6e7189b684852dbb6956d34b4ac136d",
+        "safetyReviewHash": "f6763b991e8b76438be8a1207021e6454db260ccac23e5c31371d7d6eabbb0c9",
+        "rightsBinding": "INDEPENDENT_AUTHORING:DF_WAVE_B_APPROVED",
+        "provenanceBinding": "digital-forensics:DF-L06:wave-b:BE87563C44141CF3F1BF48921D85B66EFCF05E862B8515976A4DC1449450A325",
+        "theoryDependencyJson": "{\"courseId\":\"course-digital-forensics-8h\",\"moduleId\":\"H06\",\"source\":\"approved-wave-a\"}",
+        "currentnessReference": "digital-forensics:wave-b:2026-09-08",
+        "lifecycle": "HUMAN_APPROVED",
+        "createdBy": "system:content-governance",
+        "rubricVersionId": "rubric-version:rubric:digital-forensics:lab-06:v1",
+        "rubricId": "rubric:digital-forensics:lab-06",
+        "rubricVersion": 1,
+        "evaluationSemanticHash": "fe17931f4557ddef6006da1ce86306a6a83e27f6e15cdf10655e27ce425c4d5c",
+        "evaluationMethod": "RULE_BASED",
+        "evidenceClassification": "ELIGIBLE_PERFORMANCE_EVIDENCE",
+        "rubricSnapshotJson": "{\"dimensions\":[{\"contributesToEvidence\":true,\"evaluationMode\":\"DETERMINISTIC\",\"key\":\"digital-forensics:lab-06\",\"required\":true,\"supportsDeterministic\":true,\"supportsQualitative\":false}],\"id\":\"rubric:digital-forensics:lab-06\",\"version\":1}",
+        "rubricSnapshotDigest": "403fe13caa44fb381139e060fcebf15c8d961e4ad4b3fdfab4084b674c49b300",
+        "reviewerMaterialId": "reviewer-material:digital-forensics:lab-06:v1",
+        "reviewerMaterialJson": "{\"canonicalManifestSemanticHash\":\"50e2ade70519bc23efcdd417b2e04883b6016bf969e96b45393014467aef35f1\",\"labId\":\"DF-L06\",\"labSpecDigest\":\"029c39e0047e284c2dc0ab9e055d18838bc8e0476538dee75090dc814051420c\",\"module\":\"H06\",\"source\":{\"labs\":\"content-drafts/digital-forensics/labs.json\",\"runtime\":\"lib/digital-forensics/digital-forensics-lab-engine.mjs\",\"waveBReport\":\"content-drafts/digital-forensics/executable-labs-wave-b-final-rereview-report.md\"}}",
+        "reviewerMaterialDigest": "c92fa25f81e29dd4698860f00bc9dd36968ffbebd8474278e37b5364314241db"
+      },
+      "conceptCandidates": [
+        {
+          "reference": {
+            "registeredAlias": "Digital Forensics"
+          },
+          "mappingSource": "canonical-manifest:50e2ade70519bc23efcdd417b2e04883b6016bf969e96b45393014467aef35f1",
+          "qualification": {
+            "sourceMember": "DF-L06",
+            "module": "H06",
+            "candidateKey": "digital-forensics",
+            "semanticDefinition": "Evidence-preserving examination and analysis of digital sources for bounded findings."
+          },
+          "mappingStatus": "PENDING"
+        }
+      ]
+    },
+    {
+      "courseId": "course-digital-forensics-8h",
+      "memberIdentity": "DF-L07",
+      "memberType": "EXECUTABLE_LAB",
+      "namespace": "digital-forensics",
+      "intentKey": "lab-07",
+      "semanticKey": "practical.digital-forensics.lab-07",
+      "governance": {
+        "version": 1,
+        "semanticHash": "fc7fde48283a4553e78c8561e5a2c75d69ea8cab5d5a284a9886b4a9623c0ac3",
+        "humanReviewHash": "31859c1debc1f32647baab92685c4f125cf616cdad59e915d7d112ed03ebac9c",
+        "safetyReviewHash": "516d96c39c71524b9a3a9a0ac60c060bf8cc08c52d9513605516089f21046a44",
+        "rightsBinding": "INDEPENDENT_AUTHORING:DF_WAVE_B_APPROVED",
+        "provenanceBinding": "digital-forensics:DF-L07:wave-b:BE87563C44141CF3F1BF48921D85B66EFCF05E862B8515976A4DC1449450A325",
+        "theoryDependencyJson": "{\"courseId\":\"course-digital-forensics-8h\",\"moduleId\":\"H07\",\"source\":\"approved-wave-a\"}",
+        "currentnessReference": "digital-forensics:wave-b:2026-09-08",
+        "lifecycle": "HUMAN_APPROVED",
+        "createdBy": "system:content-governance",
+        "rubricVersionId": "rubric-version:rubric:digital-forensics:lab-07:v1",
+        "rubricId": "rubric:digital-forensics:lab-07",
+        "rubricVersion": 1,
+        "evaluationSemanticHash": "b02a6cee5a70568fb0051bcd697c1352b77f5a5b903478707f6ef43521752a45",
+        "evaluationMethod": "RULE_BASED",
+        "evidenceClassification": "ELIGIBLE_PERFORMANCE_EVIDENCE",
+        "rubricSnapshotJson": "{\"dimensions\":[{\"contributesToEvidence\":true,\"evaluationMode\":\"DETERMINISTIC\",\"key\":\"digital-forensics:lab-07\",\"required\":true,\"supportsDeterministic\":true,\"supportsQualitative\":false}],\"id\":\"rubric:digital-forensics:lab-07\",\"version\":1}",
+        "rubricSnapshotDigest": "9ec0bf03619b31b4c39ecec449a655d9df24f010dd472624d7f8cf679491c5d4",
+        "reviewerMaterialId": "reviewer-material:digital-forensics:lab-07:v1",
+        "reviewerMaterialJson": "{\"canonicalManifestSemanticHash\":\"50e2ade70519bc23efcdd417b2e04883b6016bf969e96b45393014467aef35f1\",\"labId\":\"DF-L07\",\"labSpecDigest\":\"e0618e4163a7b598d4bf742327915b1c0c27dd1b4b71a294cca323f7b988b881\",\"module\":\"H07\",\"source\":{\"labs\":\"content-drafts/digital-forensics/labs.json\",\"runtime\":\"lib/digital-forensics/digital-forensics-lab-engine.mjs\",\"waveBReport\":\"content-drafts/digital-forensics/executable-labs-wave-b-final-rereview-report.md\"}}",
+        "reviewerMaterialDigest": "2106fe0b07a5bbb684f2b3937463f2e89199695947ef771a71e0b6c23d85c73b"
+      },
+      "conceptCandidates": [
+        {
+          "reference": {
+            "registeredAlias": "Digital Forensics"
+          },
+          "mappingSource": "canonical-manifest:50e2ade70519bc23efcdd417b2e04883b6016bf969e96b45393014467aef35f1",
+          "qualification": {
+            "sourceMember": "DF-L07",
+            "module": "H07",
+            "candidateKey": "digital-forensics",
+            "semanticDefinition": "Evidence-preserving examination and analysis of digital sources for bounded findings."
+          },
+          "mappingStatus": "PENDING"
+        }
+      ]
+    },
+    {
+      "courseId": "course-digital-forensics-8h",
+      "memberIdentity": "DF-L08",
+      "memberType": "EXECUTABLE_LAB",
+      "namespace": "digital-forensics",
+      "intentKey": "lab-08",
+      "semanticKey": "practical.digital-forensics.lab-08",
+      "governance": {
+        "version": 1,
+        "semanticHash": "740d2abf6ea0c31833348627b333a579e04b7ab769050d487e828feade3efd5c",
+        "humanReviewHash": "9468861f06537ce36064631356193f6c3e8fc9223077126958bc9c3844ec6bc8",
+        "safetyReviewHash": "b7d6b8da0ebd81aae6a17dcc2175ba2d85ca29bc80078a10d17ac5cf56f9504b",
+        "rightsBinding": "INDEPENDENT_AUTHORING:DF_WAVE_B_APPROVED",
+        "provenanceBinding": "digital-forensics:DF-L08:wave-b:BE87563C44141CF3F1BF48921D85B66EFCF05E862B8515976A4DC1449450A325",
+        "theoryDependencyJson": "{\"courseId\":\"course-digital-forensics-8h\",\"moduleId\":\"H08\",\"source\":\"approved-wave-a\"}",
+        "currentnessReference": "digital-forensics:wave-b:2026-09-08",
+        "lifecycle": "HUMAN_APPROVED",
+        "createdBy": "system:content-governance",
+        "rubricVersionId": "rubric-version:rubric:digital-forensics:lab-08:v1",
+        "rubricId": "rubric:digital-forensics:lab-08",
+        "rubricVersion": 1,
+        "evaluationSemanticHash": "da86b39cb8043bc0c8cc3b32cf5c6192a2a2b3e66492fe595496f7c7133ac36a",
+        "evaluationMethod": "RULE_BASED",
+        "evidenceClassification": "ELIGIBLE_PERFORMANCE_EVIDENCE",
+        "rubricSnapshotJson": "{\"dimensions\":[{\"contributesToEvidence\":true,\"evaluationMode\":\"DETERMINISTIC\",\"key\":\"digital-forensics:lab-08\",\"required\":true,\"supportsDeterministic\":true,\"supportsQualitative\":false}],\"id\":\"rubric:digital-forensics:lab-08\",\"version\":1}",
+        "rubricSnapshotDigest": "27f68d0f1cdd52d6b98b44b4edc30c6e0dbd306a370501e8847bb5905c185808",
+        "reviewerMaterialId": "reviewer-material:digital-forensics:lab-08:v1",
+        "reviewerMaterialJson": "{\"canonicalManifestSemanticHash\":\"50e2ade70519bc23efcdd417b2e04883b6016bf969e96b45393014467aef35f1\",\"labId\":\"DF-L08\",\"labSpecDigest\":\"5f2b1674d303a3d8e182448240c3620111ecc24639828b5fa750bb3a0b407653\",\"module\":\"H08\",\"source\":{\"labs\":\"content-drafts/digital-forensics/labs.json\",\"runtime\":\"lib/digital-forensics/digital-forensics-lab-engine.mjs\",\"waveBReport\":\"content-drafts/digital-forensics/executable-labs-wave-b-final-rereview-report.md\"}}",
+        "reviewerMaterialDigest": "ca99cd782f4acbf84d2554e6d5b64bc3ccd7560eec6a7d18b5ce54386646b55c"
+      },
+      "conceptCandidates": [
+        {
+          "reference": {
+            "registeredAlias": "Digital Forensics"
+          },
+          "mappingSource": "canonical-manifest:50e2ade70519bc23efcdd417b2e04883b6016bf969e96b45393014467aef35f1",
+          "qualification": {
+            "sourceMember": "DF-L08",
+            "module": "H08",
+            "candidateKey": "digital-forensics",
+            "semanticDefinition": "Evidence-preserving examination and analysis of digital sources for bounded findings."
+          },
+          "mappingStatus": "PENDING"
+        }
+      ]
+    }
+  ]
+}
