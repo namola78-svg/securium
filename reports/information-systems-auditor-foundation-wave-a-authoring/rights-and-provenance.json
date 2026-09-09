@@ -1,0 +1,11 @@
+{
+  "manifestType":"foundation-rights-provenance",
+  "status":"FAIL_CLOSED_FOR_EXTERNAL_TEXT",
+  "authoritySource":{"type":"PUBLIC_OFFICIAL_REFERENCE","use":"scope and authority binding only","reuse":"no bulk reproduction","sha256":"7F1A66B29EA2467D68AC8CD46C877FDA672531A31D4C658C6BD447C44DB555F9"},
+  "historicalLocalSources":{"count":12,"rights":"UNKNOWN_RIGHTS / REFERENCE_ONLY","use":"not imported; no text, answer, or question reuse"},
+  "learnerFacingContent":{"authorship":"Securium original","sourceTextCopy":0,"closeParaphraseTarget":0,"syntheticExamples":true},
+  "questionBoundary":{"officialQuestions":0,"historicalQuestions":0,"thirdPartyQuestions":0,"newQuestions":0},
+  "practicalBoundary":{"practicalAssets":0,"executableLabs":0},
+  "provenanceRule":"Official availability establishes authority provenance, not a republication license. The notice supplies scope; Securium supplies independent explanations.",
+  "canonicalWrites":0
+}

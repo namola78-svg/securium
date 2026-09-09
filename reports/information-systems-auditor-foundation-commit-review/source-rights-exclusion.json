@@ -1,0 +1,8 @@
+{
+  "historicalSources":{"count":12,"hash":"12/12 PASS","classification":"HISTORICAL_BUT_USEFUL","rights":"REFERENCE_ONLY / UNKNOWN_RIGHTS","directQuestionIngestion":0,"ocrCanonicalization":0,"questionReconstruction":0,"sourceExposure":0},
+  "currentOfficialAttachment":{"hash":"7F1A66B29EA2467D68AC8CD46C877FDA672531A31D4C658C6BD447C44DB555F9","rights":"REFERENCE_ONLY / SCOPE_ONLY","binaryIncluded":false,"reason":"official availability proves authority, not republication permission"},
+  "sourceBinaryInclusion":0,
+  "rightsUpgrades":0,
+  "thirdPartyQuestionImport":0,
+  "learnerFacingCopying":0
+}

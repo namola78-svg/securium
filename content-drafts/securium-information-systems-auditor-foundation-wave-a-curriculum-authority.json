@@ -1,0 +1,40 @@
+{
+  "authorityId": "isa-foundation-wave-a-curriculum-authority-v1",
+  "status": "DRAFT_AUTHORED_NOT_CANONICAL",
+  "authorityCount": 1,
+  "courseIdentity": "course-information-systems-auditor",
+  "qualification": "정보시스템감리사",
+  "authorityType": "CURRENT_OFFICIAL_SCOPE_BINDING",
+  "snapshot": "2026-09-08",
+  "officialAuthority": {
+    "source": "NIA_2026_27_NOTICE",
+    "noticeTitle": "2026년 (제27회) 정보시스템 감리사 자격검정 시행공고",
+    "noticeAttachmentSha256": "7F1A66B29EA2467D68AC8CD46C877FDA672531A31D4C658C6BD447C44DB555F9",
+    "authorityManifest": "reports/information-systems-auditor-current-authority-review/current-examination-authority-manifest.json",
+    "currentness": "CURRENT_2026_SCOPE",
+    "rights": "PUBLIC_OFFICIAL_REFERENCE / SCOPE_ONLY"
+  },
+  "boundary": {
+    "officialSubject": "Official 2026 subject identity and ordering retained verbatim.",
+    "officialScopeDomain": "Official 2026 detailed examination-domain identity and ordering retained verbatim.",
+    "securiumLearningUnit": "Securium-authored pedagogical unit; not an official label.",
+    "securiumObjective": "Securium-authored learning outcome; not an official exam claim.",
+    "securiumConcept": "Securium-authored normalized concept candidate; not a canonical ontology write.",
+    "officialQuestionReuse": 0,
+    "historicalQuestionImport": 0,
+    "ontologyWrites": 0,
+    "skillWrites": 0,
+    "roleWrites": 0
+  },
+  "subjects": [
+    {"order":1,"officialName":"감리 및 사업관리","officialDomains":["정보화 관련 법/제도 및 국내외 지침·가이드","감리 관련 법제도 및 관련 기술","조직 관리론","프로젝트관리"],"learningUnitIds":["isa-fa-audit-law-guides","isa-fa-audit-law-technology","isa-fa-organization-management","isa-fa-project-management"]},
+    {"order":2,"officialName":"소프트웨어 공학","officialDomains":["요구사항분석 및 설계","구현 및 테스트","유지관리 및 운영","개발방법론·SW 구조 및 공개SW","SW 품질 및 비용산정"],"learningUnitIds":["isa-fa-requirements-analysis-design","isa-fa-implementation-testing","isa-fa-maintenance-operations","isa-fa-development-methods-architecture-open-source","isa-fa-software-quality-cost"]},
+    {"order":3,"officialName":"데이터베이스","officialDomains":["DB 개념 및 설계","DB 언어","DBMS 기술","DB 응용","빅데이터 및 AI데이터"],"learningUnitIds":["isa-fa-db-concepts-design","isa-fa-db-language","isa-fa-dbms-technology","isa-fa-db-application","isa-fa-bigdata-ai-data"]},
+    {"order":4,"officialName":"시스템 구조","officialDomains":["공통 기술","아키텍처 설계 및 구축","데이터통신 및 네트워크 설계","기타 신기술"],"learningUnitIds":["isa-fa-common-technology","isa-fa-architecture-design-construction","isa-fa-network-design","isa-fa-emerging-technology"]},
+    {"order":5,"officialName":"보안","officialDomains":["공통 보안기술","네트워크 및 시스템 보안","응용 및 신기술 보안","개발 및 운영 보안","정보보호 법규 및 개인정보보호"],"learningUnitIds":["isa-fa-common-security","isa-fa-network-system-security","isa-fa-application-emerging-security","isa-fa-development-operations-security","isa-fa-info-law-privacy"]}
+  ],
+  "counts": {"officialSubjectCount":5,"officialDomainCount":23,"learningUnitCount":23,"objectiveCount":69,"conceptCount":69},
+  "hierarchy": "Course → Official Subject → Official Detailed Domain → Securium Learning Unit → Objective → Concept",
+  "courseIdentityDecision": "APPROVE_CANDIDATE_ONLY",
+  "persistence": {"canonicalCourseWrite":0,"canonicalCurriculumWrite":0,"dbWrites":0,"schemaChanges":0,"migrationChanges":0}
+}

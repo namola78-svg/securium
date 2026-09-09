@@ -1,0 +1,20 @@
+{
+  "manifestType": "information-systems-auditor-foundation-wave-a-provenance",
+  "snapshot": "2026-09-08",
+  "courseIdentity": "course-information-systems-auditor",
+  "authorityCount": {"curriculum":1,"theory":1,"assessment":1,"practicalSpec":1},
+  "currentScopeBinding": {
+    "authority": "NIA_2026_27_NOTICE",
+    "noticeAttachmentSha256": "7F1A66B29EA2467D68AC8CD46C877FDA672531A31D4C658C6BD447C44DB555F9",
+    "sourceManifest": "reports/information-systems-auditor-current-authority-review/current-examination-authority-manifest.json",
+    "scopeUse": "official identity/order/scope only; learner-facing prose is independently authored"
+  },
+  "assets": [
+    {"path":"content-drafts/securium-information-systems-auditor-foundation-wave-a.json","authority":"THEORY_CONTENT_AUTHORITY","authorship":"SECURIUM_ORIGINAL","historicalReferenceUse":"none in learner-facing prose","rights":"SCOPE_ONLY"},
+    {"path":"content-drafts/securium-information-systems-auditor-foundation-wave-a-assessment.json","authority":"ASSESSMENT_AUTHORITY","authorship":"SECURIUM_ORIGINAL","historicalQuestionIngestion":0,"thirdPartyQuestionIngestion":0,"rights":"SCOPE_ONLY"},
+    {"path":"content-drafts/securium-information-systems-auditor-foundation-wave-a-practicals.json","authority":"PRACTICAL_SPEC_AUTHORITY","authorship":"SECURIUM_ORIGINAL","mode":"SPEC_ONLY","syntheticOnly":true,"rights":"SCOPE_ONLY"}
+  ],
+  "historicalSources": {"count":12,"root":"C:\\Users\\user\\Documents\\Codex\\2026-07-24\\1-2-3-4-5-6\\source-evidence-original\\information-system-auditor","classification":"HISTORICAL_BUT_USEFUL","rights":"REFERENCE_ONLY / UNKNOWN_RIGHTS","directIngestion":0},
+  "rightsPolicy": "Official availability establishes scope provenance, not republication permission. Historical and third-party questions/materials are not directly ingested.",
+  "canonicalWrites": {"ontology":0,"skill":0,"role":0,"evidence":0,"mastery":0,"credential":0,"learnerTwin":0}
+}

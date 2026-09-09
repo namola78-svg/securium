@@ -1,0 +1,31 @@
+{
+  "manifestType":"information-systems-auditor-foundation-bounded-commit-sha256",
+  "snapshot":"2026-09-09",
+  "selfHash":"EXCLUDED_TO_AVOID_CIRCULAR_DIGEST",
+  "candidateFileCount":23,
+  "hashedCandidateFiles":22,
+  "files":[
+    {"path":"content-drafts/securium-information-systems-auditor-foundation-wave-a-curriculum-authority.json","bytes":3740,"sha256":"718F349112EE29254CFC7841CA266E8834BA5F75034DAE06F3FEE2F350D2E11C"},
+    {"path":"content-drafts/securium-information-systems-auditor-foundation-wave-a.json","bytes":33966,"sha256":"006E5BF3C10AD2629666BB18D224178E92FDBA412E1AAE9F8859CE163A693479"},
+    {"path":"content-drafts/securium-information-systems-auditor-foundation-wave-a-assessment.json","bytes":54215,"sha256":"89B18FA007951325B8CAE7F17C66DF9573A5B0112A700AE47812CB50215F5041"},
+    {"path":"content-drafts/securium-information-systems-auditor-foundation-wave-a-practicals.json","bytes":7746,"sha256":"9DF033BCA35ED281E6C1EC7FB14EB53F74FE41BFAA286EA91039C53BC049939D"},
+    {"path":"scripts/validate-information-systems-auditor-foundation-wave-a.mjs","bytes":14942,"sha256":"4C071402B605F5879C162C4A5E8DC6AD50B6092991A130E403A34A6CB4C2E171"},
+    {"path":"reports/information-systems-auditor-current-authority-review/current-examination-authority-manifest.json","bytes":8293,"sha256":"7A5C34519D1625ACE7AF9FEC33B05B1049B4AACC836D0BA478AA5AFA1BE8B7FE"},
+    {"path":"reports/information-systems-auditor-foundation-wave-a-authoring/currentness-manifest.json","bytes":1810,"sha256":"55D7A5A5F4653BDC7E8C5E0CA15CB856720D224DFF6E353417D1AE1934146D30"},
+    {"path":"reports/information-systems-auditor-foundation-wave-a-authoring/provenance-manifest.json","bytes":1952,"sha256":"A8C57FB3749743C8015932AE0F14D9366A75A6591EBDCFB9A4ADA2608B7BF7AB"},
+    {"path":"reports/information-systems-auditor-foundation-wave-a-authoring/rights-and-provenance.json","bytes":950,"sha256":"B70B1337F1054510E919D624844EF52C751528FC34014AABC6CE25DFF207B740"},
+    {"path":"reports/information-systems-auditor-source-package-audit/source-sha256-manifest.json","bytes":7222,"sha256":"763A248A1E7E3C6E3987F3480F550E6691103641AD886E6F68D2FDE24DF5000B"},
+    {"path":"reports/information-systems-auditor-foundation-wave-a-authoring/ontology-concept-candidate-dry-run.json","bytes":2258,"sha256":"18285E63CB55515E8C9277261AA15504424F5C7397BE7AE6B236890CF468E89C"},
+    {"path":"reports/information-systems-auditor-foundation-wave-a-authoring/validator-mutation-test-report.json","bytes":1537,"sha256":"1131979AD0F114F6CCF499FCE92520E77BD8D33B3CD5F11D2DAC3CD570A7D7BB"},
+    {"path":"reports/information-systems-auditor-foundation-wave-a-authoring/foundation-coverage.json","bytes":1572,"sha256":"C3C0FEC7DA3C0A463BFA340F544B0EE955E3AC4B9451AFF5775F88F1E5EAB5CB"},
+    {"path":"reports/information-systems-auditor-foundation-wave-a-authoring/assessment-projection.json","bytes":633,"sha256":"6842ABC42DFD704C3261DADE667A627FED74D466658345BB97BD7AD41E6E9716"},
+    {"path":"reports/information-systems-auditor-foundation-commit-review/bounded-commit-review.md","bytes":2878,"sha256":"B993B630215BC628FEF80E9B7C5DCD589D4CA211790AC531CB90E692EF930E44"},
+    {"path":"reports/information-systems-auditor-foundation-commit-review/bounded-commit-review.json","bytes":2637,"sha256":"CBEB0D53474F3C3D782A4ADBF0060489BD7982680360C15AC7A08CFA1C0D52FB"},
+    {"path":"reports/information-systems-auditor-foundation-commit-review/candidate-manifest.json","bytes":3707,"sha256":"96C14BCD523AB6680AA4849BC287BA59B26F44E73B36387F58103F9CA41D3F1E"},
+    {"path":"reports/information-systems-auditor-foundation-commit-review/exclusion-manifest.json","bytes":3956,"sha256":"9E99D51AF5A444301531430DC18E46E7E7F1E40DF35B17A4E6221FAA5A058C4F"},
+    {"path":"reports/information-systems-auditor-foundation-commit-review/authority-verification.json","bytes":903,"sha256":"3E7AD75670E6C9D11FE214BA7995D9D2569A2A3D66BCE6DB484A73F26D48B823"},
+    {"path":"reports/information-systems-auditor-foundation-commit-review/source-rights-exclusion.json","bytes":601,"sha256":"C82B6DA9BD211B8F90E9843338D07952CB52D79F7251ADC700399197C7FA1116"},
+    {"path":"reports/information-systems-auditor-foundation-commit-review/semantic-freeze.json","bytes":803,"sha256":"302926C381D6427D1182F8B0960070F301E6B8E856A2F1105DE1C4610E15F996"},
+    {"path":"reports/information-systems-auditor-foundation-commit-review/downstream-readiness.json","bytes":695,"sha256":"16A6E201821E23AD279B80AE078C4C5631A198781D86209EC97CB48F9CB1A734"}
+  ]
+}

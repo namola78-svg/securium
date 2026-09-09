@@ -1,0 +1,14 @@
+{
+  "manifestType": "information-systems-auditor-foundation-wave-a-ontology-dry-run",
+  "dataset": "current canonical ontology Dataset B read-only comparison",
+  "writes": 0,
+  "sourceAssets": ["content-drafts/securium-information-systems-auditor-foundation-wave-a.json","content-drafts/securium-information-systems-auditor-foundation-wave-a-assessment.json"],
+  "results": {
+    "exact": [],
+    "alias": [],
+    "missing": ["authority hierarchy","applicability boundary","requirement traceability","criterion-condition-cause-effect","finding reasoning","audit independence","role clarity","communication control","segregation of duties","risk response","project constraints","change governance","requirements traceability","acceptance criteria","design rationale","quality attribute scenario","test coverage","defect lifecycle","build integrity","configuration integrity","change-to-operation trace","service management","delivery governance","architecture quality attributes","open-source governance","quality attributes","process assurance","estimate assumptions","data meaning","data ownership","integrity constraint","data manipulation control","transaction intent","query semantics","recovery objective","database operational resilience","transaction consistency","data boundary","API exposure","distributed consistency","data lineage","dataset fitness","analytical reproducibility","standard applicability","technology governance","enterprise architecture","resilience architecture","capacity evidence","network boundary","traffic path","segmentation rationale","shared responsibility","assumption validation","emerging-technology risk","security control objective","identity lifecycle","key custody","defense in depth","incident response evidence","secure configuration","application attack surface","security-by-design","data protection boundary","vulnerability remediation","secure lifecycle","operational control continuity","data lifecycle duty","legal-version pinning","privacy accountability"],
+    "ambiguous": []
+  },
+  "interpretation": "Exact matches are candidates only. Missing candidates are not canonical ontology creations; they remain package-local concepts pending a separate ontology decision.",
+  "canonicalOntologyMutation": 0
+}
