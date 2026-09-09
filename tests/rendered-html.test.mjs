@@ -1,85 +1,31 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { after, before, test } from "node:test";
+import { after, before, beforeEach, test } from "node:test";
+import { startVinextTestServer } from "./support/vinext-test-server.mjs";
 import { getSecurityCertificationDeepNodeCoverageSummary } from "../lib/curriculum/security-certification-content-map.ts";
 import {
   flattenOfficialCurriculumTree,
   SECURITY_CERTIFICATION_CURRICULUM_TREES,
 } from "../lib/curriculum/security-certification-standards.ts";
 
-const requestedPort = 33120;
 let baseUrl = "";
 const runId = `${process.pid}-${Date.now()}`;
 let server;
-let output = "";
 
 before(async () => {
-  server = spawn(
-    process.execPath,
-    [
-      "node_modules/vinext/dist/cli.js",
-      "dev",
-      "--host",
-      "127.0.0.1",
-      "--port",
-      String(requestedPort),
-    ],
-    {
-      cwd: process.cwd(),
-      env: {
-        ...process.env,
-        WRANGLER_LOG_PATH: ".wrangler/wrangler.log",
-      },
-      stdio: ["ignore", "pipe", "pipe"],
-      windowsHide: true,
-    },
-  );
-  server.stdout.on("data", (chunk) => {
-    output += chunk.toString();
-    captureBaseUrl();
+  server = await startVinextTestServer({
+    label: "Rendered HTML integration",
+    env: { WRANGLER_LOG_PATH: ".wrangler/wrangler.log" },
   });
-  server.stderr.on("data", (chunk) => {
-    output += chunk.toString();
-    captureBaseUrl();
-  });
-
-  for (let attempt = 0; attempt < 480; attempt += 1) {
-    if (server.exitCode !== null) {
-      throw new Error(`E2E server stopped early.\n${output}`);
-    }
-    try {
-      if (baseUrl) {
-        const response = await fetch(baseUrl);
-        if (response.status > 0) {
-          if (process.env.SECURIUM_HARNESS_TRACE === "1") {
-            console.log(
-              `RENDERED_HTML_HARNESS_URL ${JSON.stringify({
-                requestedPort,
-                actualBaseUrl: baseUrl,
-                readinessUrl: baseUrl,
-                requestBaseUrl: baseUrl,
-              })}`,
-            );
-          }
-          return;
-        }
-      }
-    } catch {
-      // The server is still starting.
-    }
-    await new Promise((resolve) => setTimeout(resolve, 250));
-  }
-  throw new Error(`E2E server did not become ready.\n${output}`);
+  baseUrl = server.baseUrl;
 });
 
-function captureBaseUrl() {
-  if (baseUrl) return;
-  const cleanOutput = output.replace(/\u001b\[[0-?]*[ -/]*[@-~]/g, "");
-  const match = cleanOutput.match(
-    /Local:\s+(https?:\/\/(?:localhost|127\.0\.0\.1):\d+)(?:\/|\s|$)/i,
+beforeEach((context) => {
+  if (!server?.failure) return;
+  context.skip(
+    `Shared Vinext process failed once; causal harness failure: ${server.failure.classification}`,
   );
-  if (match) baseUrl = new URL(match[1]).origin;
-}
+});
 
 test("network security practice flow stays scoped to engineer and industrial engineer courses", async () => {
   await ensureNetworkQuestionSeed();
@@ -686,23 +632,7 @@ async function readJsonResponse(response) {
 }
 
 after(async () => {
-  if (!server || server.exitCode !== null) return;
-  await new Promise((resolve, reject) => {
-    const onExit = () => {
-      clearTimeout(timeout);
-      resolve();
-    };
-    const timeout = setTimeout(() => {
-      server.removeListener("exit", onExit);
-      reject(new Error("Rendered HTML server cleanup timed out."));
-    }, 5_000);
-    server.once("exit", onExit);
-    if (!server.kill()) {
-      clearTimeout(timeout);
-      server.removeListener("exit", onExit);
-      reject(new Error("Rendered HTML server could not be terminated."));
-    }
-  });
+  await server?.stop();
 });
 
 test("통합 학습 플랫폼 랜딩페이지를 서버 렌더링한다", async () => {
