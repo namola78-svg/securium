@@ -1,0 +1,1478 @@
+{
+  "authorityId": "SECURIUM_CPPG_OBJECTIVE_AUTHORITY_V1",
+  "courseId": "course-cppg",
+  "type": "OBJECTIVE_AUTHORITY",
+  "objectives": [
+    {
+      "id": "S1-U01-O1",
+      "verb": "distinguish",
+      "text": "distinguish 개인정보 보호와 정보보안",
+      "learningUnitId": "S1-U01",
+      "officialSubjectId": "CPPG-S1",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S1-U01-O1",
+        "officialSubject": "CPPG-S1",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S1-U01-O2",
+      "verb": "evaluate",
+      "text": "evaluate 처리 목적과 권리 영향의 관계",
+      "learningUnitId": "S1-U01",
+      "officialSubjectId": "CPPG-S1",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S1-U01-O2",
+        "officialSubject": "CPPG-S1",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S1-U02-O1",
+      "verb": "distinguish",
+      "text": "distinguish 가명정보와 익명정보",
+      "learningUnitId": "S1-U02",
+      "officialSubjectId": "CPPG-S1",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S1-U02-O1",
+        "officialSubject": "CPPG-S1",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S1-U02-O2",
+      "verb": "determine",
+      "text": "determine 데이터 상태에 따른 통제",
+      "learningUnitId": "S1-U02",
+      "officialSubjectId": "CPPG-S1",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S1-U02-O2",
+        "officialSubject": "CPPG-S1",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S1-U03-O1",
+      "verb": "distinguish",
+      "text": "distinguish 개인정보처리자와 수탁자",
+      "learningUnitId": "S1-U03",
+      "officialSubjectId": "CPPG-S1",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S1-U03-O1",
+        "officialSubject": "CPPG-S1",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S1-U03-O2",
+      "verb": "analyze",
+      "text": "analyze 역할별 책임",
+      "learningUnitId": "S1-U03",
+      "officialSubjectId": "CPPG-S1",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S1-U03-O2",
+        "officialSubject": "CPPG-S1",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S1-U04-O1",
+      "verb": "identify",
+      "text": "identify 처리 원칙 위반",
+      "learningUnitId": "S1-U04",
+      "officialSubjectId": "CPPG-S1",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S1-U04-O1",
+        "officialSubject": "CPPG-S1",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S1-U04-O2",
+      "verb": "evaluate",
+      "text": "evaluate 권리 보장 절차",
+      "learningUnitId": "S1-U04",
+      "officialSubjectId": "CPPG-S1",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S1-U04-O2",
+        "officialSubject": "CPPG-S1",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S1-U05-O1",
+      "verb": "identify",
+      "text": "identify 법령·지침·내부정책의 위계",
+      "learningUnitId": "S1-U05",
+      "officialSubjectId": "CPPG-S1",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S1-U05-O1",
+        "officialSubject": "CPPG-S1",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S1-U05-O2",
+      "verb": "determine",
+      "text": "determine 권리구제 절차의 다음 단계",
+      "learningUnitId": "S1-U05",
+      "officialSubjectId": "CPPG-S1",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S1-U05-O2",
+        "officialSubject": "CPPG-S1",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S2-U01-O1",
+      "verb": "determine",
+      "text": "determine 처리 근거의 적합성",
+      "learningUnitId": "S2-U01",
+      "officialSubjectId": "CPPG-S2",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S2-U01-O1",
+        "officialSubject": "CPPG-S2",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S2-U01-O2",
+      "verb": "evaluate",
+      "text": "evaluate 목적과 고지의 정합성",
+      "learningUnitId": "S2-U01",
+      "officialSubjectId": "CPPG-S2",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S2-U01-O2",
+        "officialSubject": "CPPG-S2",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S2-U02-O1",
+      "verb": "identify",
+      "text": "identify 동의 품질의 결함",
+      "learningUnitId": "S2-U02",
+      "officialSubjectId": "CPPG-S2",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S2-U02-O1",
+        "officialSubject": "CPPG-S2",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S2-U02-O2",
+      "verb": "apply",
+      "text": "apply 선택 동의와 필수 처리의 분리",
+      "learningUnitId": "S2-U02",
+      "officialSubjectId": "CPPG-S2",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S2-U02-O2",
+        "officialSubject": "CPPG-S2",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S2-U03-O1",
+      "verb": "distinguish",
+      "text": "distinguish 고위험 개인정보 유형",
+      "learningUnitId": "S2-U03",
+      "officialSubjectId": "CPPG-S2",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S2-U03-O1",
+        "officialSubject": "CPPG-S2",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S2-U03-O2",
+      "verb": "evaluate",
+      "text": "evaluate 강화 통제의 필요성",
+      "learningUnitId": "S2-U03",
+      "officialSubjectId": "CPPG-S2",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S2-U03-O2",
+        "officialSubject": "CPPG-S2",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S2-U04-O1",
+      "verb": "distinguish",
+      "text": "distinguish 제3자 제공과 위탁",
+      "learningUnitId": "S2-U04",
+      "officialSubjectId": "CPPG-S2",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S2-U04-O1",
+        "officialSubject": "CPPG-S2",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S2-U04-O2",
+      "verb": "determine",
+      "text": "determine 계약·고지 통제의 차이",
+      "learningUnitId": "S2-U04",
+      "officialSubjectId": "CPPG-S2",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S2-U04-O2",
+        "officialSubject": "CPPG-S2",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S2-U05-O1",
+      "verb": "apply",
+      "text": "apply 정보주체 권리 요청 처리",
+      "learningUnitId": "S2-U05",
+      "officialSubjectId": "CPPG-S2",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S2-U05-O1",
+        "officialSubject": "CPPG-S2",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S2-U05-O2",
+      "verb": "determine",
+      "text": "determine 분쟁 해결 경로",
+      "learningUnitId": "S2-U05",
+      "officialSubjectId": "CPPG-S2",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S2-U05-O2",
+        "officialSubject": "CPPG-S2",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S3-U01-O1",
+      "verb": "analyze",
+      "text": "analyze 개인정보 처리흐름",
+      "learningUnitId": "S3-U01",
+      "officialSubjectId": "CPPG-S3",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S3-U01-O1",
+        "officialSubject": "CPPG-S3",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S3-U01-O2",
+      "verb": "identify",
+      "text": "identify 인벤토리 통제 공백",
+      "learningUnitId": "S3-U01",
+      "officialSubjectId": "CPPG-S3",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S3-U01-O2",
+        "officialSubject": "CPPG-S3",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S3-U02-O1",
+      "verb": "evaluate",
+      "text": "evaluate 수집 항목의 필요성",
+      "learningUnitId": "S3-U02",
+      "officialSubjectId": "CPPG-S3",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S3-U02-O1",
+        "officialSubject": "CPPG-S3",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S3-U02-O2",
+      "verb": "determine",
+      "text": "determine 목적 외 이용 여부",
+      "learningUnitId": "S3-U02",
+      "officialSubjectId": "CPPG-S3",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S3-U02-O2",
+        "officialSubject": "CPPG-S3",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S3-U03-O1",
+      "verb": "determine",
+      "text": "determine 보유 종료 조건",
+      "learningUnitId": "S3-U03",
+      "officialSubjectId": "CPPG-S3",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S3-U03-O1",
+        "officialSubject": "CPPG-S3",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S3-U03-O2",
+      "verb": "apply",
+      "text": "apply 저장소별 파기 통제",
+      "learningUnitId": "S3-U03",
+      "officialSubjectId": "CPPG-S3",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S3-U03-O2",
+        "officialSubject": "CPPG-S3",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S3-U04-O1",
+      "verb": "analyze",
+      "text": "analyze 외부 이전의 통제",
+      "learningUnitId": "S3-U04",
+      "officialSubjectId": "CPPG-S3",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S3-U04-O1",
+        "officialSubject": "CPPG-S3",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S3-U04-O2",
+      "verb": "distinguish",
+      "text": "distinguish 제공·위탁·국외 이전",
+      "learningUnitId": "S3-U04",
+      "officialSubjectId": "CPPG-S3",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S3-U04-O2",
+        "officialSubject": "CPPG-S3",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S3-U05-O1",
+      "verb": "analyze",
+      "text": "analyze 침해사고 대응 순서",
+      "learningUnitId": "S3-U05",
+      "officialSubjectId": "CPPG-S3",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S3-U05-O1",
+        "officialSubject": "CPPG-S3",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S3-U05-O2",
+      "verb": "evaluate",
+      "text": "evaluate 재발 방지 조치",
+      "learningUnitId": "S3-U05",
+      "officialSubjectId": "CPPG-S3",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S3-U05-O2",
+        "officialSubject": "CPPG-S3",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S4-U01-O1",
+      "verb": "evaluate",
+      "text": "evaluate 보호조치의 적합성",
+      "learningUnitId": "S4-U01",
+      "officialSubjectId": "CPPG-S4",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S4-U01-O1",
+        "officialSubject": "CPPG-S4",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S4-U01-O2",
+      "verb": "determine",
+      "text": "determine 운영 증적의 필요성",
+      "learningUnitId": "S4-U01",
+      "officialSubjectId": "CPPG-S4",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S4-U01-O2",
+        "officialSubject": "CPPG-S4",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S4-U02-O1",
+      "verb": "apply",
+      "text": "apply 최소권한 접근통제",
+      "learningUnitId": "S4-U02",
+      "officialSubjectId": "CPPG-S4",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S4-U02-O1",
+        "officialSubject": "CPPG-S4",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S4-U02-O2",
+      "verb": "identify",
+      "text": "identify 권한 생애주기 결함",
+      "learningUnitId": "S4-U02",
+      "officialSubjectId": "CPPG-S4",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S4-U02-O2",
+        "officialSubject": "CPPG-S4",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S4-U03-O1",
+      "verb": "evaluate",
+      "text": "evaluate 암호화 적용 범위",
+      "learningUnitId": "S4-U03",
+      "officialSubjectId": "CPPG-S4",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S4-U03-O1",
+        "officialSubject": "CPPG-S4",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S4-U03-O2",
+      "verb": "analyze",
+      "text": "analyze 키 관리 통제",
+      "learningUnitId": "S4-U03",
+      "officialSubjectId": "CPPG-S4",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S4-U03-O2",
+        "officialSubject": "CPPG-S4",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S4-U04-O1",
+      "verb": "identify",
+      "text": "identify 접속기록 결함",
+      "learningUnitId": "S4-U04",
+      "officialSubjectId": "CPPG-S4",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S4-U04-O1",
+        "officialSubject": "CPPG-S4",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S4-U04-O2",
+      "verb": "apply",
+      "text": "apply 출력·복사 보호",
+      "learningUnitId": "S4-U04",
+      "officialSubjectId": "CPPG-S4",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S4-U04-O2",
+        "officialSubject": "CPPG-S4",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S4-U05-O1",
+      "verb": "evaluate",
+      "text": "evaluate 영상정보 운영 통제",
+      "learningUnitId": "S4-U05",
+      "officialSubjectId": "CPPG-S4",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S4-U05-O1",
+        "officialSubject": "CPPG-S4",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S4-U05-O2",
+      "verb": "identify",
+      "text": "identify 물리·악성코드 위험",
+      "learningUnitId": "S4-U05",
+      "officialSubjectId": "CPPG-S4",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S4-U05-O2",
+        "officialSubject": "CPPG-S4",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S5-U01-O1",
+      "verb": "analyze",
+      "text": "analyze 관리체계 구성",
+      "learningUnitId": "S5-U01",
+      "officialSubjectId": "CPPG-S5",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S5-U01-O1",
+        "officialSubject": "CPPG-S5",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S5-U01-O2",
+      "verb": "evaluate",
+      "text": "evaluate 책임과 절차의 연결",
+      "learningUnitId": "S5-U01",
+      "officialSubjectId": "CPPG-S5",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S5-U01-O2",
+        "officialSubject": "CPPG-S5",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S5-U02-O1",
+      "verb": "distinguish",
+      "text": "distinguish 영향평가와 수준진단",
+      "learningUnitId": "S5-U02",
+      "officialSubjectId": "CPPG-S5",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S5-U02-O1",
+        "officialSubject": "CPPG-S5",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S5-U02-O2",
+      "verb": "determine",
+      "text": "determine 평가 시점과 산출물",
+      "learningUnitId": "S5-U02",
+      "officialSubjectId": "CPPG-S5",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S5-U02-O2",
+        "officialSubject": "CPPG-S5",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S5-U03-O1",
+      "verb": "identify",
+      "text": "identify 역할·교육 공백",
+      "learningUnitId": "S5-U03",
+      "officialSubjectId": "CPPG-S5",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S5-U03-O1",
+        "officialSubject": "CPPG-S5",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S5-U03-O2",
+      "verb": "evaluate",
+      "text": "evaluate 자원 배분의 적합성",
+      "learningUnitId": "S5-U03",
+      "officialSubjectId": "CPPG-S5",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S5-U03-O2",
+        "officialSubject": "CPPG-S5",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S5-U04-O1",
+      "verb": "analyze",
+      "text": "analyze 감사 증적",
+      "learningUnitId": "S5-U04",
+      "officialSubjectId": "CPPG-S5",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S5-U04-O1",
+        "officialSubject": "CPPG-S5",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S5-U04-O2",
+      "verb": "determine",
+      "text": "determine 시정조치 우선순위",
+      "learningUnitId": "S5-U04",
+      "officialSubjectId": "CPPG-S5",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S5-U04-O2",
+        "officialSubject": "CPPG-S5",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S5-U05-O1",
+      "verb": "apply",
+      "text": "apply 지속적 개선 절차",
+      "learningUnitId": "S5-U05",
+      "officialSubjectId": "CPPG-S5",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S5-U05-O1",
+        "officialSubject": "CPPG-S5",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "S5-U05-O2",
+      "verb": "evaluate",
+      "text": "evaluate 법령 변경의 운영 영향",
+      "learningUnitId": "S5-U05",
+      "officialSubjectId": "CPPG-S5",
+      "measurable": true,
+      "provenance": {
+        "assetId": "S5-U05-O2",
+        "officialSubject": "CPPG-S5",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    }
+  ],
+  "provenance": {
+    "assetId": "OBJECTIVE-AUTHORITY",
+    "officialSubject": "ALL",
+    "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+    "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+    "referencePackage": {
+      "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+      "use": "THEME_ORIENTATION_ONLY",
+      "copiedText": false,
+      "copiedQuestion": false,
+      "sourceImageUsed": false
+    },
+    "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+    "authoritySources": [
+      "CPPG_OFFICIAL_PORTAL",
+      "CPPG_OFFICIAL_EXAM_PROFILE",
+      "CPPG_OFFICIAL_SCOPE",
+      "PIPC_LAW_PORTAL",
+      "PIPC_GUIDANCE_INDEX"
+    ]
+  }
+}

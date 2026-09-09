@@ -1,0 +1,42 @@
+{
+  "manifestId": "SECURIUM_CPPG_FOUNDATION_BASELINE_V1",
+  "baseline": {
+      "worktree": "worktree://securium-content-cppg-foundation",
+    "branch": "content/cppg-foundation-wave-a",
+    "head": "ac65766b8e406968dd66fd906249c48b91fa6b38",
+    "originMain": "ac65766b8e406968dd66fd906249c48b91fa6b38",
+    "ahead": 0,
+    "behind": 0,
+    "trackedChanges": 0,
+    "stagedChanges": 0,
+    "untrackedChangesBeforeWaveA": 0,
+    "latestOriginMainVerified": true
+  },
+  "recoveredPriorAuditArtifacts": [
+    {
+        "path": "reports/content-audit/securium-cppg-current-authority.json",
+      "sha256": "ba1bbc5a0e803e34f16ef726ee391c71dece939e250acd8fd02bc5af1b3ad9e7",
+      "status": "REVALIDATED"
+    },
+    {
+        "path": "reports/content-audit/securium-cppg-source-inventory.json",
+      "sha256": "1c954feab9aaac0793c7bb4c7aff012d1cfcda397eb6fd6d7cadda45f09a0302",
+      "status": "REVALIDATED"
+    },
+    {
+        "path": "reports/content-audit/securium-cppg-source-manifest-v2.json",
+      "sha256": "d572938232930c9b1c0adb9a2bdbb598dbc2931b0bcc7dcb1ff1342ce94e2b38",
+      "status": "REVALIDATED"
+    },
+    {
+        "path": "reports/content-audit/securium-cppg-rights-review.json",
+      "sha256": "987d1d7fac7ddfd50d3211458dedacad7d89794eb2fd37e69bae6c096d41a506",
+      "status": "REVALIDATED"
+    },
+    {
+        "path": "reports/content-audit/securium-cppg-final-readiness.json",
+      "sha256": "33c32903b73175a2faacf64c79990062c2c9a3afb6b54f65e75bc7d1aac33423",
+      "status": "REVALIDATED"
+    }
+  ]
+}

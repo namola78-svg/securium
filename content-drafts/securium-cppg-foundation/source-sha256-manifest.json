@@ -1,0 +1,827 @@
+{
+  "manifestId": "SECURIUM_CPPG_FOUNDATION_SOURCE_SHA256_V1",
+  "snapshotDate": "2026-09-08",
+  "sourceRoot": "../source-evidence-original/cppg",
+  "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+  "fileCount": 133,
+  "totalBytes": 377555066,
+  "fileTypeCounts": {
+    "JPG": 131,
+    "PDF": 2
+  },
+  "duplicateFiles": 0,
+  "sha256Mismatch": 0,
+  "packageHash": "cf4ada7c7f325aa405c76db7993d314b782ff4f69f07b467793dc11cf1913a80",
+  "files": [
+    {
+      "relativePath": "CPPG 개인정보관리사.pdf",
+      "extension": "PDF",
+      "bytes": 756809,
+      "sha256": "77fad4c942bb099b73db3343132d3cbc1c385d2967fce8c396744d7703c454fd"
+    },
+    {
+      "relativePath": "cppg_암기노트.pdf",
+      "extension": "PDF",
+      "bytes": 459735,
+      "sha256": "38fd3cf7a5dbc06619f95a4d39c7bbd93dd2f43bb8752f2a286f382f439d6323"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143758978_01.jpg",
+      "extension": "JPG",
+      "bytes": 3223462,
+      "sha256": "8c223f088af39d5c01b66620d783c481fb409616b5dd1411c3c6e44ea33d7cd2"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143758978_02.jpg",
+      "extension": "JPG",
+      "bytes": 2287849,
+      "sha256": "c6ae607a97dbbd4c27475d50497e56bc3f23506340c15f6628e8927b1f217ee1"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143758978_03.jpg",
+      "extension": "JPG",
+      "bytes": 3286180,
+      "sha256": "88daaf72e46556ff707f127a42644b7f50049ea6f3740e3ff3c4c223e5151bb0"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143758978_04.jpg",
+      "extension": "JPG",
+      "bytes": 2360445,
+      "sha256": "7408a21727d376aee49aad8ae9ed5b3de1d29726b8d58a45f57125ca4063a4a6"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143758978_05.jpg",
+      "extension": "JPG",
+      "bytes": 2456014,
+      "sha256": "74223b508f406138efd097293e586a43608851d974c25adfb868fccc2e2ddeb1"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143758978_06.jpg",
+      "extension": "JPG",
+      "bytes": 2638374,
+      "sha256": "f3ea82ef3deaf8c5805849d2562b9c6fc33ee58433011bfdf22e1094ace5b075"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143758978_07.jpg",
+      "extension": "JPG",
+      "bytes": 3141205,
+      "sha256": "f1b8287e7475245c3faa47e0cbae9cb0e1e4e90e1c9583c2e44246be0838c6ad"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143758978_08.jpg",
+      "extension": "JPG",
+      "bytes": 2901812,
+      "sha256": "573d11262b0a343cf0ba12cda2b47f968e0ac56eef20b41faf74f149ba0a6adf"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143758978_09.jpg",
+      "extension": "JPG",
+      "bytes": 2617648,
+      "sha256": "ae841b1aadfff9b2ae30364d5be89771304321c4c2d299f848a84ed21c785540"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143758978_10.jpg",
+      "extension": "JPG",
+      "bytes": 2669735,
+      "sha256": "4cec79a1dacba7434dbfe1cde56ca5c16996055fc5e92086b7dcb10d8110709f"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143758978_11.jpg",
+      "extension": "JPG",
+      "bytes": 3250461,
+      "sha256": "f25ef82e3ccf9065c8df0d4827e15fb62dea789095ec9b8c6457ef1498f60f69"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143758978_12.jpg",
+      "extension": "JPG",
+      "bytes": 2983632,
+      "sha256": "b298a535f01e5ca07dd26df5f3ee61be80dedba81815aa7f2311e2f2493670af"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143758978_13.jpg",
+      "extension": "JPG",
+      "bytes": 3175978,
+      "sha256": "f301368b698a2364e8ca56c90950c4bfc7846cd177b01df519c7d744073e211c"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143758978_14.jpg",
+      "extension": "JPG",
+      "bytes": 2877541,
+      "sha256": "1adde4ce279229bd8f1de974395807f3d5e7e58f420695230d0aa0144a0ed3d5"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143758978_15.jpg",
+      "extension": "JPG",
+      "bytes": 2515553,
+      "sha256": "e417ab1e02d959b584d804b16329e4770e2ccb9b85ee63a5639aa8e1fb2f13de"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143758978_16.jpg",
+      "extension": "JPG",
+      "bytes": 2790687,
+      "sha256": "55643b322071706fc36c1ffe1bc71d181fc10cfdb47570e716429449b31f2d2a"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143758978_17.jpg",
+      "extension": "JPG",
+      "bytes": 3082928,
+      "sha256": "0f5a892bc5598cef4d1c107fe2a0e75fe0cc56b53d2287ef0a598fd638573233"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143758978_18.jpg",
+      "extension": "JPG",
+      "bytes": 3105859,
+      "sha256": "5bfcd8993dfa6095199a922cc0a768da6cb01cbc65fff41c35378928b210c7a0"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143758978_19.jpg",
+      "extension": "JPG",
+      "bytes": 2487748,
+      "sha256": "72e039b9af4e4b6d05d1ed8dccb73472b0be965f9ca0c3f452f05357f4b8d4d0"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143758978.jpg",
+      "extension": "JPG",
+      "bytes": 2964833,
+      "sha256": "7347626cf17fc350acc51d7a367e0324aaaecc34c7a8ea8d657a4086a2fe7784"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143903095_01.jpg",
+      "extension": "JPG",
+      "bytes": 2446493,
+      "sha256": "084f64fb33a521e4f69743937bbaf2de1708313568b5fd80604ca2aa10ff52b4"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143903095_02.jpg",
+      "extension": "JPG",
+      "bytes": 2705277,
+      "sha256": "4670873f33cffa40e6acd03fe89796e9ca9a23d32f2ad29e4e83058d8a47b60b"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143903095_03.jpg",
+      "extension": "JPG",
+      "bytes": 3167536,
+      "sha256": "d83b0b1ccb4102ed2da605020ffd502696cbeaebee9422f154dbd8a48569996d"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143903095_04.jpg",
+      "extension": "JPG",
+      "bytes": 2605829,
+      "sha256": "acb5cd384a406f1c3eaab1256fb140e2ebe1767ec95f811c3662be76dc84fb9a"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143903095_05.jpg",
+      "extension": "JPG",
+      "bytes": 2499045,
+      "sha256": "4244b1ca387204ccff3733a4d9e571f47a4ea44ca037986f78b0326d2ac65c48"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143903095_06.jpg",
+      "extension": "JPG",
+      "bytes": 2775637,
+      "sha256": "2a2fd4a6a9d546b8643c8d9138993ab21e2ac6033133260d95067d45f6601deb"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143903095_07.jpg",
+      "extension": "JPG",
+      "bytes": 2623651,
+      "sha256": "f2d4daa34b99ad8bd5c2369cf3edc10ef23da8cbfd1c2c293dbd56703f6c7897"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143903095_08.jpg",
+      "extension": "JPG",
+      "bytes": 3154372,
+      "sha256": "6d8b8c6b9d25c4a348ce446dbd785a13c8ccfb33b6dece7d57de708c2a57e1c5"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143903095_09.jpg",
+      "extension": "JPG",
+      "bytes": 2975944,
+      "sha256": "e72ef9198238de0fdeaefe303ff7ec5cc0bc66cbc60085e84d2fd7754463ff62"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143903095_10.jpg",
+      "extension": "JPG",
+      "bytes": 2602893,
+      "sha256": "d4c860fe5e448e5b5a7ed0a256ce31ba2811291042a08a49e73b42022a4cc08f"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143903095_11.jpg",
+      "extension": "JPG",
+      "bytes": 2837182,
+      "sha256": "6734013cc8fec645b32e3bd086b79ed27d32047cd297e26bd3e0ef773d48a764"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143903095_12.jpg",
+      "extension": "JPG",
+      "bytes": 2458632,
+      "sha256": "6ebbb269d3db4dcda976c5a2247c601af5774ab35f90ef77ee3b786c3415b8a3"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143903095_13.jpg",
+      "extension": "JPG",
+      "bytes": 2607952,
+      "sha256": "786117cb85ef0c96b5a9c43f8e259ace07cc2da6761f331a6d964d2b081b777d"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143903095_14.jpg",
+      "extension": "JPG",
+      "bytes": 2280499,
+      "sha256": "e7e8e152392c5886ad8f245a2a0e2dfc0f5c8abd1acd61b29132fb6d4aadb9f0"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143903095_15.jpg",
+      "extension": "JPG",
+      "bytes": 3167071,
+      "sha256": "472756ba481e2f103d27b51857a00e821f8959c548559b3afc510d1aa36dec25"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143903095_16.jpg",
+      "extension": "JPG",
+      "bytes": 2813420,
+      "sha256": "c1363ec52e9c8471e53552343b31d1d28a242c2402d6d53261f249a6f3ff78db"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143903095_17.jpg",
+      "extension": "JPG",
+      "bytes": 2629788,
+      "sha256": "b3a6379d9dba58f948f1681d569cda45533755bc75b09ea107a79dfded60a6d5"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143903095_18.jpg",
+      "extension": "JPG",
+      "bytes": 3075876,
+      "sha256": "35ec98451ee639fbcc3de784601ad0a29b3941a004a148d3cce4b79a763edb08"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143903095_19.jpg",
+      "extension": "JPG",
+      "bytes": 2750641,
+      "sha256": "0bce5b887e96360163f7e85e01589e2e4169b60a6be8be66d034df98a909b3cb"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_143903095.jpg",
+      "extension": "JPG",
+      "bytes": 2912425,
+      "sha256": "ad2b5d4c3ac0f3a1741f1e21701fb02efdd565c46b1ab7778be47c1cafe7ee6b"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144021485_01.jpg",
+      "extension": "JPG",
+      "bytes": 2535401,
+      "sha256": "f5882093437a500c7ac95f515f823293c5dcba5c87e72e6c88c0e21c5bff930e"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144021485_02.jpg",
+      "extension": "JPG",
+      "bytes": 3086560,
+      "sha256": "4c5fd7f0b1d7c5f3bf161a2ebfbd7ceeb6714be1a86a22e5064393d9a9f28cf4"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144021485_03.jpg",
+      "extension": "JPG",
+      "bytes": 2362029,
+      "sha256": "5fbefe9a0e5d3619ff361f0995a429becda15d8fb10a8aa9b749a2569cd79390"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144021485_04.jpg",
+      "extension": "JPG",
+      "bytes": 3166530,
+      "sha256": "d4a709377ef887b055fce382e74e9168a4b153f27a9f99b69491b3a68c9dcc4b"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144021485_05.jpg",
+      "extension": "JPG",
+      "bytes": 2809617,
+      "sha256": "1f75005719272024cb787065eb2c4f476ed538615a4b71ed84df4ca922e9cef6"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144021485_06.jpg",
+      "extension": "JPG",
+      "bytes": 3272454,
+      "sha256": "5d729b5b7dd4d2f01a3ac6a99804469f12c18e61feb004278df77680cce6e07f"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144021485_07.jpg",
+      "extension": "JPG",
+      "bytes": 3167596,
+      "sha256": "b138ca7a78fb521c04c8fa959ad97953890fab205fa28d5592c3afee15dcf020"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144021485_08.jpg",
+      "extension": "JPG",
+      "bytes": 3232929,
+      "sha256": "174be2f56e24beb2b49f315a729314dbedb73e561c545e4d48985bb911f2e462"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144021485_09.jpg",
+      "extension": "JPG",
+      "bytes": 2157761,
+      "sha256": "ec7438299bcd22a4332d12c368b7f49780d4443e43b13807ee591954b9ffd0e2"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144021485_10.jpg",
+      "extension": "JPG",
+      "bytes": 3195189,
+      "sha256": "6e13becaa5d185586868cc01ee105e51d4b5ffee26fe38272e29bc445fd9cfcd"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144021485_11.jpg",
+      "extension": "JPG",
+      "bytes": 2765547,
+      "sha256": "dc902b6904ce0b31a7d039d41d0697f3e6be281bd9a85b1fba5d3620806460bf"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144021485_12.jpg",
+      "extension": "JPG",
+      "bytes": 3329515,
+      "sha256": "b3ee0a8c937f541e78c02884409c1832bde2b3bce8235b6dc107fed5cef697d4"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144021485_13.jpg",
+      "extension": "JPG",
+      "bytes": 2716524,
+      "sha256": "d44017ef839182642db4f9a14180a816c8a1bca380f6e097b702e32a23ca4e7b"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144021485_14.jpg",
+      "extension": "JPG",
+      "bytes": 3587963,
+      "sha256": "a15a57c9eb3fa545201129f0507091f5f4580b9eab30eca5bb3cd6be14bf5787"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144021485_15.jpg",
+      "extension": "JPG",
+      "bytes": 2970368,
+      "sha256": "c2b384826c7adc159b0fb3c228cd262f3768662dcbef38fed07f72dc51baf0cd"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144021485_16.jpg",
+      "extension": "JPG",
+      "bytes": 2769839,
+      "sha256": "b7103bfccf93816ef215f0019a8ced16c2dc902390c99e549bf1d61550bdad8d"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144021485_17.jpg",
+      "extension": "JPG",
+      "bytes": 3340503,
+      "sha256": "50a843eafdaaa2b8b6af9cca330b320164fc20bc5384a09cd3f276e1499e81c3"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144021485_18.jpg",
+      "extension": "JPG",
+      "bytes": 2205573,
+      "sha256": "3840d7d255cae6092ee3440056503fe9e814f6c08b7b3b838805aafc4acdbc1c"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144021485.jpg",
+      "extension": "JPG",
+      "bytes": 2952527,
+      "sha256": "58691b2421acddd517c65b3ad39ae1f73fb6384c048f23d411b67c70a0ef8fdc"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144137643_01.jpg",
+      "extension": "JPG",
+      "bytes": 3036842,
+      "sha256": "1481bb78792d79c956a7e70085d403c12f4fd01eae1872f9af911c7abe3db755"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144137643_02.jpg",
+      "extension": "JPG",
+      "bytes": 3282987,
+      "sha256": "db12e43baadc301710403015bb5daaf2245ed999f6888b178202fc431c2e25e1"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144137643_03.jpg",
+      "extension": "JPG",
+      "bytes": 3162359,
+      "sha256": "68349cdb32323627088f56467bbda7d92322ce051a18e5d7df94e8e826cd77c1"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144137643_04.jpg",
+      "extension": "JPG",
+      "bytes": 2924115,
+      "sha256": "a58aa2f801f79a7b5abde40291267f3285d58f6d790a705a3f368d389d786fd9"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144137643_05.jpg",
+      "extension": "JPG",
+      "bytes": 2839814,
+      "sha256": "7dddad142d6c21c96e48d46b5ba4c4930fb8ebb09bdcbb8074872c0a83cf1cf1"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144137643_06.jpg",
+      "extension": "JPG",
+      "bytes": 2669190,
+      "sha256": "61edcd2fe2ef36f13157989be8828699fd53e8e9ec6ceabaa6e7fed41e780f4b"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144137643_07.jpg",
+      "extension": "JPG",
+      "bytes": 3059814,
+      "sha256": "5291d9e2dee9b0bd457fa11fbb6832f8a7de0b02d6701151901296aed4a31f74"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144137643_08.jpg",
+      "extension": "JPG",
+      "bytes": 2721126,
+      "sha256": "c9db043d560aa8d6c1b777446038d14db35b7f7729988530015560e6549e3dc0"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144137643_09.jpg",
+      "extension": "JPG",
+      "bytes": 2966860,
+      "sha256": "7ad0d38fed8307df67154bfecdf4de41f08f7fe0499057e66810e31d3bf98fa9"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144137643_10.jpg",
+      "extension": "JPG",
+      "bytes": 2818296,
+      "sha256": "e3a0983aecc1875ff00ac01142012bfb6522a2d06582500dd6349200173ba670"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144137643_11.jpg",
+      "extension": "JPG",
+      "bytes": 3367236,
+      "sha256": "cada1949343117a9754b11160b27de066c4e6ed246020f3b89997aa81796d291"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144137643_12.jpg",
+      "extension": "JPG",
+      "bytes": 2551080,
+      "sha256": "d46e6dfa220595445285e8296f80ec3b48d4bb29e4ddb4bd2e23cee250ef1012"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144137643_13.jpg",
+      "extension": "JPG",
+      "bytes": 3308415,
+      "sha256": "4b39111bdb26dd7bf43172473c2a1d0dd3950a7ec37d0c768e73e27986f6a94e"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144137643_14.jpg",
+      "extension": "JPG",
+      "bytes": 3207849,
+      "sha256": "422c7221f37c822fa2e95754250cf655a8610ab84265c6f37f80964d61c2ff6f"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144137643_15.jpg",
+      "extension": "JPG",
+      "bytes": 2951190,
+      "sha256": "efdb000b52987c2297286dc59d8a69a40d59f882ef2a4b0717b2298328875f7e"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144137643_16.jpg",
+      "extension": "JPG",
+      "bytes": 2665698,
+      "sha256": "95bb2555de5e1b9ddd779e6198405c8ff4c4ca261ac06ff6880f44602169a886"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144137643_17.jpg",
+      "extension": "JPG",
+      "bytes": 3221896,
+      "sha256": "b2c7f20f5b6e200448084c9ebe11356b075c13ba297716af0e152ff2662ea6c3"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144137643_18.jpg",
+      "extension": "JPG",
+      "bytes": 2956103,
+      "sha256": "33470e1233375f7861e943ffeba4665fb0e17e4bc2d2fda4805edca9d042df2b"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144137643_19.jpg",
+      "extension": "JPG",
+      "bytes": 3175296,
+      "sha256": "67db16be242ceb9a2b4a84e324155cb7ca940b7a17c44d1e75461163eabadbea"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144137643.jpg",
+      "extension": "JPG",
+      "bytes": 3041555,
+      "sha256": "84e3062eff68482b9eb791fd96070a4663a0cca67a09f7c60f393c3f5e0165f1"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144243770_01.jpg",
+      "extension": "JPG",
+      "bytes": 2906571,
+      "sha256": "8cb9bd940918456550f45f9cc7079de7249f53ddb25946c8b14bcbfacea6a0cb"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144243770_02.jpg",
+      "extension": "JPG",
+      "bytes": 2960812,
+      "sha256": "c192f619d522870360d2cd0098646e71b2b518d9c79809616c900920111057b8"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144243770_03.jpg",
+      "extension": "JPG",
+      "bytes": 3117588,
+      "sha256": "a61b2d7ddc0219d0213f1b497f376bf6fc354b450bbb38fdb2786924cc30fdb3"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144243770_04.jpg",
+      "extension": "JPG",
+      "bytes": 3244207,
+      "sha256": "22c9433073752db5a8dc911e22ab441de0b529821291e35196b1985b7c556e6d"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144243770_05.jpg",
+      "extension": "JPG",
+      "bytes": 3061597,
+      "sha256": "364e24d983f153d800542b67f4cc6b8b442440fb929babd35b90682d664f8737"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144243770_06.jpg",
+      "extension": "JPG",
+      "bytes": 2279478,
+      "sha256": "75e479ad43778657eb0be095de03fdb88c5d2cf1f7d9e201591dc0eae5df27ff"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144243770_07.jpg",
+      "extension": "JPG",
+      "bytes": 2499874,
+      "sha256": "8a943a366b8195b33e8d653932b0b23ebe797773894cee9780f7a0fdcb99d11d"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144243770_08.jpg",
+      "extension": "JPG",
+      "bytes": 2133377,
+      "sha256": "8171247b9edf2b42bf54489512bb336e97fda74c09e870ce7defee86d2b02bf8"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144243770_09.jpg",
+      "extension": "JPG",
+      "bytes": 3017691,
+      "sha256": "db8680499775cc16977832f006368531e72fb57a88309033a600e96ec37f6534"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144243770_10.jpg",
+      "extension": "JPG",
+      "bytes": 2652011,
+      "sha256": "6a9ae754c39df99842b0c798008d18b4cfa40b62a3ffcbaa497c267973b25a7a"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144243770_11.jpg",
+      "extension": "JPG",
+      "bytes": 2951694,
+      "sha256": "0f437ad978433fbe09dc15f723bcf2f9df41b1059f30a1d29d287c5c2ebdf3c2"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144243770_12.jpg",
+      "extension": "JPG",
+      "bytes": 2282373,
+      "sha256": "57588ca6cbda5cf6bc7a8bb43bdea8ceaa30f186d5f8aac3ad2db08266547bc8"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144243770_13.jpg",
+      "extension": "JPG",
+      "bytes": 3126430,
+      "sha256": "330deb9b3be087090b9ca6b401c9a1a61a43b096f032db20aea4bca1bfeb26c3"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144243770_14.jpg",
+      "extension": "JPG",
+      "bytes": 3129196,
+      "sha256": "e8c17d13d35f8ce64a878015a788e949f9caf9d58a787c2f9f31e266ffa50feb"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144243770_15.jpg",
+      "extension": "JPG",
+      "bytes": 2969314,
+      "sha256": "338e7a43cda663d75075355de4ec737f160747cbc516080dfc26c2789a6f9b0b"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144243770_16.jpg",
+      "extension": "JPG",
+      "bytes": 2615125,
+      "sha256": "39ce932681d40444b2619516426592963bbf147c136d73e98db178d515153dd9"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144243770_17.jpg",
+      "extension": "JPG",
+      "bytes": 2872534,
+      "sha256": "dea7426dccecdaae4478e7a00e4c452828ba6574b9559216fabc8ca3d421dc29"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144243770_18.jpg",
+      "extension": "JPG",
+      "bytes": 2493840,
+      "sha256": "5fc09d245b226b24e50c5bc5f3cc85515670fbb2bfbcaa380d83707cd22a5619"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144243770_19.jpg",
+      "extension": "JPG",
+      "bytes": 2829695,
+      "sha256": "4bfeb3c98eb3c512a53bf29ea68b263bef16426b30d2a4d4c3d87b5f7eada600"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144243770.jpg",
+      "extension": "JPG",
+      "bytes": 3027160,
+      "sha256": "7c69072f69ba36add6dd26979abc9396273f3a43485d62cf04dc881272f0e369"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144406719_01.jpg",
+      "extension": "JPG",
+      "bytes": 2787595,
+      "sha256": "285d9b9d4ab44857bfc371d0270b183c833313f9f0d4f4f4c478772f895c0a3a"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144406719_02.jpg",
+      "extension": "JPG",
+      "bytes": 2744106,
+      "sha256": "f71a91c5beddc027b39f98c833762489cfee56ae9e4649d3e51ecba311adba89"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144406719_03.jpg",
+      "extension": "JPG",
+      "bytes": 3421834,
+      "sha256": "63547c2eb9b6ef514a5bf5d9a7a7628db269fb54ebda3f2128ed3ad1e5217ffc"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144406719_04.jpg",
+      "extension": "JPG",
+      "bytes": 2539028,
+      "sha256": "b118bbea6f7a738f569e5886cef15ed44458919c1df1e1eeb668071c3b2cdbfb"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144406719_05.jpg",
+      "extension": "JPG",
+      "bytes": 2963978,
+      "sha256": "065b407158cdb91c386fb6c2703a734cbf89a056fbf9ded5323d0d086cef26c8"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144406719_06.jpg",
+      "extension": "JPG",
+      "bytes": 3285655,
+      "sha256": "dea9a5af57982529ddaf2c6cd0b5d39b843fc0bbe94bb2a13eafede1112ba28d"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144406719_07.jpg",
+      "extension": "JPG",
+      "bytes": 2847416,
+      "sha256": "934ef147a35b5e4bfc8d19b672f97d50b175173e031c4facba9eb2127f890d16"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144406719_08.jpg",
+      "extension": "JPG",
+      "bytes": 2474694,
+      "sha256": "43e40a7e348b9b8c7c03df2bf2bed4fb583a678a7d33e6dfd87f8dee69a9b3da"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144406719_09.jpg",
+      "extension": "JPG",
+      "bytes": 2878813,
+      "sha256": "f3b3262ba8ffd48f391c4b9ca1acc0eff1763cd8e3b1447a2be97f573ccd9d23"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144406719_10.jpg",
+      "extension": "JPG",
+      "bytes": 2587343,
+      "sha256": "6d62c96d5a2e9d17a63f52190e9aa2eddd8dff3b2c75c52b34de04879192f9d9"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144406719_11.jpg",
+      "extension": "JPG",
+      "bytes": 3069578,
+      "sha256": "c459705ff8a39aa8914e8715b8680dd7fdcc04e5dfe6e87393bc4321e5c98821"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144406719_12.jpg",
+      "extension": "JPG",
+      "bytes": 2835281,
+      "sha256": "3f178a77072f34a665f1c025da8b79bbc6547962623229bd2bfcd869a654f49e"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144406719_13.jpg",
+      "extension": "JPG",
+      "bytes": 2965074,
+      "sha256": "7b99751ba7bf53ad335abddd45b481a5721eb30307f99c021de351df7a616f93"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144406719_14.jpg",
+      "extension": "JPG",
+      "bytes": 2592202,
+      "sha256": "202c29f10d2c48d9d209926dd8b4ebd52b0ad9d2b969f5e2950d7bc29e2fbe4d"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144406719_15.jpg",
+      "extension": "JPG",
+      "bytes": 2667509,
+      "sha256": "835accca59f0645a4600a3661b24bb83613a322d98ca6072a24ce3ee13d00a78"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144406719_16.jpg",
+      "extension": "JPG",
+      "bytes": 2772243,
+      "sha256": "0b6418d748e8d4309e10ef565d60a984d0d7f627fb42712b8e83b6e21846ad9b"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144406719_17.jpg",
+      "extension": "JPG",
+      "bytes": 2763727,
+      "sha256": "d3245f3555946e84ba39a8262686972bd0f64e11f4a4eb0e88f0fb594325093e"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144406719_18.jpg",
+      "extension": "JPG",
+      "bytes": 2999948,
+      "sha256": "ab9426b7fbbe5f494724572b5ad4fc421abcc25dec290d1bf60c70059cb28b0a"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144406719_19.jpg",
+      "extension": "JPG",
+      "bytes": 2874393,
+      "sha256": "d8428ab1087a0f361771aad6a73b5f4fcd309025ab7c7d0895e9268177f92d4b"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144406719.jpg",
+      "extension": "JPG",
+      "bytes": 3026612,
+      "sha256": "90f7197632c7afcbe3d1267557d3d941135d9d847946d650fc98232c4e1ddbf0"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144445740_01.jpg",
+      "extension": "JPG",
+      "bytes": 2799606,
+      "sha256": "e27c0b830d984e7fc765eb6f7c3a987cda0675ae4ab2097946c14a2ce2a6a60c"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144445740_02.jpg",
+      "extension": "JPG",
+      "bytes": 3110215,
+      "sha256": "a505e5bf8a19d3f7aabcbfb558478758d458fb70778790fc738eca972f736e4d"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144445740_03.jpg",
+      "extension": "JPG",
+      "bytes": 3056608,
+      "sha256": "9e87ac075b8a34082f4c2856fe512e28087d0fe8ca2bdb905e9682ff1dd740fb"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144445740_04.jpg",
+      "extension": "JPG",
+      "bytes": 3221567,
+      "sha256": "b04fcf9c9659f42e6b4e7482a35c680e51d2c945cdcce961250079868a292246"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144445740_05.jpg",
+      "extension": "JPG",
+      "bytes": 2976288,
+      "sha256": "cf0b9fdd46ccba9b4b5e3c27f4b05758aeea8827df6dd91bb80f66c60060f4d7"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144445740_06.jpg",
+      "extension": "JPG",
+      "bytes": 3095178,
+      "sha256": "9d95241c254aa07b8e205eb30f59fa6a429947414fb543a280663852bef029eb"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144445740_07.jpg",
+      "extension": "JPG",
+      "bytes": 2918596,
+      "sha256": "81ba85ca7f90fd590cd4fa45aff2b5355ff7c743db7a315384724f670570f7d1"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144445740_08.jpg",
+      "extension": "JPG",
+      "bytes": 3080953,
+      "sha256": "c00fddd491f26aaa9997a72bc1ba979e60fcb2959d0ee0268286252d03497593"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144445740_09.jpg",
+      "extension": "JPG",
+      "bytes": 2675247,
+      "sha256": "f7f39d33ada1f5769daad7c603f734c69f1cfb11dd2111d1f95818d4f44251e5"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144445740_10.jpg",
+      "extension": "JPG",
+      "bytes": 2913050,
+      "sha256": "321a011ca9a9e727943eb437b5649348f7b62a31797c36e478306edaefc12c03"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144445740_11.jpg",
+      "extension": "JPG",
+      "bytes": 2690973,
+      "sha256": "3f8e6ed626d8b502f0a04a69f6107a2915e20900123f4c166cddcb003bf25fb1"
+    },
+    {
+      "relativePath": "KakaoTalk_20260804_144445740.jpg",
+      "extension": "JPG",
+      "bytes": 3072392,
+      "sha256": "4f37a547bc5849b709f04b71174bb1fc14d8819cce0b8a9d4a69a395429a3dd5"
+    }
+  ],
+  "pdfClassification": [
+    {
+      "name": "cppg_암기노트.pdf",
+      "pages": 19,
+      "classification": "THIRD_PARTY_JLABS_REFERENCE_ONLY"
+    },
+    {
+      "name": "CPPG 개인정보관리사.pdf",
+      "pages": 60,
+      "classification": "THIRD_PARTY_COMMERCIAL_REFERENCE_ONLY"
+    }
+  ]
+}

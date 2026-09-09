@@ -1,0 +1,415 @@
+{
+  "manifestId": "SECURIUM_CPPG_FOUNDATION_ONTOLOGY_DRY_RUN_V1",
+  "courseId": "course-cppg",
+  "authority": "CURRENT_CANONICAL_ONTOLOGY_READ_ONLY",
+  "writes": 0,
+  "candidates": [
+    {
+      "candidate": "CCTV",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "access control",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "access log",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "access request",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "account lifecycle",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "accountability",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "accuracy",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "anonymization",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "audit",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "backup",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "children",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "choice",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "collection",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "consent",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "containment",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "continuous improvement",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "controller",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "correction",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "corrective action",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "cross-border transfer",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "data flow",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "data inventory",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "data minimization",
+      "status": "exact",
+      "matchedConceptIds": [
+        "oc-data-minimization"
+      ]
+    },
+    {
+      "candidate": "data movement",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "data subject",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "data subject rights",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "destruction",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "dispute resolution",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "encryption",
+      "status": "exact",
+      "matchedConceptIds": [
+        "oc-encryption"
+      ]
+    },
+    {
+      "candidate": "entrustment",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "evidence",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "governance",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "incident learning",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "incident response",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "instruction",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "key management",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "lawful basis",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "least privilege",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "lessons learned",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "malware prevention",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "masking",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "maturity assessment",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "monitoring",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "notice",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "ownership",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "personal information",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "physical access",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "privacy impact assessment",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "privacy law",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "privacy management system",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "privacy principles",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "privacy risk",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "processing purpose",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "processor",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "pseudonymization",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "purpose limitation",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "re-identification risk",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "redress",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "regulatory change",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "regulatory guidance",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "resources",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "retention",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "risk assessment",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "risk-based control",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "roles",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "security safeguards",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "sensitive information",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "tamper prevention",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "third-party provision",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "training",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "transparency",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "unique identifier",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "use",
+      "status": "missing",
+      "matchedConceptIds": []
+    },
+    {
+      "candidate": "vendor management",
+      "status": "missing",
+      "matchedConceptIds": []
+    }
+  ],
+  "summary": {
+    "exact": 2,
+    "alias": 0,
+    "missing": 72,
+    "ambiguous": 0
+  },
+  "previousAuditReference": {
+    "missing": 16,
+    "ambiguous": 3,
+    "reEvaluated": true
+  },
+  "failClosedPolicy": "ambiguous candidates are not mapped and no local canonical concept authority is created",
+  "provenance": {
+    "assetId": "ONTOLOGY-DRY-RUN",
+    "officialSubject": "ALL",
+    "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+    "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+    "referencePackage": {
+      "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+      "use": "THEME_ORIENTATION_ONLY",
+      "copiedText": false,
+      "copiedQuestion": false,
+      "sourceImageUsed": false
+    },
+    "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+    "authoritySources": [
+      "CPPG_OFFICIAL_PORTAL",
+      "CPPG_OFFICIAL_EXAM_PROFILE",
+      "CPPG_OFFICIAL_SCOPE",
+      "PIPC_LAW_PORTAL",
+      "PIPC_GUIDANCE_INDEX"
+    ]
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "manifestId": "SECURIUM_CPPG_FOUNDATION_MUTATION_TESTS_V1",
+  "generatedAt": "2026-09-08",
+  "cases": [
+    {
+      "name": "missing official subject",
+      "expected": "FAIL_CLOSED",
+      "status": "PASS",
+      "error": "five official subjects required"
+    },
+    {
+      "name": "altered subject order",
+      "expected": "FAIL_CLOSED",
+      "status": "PASS",
+      "error": "official subject order mismatch at 1"
+    },
+    {
+      "name": "wrong official weight",
+      "expected": "FAIL_CLOSED",
+      "status": "PASS",
+      "error": "official weight mismatch for CPPG-S1"
+    },
+    {
+      "name": "weight total != 100",
+      "expected": "FAIL_CLOSED",
+      "status": "PASS",
+      "error": "official weight mismatch for CPPG-S5"
+    },
+    {
+      "name": "duplicate question",
+      "expected": "FAIL_CLOSED",
+      "status": "PASS",
+      "error": "normalized question stems contains duplicates"
+    },
+    {
+      "name": "missing answer",
+      "expected": "FAIL_CLOSED",
+      "status": "PASS",
+      "error": "answer missing/invalid CPPG-A-S1-001"
+    },
+    {
+      "name": "missing explanation",
+      "expected": "FAIL_CLOSED",
+      "status": "PASS",
+      "error": "explanation incomplete CPPG-A-S1-001"
+    },
+    {
+      "name": "unsupported official per-subject question claim",
+      "expected": "FAIL_CLOSED",
+      "status": "PASS",
+      "error": "unsupported official per-subject allocation claim"
+    },
+    {
+      "name": "rights boundary violation",
+      "expected": "FAIL_CLOSED",
+      "status": "PASS",
+      "error": "rights/source boundary violated: jLabsDirectLearnerFacingReuse"
+    },
+    {
+      "name": "source question contamination",
+      "expected": "FAIL_CLOSED",
+      "status": "PASS",
+      "error": "source contamination marker on CPPG-A-S1-001"
+    }
+  ],
+  "passed": 10,
+  "total": 10,
+  "status": "PASS"
+}

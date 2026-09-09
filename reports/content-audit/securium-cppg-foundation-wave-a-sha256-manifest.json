@@ -1,0 +1,46 @@
+{
+  "manifestId": "SECURIUM_CPPG_FOUNDATION_ARTIFACT_SHA256_V1",
+  "generatedAt": "2026-09-08",
+  "artifacts": [
+    {
+      "path": "content-drafts/securium-cppg-foundation/assessment-authority.json",
+      "sha256": "ff0c55fc84eb187b54cfef966989df4c18b032f65b6c8f95f4c8a7f0252624d6"
+    },
+    {
+      "path": "content-drafts/securium-cppg-foundation/curriculum-authority.json",
+      "sha256": "41686f023624e087899b1bb455f8fa7da78af561763a3ffdf04f822141acb923"
+    },
+    {
+      "path": "content-drafts/securium-cppg-foundation/objective-authority.json",
+      "sha256": "6e21913791d54a4f05aebea4475f97637229cd9798d9c653e4eb1527a255606e"
+    },
+    {
+      "path": "content-drafts/securium-cppg-foundation/official-exam-profile.json",
+      "sha256": "c63a39eb51abd5e2fde1636ca79f994ba81bf77df548bbf514dfa085c82bbeec"
+    },
+    {
+      "path": "content-drafts/securium-cppg-foundation/ontology-concept-dry-run.json",
+      "sha256": "57ff4153203acc637f7cc6338fa69abadf48cab4765467c64e6ec2998128061f"
+    },
+    {
+      "path": "content-drafts/securium-cppg-foundation/practical-spec-authority.json",
+      "sha256": "a407269f1fcb665e38112e503cf65f2aea11f5af75d053802b107a3f50cd5b0f"
+    },
+    {
+      "path": "content-drafts/securium-cppg-foundation/projections/assessment-authority-only.json",
+      "sha256": "0383cc5dc63c5cd42aed8cc826f0cca109cde1d758b277f8c21b2ce9f8297deb"
+    },
+    {
+      "path": "content-drafts/securium-cppg-foundation/provenance-rights-manifest.json",
+      "sha256": "aaec0ca82dc87d332b3b9e85b9749a48520765225527493b49382ca1e2f70adf"
+    },
+    {
+      "path": "content-drafts/securium-cppg-foundation/source-sha256-manifest.json",
+      "sha256": "39f72014d6491e3b968abd3a37864f465888b3399ed695acd7feda1c392ca790"
+    },
+    {
+      "path": "content-drafts/securium-cppg-foundation/theory-authority.json",
+      "sha256": "9519964171dd6c8c9f3131d6b65931e4e40cf8cc9e13b3d88371ffa682a38984"
+    }
+  ]
+}

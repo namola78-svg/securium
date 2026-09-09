@@ -1,0 +1,34 @@
+{
+  "manifestId": "SECURIUM_CPPG_FOUNDATION_INDEPENDENT_EXAM_PROFILE_SEPARATION_V1",
+  "reviewDate": "2026-09-09",
+  "status": "PASS_100_QUESTION_COINCIDENCE_GUARDED",
+  "officialExamProfileAuthorityCount": 1,
+  "officialExamProfile": {
+    "questions": 100,
+    "choiceCount": 5,
+    "durationMinutes": 120,
+    "subjectMinimumPercent": 40,
+    "overallMinimumPercent": 60
+  },
+  "officialProfileQuestionAllocationField": "NOT_ASSERTED_BY_THIS_ARTIFACT",
+  "questionBank": {
+    "classification": "SECURIUM_QUESTION_BANK",
+    "questions": 100,
+    "distribution": {
+      "CPPG-S1": 20,
+      "CPPG-S2": 20,
+      "CPPG-S3": 20,
+      "CPPG-S4": 20,
+      "CPPG-S5": 20
+    },
+    "label": "SECURIUM_PEDAGOGICAL_DISTRIBUTION_BALANCED_20_PER_SUBJECT_FOR_FOUNDATION_COVERAGE"
+  },
+  "separationProof": {
+    "distinctTypes": true,
+    "distinctIdentifiers": true,
+    "bankDoesNotClaimOfficialAllocation": true,
+    "bankDistributionIsPedagogical": true,
+    "noBankEqualsOfficialExamClaim": true,
+    "officialQuestionAllocationClaimsInLearnerAuthorities": 0
+  }
+}
