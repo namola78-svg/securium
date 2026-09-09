@@ -1,0 +1,29 @@
+{
+  "manifestId": "SECURIUM_CPPG_FOUNDATION_VALIDATION_V1",
+  "status": "PASS",
+  "officialSubjects": 5,
+  "theoryUnits": 25,
+  "objectives": 50,
+  "questions": 100,
+  "subjectCounts": {
+    "CPPG-S1": 20,
+    "CPPG-S2": 20,
+    "CPPG-S3": 20,
+    "CPPG-S4": 20,
+    "CPPG-S5": 20
+  },
+  "practicalSpecs": 10,
+  "ontology": {
+    "exact": 2,
+    "alias": 0,
+    "missing": 72,
+    "ambiguous": 0
+  },
+  "source": {
+    "filesRevalidated": 133,
+    "mismatches": 0,
+    "duplicateHashGroups": 0
+  },
+  "generatedAt": "2026-09-08",
+  "mutationTests": "see securium-cppg-foundation-wave-a-mutation-tests.json"
+}

@@ -1,0 +1,48 @@
+{
+  "manifestId": "SECURIUM_CPPG_FOUNDATION_INDEPENDENT_SOURCE_RIGHTS_V1",
+  "reviewDate": "2026-09-09",
+  "status": "PASS",
+  "sourceIntegrity": {
+    "root": "source-evidence-original/cppg",
+    "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+    "files": 133,
+    "expectedFiles": 133,
+    "totalBytes": 377555066,
+    "expectedTotalBytes": 377555066,
+    "hashPass": true,
+    "filesPass": true,
+    "mismatches": 0,
+    "duplicateHashGroups": 0,
+    "packageHash": "cf4ada7c7f325aa405c76db7993d314b782ff4f69f07b467793dc11cf1913a80",
+    "expectedPackageHash": "cf4ada7c7f325aa405c76db7993d314b782ff4f69f07b467793dc11cf1913a80",
+    "pdfClassification": [
+      {
+        "name": "cppg_암기노트.pdf",
+        "pages": 19,
+        "classification": "THIRD_PARTY_JLABS_REFERENCE_ONLY"
+      },
+      {
+        "name": "CPPG 개인정보관리사.pdf",
+        "pages": 60,
+        "classification": "THIRD_PARTY_COMMERCIAL_REFERENCE_ONLY"
+      }
+    ]
+  },
+  "classification": "REFERENCE_ONLY",
+  "directJLabsLearnerFacingReuse": 0,
+  "directCommercialPdfReuse": 0,
+  "sourceImageExposure": 0,
+  "directSourceQuestionIngestion": 0,
+  "sourceReconstruction": 0,
+  "canonicalOcrIngestion": 0,
+  "allBoundaryCountersZero": true,
+  "contaminationMarkersInGovernedContent": [],
+  "assetAuthorship": {
+    "theory": "SECURIUM_INDEPENDENT",
+    "objectives": "SECURIUM_INDEPENDENT",
+    "assessment": "SECURIUM_INDEPENDENT",
+    "practical": "SECURIUM_INDEPENDENT"
+  },
+  "localCanonicalConceptAuthority": 0,
+  "rightsStatus": "PASS_REFERENCE_ONLY_NO_LEARNER_FACING_SOURCE_REUSE"
+}

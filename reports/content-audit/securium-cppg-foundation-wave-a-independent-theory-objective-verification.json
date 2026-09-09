@@ -1,0 +1,29 @@
+{
+  "manifestId": "SECURIUM_CPPG_FOUNDATION_INDEPENDENT_THEORY_OBJECTIVE_V1",
+  "reviewDate": "2026-09-09",
+  "status": "PASS",
+  "authorityCount": 1,
+  "unitCount": 25,
+  "expectedUnitCount": 25,
+  "subjectCoverage": {
+    "CPPG-S1": 5,
+    "CPPG-S2": 5,
+    "CPPG-S3": 5,
+    "CPPG-S4": 5,
+    "CPPG-S5": 5
+  },
+  "allFiveSubjectsCovered": true,
+  "depthFieldGaps": [],
+  "learningUnitBindingErrors": 0,
+  "objectiveAuthorityCount": 1,
+  "objectiveCount": 50,
+  "expectedObjectiveCount": 50,
+  "objectiveDuplicates": 0,
+  "objectiveBindingErrors": 0,
+  "uncoveredUnits": [],
+  "vagueOnlyObjectives": [],
+  "currentLawReview": {
+    "explicitArticleOrNumericThresholdClaims": 0,
+    "status": "PASS_BOUNDED_NO_UNSUPPORTED_NUMERIC_CLAIMS_FOUND"
+  }
+}

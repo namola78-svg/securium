@@ -1,0 +1,22 @@
+{
+  "manifestId": "SECURIUM_CPPG_FOUNDATION_INDEPENDENT_PRACTICAL_V1",
+  "reviewDate": "2026-09-09",
+  "status": "SPEC_ONLY",
+  "authorityCount": 1,
+  "count": 10,
+  "expectedCount": 10,
+  "executableLabs": 0,
+  "subjectDistribution": {
+    "CPPG-S1": 1,
+    "CPPG-S2": 3,
+    "CPPG-S3": 3,
+    "CPPG-S4": 1,
+    "CPPG-S5": 2
+  },
+  "allFiveSubjectsRepresented": true,
+  "allSpecOnly": true,
+  "hiddenGroundTruthExposed": false,
+  "hiddenGroundTruthMarkers": [],
+  "duplicateTitles": 0,
+  "practicalJudgmentScreen": "PASS_SCENARIO_DELIVERABLES_AND_RUBRIC_FOCUS"
+}

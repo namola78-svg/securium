@@ -1,0 +1,115 @@
+{
+  "manifestId": "SECURIUM_CPPG_FOUNDATION_INDEPENDENT_SHA256_V1",
+  "reviewDate": "2026-09-09",
+  "artifacts": [
+    {
+      "path": "content-drafts/securium-cppg-foundation/curriculum-authority.json",
+      "sha256": "41686f023624e087899b1bb455f8fa7da78af561763a3ffdf04f822141acb923"
+    },
+    {
+      "path": "content-drafts/securium-cppg-foundation/theory-authority.json",
+      "sha256": "9519964171dd6c8c9f3131d6b65931e4e40cf8cc9e13b3d88371ffa682a38984"
+    },
+    {
+      "path": "content-drafts/securium-cppg-foundation/objective-authority.json",
+      "sha256": "6e21913791d54a4f05aebea4475f97637229cd9798d9c653e4eb1527a255606e"
+    },
+    {
+      "path": "content-drafts/securium-cppg-foundation/assessment-authority.json",
+      "sha256": "ff0c55fc84eb187b54cfef966989df4c18b032f65b6c8f95f4c8a7f0252624d6"
+    },
+    {
+      "path": "content-drafts/securium-cppg-foundation/practical-spec-authority.json",
+      "sha256": "a407269f1fcb665e38112e503cf65f2aea11f5af75d053802b107a3f50cd5b0f"
+    },
+    {
+      "path": "content-drafts/securium-cppg-foundation/official-exam-profile.json",
+      "sha256": "c63a39eb51abd5e2fde1636ca79f994ba81bf77df548bbf514dfa085c82bbeec"
+    },
+    {
+      "path": "content-drafts/securium-cppg-foundation/provenance-rights-manifest.json",
+      "sha256": "aaec0ca82dc87d332b3b9e85b9749a48520765225527493b49382ca1e2f70adf"
+    },
+    {
+      "path": "content-drafts/securium-cppg-foundation/ontology-concept-dry-run.json",
+      "sha256": "57ff4153203acc637f7cc6338fa69abadf48cab4765467c64e6ec2998128061f"
+    },
+    {
+      "path": "content-drafts/securium-cppg-foundation/source-sha256-manifest.json",
+      "sha256": "39f72014d6491e3b968abd3a37864f465888b3399ed695acd7feda1c392ca790"
+    },
+    {
+      "path": "content-drafts/securium-cppg-foundation/projections/assessment-authority-only.json",
+      "sha256": "0383cc5dc63c5cd42aed8cc826f0cca109cde1d758b277f8c21b2ce9f8297deb"
+    },
+    {
+      "path": "reports/content-audit/securium-cppg-foundation-wave-a-baseline.json",
+      "sha256": "f509eefd21ce5c6e22d35308428ad2bc23fcadfa696728bcf6cad983c7c8731a"
+    },
+    {
+      "path": "reports/content-audit/securium-cppg-foundation-wave-a-final.json",
+      "sha256": "d4d7eca8f71c890cc2e1747c544ea8c91979aa48f776938c06fd6181212498e9"
+    },
+    {
+      "path": "reports/content-audit/securium-cppg-foundation-wave-a-mutation-tests.json",
+      "sha256": "382d691d7c35d46278a2dbc75e5aa5f231be5c987f514585474c4ee5950059fc"
+    },
+    {
+      "path": "reports/content-audit/securium-cppg-foundation-wave-a-sha256-manifest.json",
+      "sha256": "d5bf6cf08e4da5ca71b3ab8d61211b53ada5c04dc4e1700e0ae84d18992f1732"
+    },
+    {
+      "path": "reports/content-audit/securium-cppg-foundation-wave-a-validation.json",
+      "sha256": "5b31b26a3f62909970364c9438fc7c6bbf1afae310e0426bfd734b8496745f37"
+    },
+    {
+      "path": "reports/content-audit/securium-cppg-foundation-wave-a-independent-final-review.json",
+      "sha256": "afc227851c3ae2a16cc653774221085007da6ef9adb00068f06daacf54abb6ab"
+    },
+    {
+      "path": "reports/content-audit/securium-cppg-foundation-wave-a-independent-final-review.md",
+      "sha256": "3c95e9138703a61b6924f685d23521f08a75ee21d43e95331157067153af6a2c"
+    },
+    {
+      "path": "reports/content-audit/securium-cppg-foundation-wave-a-independent-official-authority-verification.json",
+      "sha256": "9c5490f2cec5574137af624dda5aef790df38f8a4c78e442fafec18310062d2c"
+    },
+    {
+      "path": "reports/content-audit/securium-cppg-foundation-wave-a-independent-theory-objective-verification.json",
+      "sha256": "7b0efa3a03d0eed5886c89ba650d1ebbe6aff30c9c3fe9e6754f65ddff3ae8b4"
+    },
+    {
+      "path": "reports/content-audit/securium-cppg-foundation-wave-a-independent-assessment-quality.json",
+      "sha256": "a741595be148ed4d5030066fec8d6801cac573aa9092fcabb8a6a0f009e8f823"
+    },
+    {
+      "path": "reports/content-audit/securium-cppg-foundation-wave-a-independent-exam-profile-separation.json",
+      "sha256": "cf13b0a2acc7ee8b71b13245b89eecb4c834ccd811df29c1cc7d36d1b18d3205"
+    },
+    {
+      "path": "reports/content-audit/securium-cppg-foundation-wave-a-independent-practical-verification.json",
+      "sha256": "c1d3fea0021dacc275a5bc50f2b32119918d14f463b66e693229137f57ab9c12"
+    },
+    {
+      "path": "reports/content-audit/securium-cppg-foundation-wave-a-independent-source-rights-provenance.json",
+      "sha256": "6f1d92524edd56d00bdcceeda9509c86b9ba8b61c8f59963e99144bbe16b8079"
+    },
+    {
+      "path": "reports/content-audit/securium-cppg-foundation-wave-a-independent-ontology-dry-run.json",
+      "sha256": "b763f11d7d933d1d7a3bdea3ef0b9bf4f2090f9dda8b00185e28c4694899daea"
+    },
+    {
+      "path": "reports/content-audit/securium-cppg-foundation-wave-a-independent-validator-mutation.json",
+      "sha256": "07cf4217011ace2b961d6f8a5498e79ceaefbfc895d16e7b5b6193938b52e691"
+    },
+    {
+      "path": "reports/content-audit/securium-cppg-foundation-wave-a-independent-downstream-readiness.json",
+      "sha256": "367d43314cbe34abb6e691eb601b8698de6367b5a493454ecf8074b4840177e7"
+    },
+    {
+      "path": "scripts/review-securium-cppg-foundation-wave-a.mjs",
+      "sha256": "f6b31c1260bc0a4efbb1af9daa66a55bc24a2b0ac05931b6c21cc7dffa9737ed"
+    }
+  ],
+  "selfReference": "The SHA-256 manifest is excluded from its own list to avoid a circular hash; all other generated and reviewed artifacts are listed."
+}

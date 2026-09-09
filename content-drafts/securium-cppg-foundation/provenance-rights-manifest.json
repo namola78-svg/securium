@@ -1,0 +1,41 @@
+{
+  "manifestId": "SECURIUM_CPPG_FOUNDATION_PROVENANCE_RIGHTS_V1",
+  "rightsPolicy": {
+    "localReferencePackage": "REFERENCE_ONLY",
+    "jLabsDirectLearnerFacingReuse": 0,
+    "commercialPdfDirectLearnerFacingReuse": 0,
+    "sourceImageExposure": 0,
+    "sourceQuestionIngestion": 0,
+    "highRiskReconstruction": 0,
+    "canonicalOcrIngestion": 0
+  },
+  "assetAuthorship": {
+    "theory": "SECURIUM_INDEPENDENT",
+    "objectives": "SECURIUM_INDEPENDENT",
+    "assessment": "SECURIUM_INDEPENDENT",
+    "practical": "SECURIUM_INDEPENDENT"
+  },
+  "assetCounts": {
+    "theoryUnits": 25,
+    "objectives": 50,
+    "questions": 100,
+    "practicalSpecs": 10
+  },
+  "authorityBoundary": {
+    "officialTypes": [
+      "OFFICIAL_SUBJECT"
+    ],
+    "securiumTypes": [
+      "SECURIUM_LEARNING_UNIT",
+      "SECURIUM_OBJECTIVE",
+      "SECURIUM_CONCEPT",
+      "SECURIUM_ASSESSMENT",
+      "SECURIUM_PRACTICAL_SPEC"
+    ],
+    "localCanonicalConceptAuthority": 0
+  },
+  "sourcePackage": {
+    "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+    "use": "theme orientation only; no wording, question, image, OCR, or canonical learner-facing reuse"
+  }
+}

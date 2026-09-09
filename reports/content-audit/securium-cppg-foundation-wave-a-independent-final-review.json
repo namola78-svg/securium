@@ -1,0 +1,726 @@
+{
+  "manifestId": "SECURIUM_CPPG_FOUNDATION_WAVE_A_INDEPENDENT_FINAL_REVIEW_V1",
+  "reviewDate": "2026-09-09",
+  "finalStatus": "SECURIUM_CPPG_FOUNDATION_WAVE_A_FINAL_REVIEW_PASS_WITH_ENVIRONMENT_BLOCKERS",
+  "decision": "PASS_WITH_ENVIRONMENT_BLOCKERS",
+  "completion": "CPPG_FOUNDATION_WAVE_A_COMPLETE_WITH_ENVIRONMENT_BLOCKER",
+  "gitBaseline": {
+    "worktree": "securium-content-cppg-foundation",
+    "branch": "content/cppg-foundation-wave-a",
+    "head": "ac65766b8e406968dd66fd906249c48b91fa6b38",
+    "latestOriginMain": "8fda64b163744f5530988ac5a11df000ab31d1ab",
+    "ahead": 0,
+    "behind": 4,
+    "trackedChanges": 0,
+    "stagedChanges": 0,
+    "untrackedChanges": 19,
+    "untrackedChangesAfterReview": 32,
+    "stashRelevance": "No stash applied; existing stashes are unrelated and preserved."
+  },
+  "environmentBlockers": [
+    "Branch HEAD is 4 commits behind the latest origin/main; no rebase, merge, or other reconciliation was authorized or performed."
+  ],
+  "artifactInventory": {
+    "claimed": 15,
+    "parsed": 15,
+    "mismatches": 0,
+    "results": [
+      {
+        "path": "content-drafts/securium-cppg-foundation/curriculum-authority.json",
+        "status": "PASS"
+      },
+      {
+        "path": "content-drafts/securium-cppg-foundation/theory-authority.json",
+        "status": "PASS"
+      },
+      {
+        "path": "content-drafts/securium-cppg-foundation/objective-authority.json",
+        "status": "PASS"
+      },
+      {
+        "path": "content-drafts/securium-cppg-foundation/assessment-authority.json",
+        "status": "PASS"
+      },
+      {
+        "path": "content-drafts/securium-cppg-foundation/practical-spec-authority.json",
+        "status": "PASS"
+      },
+      {
+        "path": "content-drafts/securium-cppg-foundation/official-exam-profile.json",
+        "status": "PASS"
+      },
+      {
+        "path": "content-drafts/securium-cppg-foundation/provenance-rights-manifest.json",
+        "status": "PASS"
+      },
+      {
+        "path": "content-drafts/securium-cppg-foundation/ontology-concept-dry-run.json",
+        "status": "PASS"
+      },
+      {
+        "path": "content-drafts/securium-cppg-foundation/source-sha256-manifest.json",
+        "status": "PASS"
+      },
+      {
+        "path": "content-drafts/securium-cppg-foundation/projections/assessment-authority-only.json",
+        "status": "PASS"
+      },
+      {
+        "path": "reports/content-audit/securium-cppg-foundation-wave-a-baseline.json",
+        "status": "PASS"
+      },
+      {
+        "path": "reports/content-audit/securium-cppg-foundation-wave-a-final.json",
+        "status": "PASS"
+      },
+      {
+        "path": "reports/content-audit/securium-cppg-foundation-wave-a-mutation-tests.json",
+        "status": "PASS"
+      },
+      {
+        "path": "reports/content-audit/securium-cppg-foundation-wave-a-sha256-manifest.json",
+        "status": "PASS"
+      },
+      {
+        "path": "reports/content-audit/securium-cppg-foundation-wave-a-validation.json",
+        "status": "PASS"
+      }
+    ]
+  },
+  "generatedArtifactIntegrity": {
+    "artifacts": 10,
+    "mismatches": 0,
+    "sourceManifest": {
+      "manifestId": "SECURIUM_CPPG_FOUNDATION_ARTIFACT_SHA256_V1",
+      "generatedAt": "2026-09-08",
+      "artifacts": [
+        {
+          "path": "content-drafts/securium-cppg-foundation/assessment-authority.json",
+          "sha256": "ff0c55fc84eb187b54cfef966989df4c18b032f65b6c8f95f4c8a7f0252624d6"
+        },
+        {
+          "path": "content-drafts/securium-cppg-foundation/curriculum-authority.json",
+          "sha256": "41686f023624e087899b1bb455f8fa7da78af561763a3ffdf04f822141acb923"
+        },
+        {
+          "path": "content-drafts/securium-cppg-foundation/objective-authority.json",
+          "sha256": "6e21913791d54a4f05aebea4475f97637229cd9798d9c653e4eb1527a255606e"
+        },
+        {
+          "path": "content-drafts/securium-cppg-foundation/official-exam-profile.json",
+          "sha256": "c63a39eb51abd5e2fde1636ca79f994ba81bf77df548bbf514dfa085c82bbeec"
+        },
+        {
+          "path": "content-drafts/securium-cppg-foundation/ontology-concept-dry-run.json",
+          "sha256": "57ff4153203acc637f7cc6338fa69abadf48cab4765467c64e6ec2998128061f"
+        },
+        {
+          "path": "content-drafts/securium-cppg-foundation/practical-spec-authority.json",
+          "sha256": "a407269f1fcb665e38112e503cf65f2aea11f5af75d053802b107a3f50cd5b0f"
+        },
+        {
+          "path": "content-drafts/securium-cppg-foundation/projections/assessment-authority-only.json",
+          "sha256": "0383cc5dc63c5cd42aed8cc826f0cca109cde1d758b277f8c21b2ce9f8297deb"
+        },
+        {
+          "path": "content-drafts/securium-cppg-foundation/provenance-rights-manifest.json",
+          "sha256": "aaec0ca82dc87d332b3b9e85b9749a48520765225527493b49382ca1e2f70adf"
+        },
+        {
+          "path": "content-drafts/securium-cppg-foundation/source-sha256-manifest.json",
+          "sha256": "39f72014d6491e3b968abd3a37864f465888b3399ed695acd7feda1c392ca790"
+        },
+        {
+          "path": "content-drafts/securium-cppg-foundation/theory-authority.json",
+          "sha256": "9519964171dd6c8c9f3131d6b65931e4e40cf8cc9e13b3d88371ffa682a38984"
+        }
+      ]
+    },
+    "results": [
+      {
+        "path": "content-drafts/securium-cppg-foundation/assessment-authority.json",
+        "expected": "ff0c55fc84eb187b54cfef966989df4c18b032f65b6c8f95f4c8a7f0252624d6",
+        "observed": "ff0c55fc84eb187b54cfef966989df4c18b032f65b6c8f95f4c8a7f0252624d6",
+        "status": "PASS"
+      },
+      {
+        "path": "content-drafts/securium-cppg-foundation/curriculum-authority.json",
+        "expected": "41686f023624e087899b1bb455f8fa7da78af561763a3ffdf04f822141acb923",
+        "observed": "41686f023624e087899b1bb455f8fa7da78af561763a3ffdf04f822141acb923",
+        "status": "PASS"
+      },
+      {
+        "path": "content-drafts/securium-cppg-foundation/objective-authority.json",
+        "expected": "6e21913791d54a4f05aebea4475f97637229cd9798d9c653e4eb1527a255606e",
+        "observed": "6e21913791d54a4f05aebea4475f97637229cd9798d9c653e4eb1527a255606e",
+        "status": "PASS"
+      },
+      {
+        "path": "content-drafts/securium-cppg-foundation/official-exam-profile.json",
+        "expected": "c63a39eb51abd5e2fde1636ca79f994ba81bf77df548bbf514dfa085c82bbeec",
+        "observed": "c63a39eb51abd5e2fde1636ca79f994ba81bf77df548bbf514dfa085c82bbeec",
+        "status": "PASS"
+      },
+      {
+        "path": "content-drafts/securium-cppg-foundation/ontology-concept-dry-run.json",
+        "expected": "57ff4153203acc637f7cc6338fa69abadf48cab4765467c64e6ec2998128061f",
+        "observed": "57ff4153203acc637f7cc6338fa69abadf48cab4765467c64e6ec2998128061f",
+        "status": "PASS"
+      },
+      {
+        "path": "content-drafts/securium-cppg-foundation/practical-spec-authority.json",
+        "expected": "a407269f1fcb665e38112e503cf65f2aea11f5af75d053802b107a3f50cd5b0f",
+        "observed": "a407269f1fcb665e38112e503cf65f2aea11f5af75d053802b107a3f50cd5b0f",
+        "status": "PASS"
+      },
+      {
+        "path": "content-drafts/securium-cppg-foundation/projections/assessment-authority-only.json",
+        "expected": "0383cc5dc63c5cd42aed8cc826f0cca109cde1d758b277f8c21b2ce9f8297deb",
+        "observed": "0383cc5dc63c5cd42aed8cc826f0cca109cde1d758b277f8c21b2ce9f8297deb",
+        "status": "PASS"
+      },
+      {
+        "path": "content-drafts/securium-cppg-foundation/provenance-rights-manifest.json",
+        "expected": "aaec0ca82dc87d332b3b9e85b9749a48520765225527493b49382ca1e2f70adf",
+        "observed": "aaec0ca82dc87d332b3b9e85b9749a48520765225527493b49382ca1e2f70adf",
+        "status": "PASS"
+      },
+      {
+        "path": "content-drafts/securium-cppg-foundation/source-sha256-manifest.json",
+        "expected": "39f72014d6491e3b968abd3a37864f465888b3399ed695acd7feda1c392ca790",
+        "observed": "39f72014d6491e3b968abd3a37864f465888b3399ed695acd7feda1c392ca790",
+        "status": "PASS"
+      },
+      {
+        "path": "content-drafts/securium-cppg-foundation/theory-authority.json",
+        "expected": "9519964171dd6c8c9f3131d6b65931e4e40cf8cc9e13b3d88371ffa682a38984",
+        "observed": "9519964171dd6c8c9f3131d6b65931e4e40cf8cc9e13b3d88371ffa682a38984",
+        "status": "PASS"
+      }
+    ]
+  },
+  "priorAuditArtifacts": {
+    "expectedCount": 5,
+    "verifiedCount": 5,
+    "mismatches": 0,
+    "warnings": 1,
+    "root": "../securium-content-cppg/reports/content-audit",
+    "results": [
+      {
+        "name": "securium-cppg-current-authority.json",
+        "expected": "ba1bbc5a0e803e34f16ef726ee391c71dece939e250acd8fd02bc5af1b3ad9e",
+        "observed": "ba1bbc5a0e803e34f16ef726ee391c71dece939e250acd8fd02bc5af1b3ad9e7",
+        "status": "PASS_WITH_PRIOR_LEDGER_FORMAT_WARNING"
+      },
+      {
+        "name": "securium-cppg-source-inventory.json",
+        "expected": "1c954feab9aaac0793c7bb4c7aff012d1cfcda397eb6fd6d7cadda45f09a0302",
+        "observed": "1c954feab9aaac0793c7bb4c7aff012d1cfcda397eb6fd6d7cadda45f09a0302",
+        "status": "PASS"
+      },
+      {
+        "name": "securium-cppg-source-manifest-v2.json",
+        "expected": "d572938232930c9b1c0adb9a2bdbb598dbc2931b0bcc7dcb1ff1342ce94e2b38",
+        "observed": "d572938232930c9b1c0adb9a2bdbb598dbc2931b0bcc7dcb1ff1342ce94e2b38",
+        "status": "PASS"
+      },
+      {
+        "name": "securium-cppg-rights-review.json",
+        "expected": "987d1d7fac7ddfd50d3211458dedacad7d89794eb2fd37e69bae6c096d41a506",
+        "observed": "987d1d7fac7ddfd50d3211458dedacad7d89794eb2fd37e69bae6c096d41a506",
+        "status": "PASS"
+      },
+      {
+        "name": "securium-cppg-final-readiness.json",
+        "expected": "33c32903b73175a2faacf64c79990062c2c9a3afb6b54f65e75bc7d1aac33423",
+        "observed": "33c32903b73175a2faacf64c79990062c2c9a3afb6b54f65e75bc7d1aac33423",
+        "status": "PASS"
+      }
+    ]
+  },
+  "sourceIntegrity": {
+    "root": "source-evidence-original/cppg",
+    "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+    "files": 133,
+    "expectedFiles": 133,
+    "totalBytes": 377555066,
+    "expectedTotalBytes": 377555066,
+    "hashPass": true,
+    "filesPass": true,
+    "mismatches": 0,
+    "duplicateHashGroups": 0,
+    "packageHash": "cf4ada7c7f325aa405c76db7993d314b782ff4f69f07b467793dc11cf1913a80",
+    "expectedPackageHash": "cf4ada7c7f325aa405c76db7993d314b782ff4f69f07b467793dc11cf1913a80",
+    "pdfClassification": [
+      {
+        "name": "cppg_암기노트.pdf",
+        "pages": 19,
+        "classification": "THIRD_PARTY_JLABS_REFERENCE_ONLY"
+      },
+      {
+        "name": "CPPG 개인정보관리사.pdf",
+        "pages": 60,
+        "classification": "THIRD_PARTY_COMMERCIAL_REFERENCE_ONLY"
+      }
+    ]
+  },
+  "rightsAndProvenance": {
+    "classification": "REFERENCE_ONLY",
+    "directJLabsLearnerFacingReuse": 0,
+    "directCommercialPdfReuse": 0,
+    "sourceImageExposure": 0,
+    "directSourceQuestionIngestion": 0,
+    "sourceReconstruction": 0,
+    "canonicalOcrIngestion": 0,
+    "allBoundaryCountersZero": true,
+    "contaminationMarkersInGovernedContent": [],
+    "assetAuthorship": {
+      "theory": "SECURIUM_INDEPENDENT",
+      "objectives": "SECURIUM_INDEPENDENT",
+      "assessment": "SECURIUM_INDEPENDENT",
+      "practical": "SECURIUM_INDEPENDENT"
+    },
+    "localCanonicalConceptAuthority": 0,
+    "rightsStatus": "PASS_REFERENCE_ONLY_NO_LEARNER_FACING_SOURCE_REUSE"
+  },
+  "currentAuthority": {
+    "qualification": "CPPG",
+    "operator": "한국CPO포럼",
+    "classification": "등록 비공인 민간자격",
+    "subjectCount": 5,
+    "subjects": [
+      {
+        "order": 1,
+        "id": "CPPG-S1",
+        "name": "개인정보보호의 이해",
+        "officialWeight": 10,
+        "weightSemantics": "OFFICIAL_EXAM_WEIGHT"
+      },
+      {
+        "order": 2,
+        "id": "CPPG-S2",
+        "name": "개인정보보호 제도",
+        "officialWeight": 20,
+        "weightSemantics": "OFFICIAL_EXAM_WEIGHT"
+      },
+      {
+        "order": 3,
+        "id": "CPPG-S3",
+        "name": "개인정보 라이프사이클 관리",
+        "officialWeight": 25,
+        "weightSemantics": "OFFICIAL_EXAM_WEIGHT"
+      },
+      {
+        "order": 4,
+        "id": "CPPG-S4",
+        "name": "개인정보의 보호조치",
+        "officialWeight": 30,
+        "weightSemantics": "OFFICIAL_EXAM_WEIGHT"
+      },
+      {
+        "order": 5,
+        "id": "CPPG-S5",
+        "name": "개인정보 관리체계",
+        "officialWeight": 15,
+        "weightSemantics": "OFFICIAL_EXAM_WEIGHT"
+      }
+    ],
+    "totalOfficialWeight": 100,
+    "verification": "PASS_OFFICIAL_CURRENT_PORTAL_AND_SCOPE_REVIEW"
+  },
+  "courseIdentity": {
+    "courseId": "course-cppg",
+    "curriculumAuthorityCount": 1,
+    "examYearEncoded": false,
+    "officialQuestionCountEncoded": false
+  },
+  "boundaryTypes": [
+    "OFFICIAL_SUBJECT",
+    "SECURIUM_LEARNING_UNIT",
+    "SECURIUM_OBJECTIVE",
+    "SECURIUM_CONCEPT",
+    "SECURIUM_ASSESSMENT",
+    "SECURIUM_PRACTICAL_SPEC"
+  ],
+  "theoryAndObjectives": {
+    "authorityCount": 1,
+    "unitCount": 25,
+    "expectedUnitCount": 25,
+    "subjectCoverage": {
+      "CPPG-S1": 5,
+      "CPPG-S2": 5,
+      "CPPG-S3": 5,
+      "CPPG-S4": 5,
+      "CPPG-S5": 5
+    },
+    "allFiveSubjectsCovered": true,
+    "depthFieldGaps": [],
+    "learningUnitBindingErrors": 0,
+    "objectiveAuthorityCount": 1,
+    "objectiveCount": 50,
+    "expectedObjectiveCount": 50,
+    "objectiveDuplicates": 0,
+    "objectiveBindingErrors": 0,
+    "uncoveredUnits": [],
+    "vagueOnlyObjectives": [],
+    "currentLawReview": {
+      "explicitArticleOrNumericThresholdClaims": 0,
+      "status": "PASS_BOUNDED_NO_UNSUPPORTED_NUMERIC_CLAIMS_FOUND"
+    }
+  },
+  "assessmentQuality": {
+    "authorityCount": 1,
+    "questionCount": 100,
+    "expectedQuestionCount": 100,
+    "allOriginal": true,
+    "format": {
+      "claimed": "5-choice written MCQ",
+      "invalidQuestions": []
+    },
+    "idUnique": true,
+    "exactDuplicates": 0,
+    "normalizedDuplicates": 0,
+    "materialDuplicates": 0,
+    "materialAmbiguity": {
+      "duplicateOptionLists": [],
+      "semanticReview": "PASS_MANUAL_STEM_AND_DISTRACTOR_SCREEN",
+      "suspectedMaterialDuplicates": 0
+    },
+    "answerCoverage": {
+      "covered": 100,
+      "total": 100,
+      "errors": []
+    },
+    "explanationCoverage": {
+      "covered": 100,
+      "total": 100,
+      "errors": []
+    },
+    "bindingErrors": [],
+    "subjectDistribution": {
+      "CPPG-S1": 20,
+      "CPPG-S2": 20,
+      "CPPG-S3": 20,
+      "CPPG-S4": 20,
+      "CPPG-S5": 20
+    },
+    "semanticHash": "d9944e1d7b62031a262dbf04b078a61e659df1eb4603815e2e8f940bbc23057f",
+    "declaredSemanticHash": "d9944e1d7b62031a262dbf04b078a61e659df1eb4603815e2e8f940bbc23057f",
+    "semanticHashMatches": true,
+    "unsupportedOfficialQuestionClaims": [
+      "CPPG-A-S1-001",
+      "CPPG-A-S1-002",
+      "CPPG-A-S1-003",
+      "CPPG-A-S1-004",
+      "CPPG-A-S1-005",
+      "CPPG-A-S1-006",
+      "CPPG-A-S1-007",
+      "CPPG-A-S1-008",
+      "CPPG-A-S1-009",
+      "CPPG-A-S1-010",
+      "CPPG-A-S1-011",
+      "CPPG-A-S1-012",
+      "CPPG-A-S1-013",
+      "CPPG-A-S1-014",
+      "CPPG-A-S1-015",
+      "CPPG-A-S1-016",
+      "CPPG-A-S1-017",
+      "CPPG-A-S1-018",
+      "CPPG-A-S1-019",
+      "CPPG-A-S1-020",
+      "CPPG-A-S2-001",
+      "CPPG-A-S2-002",
+      "CPPG-A-S2-003",
+      "CPPG-A-S2-004",
+      "CPPG-A-S2-005",
+      "CPPG-A-S2-006",
+      "CPPG-A-S2-007",
+      "CPPG-A-S2-008",
+      "CPPG-A-S2-009",
+      "CPPG-A-S2-010",
+      "CPPG-A-S2-011",
+      "CPPG-A-S2-012",
+      "CPPG-A-S2-013",
+      "CPPG-A-S2-014",
+      "CPPG-A-S2-015",
+      "CPPG-A-S2-016",
+      "CPPG-A-S2-017",
+      "CPPG-A-S2-018",
+      "CPPG-A-S2-019",
+      "CPPG-A-S2-020",
+      "CPPG-A-S3-001",
+      "CPPG-A-S3-002",
+      "CPPG-A-S3-003",
+      "CPPG-A-S3-004",
+      "CPPG-A-S3-005",
+      "CPPG-A-S3-006",
+      "CPPG-A-S3-007",
+      "CPPG-A-S3-008",
+      "CPPG-A-S3-009",
+      "CPPG-A-S3-010",
+      "CPPG-A-S3-011",
+      "CPPG-A-S3-012",
+      "CPPG-A-S3-013",
+      "CPPG-A-S3-014",
+      "CPPG-A-S3-015",
+      "CPPG-A-S3-016",
+      "CPPG-A-S3-017",
+      "CPPG-A-S3-018",
+      "CPPG-A-S3-019",
+      "CPPG-A-S3-020",
+      "CPPG-A-S4-001",
+      "CPPG-A-S4-002",
+      "CPPG-A-S4-003",
+      "CPPG-A-S4-004",
+      "CPPG-A-S4-005",
+      "CPPG-A-S4-006",
+      "CPPG-A-S4-007",
+      "CPPG-A-S4-008",
+      "CPPG-A-S4-009",
+      "CPPG-A-S4-010",
+      "CPPG-A-S4-011",
+      "CPPG-A-S4-012",
+      "CPPG-A-S4-013",
+      "CPPG-A-S4-014",
+      "CPPG-A-S4-015",
+      "CPPG-A-S4-016",
+      "CPPG-A-S4-017",
+      "CPPG-A-S4-018",
+      "CPPG-A-S4-019",
+      "CPPG-A-S4-020",
+      "CPPG-A-S5-001",
+      "CPPG-A-S5-002",
+      "CPPG-A-S5-003",
+      "CPPG-A-S5-004",
+      "CPPG-A-S5-005",
+      "CPPG-A-S5-006",
+      "CPPG-A-S5-007",
+      "CPPG-A-S5-008",
+      "CPPG-A-S5-009",
+      "CPPG-A-S5-010",
+      "CPPG-A-S5-011",
+      "CPPG-A-S5-012",
+      "CPPG-A-S5-013",
+      "CPPG-A-S5-014",
+      "CPPG-A-S5-015",
+      "CPPG-A-S5-016",
+      "CPPG-A-S5-017",
+      "CPPG-A-S5-018",
+      "CPPG-A-S5-019",
+      "CPPG-A-S5-020"
+    ],
+    "distributionClassification": "SECURIUM_PEDAGOGICAL_DISTRIBUTION_BALANCED_20_PER_SUBJECT_FOR_FOUNDATION_COVERAGE",
+    "assessmentQuality": {
+      "distractors": "PASS_MANUAL_PLAUSIBILITY_AND_ROLE_LIFECYCLE_CONTROL_SCREEN",
+      "oneCorrectAnswer": true,
+      "explanationRationale": "PASS"
+    }
+  },
+  "examProfileSeparation": {
+    "officialExamProfileAuthorityCount": 1,
+    "officialExamProfile": {
+      "questions": 100,
+      "choiceCount": 5,
+      "durationMinutes": 120,
+      "subjectMinimumPercent": 40,
+      "overallMinimumPercent": 60
+    },
+    "officialProfileQuestionAllocationField": "NOT_ASSERTED_BY_THIS_ARTIFACT",
+    "questionBank": {
+      "classification": "SECURIUM_QUESTION_BANK",
+      "questions": 100,
+      "distribution": {
+        "CPPG-S1": 20,
+        "CPPG-S2": 20,
+        "CPPG-S3": 20,
+        "CPPG-S4": 20,
+        "CPPG-S5": 20
+      },
+      "label": "SECURIUM_PEDAGOGICAL_DISTRIBUTION_BALANCED_20_PER_SUBJECT_FOR_FOUNDATION_COVERAGE"
+    },
+    "separationProof": {
+      "distinctTypes": true,
+      "distinctIdentifiers": true,
+      "bankDoesNotClaimOfficialAllocation": true,
+      "bankDistributionIsPedagogical": true,
+      "noBankEqualsOfficialExamClaim": true,
+      "officialQuestionAllocationClaimsInLearnerAuthorities": 0
+    },
+    "status": "PASS_100_QUESTION_COINCIDENCE_GUARDED"
+  },
+  "practicalVerification": {
+    "authorityCount": 1,
+    "status": "SPEC_ONLY",
+    "count": 10,
+    "expectedCount": 10,
+    "executableLabs": 0,
+    "subjectDistribution": {
+      "CPPG-S1": 1,
+      "CPPG-S2": 3,
+      "CPPG-S3": 3,
+      "CPPG-S4": 1,
+      "CPPG-S5": 2
+    },
+    "allFiveSubjectsRepresented": true,
+    "allSpecOnly": true,
+    "hiddenGroundTruthExposed": false,
+    "hiddenGroundTruthMarkers": [],
+    "duplicateTitles": 0,
+    "practicalJudgmentScreen": "PASS_SCENARIO_DELIVERABLES_AND_RUBRIC_FOCUS"
+  },
+  "ontologyDryRun": {
+    "exact": 2,
+    "alias": 0,
+    "missing": 72,
+    "ambiguous": 0,
+    "writes": 0,
+    "localCanonicalConceptAuthority": 0,
+    "previous": {
+      "missing": 16,
+      "ambiguous": 3
+    },
+    "previousCountsReevaluated": true,
+    "changeExplanation": "The current dry-run is read-only and reflects the latest canonical ontology state; 72 missing candidates remain candidates and were not promoted locally.",
+    "failClosedOnAmbiguous": "PASS_NO_AMBIGUOUS_CANDIDATES",
+    "mappingReadiness": "WAIT_FOR_ONTOLOGY_PROVISIONING"
+  },
+  "validatorAndMutations": {
+    "baseline": {
+      "status": "PASS",
+      "officialSubjects": 5,
+      "theoryUnits": 25,
+      "objectives": 50,
+      "questions": 100,
+      "subjectCounts": {
+        "CPPG-S1": 20,
+        "CPPG-S2": 20,
+        "CPPG-S3": 20,
+        "CPPG-S4": 20,
+        "CPPG-S5": 20
+      },
+      "practicalSpecs": 10,
+      "ontology": {
+        "exact": 2,
+        "alias": 0,
+        "missing": 72,
+        "ambiguous": 0
+      }
+    },
+    "cases": [
+      {
+        "name": "missing official subject",
+        "status": "PASS_REJECTED",
+        "rejection": "five official subjects required"
+      },
+      {
+        "name": "altered subject order",
+        "status": "PASS_REJECTED",
+        "rejection": "official subject order mismatch at 1"
+      },
+      {
+        "name": "wrong official weight",
+        "status": "PASS_REJECTED",
+        "rejection": "official weight mismatch for CPPG-S1"
+      },
+      {
+        "name": "weight total != 100",
+        "status": "PASS_REJECTED",
+        "rejection": "official weight mismatch for CPPG-S5"
+      },
+      {
+        "name": "duplicate question",
+        "status": "PASS_REJECTED",
+        "rejection": "normalized question stems contains duplicates"
+      },
+      {
+        "name": "missing answer",
+        "status": "PASS_REJECTED",
+        "rejection": "answer missing/invalid CPPG-A-S1-001"
+      },
+      {
+        "name": "missing explanation",
+        "status": "PASS_REJECTED",
+        "rejection": "explanation incomplete CPPG-A-S1-001"
+      },
+      {
+        "name": "unsupported official per-subject question claim",
+        "status": "PASS_REJECTED",
+        "rejection": "unsupported official per-subject allocation claim"
+      },
+      {
+        "name": "rights boundary violation",
+        "status": "PASS_REJECTED",
+        "rejection": "rights/source boundary violated: jLabsDirectLearnerFacingReuse"
+      },
+      {
+        "name": "source question contamination",
+        "status": "PASS_REJECTED",
+        "rejection": "source contamination marker on CPPG-A-S1-001"
+      }
+    ],
+    "passed": 10,
+    "total": 10,
+    "status": "PASS"
+  },
+  "projection": {
+    "cleanAuthorityOnlyRegeneration": true,
+    "deterministic": true,
+    "regeneratedHash": "0383cc5dc63c5cd42aed8cc826f0cca109cde1d758b277f8c21b2ce9f8297deb",
+    "repeatedHash": "0383cc5dc63c5cd42aed8cc826f0cca109cde1d758b277f8c21b2ce9f8297deb",
+    "storedFileHash": "0383cc5dc63c5cd42aed8cc826f0cca109cde1d758b277f8c21b2ce9f8297deb",
+    "status": "PASS"
+  },
+  "qualityGates": {
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "build": "PASS",
+    "dbCheck": "PASS",
+    "gitDiffCheck": "PASS",
+    "newSkipOnlyTodo": "0/0/0"
+  },
+  "reviews": {
+    "securityCriticalHigh": "0/0",
+    "dataTrustCriticalHigh": "0/0",
+    "privacyCriticalHigh": "0/0",
+    "p0p1p2": "0/0/0",
+    "currentLawScopeRegression": "PASS_BOUNDED_CURRENT_AUTHORITY_REVIEW"
+  },
+  "mutations": {
+    "ontology": 0,
+    "skill": 0,
+    "role": 0,
+    "evidence": 0,
+    "mastery": 0,
+    "learnerState": 0,
+    "credential": 0,
+    "db": 0,
+    "schema": 0,
+    "migration": 0,
+    "production": 0,
+    "commit": 0,
+    "push": 0,
+    "pullRequest": 0,
+    "deployment": 0
+  },
+  "downstreamReadiness": {
+    "canonicalMapping": "WAIT_FOR_ONTOLOGY_PROVISIONING",
+    "ontologyProvisioning": "READY_FOR_BOUNDED_ONTOLOGY_PROVISIONING_REVIEW",
+    "practicalWaveB": "READY_FOR_SEPARATE_AUTHORIZATION",
+    "commit": "WAIT_FOR_REPAIR",
+    "recommendedNextGate": "RECONCILE_ORIGIN_MAIN_THEN_COMMIT_REVIEW_SECURIUM_CPPG_FOUNDATION_WAVE_A"
+  },
+  "artifactPaths": [
+    "reports/content-audit/securium-cppg-foundation-wave-a-independent-final-review.json",
+    "reports/content-audit/securium-cppg-foundation-wave-a-independent-final-review.md",
+    "reports/content-audit/securium-cppg-foundation-wave-a-independent-official-authority-verification.json",
+    "reports/content-audit/securium-cppg-foundation-wave-a-independent-theory-objective-verification.json",
+    "reports/content-audit/securium-cppg-foundation-wave-a-independent-assessment-quality.json",
+    "reports/content-audit/securium-cppg-foundation-wave-a-independent-exam-profile-separation.json",
+    "reports/content-audit/securium-cppg-foundation-wave-a-independent-practical-verification.json",
+    "reports/content-audit/securium-cppg-foundation-wave-a-independent-source-rights-provenance.json",
+    "reports/content-audit/securium-cppg-foundation-wave-a-independent-ontology-dry-run.json",
+    "reports/content-audit/securium-cppg-foundation-wave-a-independent-validator-mutation.json",
+    "reports/content-audit/securium-cppg-foundation-wave-a-independent-downstream-readiness.json",
+    "reports/content-audit/securium-cppg-foundation-wave-a-independent-sha256-manifest.json"
+  ]
+}

@@ -1,0 +1,390 @@
+{
+  "authorityId": "SECURIUM_CPPG_PRACTICAL_SPEC_AUTHORITY_V1",
+  "courseId": "course-cppg",
+  "type": "SECURIUM_PRACTICAL_SPEC",
+  "status": "SPEC_ONLY",
+  "executableLabs": 0,
+  "specs": [
+    {
+      "id": "CPPG-P-001",
+      "officialSubjectId": "CPPG-S3",
+      "title": "개인정보 처리흐름 분석",
+      "brief": "신규 모바일 서비스의 수집·앱내 이용·분석·고객센터·파기 흐름을 그려 데이터 위치와 역할을 구분한다.",
+      "learnerDeliverables": [
+        "처리흐름도",
+        "인벤토리 표",
+        "통제 공백 목록",
+        "확인 질문"
+      ],
+      "rubricFocus": "처리 목적과 저장소별 보유·파기 조건을 누락 없이 식별하는가?",
+      "hiddenGroundTruth": "EVALUATOR_ONLY_NOT_IN_LEARNER_SPEC",
+      "noRuntimeExecution": true,
+      "provenance": {
+        "assetId": "CPPG-P-001",
+        "officialSubject": "CPPG-S3",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "CPPG-P-002",
+      "officialSubjectId": "CPPG-S2",
+      "title": "수집·이용 적법성 검토",
+      "brief": "회원가입 화면과 운영계획을 대조해 목적·근거·항목·필수/선택·보유 안내의 정합성을 검토한다.",
+      "learnerDeliverables": [
+        "검토 메모",
+        "결함 분류",
+        "수정된 동의 구조",
+        "근거 재확인 목록"
+      ],
+      "rubricFocus": "불필요한 마케팅을 필수로 묶은 문제와 목적 외 이용 가능성을 식별하는가?",
+      "hiddenGroundTruth": "EVALUATOR_ONLY_NOT_IN_LEARNER_SPEC",
+      "noRuntimeExecution": true,
+      "provenance": {
+        "assetId": "CPPG-P-002",
+        "officialSubject": "CPPG-S2",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "CPPG-P-003",
+      "officialSubjectId": "CPPG-S2",
+      "title": "제3자 제공·위탁 구분",
+      "brief": "배송업체와 제휴사의 두 시나리오를 비교해 독립 목적, 지시·감독, 계약·고지·종료 통제를 분류한다.",
+      "learnerDeliverables": [
+        "역할 판단표",
+        "제공/위탁 결정 근거",
+        "계약·고지 보완점",
+        "종료 체크리스트"
+      ],
+      "rubricFocus": "계약 제목이 아니라 실제 목적과 의사결정 관계로 구분하는가?",
+      "hiddenGroundTruth": "EVALUATOR_ONLY_NOT_IN_LEARNER_SPEC",
+      "noRuntimeExecution": true,
+      "provenance": {
+        "assetId": "CPPG-P-003",
+        "officialSubject": "CPPG-S2",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "CPPG-P-004",
+      "officialSubjectId": "CPPG-S3",
+      "title": "보유기간·파기 판단",
+      "brief": "캠페인 종료 데이터가 운영 DB, 백업, 분석 저장소, 종이 출력물에 남은 상황에서 보유 예외와 파기 범위를 판단한다.",
+      "learnerDeliverables": [
+        "보유 종료 조건",
+        "저장소별 파기 계획",
+        "검증 증적 양식",
+        "예외 보존 사유"
+      ],
+      "rubricFocus": "목적 종료, 별도 보존 필요, 백업·복제본까지 연결하는가?",
+      "hiddenGroundTruth": "EVALUATOR_ONLY_NOT_IN_LEARNER_SPEC",
+      "noRuntimeExecution": true,
+      "provenance": {
+        "assetId": "CPPG-P-004",
+        "officialSubject": "CPPG-S3",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "CPPG-P-005",
+      "officialSubjectId": "CPPG-S2",
+      "title": "정보주체 권리 대응",
+      "brief": "열람 요청을 접수한 담당자라고 가정해 본인 확인, 범위, 제한 사유, 결과 통지, 이의·분쟁 경로를 설계한다.",
+      "learnerDeliverables": [
+        "처리 절차",
+        "통지 초안",
+        "처리 기록",
+        "외부 구제 안내"
+      ],
+      "rubricFocus": "무조건 공개·무조건 거부를 피하고 공정한 절차와 기록을 설계하는가?",
+      "hiddenGroundTruth": "EVALUATOR_ONLY_NOT_IN_LEARNER_SPEC",
+      "noRuntimeExecution": true,
+      "provenance": {
+        "assetId": "CPPG-P-005",
+        "officialSubject": "CPPG-S2",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "CPPG-P-006",
+      "officialSubjectId": "CPPG-S4",
+      "title": "안전성 확보조치 검토",
+      "brief": "고위험 데이터베이스의 접근권한, 암호화 키, 접속기록, 출력·복사 경로를 점검하고 우선순위를 정한다.",
+      "learnerDeliverables": [
+        "위험-통제 매트릭스",
+        "최소권한 계획",
+        "키 관리 개선안",
+        "로그 검토 절차"
+      ],
+      "rubricFocus": "도구 도입이 아니라 실제 노출 경로와 운영 증적을 평가하는가?",
+      "hiddenGroundTruth": "EVALUATOR_ONLY_NOT_IN_LEARNER_SPEC",
+      "noRuntimeExecution": true,
+      "provenance": {
+        "assetId": "CPPG-P-006",
+        "officialSubject": "CPPG-S4",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "CPPG-P-007",
+      "officialSubjectId": "CPPG-S5",
+      "title": "개인정보 처리방침 검토",
+      "brief": "처리방침과 실제 시스템·계약·보유표를 대조해 누락·불일치·현재성 결함을 찾는다.",
+      "learnerDeliverables": [
+        "대조표",
+        "불일치 목록",
+        "현재성 확인 기록",
+        "개정 우선순위"
+      ],
+      "rubricFocus": "문서 문구와 실제 처리흐름·권리·보유 정보를 일치시키는가?",
+      "hiddenGroundTruth": "EVALUATOR_ONLY_NOT_IN_LEARNER_SPEC",
+      "noRuntimeExecution": true,
+      "provenance": {
+        "assetId": "CPPG-P-007",
+        "officialSubject": "CPPG-S5",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "CPPG-P-008",
+      "officialSubjectId": "CPPG-S5",
+      "title": "개인정보 관리체계 점검",
+      "brief": "정책·역할·교육·자원·감사·시정조치 자료를 바탕으로 관리체계의 폐쇄 루프를 평가한다.",
+      "learnerDeliverables": [
+        "성숙도 관찰표",
+        "증적 목록",
+        "시정조치 backlog",
+        "경영 보고 요약"
+      ],
+      "rubricFocus": "책임과 증적, 반복 개선까지 확인하는가?",
+      "hiddenGroundTruth": "EVALUATOR_ONLY_NOT_IN_LEARNER_SPEC",
+      "noRuntimeExecution": true,
+      "provenance": {
+        "assetId": "CPPG-P-008",
+        "officialSubject": "CPPG-S5",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "CPPG-P-009",
+      "officialSubjectId": "CPPG-S3",
+      "title": "침해사고 대응 판단",
+      "brief": "권한 오설정으로 파일 일부가 외부에 노출된 상황에서 초기 차단, 증적 보전, 범위 확인, 보고·통지, 재발 방지를 배열한다.",
+      "learnerDeliverables": [
+        "초기 대응 순서",
+        "사실 확인표",
+        "통지 판단 기록",
+        "재발 방지안"
+      ],
+      "rubricFocus": "초기 차단과 사실 정확성을 동시에 지키며 후속 개선으로 연결하는가?",
+      "hiddenGroundTruth": "EVALUATOR_ONLY_NOT_IN_LEARNER_SPEC",
+      "noRuntimeExecution": true,
+      "provenance": {
+        "assetId": "CPPG-P-009",
+        "officialSubject": "CPPG-S3",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    },
+    {
+      "id": "CPPG-P-010",
+      "officialSubjectId": "CPPG-S1",
+      "title": "처리자·수탁자 책임 구분",
+      "brief": "내부 사업부, 플랫폼 운영자, 고객센터, 제휴사의 처리 목적과 의사결정 권한을 비교해 책임 매트릭스를 만든다.",
+      "learnerDeliverables": [
+        "역할 매트릭스",
+        "책임·감독 경계",
+        "권리 요청 라우팅",
+        "계약 확인 질문"
+      ],
+      "rubricFocus": "외부 여부나 계약 명칭이 아니라 실제 목적·지시·감독으로 역할을 설명하는가?",
+      "hiddenGroundTruth": "EVALUATOR_ONLY_NOT_IN_LEARNER_SPEC",
+      "noRuntimeExecution": true,
+      "provenance": {
+        "assetId": "CPPG-P-010",
+        "officialSubject": "CPPG-S1",
+        "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+        "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+        "referencePackage": {
+          "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+          "use": "THEME_ORIENTATION_ONLY",
+          "copiedText": false,
+          "copiedQuestion": false,
+          "sourceImageUsed": false
+        },
+        "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+        "authoritySources": [
+          "CPPG_OFFICIAL_PORTAL",
+          "CPPG_OFFICIAL_EXAM_PROFILE",
+          "CPPG_OFFICIAL_SCOPE",
+          "PIPC_LAW_PORTAL",
+          "PIPC_GUIDANCE_INDEX"
+        ]
+      }
+    }
+  ],
+  "provenance": {
+    "assetId": "PRACTICAL-AUTHORITY",
+    "officialSubject": "ALL",
+    "officialScopeBasis": "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+    "authorship": "SECURIUM_INDEPENDENT_AUTHORSHIP",
+    "referencePackage": {
+      "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+      "use": "THEME_ORIENTATION_ONLY",
+      "copiedText": false,
+      "copiedQuestion": false,
+      "sourceImageUsed": false
+    },
+    "rightsBoundary": "REFERENCE_ONLY_NO_LEARNER_FACING_REUSE",
+    "authoritySources": [
+      "CPPG_OFFICIAL_PORTAL",
+      "CPPG_OFFICIAL_EXAM_PROFILE",
+      "CPPG_OFFICIAL_SCOPE",
+      "PIPC_LAW_PORTAL",
+      "PIPC_GUIDANCE_INDEX"
+    ]
+  }
+}

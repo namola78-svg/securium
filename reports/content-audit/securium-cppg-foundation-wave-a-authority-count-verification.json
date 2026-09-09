@@ -1,0 +1,93 @@
+{
+  "mode": "post",
+  "curriculumAuthorityCount": 1,
+  "subjectCount": 5,
+  "subjects": [
+    {
+      "id": "CPPG-S1",
+      "order": 1,
+      "name": "개인정보보호의 이해",
+      "officialWeight": 10,
+      "weightSemantics": "OFFICIAL_EXAM_WEIGHT"
+    },
+    {
+      "id": "CPPG-S2",
+      "order": 2,
+      "name": "개인정보보호 제도",
+      "officialWeight": 20,
+      "weightSemantics": "OFFICIAL_EXAM_WEIGHT"
+    },
+    {
+      "id": "CPPG-S3",
+      "order": 3,
+      "name": "개인정보 라이프사이클 관리",
+      "officialWeight": 25,
+      "weightSemantics": "OFFICIAL_EXAM_WEIGHT"
+    },
+    {
+      "id": "CPPG-S4",
+      "order": 4,
+      "name": "개인정보의 보호조치",
+      "officialWeight": 30,
+      "weightSemantics": "OFFICIAL_EXAM_WEIGHT"
+    },
+    {
+      "id": "CPPG-S5",
+      "order": 5,
+      "name": "개인정보 관리체계",
+      "officialWeight": 15,
+      "weightSemantics": "OFFICIAL_EXAM_WEIGHT"
+    }
+  ],
+  "expectedSubjects": [
+    {
+      "id": "CPPG-S1",
+      "order": 1,
+      "name": "개인정보보호의 이해",
+      "officialWeight": 10
+    },
+    {
+      "id": "CPPG-S2",
+      "order": 2,
+      "name": "개인정보보호 제도",
+      "officialWeight": 20
+    },
+    {
+      "id": "CPPG-S3",
+      "order": 3,
+      "name": "개인정보 라이프사이클 관리",
+      "officialWeight": 25
+    },
+    {
+      "id": "CPPG-S4",
+      "order": 4,
+      "name": "개인정보의 보호조치",
+      "officialWeight": 30
+    },
+    {
+      "id": "CPPG-S5",
+      "order": 5,
+      "name": "개인정보 관리체계",
+      "officialWeight": 15
+    }
+  ],
+  "weightsTotal": 100,
+  "theoryAuthorityCount": 1,
+  "theoryUnits": 25,
+  "objectiveAuthorityCount": 1,
+  "objectives": 50,
+  "assessmentAuthorityCount": 1,
+  "questions": 100,
+  "questionDistribution": {
+    "CPPG-S1": 20,
+    "CPPG-S2": 20,
+    "CPPG-S3": 20,
+    "CPPG-S4": 20,
+    "CPPG-S5": 20
+  },
+  "practicalAuthorityCount": 1,
+  "practicalSpecs": 10,
+  "practicalStatus": "SPEC_ONLY",
+  "executableLabs": 0,
+  "officialFreezePass": true
+}

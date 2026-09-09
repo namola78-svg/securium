@@ -1,0 +1,80 @@
+{
+  "manifestId": "SECURIUM_CPPG_FOUNDATION_INDEPENDENT_VALIDATOR_MUTATION_V1",
+  "reviewDate": "2026-09-09",
+  "status": "PASS",
+  "baseline": {
+    "status": "PASS",
+    "officialSubjects": 5,
+    "theoryUnits": 25,
+    "objectives": 50,
+    "questions": 100,
+    "subjectCounts": {
+      "CPPG-S1": 20,
+      "CPPG-S2": 20,
+      "CPPG-S3": 20,
+      "CPPG-S4": 20,
+      "CPPG-S5": 20
+    },
+    "practicalSpecs": 10,
+    "ontology": {
+      "exact": 2,
+      "alias": 0,
+      "missing": 72,
+      "ambiguous": 0
+    }
+  },
+  "cases": [
+    {
+      "name": "missing official subject",
+      "status": "PASS_REJECTED",
+      "rejection": "five official subjects required"
+    },
+    {
+      "name": "altered subject order",
+      "status": "PASS_REJECTED",
+      "rejection": "official subject order mismatch at 1"
+    },
+    {
+      "name": "wrong official weight",
+      "status": "PASS_REJECTED",
+      "rejection": "official weight mismatch for CPPG-S1"
+    },
+    {
+      "name": "weight total != 100",
+      "status": "PASS_REJECTED",
+      "rejection": "official weight mismatch for CPPG-S5"
+    },
+    {
+      "name": "duplicate question",
+      "status": "PASS_REJECTED",
+      "rejection": "normalized question stems contains duplicates"
+    },
+    {
+      "name": "missing answer",
+      "status": "PASS_REJECTED",
+      "rejection": "answer missing/invalid CPPG-A-S1-001"
+    },
+    {
+      "name": "missing explanation",
+      "status": "PASS_REJECTED",
+      "rejection": "explanation incomplete CPPG-A-S1-001"
+    },
+    {
+      "name": "unsupported official per-subject question claim",
+      "status": "PASS_REJECTED",
+      "rejection": "unsupported official per-subject allocation claim"
+    },
+    {
+      "name": "rights boundary violation",
+      "status": "PASS_REJECTED",
+      "rejection": "rights/source boundary violated: jLabsDirectLearnerFacingReuse"
+    },
+    {
+      "name": "source question contamination",
+      "status": "PASS_REJECTED",
+      "rejection": "source contamination marker on CPPG-A-S1-001"
+    }
+  ],
+  "passed": 10,
+  "total": 10
+}

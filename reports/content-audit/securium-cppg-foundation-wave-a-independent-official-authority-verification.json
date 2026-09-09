@@ -1,0 +1,64 @@
+{
+  "manifestId": "SECURIUM_CPPG_FOUNDATION_INDEPENDENT_OFFICIAL_AUTHORITY_V1",
+  "reviewDate": "2026-09-09",
+  "status": "PASS",
+  "authority": {
+    "qualification": "CPPG",
+    "operator": "한국CPO포럼",
+    "classification": "등록 비공인 민간자격",
+    "subjectCount": 5,
+    "subjects": [
+      {
+        "order": 1,
+        "id": "CPPG-S1",
+        "name": "개인정보보호의 이해",
+        "officialWeight": 10,
+        "weightSemantics": "OFFICIAL_EXAM_WEIGHT"
+      },
+      {
+        "order": 2,
+        "id": "CPPG-S2",
+        "name": "개인정보보호 제도",
+        "officialWeight": 20,
+        "weightSemantics": "OFFICIAL_EXAM_WEIGHT"
+      },
+      {
+        "order": 3,
+        "id": "CPPG-S3",
+        "name": "개인정보 라이프사이클 관리",
+        "officialWeight": 25,
+        "weightSemantics": "OFFICIAL_EXAM_WEIGHT"
+      },
+      {
+        "order": 4,
+        "id": "CPPG-S4",
+        "name": "개인정보의 보호조치",
+        "officialWeight": 30,
+        "weightSemantics": "OFFICIAL_EXAM_WEIGHT"
+      },
+      {
+        "order": 5,
+        "id": "CPPG-S5",
+        "name": "개인정보 관리체계",
+        "officialWeight": 15,
+        "weightSemantics": "OFFICIAL_EXAM_WEIGHT"
+      }
+    ],
+    "totalOfficialWeight": 100,
+    "verification": "PASS_OFFICIAL_CURRENT_PORTAL_AND_SCOPE_REVIEW"
+  },
+  "officialExamProfile": {
+    "questions": 100,
+    "choiceCount": 5,
+    "durationMinutes": 120,
+    "subjectMinimumPercent": 40,
+    "overallMinimumPercent": 60
+  },
+  "officialSources": [
+    "https://cpptest.or.kr/new/privacy/cpp2.php",
+    "https://cpptest.or.kr/html/privacy/cpp4.php",
+    "https://cpptest.or.kr/new/board/noticeView.php?b_idx=191",
+    "https://law.go.kr/법령/개인정보보호법"
+  ],
+  "scopeReview": "All five current official subjects are represented; Securium units are pedagogical and are not mislabeled as official unit structure."
+}

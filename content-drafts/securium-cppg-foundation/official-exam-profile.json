@@ -1,0 +1,15 @@
+{
+  "profileId": "CPPG_OFFICIAL_EXAM_PROFILE_CURRENT",
+  "type": "OFFICIAL_EXAM_PROFILE",
+  "qualification": "CPPG",
+  "questions": 100,
+  "choiceCount": 5,
+  "durationMinutes": 120,
+  "subjectMinimumPercent": 40,
+  "overallMinimumPercent": 60,
+  "subjectQuestionAllocation": "NOT_ASSERTED_BY_THIS_ARTIFACT",
+  "sourceRefs": [
+    "CPPG_OFFICIAL_EXAM_PROFILE"
+  ],
+  "rights": "REFERENCE_ONLY"
+}

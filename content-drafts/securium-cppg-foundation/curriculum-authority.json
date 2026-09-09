@@ -1,0 +1,84 @@
+{
+  "manifestId": "SECURIUM_CPPG_CURRICULUM_AUTHORITY_V1",
+  "courseId": "course-cppg",
+  "qualification": "CPPG",
+  "operator": "한국CPO포럼",
+  "qualificationClassification": "등록 비공인 민간자격",
+  "authorityStatus": "CURRENT_CPPG_AUTHORITY_COMPLETE",
+  "curriculumAuthorityCount": 1,
+  "subjects": [
+    {
+      "id": "CPPG-S1",
+      "order": 1,
+      "type": "OFFICIAL_SUBJECT",
+      "name": "개인정보보호의 이해",
+      "officialWeight": 10,
+      "weightSemantics": "OFFICIAL_EXAM_WEIGHT",
+      "scopeBasis": "개인정보의 개념과 가치, 주체·역할, 보호 원칙과 권리구제의 기초",
+      "sourceRefs": [
+        "CPPG_OFFICIAL_EXAM_PROFILE",
+        "CPPG_OFFICIAL_SCOPE"
+      ]
+    },
+    {
+      "id": "CPPG-S2",
+      "order": 2,
+      "type": "OFFICIAL_SUBJECT",
+      "name": "개인정보보호 제도",
+      "officialWeight": 20,
+      "weightSemantics": "OFFICIAL_EXAM_WEIGHT",
+      "scopeBasis": "개인정보보호 법체계와 처리 근거, 동의, 제공·위탁, 정보주체 권리",
+      "sourceRefs": [
+        "CPPG_OFFICIAL_EXAM_PROFILE",
+        "CPPG_OFFICIAL_SCOPE"
+      ]
+    },
+    {
+      "id": "CPPG-S3",
+      "order": 3,
+      "type": "OFFICIAL_SUBJECT",
+      "name": "개인정보 라이프사이클 관리",
+      "officialWeight": 25,
+      "weightSemantics": "OFFICIAL_EXAM_WEIGHT",
+      "scopeBasis": "수집부터 이용·저장·제공·보유·파기까지 흐름 기반 관리",
+      "sourceRefs": [
+        "CPPG_OFFICIAL_EXAM_PROFILE",
+        "CPPG_OFFICIAL_SCOPE"
+      ]
+    },
+    {
+      "id": "CPPG-S4",
+      "order": 4,
+      "type": "OFFICIAL_SUBJECT",
+      "name": "개인정보의 보호조치",
+      "officialWeight": 30,
+      "weightSemantics": "OFFICIAL_EXAM_WEIGHT",
+      "scopeBasis": "기술적·관리적·물리적 보호조치와 보호조치 적용 판단",
+      "sourceRefs": [
+        "CPPG_OFFICIAL_EXAM_PROFILE",
+        "CPPG_OFFICIAL_SCOPE"
+      ]
+    },
+    {
+      "id": "CPPG-S5",
+      "order": 5,
+      "type": "OFFICIAL_SUBJECT",
+      "name": "개인정보 관리체계",
+      "officialWeight": 15,
+      "weightSemantics": "OFFICIAL_EXAM_WEIGHT",
+      "scopeBasis": "개인정보 관리체계, 영향평가, 수준진단, 점검과 개선",
+      "sourceRefs": [
+        "CPPG_OFFICIAL_EXAM_PROFILE",
+        "CPPG_OFFICIAL_SCOPE"
+      ]
+    }
+  ],
+  "sourceRefs": [
+    "CPPG_OFFICIAL_PORTAL",
+    "CPPG_OFFICIAL_EXAM_PROFILE",
+    "CPPG_OFFICIAL_SCOPE",
+    "PIPC_LAW_PORTAL",
+    "PIPC_GUIDANCE_INDEX"
+  ],
+  "rights": "OFFICIAL_AUTHORITY_REFERENCE_ONLY"
+}

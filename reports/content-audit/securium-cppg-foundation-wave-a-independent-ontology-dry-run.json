@@ -1,0 +1,19 @@
+{
+  "manifestId": "SECURIUM_CPPG_FOUNDATION_INDEPENDENT_ONTOLOGY_DRY_RUN_V1",
+  "reviewDate": "2026-09-09",
+  "status": "PASS",
+  "exact": 2,
+  "alias": 0,
+  "missing": 72,
+  "ambiguous": 0,
+  "writes": 0,
+  "localCanonicalConceptAuthority": 0,
+  "previous": {
+    "missing": 16,
+    "ambiguous": 3
+  },
+  "previousCountsReevaluated": true,
+  "changeExplanation": "The current dry-run is read-only and reflects the latest canonical ontology state; 72 missing candidates remain candidates and were not promoted locally.",
+  "failClosedOnAmbiguous": "PASS_NO_AMBIGUOUS_CANDIDATES",
+  "mappingReadiness": "WAIT_FOR_ONTOLOGY_PROVISIONING"
+}

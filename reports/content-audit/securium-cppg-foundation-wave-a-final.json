@@ -1,0 +1,124 @@
+{
+  "manifestId": "SECURIUM_CPPG_FOUNDATION_WAVE_A_FINAL_V1",
+  "finalStatus": "SECURIUM_CPPG_FOUNDATION_WAVE_A_PASS_READY_FOR_REVIEW",
+  "decision": "PASS_READY_FOR_INDEPENDENT_REVIEW",
+  "completionCandidate": "CPPG_FOUNDATION_WAVE_A_IMPLEMENTED",
+  "currentAuthority": {
+    "status": "CURRENT_CPPG_AUTHORITY_COMPLETE",
+    "qualification": "CPPG",
+    "operator": "한국CPO포럼",
+    "classification": "등록 비공인 민간자격",
+    "subjectCount": 5,
+    "subjects": [
+      { "order": 1, "id": "CPPG-S1", "name": "개인정보보호의 이해", "officialWeight": 10 },
+      { "order": 2, "id": "CPPG-S2", "name": "개인정보보호 제도", "officialWeight": 20 },
+      { "order": 3, "id": "CPPG-S3", "name": "개인정보 라이프사이클 관리", "officialWeight": 25 },
+      { "order": 4, "id": "CPPG-S4", "name": "개인정보의 보호조치", "officialWeight": 30 },
+      { "order": 5, "id": "CPPG-S5", "name": "개인정보 관리체계", "officialWeight": 15 }
+    ],
+    "officialWeightSemantics": "OFFICIAL_EXAM_WEIGHT",
+    "officialWeightTotal": 100,
+    "authoritySources": [
+      "https://cpptest.or.kr/new/",
+      "https://cpptest.or.kr/new/privacy/cpp2.php",
+      "https://cpptest.or.kr/html/privacy/cpp4.php",
+      "https://law.go.kr/법령/개인정보보호법",
+      "https://www.pipc.go.kr/np/cop/bbs/selectBoardList.do?bbsId=BS217&mCode=D010030040"
+    ]
+  },
+  "repositoryBaseline": {
+    "worktree": "securium-content-cppg-foundation",
+    "branch": "content/cppg-foundation-wave-a",
+    "head": "ac65766b8e406968dd66fd906249c48b91fa6b38",
+    "originMain": "ac65766b8e406968dd66fd906249c48b91fa6b38",
+    "ahead": 0,
+    "behind": 0,
+    "trackedChangesBeforeWaveA": 0,
+    "stagedChangesBeforeWaveA": 0,
+    "untrackedChangesBeforeWaveA": 0
+  },
+  "recoveredPriorAuditArtifacts": {
+    "status": "REVALIDATED",
+    "artifacts": [
+      { "name": "securium-cppg-current-authority.json", "sha256": "ba1bbc5a0e803e34f16ef726ee391c71dece939e250acd8fd02bc5af1b3ad9e" },
+      { "name": "securium-cppg-source-inventory.json", "sha256": "1c954feab9aaac0793c7bb4c7aff012d1cfcda397eb6fd6d7cadda45f09a0302" },
+      { "name": "securium-cppg-source-manifest-v2.json", "sha256": "d572938232930c9b1c0adb9a2bdbb598dbc2931b0bcc7dcb1ff1342ce94e2b38" },
+      { "name": "securium-cppg-rights-review.json", "sha256": "987d1d7fac7ddfd50d3211458dedacad7d89794eb2fd37e69bae6c096d41a506" },
+      { "name": "securium-cppg-final-readiness.json", "sha256": "33c32903b73175a2faacf64c79990062c2c9a3afb6b54f65e75bc7d1aac33423" }
+    ]
+  },
+  "sourcePackage": {
+    "root": "source-evidence-original/cppg",
+    "classification": "SOURCE_PACKAGE_REFERENCE_ONLY",
+    "files": 133,
+    "bytes": 377555066,
+    "jpgJpeg": 131,
+    "pdf": 2,
+    "sha256Mismatch": 0,
+    "duplicateFiles": 0,
+    "packageHash": "cf4ada7c7f325aa405c76db7993d314b782ff4f69f07b467793dc11cf1913a80",
+    "sourceMutation": 0,
+    "pdfs": [
+      { "name": "cppg_암기노트.pdf", "pages": 19, "classification": "THIRD_PARTY_JLABS_REFERENCE_ONLY" },
+      { "name": "CPPG 개인정보관리사.pdf", "pages": 60, "classification": "THIRD_PARTY_COMMERCIAL_REFERENCE_ONLY" }
+    ]
+  },
+  "rightsAndProvenance": {
+    "localReferencePackage": "REFERENCE_ONLY",
+    "directJLabsLearnerFacingReuse": 0,
+    "directCommercialPdfReuse": 0,
+    "sourceImageExposure": 0,
+    "directSourceQuestionIngestion": 0,
+    "highRiskReconstruction": 0,
+    "canonicalOcrIngestion": 0,
+    "theoryAuthorship": "SECURIUM_INDEPENDENT",
+    "objectiveAuthorship": "SECURIUM_INDEPENDENT",
+    "assessmentAuthorship": "SECURIUM_INDEPENDENT",
+    "practicalAuthorship": "SECURIUM_INDEPENDENT"
+  },
+  "courseIdentity": { "courseId": "course-cppg", "examYearEncoded": false, "officialQuestionCountEncoded": false, "curriculumAuthorityCount": 1 },
+  "boundaryTypes": ["OFFICIAL_SUBJECT", "SECURIUM_LEARNING_UNIT", "SECURIUM_OBJECTIVE", "SECURIUM_CONCEPT", "SECURIUM_ASSESSMENT", "SECURIUM_PRACTICAL_SPEC"],
+  "theory": { "authorityCount": 1, "editable": true, "learningUnitCount": 25, "objectiveAuthorityCount": 1, "objectiveCount": 50, "allUnitsBound": true, "allUnitsHaveMeasurableObjectives": true },
+  "assessment": {
+    "authorityCount": 1,
+    "bankClassification": "SECURIUM_QUESTION_BANK",
+    "questionCount": 100,
+    "format": "5-choice written MCQ",
+    "pedagogicalDistribution": { "CPPG-S1": 20, "CPPG-S2": 20, "CPPG-S3": 20, "CPPG-S4": 20, "CPPG-S5": 20 },
+    "distributionRationale": "Balanced 20-per-subject coverage gives every official subject a meaningful Foundation slice; it is not an official question allocation.",
+    "officialVsPedagogicalDistinct": true,
+    "distributionLabel": "SECURIUM_PEDAGOGICAL_DISTRIBUTION_BALANCED_20_PER_SUBJECT_FOR_FOUNDATION_COVERAGE",
+    "allOriginal": true,
+    "semanticHash": "d9944e1d7b62031a262dbf04b078a61e659df1eb4603815e2e8f940bbc23057f",
+    "duplicates": { "exact": 0, "normalized": 0, "material": 0 },
+    "answerCoverage": "100%; exactly one governed answer per question",
+    "explanationCoverage": "100%",
+    "sourceQuestionIngestion": 0,
+    "sourceReconstruction": 0
+  },
+  "practical": { "authorityCount": 1, "status": "SPEC_ONLY", "count": 10, "executableLabs": 0, "hiddenGroundTruthExposed": false },
+  "officialExamProfile": { "questions": 100, "choiceCount": 5, "durationMinutes": 120, "subjectMinimumPercent": 40, "overallMinimumPercent": 60, "subjectQuestionAllocationClaim": "NONE" },
+  "ontologyDryRun": { "exact": 2, "alias": 0, "missing": 72, "ambiguous": 0, "writes": 0, "previousMissing": 16, "previousAmbiguous": 3, "previousCountsReEvaluated": true, "localCanonicalConceptAuthority": 0, "mappingReadiness": "WAIT_FOR_ONTOLOGY_PROVISIONING" },
+  "mutations": { "cases": 10, "passed": 10, "status": "PASS" },
+  "validator": { "status": "PASS", "coverage": ["authority count", "subject order", "weights", "unit bindings", "objective bindings", "uniqueness", "answer coverage", "explanation coverage", "subject coverage", "practical status", "provenance", "rights", "source boundary", "official allocation guard"] },
+  "regressions": { "currentAuthority": "PASS", "sourceHash": "PASS 133/133", "sourceMutation": 0, "currentLawScope": "PASS; historical/reference material cannot override current authority", "projectionCleanRegeneration": "PASS", "projectionDeterminism": "PASS" },
+  "qualityGates": { "typecheck": "PASS", "lint": "PASS", "build": "PASS", "dbCheck": "PASS", "gitDiffCheck": "PASS", "newSkipOnlyTodo": "0/0/0", "securityCriticalHigh": "0/0", "dataTrustCriticalHigh": "0/0", "privacyCriticalHigh": "0/0", "p0p1p2": "0/0/0" },
+  "futureWrites": { "skill": 0, "role": 0, "evidence": 0, "mastery": 0, "learnerState": 0, "credential": 0, "db": 0, "schema": 0, "migration": 0 },
+  "production": { "commit": 0, "push": 0, "pullRequest": 0, "deployment": 0 },
+  "practicalWaveBReadiness": "READY_FOR_SEPARATE_AUTHORIZATION",
+  "recommendedNextGate": "REVIEW_SECURIUM_CPPG_FOUNDATION_WAVE_A",
+  "artifactIndex": [
+    "content-drafts/securium-cppg-foundation/curriculum-authority.json",
+    "content-drafts/securium-cppg-foundation/theory-authority.json",
+    "content-drafts/securium-cppg-foundation/objective-authority.json",
+    "content-drafts/securium-cppg-foundation/assessment-authority.json",
+    "content-drafts/securium-cppg-foundation/projections/assessment-authority-only.json",
+    "content-drafts/securium-cppg-foundation/practical-spec-authority.json",
+    "content-drafts/securium-cppg-foundation/official-exam-profile.json",
+    "content-drafts/securium-cppg-foundation/provenance-rights-manifest.json",
+    "content-drafts/securium-cppg-foundation/ontology-concept-dry-run.json",
+    "content-drafts/securium-cppg-foundation/source-sha256-manifest.json",
+    "scripts/validate-securium-cppg-foundation-wave-a.mjs",
+    "scripts/test-securium-cppg-foundation-wave-a-mutations.mjs"
+  ]
+}
