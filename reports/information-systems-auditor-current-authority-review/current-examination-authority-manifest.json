@@ -1,0 +1,37 @@
+{
+  "manifestType":"current-examination-authority",
+  "authorityStatus":"CURRENT_2026_CURRICULUM_AUTHORITY_COMPLETE",
+  "snapshot":"2026-09-08",
+  "identity":{"qualificationName":"정보시스템감리사","noticeTitle":"2026년 (제27회) 정보시스템 감리사 자격검정 시행공고","noticeIdentifier":"공인번호 제2020-01호","session":"2026 / 제27회"},
+  "roles":{"qualificationIssuer":{"name":"한국지능정보사회진흥원","evidence":"PQI qualification record"},"examinationOperator":{"name":"한국지능정보사회진흥원; 정보시스템감리사 홈페이지","evidence":"NIA notice names NIA as issuer and directs application/exam operations through auditor.nia.or.kr"},"competentAuthority":{"name":"행정안전부","evidence":"PQI supervising ministry field","note":"This is kept separate from the issuer/operator."}},
+  "classification":{"exactPqiTerms":["민간자격","공인자격","등급없음 (공인)"],"registration":"2008-0506","noticeTerm":"국가공인 정보시스템감리사","interpretation":"Use the exact PQI and notice terms; do not rewrite the qualification as 국가자격."},
+  "sources":[{"type":"NIA_PUBLIC_LISTING","url":"https://www.nia.or.kr/site/nia_kor/ex/bbs/List.do?cbIdx=99977","supports":"title and public listing date"},{"type":"NIA_NOTICE_DETAIL","url":"https://www.nia.or.kr/site/nia_kor/ex/bbs/View.do?cbIdx=99977&bcIdx=29882&parentSeq=29882","supports":"notice body and one attachment"},{"type":"NIA_ATTACHMENT","url":"https://www.nia.or.kr/common/board/Download.do?bcIdx=29882&cbIdx=99977&fileNo=1","sha256":"7F1A66B29EA2467D68AC8CD46C877FDA672531A31D4C658C6BD447C44DB555F9","supports":"all detailed 2026 exam claims"},{"type":"PQI","url":"https://www.pqi.or.kr/inf/qul/infQulBasDetail.do?qulId=661","supports":"identity, issuer, registration, supervising ministry and classification"}],
+  "stages":[
+    {"sequence":1,"officialName":"응시원서 접수","eligibility":"one of eight notice-defined routes; online application","purpose":"submit application and pay written-exam fee","details":"2026-03-30 09:00 through 2026-04-09 18:00; written fee 180,000 KRW"},
+    {"sequence":2,"officialName":"필기시험","eligibility":"accepted applicants","purpose":"written qualification screening","details":"2026-04-25 10:00–12:10; late entry prohibited"},
+    {"sequence":3,"officialName":"예비합격자 성적공개 및 경력증빙서류 제출","eligibility":"preliminary pass candidates","purpose":"verify education/qualification/experience before final written result","details":"documents 2026-05-26 through 2026-06-02 16:00"},
+    {"sequence":4,"officialName":"필기시험 최종합격자 발표","eligibility":"evidence-approved preliminary pass candidates","purpose":"finalize written result","details":"2026-06-08 10:00"},
+    {"sequence":5,"officialName":"면접전형","eligibility":"current final written passers and previous-cycle interview failures","purpose":"secondary qualification assessment","details":"2026-06-25 10:00; individual approximately 15 minutes"},
+    {"sequence":6,"officialName":"이론교육","eligibility":"current interview passers and previous-cycle theory failures","purpose":"post-exam qualification education","details":"40 hours, 2026-07-13 through 2026-07-17"},
+    {"sequence":7,"officialName":"실습교육","eligibility":"current theory passers and previous-cycle practical failures","purpose":"post-exam practical education","details":"48 hours, 2026-08-17 through 2026-08-22"},
+    {"sequence":8,"officialName":"자격 부여","eligibility":"notice states written/interview passers receive qualification after audit education","purpose":"qualification completion","details":"certificate/registration issuance workflow is NOT_ESTABLISHED by this notice"}
+  ],
+  "writtenExam":{"subjects":[
+    {"order":1,"name":"감리 및 사업관리","units":["정보화 관련 법/제도 및 국내외 지침·가이드","감리 관련 법제도 및 관련 기술","조직 관리론","프로젝트관리"]},
+    {"order":2,"name":"소프트웨어 공학","units":["요구사항분석 및 설계","구현 및 테스트","유지관리 및 운영","개발방법론·SW 구조 및 공개SW","SW 품질 및 비용산정"]},
+    {"order":3,"name":"데이터베이스","units":["DB 개념 및 설계","DB 언어","DBMS 기술","DB 응용","빅데이터 및 AI데이터"]},
+    {"order":4,"name":"시스템 구조","units":["공통 기술","아키텍처 설계 및 구축","데이터통신 및 네트워크 설계","기타 신기술"]},
+    {"order":5,"name":"보안","units":["공통 보안기술","네트워크 및 시스템 보안","응용 및 신기술 보안","개발 및 운영 보안","정보보호 법규 및 개인정보보호"]}
+  ],"subjectCount":5,"unitCount":23,"questionCount":{"status":"VERIFIED","value":120},"format":{"status":"VERIFIED","value":"객관식 4지 선다형"},"duration":{"status":"VERIFIED","minutes":120,"scheduled":"10:00–12:10"},"subjectWeighting":{"status":"NOT_ESTABLISHED","reason":"Notice gives total question count but no subject-level allocation or score weighting"},"passing":{"status":"VERIFIED","rank":"상위 40위 동점자까지 합격","subjectMinimum":"과목별 40점 미만 과락","totalScoreThreshold":"NOT_ESTABLISHED"}},
+  "eligibility":{"cutoff":"2026-04-25","routes":["기술사: 정보관리 또는 컴퓨터시스템응용 기술사","기사 + 정보처리분야 실무경력 7년 이상: 정보처리·전자계산기조직응용·정보보안·빅데이터분석 기사","산업기사 + 정보처리분야 실무경력 10년 이상: 정보처리·사무자동화·정보보안 산업기사","정보처리분야 박사학위","정보처리분야 석사학위 + 실무경력 6년 이상","학사학위 + 정보처리분야 실무경력 9년 이상","전문대학 졸업 + 정보처리분야 실무경력 12년 이상","고등학교 졸업 + 정보처리분야 실무경력 15년 이상"],"calculationRule":"experience is counted after qualification or degree acquisition"},
+  "application":{"status":"VERIFIED","channel":"정보시스템감리사 홈페이지 internet application; no visit/mail application","writtenFee":"180,000 KRW","evidence":"preliminary pass candidates submit proof; NIA may request additional material"},
+  "scopeVersionRule":"The notice states that laws, notices, standards and guides promulgated before the 2026 notice date are the written-exam basis; where revision and effective dates differ, revision date is used; explicitly stated versions/years control.",
+  "standardsAndRegulations":[
+    {"title":"정보시스템 감리기준","issuer":"행정안전부","reference":"행정안전부고시 제2024-53호","effective":"2024-06-27","status":"CURRENT_VERIFIED","url":"https://www.law.go.kr/LSW/admRulLsInfoP.do?admRulSeq=2100000243290","relationship":"one named legal/technical source within 감리 및 사업관리; not the entire curriculum"},
+    {"title":"전자정부법","reference":"제57조 정보시스템 감리","status":"CURRENT_VERIFIED at snapshot; 시행 2026-08-28","url":"https://www.law.go.kr/LSW/lsLinkCommonInfo.do?chrClsCd=010202&lsJoLnkSeq=1031465849","relationship":"material legal framework named by notice"},
+    {"title":"지능정보화 기본법","status":"CURRENT_VERIFIED at snapshot; 시행 2026-01-22","url":"https://law.go.kr/lsLinkCommonInfo.do?chrClsCd=010202&lsJoLnkSeq=1013152333","relationship":"material law named by notice"},
+    {"title":"소프트웨어 진흥법","status":"CURRENTNESS_REQUIRES_VERSION_PINNING_FOR_EACH_CLAIM","url":"https://www.law.go.kr/lsStmdInfoP.do?lsiSeq=202277","relationship":"material law named by notice; exam baseline follows notice cutoff"},
+    {"title":"정보시스템 감리 발주관리·감리수행 및 운영·유지보수 감리 점검 가이드","issuer":"NIA / official audit materials","status":"NOTICE_REFERENCED; individual version claims require separate source binding","relationship":"scope reference, not automatically a current legal authority"}
+  ],
+  "rights":"Current official availability establishes authority provenance, not republication permission. Historical questions and official notice text remain REFERENCE_ONLY; all Securium explanations/questions/practicals must be independently authored."
+}

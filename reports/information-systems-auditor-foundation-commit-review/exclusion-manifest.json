@@ -1,0 +1,26 @@
+{
+  "manifestType":"bounded-foundation-commit-exclusions",
+  "excludedSourceBinaries":{"classification":"HISTORICAL_SOURCE_BINARY_EXCLUDE","path":"C:\\Users\\user\\Documents\\Codex\\2026-07-24\\1-2-3-4-5-6\\source-evidence-original\\information-system-auditor","fileCount":12,"reason":"historical questions/answers; REFERENCE_ONLY / UNKNOWN_RIGHTS; no direct ingestion"},
+  "excludedCurrentAuthorityBinary":{"classification":"UNRELATED_EXCLUDE","path":"source-evidence-current/information-system-auditor/2026년(제27회)_정보시스템_감리사_자격검정_시행공고.hwpx","fileCount":1,"sha256":"7F1A66B29EA2467D68AC8CD46C877FDA672531A31D4C658C6BD447C44DB555F9","reason":"authority hash is retained in manifests; binary republication/source exposure is not required and rights are not upgraded"},
+  "excludedGroups":[
+    {"path":"content-drafts/securium-information-systems-auditor-original-*","classification":"GENERATED_NOISE_EXCLUDE","reason":"superseded authoring drafts; Wave A authorities are canonical"},
+    {"path":"docs/content/securium-information-systems-auditor-*","classification":"GENERATED_NOISE_EXCLUDE","reason":"projection/design/reconstruction notes; authority lives in the bounded JSON package"},
+    {"path":"reports/information-systems-auditor-source-package-audit/**","classification":"REQUIRED_REPORT","includedBy":"source-sha256-manifest.json only; other audit reports excluded as historical gate records"},
+    {"path":"reports/information-systems-auditor-current-authority-review/**","classification":"ENVIRONMENT_REVIEW_ONLY_EXCLUDE","reason":"prior authority-review records; current examination manifest is included"},
+    {"path":"reports/information-systems-auditor-foundation-environment-blocker-resolution/**","classification":"ENVIRONMENT_REVIEW_ONLY_EXCLUDE","reason":"environment resolution evidence, not Foundation authority"},
+    {"path":"reports/information-systems-auditor-foundation-main-reconciliation/**","classification":"RECONCILIATION_ONLY_EXCLUDE","reason":"mainline reconciliation evidence, not Foundation authority"},
+    {"path":"reports/information-systems-auditor-foundation-wave-a/**","classification":"GENERATED_NOISE_EXCLUDE","reason":"superseded source-audit package; bounded authority/evidence files are selected explicitly"},
+    {"path":"reports/information-systems-auditor-foundation-wave-a-authoring/**","classification":"OPTIONAL_REPORT","reason":"only currentness, provenance, rights, coverage, projection and validator evidence selected"},
+    {"path":"reports/information-systems-auditor-foundation-wave-a-environment-verification/**","classification":"ENVIRONMENT_REVIEW_ONLY_EXCLUDE","reason":"prior environment gate"},
+    {"path":"reports/information-systems-auditor-foundation-wave-a-review/**","classification":"OPTIONAL_REPORT","reason":"independent review superseded by this bounded commit review"},
+    {"path":"reports/content-audit/securium-information-systems-auditor-*","classification":"OPTIONAL_REPORT","reason":"earlier exploratory/currentness/governance reports; no authority role"},
+    {"path":"reports/information-systems-auditor-foundation-commit-review/**","classification":"REQUIRED_REPORT","includedBy":"candidate-manifest.json"},
+    {"path":"package.json","classification":"UNRELATED_EXCLUDE","reason":"current-main dependency authority; no Foundation-specific dependency change"},
+    {"path":"package-lock.json","classification":"UNRELATED_EXCLUDE","reason":"current-main dependency authority; no Foundation-specific dependency change"},
+    {"path":"drizzle/** and db/**","classification":"UNRELATED_EXCLUDE","reason":"no Foundation schema/migration mutation"},
+    {"path":"all other untracked files outside the scoped working set","classification":"UNRELATED_EXCLUDE","reason":"not Information Systems Auditor Foundation evidence"}
+  ],
+  "candidatePlusExclusions":"COMPLETE_SCOPED_FOUNDATION_WORKING_SET",
+  "uniqueEvidenceLost":0,
+  "unknown":0
+}

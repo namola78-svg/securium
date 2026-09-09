@@ -1,0 +1,20 @@
+{
+  "manifestType": "information-systems-auditor-foundation-wave-a-currentness",
+  "snapshot": "2026-09-08",
+  "currentAuthorityStatus": "CURRENT_2026_CURRICULUM_AUTHORITY_COMPLETE",
+  "currentAuthority": {"notice":"2026년 (제27회) 정보시스템 감리사 자격검정 시행공고","issuer":"한국지능정보사회진흥원(NIA)","sha256":"7F1A66B29EA2467D68AC8CD46C877FDA672531A31D4C658C6BD447C44DB555F9","status":"CURRENT_VERIFIED"},
+  "claims": [
+    {"claim":"qualification identity and official subject/domain ordering","status":"CURRENT_VERIFIED","source":"NIA_2026_27_NOTICE"},
+    {"claim":"5 official subjects and 23 detailed domains","status":"CURRENT_VERIFIED","source":"NIA_2026_27_NOTICE"},
+    {"claim":"120 objective 4-choice written questions and 120-minute written examination","status":"CURRENT_VERIFIED","source":"NIA_2026_27_NOTICE"},
+    {"claim":"top 40 including ties; subject below 40 fails; total-score threshold","status":"CURRENT_VERIFIED_PARTIAL","source":"NIA_2026_27_NOTICE","note":"total-score threshold is NOT_ESTABLISHED"},
+    {"claim":"current audit standard: 정보시스템 감리기준, 행정안전부고시 제2024-53호, effective 2024-06-27","status":"CURRENT_VERIFIED","source":"official Law.go.kr authority"},
+    {"claim":"Foundation theory/questions/practicals are Securium-authored","status":"CURRENT_VERIFIED","source":"Securium authored package"}
+  ],
+  "historicalBoundary": {"localPdfCount":12,"status":"HISTORICAL_BUT_USEFUL","mayInformIndependentAuthoring":true,"mayDefineCurrentScope":false},
+  "driftRule": "Recheck the NIA notice attachment hash and official subject/domain list before any future authority refresh.",
+  "fixedDuration": false,
+  "fixedModuleCount": false,
+  "fixedQuestionBankClaim": false,
+  "fixedPracticalCountClaim": false
+}

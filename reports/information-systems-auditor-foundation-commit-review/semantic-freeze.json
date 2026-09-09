@@ -1,0 +1,11 @@
+{
+  "comparison":"independently reviewed Foundation Wave A versus bounded candidate",
+  "semanticMismatch":0,
+  "curriculum":{"subjects":"5/5","domains":"23/23","units":23,"objectives":69,"conceptCandidates":69},
+  "assessment":{"questions":46,"domainCoverage":"23/23","uniqueQuestionIds":46,"explanations":"46/46","directHistoricalIngestion":0},
+  "practicals":{"specs":6,"coverage":"23/23","mode":"SPEC_ONLY","executableLabs":0},
+  "authority":{"curriculum":1,"theory":1,"assessment":1,"practical":1,"objectiveSeparate":0},
+  "mutations":{"source":0,"ontology":0,"skill":0,"role":0,"evidence":0,"mastery":0,"learnerSkillState":"ABSENT","db":0,"schema":0,"migration":0,"productionDb":0},
+  "currentness":"CURRENT_2026_SCOPE_UNCHANGED",
+  "rights":"HISTORICAL_REFERENCE_ONLY_UNKNOWN_RIGHTS_UNCHANGED"
+}

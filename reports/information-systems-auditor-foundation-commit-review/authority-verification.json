@@ -1,0 +1,19 @@
+{
+  "currentAuthority":"NIA 2026년 제27회 정보시스템감리사 자격검정 시행공고",
+  "issuerOperator":"한국지능정보사회진흥원(NIA)",
+  "authorityHash":"7F1A66B29EA2467D68AC8CD46C877FDA672531A31D4C658C6BD447C44DB555F9",
+  "authorityStatus":"CURRENT_2026_CURRICULUM_AUTHORITY_COMPLETE",
+  "subjects":"5/5",
+  "detailedDomains":"23/23",
+  "officialQuestionCount":120,
+  "officialFormat":"객관식 4지선다",
+  "officialDuration":"120 minutes",
+  "subjectMinimum":"40%",
+  "selection":"top 40 including ties",
+  "subjectWeighting":"NOT_ESTABLISHED",
+  "totalScoreThreshold":"NOT_ESTABLISHED",
+  "foundation":{"learningUnits":23,"objectives":69,"conceptCandidates":69,"questions":46,"practicalSpecs":6,"executableLabs":0},
+  "objectiveAuthority":"contained in theory authority; no separate objective authority",
+  "historicalScopePromotion":0,
+  "niaAuthorityRegression":false
+}

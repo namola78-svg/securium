@@ -1,0 +1,33 @@
+{
+  "manifestType":"bounded-foundation-commit-candidate",
+  "candidateScope":"Securium Information Systems Auditor Foundation Wave A authority, evidence, validator, and final review records",
+  "candidateFileCount":23,
+  "unknown":0,
+  "duplicateClassification":0,
+  "missingClassification":0,
+  "files":[
+    {"path":"content-drafts/securium-information-systems-auditor-foundation-wave-a-curriculum-authority.json","classification":"CURRICULUM_AUTHORITY_REQUIRED"},
+    {"path":"content-drafts/securium-information-systems-auditor-foundation-wave-a.json","classification":"THEORY_AUTHORITY_REQUIRED","objectiveAuthority":"CONTAINED_CANONICALLY_69_OBJECTIVES"},
+    {"path":"content-drafts/securium-information-systems-auditor-foundation-wave-a-assessment.json","classification":"ASSESSMENT_AUTHORITY_REQUIRED"},
+    {"path":"content-drafts/securium-information-systems-auditor-foundation-wave-a-practicals.json","classification":"PRACTICAL_SPEC_AUTHORITY_REQUIRED"},
+    {"path":"scripts/validate-information-systems-auditor-foundation-wave-a.mjs","classification":"VALIDATOR_REQUIRED"},
+    {"path":"reports/information-systems-auditor-current-authority-review/current-examination-authority-manifest.json","classification":"CURRENT_AUTHORITY_EVIDENCE_REQUIRED"},
+    {"path":"reports/information-systems-auditor-foundation-wave-a-authoring/currentness-manifest.json","classification":"CURRENT_AUTHORITY_EVIDENCE_REQUIRED"},
+    {"path":"reports/information-systems-auditor-foundation-wave-a-authoring/provenance-manifest.json","classification":"PROVENANCE_EVIDENCE_REQUIRED"},
+    {"path":"reports/information-systems-auditor-foundation-wave-a-authoring/rights-and-provenance.json","classification":"PROVENANCE_EVIDENCE_REQUIRED"},
+    {"path":"reports/information-systems-auditor-source-package-audit/source-sha256-manifest.json","classification":"PROVENANCE_EVIDENCE_REQUIRED"},
+    {"path":"reports/information-systems-auditor-foundation-wave-a-authoring/ontology-concept-candidate-dry-run.json","classification":"REQUIRED_REPORT"},
+    {"path":"reports/information-systems-auditor-foundation-wave-a-authoring/validator-mutation-test-report.json","classification":"TEST_REQUIRED"},
+    {"path":"reports/information-systems-auditor-foundation-wave-a-authoring/foundation-coverage.json","classification":"REQUIRED_REPORT"},
+    {"path":"reports/information-systems-auditor-foundation-wave-a-authoring/assessment-projection.json","classification":"REQUIRED_REPORT"},
+    {"path":"reports/information-systems-auditor-foundation-commit-review/bounded-commit-review.md","classification":"REQUIRED_REPORT"},
+    {"path":"reports/information-systems-auditor-foundation-commit-review/bounded-commit-review.json","classification":"REQUIRED_REPORT"},
+    {"path":"reports/information-systems-auditor-foundation-commit-review/candidate-manifest.json","classification":"REQUIRED_REPORT"},
+    {"path":"reports/information-systems-auditor-foundation-commit-review/exclusion-manifest.json","classification":"REQUIRED_REPORT"},
+    {"path":"reports/information-systems-auditor-foundation-commit-review/authority-verification.json","classification":"REQUIRED_REPORT"},
+    {"path":"reports/information-systems-auditor-foundation-commit-review/source-rights-exclusion.json","classification":"REQUIRED_REPORT"},
+    {"path":"reports/information-systems-auditor-foundation-commit-review/semantic-freeze.json","classification":"REQUIRED_REPORT"},
+    {"path":"reports/information-systems-auditor-foundation-commit-review/downstream-readiness.json","classification":"REQUIRED_REPORT"},
+    {"path":"reports/information-systems-auditor-foundation-commit-review/sha256-manifest.json","classification":"REQUIRED_REPORT"}
+  ]
+}

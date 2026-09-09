@@ -1,0 +1,16 @@
+{
+  "manifestType":"foundation-coverage",
+  "officialAuthority":"reports/information-systems-auditor-current-authority-review/current-examination-authority-manifest.json",
+  "draft":"content-drafts/securium-information-systems-auditor-foundation-wave-a.json",
+  "coverageStatus":"COMPLETE_OFFICIAL_UNIT_COVERAGE",
+  "rows":[
+    {"subject":"감리 및 사업관리","officialUnitCount":4,"authoredUnitCount":4,"ids":["isa-fa-audit-law-guides","isa-fa-audit-law-technology","isa-fa-organization-management","isa-fa-project-management"]},
+    {"subject":"소프트웨어 공학","officialUnitCount":5,"authoredUnitCount":5,"ids":["isa-fa-requirements-analysis-design","isa-fa-implementation-testing","isa-fa-maintenance-operations","isa-fa-development-methods-architecture-open-source","isa-fa-software-quality-cost"]},
+    {"subject":"데이터베이스","officialUnitCount":5,"authoredUnitCount":5,"ids":["isa-fa-db-concepts-design","isa-fa-db-language","isa-fa-dbms-technology","isa-fa-db-application","isa-fa-bigdata-ai-data"]},
+    {"subject":"시스템 구조","officialUnitCount":4,"authoredUnitCount":4,"ids":["isa-fa-common-technology","isa-fa-architecture-design-construction","isa-fa-network-design","isa-fa-emerging-technology"]},
+    {"subject":"보안","officialUnitCount":5,"authoredUnitCount":5,"ids":["isa-fa-common-security","isa-fa-network-system-security","isa-fa-application-emerging-security","isa-fa-development-operations-security","isa-fa-info-law-privacy"]}
+  ],
+  "uncoveredOfficialUnits":[],
+  "fixedDuration":false,
+  "fixedModuleCount":false
+}

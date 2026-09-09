@@ -1,0 +1,13 @@
+{
+  "projectionType": "GENERATED_ASSESSMENT_PROJECTION",
+  "authority": "content-drafts/securium-information-systems-auditor-foundation-wave-a-assessment.json",
+  "editableAuthorities": 1,
+  "questionCount": 46,
+  "officialDomainCount": 23,
+  "distribution": "2 SECURIUM_ORIGINAL questions per official domain",
+  "format": "4-choice multiple choice as a pedagogical format reference",
+  "projectionDriftCheck": "validator recomputes authority question count, IDs, domain coverage, answer and explanation completeness",
+  "projectionIsOfficialExam": false,
+  "historicalQuestionIngestion": 0,
+  "generatedAtSnapshot": "2026-09-08"
+}

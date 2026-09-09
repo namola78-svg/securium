@@ -1,0 +1,55 @@
+{
+  "validator": "scripts/validate-information-systems-auditor-foundation-wave-a.mjs",
+  "snapshot": "2026-09-08",
+  "validation": {
+    "valid": true,
+    "errors": [],
+    "metrics": {
+      "curriculumAuthorities": 1,
+      "theoryAuthorities": 1,
+      "assessmentAuthorities": 1,
+      "practicalAuthorities": 1,
+      "subjects": "5/5",
+      "officialDomains": "23/23",
+      "learningUnits": "23/23",
+      "objectives": 69,
+      "concepts": 69,
+      "questions": 46,
+      "uniqueQuestionIds": 46,
+      "questionExplanationCoverage": 1,
+      "assessmentDomains": "23/23",
+      "practicalSpecs": 6,
+      "practicalDomains": "23/23",
+      "executableLabs": 0,
+      "sourceHashMismatches": 0,
+      "ontologyWrites": 0,
+      "skillWrites": 0,
+      "roleWrites": 0,
+      "dbWrites": 0,
+      "schemaChanges": 0,
+      "migrationChanges": 0,
+      "directQuestionIngestion": 0
+    }
+  },
+  "mutationTests": {
+    "valid": true,
+    "caseCount": 12,
+    "allExpectedFailuresDetected": true,
+    "cases": [
+      "missing subject",
+      "missing domain",
+      "duplicate domain",
+      "invalid authority hash",
+      "unknown domain",
+      "duplicate question ID",
+      "missing answer",
+      "missing explanation",
+      "broken provenance",
+      "direct historical question contamination",
+      "historical/current authority swap",
+      "rights boundary violation"
+    ]
+  },
+  "authorityHash": "7F1A66B29EA2467D68AC8CD46C877FDA672531A31D4C658C6BD447C44DB555F9",
+  "status": "PASS_READY_FOR_INDEPENDENT_REVIEW"
+}
