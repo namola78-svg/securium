@@ -128,7 +128,18 @@ test("all governed PostgreSQL migrations expose the existing checksum convention
   const files = (await readdir("db/postgres/migrations"))
     .filter((file) => /^\d{4}_.+\.sql$/.test(file))
     .sort();
-  assert.equal(files.length, 30);
+  assert.equal(files.length, 36);
+  assert.deepEqual(
+    files.filter((file) => /^004[2-7]_forward_/.test(file)),
+    [
+      "0042_forward_cs1a_audit_identity_reconciliation.sql",
+      "0043_forward_final_review_authority_reconciliation.sql",
+      "0044_forward_review_judgment_reconciliation.sql",
+      "0045_forward_reviewer_separation_reconciliation.sql",
+      "0046_forward_revision_registration_reconciliation.sql",
+      "0047_forward_review_currentness_reconciliation.sql",
+    ],
+  );
   for (const file of files) {
     const migration = {
       id: file.replace(/\.sql$/, ""),
