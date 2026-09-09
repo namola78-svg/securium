@@ -1,0 +1,44 @@
+{
+  "status": "FUTURE_REQUIREMENTS_ONLY",
+  "implemented": false,
+  "executableLabRequirements": {
+    "requiredBeforeExecutableClaim": [
+      "isolated deterministic Python fixture repository",
+      "one vulnerable, one secure, and one independently authored false-positive fixture for each TRIAD category",
+      "positive, negative, boundary, and regression tests with expected results",
+      "sandboxed process, filesystem, and network controls with no production credentials",
+      "fixture and harness provenance, version pinning, and reviewer sign-off",
+      "human re-verification record after any AI repair"
+    ],
+    "minimumTriadCategories": ["SQL Injection", "Command Injection", "Path Traversal", "XSS", "SSRF", "Authorization / IDOR", "Deserialization", "Secrets"],
+    "deploymentStatus": "NOT_BUILT; NOT_DEPLOYED"
+  },
+  "futureRuntimeRequirements": {
+    "courseIdentity": "developer-secure-coding-8h-python-vibe",
+    "mustRemainSeparateFrom": ["SW보안약점진단원 certification identity", "practical diagnostic lab identity"],
+    "requiredGates": ["content final review", "question acceptance", "practical specification acceptance", "runtime registration review", "publication review"],
+    "registrationPerformed": false,
+    "publicationPerformed": false
+  },
+  "futureConceptMappingCandidates": [
+    {"candidate":"trust boundary","authority":"DEVELOPER_TRAINING_SPECIFIC","sourceAssets":["T01","O01","O02"]},
+    {"candidate":"source-validation-sink reasoning","authority":"SHARED_CONCEPT","sourceAssets":["T01","T02","T04","T05"]},
+    {"candidate":"parameterized data access","authority":"SHARED_CONCEPT","sourceAssets":["T02","T03","TRIAD-SQL"]},
+    {"candidate":"human verification of AI output","authority":"DEVELOPER_TRAINING_SPECIFIC","sourceAssets":["T01","T08","P08"]},
+    {"candidate":"CSRF for ambient browser credentials","authority":"SHARED_CONCEPT","sourceAssets":["T05","O18","P05"]}
+  ],
+  "futureRoleSkillConceptMappingRequirements": [
+    {"role":"developer","skill":"secure Python input and interpreter handling","conceptCandidates":["allowlist validation","SQL parameterization","command/code injection"],"writesPerformed":false},
+    {"role":"developer","skill":"secure AI-assisted code review","conceptCandidates":["prompt constraints","triad discrimination","human re-verification"],"writesPerformed":false},
+    {"role":"reviewer","skill":"object authorization review","conceptCandidates":["subject-object-action policy","BOLA/IDOR","default deny"],"writesPerformed":false}
+  ],
+  "futureEvidenceRequirements": [
+    "objective-to-question/practical trace remains complete",
+    "review artifact records source, generated revision, test results, AI repair, human decision, and residual risk",
+    "no AI output is accepted as the sole grading or security authority",
+    "evidence implementation requires a separate approved gate"
+  ],
+  "ontologyProvisioningPerformed": false,
+  "roleSkillWritesPerformed": false,
+  "evidenceImplementationPerformed": false
+}

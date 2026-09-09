@@ -1,0 +1,220 @@
+{
+  "candidateId": "securium-developer-secure-coding-8h-python-vibe-foundation-v1",
+  "title": "Securium Developer Secure Coding 8H",
+  "status": "FOUNDATION_CANDIDATE_SPEC_ONLY",
+  "authority": "DEVELOPER_TRAINING_SPECIFIC",
+  "canonicalCourseIdentity": {
+    "courseId": "developer-secure-coding-8h-python-vibe",
+    "identityStatus": "ONE_EXPLICIT_FOUNDATION_CANDIDATE",
+    "duplicateDeveloper8hCourseAuthority": 0,
+    "mustNotReuse": ["SW보안약점진단원 certification course identity"]
+  },
+  "scope": {
+    "boundedGate": "RECONCILE_SECURIUM_SECURE_CODING_8H_WITH_CURRENT_MAIN",
+    "allowed": [
+      "content foundation authoring",
+      "provenance and rights classification",
+      "question review and answer-position repair",
+      "SPEC_ONLY practical and diagnostic specifications",
+      "future requirements manifests"
+    ],
+    "prohibited": [
+      "runtime registration",
+      "publication",
+      "ontology provisioning",
+      "Role/Skill writes",
+      "Evidence/Mastery/Skill State implementation",
+      "executable lab deployment",
+      "runtime DB access",
+      "schema, migration, or Drizzle changes",
+      "dependency changes",
+      "staging, commit, push, PR, deployment, or production access"
+    ]
+  },
+  "freshMainReconciliation": {
+    "fetch": "origin --prune",
+    "head": "c394b4b38a84606229afbd478fb0b8fc85d4267c",
+    "originMain": "c394b4b38a84606229afbd478fb0b8fc85d4267c",
+    "mergeBase": "c394b4b38a84606229afbd478fb0b8fc85d4267c",
+    "ahead": 0,
+    "behind": 0,
+    "classification": "NO_MATERIAL_DRIFT"
+  },
+  "sourceProvenance": {
+    "acceptedAuthoringAuthority": "SECURIUM_INDEPENDENTLY_AUTHORED",
+    "candidateInput": {
+      "label": "reviewed Python Secure Coding x Vibe Coding candidate",
+      "fileBackedInFreshMain": false,
+      "reviewSummaryFactsUsed": ["8 modules", "480 minutes", "32 objectives", "40 questions", "40 explanations", "8 practical specifications", "SPEC_READY_NON_EXECUTABLE capstone"],
+      "use": "REAUTHORING_INPUT_ONLY",
+      "directImport": false
+    },
+    "acceptedAssetRule": "Every accepted asset carries an explicit provenance classification; UNKNOWN is not accepted."
+  },
+  "modules": [
+    {
+      "id": "M01",
+      "title": "Secure Python and Vibe-Coding Foundations",
+      "minutes": 55,
+      "pythonMinutes": 45,
+      "vibeMinutes": 10,
+      "objectiveIds": ["O01", "O02", "O03", "O04"],
+      "theoryId": "T01",
+      "practicalId": "P01",
+      "questionIds": ["Q01", "Q02", "Q03", "Q04", "Q05"],
+      "provenance": "REAUTHOR_FOR_PYTHON_AND_VIBE"
+    },
+    {
+      "id": "M02",
+      "title": "Input Validation and Interpreter Boundaries",
+      "minutes": 65,
+      "pythonMinutes": 50,
+      "vibeMinutes": 15,
+      "objectiveIds": ["O05", "O06", "O07", "O08"],
+      "theoryId": "T02",
+      "practicalId": "P02",
+      "questionIds": ["Q06", "Q07", "Q08", "Q09", "Q10", "Q11"],
+      "provenance": "REAUTHOR_FOR_PYTHON_AND_VIBE"
+    },
+    {
+      "id": "M03",
+      "title": "Data Access, Deserialization, and Code Execution",
+      "minutes": 65,
+      "pythonMinutes": 50,
+      "vibeMinutes": 15,
+      "objectiveIds": ["O09", "O10", "O11", "O12"],
+      "theoryId": "T03",
+      "practicalId": "P03",
+      "questionIds": ["Q12", "Q13", "Q14", "Q15", "Q16", "Q17"],
+      "provenance": "REAUTHOR_FOR_PYTHON_AND_VIBE"
+    },
+    {
+      "id": "M04",
+      "title": "Files, Uploads, and SSRF",
+      "minutes": 65,
+      "pythonMinutes": 50,
+      "vibeMinutes": 15,
+      "objectiveIds": ["O13", "O14", "O15", "O16"],
+      "theoryId": "T04",
+      "practicalId": "P04",
+      "questionIds": ["Q18", "Q19", "Q20", "Q21", "Q22", "Q23"],
+      "provenance": "REAUTHOR_FOR_PYTHON_AND_VIBE"
+    },
+    {
+      "id": "M05",
+      "title": "Web Output, CSRF, Exceptions, and Logging",
+      "minutes": 55,
+      "pythonMinutes": 40,
+      "vibeMinutes": 15,
+      "objectiveIds": ["O17", "O18", "O19", "O20"],
+      "theoryId": "T05",
+      "practicalId": "P05",
+      "questionIds": ["Q24", "Q25", "Q26", "Q27", "Q28"],
+      "provenance": "REAUTHOR_FOR_PYTHON_AND_VIBE"
+    },
+    {
+      "id": "M06",
+      "title": "Authentication, Authorization, and BOLA/IDOR",
+      "minutes": 60,
+      "pythonMinutes": 40,
+      "vibeMinutes": 20,
+      "objectiveIds": ["O21", "O22", "O23", "O24"],
+      "theoryId": "T06",
+      "practicalId": "P06",
+      "questionIds": ["Q29", "Q30", "Q31", "Q32"],
+      "provenance": "REAUTHOR_FOR_PYTHON_AND_VIBE"
+    },
+    {
+      "id": "M07",
+      "title": "Secrets, Dependencies, and Supply-Chain Review",
+      "minutes": 55,
+      "pythonMinutes": 35,
+      "vibeMinutes": 20,
+      "objectiveIds": ["O25", "O26", "O27", "O28"],
+      "theoryId": "T07",
+      "practicalId": "P07",
+      "questionIds": ["Q33", "Q34", "Q35", "Q36"],
+      "provenance": "REAUTHOR_FOR_PYTHON_AND_VIBE"
+    },
+    {
+      "id": "M08",
+      "title": "Vibe-Coding Capstone and Human Re-verification",
+      "minutes": 60,
+      "pythonMinutes": 40,
+      "vibeMinutes": 20,
+      "objectiveIds": ["O29", "O30", "O31", "O32"],
+      "theoryId": "T08",
+      "practicalId": "P08",
+      "questionIds": ["Q37", "Q38", "Q39", "Q40"],
+      "provenance": "REAUTHOR_FOR_PYTHON_AND_VIBE"
+    }
+  ],
+  "candidateCounts": {
+    "courseIdentities": 1,
+    "modules": 8,
+    "minutes": 480,
+    "objectives": 32,
+    "theoryAssets": 8,
+    "questions": 40,
+    "explanations": 40,
+    "codeExamples": 8,
+    "diagnosticTriadSpecs": 8,
+    "practicalSpecs": 8
+  },
+  "duration": {
+    "moduleCount": 8,
+    "totalMinutes": 480,
+    "pythonSecureCodingMinutes": 350,
+    "pythonSecureCodingPercentage": 72.9167,
+    "aiVibeCodingMinutes": 130,
+    "aiVibeCodingPercentage": 27.0833,
+    "ratioTargetCheck": "PASS",
+    "oldM14ScheduleMismatch": {
+      "outlineMinutes": 75,
+      "moduleDraftMinutes": 40,
+      "resolution": "old_14_module_schedule_is_reference_only; new_M08_is_60_minutes; no_hidden_minutes",
+      "resolvedTotal": 480
+    }
+  },
+  "questionDistribution": {
+    "total": 40,
+    "actualByModule": {"M01": 5, "M02": 6, "M03": 6, "M04": 6, "M05": 5, "M06": 4, "M07": 4, "M08": 4},
+    "manifestClaimRejected": "5x8 was not used because accepted questions are distributed by module need.",
+    "answerPositionDistribution": {"0": 10, "1": 10, "2": 10, "3": 10},
+    "answerBinding": "deterministic integer answer index; explanation is stored with and reviewed against that answer"
+  },
+  "weaknessCoverage": {
+    "Input Validation": "FOUNDATION_COMPLETE",
+    "SQL Injection": "FOUNDATION_COMPLETE",
+    "Command Injection": "FOUNDATION_COMPLETE",
+    "Code Injection": "FOUNDATION_COMPLETE",
+    "Path Traversal": "FOUNDATION_COMPLETE",
+    "File Upload / File Handling": "FOUNDATION_COMPLETE",
+    "XSS": "FOUNDATION_COMPLETE",
+    "SSRF": "FOUNDATION_COMPLETE",
+    "Authentication / Authorization": "FOUNDATION_COMPLETE",
+    "IDOR / BOLA": "FOUNDATION_COMPLETE",
+    "eval / exec": "FOUNDATION_COMPLETE",
+    "pickle / YAML / deserialization": "FOUNDATION_COMPLETE",
+    "Secrets": "FOUNDATION_COMPLETE",
+    "Exception / Logging": "FOUNDATION_COMPLETE",
+    "Dependency Security": "FOUNDATION_COMPLETE",
+    "CSRF": "FOUNDATION_COMPLETE"
+  },
+  "learningLoop": ["Requirements", "AI Prompt", "Generated Python", "Source / Validation / Sink Secure Code Review", "Attack / Test", "AI Repair", "Human Re-verification", "Secure Python Application"],
+  "authorityBoundary": {
+    "developerSecureCoding8h": "this candidate",
+    "pythonSecureCodingVibeMethodology": "methodology and teaching loop only",
+    "swCertificationContent": "separate authority; no exam material imported",
+    "practicalDiagnosticLabs": "separate future executable authority; these are SPEC_ONLY"
+  },
+  "oldDraftDisposition": "REFERENCE_ONLY",
+  "capstoneStatus": "SPEC_READY_NON_EXECUTABLE",
+  "unknownProvenanceCount": 0,
+  "unknownRightsCountAmongAcceptedAssets": 0,
+  "runtimeRegistrationPerformed": false,
+  "ontologyProvisioningPerformed": false,
+  "roleSkillWritesPerformed": false,
+  "evidenceImplementationPerformed": false,
+  "publicationPerformed": false
+}
