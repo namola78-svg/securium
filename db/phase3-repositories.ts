@@ -308,6 +308,7 @@ export async function completeLevel(userId: string, levelId: string) {
     .orderBy(desc(questionAttempts.attemptedAt));
   const latest = new Map<string, boolean>();
   for (const attempt of attempts) {
+    if (!attempt.questionId) continue;
     if (!latest.has(attempt.questionId)) {
       latest.set(attempt.questionId, attempt.isCorrect);
     }
@@ -1345,7 +1346,13 @@ export async function getCourseStatistics(userId: string, courseId: string) {
         eq(questionAttempts.courseId, courseId),
       ),
     );
-  const questionIds = [...new Set(attempts.map((attempt) => attempt.questionId))];
+  const questionIds = [
+    ...new Set(
+      attempts
+        .map((attempt) => attempt.questionId)
+        .filter((questionId): questionId is string => Boolean(questionId)),
+    ),
+  ];
   const [subjectMappings, topicMappings] = questionIds.length
     ? await Promise.all([
         getDb()

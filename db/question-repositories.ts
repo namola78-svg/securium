@@ -53,6 +53,12 @@ import { AppError } from "@/lib/errors";
 import { updateReviewScheduleForAttempt } from "./phase3-repositories";
 import { createAuditInsert } from "./audit-repositories";
 import {
+  assertSwFoundationAttemptCourse,
+  getRuntimeSwCourseIdentity,
+  resolveSwFoundationQuestionBinding,
+} from "./securium-sw-security-weakness-question-binding-repositories";
+import { gradeSwSecurityWeaknessQuestion } from "@/lib/services/securium-sw-security-weakness-runtime-adapter";
+import {
   computeConceptMappingSetHash,
   type GovernedConceptMapping,
 } from "@/lib/services/learning-event-contracts";
@@ -327,7 +333,25 @@ export async function submitQuestionAttempt(input: {
   responseTime: number;
   idempotencyKey: string;
   questionVersionId?: string | null;
+  foundationQuestionBindingId?: string | null;
 }) {
+  const isSwFoundationAttempt =
+    input.foundationQuestionBindingId != null ||
+    input.questionId.startsWith("sw-fa-q-");
+  const swCourse = isSwFoundationAttempt
+    ? await getRuntimeSwCourseIdentity(input.courseId)
+    : null;
+  if (swCourse) {
+    assertSwFoundationAttemptCourse(swCourse);
+    if (input.questionVersionId != null) {
+      throw new AppError(
+        "SW Foundation attempts use their immutable binding as the version identity.",
+        409,
+        "SW_FOUNDATION_VERSION_PATH_CONFLICT",
+      );
+    }
+  }
+
   const [enrollment] = await getDb()
     .select({ id: userCourseEnrollments.id })
     .from(userCourseEnrollments)
@@ -358,12 +382,66 @@ export async function submitQuestionAttempt(input: {
     )
     .limit(1);
   if (existing) {
-    if ((existing.questionVersionId ?? null) !== (input.questionVersionId ?? null)) {
+    if (
+      existing.courseId !== input.courseId ||
+      (existing.questionId ?? null) !==
+        (isSwFoundationAttempt ? null : input.questionId) ||
+      (existing.foundationQuestionBindingId ?? null) !==
+        (isSwFoundationAttempt
+          ? input.foundationQuestionBindingId ?? null
+          : null) ||
+      existing.selectedAnswer !== JSON.stringify(input.answer)
+    ) {
+      throw new AppError(
+        "The replayed attempt does not match its original immutable identity or response.",
+        409,
+        "ATTEMPT_REPLAY_MISMATCH",
+      );
+    }
+    if (
+      (existing.questionVersionId ?? null) !==
+      (isSwFoundationAttempt ? null : input.questionVersionId ?? null)
+    ) {
       throw new AppError(
         "The replayed attempt uses a different QuestionVersion.",
         409,
         "QUESTION_VERSION_MISMATCH",
       );
+    }
+    if (isSwFoundationAttempt) {
+      if (!swCourse) {
+        throw new AppError(
+          "The SW Foundation course identity is unavailable.",
+          409,
+          "SW_FOUNDATION_COURSE_NOT_FOUND",
+        );
+      }
+      const resolved = await resolveSwFoundationQuestionBinding({
+        courseId: input.courseId,
+        foundationQuestionId: input.questionId,
+        foundationQuestionBindingId: input.foundationQuestionBindingId,
+      });
+      if (existing.foundationQuestionBindingId !== resolved.binding.id) {
+        throw new AppError(
+          "The replayed attempt uses a different Foundation binding.",
+          409,
+          "SW_FOUNDATION_BINDING_MISMATCH",
+        );
+      }
+      return {
+        attemptId: existing.id,
+        idempotentReplay: true,
+        isCorrect: existing.isCorrect,
+        score: existing.score,
+        explanation: resolved.question.feedback.explanation,
+        wrongAnswerExplanation: resolved.question.feedback.reason,
+        explanationVersion: {
+          contentDate: null,
+          version: null,
+          reviewedAt: null,
+        },
+        correctAnswer: [resolved.question.answerKey.verdict],
+      };
     }
     const question = await getQuestionForGrading(
       input.questionId,
@@ -385,6 +463,60 @@ export async function submitQuestionAttempt(input: {
       correctAnswer: question.choices
         .filter((choice) => choice.isCorrect)
         .map((choice) => choice.content),
+    };
+  }
+
+  if (isSwFoundationAttempt) {
+    if (!swCourse) {
+      throw new AppError(
+        "The SW Foundation course identity is unavailable.",
+        409,
+        "SW_FOUNDATION_COURSE_NOT_FOUND",
+      );
+    }
+    const resolved = await resolveSwFoundationQuestionBinding({
+      courseId: input.courseId,
+      foundationQuestionId: input.questionId,
+      foundationQuestionBindingId: input.foundationQuestionBindingId,
+    });
+    const diagnostic = gradeSwSecurityWeaknessQuestion(
+      swCourse,
+      input.questionId,
+      input.answer,
+    );
+    const attemptId = crypto.randomUUID();
+    await getDb().batch(
+      [
+        getDb().insert(questionAttempts).values({
+          id: attemptId,
+          idempotencyKey: input.idempotencyKey,
+          userId: input.userId,
+          questionId: null,
+          foundationQuestionBindingId: resolved.binding.id,
+          questionVersionId: null,
+          conceptMappingSetHash: null,
+          courseId: input.courseId,
+          selectedAnswer: JSON.stringify(input.answer),
+          isCorrect: diagnostic.isCorrect === true,
+          score: diagnostic.score ?? 0,
+          responseTime: input.responseTime,
+          attemptSequence: null,
+        }),
+      ] as unknown as Parameters<ReturnType<typeof getDb>["batch"]>[0],
+    );
+    return {
+      attemptId,
+      idempotentReplay: false,
+      isCorrect: diagnostic.isCorrect,
+      score: diagnostic.score,
+      explanation: diagnostic.feedback.explanation,
+      wrongAnswerExplanation: diagnostic.feedback.reason,
+      explanationVersion: {
+        contentDate: null,
+        version: null,
+        reviewedAt: null,
+      },
+      correctAnswer: diagnostic.correctAnswer,
     };
   }
 
@@ -414,6 +546,7 @@ export async function submitQuestionAttempt(input: {
       idempotencyKey: input.idempotencyKey,
       userId: input.userId,
       questionId: input.questionId,
+      foundationQuestionBindingId: null,
       questionVersionId: question.binding?.questionVersionId ?? null,
       conceptMappingSetHash: question.binding?.conceptMappingSetHash ?? null,
       courseId: input.courseId,

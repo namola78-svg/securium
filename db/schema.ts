@@ -1855,6 +1855,61 @@ export const questionVersions = sqliteTable(
   ],
 );
 
+/**
+ * Identity-only binding for a canonical Foundation question/version.
+ *
+ * The SW Foundation remains the sole content and semantic authority. This
+ * table deliberately stores no prompt, choices, answer, explanation, triad,
+ * weakness, role, grading, or learner state.
+ */
+export const foundationQuestionBindings = sqliteTable(
+  "foundation_question_bindings",
+  {
+    id: text("id").primaryKey(),
+    courseId: text("course_id")
+      .notNull()
+      .references(() => courses.id, { onDelete: "restrict" }),
+    foundationBindingKey: text("foundation_binding_key").notNull(),
+    foundationVersion: text("foundation_version").notNull(),
+    foundationQuestionId: text("foundation_question_id").notNull(),
+    semanticHash: text("semantic_hash").notNull(),
+    lifecycleState: text("lifecycle_state").notNull().default("ACTIVE"),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    retiredAt: text("retired_at"),
+  },
+  (table) => [
+    uniqueIndex("foundation_question_bindings_identity_unique").on(
+      table.foundationBindingKey,
+      table.foundationVersion,
+      table.foundationQuestionId,
+    ),
+    uniqueIndex("foundation_question_bindings_id_course_unique").on(
+      table.id,
+      table.courseId,
+    ),
+    index("foundation_question_bindings_course_question_idx").on(
+      table.courseId,
+      table.foundationQuestionId,
+    ),
+    check(
+      "foundation_question_bindings_identity_check",
+      sql`length(trim(${table.foundationBindingKey})) > 0 AND length(trim(${table.foundationVersion})) > 0 AND length(trim(${table.foundationQuestionId})) > 0`,
+    ),
+    check(
+      "foundation_question_bindings_hash_check",
+      sql`length(${table.semanticHash}) = 64 AND ${table.semanticHash} NOT GLOB '*[^0-9a-f]*'`,
+    ),
+    check(
+      "foundation_question_bindings_lifecycle_check",
+      sql`${table.lifecycleState} IN ('ACTIVE', 'RETIRED')`,
+    ),
+    check(
+      "foundation_question_bindings_retirement_check",
+      sql`${table.lifecycleState} <> 'RETIRED' OR ${table.retiredAt} IS NOT NULL`,
+    ),
+  ],
+);
+
 export const questionAttempts = sqliteTable(
   "question_attempts",
   {
@@ -1863,9 +1918,10 @@ export const questionAttempts = sqliteTable(
     userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "restrict" }),
-    questionId: text("question_id")
-      .notNull()
-      .references(() => questions.id, { onDelete: "restrict" }),
+    questionId: text("question_id").references(() => questions.id, {
+      onDelete: "restrict",
+    }),
+    foundationQuestionBindingId: text("foundation_question_binding_id"),
     questionVersionId: text("question_version_id").references(
       () => questionVersions.id,
       { onDelete: "restrict" },
@@ -1898,6 +1954,10 @@ export const questionAttempts = sqliteTable(
       table.courseId,
       table.questionId,
     ),
+    index("question_attempts_foundation_binding_idx").on(
+      table.courseId,
+      table.foundationQuestionBindingId,
+    ),
     index("question_attempts_question_idx").on(
       table.questionId,
       table.attemptedAt,
@@ -1925,6 +1985,18 @@ export const questionAttempts = sqliteTable(
       "question_attempts_version_binding_check",
       sql`(${table.questionVersionId} IS NULL AND ${table.conceptMappingSetHash} IS NULL) OR (${table.questionVersionId} IS NOT NULL AND length(${table.conceptMappingSetHash}) = 64 AND ${table.conceptMappingSetHash} NOT GLOB '*[^0-9a-f]*')`,
     ),
+    check(
+      "question_attempts_identity_path_check",
+      sql`(${table.questionId} IS NOT NULL AND ${table.foundationQuestionBindingId} IS NULL) OR (${table.questionId} IS NULL AND ${table.foundationQuestionBindingId} IS NOT NULL)`,
+    ),
+    foreignKey({
+      name: "question_attempts_foundation_binding_course_fk",
+      columns: [table.foundationQuestionBindingId, table.courseId],
+      foreignColumns: [
+        foundationQuestionBindings.id,
+        foundationQuestionBindings.courseId,
+      ],
+    }).onDelete("restrict"),
   ],
 );
 

@@ -208,7 +208,7 @@ test("D1 LIKE와 PostgreSQL ILIKE·full-text 검색을 분리한다", () => {
   );
 });
 
-test("PostgreSQL compatible migrations validate 70 tables and block SQLite syntax", async () => {
+test("PostgreSQL compatible migrations validate 71 tables and block SQLite syntax", async () => {
   const [baseSql, curriculumSql, manifestText] = await Promise.all([
     readFile(
       new URL(
@@ -231,7 +231,7 @@ test("PostgreSQL compatible migrations validate 70 tables and block SQLite synta
   ]);
   const manifest = JSON.parse(manifestText) as { tableCount: number };
   const sql = `${baseSql}\n${curriculumSql}`;
-  assert.equal(manifest.tableCount, 70);
+  assert.equal(manifest.tableCount, 71);
   assert.match(manifestText, /curriculum_trees/);
   assert.match(manifestText, /curriculum_nodes/);
   assert.doesNotMatch(
@@ -251,7 +251,7 @@ test("PostgreSQL compatible migrations validate 70 tables and block SQLite synta
 });
 
 test("server-only RLS migration closes every application table to direct clients", async () => {
-  const [sql, manifestText, sharedContentSql] = await Promise.all([
+  const [rlsSql, manifestText, sharedContentSql, foundationBindingSql] = await Promise.all([
     readFile(
       new URL(
         "../db/postgres/migrations/0002_server_only_rls_lockdown.sql",
@@ -270,9 +270,17 @@ test("server-only RLS migration closes every application table to direct clients
       ),
       "utf8",
     ),
+    readFile(
+      new URL(
+        "../db/postgres/migrations/0050_sw_foundation_identity_version_binding.sql",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
   ]);
   const manifest = JSON.parse(manifestText) as { tableCount: number };
   const expectedLockedTables = manifest.tableCount + 1;
+  const sql = `${rlsSql}\n${foundationBindingSql}`;
   assert.equal(
     [...sql.matchAll(/\bENABLE ROW LEVEL SECURITY\b/g)].length,
     expectedLockedTables,

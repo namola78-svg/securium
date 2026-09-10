@@ -704,6 +704,7 @@ export async function getPublishedCurriculumPathForCourse(
     Array<{ isCorrect: boolean }>
   >();
   for (const attempt of attemptRows) {
+    if (!attempt.questionId) continue;
     const rows = attemptsByQuestionId.get(attempt.questionId) ?? [];
     rows.push({ isCorrect: attempt.isCorrect });
     attemptsByQuestionId.set(attempt.questionId, rows);
@@ -1082,6 +1083,7 @@ export async function listCurriculumNodeOperationalStats(treeId: string) {
     Array<{ isCorrect: boolean }>
   >();
   for (const attempt of attemptRows) {
+    if (!attempt.questionId) continue;
     const rows = attemptsByQuestionId.get(attempt.questionId) ?? [];
     rows.push({ isCorrect: attempt.isCorrect });
     attemptsByQuestionId.set(attempt.questionId, rows);
