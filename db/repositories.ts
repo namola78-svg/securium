@@ -31,6 +31,11 @@ import type {
 } from "@/lib/services/enrollment-service";
 import { AppError } from "@/lib/errors";
 import { ensureLevelProgress } from "./phase3-repositories";
+import {
+  buildSwSecurityWeaknessRuntimeProjection,
+  SW_SECURITY_WEAKNESS_RUNTIME_IDENTITY,
+  type SwRuntimeCourseProjection,
+} from "../lib/services/securium-sw-security-weakness-runtime-adapter.ts";
 
 export type CourseListItem = {
   id: string;
@@ -53,6 +58,41 @@ export type CourseListItem = {
   topicCount?: number;
   questionCount?: number;
 };
+
+type SwRuntimeCourseProjectionInput = Pick<
+  CourseListItem,
+  "id" | "code" | "slug" | "name" | "active" | "published" | "isSample"
+> & {
+  deletedAt?: string | null;
+};
+
+/**
+ * Binding-aware read seam for the SW Foundation. It deliberately accepts a
+ * repository result instead of opening a database connection, so the
+ * Foundation projection remains read-only and testable without runtime DB
+ * access. Unrelated courses are left to the existing generic repository path.
+ */
+export function projectSwSecurityWeaknessRuntimeCourse(
+  course: SwRuntimeCourseProjectionInput,
+): SwRuntimeCourseProjection | null {
+  const isKnownIdentity =
+    course.id === SW_SECURITY_WEAKNESS_RUNTIME_IDENTITY.courseId ||
+    course.code === SW_SECURITY_WEAKNESS_RUNTIME_IDENTITY.code ||
+    course.slug === SW_SECURITY_WEAKNESS_RUNTIME_IDENTITY.slug;
+  if (!isKnownIdentity) return null;
+
+  return buildSwSecurityWeaknessRuntimeProjection({
+    id: course.id,
+    code: course.code,
+    slug: course.slug,
+    name: course.name,
+    bindingKey: SW_SECURITY_WEAKNESS_RUNTIME_IDENTITY.bindingKey,
+    active: course.active,
+    published: course.published,
+    isSample: course.isSample,
+    deletedAt: course.deletedAt ?? null,
+  });
+}
 
 export async function listPublishedCourses(): Promise<CourseListItem[]> {
   return getDb()
