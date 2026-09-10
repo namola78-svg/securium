@@ -1,0 +1,99 @@
+{
+  "manifestId": "SECURIUM_DIGITAL_FORENSICS_8H_FOUNDATION_PRODUCT_AUTHORITY_V1",
+  "authorityType": "CANONICAL_STATIC_PRODUCT_FOUNDATION_AUTHORITY",
+  "status": "DRAFT_UNPUBLISHED",
+  "productFoundationAuthorityCount": 1,
+  "competingProductFoundationAuthorities": 0,
+  "courseIdentity": {
+    "courseId": "course-digital-forensics-8h",
+    "code": "DF-8H",
+    "slug": "digital-forensics-8h",
+    "title": "Digital Forensics 8H Foundation",
+    "version": "digital-forensics-8h-foundation.v1"
+  },
+  "audience": ["developers", "security practitioners"],
+  "difficulty": "FOUNDATIONAL_TO_INTERMEDIATE",
+  "prerequisites": [
+    "basic operating-system concepts",
+    "basic networking fundamentals",
+    "basic security fundamentals"
+  ],
+  "durationMinutes": 480,
+  "moduleCount": 8,
+  "counts": {
+    "course": 1,
+    "modules": 8,
+    "objectives": 32,
+    "theoryAssets": 24,
+    "questions": 40,
+    "explanations": 40,
+    "practicalSpecifications": 8,
+    "executableLabs": 0
+  },
+  "files": [
+    {"path": "manifest.json", "role": "FOUNDATION_AUTHORITY"},
+    {"path": "course.json", "role": "FOUNDATION_CONTENT"},
+    {"path": "modules.json", "role": "FOUNDATION_CONTENT"},
+    {"path": "objectives.json", "role": "FOUNDATION_CONTENT"},
+    {"path": "theory.json", "role": "FOUNDATION_CONTENT"},
+    {"path": "assessment.json", "role": "FOUNDATION_CONTENT"},
+    {"path": "practicals.json", "role": "FOUNDATION_CONTENT"},
+    {"path": "provenance.json", "role": "FOUNDATION_AUTHORITY"},
+    {"path": "validator.mjs", "role": "VALIDATOR"},
+    {"path": "validator.test.mjs", "role": "FOCUSED_TEST"}
+  ],
+  "sourceAuthority": {
+    "manifestPath": "source-evidence-original/digital-forensics/manifest.json",
+    "manifestSha256": "717204c2ba58f53b81eecb1bbc52c2e799d3250194f39e88b61fc177627b1ece",
+    "authorityCount": 1,
+    "competingAuthorities": 0,
+    "memberCount": 22,
+    "rights": "DIGITAL_FORENSICS_RIGHTS_READY_FOR_FACTS_ONLY_AUTHORING",
+    "currentness": "DIGITAL_FORENSICS_SOURCE_CURRENTNESS_READY_WITH_LIMITATIONS",
+    "localExpressionReuse": 0,
+    "restrictedSourceDependence": 0,
+    "h04ToH08LocalSourceDependence": 0
+  },
+  "provenancePolicy": {
+    "localSourceFacts": "LOCAL_SOURCE_PARTIAL; bounded factual support only",
+    "publicFacts": "PUBLIC_FACTUAL_AUTHORITY; independently restated",
+    "productExpression": "SECURIUM_INDEPENDENTLY_AUTHORED",
+    "questionExpressionReuse": 0,
+    "practicalExpressionReuse": 0,
+    "restrictedSourceExpressionReuse": 0,
+    "unknownRightsFailClosed": 1
+  },
+  "runtimeBoundary": {
+    "runtimeRegistration": 0,
+    "publication": 0,
+    "schemaChanges": 0,
+    "migrationChanges": 0,
+    "drizzleChanges": 0,
+    "databaseOperations": 0,
+    "ontologyMappings": 0,
+    "roleSkillConceptMappings": 0,
+    "evidenceProjection": 0,
+    "learnerSkillState": 0,
+    "masteryComputation": 0,
+    "confidenceComputation": 0,
+    "competencyEvidence": 0,
+    "digitalTwinState": 0
+  },
+  "scope": {
+    "h04ToH08Structure": "SECURIUM_INDEPENDENT_DESIGN; NO_REMAINING_STRUCTURE_FOUND_IN_LOCAL_SOURCE",
+    "fullEightHourSourceBackedStatus": "PRODUCT_DESIGN_REQUIRED_FOR_REMAINING_HOURS",
+    "breaksAndAdministrationExcludedFromMinutes": 1,
+    "officialExamStatusClaimed": 0,
+    "realPersonalData": 0,
+    "realVictimEvidence": 0,
+    "malwareExecution": 0,
+    "credentialTheftExecution": 0
+  },
+  "determinism": {
+    "ordering": "stable module and file order",
+    "idsDependOnFilepaths": 0,
+    "randomIds": 0,
+    "ambientTimestampIds": 0
+  },
+  "contentStatus": "CANONICAL_PRODUCT_FOUNDATION_AUTHORITY_DRAFT_WITHOUT_RUNTIME_REGISTRATION"
+}
