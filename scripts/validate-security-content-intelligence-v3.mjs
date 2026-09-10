@@ -1,16 +1,25 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { spawn } from "node:child_process";
+import {
+  authorityMetadata,
+  loadGeneratorInputAuthority,
+} from "./security-content-v3-generator-input.mjs";
 import {
   buildSecurityContentIntelligenceV3Plan,
 } from "../lib/data/security-content-upgrade-v3.mjs";
 
 const outputRoot = resolve("reports/content-v3");
 const sourceRoot = resolve(process.env.SECURIUM_CONTENT_V2_SOURCE_ROOT || "securium-content-upgrade-v2");
-const configPath = argValue("--config=") || "wrangler.local.jsonc";
-const persistTo = argValue("--persist-to=");
+if (sourceRoot !== resolve("securium-content-upgrade-v2")) {
+  throw new Error("SECURITY_CONTENT_V3_SOURCE_ROOT_MUST_BE_CANONICAL");
+}
+const inputAuthority = await loadGeneratorInputAuthority();
+const outputAuthority = authorityMetadata(
+  inputAuthority,
+  "scripts/validate-security-content-intelligence-v3.mjs",
+);
 const plan = buildSecurityContentIntelligenceV3Plan();
-const existing = await d1Query(`SELECT id,title,content,answer_config_json FROM questions WHERE id NOT LIKE 'question-v3-course-%';`);
+const existing = inputAuthority.projection.questionRows.filter((row) => !row.id.startsWith("question-v3-course-"));
 const sourceExtraction = JSON.parse(await readFile(resolve(sourceRoot, "reports/source-text-extraction.json"), "utf8"));
 
 const generatedReview = plan.questions.map(validateQuestion);
@@ -22,6 +31,7 @@ const duplicateBlocked = duplicateAnalysis.matches.filter((row) => row.decision 
 
 await writeJson("generated-question-review.json", {
   generatedAt: new Date().toISOString(),
+  ...outputAuthority,
   policy: "ALL_AUTOMATIC_GATES_MUST_PASS_BEFORE_DB_INSERT",
   summary: {
     reviewed: generatedReview.length,
@@ -38,7 +48,7 @@ await writeJson("generated-question-review.json", {
     contents: theoryReview,
   },
 });
-await writeJson("duplicate-analysis.json", duplicateAnalysis);
+await writeJson("duplicate-analysis.json", { ...duplicateAnalysis, ...outputAuthority });
 
 if (failed.length || contentFailed.length || duplicateBlocked.length) {
   throw new Error(`SECURITY_CONTENT_INTELLIGENCE_V3_QUALITY_GATE_FAILED:q=${failed.length},c=${contentFailed.length},d=${duplicateBlocked.length}`);
@@ -165,26 +175,3 @@ function round(value) { return Math.round(value * 10000) / 10000; }
 async function writeJson(name, value) {
   await writeFile(resolve(outputRoot, name), `${JSON.stringify(value, null, 2)}\n`, "utf8");
 }
-
-async function d1Query(statement) {
-  const result = await runCapture(process.execPath, ["scripts/run-wrangler.mjs", "d1", "execute", "DB", "--local", "--config", configPath, ...(persistTo ? ["--persist-to", persistTo] : []), "--command", statement]);
-  if (result.code !== 0) throw new Error(`SECURITY_CONTENT_INTELLIGENCE_V3_D1_QUERY_FAILED:${result.stdout.slice(-400)}`);
-  const clean = result.stdout.replace(/\u001b\[[0-9;]*m/g, "");
-  const start = clean.indexOf("[\n");
-  const end = clean.lastIndexOf("]");
-  if (start < 0 || end < start) throw new Error("SECURITY_CONTENT_INTELLIGENCE_V3_D1_JSON_MISSING");
-  return JSON.parse(clean.slice(start, end + 1))[0]?.results ?? [];
-}
-
-function runCapture(executable, args) {
-  return new Promise((resolvePromise) => {
-    const child = spawn(executable, args, { stdio: ["ignore", "pipe", "pipe"], env: process.env, windowsHide: true });
-    let stdout = "";
-    child.stdout.on("data", (chunk) => { stdout += chunk; });
-    child.stderr.on("data", (chunk) => { stdout += chunk; });
-    child.on("close", (code) => resolvePromise({ code: code ?? 1, stdout }));
-    child.on("error", () => resolvePromise({ code: 1, stdout }));
-  });
-}
-
-function argValue(prefix) { return process.argv.find((value) => value.startsWith(prefix))?.slice(prefix.length); }

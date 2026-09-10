@@ -1,0 +1,486 @@
+{
+  "authority": {
+    "canonicalOwner": "content-inputs/security-content-v3/manifest.json",
+    "evidenceAuthority": false,
+    "ontologyAuthority": false,
+    "questionAuthority": false,
+    "runtimeAuthority": false,
+    "sourceOfTruth": "MANIFEST_AND_NORMALIZED_PROJECTION_BYTES",
+    "type": "GENERATOR_INPUT_PROJECTION"
+  },
+  "bindingHashes": [
+    {
+      "path": "scripts/security-content-v3-generator-input.mjs",
+      "sha256": "a6b51f1b0323ff66b1866ab72530eb2e40f09e835e00cb333416b2eb9ef7961c"
+    },
+    {
+      "path": "scripts/validate-security-content-v3-generator-input.mjs",
+      "sha256": "f96dd1c4843cd5ebf0999fbfb0cc8da8f6fcfb3f0e94a2fa1fe89cab7e8ae514"
+    }
+  ],
+  "environment": {
+    "ambientDatabaseCredentials": "PROHIBITED",
+    "encoding": "UTF-8",
+    "lineEndings": "LF",
+    "locale": "en-US",
+    "node": "22.13.0",
+    "nodeAuthority": ".github/workflows/ci.yml:actions/setup-node@v7/node-version",
+    "providerMode": "OFFLINE_PROVIDER_NEUTRAL",
+    "randomness": "PROHIBITED",
+    "sorting": "STABLE_EXPLICIT",
+    "terminalNewline": "EXACTLY_ONE",
+    "timestamps": "EXCLUDED_FROM_SEMANTIC_HASH",
+    "timezone": "UTC"
+  },
+  "fixture": {
+    "byteSha256": "8f2d445df637fb31f12b6e44da84bfa414170faae4df36c55eb5fb0cee57e610",
+    "path": "content-inputs/security-content-v3/database-projection.json",
+    "representation": "NORMALIZED_JSON",
+    "semanticHashExcludes": [
+      "generatedAt",
+      "createdAt",
+      "updatedAt",
+      "timestamp"
+    ],
+    "semanticSha256": "7ebd5bd20a083d51d9634482e5a6572f7a8d940a549f77f17a315ad87571744b"
+  },
+  "generatorHashes": [
+    {
+      "path": "scripts/build-security-content-v3-analysis.mjs",
+      "sha256": "ff124f9104b210d973a44ad07bb6895897bf1f3c3368f81ec14e5bcb3d34ea8f"
+    },
+    {
+      "path": "scripts/validate-security-content-intelligence-v3.mjs",
+      "sha256": "59edb9cd6d5ad8a3648acd124cfd1b772e81c6d176cc532d2cbd7b1c35f06545"
+    },
+    {
+      "path": "scripts/verify-security-content-v3-source-integrity.mjs",
+      "sha256": "80cb62827ae1b99922d5b6ae701ec9f559fcfeb0e5a138ff82dc2b16baf39320"
+    }
+  ],
+  "identity": {
+    "fixtureId": "ise-generator-input-v1-source-projection",
+    "inputAuthorityId": "ise-generator-input.v1",
+    "version": "ise-generator-input.v1"
+  },
+  "inputPolicy": {
+    "disposableCounts": "NOT_CANONICAL",
+    "liveDatabase": "PROHIBITED",
+    "reportOnlyCounts": "NOT_CANONICAL",
+    "unknownInputs": 0
+  },
+  "migrationLineage": {
+    "mode": "REPOSITORY_SCHEMA_REFERENCE_ONLY",
+    "revision": "drizzle-files-read-only"
+  },
+  "outputOwnership": [
+    {
+      "family": "ANALYSIS_OUTPUT",
+      "generator": "scripts/build-security-content-v3-analysis.mjs",
+      "path": "reports/content-v3/source-inventory.json"
+    },
+    {
+      "family": "ANALYSIS_OUTPUT",
+      "generator": "scripts/build-security-content-v3-analysis.mjs",
+      "path": "reports/content-v3/source-provenance.json"
+    },
+    {
+      "family": "ANALYSIS_OUTPUT",
+      "generator": "scripts/build-security-content-v3-analysis.mjs",
+      "path": "reports/content-v3/baseline-d1.json"
+    },
+    {
+      "family": "ANALYSIS_OUTPUT",
+      "generator": "scripts/build-security-content-v3-analysis.mjs",
+      "path": "reports/content-v3/baseline-postgres.json"
+    },
+    {
+      "family": "ANALYSIS_OUTPUT",
+      "generator": "scripts/build-security-content-v3-analysis.mjs",
+      "path": "reports/content-v3/concept-frequency.json"
+    },
+    {
+      "family": "ANALYSIS_OUTPUT",
+      "generator": "scripts/build-security-content-v3-analysis.mjs",
+      "path": "reports/content-v3/ontology-match-report.json"
+    },
+    {
+      "family": "ANALYSIS_OUTPUT",
+      "generator": "scripts/build-security-content-v3-analysis.mjs",
+      "path": "reports/content-v3/theory-coverage.json"
+    },
+    {
+      "family": "ANALYSIS_OUTPUT",
+      "generator": "scripts/build-security-content-v3-analysis.mjs",
+      "path": "reports/content-v3/theory-gap-analysis.json"
+    },
+    {
+      "family": "ANALYSIS_OUTPUT",
+      "generator": "scripts/build-security-content-v3-analysis.mjs",
+      "path": "reports/content-v3/question-generation-plan.json"
+    },
+    {
+      "family": "QUALITY_OUTPUT",
+      "generator": "scripts/validate-security-content-intelligence-v3.mjs",
+      "path": "reports/content-v3/generated-question-review.json"
+    },
+    {
+      "family": "QUALITY_OUTPUT",
+      "generator": "scripts/validate-security-content-intelligence-v3.mjs",
+      "path": "reports/content-v3/duplicate-analysis.json"
+    },
+    {
+      "family": "SOURCE_INTEGRITY_OUTPUT",
+      "generator": "scripts/verify-security-content-v3-source-integrity.mjs",
+      "path": "reports/content-v3/source-integrity.json"
+    }
+  ],
+  "privacy": {
+    "learnerEvidence": 0,
+    "personalData": 0
+  },
+  "provider": {
+    "d1Authority": "D1_GENERATOR_FIXTURE_ONLY",
+    "providerMode": "OFFLINE_PROVIDER_NEUTRAL",
+    "runtimeProvider": "SUPABASE_POSTGRESQL_UNCHANGED"
+  },
+  "recordCounts": {
+    "courses": 2,
+    "learnerEvidence": 0,
+    "ontologyConcepts": 0,
+    "personalData": 0,
+    "questionRows": 148
+  },
+  "seedLineage": {
+    "mode": "SOURCE_PROJECTION_NO_DATABASE_SEED",
+    "revision": "not-applicable"
+  },
+  "serialization": {
+    "encoding": "UTF-8",
+    "lineEndings": "LF",
+    "objectKeys": "LEXICOGRAPHIC_CANONICALIZATION",
+    "terminalNewline": "EXACTLY_ONE"
+  },
+  "sourceHashes": [
+    {
+      "path": "lib/ai/retrieval-provider.ts",
+      "sha256": "3a07694236ebcae641285c0ead59ea7c93bd4fe712592587b20fa0b7ef3fc266"
+    },
+    {
+      "path": "lib/curriculum/security-certification-content-map.ts",
+      "sha256": "98f4c030fe19399b92001e4a5b68820ec170ab7580190b971c0bd7bd4a77d610"
+    },
+    {
+      "path": "lib/curriculum/security-certification-ontology.ts",
+      "sha256": "04f05642cc142351c18038d38e8958d8246fbc57d979bea2ff67fc7ae6ddd7b1"
+    },
+    {
+      "path": "lib/curriculum/security-certification-standards.ts",
+      "sha256": "9cff9ad2885657f08d31b03ea503bd937e28c42e64626ecc05ea61b53295d036"
+    },
+    {
+      "path": "lib/data/security-certification-application-security-questions.mjs",
+      "sha256": "f6746001932da1f69f8015b4446aeaaab4a57cb2e2e802ac00d35ab2566ff55a"
+    },
+    {
+      "path": "lib/data/security-certification-course-lessons.mjs",
+      "sha256": "9a4fb76bd0a8ddc9e113d1724f35b2aa64ffc9a18bcbd0cf78b27a571464cba5"
+    },
+    {
+      "path": "lib/data/security-certification-engineer-practical-log-monitoring-authoring.mjs",
+      "sha256": "4066ff040d0a2c94aa2d07c37e2484f36db6b51074c35f1ffa7a8595012549fb"
+    },
+    {
+      "path": "lib/data/security-certification-information-security-general-questions.mjs",
+      "sha256": "46df724607ac17bacb086872be69999e5aac5571297be8768b8de3631c471fca"
+    },
+    {
+      "path": "lib/data/security-certification-management-law-questions.mjs",
+      "sha256": "5aaaa019b54216e5f3d2bdfc46d2b089f42b6ab362fe348cb0dcc7571b835eaa"
+    },
+    {
+      "path": "lib/data/security-certification-network-security-questions.mjs",
+      "sha256": "8d00f2c03877ca1183b6282a1fdfe9407fdb9cfee6d1e40ffec7ceeccf107167"
+    },
+    {
+      "path": "lib/data/security-certification-practical-questions.mjs",
+      "sha256": "763dcddf1f9bbe9acfe665fa86c0e40cbf525a8f165178a4fdd7e819b8428529"
+    },
+    {
+      "path": "lib/data/security-certification-system-security-questions.mjs",
+      "sha256": "6e1b3416a0091362b05c0782be2c0c8d68691b46d582a1683727f848f4d761f1"
+    },
+    {
+      "path": "lib/data/security-content-intelligence-v3.mjs",
+      "sha256": "0b451d7100a87ac176ed4c1307424d48d9682de51ca3dba94f09f86b5ddc6fe0"
+    },
+    {
+      "path": "lib/data/security-content-upgrade-v3.mjs",
+      "sha256": "8cb0ff8848216bf128428d3a750cdc5ee9e793816cd45d5b49986676348772e3"
+    },
+    {
+      "path": "lib/errors.ts",
+      "sha256": "7b753d4cd033ebbfa089a0575e99280c820670fecd36fe343ffa19fa0a48e340"
+    },
+    {
+      "path": "lib/services/ontology-service.ts",
+      "sha256": "234782f4dee50dcee19437fffddfc9a6d74279f36449c6684c626e5918561a52"
+    },
+    {
+      "path": "lib/validation.ts",
+      "sha256": "bc77e44963e09f9a5889336298aaa67c11d285ccbb41ce960d83f83e2cee412e"
+    },
+    {
+      "path": "securium-content-upgrade-v2/2022 2회차 산업기사 필기.pdf",
+      "sha256": "9f2635a355c98e62862d110d4519d2dfdd61c5b721635f8ef6231a1f70fbdfa9"
+    },
+    {
+      "path": "securium-content-upgrade-v2/2022 4회차 보안기사 필기.pdf",
+      "sha256": "ece91484f047349ae43aa265233037485d2872c05c61ea861d4aa4a3318a195f"
+    },
+    {
+      "path": "securium-content-upgrade-v2/2026 정보보안기사 올인원_구매인증 이벤트 자료.pdf",
+      "sha256": "a84e3032dbe2528695c3d8e17426b36865ab1c0f8682b40e6cbe279b8de2f892"
+    },
+    {
+      "path": "securium-content-upgrade-v2/CODEX_TASK.md",
+      "sha256": "65ca5357d645eafa7d30901a6cbd949e36799e0ee1ce11dd510c9eebde2edd43"
+    },
+    {
+      "path": "securium-content-upgrade-v2/README.md",
+      "sha256": "eed6778586787d45ec5a445bb45a681c6371fb6cfde178cbef6f40d3c1a426f4"
+    },
+    {
+      "path": "securium-content-upgrade-v2/content-policy.ts",
+      "sha256": "705ee01d7210bca0c6707f919ae2d2b8b6a177579b67fe3e946f36d460e55ee3"
+    },
+    {
+      "path": "securium-content-upgrade-v2/content.schema.json",
+      "sha256": "29e14296e45d1522571ad0a5796a3d60ce1a05373bf00698c46d431f6bdc1117"
+    },
+    {
+      "path": "securium-content-upgrade-v2/data/canonical-concepts.json",
+      "sha256": "2f2452a4cbb7d44fc3a13d68eb212d2b23112cdd61e2abdd8663dd5c1c83cd34"
+    },
+    {
+      "path": "securium-content-upgrade-v2/data/final-audit.json",
+      "sha256": "9590e2d982e5317ef0d72398799e8dc792bba267dbacb69a9d460f2275a9b746"
+    },
+    {
+      "path": "securium-content-upgrade-v2/data/normalized-kb-import-plan.json",
+      "sha256": "41245f7cdacadca811193b4902f42a0cf9f793f38e6ab9662b3c7daf395e8e21"
+    },
+    {
+      "path": "securium-content-upgrade-v2/data/normalized-knowledge-base.json",
+      "sha256": "c2d06829997080684296c39e76bd1508c72a9f9d6301736f6533093a47581c70"
+    },
+    {
+      "path": "securium-content-upgrade-v2/data/practical-seeds.json",
+      "sha256": "245dc3c29e87d7f6f8f78495d31e3fb8cc36e037704e39d83502ec827b61c281"
+    },
+    {
+      "path": "securium-content-upgrade-v2/data/provenance-template.json",
+      "sha256": "1f1969f35d21bd45e18171910c9d9f03bd648079b9dcd36c243c157e89c6d592"
+    },
+    {
+      "path": "securium-content-upgrade-v2/data/source-file-inventory.json",
+      "sha256": "77df58bd3019e1469593fcb2a70f4aa54287bd4f8ce3f413d4c4a97c9dab041d"
+    },
+    {
+      "path": "securium-content-upgrade-v2/data/source-inventory.json",
+      "sha256": "e6e8a07dcbbd5ce7378b1a8b4015800f2faff92dcd41d2737e6135692ec19dff"
+    },
+    {
+      "path": "securium-content-upgrade-v2/data/theory-seeds.json",
+      "sha256": "b96f9632187bfec547cfc8340499a4d987a8ca89696d78c8c1d57bee87eb5cfa"
+    },
+    {
+      "path": "securium-content-upgrade-v2/data/written-seeds.json",
+      "sha256": "3ec96842fe1734eabc46f26c322e3585b702e08e231b6bf63035119da0a9776e"
+    },
+    {
+      "path": "securium-content-upgrade-v2/manifest.json",
+      "sha256": "3899a4ddcc3b752c95d55e453fa67293e07ba7405e8235075446ca903f1102f0"
+    },
+    {
+      "path": "securium-content-upgrade-v2/reports/content-import-report.md",
+      "sha256": "26ee5aa9473dadf3cd51d8f3d03cefa223a2472c5834663b020afa62cf08f7e6"
+    },
+    {
+      "path": "securium-content-upgrade-v2/reports/final-content-import-report.md",
+      "sha256": "dc382583bd634b9ae6f59fa3da7385dfa0f03be8f0adb1206acb63906fc0033b"
+    },
+    {
+      "path": "securium-content-upgrade-v2/reports/source-text-extraction.json",
+      "sha256": "85d5e1a1b2e065171797d60b9428fc7a6afe73e9889c6f01fb19d03f914f77c6"
+    },
+    {
+      "path": "securium-content-upgrade-v2/scripts/analyze-source-corpus.py",
+      "sha256": "fabb55de1dcfb1fe6b08ae3e3ced4578cbfb26c4019d1868cbdfcd87fdb6987c"
+    },
+    {
+      "path": "securium-content-upgrade-v2/scripts/build-normalized-kb.py",
+      "sha256": "d29f2f701f46b824eda88f611975bebfab51a5e94d477c0ea5154d6a3da2ef28"
+    },
+    {
+      "path": "securium-content-upgrade-v2/scripts/finalize-report.py",
+      "sha256": "83f30c460c0daf8448d7e8fd4f3baf0925bef4c44b6c85541198f64ddf360a8a"
+    },
+    {
+      "path": "securium-content-upgrade-v2/scripts/generate-local-draft-import-sql.py",
+      "sha256": "0117cc60d6b7974ead59d1ac29fa84bfff8a9af9a08f35860975e996b30f955e"
+    },
+    {
+      "path": "securium-content-upgrade-v2/scripts/prepare-import-plan.py",
+      "sha256": "054cc654e8e900a663df71301a57f97a5069cba0acc8162c6cdfd37f72900078"
+    },
+    {
+      "path": "securium-content-upgrade-v2/scripts/validate.py",
+      "sha256": "176b0c729b8267eb93e32a418fa2cdedad7d0bfc565c28e3c2792c5c074e0095"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사 실기 기출.txt",
+      "sha256": "f78507dab339da84dd876003b252877f4866b41d47ff06555cc34ec7aced4a0b"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사 필기-2023년도 제4회_2023.10.07_babayetu.tistory.com.pdf",
+      "sha256": "3c5bb345ff126de012f87cc400c0d401e2d81f8ef225e32cc6642995f04d7adc"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사20130706(교사용).pdf",
+      "sha256": "127faf9ef41361c386305e3bd4233ec62732d688c75c8b87fdde822262773323"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사20131026(교사용).pdf",
+      "sha256": "392be668914140d96b5cb4867d0b6f53f3c38c87442f2c05338298e26fe061fb"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사20140405(교사용).pdf",
+      "sha256": "4124620e4fe690b58342412b60a87378b4032890e4f991c0f4c9c4ff0d50d0f7"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사20140927(교사용).pdf",
+      "sha256": "5ac83a19ef1c04add166a8d89e48323dfcecf08da317c54889f413f799b4ce57"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사20150328(교사용).pdf",
+      "sha256": "ea08609917788ddab47e5dd3b0bc3712719c3322690311e39f8127db8ef4f6da"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사20150919(교사용).pdf",
+      "sha256": "3c53c2c6310e422a2cf804b252624c8d036112a62261be94679b71202ae45c7b"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사20160402(교사용).pdf",
+      "sha256": "7b5e745139a1c60411ef8272ba8235caf6467fee8f44f40e1d17721a4619313e"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사20160924(교사용).pdf",
+      "sha256": "787d544e0166bd6ce69ddef3bcfde3f51f6f6d0cb8f33e7c2047b0e1e22c237c"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사20170325(교사용).pdf",
+      "sha256": "ca934d2e8f35dc7b9f7881f7373450653409220e284af6b5429f398af379ba18"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사20170909(교사용).pdf",
+      "sha256": "e44513ef41146a409a479dbf36973f8d00920d94b972cd3e399f2664b6cc27ab"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사20180331(교사용).pdf",
+      "sha256": "2d6fbbb5ed356b1a48929b513ef3cfda5ad6a5723c65a658539591ae8bdfbf81"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사20180908(교사용).pdf",
+      "sha256": "92701aec8b21509c4726e71cc8b0614e6616db04b4d174f7948af2c7764b6525"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사20190323(교사용).pdf",
+      "sha256": "311d00d3d10b8cfc52aa1e0c30b28e715bf2fcc684c94a33245cc260081159e9"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사20190907(교사용).pdf",
+      "sha256": "c08ec924f0d50b32170e96321960dd731fb9855238bde0335209548630ebc74a"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사20200530(교사용).pdf",
+      "sha256": "b557f37f9e1af7e3fd13ec06f3157227edef885543c9dda26cce5186ffa8e5df"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사20200905(교사용).pdf",
+      "sha256": "e73a69db273c05f084784755007b920d30407a13d8dc28f4143786c6cb9aa062"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사20210327(교사용).pdf",
+      "sha256": "3fe3976c7fffcee90bd72696a6d1138de6f4249b6e6315be7c6af89feadbe5ed"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사20210904(교사용).pdf",
+      "sha256": "c2d7b05d61c491ea4f56c333aa43bab00ce45abf1c732d1ced06bf16d7c92025"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사20220313(교사용).pdf",
+      "sha256": "36950b87d03f3fe1bf4879a49c5aa7cb03157addf51a3226e6d05f6f4a17e025"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사20220625(교사용).pdf",
+      "sha256": "b7eb3be55691cf9518a3201ce21e8948a1f9879e6761eeaf632ab34205d30d49"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사20230311(교사용).pdf",
+      "sha256": "f5c2b1c4a565a39bb35332f048018aa5e94480ad1efb0b19ef45078ff34a9bad"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사_01회_필기_기출문제.pdf",
+      "sha256": "66f6197d4025264502b161a065ec9c9162006ab1b93d1d2d1c7dad401cb2daf1"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사_02회_필기_기출문제.pdf",
+      "sha256": "5cafbd8ee58ebb77d72e729c0ca2b24789fd9ed765aa3bdd06a9bcc9bb5c995f"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사_03회_필기_기출문제.pdf",
+      "sha256": "9579847a62bd7170c26d921919f3f8828f19515ee183e8031939bd3a71d654d9"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사_04회_필기_기출문제.pdf",
+      "sha256": "f3863abd6d96f10088b2f7153eb98cc348483662a95a177b8ea4cb706d094b8e"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사_05회_필기_기출문제.pdf",
+      "sha256": "28a11e7a59859dc19087c6e6d61cf5502b7a425361d31318137e9319363ee683"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사_06회_필기_기출문제.pdf",
+      "sha256": "d70f6473ba612db7641e898d4ce08054c1bc173ac36e165c5b49cd8c98915f28"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사_07회_필기_기출문제.pdf",
+      "sha256": "e3f77c462d8dfb7f5a5c4b8e8aaa895a3fcfe44e976f71a92d763e6dec588e09"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사_08회_필기_기출문제.pdf",
+      "sha256": "e0b698f8ed5e71cc5f0f348a6bfa75160a59482954981d829153bbfd7654745f"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사_09회_필기_기출문제.pdf",
+      "sha256": "0fb89ac189746a11b3d44543f122bd2993a101e6c81dcfada7bc4f26656eff7a"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사_10회_필기_기출문제.pdf",
+      "sha256": "34cd3bf1d68fd05182a73b94013a31d1040c6780dc55206757c1adce94eb283b"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사_11회_필기_기출문제.pdf",
+      "sha256": "54eaed521c07f71061c471fd4a88e3598abb104e2188f8b5d1321eb0669bb865"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사_12회_필기_기출문제.pdf",
+      "sha256": "4655fdd28cabc59cd098052262b3a0bec50601cc4a63a27daa5b26ebfe057b84"
+    },
+    {
+      "path": "securium-content-upgrade-v2/정보보안기사_14회_필기_기출문제.pdf",
+      "sha256": "3208624fbf2874f1b2bcb71a80af80fb09eb3572b8c50107f50d75e1b6f08aa9"
+    }
+  ]
+}
