@@ -118,14 +118,14 @@ export async function validateFoundation(root = DEFAULT_ROOT, options = {}) {
   addError(errors, modules.length === 8, "module count is not eight");
   addError(errors, modules.every((module) => module.minutes === 60), "each module is not 60 minutes");
   addError(errors, modules.reduce((sum, module) => sum + (module.minutes ?? 0), 0) === 480, "module minutes do not total 480");
-  for (const module of modules) {
-    addError(errors, module.sourceSupport?.design === "SECURIUM_INDEPENDENT_DESIGN", `${module.id} lacks independent design classification`);
-    addError(errors, module.sourceSupport?.public === "PUBLIC_FACTUAL_AUTHORITY_REQUIRED", `${module.id} lacks public factual authority requirement`);
-    addError(errors, module.sourceSupport?.localSourceDependence === 0, `${module.id} has local source dependence`);
-    addError(errors, module.objectiveIds?.length === 4, `${module.id} does not bind four objectives`);
-    addError(errors, module.theoryIds?.length === 3, `${module.id} does not bind three theory assets`);
-    addError(errors, module.questionIds?.length === 5, `${module.id} does not bind five questions`);
-    addError(errors, typeof module.practicalId === "string", `${module.id} has no practical binding`);
+  for (const moduleEntry of modules) {
+    addError(errors, moduleEntry.sourceSupport?.design === "SECURIUM_INDEPENDENT_DESIGN", `${moduleEntry.id} lacks independent design classification`);
+    addError(errors, moduleEntry.sourceSupport?.public === "PUBLIC_FACTUAL_AUTHORITY_REQUIRED", `${moduleEntry.id} lacks public factual authority requirement`);
+    addError(errors, moduleEntry.sourceSupport?.localSourceDependence === 0, `${moduleEntry.id} has local source dependence`);
+    addError(errors, moduleEntry.objectiveIds?.length === 4, `${moduleEntry.id} does not bind four objectives`);
+    addError(errors, moduleEntry.theoryIds?.length === 3, `${moduleEntry.id} does not bind three theory assets`);
+    addError(errors, moduleEntry.questionIds?.length === 5, `${moduleEntry.id} does not bind five questions`);
+    addError(errors, typeof moduleEntry.practicalId === "string", `${moduleEntry.id} has no practical binding`);
   }
 
   const objectiveIds = objectives.map((objective) => objective.id);
