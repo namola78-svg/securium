@@ -1,6 +1,16 @@
 {
-  "generatedAt": "2026-08-11T05:09:59.039Z",
-  "sourceRoot": "C:\\Users\\user\\Documents\\Codex\\2026-07-24\\1-2-3-4-5-6\\securium-content-upgrade-v2",
+  "generatedAt": "2026-09-10T07:44:35.634Z",
+  "inputAuthorityId": "ise-generator-input.v1",
+  "inputAuthorityVersion": "ise-generator-input.v1",
+  "inputAuthorityHash": "7ebd5bd20a083d51d9634482e5a6572f7a8d940a549f77f17a315ad87571744b",
+  "inputAuthoritySemanticSha256": "7ebd5bd20a083d51d9634482e5a6572f7a8d940a549f77f17a315ad87571744b",
+  "inputAuthorityByteSha256": "8f2d445df637fb31f12b6e44da84bfa414170faae4df36c55eb5fb0cee57e610",
+  "generatorPath": "scripts/verify-security-content-v3-source-integrity.mjs",
+  "generatorHash": "869d99bde1dab07eb7df0306281293ab2c7661e262b1a0c5820804e45298d084",
+  "generatorSha256": "869d99bde1dab07eb7df0306281293ab2c7661e262b1a0c5820804e45298d084",
+  "providerMode": "OFFLINE_PROVIDER_NEUTRAL",
+  "environmentPolicyHash": "2d85c17187563ca62ccd0af11e52947bc68d4b8ac65900741cc63a9e65a85359",
+  "sourceRoot": "securium-content-upgrade-v2",
   "policy": "READ_ONLY_HASH_REVALIDATION",
   "summary": {
     "total": 63,
@@ -29,8 +39,8 @@
     },
     {
       "source_file": "정보보안기사 실기 기출.txt",
-      "expected_sha256": "0eefba68272c1c6a8cc1dfcd4491d87d0360178d51e1babba190464b95c04a87",
-      "actual_sha256": "0eefba68272c1c6a8cc1dfcd4491d87d0360178d51e1babba190464b95c04a87",
+      "expected_sha256": "f78507dab339da84dd876003b252877f4866b41d47ff06555cc34ec7aced4a0b",
+      "actual_sha256": "f78507dab339da84dd876003b252877f4866b41d47ff06555cc34ec7aced4a0b",
       "status": "UNCHANGED"
     },
     {
@@ -263,26 +273,26 @@
     },
     {
       "source_file": "data/canonical-concepts.json",
-      "expected_sha256": "7e7dcd96a026072e5b2bb610bfd5988b6fe64732db1d8b5817545ef25ac5b275",
-      "actual_sha256": "7e7dcd96a026072e5b2bb610bfd5988b6fe64732db1d8b5817545ef25ac5b275",
+      "expected_sha256": "2f2452a4cbb7d44fc3a13d68eb212d2b23112cdd61e2abdd8663dd5c1c83cd34",
+      "actual_sha256": "2f2452a4cbb7d44fc3a13d68eb212d2b23112cdd61e2abdd8663dd5c1c83cd34",
       "status": "UNCHANGED"
     },
     {
       "source_file": "data/final-audit.json",
-      "expected_sha256": "744f084f0ad74cdd8869c43fc0572e85d73daf4c62ea48d4f4c02f8939362b98",
-      "actual_sha256": "744f084f0ad74cdd8869c43fc0572e85d73daf4c62ea48d4f4c02f8939362b98",
+      "expected_sha256": "9590e2d982e5317ef0d72398799e8dc792bba267dbacb69a9d460f2275a9b746",
+      "actual_sha256": "9590e2d982e5317ef0d72398799e8dc792bba267dbacb69a9d460f2275a9b746",
       "status": "UNCHANGED"
     },
     {
       "source_file": "data/normalized-kb-import-plan.json",
-      "expected_sha256": "6d280574b37354cb18aa57a380d3d82c7a023734e8396b514d1b0ba32760b7cf",
-      "actual_sha256": "6d280574b37354cb18aa57a380d3d82c7a023734e8396b514d1b0ba32760b7cf",
+      "expected_sha256": "41245f7cdacadca811193b4902f42a0cf9f793f38e6ab9662b3c7daf395e8e21",
+      "actual_sha256": "41245f7cdacadca811193b4902f42a0cf9f793f38e6ab9662b3c7daf395e8e21",
       "status": "UNCHANGED"
     },
     {
       "source_file": "data/normalized-knowledge-base.json",
-      "expected_sha256": "5e13bb2fbd7975ab288adee03d5f80baa0ea21de4bc05397581b46b1faa0f8d1",
-      "actual_sha256": "5e13bb2fbd7975ab288adee03d5f80baa0ea21de4bc05397581b46b1faa0f8d1",
+      "expected_sha256": "c2d06829997080684296c39e76bd1508c72a9f9d6301736f6533093a47581c70",
+      "actual_sha256": "c2d06829997080684296c39e76bd1508c72a9f9d6301736f6533093a47581c70",
       "status": "UNCHANGED"
     },
     {
@@ -299,8 +309,8 @@
     },
     {
       "source_file": "data/source-file-inventory.json",
-      "expected_sha256": "db411081d9afa6f7029ea78fd51144589e809d4d3a1dafc8798dfb89bad6e8e3",
-      "actual_sha256": "db411081d9afa6f7029ea78fd51144589e809d4d3a1dafc8798dfb89bad6e8e3",
+      "expected_sha256": "77df58bd3019e1469593fcb2a70f4aa54287bd4f8ce3f413d4c4a97c9dab041d",
+      "actual_sha256": "77df58bd3019e1469593fcb2a70f4aa54287bd4f8ce3f413d4c4a97c9dab041d",
       "status": "UNCHANGED"
     },
     {
@@ -323,8 +333,8 @@
     },
     {
       "source_file": "manifest.json",
-      "expected_sha256": "9a3e721c4bace4d5227720bf76945fe9dc411eeb1237a8727ec6d588ee72bd8d",
-      "actual_sha256": "9a3e721c4bace4d5227720bf76945fe9dc411eeb1237a8727ec6d588ee72bd8d",
+      "expected_sha256": "3899a4ddcc3b752c95d55e453fa67293e07ba7405e8235075446ca903f1102f0",
+      "actual_sha256": "3899a4ddcc3b752c95d55e453fa67293e07ba7405e8235075446ca903f1102f0",
       "status": "UNCHANGED"
     },
     {
@@ -335,14 +345,14 @@
     },
     {
       "source_file": "reports/content-import-report.md",
-      "expected_sha256": "1af43df65c3966b89e679de3349626c430c76c18de5ed8d8b6ed9bbaa9ab176b",
-      "actual_sha256": "1af43df65c3966b89e679de3349626c430c76c18de5ed8d8b6ed9bbaa9ab176b",
+      "expected_sha256": "26ee5aa9473dadf3cd51d8f3d03cefa223a2472c5834663b020afa62cf08f7e6",
+      "actual_sha256": "26ee5aa9473dadf3cd51d8f3d03cefa223a2472c5834663b020afa62cf08f7e6",
       "status": "UNCHANGED"
     },
     {
       "source_file": "reports/final-content-import-report.md",
-      "expected_sha256": "e30e66e5f8eae26725c8b0831389a7a8e3b8a46d73b9e935d168d8456a238366",
-      "actual_sha256": "e30e66e5f8eae26725c8b0831389a7a8e3b8a46d73b9e935d168d8456a238366",
+      "expected_sha256": "dc382583bd634b9ae6f59fa3da7385dfa0f03be8f0adb1206acb63906fc0033b",
+      "actual_sha256": "dc382583bd634b9ae6f59fa3da7385dfa0f03be8f0adb1206acb63906fc0033b",
       "status": "UNCHANGED"
     },
     {

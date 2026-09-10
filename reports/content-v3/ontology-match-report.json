@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-08-11T03:36:39.337Z",
+  "generatedAt": "2026-09-10T07:44:35.111Z",
   "namespace": "security-certification",
   "summary": {
     "analyzedConcepts": 32,
-    "reusedCanonicalConcepts": 32,
-    "newCanonicalCandidates": 0,
-    "aliasesToAdd": 0
+    "reusedCanonicalConcepts": 18,
+    "newCanonicalCandidates": 14,
+    "aliasesToAdd": 31
   },
   "matches": [
     {
@@ -13,18 +13,17 @@
       "preferred_label": "암호 알고리즘",
       "match_status": "REUSE_EXISTING",
       "matched_concept_keys": [
-        "ontology:security-certification:암호-알고리즘",
         "ontology:security-certification:암호-알고리즘"
       ],
       "matched_labels": [
-        "암호 알고리즘",
         "암호 알고리즘"
       ],
       "matched_origins": [
-        "REPOSITORY_CANONICAL",
-        "D1_BASELINE"
+        "REPOSITORY_CANONICAL"
       ],
-      "aliases_to_add": [],
+      "aliases_to_add": [
+        "Cryptographic algorithms"
+      ],
       "confidence": 1
     },
     {
@@ -32,123 +31,105 @@
       "preferred_label": "인증",
       "match_status": "REUSE_EXISTING",
       "matched_concept_keys": [
-        "ontology:security-certification:인증",
         "ontology:security-certification:인증"
       ],
       "matched_labels": [
-        "인증",
         "인증"
       ],
       "matched_origins": [
-        "REPOSITORY_CANONICAL",
-        "D1_BASELINE"
+        "REPOSITORY_CANONICAL"
       ],
-      "aliases_to_add": [],
+      "aliases_to_add": [
+        "Authentication"
+      ],
       "confidence": 1
     },
     {
       "source_concept": "ISMS and privacy governance",
       "preferred_label": "ISMS 및 개인정보 거버넌스",
-      "match_status": "REUSE_EXISTING",
-      "matched_concept_keys": [
-        "ontology:security-certification:isms-및-개인정보-거버넌스"
-      ],
-      "matched_labels": [
-        "ISMS 및 개인정보 거버넌스"
-      ],
-      "matched_origins": [
-        "D1_BASELINE"
-      ],
+      "match_status": "NEW_CANDIDATE_REVIEW_REQUIRED",
+      "matched_concept_keys": [],
+      "matched_labels": [],
+      "matched_origins": [],
       "aliases_to_add": [],
-      "confidence": 1
+      "confidence": 0.65
     },
     {
       "source_concept": "Logging and incident response",
       "preferred_label": "로그 분석 및 침해 대응",
       "match_status": "REUSE_EXISTING",
       "matched_concept_keys": [
-        "ontology:security-certification:로그-분석",
-        "ontology:security-certification:로그-분석-및-침해-대응"
+        "ontology:security-certification:로그-분석"
       ],
       "matched_labels": [
-        "로그 분석",
-        "로그 분석 및 침해 대응"
+        "로그 분석"
       ],
       "matched_origins": [
-        "REPOSITORY_CANONICAL",
-        "D1_BASELINE"
+        "REPOSITORY_CANONICAL"
       ],
-      "aliases_to_add": [],
+      "aliases_to_add": [
+        "Logging and incident response",
+        "Incident Response"
+      ],
       "confidence": 1
     },
     {
       "source_concept": "Network architecture and OSI",
       "preferred_label": "네트워크 구조와 OSI",
-      "match_status": "REUSE_EXISTING",
-      "matched_concept_keys": [
-        "ontology:security-certification:네트워크-구조와-osi"
-      ],
-      "matched_labels": [
-        "네트워크 구조와 OSI"
-      ],
-      "matched_origins": [
-        "D1_BASELINE"
-      ],
+      "match_status": "NEW_CANDIDATE_REVIEW_REQUIRED",
+      "matched_concept_keys": [],
+      "matched_labels": [],
+      "matched_origins": [],
       "aliases_to_add": [],
-      "confidence": 1
+      "confidence": 0.65
     },
     {
       "source_concept": "TLS and secure protocols",
       "preferred_label": "TLS",
       "match_status": "REUSE_EXISTING",
       "matched_concept_keys": [
-        "ontology:security-certification:tls",
         "ontology:security-certification:tls"
       ],
       "matched_labels": [
-        "TLS",
         "TLS"
       ],
       "matched_origins": [
-        "REPOSITORY_CANONICAL",
-        "D1_BASELINE"
+        "REPOSITORY_CANONICAL"
       ],
-      "aliases_to_add": [],
+      "aliases_to_add": [
+        "TLS and secure protocols",
+        "Transport Layer Security",
+        "보안 프로토콜"
+      ],
       "confidence": 1
     },
     {
       "source_concept": "CIA triad",
       "preferred_label": "CIA 3요소",
-      "match_status": "REUSE_EXISTING",
-      "matched_concept_keys": [
-        "ontology:security-certification:cia-3요소"
-      ],
-      "matched_labels": [
-        "CIA 3요소"
-      ],
-      "matched_origins": [
-        "D1_BASELINE"
-      ],
+      "match_status": "NEW_CANDIDATE_REVIEW_REQUIRED",
+      "matched_concept_keys": [],
+      "matched_labels": [],
+      "matched_origins": [],
       "aliases_to_add": [],
-      "confidence": 1
+      "confidence": 0.65
     },
     {
       "source_concept": "Digital signature and PKI",
       "preferred_label": "디지털서명 및 PKI",
       "match_status": "REUSE_EXISTING",
       "matched_concept_keys": [
-        "ontology:security-certification:디지털서명",
-        "ontology:security-certification:디지털서명-및-pki"
+        "ontology:security-certification:디지털서명"
       ],
       "matched_labels": [
-        "디지털서명",
-        "디지털서명 및 PKI"
+        "디지털서명"
       ],
       "matched_origins": [
-        "REPOSITORY_CANONICAL",
-        "D1_BASELINE"
+        "REPOSITORY_CANONICAL"
       ],
-      "aliases_to_add": [],
+      "aliases_to_add": [
+        "Digital signature and PKI",
+        "Public Key Infrastructure"
+      ],
       "confidence": 1
     },
     {
@@ -156,18 +137,18 @@
       "preferred_label": "취약점 관리",
       "match_status": "REUSE_EXISTING",
       "matched_concept_keys": [
-        "ontology:security-certification:취약점-점검",
-        "ontology:security-certification:취약점-관리"
+        "ontology:security-certification:취약점-점검"
       ],
       "matched_labels": [
-        "취약점 점검",
-        "취약점 관리"
+        "취약점 점검"
       ],
       "matched_origins": [
-        "REPOSITORY_CANONICAL",
-        "D1_BASELINE"
+        "REPOSITORY_CANONICAL"
       ],
-      "aliases_to_add": [],
+      "aliases_to_add": [
+        "Vulnerability management",
+        "Vulnerability Management"
+      ],
       "confidence": 1
     },
     {
@@ -175,53 +156,48 @@
       "preferred_label": "IDS/IPS",
       "match_status": "REUSE_EXISTING",
       "matched_concept_keys": [
-        "ontology:security-certification:ids-ips",
         "ontology:security-certification:ids-ips"
       ],
       "matched_labels": [
-        "IDS/IPS",
         "IDS/IPS"
       ],
       "matched_origins": [
-        "REPOSITORY_CANONICAL",
-        "D1_BASELINE"
+        "REPOSITORY_CANONICAL"
       ],
-      "aliases_to_add": [],
+      "aliases_to_add": [
+        "IDS and IPS",
+        "Intrusion Detection System",
+        "Intrusion Prevention System"
+      ],
       "confidence": 1
     },
     {
       "source_concept": "Windows security",
       "preferred_label": "Windows 보안",
-      "match_status": "REUSE_EXISTING",
-      "matched_concept_keys": [
-        "ontology:security-certification:windows-보안"
-      ],
-      "matched_labels": [
-        "Windows 보안"
-      ],
-      "matched_origins": [
-        "D1_BASELINE"
-      ],
+      "match_status": "NEW_CANDIDATE_REVIEW_REQUIRED",
+      "matched_concept_keys": [],
+      "matched_labels": [],
+      "matched_origins": [],
       "aliases_to_add": [],
-      "confidence": 1
+      "confidence": 0.65
     },
     {
       "source_concept": "DNS security",
       "preferred_label": "DNS",
       "match_status": "REUSE_EXISTING",
       "matched_concept_keys": [
-        "ontology:security-certification:dns",
         "ontology:security-certification:dns"
       ],
       "matched_labels": [
-        "DNS",
         "DNS"
       ],
       "matched_origins": [
-        "REPOSITORY_CANONICAL",
-        "D1_BASELINE"
+        "REPOSITORY_CANONICAL"
       ],
-      "aliases_to_add": [],
+      "aliases_to_add": [
+        "DNS security",
+        "DNS Security"
+      ],
       "confidence": 1
     },
     {
@@ -229,18 +205,18 @@
       "preferred_label": "접근통제",
       "match_status": "REUSE_EXISTING",
       "matched_concept_keys": [
-        "ontology:security-certification:접근통제",
         "ontology:security-certification:접근통제"
       ],
       "matched_labels": [
-        "접근통제",
         "접근통제"
       ],
       "matched_origins": [
-        "REPOSITORY_CANONICAL",
-        "D1_BASELINE"
+        "REPOSITORY_CANONICAL"
       ],
-      "aliases_to_add": [],
+      "aliases_to_add": [
+        "Authorization and access control",
+        "Authorization"
+      ],
       "confidence": 1
     },
     {
@@ -248,18 +224,17 @@
       "preferred_label": "서비스 거부",
       "match_status": "REUSE_EXISTING",
       "matched_concept_keys": [
-        "ontology:security-certification:서비스-거부",
         "ontology:security-certification:서비스-거부"
       ],
       "matched_labels": [
-        "서비스 거부",
         "서비스 거부"
       ],
       "matched_origins": [
-        "REPOSITORY_CANONICAL",
-        "D1_BASELINE"
+        "REPOSITORY_CANONICAL"
       ],
-      "aliases_to_add": [],
+      "aliases_to_add": [
+        "DoS and DDoS"
+      ],
       "confidence": 1
     },
     {
@@ -267,69 +242,56 @@
       "preferred_label": "해시함수",
       "match_status": "REUSE_EXISTING",
       "matched_concept_keys": [
-        "ontology:security-certification:해시함수",
         "ontology:security-certification:해시함수"
       ],
       "matched_labels": [
-        "해시함수",
         "해시함수"
       ],
       "matched_origins": [
-        "REPOSITORY_CANONICAL",
-        "D1_BASELINE"
+        "REPOSITORY_CANONICAL"
       ],
-      "aliases_to_add": [],
+      "aliases_to_add": [
+        "Hash and message digest"
+      ],
       "confidence": 1
     },
     {
       "source_concept": "Linux security",
       "preferred_label": "Linux 보안",
-      "match_status": "REUSE_EXISTING",
-      "matched_concept_keys": [
-        "ontology:security-certification:linux-보안"
-      ],
-      "matched_labels": [
-        "Linux 보안"
-      ],
-      "matched_origins": [
-        "D1_BASELINE"
-      ],
+      "match_status": "NEW_CANDIDATE_REVIEW_REQUIRED",
+      "matched_concept_keys": [],
+      "matched_labels": [],
+      "matched_origins": [],
       "aliases_to_add": [],
-      "confidence": 1
+      "confidence": 0.65
     },
     {
       "source_concept": "Security governance and law",
       "preferred_label": "정보보호 관리 및 법규",
-      "match_status": "REUSE_EXISTING",
-      "matched_concept_keys": [
-        "ontology:security-certification:정보보호-관리-및-법규"
-      ],
-      "matched_labels": [
-        "정보보호 관리 및 법규"
-      ],
-      "matched_origins": [
-        "D1_BASELINE"
-      ],
+      "match_status": "NEW_CANDIDATE_REVIEW_REQUIRED",
+      "matched_concept_keys": [],
+      "matched_labels": [],
+      "matched_origins": [],
       "aliases_to_add": [],
-      "confidence": 1
+      "confidence": 0.65
     },
     {
       "source_concept": "ARP spoofing",
       "preferred_label": "ARP Spoofing",
       "match_status": "REUSE_EXISTING",
       "matched_concept_keys": [
-        "ontology:security-certification:arp-spoofing",
         "ontology:security-certification:arp-spoofing"
       ],
       "matched_labels": [
-        "ARP Spoofing",
         "ARP Spoofing"
       ],
       "matched_origins": [
-        "REPOSITORY_CANONICAL",
-        "D1_BASELINE"
+        "REPOSITORY_CANONICAL"
       ],
-      "aliases_to_add": [],
+      "aliases_to_add": [
+        "ARP 스푸핑",
+        "ARP Cache Poisoning"
+      ],
       "confidence": 1
     },
     {
@@ -337,18 +299,18 @@
       "preferred_label": "XSS/CSRF",
       "match_status": "REUSE_EXISTING",
       "matched_concept_keys": [
-        "ontology:security-certification:xss",
-        "ontology:security-certification:xss-csrf"
+        "ontology:security-certification:xss"
       ],
       "matched_labels": [
-        "XSS",
-        "XSS/CSRF"
+        "XSS"
       ],
       "matched_origins": [
-        "REPOSITORY_CANONICAL",
-        "D1_BASELINE"
+        "REPOSITORY_CANONICAL"
       ],
-      "aliases_to_add": [],
+      "aliases_to_add": [
+        "XSS and CSRF",
+        "Cross-Site Request Forgery"
+      ],
       "confidence": 1
     },
     {
@@ -357,19 +319,18 @@
       "match_status": "REUSE_EXISTING",
       "matched_concept_keys": [
         "ontology:security-certification:방화벽",
-        "ontology:security-certification:waf",
-        "ontology:security-certification:방화벽-및-waf"
+        "ontology:security-certification:waf"
       ],
       "matched_labels": [
         "방화벽",
-        "WAF",
-        "방화벽 및 WAF"
+        "WAF"
       ],
       "matched_origins": [
-        "REPOSITORY_CANONICAL",
-        "D1_BASELINE"
+        "REPOSITORY_CANONICAL"
       ],
-      "aliases_to_add": [],
+      "aliases_to_add": [
+        "Firewall and WAF"
+      ],
       "confidence": 1
     },
     {
@@ -378,68 +339,53 @@
       "match_status": "REUSE_EXISTING",
       "matched_concept_keys": [
         "ontology:security-certification:위험관리",
-        "ontology:security-certification:위험평가",
-        "ontology:security-certification:위험관리"
+        "ontology:security-certification:위험평가"
       ],
       "matched_labels": [
         "위험관리",
-        "위험평가",
-        "위험관리"
+        "위험평가"
       ],
       "matched_origins": [
-        "REPOSITORY_CANONICAL",
-        "D1_BASELINE"
+        "REPOSITORY_CANONICAL"
       ],
-      "aliases_to_add": [],
+      "aliases_to_add": [
+        "Risk management",
+        "Risk Management"
+      ],
       "confidence": 1
     },
     {
       "source_concept": "Malware and ransomware",
       "preferred_label": "악성코드 및 랜섬웨어",
-      "match_status": "REUSE_EXISTING",
-      "matched_concept_keys": [
-        "ontology:security-certification:악성코드-및-랜섬웨어"
-      ],
-      "matched_labels": [
-        "악성코드 및 랜섬웨어"
-      ],
-      "matched_origins": [
-        "D1_BASELINE"
-      ],
+      "match_status": "NEW_CANDIDATE_REVIEW_REQUIRED",
+      "matched_concept_keys": [],
+      "matched_labels": [],
+      "matched_origins": [],
       "aliases_to_add": [],
-      "confidence": 1
+      "confidence": 0.65
     },
     {
       "source_concept": "Audit and accountability",
       "preferred_label": "감사 및 책임추적성",
-      "match_status": "REUSE_EXISTING",
-      "matched_concept_keys": [
-        "ontology:security-certification:감사-및-책임추적성"
-      ],
-      "matched_labels": [
-        "감사 및 책임추적성"
-      ],
-      "matched_origins": [
-        "D1_BASELINE"
-      ],
+      "match_status": "NEW_CANDIDATE_REVIEW_REQUIRED",
+      "matched_concept_keys": [],
+      "matched_labels": [],
+      "matched_origins": [],
       "aliases_to_add": [],
-      "confidence": 1
+      "confidence": 0.65
     },
     {
       "source_concept": "SQL injection",
       "preferred_label": "SQL Injection",
       "match_status": "REUSE_EXISTING",
       "matched_concept_keys": [
-        "ontology:security-certification:sql-삽입",
-        "ontology:security-certification:sql-injection"
+        "ontology:security-certification:sql-삽입"
       ],
       "matched_labels": [
-        "SQL 삽입",
-        "SQL Injection"
+        "SQL 삽입"
       ],
       "matched_origins": [
-        "REPOSITORY_CANONICAL",
-        "D1_BASELINE"
+        "REPOSITORY_CANONICAL"
       ],
       "aliases_to_add": [],
       "confidence": 1
@@ -447,66 +393,42 @@
     {
       "source_concept": "Forensics",
       "preferred_label": "디지털 포렌식",
-      "match_status": "REUSE_EXISTING",
-      "matched_concept_keys": [
-        "ontology:security-certification:디지털-포렌식"
-      ],
-      "matched_labels": [
-        "디지털 포렌식"
-      ],
-      "matched_origins": [
-        "D1_BASELINE"
-      ],
+      "match_status": "NEW_CANDIDATE_REVIEW_REQUIRED",
+      "matched_concept_keys": [],
+      "matched_labels": [],
+      "matched_origins": [],
       "aliases_to_add": [],
-      "confidence": 1
+      "confidence": 0.65
     },
     {
       "source_concept": "BCP and disaster recovery",
       "preferred_label": "BCP 및 재해복구",
-      "match_status": "REUSE_EXISTING",
-      "matched_concept_keys": [
-        "ontology:security-certification:bcp-및-재해복구"
-      ],
-      "matched_labels": [
-        "BCP 및 재해복구"
-      ],
-      "matched_origins": [
-        "D1_BASELINE"
-      ],
+      "match_status": "NEW_CANDIDATE_REVIEW_REQUIRED",
+      "matched_concept_keys": [],
+      "matched_labels": [],
+      "matched_origins": [],
       "aliases_to_add": [],
-      "confidence": 1
+      "confidence": 0.65
     },
     {
       "source_concept": "Virtualization and cloud security",
       "preferred_label": "가상화 및 클라우드 보안",
-      "match_status": "REUSE_EXISTING",
-      "matched_concept_keys": [
-        "ontology:security-certification:가상화-및-클라우드-보안"
-      ],
-      "matched_labels": [
-        "가상화 및 클라우드 보안"
-      ],
-      "matched_origins": [
-        "D1_BASELINE"
-      ],
+      "match_status": "NEW_CANDIDATE_REVIEW_REQUIRED",
+      "matched_concept_keys": [],
+      "matched_labels": [],
+      "matched_origins": [],
       "aliases_to_add": [],
-      "confidence": 1
+      "confidence": 0.65
     },
     {
       "source_concept": "Security evaluation criteria",
       "preferred_label": "보안 평가 기준",
-      "match_status": "REUSE_EXISTING",
-      "matched_concept_keys": [
-        "ontology:security-certification:보안-평가-기준"
-      ],
-      "matched_labels": [
-        "보안 평가 기준"
-      ],
-      "matched_origins": [
-        "D1_BASELINE"
-      ],
+      "match_status": "NEW_CANDIDATE_REVIEW_REQUIRED",
+      "matched_concept_keys": [],
+      "matched_labels": [],
+      "matched_origins": [],
       "aliases_to_add": [],
-      "confidence": 1
+      "confidence": 0.65
     },
     {
       "source_concept": "Email authentication",
@@ -515,72 +437,70 @@
       "matched_concept_keys": [
         "ontology:security-certification:dkim",
         "ontology:security-certification:dmarc",
-        "ontology:security-certification:spf",
-        "ontology:security-certification:이메일-인증"
+        "ontology:security-certification:spf"
       ],
       "matched_labels": [
         "DKIM",
         "DMARC",
-        "SPF",
-        "이메일 인증"
+        "SPF"
       ],
       "matched_origins": [
-        "REPOSITORY_CANONICAL",
-        "D1_BASELINE"
+        "REPOSITORY_CANONICAL"
       ],
-      "aliases_to_add": [],
+      "aliases_to_add": [
+        "Email authentication",
+        "Email Authentication"
+      ],
       "confidence": 1
     },
     {
       "source_concept": "Command and code injection",
       "preferred_label": "명령어 및 코드 인젝션",
-      "match_status": "REUSE_EXISTING",
-      "matched_concept_keys": [
-        "ontology:security-certification:명령어-및-코드-인젝션"
-      ],
-      "matched_labels": [
-        "명령어 및 코드 인젝션"
-      ],
-      "matched_origins": [
-        "D1_BASELINE"
-      ],
+      "match_status": "NEW_CANDIDATE_REVIEW_REQUIRED",
+      "matched_concept_keys": [],
+      "matched_labels": [],
+      "matched_origins": [],
       "aliases_to_add": [],
-      "confidence": 1
+      "confidence": 0.65
     },
     {
       "source_concept": "Web and API security",
       "preferred_label": "웹 및 API 보안",
-      "match_status": "REUSE_EXISTING",
-      "matched_concept_keys": [
-        "ontology:security-certification:웹-및-api-보안"
-      ],
-      "matched_labels": [
-        "웹 및 API 보안"
-      ],
-      "matched_origins": [
-        "D1_BASELINE"
-      ],
+      "match_status": "NEW_CANDIDATE_REVIEW_REQUIRED",
+      "matched_concept_keys": [],
+      "matched_labels": [],
+      "matched_origins": [],
       "aliases_to_add": [],
-      "confidence": 1
+      "confidence": 0.65
     },
     {
       "source_concept": "Endpoint detection and response",
       "preferred_label": "EDR",
       "match_status": "REUSE_EXISTING",
       "matched_concept_keys": [
-        "ontology:security-certification:edr",
         "ontology:security-certification:edr"
       ],
       "matched_labels": [
-        "EDR",
         "EDR"
       ],
       "matched_origins": [
-        "REPOSITORY_CANONICAL",
-        "D1_BASELINE"
+        "REPOSITORY_CANONICAL"
       ],
-      "aliases_to_add": [],
+      "aliases_to_add": [
+        "Endpoint detection and response",
+        "Endpoint Detection and Response"
+      ],
       "confidence": 1
     }
-  ]
+  ],
+  "inputAuthorityId": "ise-generator-input.v1",
+  "inputAuthorityVersion": "ise-generator-input.v1",
+  "inputAuthorityHash": "7ebd5bd20a083d51d9634482e5a6572f7a8d940a549f77f17a315ad87571744b",
+  "inputAuthoritySemanticSha256": "7ebd5bd20a083d51d9634482e5a6572f7a8d940a549f77f17a315ad87571744b",
+  "inputAuthorityByteSha256": "8f2d445df637fb31f12b6e44da84bfa414170faae4df36c55eb5fb0cee57e610",
+  "generatorPath": "scripts/build-security-content-v3-analysis.mjs",
+  "generatorHash": "087c856e200be87308d110dc6bdc5f62862e72039b3384ac5b3edf5c6df80f2e",
+  "generatorSha256": "087c856e200be87308d110dc6bdc5f62862e72039b3384ac5b3edf5c6df80f2e",
+  "providerMode": "OFFLINE_PROVIDER_NEUTRAL",
+  "environmentPolicyHash": "2d85c17187563ca62ccd0af11e52947bc68d4b8ac65900741cc63a9e65a85359"
 }

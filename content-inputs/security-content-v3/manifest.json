@@ -47,7 +47,7 @@
   "generatorHashes": [
     {
       "path": "scripts/build-security-content-v3-analysis.mjs",
-      "sha256": "ff124f9104b210d973a44ad07bb6895897bf1f3c3368f81ec14e5bcb3d34ea8f"
+      "sha256": "087c856e200be87308d110dc6bdc5f62862e72039b3384ac5b3edf5c6df80f2e"
     },
     {
       "path": "scripts/validate-security-content-intelligence-v3.mjs",
@@ -55,7 +55,7 @@
     },
     {
       "path": "scripts/verify-security-content-v3-source-integrity.mjs",
-      "sha256": "80cb62827ae1b99922d5b6ae701ec9f559fcfeb0e5a138ff82dc2b16baf39320"
+      "sha256": "869d99bde1dab07eb7df0306281293ab2c7661e262b1a0c5820804e45298d084"
     }
   ],
   "identity": {
