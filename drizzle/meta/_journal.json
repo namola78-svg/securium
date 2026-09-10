@@ -295,6 +295,13 @@
       "when": 1788930792637,
       "tag": "0041_typed_relations_wave_b_current_main",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "6",
+      "when": 1789019593496,
+      "tag": "0042_attempt_sequence_schema_foundation",
+      "breakpoints": true
     }
   ]
 }
