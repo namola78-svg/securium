@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { PostgresDatabaseProvider } from "../db/provider/postgres-database-provider.ts";
 import {
   CANONICAL_INDEPENDENT_PROFESSIONAL_COURSE_GROUP,
   provisionCanonicalIndependentProfessionalCourseGroup,
@@ -11,6 +12,7 @@ function makeProvider({ kind = "supabase", rows = [], transactional = true } = {
     metrics: {
       queries: 0,
       inserts: 0,
+      insertParameters: [],
       updates: 0,
       deletes: 0,
       transactions: 0,
@@ -47,6 +49,7 @@ function makeProvider({ kind = "supabase", rows = [], transactional = true } = {
       is_sample: values[6],
       deleted_at: values[7],
     };
+    state.metrics.insertParameters.push([...values]);
     if (
       working.rows.some(
         (item) =>
@@ -136,10 +139,30 @@ function canonicalRow(overrides = {}) {
     name: CANONICAL_INDEPENDENT_PROFESSIONAL_COURSE_GROUP.name,
     description: CANONICAL_INDEPENDENT_PROFESSIONAL_COURSE_GROUP.description,
     display_order: CANONICAL_INDEPENDENT_PROFESSIONAL_COURSE_GROUP.displayOrder,
-    active: CANONICAL_INDEPENDENT_PROFESSIONAL_COURSE_GROUP.active,
-    is_sample: CANONICAL_INDEPENDENT_PROFESSIONAL_COURSE_GROUP.isSample,
+    active: 1,
+    is_sample: 0,
     deleted_at: CANONICAL_INDEPENDENT_PROFESSIONAL_COURSE_GROUP.deletedAt,
     ...overrides,
+  };
+}
+
+function makePostgresExecutor({ rows = [] } = {}) {
+  const calls = [];
+  const query = async (sql, parameters) => {
+    calls.push({ sql, parameters: [...parameters] });
+    return {
+      rows: structuredClone(rows),
+      rowCount: /^INSERT\b/i.test(sql.trim()) ? 1 : rows.length,
+    };
+  };
+  return {
+    calls,
+    async query(sql, parameters) {
+      return query(sql, parameters);
+    },
+    async transaction(callback) {
+      return callback({ query });
+    },
   };
 }
 
@@ -184,6 +207,50 @@ test("empty Supabase and D1-compatible providers create the same exact row", asy
     assert.deepEqual(provider.state.rows, [canonicalRow()]);
     assert.equal(provider.state.metrics.inserts, 1);
     assert.equal(provider.state.rows.length, 1);
+    assert.deepEqual(provider.state.metrics.insertParameters[0].slice(5, 7), [1, 0]);
+    assert.equal(result.group.active, true);
+    assert.equal(result.group.isSample, false);
+  }
+});
+
+test("integer persistence readback normalizes to boolean domain values", async () => {
+  const provider = makeProvider({ rows: [canonicalRow()] });
+  const result = await provisionCanonicalIndependentProfessionalCourseGroup(
+    provider,
+    "NONPROD",
+  );
+  assert.equal(result.status, "NOOP_EXISTING");
+  assert.equal(result.group.active, true);
+  assert.equal(result.group.isSample, false);
+  assert.equal(typeof result.group.active, "boolean");
+  assert.equal(typeof result.group.isSample, "boolean");
+});
+
+test("PostgreSQL provider receives int4 flags while returning boolean domain values", async () => {
+  const executor = makePostgresExecutor();
+  const provider = new PostgresDatabaseProvider(executor);
+  const result = await provisionCanonicalIndependentProfessionalCourseGroup(
+    provider,
+    "NONPROD",
+  );
+  const insert = executor.calls.find((call) => /^INSERT\b/i.test(call.sql.trim()));
+  assert.ok(insert);
+  assert.deepEqual(insert.parameters.slice(5, 7), [1, 0]);
+  assert.equal(result.status, "CREATED");
+  assert.equal(result.group.active, true);
+  assert.equal(result.group.isSample, false);
+});
+
+test("invalid integer and string flag representations fail closed", async () => {
+  for (const value of [2, -1, "1"]) {
+    for (const field of ["active", "is_sample"]) {
+      const provider = makeProvider({ rows: [canonicalRow({ [field]: value })] });
+      await assert.rejects(
+        () => provisionCanonicalIndependentProfessionalCourseGroup(provider, "NONPROD"),
+        (error) => error.code === "INDEPENDENT_PROFESSIONAL_GROUP_UNEXPECTED_ROW_SHAPE",
+      );
+      assertNoMutation(provider);
+    }
   }
 });
 

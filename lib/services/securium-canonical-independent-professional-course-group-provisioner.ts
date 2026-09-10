@@ -24,6 +24,13 @@ export type CanonicalIndependentProfessionalCourseGroupResult = {
   group: CanonicalIndependentProfessionalCourseGroup;
 };
 
+// The canonical domain keeps visibility flags as booleans. The compatibility
+// PostgreSQL course_groups schema stores those flags as integer 0/1 values.
+const CANONICAL_GROUP_PERSISTENCE_FLAGS = Object.freeze({
+  active: CANONICAL_INDEPENDENT_PROFESSIONAL_COURSE_GROUP.active ? 1 : 0,
+  isSample: CANONICAL_INDEPENDENT_PROFESSIONAL_COURSE_GROUP.isSample ? 1 : 0,
+} as const);
+
 type GroupRow = {
   id: string;
   code: string;
@@ -56,8 +63,8 @@ const GROUP_INSERT: DatabaseStatement = {
     CANONICAL_INDEPENDENT_PROFESSIONAL_COURSE_GROUP.name,
     CANONICAL_INDEPENDENT_PROFESSIONAL_COURSE_GROUP.description,
     CANONICAL_INDEPENDENT_PROFESSIONAL_COURSE_GROUP.displayOrder,
-    CANONICAL_INDEPENDENT_PROFESSIONAL_COURSE_GROUP.active,
-    CANONICAL_INDEPENDENT_PROFESSIONAL_COURSE_GROUP.isSample,
+    CANONICAL_GROUP_PERSISTENCE_FLAGS.active,
+    CANONICAL_GROUP_PERSISTENCE_FLAGS.isSample,
     CANONICAL_INDEPENDENT_PROFESSIONAL_COURSE_GROUP.deletedAt,
   ],
 };
