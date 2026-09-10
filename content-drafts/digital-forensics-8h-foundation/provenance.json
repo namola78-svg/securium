@@ -1,0 +1,56 @@
+{
+  "courseId": "course-digital-forensics-8h",
+  "status": "DRAFT_UNPUBLISHED",
+  "sourceAuthority": {
+    "manifestPath": "source-evidence-original/digital-forensics/manifest.json",
+    "manifestSha256": "717204c2ba58f53b81eecb1bbc52c2e799d3250194f39e88b61fc177627b1ece",
+    "rights": "DIGITAL_FORENSICS_RIGHTS_READY_FOR_FACTS_ONLY_AUTHORING",
+    "currentness": "DIGITAL_FORENSICS_SOURCE_CURRENTNESS_READY_WITH_LIMITATIONS",
+    "localExpressionReuse": 0,
+    "localQuestionWordingReuse": 0,
+    "h04ToH08LocalSourceDependence": 0,
+    "h04ToH08Structure": "NO_REMAINING_STRUCTURE_FOUND"
+  },
+  "provenanceClasses": {
+    "localFacts": "LOCAL_SOURCE_PARTIAL",
+    "publicFacts": "PUBLIC_FACTUAL_AUTHORITY",
+    "theoryAndQuestionExpression": "SECURIUM_INDEPENDENTLY_AUTHORED",
+    "practicalSpecs": "SECURIUM_INDEPENDENTLY_AUTHORED; SYNTHETIC_SPEC_ONLY"
+  },
+  "publicAuthorities": [
+    {"id":"nist-sp-800-86","authority":"NIST","title":"SP 800-86, Guide to Integrating Forensic Techniques into Incident Response","url":"https://csrc.nist.gov/pubs/sp/800/86/final","checked":"2026-09-10","currentness":"DATED_SUPPORTING","supports":["forensic process","files, operating systems, network traffic, and application evidence framing"],"limitations":"Published August 2006; not an all-inclusive step-by-step guide and not legal advice."},
+    {"id":"nist-fips-180-4","authority":"NIST","title":"FIPS 180-4, Secure Hash Standard","url":"https://csrc.nist.gov/pubs/fips/180-4/final","checked":"2026-09-10","currentness":"CURRENTNESS_LIMITED_REVIEW","supports":["hash algorithms","message digests","change-detection purpose"],"limitations":"NIST page records a 2023 planning note that the standard is to be revised; recheck status before future updates."},
+    {"id":"microsoft-mft-ntfs","authority":"Microsoft","title":"Master File Table (Developer Notes)","url":"https://learn.microsoft.com/en-us/windows/win32/fileio/master-file-table","checked":"2026-09-10","currentness":"VERSION_BOUNDED","supports":["bounded NTFS/MFT records, attributes, and file references"],"limitations":"The reviewed page states it applies only to version 3 of NTFS volumes; do not generalize without a selected filesystem context."},
+    {"id":"microsoft-event-log","authority":"Microsoft","title":"Eventlog Key and Windows Event Logging documentation","url":"https://learn.microsoft.com/en-us/windows/win32/eventlog/eventlog-key","checked":"2026-09-10","currentness":"VERSION_BOUNDED","supports":["event-log source and retention context"],"limitations":"Legacy and redesigned Windows event logging APIs differ; OS/version and configuration must be recorded."},
+    {"id":"q-net","authority":"Q-Net","title":"Public qualification information","url":"PUBLIC_AUTHORITY_LEDGER_REQUIRED","checked":"2026-09-10","currentness":"QUALIFICATION_FACTS_ONLY","supports":["qualification context if separately needed"],"limitations":"Does not prove local file identity, course structure, or reuse permission; not used as local source provenance."},
+    {"id":"wireshark-user-guide","authority":"Wireshark Foundation","title":"Wireshark User's Guide","url":"https://www.wireshark.org/docs/wsug_html/","checked":"2026-09-10","currentness":"VERSION_SENSITIVE_OPTIONAL","supports":["optional tool terminology only"],"limitations":"The reviewed guide identifies version 4.7.4; tool behavior and examples must record the exact version and remain noncanonical."},
+    {"id":"volatility-3-docs","authority":"Volatility Foundation","title":"Volatility 3 documentation","url":"https://volatility3.readthedocs.io/en/latest/","checked":"2026-09-10","currentness":"VERSION_SENSITIVE_OPTIONAL","supports":["optional memory-tool terminology only"],"limitations":"The reviewed documentation identifies the 2.28.2 documentation set; no commands or tool output are required by this Foundation."}
+  ],
+  "sourceSupportByModule": [
+    {"module":"DF-H01","local":"LOCAL_SOURCE_PARTIAL","public":"PUBLIC_FACTUAL_AUTHORITY_REQUIRED","design":"SECURIUM_INDEPENDENT_DESIGN"},
+    {"module":"DF-H02","local":"LOCAL_SOURCE_PARTIAL","public":"PUBLIC_FACTUAL_AUTHORITY_REQUIRED","design":"SECURIUM_INDEPENDENT_DESIGN"},
+    {"module":"DF-H03","local":"LOCAL_SOURCE_PARTIAL","public":"PUBLIC_FACTUAL_AUTHORITY_REQUIRED","design":"SECURIUM_INDEPENDENT_DESIGN"},
+    {"module":"DF-H04","local":"SOURCE_SUPPORT_MISSING_FOR_STRUCTURE","public":"PUBLIC_FACTUAL_AUTHORITY_REQUIRED","design":"SECURIUM_INDEPENDENT_DESIGN"},
+    {"module":"DF-H05","local":"SOURCE_SUPPORT_MISSING_FOR_STRUCTURE","public":"PUBLIC_FACTUAL_AUTHORITY_REQUIRED","design":"SECURIUM_INDEPENDENT_DESIGN"},
+    {"module":"DF-H06","local":"SOURCE_SUPPORT_MISSING_FOR_STRUCTURE","public":"PUBLIC_FACTUAL_AUTHORITY_REQUIRED","design":"SECURIUM_INDEPENDENT_DESIGN"},
+    {"module":"DF-H07","local":"SOURCE_SUPPORT_MISSING_FOR_STRUCTURE","public":"PUBLIC_FACTUAL_AUTHORITY_REQUIRED","design":"SECURIUM_INDEPENDENT_DESIGN"},
+    {"module":"DF-H08","local":"SOURCE_SUPPORT_MISSING_FOR_STRUCTURE","public":"PUBLIC_FACTUAL_AUTHORITY_REQUIRED","design":"SECURIUM_INDEPENDENT_DESIGN"}
+  ],
+  "futureCurrentnessGate": {
+    "status": "PASS_WITH_LIMITATIONS",
+    "requiredBeforeNewFactualRevision": ["recheck NIST guidance context","recheck FIPS 180-4 revision/status context","select NTFS/Windows version context","record optional tool versions"],
+    "unsupportedFactsAction": "narrow_or_omit"
+  },
+  "authoringReceipts": {
+    "theory": ["contentId","moduleId","objectiveIds","publicAuthorityIds","localSupportClass","authoringMethod","sourceExpressionReuse","reviewStatus","contentSha256"],
+    "questions": ["contentId","moduleId","objectiveIds","type","difficulty","answerAuthority","explanationAuthority","publicAuthorityIds","sourceQuestionWordingReuse","reviewStatus","contentSha256"],
+    "practicals": ["contentId","moduleId","objectiveIds","syntheticDataClassification","safetyBoundary","publicAuthorityIds","sourceExpressionReuse","reviewStatus","contentSha256"]
+  },
+  "rightsRules": {
+    "facts": "May be independently restated after authority review.",
+    "proseTablesDiagramsQuestionsChoicesExplanationsScreenshotsCodeDatasetsLabs": "No local or restricted expression reuse is authorized.",
+    "publicAuthorityExpression": "Do not copy passages; cite compact metadata and independently author the explanation.",
+    "restrictedDependency": 0
+  },
+  "runtimeBoundary": {"runtimeRegistration":0,"publication":0,"databaseOperations":0,"ontologyMappings":0,"evidenceProjection":0,"learnerSkillState":0}
+}

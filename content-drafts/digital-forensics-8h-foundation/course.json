@@ -1,0 +1,51 @@
+{
+  "courseId": "course-digital-forensics-8h",
+  "code": "DF-8H",
+  "slug": "digital-forensics-8h",
+  "title": "Digital Forensics 8H Foundation",
+  "version": "digital-forensics-8h-foundation.v1",
+  "status": "DRAFT_UNPUBLISHED",
+  "durationMinutes": 480,
+  "difficulty": "FOUNDATIONAL_TO_INTERMEDIATE",
+  "audience": ["developers", "security practitioners"],
+  "secondaryAudience": ["incident responders", "security analysts", "security certification learners"],
+  "prerequisites": [
+    "basic operating-system concepts",
+    "basic networking fundamentals",
+    "basic security fundamentals"
+  ],
+  "purpose": "A practical foundation for reasoning about digital evidence, preservation, common host and network artifacts, bounded investigations, and defensible reporting.",
+  "learningOutcomes": [
+    "Describe a bounded digital-forensics workflow and its evidence and legal-organization limits.",
+    "Plan acquisition, preservation, integrity verification, write-protection, and custody activities.",
+    "Interpret common disk, filesystem, Windows, memory, network, and log artifacts without treating one artifact as conclusive.",
+    "Construct timelines and investigation hypotheses that account for clock, visibility, and corroboration limits.",
+    "Produce a structured technical and executive reporting plan for a synthetic investigation."
+  ],
+  "deliveryModes": ["instructor-led 8H training", "self-paced learning", "future blended lab course"],
+  "breakPolicy": "Breaks and administration are outside the 480 content minutes.",
+  "scopeExclusions": [
+    "deep mobile forensics",
+    "cloud-provider-specific forensics",
+    "advanced malware reverse engineering",
+    "chip-off and JTAG work",
+    "specialized database forensics",
+    "courtroom expert testimony training",
+    "commercial-tool certification"
+  ],
+  "futureExtensions": [
+    "Windows Forensics Advanced",
+    "Memory Forensics Advanced",
+    "Network Forensics Advanced",
+    "Incident Response & Forensics",
+    "Malware Forensics",
+    "Cloud Forensics"
+  ],
+  "rightsAndProvenance": {
+    "sourceBoundary": "DIGITAL_FORENSICS_RIGHTS_READY_FOR_FACTS_ONLY_AUTHORING",
+    "expression": "SECURIUM_INDEPENDENTLY_AUTHored",
+    "restrictedSourceExpressionReuse": 0,
+    "officialExamOrQualificationClaim": 0
+  },
+  "publicationDefault": "UNPUBLISHED"
+}
