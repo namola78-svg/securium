@@ -986,7 +986,8 @@
         "is_correct",
         "score",
         "response_time",
-        "attempted_at"
+        "attempted_at",
+        "attempt_sequence"
       ],
       "primaryKey": "id",
       "foreignKeys": [

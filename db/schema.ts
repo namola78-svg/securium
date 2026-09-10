@@ -1881,6 +1881,7 @@ export const questionAttempts = sqliteTable(
     score: integer("score").notNull().default(0),
     responseTime: integer("response_time").notNull().default(0),
     attemptedAt: text("attempted_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    attemptSequence: integer("attempt_sequence"),
   },
   (table) => [
     uniqueIndex("question_attempts_idempotency_unique").on(
@@ -1901,6 +1902,9 @@ export const questionAttempts = sqliteTable(
       table.questionId,
       table.attemptedAt,
     ),
+    uniqueIndex("question_attempts_partition_sequence_unique")
+      .on(table.userId, table.courseId, table.questionId, table.attemptSequence)
+      .where(sql`${table.attemptSequence} IS NOT NULL`),
     check(
       "question_attempts_score_check",
       sql`${table.score} >= 0 AND ${table.score} <= 100`,
@@ -1908,6 +1912,10 @@ export const questionAttempts = sqliteTable(
     check(
       "question_attempts_response_time_check",
       sql`${table.responseTime} >= 0`,
+    ),
+    check(
+      "question_attempts_attempt_sequence_check",
+      sql`${table.attemptSequence} IS NULL OR ${table.attemptSequence} >= 1`,
     ),
     check(
       "question_attempts_mode_check",
