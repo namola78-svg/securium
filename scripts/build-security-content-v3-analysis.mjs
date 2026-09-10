@@ -1,8 +1,11 @@
 import { createHash } from "node:crypto";
 import { readdir, readFile, stat, writeFile, mkdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
-import { spawn } from "node:child_process";
 import { basename, extname, join, relative, resolve } from "node:path";
+import {
+  authorityMetadata,
+  loadGeneratorInputAuthority,
+} from "./security-content-v3-generator-input.mjs";
 import {
   SECURITY_CONTENT_V3_CONCEPT_MAP,
 } from "../lib/data/security-content-upgrade-v3.mjs";
@@ -19,8 +22,15 @@ const sourceRoot = resolve(
     process.env.SECURIUM_CONTENT_V2_SOURCE_ROOT ||
     "securium-content-upgrade-v2",
 );
+if (sourceRoot !== resolve("securium-content-upgrade-v2")) {
+  throw new Error("SECURITY_CONTENT_V3_SOURCE_ROOT_MUST_BE_CANONICAL");
+}
 const outputRoot = resolve("reports/content-v3");
-const configPath = argValue("--config=") || "wrangler.local.jsonc";
+const inputAuthority = await loadGeneratorInputAuthority();
+const outputAuthority = authorityMetadata(
+  inputAuthority,
+  "scripts/build-security-content-v3-analysis.mjs",
+);
 
 if (!existsSync(sourceRoot)) throw new Error("SECURITY_CONTENT_V3_SOURCE_ROOT_MISSING");
 await mkdir(outputRoot, { recursive: true });
@@ -37,12 +47,12 @@ const extractedTextByFile = sourceExtraction.files ?? {};
 
 const sourceInventory = await buildSourceInventory();
 const sourceProvenance = buildSourceProvenance(sourceInventory);
-const d1Baseline = await buildD1Baseline();
+const d1Baseline = buildD1Baseline(inputAuthority.projection.databaseProjection);
 const postgresBaseline = buildPostgresBaseline();
 const conceptFrequency = buildConceptFrequency(sourceInventory);
-const d1OntologyConcepts = await queryD1OntologyConcepts();
+const d1OntologyConcepts = inputAuthority.projection.ontologyConcepts;
 const ontologyMatchReport = buildOntologyMatchReport(d1OntologyConcepts);
-const d1QuestionRows = await queryD1Questions();
+const d1QuestionRows = inputAuthority.projection.questionRows;
 const theoryCoverage = buildTheoryCoverage(conceptFrequency, d1QuestionRows);
 const theoryGapAnalysis = buildTheoryGapAnalysis(theoryCoverage);
 const questionGenerationPlan = buildQuestionGenerationPlan(theoryGapAnalysis);
@@ -50,22 +60,24 @@ const questionGenerationPlan = buildQuestionGenerationPlan(theoryGapAnalysis);
 await Promise.all([
   writeJson("source-inventory.json", {
     generatedAt: new Date().toISOString(),
+    ...outputAuthority,
     sourceRoot,
     summary: summarizeInventory(sourceInventory),
     files: sourceInventory,
   }),
   writeJson("source-provenance.json", {
     generatedAt: new Date().toISOString(),
+    ...outputAuthority,
     policy: "REFERENCE_ONLY_NO_VERBATIM_IMPORT",
     records: sourceProvenance,
   }),
-  writeJson("baseline-d1.json", d1Baseline),
-  writeJson("baseline-postgres.json", postgresBaseline),
-  writeJson("concept-frequency.json", conceptFrequency),
-  writeJson("ontology-match-report.json", ontologyMatchReport),
-  writeJson("theory-coverage.json", theoryCoverage),
-  writeJson("theory-gap-analysis.json", theoryGapAnalysis),
-  writeJson("question-generation-plan.json", questionGenerationPlan),
+  writeJson("baseline-d1.json", { ...d1Baseline, ...outputAuthority }),
+  writeJson("baseline-postgres.json", { ...postgresBaseline, ...outputAuthority }),
+  writeJson("concept-frequency.json", { ...conceptFrequency, ...outputAuthority }),
+  writeJson("ontology-match-report.json", { ...ontologyMatchReport, ...outputAuthority }),
+  writeJson("theory-coverage.json", { ...theoryCoverage, ...outputAuthority }),
+  writeJson("theory-gap-analysis.json", { ...theoryGapAnalysis, ...outputAuthority }),
+  writeJson("question-generation-plan.json", { ...questionGenerationPlan, ...outputAuthority }),
 ]);
 
 console.log(
@@ -444,93 +456,32 @@ function practicalPattern(nodeSuffix) {
   return "ARCHITECTURE_AND_PROTOCOL_ANALYSIS";
 }
 
-async function buildD1Baseline() {
-  const targetRows = await d1Query(`
-SELECT c.id AS course_id,
- (SELECT COUNT(*) FROM subjects s WHERE s.course_id=c.id AND s.deleted_at IS NULL) AS subject_count,
- (SELECT COUNT(*) FROM topics t JOIN subjects s ON s.id=t.subject_id WHERE s.course_id=c.id AND t.deleted_at IS NULL) AS topic_count,
- (SELECT COUNT(*) FROM learning_units lu WHERE lu.course_id=c.id AND lu.deleted_at IS NULL) AS learning_unit_count,
- (SELECT COUNT(*) FROM lessons l WHERE l.course_id=c.id AND l.deleted_at IS NULL) AS lesson_count,
- (SELECT COUNT(DISTINCT cl.content_id) FROM course_lessons cl WHERE cl.course_id=c.id AND cl.deleted_at IS NULL) AS content_count,
- (SELECT COUNT(DISTINCT qc.question_id) FROM question_courses qc WHERE qc.course_id=c.id) AS question_count,
- (SELECT COUNT(DISTINCT q.id) FROM question_courses qc JOIN questions q ON q.id=qc.question_id WHERE qc.course_id=c.id AND NOT (q.id LIKE 'sec-upgrade-practical-%' OR q.id LIKE 'practical-security-%' OR COALESCE(json_extract(q.answer_config_json,'$.examTrack'),'')='PRACTICAL')) AS written_question_count,
- (SELECT COUNT(DISTINCT q.id) FROM question_courses qc JOIN questions q ON q.id=qc.question_id WHERE qc.course_id=c.id AND (q.id LIKE 'sec-upgrade-practical-%' OR q.id LIKE 'practical-security-%' OR json_extract(q.answer_config_json,'$.examTrack')='PRACTICAL')) AS practical_question_count,
- (SELECT COUNT(*) FROM ontology_edges oe WHERE oe.course_id=c.id) AS ontology_edge_count,
- (SELECT COUNT(*) FROM question_attempts qa WHERE qa.course_id=c.id)+(SELECT COUNT(*) FROM wrong_notes wn WHERE wn.course_id=c.id)+(SELECT COUNT(*) FROM bookmarks b WHERE b.course_id=c.id)+(SELECT COUNT(*) FROM review_schedules rs WHERE rs.course_id=c.id)+(SELECT COUNT(*) FROM user_progress up WHERE up.course_id=c.id)+(SELECT COUNT(*) FROM user_course_lesson_progress uclp WHERE uclp.course_id=c.id) AS user_history_count
-FROM courses c WHERE c.id IN ('course-ise','course-isie') ORDER BY c.id;`);
-  const integrity = (await d1Query(integritySql()))[0] ?? {};
-  const protectedCourses = await d1Query(protectedSnapshotSql());
+function buildD1Baseline(databaseProjection) {
+  const targetRows = databaseProjection.courseRows;
   return {
     generatedAt: new Date().toISOString(),
-    database: "D1_LOCAL",
-    status: "CAPTURED",
-    branch: "agent/security-content-upgrade-v3",
-    baseCommit: "34a4007d21063d2fae12fffe5db2805303c545b8",
+    database: "D1_GENERATOR_FIXTURE",
+    status: "CAPTURED_FROM_CANONICAL_PROJECTION",
+    branch: null,
+    baseCommit: null,
     targetCourses: targetRows,
-    integrity,
-    protectedCourses,
+    integrity: databaseProjection.integrity,
+    protectedCourses: [],
+    userHistory: databaseProjection.userHistory,
+    protectedCourseData: databaseProjection.protectedCourseData,
   };
 }
 
 function buildPostgresBaseline() {
-  const available = ["POSTGRES_VERIFY_URL", "DATABASE_URL", "POSTGRES_SEED_URL", "POSTGRES_MIGRATION_URL", "DIRECT_URL"].some((name) => process.env[name]?.trim());
   return {
     generatedAt: new Date().toISOString(),
     database: "POSTGRES_SUPABASE",
-    status: available ? "CONNECTION_AVAILABLE_NOT_QUERIED_BY_ANALYSIS_SCRIPT" : "UNAVAILABLE_NO_CONNECTION_URL",
+    status: "OFFLINE_NOT_QUERIED_BY_ANALYSIS_SCRIPT",
     counts: null,
     synchronizationAttempted: false,
     writeAttempted: false,
-    note: "D1 and PostgreSQL baselines are intentionally independent. Production apply requires explicit approval.",
+    note: "Tracked analysis is offline. Runtime Supabase PostgreSQL remains the product authority and is never queried by this generator.",
   };
-}
-
-async function queryD1Questions() {
-  return d1Query(`
-SELECT qc.course_id,q.id,q.title,q.content,q.type,q.difficulty,q.answer_config_json
-FROM questions q JOIN question_courses qc ON qc.question_id=q.id
-WHERE qc.course_id IN ('course-ise','course-isie')
-ORDER BY qc.course_id,q.id;`);
-}
-
-async function queryD1OntologyConcepts() {
-  const rows = await d1Query(`
-SELECT oc.concept_key,oc.label,oa.alias
-FROM ontology_concepts oc
-LEFT JOIN ontology_aliases oa ON oa.concept_id=oc.id
-WHERE oc.namespace='security-certification' AND oc.status<>'ARCHIVED'
-ORDER BY oc.concept_key,oa.normalized_alias;`);
-  const grouped = new Map();
-  for (const row of rows) {
-    const concept = grouped.get(row.concept_key) ?? {
-      concept_key: row.concept_key,
-      label: row.label,
-      aliases: [],
-    };
-    if (row.alias) concept.aliases.push(row.alias);
-    grouped.set(row.concept_key, concept);
-  }
-  return [...grouped.values()];
-}
-
-function integritySql() {
-  return `SELECT
- (SELECT COUNT(*) FROM questions q WHERE EXISTS (SELECT 1 FROM question_subjects qs JOIN subjects s ON s.id=qs.subject_id WHERE qs.question_id=q.id AND s.course_id IN ('course-ise','course-isie')) AND NOT EXISTS (SELECT 1 FROM question_courses qc WHERE qc.question_id=q.id AND qc.course_id IN ('course-ise','course-isie'))) AS orphan_questions,
- (SELECT COUNT(*) FROM course_lessons cl LEFT JOIN contents c ON c.id=cl.content_id WHERE cl.course_id IN ('course-ise','course-isie') AND c.id IS NULL) AS orphan_contents,
- (SELECT COUNT(*) FROM question_subjects qs JOIN subjects s ON s.id=qs.subject_id WHERE s.course_id IN ('course-ise','course-isie') AND NOT EXISTS (SELECT 1 FROM question_courses qc WHERE qc.question_id=qs.question_id AND qc.course_id=s.course_id)) AS course_subject_mismatch,
- (SELECT COUNT(*) FROM question_topics qt JOIN topics t ON t.id=qt.topic_id JOIN subjects s ON s.id=t.subject_id WHERE s.course_id IN ('course-ise','course-isie') AND NOT EXISTS (SELECT 1 FROM question_subjects qs WHERE qs.question_id=qt.question_id AND qs.subject_id=t.subject_id)) AS subject_topic_mismatch,
- (SELECT COUNT(*) FROM course_lessons cl JOIN curriculum_nodes cn ON cn.id=cl.curriculum_node_id JOIN curriculum_trees ct ON ct.id=cn.curriculum_tree_id WHERE cl.course_id IN ('course-ise','course-isie') AND cl.course_id<>ct.course_id) AS content_course_mismatch;`;
-}
-
-function protectedSnapshotSql() {
-  return `SELECT c.id AS course_id,
- (SELECT COUNT(*) FROM subjects s WHERE s.course_id=c.id) AS subjects,
- (SELECT COUNT(*) FROM topics t JOIN subjects s ON s.id=t.subject_id WHERE s.course_id=c.id) AS topics,
- (SELECT COUNT(*) FROM learning_units lu WHERE lu.course_id=c.id) AS learning_units,
- (SELECT COUNT(*) FROM lessons l WHERE l.course_id=c.id) AS lessons,
- (SELECT COUNT(DISTINCT cl.content_id) FROM course_lessons cl WHERE cl.course_id=c.id AND cl.deleted_at IS NULL) AS contents,
- (SELECT COUNT(DISTINCT qc.question_id) FROM question_courses qc WHERE qc.course_id=c.id) AS questions
-FROM courses c WHERE c.id NOT IN ('course-ise','course-isie') ORDER BY c.id;`;
 }
 
 function completenessScore(contents) {
@@ -586,40 +537,6 @@ function summarizeInventory(rows) {
   };
 }
 
-async function d1Query(statement) {
-  const result = await runCapture(process.execPath, [
-    "scripts/run-wrangler.mjs",
-    "d1",
-    "execute",
-    "DB",
-    "--local",
-    "--config",
-    configPath,
-    "--command",
-    statement,
-  ]);
-  if (result.code !== 0) throw new Error(`SECURITY_CONTENT_V3_D1_QUERY_FAILED:${result.stdout.slice(-500)}`);
-  const clean = result.stdout.replace(/\u001b\[[0-9;]*m/g, "");
-  const start = clean.indexOf("[\n");
-  const end = clean.lastIndexOf("]");
-  if (start < 0 || end < start) throw new Error("SECURITY_CONTENT_V3_D1_JSON_MISSING");
-  return JSON.parse(clean.slice(start, end + 1))[0]?.results ?? [];
-}
-
-function runCapture(executable, args) {
-  return new Promise((resolvePromise) => {
-    const child = spawn(executable, args, {
-      stdio: ["ignore", "pipe", "pipe"],
-      env: process.env,
-      windowsHide: true,
-    });
-    let stdout = "";
-    child.stdout.on("data", (chunk) => { stdout += chunk; });
-    child.stderr.on("data", (chunk) => { stdout += chunk; });
-    child.on("error", () => resolvePromise({ code: 1, stdout }));
-    child.on("close", (code) => resolvePromise({ code: code ?? 1, stdout }));
-  });
-}
 
 async function walk(root) {
   const entries = await readdir(root, { withFileTypes: true });

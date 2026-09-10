@@ -1,13 +1,25 @@
 import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import {
+  authorityMetadata,
+  loadGeneratorInputAuthority,
+} from "./security-content-v3-generator-input.mjs";
 
 const reportPath = resolve("reports/content-v3/source-inventory.json");
 const outputPath = resolve("reports/content-v3/source-integrity.json");
+const inputAuthority = await loadGeneratorInputAuthority();
+const outputAuthority = authorityMetadata(
+  inputAuthority,
+  "scripts/verify-security-content-v3-source-integrity.mjs",
+);
 const inventory = JSON.parse(await readFile(reportPath, "utf8"));
 const sourceRoot = resolve(
   process.env.SECURIUM_CONTENT_V2_SOURCE_ROOT || inventory.sourceRoot,
 );
+if (sourceRoot !== resolve("securium-content-upgrade-v2")) {
+  throw new Error("SECURITY_CONTENT_V3_SOURCE_ROOT_MUST_BE_CANONICAL");
+}
 const results = [];
 
 for (const file of inventory.files) {
@@ -34,6 +46,7 @@ for (const file of inventory.files) {
 
 const report = {
   generatedAt: new Date().toISOString(),
+  ...outputAuthority,
   sourceRoot,
   policy: "READ_ONLY_HASH_REVALIDATION",
   summary: {
