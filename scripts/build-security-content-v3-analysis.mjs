@@ -17,12 +17,13 @@ import {
   officialSecurityCertificationCourseLessons,
 } from "../lib/data/security-certification-course-lessons.mjs";
 
-const sourceRoot = resolve(
+const LOGICAL_SOURCE_ROOT = "securium-content-upgrade-v2";
+const physicalSourceRoot = resolve(
   argValue("--source-root=") ||
     process.env.SECURIUM_CONTENT_V2_SOURCE_ROOT ||
-    "securium-content-upgrade-v2",
+    LOGICAL_SOURCE_ROOT,
 );
-if (sourceRoot !== resolve("securium-content-upgrade-v2")) {
+if (physicalSourceRoot !== resolve(LOGICAL_SOURCE_ROOT)) {
   throw new Error("SECURITY_CONTENT_V3_SOURCE_ROOT_MUST_BE_CANONICAL");
 }
 const outputRoot = resolve("reports/content-v3");
@@ -32,13 +33,13 @@ const outputAuthority = authorityMetadata(
   "scripts/build-security-content-v3-analysis.mjs",
 );
 
-if (!existsSync(sourceRoot)) throw new Error("SECURITY_CONTENT_V3_SOURCE_ROOT_MISSING");
+if (!existsSync(physicalSourceRoot)) throw new Error("SECURITY_CONTENT_V3_SOURCE_ROOT_MISSING");
 await mkdir(outputRoot, { recursive: true });
 
 const [sourceFileInventory, sourceExtraction, normalizedKb] = await Promise.all([
-  readJson(join(sourceRoot, "data", "source-file-inventory.json")),
-  readJson(join(sourceRoot, "reports", "source-text-extraction.json")),
-  readJson(join(sourceRoot, "data", "normalized-knowledge-base.json")),
+  readJson(join(physicalSourceRoot, "data", "source-file-inventory.json")),
+  readJson(join(physicalSourceRoot, "reports", "source-text-extraction.json")),
+  readJson(join(physicalSourceRoot, "data", "normalized-knowledge-base.json")),
 ]);
 const legacyFileMetadata = new Map(
   (sourceFileInventory.files ?? []).map((file) => [normalizePath(file.path), file]),
@@ -61,7 +62,7 @@ await Promise.all([
   writeJson("source-inventory.json", {
     generatedAt: new Date().toISOString(),
     ...outputAuthority,
-    sourceRoot,
+    sourceRoot: LOGICAL_SOURCE_ROOT,
     summary: summarizeInventory(sourceInventory),
     files: sourceInventory,
   }),
@@ -100,10 +101,10 @@ console.log(
 );
 
 async function buildSourceInventory() {
-  const paths = await walk(sourceRoot);
+  const paths = await walk(physicalSourceRoot);
   const rows = [];
   for (const path of paths) {
-    const relativePath = normalizePath(relative(sourceRoot, path));
+    const relativePath = normalizePath(relative(physicalSourceRoot, path));
     const info = await stat(path);
     const extension = extname(path).toLowerCase();
     const legacy = legacyFileMetadata.get(relativePath) ?? legacyFileMetadata.get(basename(path));

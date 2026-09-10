@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-11T03:36:40.554Z",
+  "generatedAt": "2026-09-10T07:44:35.243Z",
   "method": "canonical alias match against current official CourseLesson content plus D1 question bank",
   "rows": [
     {
@@ -13,9 +13,9 @@
       "recent": true,
       "lesson_exists": true,
       "content_exists": true,
-      "content_count": 8,
-      "practical_theory_content_count": 2,
-      "question_count": 2,
+      "content_count": 9,
+      "practical_theory_content_count": 3,
+      "question_count": 1,
       "practical_question_count": 0,
       "theory_completeness": 96,
       "prerequisite_coverage": "ADEQUATE",
@@ -27,6 +27,7 @@
         "content-official-security-cert-application-dns-security",
         "content-official-security-cert-practical-service-characteristics",
         "content-official-security-cert-practical-service-security-settings",
+        "content-official-security-cert-ise-practical-log-collection-monitoring",
         "sec-upgrade-lesson-dns-security"
       ]
     },
@@ -43,7 +44,7 @@
       "content_exists": true,
       "content_count": 5,
       "practical_theory_content_count": 1,
-      "question_count": 4,
+      "question_count": 3,
       "practical_question_count": 0,
       "theory_completeness": 96,
       "prerequisite_coverage": "ADEQUATE",
@@ -91,11 +92,11 @@
       "recent": true,
       "lesson_exists": true,
       "content_exists": true,
-      "content_count": 14,
-      "practical_theory_content_count": 0,
-      "question_count": 28,
-      "practical_question_count": 0,
-      "theory_completeness": 83,
+      "content_count": 15,
+      "practical_theory_content_count": 1,
+      "question_count": 31,
+      "practical_question_count": 4,
+      "theory_completeness": 88,
       "prerequisite_coverage": "ADEQUATE",
       "matched_content_ids": [
         "content-official-security-cert-system-security-overview",
@@ -110,6 +111,7 @@
         "content-official-security-cert-general-authentication",
         "content-official-security-cert-general-access-control",
         "content-official-security-cert-management-law-overview",
+        "content-official-security-cert-ise-practical-log-collection-monitoring",
         "content-official-security-cert-general-cia-core-properties",
         "sec-upgrade-lesson-authorization-and-access-control"
       ]
@@ -127,8 +129,8 @@
       "content_exists": true,
       "content_count": 7,
       "practical_theory_content_count": 0,
-      "question_count": 3,
-      "practical_question_count": 1,
+      "question_count": 1,
+      "practical_question_count": 0,
       "theory_completeness": 75,
       "prerequisite_coverage": "ADEQUATE",
       "matched_content_ids": [
@@ -154,7 +156,7 @@
       "content_exists": true,
       "content_count": 8,
       "practical_theory_content_count": 3,
-      "question_count": 3,
+      "question_count": 2,
       "practical_question_count": 1,
       "theory_completeness": 82,
       "prerequisite_coverage": "ADEQUATE",
@@ -206,7 +208,7 @@
       "content_exists": true,
       "content_count": 7,
       "practical_theory_content_count": 1,
-      "question_count": 2,
+      "question_count": 1,
       "practical_question_count": 0,
       "theory_completeness": 96,
       "prerequisite_coverage": "ADEQUATE",
@@ -233,7 +235,7 @@
       "content_exists": true,
       "content_count": 4,
       "practical_theory_content_count": 0,
-      "question_count": 2,
+      "question_count": 1,
       "practical_question_count": 0,
       "theory_completeness": 83,
       "prerequisite_coverage": "ADEQUATE",
@@ -278,10 +280,10 @@
       "recent": true,
       "lesson_exists": true,
       "content_exists": true,
-      "content_count": 30,
-      "practical_theory_content_count": 1,
-      "question_count": 9,
-      "practical_question_count": 2,
+      "content_count": 31,
+      "practical_theory_content_count": 2,
+      "question_count": 4,
+      "practical_question_count": 0,
       "theory_completeness": 96,
       "prerequisite_coverage": "ADEQUATE",
       "matched_content_ids": [
@@ -313,6 +315,7 @@
         "content-official-security-cert-general-security-trends",
         "content-official-security-cert-management-law-overview",
         "content-official-security-cert-management-law-certification-systems",
+        "content-official-security-cert-ise-practical-log-collection-monitoring",
         "sec-upgrade-lesson-authentication",
         "sec-upgrade-lesson-email-authentication"
       ]
@@ -330,8 +333,8 @@
       "content_exists": true,
       "content_count": 4,
       "practical_theory_content_count": 0,
-      "question_count": 6,
-      "practical_question_count": 1,
+      "question_count": 4,
+      "practical_question_count": 0,
       "theory_completeness": 96,
       "prerequisite_coverage": "ADEQUATE",
       "matched_content_ids": [
@@ -352,10 +355,10 @@
       "recent": true,
       "lesson_exists": true,
       "content_exists": true,
-      "content_count": 5,
-      "practical_theory_content_count": 1,
-      "question_count": 0,
-      "practical_question_count": 0,
+      "content_count": 6,
+      "practical_theory_content_count": 2,
+      "question_count": 1,
+      "practical_question_count": 1,
       "theory_completeness": 96,
       "prerequisite_coverage": "ADEQUATE",
       "matched_content_ids": [
@@ -363,6 +366,7 @@
         "content-official-security-cert-network-security-technology",
         "content-official-security-cert-network-network-security-solutions",
         "content-official-security-cert-practical-security-device-characteristics",
+        "content-official-security-cert-ise-practical-log-collection-monitoring",
         "sec-upgrade-lesson-firewall-and-waf"
       ]
     },
@@ -379,8 +383,8 @@
       "content_exists": true,
       "content_count": 3,
       "practical_theory_content_count": 0,
-      "question_count": 2,
-      "practical_question_count": 1,
+      "question_count": 0,
+      "practical_question_count": 0,
       "theory_completeness": 75,
       "prerequisite_coverage": "ADEQUATE",
       "matched_content_ids": [
@@ -427,7 +431,7 @@
       "content_count": 4,
       "practical_theory_content_count": 3,
       "question_count": 2,
-      "practical_question_count": 1,
+      "practical_question_count": 2,
       "theory_completeness": 68,
       "prerequisite_coverage": "PARTIAL",
       "matched_content_ids": [
@@ -471,7 +475,7 @@
       "content_exists": true,
       "content_count": 1,
       "practical_theory_content_count": 0,
-      "question_count": 1,
+      "question_count": 0,
       "practical_question_count": 0,
       "theory_completeness": 36,
       "prerequisite_coverage": "MISSING",
@@ -490,10 +494,10 @@
       "recent": true,
       "lesson_exists": true,
       "content_exists": true,
-      "content_count": 6,
-      "practical_theory_content_count": 2,
-      "question_count": 2,
-      "practical_question_count": 1,
+      "content_count": 7,
+      "practical_theory_content_count": 3,
+      "question_count": 0,
+      "practical_question_count": 0,
       "theory_completeness": 96,
       "prerequisite_coverage": "ADEQUATE",
       "matched_content_ids": [
@@ -502,6 +506,7 @@
         "content-official-security-cert-network-network-security-solutions",
         "content-official-security-cert-practical-security-device-characteristics",
         "content-official-security-cert-practical-network-device-security-settings",
+        "content-official-security-cert-ise-practical-log-collection-monitoring",
         "sec-upgrade-lesson-ids-and-ips"
       ]
     },
@@ -518,8 +523,8 @@
       "content_exists": true,
       "content_count": 1,
       "practical_theory_content_count": 0,
-      "question_count": 2,
-      "practical_question_count": 1,
+      "question_count": 0,
+      "practical_question_count": 0,
       "theory_completeness": 36,
       "prerequisite_coverage": "MISSING",
       "matched_content_ids": [
@@ -563,7 +568,7 @@
       "content_exists": true,
       "content_count": 3,
       "practical_theory_content_count": 0,
-      "question_count": 1,
+      "question_count": 0,
       "practical_question_count": 0,
       "theory_completeness": 46,
       "prerequisite_coverage": "PARTIAL",
@@ -607,8 +612,8 @@
       "content_exists": true,
       "content_count": 1,
       "practical_theory_content_count": 0,
-      "question_count": 2,
-      "practical_question_count": 1,
+      "question_count": 0,
+      "practical_question_count": 0,
       "theory_completeness": 36,
       "prerequisite_coverage": "MISSING",
       "matched_content_ids": [
@@ -670,8 +675,8 @@
       "content_exists": true,
       "content_count": 1,
       "practical_theory_content_count": 0,
-      "question_count": 2,
-      "practical_question_count": 1,
+      "question_count": 0,
+      "practical_question_count": 0,
       "theory_completeness": 36,
       "prerequisite_coverage": "MISSING",
       "matched_content_ids": [
@@ -713,8 +718,8 @@
       "content_exists": true,
       "content_count": 1,
       "practical_theory_content_count": 0,
-      "question_count": 2,
-      "practical_question_count": 1,
+      "question_count": 0,
+      "practical_question_count": 0,
       "theory_completeness": 36,
       "prerequisite_coverage": "MISSING",
       "matched_content_ids": [
@@ -734,8 +739,8 @@
       "content_exists": true,
       "content_count": 1,
       "practical_theory_content_count": 0,
-      "question_count": 2,
-      "practical_question_count": 1,
+      "question_count": 0,
+      "practical_question_count": 0,
       "theory_completeness": 36,
       "prerequisite_coverage": "MISSING",
       "matched_content_ids": [
@@ -776,8 +781,8 @@
       "content_exists": true,
       "content_count": 1,
       "practical_theory_content_count": 0,
-      "question_count": 1,
-      "practical_question_count": 1,
+      "question_count": 0,
+      "practical_question_count": 0,
       "theory_completeness": 46,
       "prerequisite_coverage": "PARTIAL",
       "matched_content_ids": [
@@ -871,8 +876,8 @@
       "content_exists": true,
       "content_count": 12,
       "practical_theory_content_count": 0,
-      "question_count": 25,
-      "practical_question_count": 0,
+      "question_count": 29,
+      "practical_question_count": 4,
       "theory_completeness": 83,
       "prerequisite_coverage": "ADEQUATE",
       "matched_content_ids": [
@@ -1177,8 +1182,8 @@
       "content_exists": true,
       "content_count": 3,
       "practical_theory_content_count": 3,
-      "question_count": 0,
-      "practical_question_count": 0,
+      "question_count": 2,
+      "practical_question_count": 2,
       "theory_completeness": 68,
       "prerequisite_coverage": "PARTIAL",
       "matched_content_ids": [
@@ -1503,5 +1508,15 @@
       "prerequisite_coverage": "MISSING",
       "matched_content_ids": []
     }
-  ]
+  ],
+  "inputAuthorityId": "ise-generator-input.v1",
+  "inputAuthorityVersion": "ise-generator-input.v1",
+  "inputAuthorityHash": "7ebd5bd20a083d51d9634482e5a6572f7a8d940a549f77f17a315ad87571744b",
+  "inputAuthoritySemanticSha256": "7ebd5bd20a083d51d9634482e5a6572f7a8d940a549f77f17a315ad87571744b",
+  "inputAuthorityByteSha256": "8f2d445df637fb31f12b6e44da84bfa414170faae4df36c55eb5fb0cee57e610",
+  "generatorPath": "scripts/build-security-content-v3-analysis.mjs",
+  "generatorHash": "087c856e200be87308d110dc6bdc5f62862e72039b3384ac5b3edf5c6df80f2e",
+  "generatorSha256": "087c856e200be87308d110dc6bdc5f62862e72039b3384ac5b3edf5c6df80f2e",
+  "providerMode": "OFFLINE_PROVIDER_NEUTRAL",
+  "environmentPolicyHash": "2d85c17187563ca62ccd0af11e52947bc68d4b8ac65900741cc63a9e65a85359"
 }

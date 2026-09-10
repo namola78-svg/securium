@@ -14,16 +14,17 @@ const outputAuthority = authorityMetadata(
   "scripts/verify-security-content-v3-source-integrity.mjs",
 );
 const inventory = JSON.parse(await readFile(reportPath, "utf8"));
-const sourceRoot = resolve(
+const LOGICAL_SOURCE_ROOT = "securium-content-upgrade-v2";
+const physicalSourceRoot = resolve(
   process.env.SECURIUM_CONTENT_V2_SOURCE_ROOT || inventory.sourceRoot,
 );
-if (sourceRoot !== resolve("securium-content-upgrade-v2")) {
+if (physicalSourceRoot !== resolve(LOGICAL_SOURCE_ROOT)) {
   throw new Error("SECURITY_CONTENT_V3_SOURCE_ROOT_MUST_BE_CANONICAL");
 }
 const results = [];
 
 for (const file of inventory.files) {
-  const path = resolve(sourceRoot, ...file.source_file.split("/"));
+  const path = resolve(physicalSourceRoot, ...file.source_file.split("/"));
   try {
     const bytes = await readFile(path);
     const actual = createHash("sha256").update(bytes).digest("hex");
@@ -47,7 +48,7 @@ for (const file of inventory.files) {
 const report = {
   generatedAt: new Date().toISOString(),
   ...outputAuthority,
-  sourceRoot,
+  sourceRoot: LOGICAL_SOURCE_ROOT,
   policy: "READ_ONLY_HASH_REVALIDATION",
   summary: {
     total: results.length,

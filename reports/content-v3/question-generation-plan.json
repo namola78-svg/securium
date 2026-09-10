@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-11T03:36:40.555Z",
+  "generatedAt": "2026-09-10T07:44:35.244Z",
   "derivation": "one focused theory unit per official subject/practical area, plus only uncovered reasoning patterns identified from source and current D1 coverage",
   "summary": {
     "plannedTheoryContents": 18,
@@ -536,5 +536,15 @@
         "이메일 인증"
       ]
     }
-  ]
+  ],
+  "inputAuthorityId": "ise-generator-input.v1",
+  "inputAuthorityVersion": "ise-generator-input.v1",
+  "inputAuthorityHash": "7ebd5bd20a083d51d9634482e5a6572f7a8d940a549f77f17a315ad87571744b",
+  "inputAuthoritySemanticSha256": "7ebd5bd20a083d51d9634482e5a6572f7a8d940a549f77f17a315ad87571744b",
+  "inputAuthorityByteSha256": "8f2d445df637fb31f12b6e44da84bfa414170faae4df36c55eb5fb0cee57e610",
+  "generatorPath": "scripts/build-security-content-v3-analysis.mjs",
+  "generatorHash": "087c856e200be87308d110dc6bdc5f62862e72039b3384ac5b3edf5c6df80f2e",
+  "generatorSha256": "087c856e200be87308d110dc6bdc5f62862e72039b3384ac5b3edf5c6df80f2e",
+  "providerMode": "OFFLINE_PROVIDER_NEUTRAL",
+  "environmentPolicyHash": "2d85c17187563ca62ccd0af11e52947bc68d4b8ac65900741cc63a9e65a85359"
 }
