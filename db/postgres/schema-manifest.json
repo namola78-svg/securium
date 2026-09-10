@@ -1,6 +1,6 @@
 {
   "sourceSnapshot": "drizzle/meta/0014_snapshot.json",
-  "tableCount": 70,
+  "tableCount": 71,
   "tableOrder": [
     "course_groups",
     "isms_standards",
@@ -31,6 +31,7 @@
     "levels",
     "mock_exams",
     "privacy_assessment_scenarios",
+    "foundation_question_bindings",
     "question_attempts",
     "question_choices",
     "question_courses",
@@ -973,12 +974,39 @@
         }
       ]
     },
+    "foundation_question_bindings": {
+      "columns": [
+        "id",
+        "course_id",
+        "foundation_binding_key",
+        "foundation_version",
+        "foundation_question_id",
+        "semantic_hash",
+        "lifecycle_state",
+        "created_at",
+        "retired_at"
+      ],
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "name": "foundation_question_bindings_course_id_courses_id_fk",
+          "tableTo": "courses",
+          "columnsFrom": [
+            "course_id"
+          ],
+          "columnsTo": [
+            "id"
+          ]
+        }
+      ]
+    },
     "question_attempts": {
       "columns": [
         "id",
         "idempotency_key",
         "user_id",
         "question_id",
+        "foundation_question_binding_id",
         "course_id",
         "mode",
         "exam_session_id",
@@ -1019,6 +1047,18 @@
           ],
           "columnsTo": [
             "id"
+          ]
+        },
+        {
+          "name": "question_attempts_foundation_binding_course_fk",
+          "tableTo": "foundation_question_bindings",
+          "columnsFrom": [
+            "foundation_question_binding_id",
+            "course_id"
+          ],
+          "columnsTo": [
+            "id",
+            "course_id"
           ]
         }
       ]
