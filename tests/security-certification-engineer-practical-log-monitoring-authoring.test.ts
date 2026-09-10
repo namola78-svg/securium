@@ -209,6 +209,42 @@ async function listSourceFiles(directory: string): Promise<string[]> {
   return files.flat();
 }
 
+const AUTHORING_MODULE_TOKEN =
+  "security-certification-engineer-practical-log-monitoring-authoring";
+const APPROVED_AUTHORING_IMPORTERS = [
+  "lib/data/security-certification-course-lessons.mjs",
+  "lib/data/security-certification-practical-questions.mjs",
+];
+const APPROVED_GENERATOR_INPUT_TOOLING = [
+  "scripts/create-security-content-v3-generator-input.mjs",
+  "scripts/security-content-v3-generator-input.mjs",
+  "scripts/validate-security-content-v3-generator-input.mjs",
+];
+const APPROVED_GENERATOR_ANALYSIS_TOOLING = [
+  "scripts/build-security-content-v3-analysis.mjs",
+  "scripts/validate-security-content-intelligence-v3.mjs",
+  "scripts/verify-security-content-v3-source-integrity.mjs",
+];
+const APPROVED_GENERATOR_TOOLING = [
+  ...APPROVED_GENERATOR_INPUT_TOOLING,
+  ...APPROVED_GENERATOR_ANALYSIS_TOOLING,
+].sort();
+
+function importsAuthoringModule(source: string): boolean {
+  return [
+    new RegExp(
+      `(?:^|\\n)\\s*import\\s+(?:[\\s\\S]*?\\sfrom\\s+)?["'][^"']*${AUTHORING_MODULE_TOKEN}\\.mjs["']`,
+      "m",
+    ),
+    new RegExp(
+      `\\bimport\\(\\s*["'][^"']*${AUTHORING_MODULE_TOKEN}\\.mjs["']\\s*\\)`,
+    ),
+    new RegExp(
+      `\\brequire\\(\\s*["'][^"']*${AUTHORING_MODULE_TOKEN}\\.mjs["']\\s*\\)`,
+    ),
+  ].some((pattern) => pattern.test(source));
+}
+
 test("PR-A authored Content has the exact Engineer-owned identity and inert state", () => {
   assert.deepEqual(
     {
@@ -527,7 +563,7 @@ test("PR-A semantic hash detects choice mutations and rejects invalid choice dat
   );
 });
 
-test("PR-B activates the authoring module through only the two approved registries", async () => {
+test("PR-B keeps authoring imports and generator tooling in exact approved scopes", async () => {
   const sourceRoots = ["app", "components", "db", "lib", "scripts"]
     .map((directory) => resolve(REPOSITORY_ROOT, directory));
   const sourceFiles = (
@@ -541,19 +577,39 @@ test("PR-B activates the authoring module through only the two approved registri
           "security-certification-engineer-practical-log-monitoring-authoring.mjs",
         ),
     );
+  const relativeSourceFiles = sourceFiles
+    .map((path) => relative(REPOSITORY_ROOT, path).replaceAll("\\", "/"))
+    .sort();
+  assert.equal(new Set(relativeSourceFiles).size, relativeSourceFiles.length);
+  assert.deepEqual(
+    relativeSourceFiles.filter((path) => APPROVED_GENERATOR_TOOLING.includes(path)),
+    APPROVED_GENERATOR_TOOLING,
+  );
+
   const importers: string[] = [];
+  const generatorToolingReferences: string[] = [];
+  const unexpectedReferences: string[] = [];
 
   for (const path of sourceFiles) {
     const source = await readFile(path, "utf8");
-    if (source.includes("security-certification-engineer-practical-log-monitoring-authoring")) {
-      importers.push(relative(REPOSITORY_ROOT, path).replaceAll("\\", "/"));
+    if (!source.includes(AUTHORING_MODULE_TOKEN)) continue;
+
+    const relativePath = relative(REPOSITORY_ROOT, path).replaceAll("\\", "/");
+    if (APPROVED_GENERATOR_TOOLING.includes(relativePath)) {
+      generatorToolingReferences.push(relativePath);
+    } else if (importsAuthoringModule(source)) {
+      importers.push(relativePath);
+    } else {
+      unexpectedReferences.push(relativePath);
     }
   }
 
-  assert.deepEqual(importers.sort(), [
-    "lib/data/security-certification-course-lessons.mjs",
-    "lib/data/security-certification-practical-questions.mjs",
+  assert.deepEqual(importers.sort(), APPROVED_AUTHORING_IMPORTERS);
+  assert.deepEqual(generatorToolingReferences.sort(), [
+    "scripts/create-security-content-v3-generator-input.mjs",
+    "scripts/security-content-v3-generator-input.mjs",
   ]);
+  assert.deepEqual(unexpectedReferences, []);
 });
 
 test("PR-B activates the exact title, CourseLesson relation, and Question without identity drift", () => {
