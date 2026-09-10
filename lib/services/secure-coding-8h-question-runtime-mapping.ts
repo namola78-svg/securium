@@ -229,15 +229,15 @@ async function normalizeFoundationQuestions(
   const moduleQuestionIds = new Map<string, readonly string[]>();
   const moduleObjectiveIds = new Map<string, readonly string[]>();
   for (const [index, value] of modules.entries()) {
-    const module = asRecord(value, `manifest.modules[${index}]`);
-    const id = stringField(module, "id", `manifest.modules[${index}].id`);
+    const moduleEntry = asRecord(value, `manifest.modules[${index}]`);
+    const id = stringField(moduleEntry, "id", `manifest.modules[${index}].id`);
     const questionIds = stringArrayField(
-      module,
+      moduleEntry,
       "questionIds",
       `manifest.modules[${index}].questionIds`,
     );
     const objectiveIds = stringArrayField(
-      module,
+      moduleEntry,
       "objectiveIds",
       `manifest.modules[${index}].objectiveIds`,
     );
