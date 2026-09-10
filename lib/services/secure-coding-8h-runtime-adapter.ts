@@ -186,7 +186,7 @@ export function loadSecureCoding8HRuntimeModel(
   );
   const diagnosticTriadIds = uniqueIds(triads, "diagnostic triad");
 
-  const minutes = modules.reduce((total, item, index) => {
+  const minutes = modules.reduce<number>((total, item, index) => {
     const record = asRecord(item, `manifest.modules[${index}]`);
     return total + integerField(record, "minutes", `manifest.modules[${index}].minutes`);
   }, 0);
