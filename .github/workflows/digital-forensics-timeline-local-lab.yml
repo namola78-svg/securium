@@ -1,0 +1,85 @@
+name: Digital Forensics Timeline Local Lab
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/digital-forensics-timeline-local-lab.yml"
+      - "examples/digital-forensics-timeline-local-lab/**"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/digital-forensics-timeline-local-lab.yml"
+      - "examples/digital-forensics-timeline-local-lab/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: digital-forensics-timeline-local-lab-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: ${{ matrix.os_label }} / Python ${{ matrix.python_version }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os_label: Windows
+            runner: windows-latest
+            python_version: "3.11"
+          - os_label: Windows
+            runner: windows-latest
+            python_version: "3.14"
+          - os_label: Linux
+            runner: ubuntu-latest
+            python_version: "3.11"
+          - os_label: Linux
+            runner: ubuntu-latest
+            python_version: "3.14"
+
+    steps:
+      - name: Check out exact event revision
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert checked out revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: >-
+          python -c "import os, subprocess; actual = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(); expected = os.environ['EXPECTED_SHA']; print(f'expected_sha={expected}'); print(f'actual_sha={actual}'); raise SystemExit(0 if actual == expected else 1)"
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python_version }}
+
+      - name: Record runtime
+        working-directory: examples/digital-forensics-timeline-local-lab
+        run: >-
+          python -c "import platform, sys; print('matrix_os=${{ matrix.os_label }}'); print('runner_os=${{ runner.os }}'); print('matrix_python=${{ matrix.python_version }}'); print(f'python_patch={platform.python_version()}'); print(f'platform={platform.platform()}'); print(f'executable={sys.executable}')"
+
+      - name: Compile lab sources
+        working-directory: examples/digital-forensics-timeline-local-lab
+        run: python -m py_compile timeline_lab.py cli.py test_timeline_lab.py run_tests.py
+
+      - name: Discover and run timeline tests
+        working-directory: examples/digital-forensics-timeline-local-lab
+        run: python run_tests.py
+
+      - name: Remove generated Python caches
+        if: always()
+        working-directory: examples/digital-forensics-timeline-local-lab
+        run: >-
+          python -c "import shutil; from pathlib import Path; root = Path('.'); caches = sorted((path for path in root.rglob('__pycache__') if path.is_dir()), key=lambda path: len(path.parts), reverse=True); [shutil.rmtree(path) for path in caches]; print(f'removed_python_cache_directories={len(caches)}')"
+
+      - name: Verify lab working tree cleanup
+        if: always()
+        working-directory: examples/digital-forensics-timeline-local-lab
+        run: >-
+          python -c "from pathlib import Path; root = Path('.'); generated = [path for path in root.rglob('*') if path.is_file() and ('__pycache__' in path.parts or path.suffix in {'.pyc', '.log', '.tmp'})]; print(f'generated_artifacts={len(generated)}'); print('\\n'.join(map(str, generated))); raise SystemExit(1 if generated else 0)"
