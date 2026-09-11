@@ -286,6 +286,47 @@ test("PostgreSQL migration and app repository preserve CourseLesson revision ide
     origin: server.baseUrl,
     "oai-authenticated-user-email": "pg-revision-admin@example.invalid",
   };
+  const draftContentRow = (await client.unsafe(`
+    SELECT id, slug, canonical_key AS "canonicalKey", title, summary, body,
+      body_format AS "bodyFormat",
+      learning_objectives_json AS "learningObjectivesJson",
+      core_concepts_json AS "coreConceptsJson",
+      practical_examples_json AS "practicalExamplesJson",
+      diagrams_json AS "diagramsJson", media_json AS "mediaJson", version, status
+    FROM contents WHERE id = '${contentB}'
+  `))[0];
+  const draftRevisionStart = await saveContent(adminHeaders, contentInput(draftContentRow));
+  assert.equal(draftRevisionStart.response.status, 200, JSON.stringify(draftRevisionStart.payload));
+  const draftRevisionSave = await saveContent(adminHeaders, contentInput({
+    ...draftContentRow,
+    version: "C",
+    body: "PostgreSQL draft revision C body",
+    status: "DRAFT",
+  }));
+  assert.equal(draftRevisionSave.response.status, 200, JSON.stringify(draftRevisionSave.payload));
+  const draftRevisionPublish = await saveContent(adminHeaders, contentInput({
+    ...draftContentRow,
+    version: "C",
+    body: "PostgreSQL draft revision C body",
+    status: "PUBLISHED",
+  }));
+  assert.equal(draftRevisionPublish.response.status, 200, JSON.stringify(draftRevisionPublish.payload));
+  assert.deepEqual(Array.from(await client.unsafe(`
+    SELECT version, revision_status AS "revisionStatus", is_latest AS "isLatest",
+      previous_version_id AS "previousVersionId", snapshot_json AS "snapshotJson"
+    FROM content_revisions
+    WHERE content_type = 'LEARNING_UNIT' AND content_id = '${contentB}'
+    ORDER BY version
+  `)).map((row) => ({
+    version: row.version,
+    revisionStatus: row.revisionStatus,
+    isLatest: Boolean(row.isLatest),
+    hasPrevious: Boolean(row.previousVersionId),
+    body: JSON.parse(row.snapshotJson).payload.body,
+  })), [
+    { version: "A", revisionStatus: "superseded", isLatest: false, hasPrevious: false, body: "Body B" },
+    { version: "C", revisionStatus: "published", isLatest: true, hasPrevious: true, body: "PostgreSQL draft revision C body" },
+  ]);
   const sameRevision = await saveContent(adminHeaders, contentInput(contentRow));
   assert.equal(sameRevision.response.status, 200, JSON.stringify(sameRevision.payload));
   const sameVersionMutation = await saveContent(adminHeaders, contentInput({

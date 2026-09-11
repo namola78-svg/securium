@@ -162,6 +162,21 @@ async function getSharedContentRevision(contentId: string, version: string) {
   return revision ?? null;
 }
 
+async function getLatestSharedContentRevision(contentId: string) {
+  const [revision] = await getDb()
+    .select()
+    .from(contentRevisions)
+    .where(
+      and(
+        eq(contentRevisions.contentType, THEORY_REVISION_CONTENT_TYPE),
+        eq(contentRevisions.contentId, contentId),
+        eq(contentRevisions.isLatest, true),
+      ),
+    )
+    .limit(1);
+  return revision ?? null;
+}
+
 async function assertSharedContentRevisionMatches(
   revision: typeof contentRevisions.$inferSelect,
   snapshot: SharedContentRevisionSnapshot,
@@ -350,6 +365,21 @@ export async function saveSharedContent(
 
     if (sameVersion) {
       if (!currentRevision && input.status !== "DRAFT") {
+        const latestRevision = await getLatestSharedContentRevision(id);
+        const previousVersionId = latestRevision?.id ?? null;
+        if (latestRevision) {
+          revisionStatements.push(
+            getDb()
+              .update(contentRevisions)
+              .set({
+                revisionStatus: "superseded",
+                isLatest: false,
+                supersededAt: now,
+                updatedAt: now,
+              })
+              .where(eq(contentRevisions.id, latestRevision.id)),
+          );
+        }
         revisionStatements.push(
           sharedContentRevisionInsert(
             crypto.randomUUID(),
@@ -357,7 +387,7 @@ export async function saveSharedContent(
             actorUserId,
             now,
             await snapshotSemanticHash(snapshotJson(requestedSnapshot)),
-            { revisionStatus: "published", isLatest: true, previousVersionId: null },
+            { revisionStatus: "published", isLatest: true, previousVersionId },
           ),
         );
       }

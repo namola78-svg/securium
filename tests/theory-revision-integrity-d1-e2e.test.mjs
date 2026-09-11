@@ -125,6 +125,40 @@ test("D1 authoring and learning records preserve immutable theory revisions", as
   assert.match(initialRevision[0].semanticHash, /^[0-9a-f]{64}$/);
   assert.equal(JSON.parse(initialRevision[0].snapshotJson).payload.body, "Revision A body");
 
+  const draftRevisionStart = await saveContent(collisionContentInput({}));
+  assert.equal(draftRevisionStart.response.status, 200, JSON.stringify(draftRevisionStart.payload));
+  const draftRevisionSave = await saveContent(collisionContentInput({
+    version: "v2",
+    body: "Collision revision v2 body",
+    status: "DRAFT",
+  }));
+  assert.equal(draftRevisionSave.response.status, 200, JSON.stringify(draftRevisionSave.payload));
+  const draftRevisionPublish = await saveContent(collisionContentInput({
+    version: "v2",
+    body: "Collision revision v2 body",
+    status: "PUBLISHED",
+  }));
+  assert.equal(draftRevisionPublish.response.status, 200, JSON.stringify(draftRevisionPublish.payload));
+  assert.deepEqual(
+    (await queryRows(`
+      SELECT version, revision_status AS revisionStatus, is_latest AS isLatest,
+        previous_version_id AS previousVersionId, snapshot_json AS snapshotJson
+      FROM content_revisions
+      WHERE content_type = 'LEARNING_UNIT' AND content_id = '${collisionContentId}'
+      ORDER BY version;
+    `)).map((row) => ({
+      version: row.version,
+      revisionStatus: row.revisionStatus,
+      isLatest: Number(row.isLatest),
+      hasPrevious: Boolean(row.previousVersionId),
+      body: JSON.parse(row.snapshotJson).payload.body,
+    })),
+    [
+      { version: "v1", revisionStatus: "superseded", isLatest: 0, hasPrevious: false, body: "Collision body" },
+      { version: "v2", revisionStatus: "published", isLatest: 1, hasPrevious: true, body: "Collision revision v2 body" },
+    ],
+  );
+
   const sameRevisionMutation = await saveContent(contentInput({ body: "Changed A body" }));
   assert.equal(sameRevisionMutation.response.status, 409, JSON.stringify(sameRevisionMutation.payload));
   assert.equal(sameRevisionMutation.payload.code, "SHARED_CONTENT_REVISION_CONFLICT");
@@ -281,6 +315,26 @@ function contentInput(overrides = {}) {
     title: "Repair revision A",
     summary: "Summary A",
     body: "Revision A body",
+    bodyFormat: "MARKDOWN",
+    learningObjectivesJson: "[]",
+    coreConceptsJson: "[]",
+    practicalExamplesJson: "[]",
+    diagramsJson: "[]",
+    mediaJson: "[]",
+    version: "v1",
+    status: "PUBLISHED",
+    ...overrides,
+  };
+}
+
+function collisionContentInput(overrides = {}) {
+  return {
+    id: collisionContentId,
+    slug: "repair-revision-integrity-collision",
+    canonicalKey: "repair.revision.integrity.collision",
+    title: "Collision content",
+    summary: "",
+    body: "Collision body",
     bodyFormat: "MARKDOWN",
     learningObjectivesJson: "[]",
     coreConceptsJson: "[]",
