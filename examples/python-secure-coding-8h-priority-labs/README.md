@@ -32,11 +32,13 @@ that instructor/student rehearsal or complete delivery is ready.
   other operating systems, and full browser coverage remain unverified.
 - M05's HTTP checks use a direct Python client against a loopback server. They
   do not prove browser cookie, SameSite, form, or Origin behavior.
-- The separate M05 browser-harness report is `BROWSER_VERIFICATION_PARTIAL`:
-  HTTP-compatible scenarios completed in an actual local Chrome process, while
-  HTTPS Secure-cookie and HTTPS cross-site scenarios remain `NOT_RUN`. No full
-  browser PASS is inferred from the partial run or from the focused Python
-  client tests.
+- A separate M05 browser-harness/report result at commit `62a8a0c` exercised a
+  fixture containing the separate repair `18b6aa1`; neither commit is in
+  `main`, so it is not browser verification of this current lab bundle. That
+  report is `BROWSER_VERIFICATION_PARTIAL`: HTTP-compatible scenarios completed
+  in an actual local Chrome process, while HTTPS Secure-cookie and HTTPS
+  cross-site scenarios remain `NOT_RUN`. No full browser PASS is inferred from
+  the partial run or from the focused Python client tests.
 - User approval of the Q36 answer-binding correction is complete. At this PR
   head, canonical answer application, immutable revision binding, and
   verification are not confirmed. Until those states are separately
