@@ -32,11 +32,6 @@ that instructor/student rehearsal or complete delivery is ready.
   other operating systems, and full browser coverage remain unverified.
 - M05's HTTP checks use a direct Python client against a loopback server. They
   do not prove browser cookie, SameSite, form, or Origin behavior.
-- User approval of the Q36 answer-binding correction is complete. At this PR
-  head, canonical answer application, immutable revision binding, and
-  verification are not confirmed. Until those states are separately
-  confirmed, exclude Q36 from confirmed-answer use and scoring. Do not change
-  the canonical answer or approval artifact in this lab bundle.
 - The separate reviewer harness at `verification/m05-browser/` exercises the
   HTTP-compatible M05 flow in a real local browser. Its current result is
   `BROWSER_VERIFICATION_PARTIAL`: HTTP scenarios passed, while HTTPS
@@ -45,6 +40,17 @@ that instructor/student rehearsal or complete delivery is ready.
   `npm install --prefix verification/m05-browser --ignore-scripts`, then run
   `npm run --prefix verification/m05-browser verify`. This is not a classroom
   delivery-readiness claim.
+- The Q36 answer-binding correction is merged in #147 (`89e2a2f`): the
+  repository canonical record now has `answer: 1` (B/2), aligned with the
+  question explanation. The immutable revision-boundary checks are verified:
+  the default mapping/preflight path requires
+  `QUESTION_REVISION_CONTEXT_REQUIRED`, and only the fixed candidate context
+  projects Q36-v2. Source/approval authority remains `UNKNOWN`; candidate
+  preflight is `BLOCKED`, persistence is `NOT_READY`, and no `humanReviewHash`
+  or canonical receipt has been issued. Use B/2 for content discussion and
+  learner reasoning, but do not describe Q36-v2 as an authority-issued Runtime
+  revision or claim automated scoring/publication readiness. This lab bundle
+  does not issue approvals or alter Runtime state.
 - Canonical practical records P01-P08 remain `SPEC_ONLY`; this bundle does not
   perform runtime registration, provisioning, publication, or deployment.
 - The manifest's 480-minute total and 350-minute Python / 130-minute AI split
