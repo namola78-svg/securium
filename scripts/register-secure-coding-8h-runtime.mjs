@@ -46,12 +46,15 @@ export function buildRegistrationInsertSql(dialect) {
   if (dialect !== "d1" && dialect !== "postgres") {
     throw registrationError("INTERNAL_ERROR", "Unsupported registration SQL dialect.");
   }
-  const boolean = (value) => (dialect === "d1" ? (value ? "1" : "0") : String(value));
+  // The course visibility flags are integer-backed booleans in both D1 and
+  // PostgreSQL. Keep this encoding local to this INSERT; it is not a global
+  // conversion for columns that are genuinely PostgreSQL boolean-typed.
+  const integerBoolean = (value) => (value ? "1" : "0");
   return [
     "INSERT INTO courses",
     "(id, course_group_id, code, slug, name, short_name, description, total_levels, passing_score, difficulty, active, published, display_order, is_sample)",
     "VALUES",
-    `(${sqlString(REGISTRATION_RECORD.id)}, ${sqlString(REGISTRATION_RECORD.courseGroupId)}, ${sqlString(REGISTRATION_RECORD.code)}, ${sqlString(REGISTRATION_RECORD.slug)}, ${sqlString(REGISTRATION_RECORD.name)}, ${sqlString(REGISTRATION_RECORD.shortName)}, ${sqlString(REGISTRATION_RECORD.description)}, ${REGISTRATION_RECORD.totalLevels}, ${REGISTRATION_RECORD.passingScore}, ${sqlString(REGISTRATION_RECORD.difficulty)}, ${boolean(REGISTRATION_RECORD.active)}, ${boolean(REGISTRATION_RECORD.published)}, ${REGISTRATION_RECORD.displayOrder}, ${boolean(REGISTRATION_RECORD.isSample)})`,
+    `(${sqlString(REGISTRATION_RECORD.id)}, ${sqlString(REGISTRATION_RECORD.courseGroupId)}, ${sqlString(REGISTRATION_RECORD.code)}, ${sqlString(REGISTRATION_RECORD.slug)}, ${sqlString(REGISTRATION_RECORD.name)}, ${sqlString(REGISTRATION_RECORD.shortName)}, ${sqlString(REGISTRATION_RECORD.description)}, ${REGISTRATION_RECORD.totalLevels}, ${REGISTRATION_RECORD.passingScore}, ${sqlString(REGISTRATION_RECORD.difficulty)}, ${integerBoolean(REGISTRATION_RECORD.active)}, ${integerBoolean(REGISTRATION_RECORD.published)}, ${REGISTRATION_RECORD.displayOrder}, ${integerBoolean(REGISTRATION_RECORD.isSample)})`,
   ].join(" ");
 }
 
