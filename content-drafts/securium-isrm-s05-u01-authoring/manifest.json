@@ -1,0 +1,107 @@
+{
+  "schema": "securium.isrm.s05_u01.authoring_draft.v1",
+  "status": "DRAFT_UNPUBLISHED_REVIEW_REQUIRED",
+  "courseId": "course-isrm",
+  "subjectId": "isrm-2025-2027-s05",
+  "learningUnitId": "isrm-2025-2027-s05-u01",
+  "draftTitle": "평가된 위험을 보호대책으로 전환하고 잔여위험을 계속 관리하기",
+  "titleAuthority": "SECURIUM_DRAFT_TITLE_NOT_OFFICIAL_UNIT_TITLE",
+  "officialScopeAnchor": {
+    "subjectNumber": "V",
+    "subjectName": "정보보호 위험대책 관리",
+    "majorItem": "정보보호 위험 대응",
+    "subitems": [
+      "보호대책 구현",
+      "정보통신서비스제공자 적용 보호대책",
+      "개인정보처리자/신용정보업자 적용 보호대책",
+      "정보보호산업 적용 보호대책"
+    ],
+    "subjectRange": [
+      {
+        "majorItem": "정보보호 위험 대응",
+        "subitems": [
+          "보호대책 구현",
+          "정보통신서비스제공자 적용 보호대책",
+          "개인정보처리자/신용정보업자 적용 보호대책",
+          "정보보호산업 적용 보호대책"
+        ]
+      }
+    ],
+    "claimIds": ["ISRM-S05-U01-C01", "ISRM-S05-U01-C02"],
+    "officialUnitId": "UNKNOWN"
+  },
+  "continuity": {
+    "priorUnitIds": [
+      "isrm-2025-2027-s01-u01",
+      "isrm-2025-2027-s01-u02",
+      "isrm-2025-2027-s01-u03",
+      "isrm-2025-2027-s02-u01",
+      "isrm-2025-2027-s02-u02",
+      "isrm-2025-2027-s03-u01",
+      "isrm-2025-2027-s03-u02",
+      "isrm-2025-2027-s03-u03",
+      "isrm-2025-2027-s03-u04",
+      "isrm-2025-2027-s04-u01",
+      "isrm-2025-2027-s04-u02"
+    ],
+    "priorOutcomeIds": [
+      "ISRM-S01-U01-O01",
+      "ISRM-S01-U01-O02",
+      "ISRM-S01-U02-O01",
+      "ISRM-S01-U02-O02",
+      "ISRM-S01-U03-O01",
+      "ISRM-S01-U03-O02",
+      "ISRM-S02-U01-O01",
+      "ISRM-S02-U01-O02",
+      "ISRM-S02-U02-O01",
+      "ISRM-S02-U02-O02",
+      "ISRM-S03-U01-O01",
+      "ISRM-S03-U01-O02",
+      "ISRM-S03-U02-O01",
+      "ISRM-S03-U02-O02",
+      "ISRM-S03-U03-O01",
+      "ISRM-S03-U03-O02",
+      "ISRM-S03-U04-O01",
+      "ISRM-S03-U04-O02",
+      "ISRM-S04-U01-O01",
+      "ISRM-S04-U01-O02",
+      "ISRM-S04-U02-O01",
+      "ISRM-S04-U02-O02"
+    ],
+    "input": "Subject II의 위험평가 결과, Subject III의 처리전략·보호대책·이행점검, Subject IV의 운영계획·평가 갱신 결과",
+    "newBoundary": "평가된 위험을 보호대책 선정·이행계획·운영증거로 전환하고, 구현 후 효과성·현재성·잔여위험을 판단하여 추가 처리·수용·개선 경로로 연결",
+    "repeatedContentExcluded": "Subject I의 정책·거버넌스, Subject II의 평가 방법과 위험 산정, Subject III의 처리전략 설계, Subject IV의 운영계획과 평가 갱신을 다시 가르치지 않고 대응대책의 전환·구현·증거·잔여위험 관리에 집중"
+  },
+  "objectiveIds": ["ISRM-S05-U01-O01", "ISRM-S05-U01-O02"],
+  "theoryIds": ["ISRM-S05-U01-T01"],
+  "questionIds": ["isrm-q-v2-25", "isrm-q-v2-26"],
+  "existingCanonicalAuthorityRows": [
+    { "id": "isrm-q-v2-25", "answerAuthority": "PRESENT", "explanation": "PRESENT", "decision": "ACCEPT", "bodyPayloadPresent": false },
+    { "id": "isrm-q-v2-26", "answerAuthority": "PRESENT", "explanation": "PRESENT", "decision": "ACCEPT", "bodyPayloadPresent": false }
+  ],
+  "sourcePolicy": {
+    "officialUse": "FACTUAL_SCOPE_ANCHOR_ONLY",
+    "officialExpressionReuse": "UNKNOWN_REQUIRES_PERMISSION",
+    "commercialSources": "EXCLUDED",
+    "officialQuestionReuse": "EXCLUDED",
+    "sourceExpressionReuse": 0,
+    "officialQuestionReconstruction": 0
+  },
+  "governance": {
+    "canonicalApproval": "NOT_REQUESTED",
+    "revisionBinding": "NOT_ISSUED",
+    "publication": "NOT_AUTHORIZED",
+    "runtimeImport": "NONE",
+    "runtimeRegistration": 0,
+    "runtimeDbIo": 0
+  },
+  "currentness": {
+    "status": "PARTIAL",
+    "officialSemanticVersion": "UNKNOWN",
+    "officialScopeDetail": "PARTIAL",
+    "identityPageReviewedOn": "2026-09-11",
+    "unitIdYearRangeNotUsedAsEvidence": true
+  },
+  "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
+  "reviewRequired": true
+}

@@ -1,0 +1,82 @@
+{
+  "schema": "securium.isrm.s04_u02.question_draft.v1",
+  "status": "DRAFT_UNPUBLISHED_REVIEW_REQUIRED",
+  "learningUnitId": "isrm-2025-2027-s04-u02",
+  "questions": [
+    {
+      "id": "isrm-q-v2-23",
+      "status": "DRAFT_UNPUBLISHED",
+      "type": "SINGLE_CHOICE",
+      "difficulty": "PRACTICE",
+      "courseId": "course-isrm",
+      "subjectId": "isrm-2025-2027-s04",
+      "learningUnitId": "isrm-2025-2027-s04-u02",
+      "scenarioType": "SECURIUM_SYNTHETIC_SCENARIO",
+      "fictional": true,
+      "objectiveIds": ["ISRM-S04-U02-O01"],
+      "theoryIds": ["ISRM-S04-U02-T01"],
+      "prompt": "창작 사례. 온샘물류의 주문 API와 내부 테스트 도구에서 비슷한 취약성 점수가 확인되었다. 두 기록의 평가 우선순위를 정할 때 가장 타당한 판단은 무엇인가?",
+      "options": [
+        { "id": "A", "text": "취약성 점수와 평가 시점이 비슷하므로 두 기록의 우선순위를 자동으로 같게 둔다." },
+        { "id": "B", "text": "자산 중요도, 위협 경로, 취약성 근거, 준거성과 목표 위험수준을 함께 비교한다." },
+        { "id": "C", "text": "수정 작업이 짧고 담당자가 정해진 기록부터 처리하며 위험평가는 생략한다." },
+        { "id": "D", "text": "주문 API의 중요도를 취약성으로 기록하고 즉시 처리전략을 승인한다." }
+      ],
+      "correctOptionId": "B",
+      "answerExplanation": "같은 취약성 점수만으로는 자산의 업무 영향과 위협 조건, 준거성 및 조직의 목표 위험수준을 비교할 수 없다. 이 입력과 근거를 함께 평가한 뒤 우선순위와 후속 경로를 정해야 한다.",
+      "incorrectExplanations": {
+        "A": "한 숫자가 같아도 자산 중요도, 영향, 위협 경로와 준거성 조건이 다를 수 있으므로 자동으로 같은 우선순위가 되지 않는다.",
+        "C": "작업의 길이는 위험의 의미나 목표 위험수준 초과 여부를 설명하지 못하며, 평가를 생략한 채 순서를 정하는 근거가 될 수 없다.",
+        "D": "자산 중요도와 취약성은 서로 다른 평가 입력이고, 평가 결과는 처리전략의 검토로 전달되지만 승인 자체를 대신하지 않는다."
+      },
+      "claimIds": ["ISRM-S04-U02-C03", "ISRM-S04-U02-C04", "ISRM-S04-U02-C05"],
+      "ambiguityReview": "ONE_BEST_ANSWER",
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
+      "sourceExpressionReuse": 0,
+      "officialQuestionReconstruction": 0,
+      "rightsStatus": "REVIEW_REQUIRED",
+      "currentness": "PARTIAL",
+      "canonicalRevisionBinding": "NOT_ISSUED"
+    },
+    {
+      "id": "isrm-q-v2-24",
+      "status": "DRAFT_UNPUBLISHED",
+      "type": "SINGLE_CHOICE",
+      "difficulty": "PRACTICE",
+      "courseId": "course-isrm",
+      "subjectId": "isrm-2025-2027-s04",
+      "learningUnitId": "isrm-2025-2027-s04-u02",
+      "scenarioType": "SECURIUM_SYNTHETIC_SCENARIO",
+      "fictional": true,
+      "objectiveIds": ["ISRM-S04-U02-O02"],
+      "theoryIds": ["ISRM-S04-U02-T01"],
+      "prompt": "창작 사례. 온샘물류가 원래 평가 범위 밖이던 클라우드 의존성을 주문 API에 추가했고 새로운 취약성 정보도 확인했다. 평가 기록에서 먼저 할 일은 무엇인가?",
+      "options": [
+        { "id": "A", "text": "이미 승인된 평가이므로 기존 결과와 범위를 그대로 유지하고 현재성 확인은 생략한다." },
+        { "id": "B", "text": "기존 기록을 삭제하고 변경 이력 없이 새 평가만 작성해 이전 판단과 분리한다." },
+        { "id": "C", "text": "범위와 방법의 전제를 검토하고 입력·근거·목표 위험수준 비교와 불확실성을 갱신한다." },
+        { "id": "D", "text": "평가 없이 새 의존성을 안전하다고 보거나 즉시 처리전략을 확정해 기록한다." }
+      ],
+      "correctOptionId": "C",
+      "answerExplanation": "평가 범위 밖의 의존성과 새 취약성 정보는 기존 전제의 적합성을 확인하게 하는 변화다. 영향 범위에 맞춰 방법과 입력을 갱신하고 목표 위험수준과 비교한 결과, 근거와 불확실성을 남긴 뒤 후속 의사결정 경로로 전달해야 한다.",
+      "incorrectExplanations": {
+        "A": "변경된 범위와 취약성 정보가 기존 평가의 전제를 무효화하거나 부분적으로 바꿀 수 있으므로 승인 여부만으로 현재성을 보장할 수 없다.",
+        "B": "기존 기록을 지우면 판단의 lineage와 변경 이유를 확인할 수 없다. 영향 범위에 맞는 갱신 또는 재평가와 이전 기록의 연결이 필요하다.",
+        "D": "평가를 건너뛰고 안전성이나 처리전략을 확정하면 자산·위협·취약성·준거성 및 목표 위험수준의 근거가 빠진다."
+      },
+      "claimIds": ["ISRM-S04-U02-C03", "ISRM-S04-U02-C04", "ISRM-S04-U02-C05"],
+      "ambiguityReview": "ONE_BEST_ANSWER",
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
+      "sourceExpressionReuse": 0,
+      "officialQuestionReconstruction": 0,
+      "rightsStatus": "REVIEW_REQUIRED",
+      "currentness": "PARTIAL",
+      "canonicalRevisionBinding": "NOT_ISSUED"
+    }
+  ],
+  "limitations": [
+    "These are independent draft questions, not official KCA questions and not exam-prediction claims.",
+    "Question IDs are retained for the planned Foundation relation only; no canonical question body or revision binding is overwritten or issued.",
+    "Both scenarios and the organization name are fictional. The options test assessment reasoning, not a prescribed legal or numerical scoring method."
+  ]
+}

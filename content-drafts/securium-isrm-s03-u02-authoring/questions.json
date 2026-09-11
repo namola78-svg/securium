@@ -1,0 +1,81 @@
+{
+  "schema": "securium.isrm.s03_u02.question_draft.v1",
+  "status": "DRAFT_UNPUBLISHED_REVIEW_REQUIRED",
+  "learningUnitId": "isrm-2025-2027-s03-u02",
+  "questions": [
+    {
+      "id": "isrm-q-v2-15",
+      "status": "DRAFT_UNPUBLISHED",
+      "type": "SINGLE_CHOICE",
+      "difficulty": "PRACTICE",
+      "courseId": "course-isrm",
+      "subjectId": "isrm-2025-2027-s03",
+      "learningUnitId": "isrm-2025-2027-s03-u02",
+      "scenarioType": "SECURIUM_SYNTHETIC_SCENARIO",
+      "fictional": true,
+      "objectiveIds": ["ISRM-S03-U02-O01"],
+      "theoryIds": ["ISRM-S03-U02-T01"],
+      "prompt": "가상의 조직이 외부 클라우드 제공자에게 고객 계정 처리와 모니터링 일부를 맡겼다. S03-U01에서 보호대책 구현계획은 승인되었다. 운영 전 책임 경계를 점검할 때 가장 먼저 남길 자료는 무엇인가?",
+      "options": [
+        { "id": "A", "text": "제공자의 무사고 약속만 확인하고 책임과 증거의 배분은 기록하지 않는다." },
+        { "id": "B", "text": "계약서에 적힌 서비스 이름과 기간만 확인하고 운영 책임은 나누지 않는다." },
+        { "id": "C", "text": "서비스 흐름별 운영·통지 책임과 증거·확인 방법을 양측에 배분해 기록한다." },
+        { "id": "D", "text": "교육 참석자 명단만 보관하고 통지 책임과 증거 위치는 정하지 않는다." }
+      ],
+      "correctOptionId": "C",
+      "answerExplanation": "운영 전에 조직과 제공자가 맡는 책임, 통지 경로, 증거 위치와 확인 방법을 서비스 흐름별로 연결해야 공유 대책의 실제 수행과 검토가 가능해집니다.",
+      "incorrectExplanations": {
+        "A": "무사고 약속은 책임 배분이나 대책별 증거 위치를 보여 주지 않습니다.",
+        "B": "서비스 이름과 기간만으로는 누가 운영하고 어떤 증거를 제공할지 확인할 수 없습니다.",
+        "D": "교육 참석 기록만으로는 통지 책임과 운영 증거의 경계를 정할 수 없습니다."
+      },
+      "claimIds": ["ISRM-S03-U02-C03", "ISRM-S03-U02-C05"],
+      "ambiguityReview": "ONE_BEST_ANSWER",
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
+      "sourceExpressionReuse": 0,
+      "officialQuestionReconstruction": 0,
+      "rightsStatus": "REVIEW_REQUIRED",
+      "currentness": "PARTIAL",
+      "canonicalRevisionBinding": "NOT_ISSUED"
+    },
+    {
+      "id": "isrm-q-v2-16",
+      "status": "DRAFT_UNPUBLISHED",
+      "type": "SINGLE_CHOICE",
+      "difficulty": "FOUNDATION",
+      "courseId": "course-isrm",
+      "subjectId": "isrm-2025-2027-s03",
+      "learningUnitId": "isrm-2025-2027-s03-u02",
+      "scenarioType": "SECURIUM_SYNTHETIC_SCENARIO",
+      "fictional": true,
+      "objectiveIds": ["ISRM-S03-U02-O02"],
+      "theoryIds": ["ISRM-S03-U02-T01"],
+      "prompt": "가상의 제공자 서비스에 법률·프로그램 요구가 거론되지만 적용 범위는 아직 확인되지 않았다. 보호대책 검토의 첫 단계로 가장 적절한 것은 무엇인가?",
+      "options": [
+        { "id": "A", "text": "모든 법률 이름을 나열하고 적용 여부와 상관없이 준수했다고 표시한다." },
+        { "id": "B", "text": "서비스 맥락에 적용되는 요구사항을 확인하고 항목별 검토 증거를 연결한다." },
+        { "id": "C", "text": "제공자의 일반 인증 문서만으로 모든 요구사항과 위험이 해결됐다고 본다." },
+        { "id": "D", "text": "법적 검토가 기술 시험을 대신한다고 보고 통제 시험을 생략한다." }
+      ],
+      "correctOptionId": "B",
+      "answerExplanation": "서비스·데이터·역할 맥락에 실제로 적용되는 요구사항을 먼저 확인하고, 요구사항별로 어떤 보호대책과 증거를 검토할지 정해야 목록과 운영 검토가 연결됩니다.",
+      "incorrectExplanations": {
+        "A": "법률 이름을 나열하는 것만으로는 해당 서비스에 적용되는 범위나 준수 증거를 확인할 수 없습니다.",
+        "C": "제공자의 일반 인증은 적용성 분석과 모든 위험·증거의 검토를 자동으로 대신하지 않습니다.",
+        "D": "법적 적용성 확인과 기술적 통제 시험은 서로 다른 검토이므로 하나가 다른 하나를 대체하지 않습니다."
+      },
+      "claimIds": ["ISRM-S03-U02-C04", "ISRM-S03-U02-C05"],
+      "ambiguityReview": "ONE_BEST_ANSWER",
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
+      "sourceExpressionReuse": 0,
+      "officialQuestionReconstruction": 0,
+      "rightsStatus": "REVIEW_REQUIRED",
+      "currentness": "PARTIAL",
+      "canonicalRevisionBinding": "NOT_ISSUED"
+    }
+  ],
+  "limitations": [
+    "These are independent draft questions, not official KCA questions and not exam-prediction claims.",
+    "Question IDs are retained for planned relation only; no canonical question body or revision binding is overwritten or issued."
+  ]
+}

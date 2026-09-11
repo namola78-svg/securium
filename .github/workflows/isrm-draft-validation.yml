@@ -1,0 +1,166 @@
+name: ISRM draft validation
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/isrm-draft-validation.yml"
+      - "content-drafts/securium-isrm-foundation/**"
+      - "content-drafts/securium-isrm-full-draft-package/**"
+      - "content-drafts/securium-isrm-s*-u*-authoring/**"
+      - "scripts/validate-securium-isrm-foundation-product-authority.mjs"
+      - "scripts/validate-securium-isrm-s*-u*-draft.mjs"
+      - "tests/securium-isrm-foundation-product-authority.test.mjs"
+      - "tests/securium-isrm-s*-u*-draft.test.mjs"
+      - "package.json"
+      - "package-lock.json"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/isrm-draft-validation.yml"
+      - "content-drafts/securium-isrm-foundation/**"
+      - "content-drafts/securium-isrm-full-draft-package/**"
+      - "content-drafts/securium-isrm-s*-u*-authoring/**"
+      - "scripts/validate-securium-isrm-foundation-product-authority.mjs"
+      - "scripts/validate-securium-isrm-s*-u*-draft.mjs"
+      - "tests/securium-isrm-foundation-product-authority.test.mjs"
+      - "tests/securium-isrm-s*-u*-draft.test.mjs"
+      - "package.json"
+      - "package-lock.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: isrm-draft-validation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: "true"
+
+jobs:
+  validate:
+    name: ISRM draft validators and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22.13.0"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Check expected ISRM draft file set
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          expected_validators=(
+            scripts/validate-securium-isrm-s01-u01-draft.mjs
+            scripts/validate-securium-isrm-s01-u02-draft.mjs
+            scripts/validate-securium-isrm-s01-u03-draft.mjs
+            scripts/validate-securium-isrm-s02-u01-draft.mjs
+            scripts/validate-securium-isrm-s02-u02-draft.mjs
+            scripts/validate-securium-isrm-s03-u01-draft.mjs
+            scripts/validate-securium-isrm-s03-u02-draft.mjs
+            scripts/validate-securium-isrm-s03-u03-draft.mjs
+            scripts/validate-securium-isrm-s03-u04-draft.mjs
+            scripts/validate-securium-isrm-s04-u01-draft.mjs
+            scripts/validate-securium-isrm-s04-u02-draft.mjs
+            scripts/validate-securium-isrm-s05-u01-draft.mjs
+          )
+          expected_tests=(
+            tests/securium-isrm-s01-u01-draft.test.mjs
+            tests/securium-isrm-s01-u02-draft.test.mjs
+            tests/securium-isrm-s01-u03-draft.test.mjs
+            tests/securium-isrm-s02-u01-draft.test.mjs
+            tests/securium-isrm-s02-u02-draft.test.mjs
+            tests/securium-isrm-s03-u01-draft.test.mjs
+            tests/securium-isrm-s03-u02-draft.test.mjs
+            tests/securium-isrm-s03-u03-draft.test.mjs
+            tests/securium-isrm-s03-u04-draft.test.mjs
+            tests/securium-isrm-s04-u01-draft.test.mjs
+            tests/securium-isrm-s04-u02-draft.test.mjs
+            tests/securium-isrm-s05-u01-draft.test.mjs
+          )
+
+          mapfile -t actual_validators < <(find scripts -maxdepth 1 -type f -name 'validate-securium-isrm-s*-u*-draft.mjs' -print | sort)
+          mapfile -t actual_tests < <(find tests -maxdepth 1 -type f -name 'securium-isrm-s*-u*-draft.test.mjs' -print | sort)
+
+          diff -u <(printf '%s\n' "${expected_validators[@]}") <(printf '%s\n' "${actual_validators[@]}")
+          diff -u <(printf '%s\n' "${expected_tests[@]}") <(printf '%s\n' "${actual_tests[@]}")
+          test "${#actual_validators[@]}" -eq 12
+          test "${#actual_tests[@]}" -eq 12
+
+      - name: Check validator syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r validator; do
+            node --check "$validator"
+          done < <(find scripts -maxdepth 1 -type f -name 'validate-securium-isrm-s*-u*-draft.mjs' -print | sort)
+
+      - name: Run ISRM unit validators
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r validator; do
+            echo "::group::$validator"
+            output="$(node "$validator")"
+            printf '%s\n' "$output"
+            grep -Eq '"status"[[:space:]]*:[[:space:]]*"DRAFT_UNPUBLISHED_REVIEW_REQUIRED"' <<< "$output"
+            ! grep -Eiq 'skip|skipped|zero' <<< "$output"
+            echo "::endgroup::"
+          done < <(find scripts -maxdepth 1 -type f -name 'validate-securium-isrm-s*-u*-draft.mjs' -print | sort)
+
+      - name: Run Foundation validator
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/validate-securium-isrm-foundation-product-authority.mjs
+          echo "foundation-validator: PASS (exit 0; existing CLI is intentionally silent)"
+
+      - name: Run ISRM draft and Foundation tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          test_output="$(mktemp)"
+          trap 'rm -f "$test_output"' EXIT
+          test_files=(
+            tests/securium-isrm-s01-u01-draft.test.mjs
+            tests/securium-isrm-s01-u02-draft.test.mjs
+            tests/securium-isrm-s01-u03-draft.test.mjs
+            tests/securium-isrm-s02-u01-draft.test.mjs
+            tests/securium-isrm-s02-u02-draft.test.mjs
+            tests/securium-isrm-s03-u01-draft.test.mjs
+            tests/securium-isrm-s03-u02-draft.test.mjs
+            tests/securium-isrm-s03-u03-draft.test.mjs
+            tests/securium-isrm-s03-u04-draft.test.mjs
+            tests/securium-isrm-s04-u01-draft.test.mjs
+            tests/securium-isrm-s04-u02-draft.test.mjs
+            tests/securium-isrm-s05-u01-draft.test.mjs
+            tests/securium-isrm-foundation-product-authority.test.mjs
+          )
+          node --test "${test_files[@]}" | tee "$test_output"
+          grep -Eq 'tests 25$' "$test_output"
+          grep -Eq 'pass 25$' "$test_output"
+          grep -Eq 'fail 0$' "$test_output"
+          grep -Eq 'cancelled 0$' "$test_output"
+          grep -Eq 'skipped 0$' "$test_output"
+          grep -Eq 'todo 0$' "$test_output"
+
+      - name: Verify the checkout stayed read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "$(git status --porcelain)"
+          git diff --check

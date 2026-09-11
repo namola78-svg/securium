@@ -1,0 +1,116 @@
+{
+  "schema": "securium.isrm.s02_u02.question_draft.v1",
+  "status": "DRAFT_UNPUBLISHED_REVIEW_REQUIRED",
+  "learningUnitId": "isrm-2025-2027-s02-u02",
+  "questions": [
+    {
+      "id": "isrm-q-v2-09",
+      "status": "DRAFT_UNPUBLISHED",
+      "type": "SINGLE_CHOICE",
+      "difficulty": "PRACTICE",
+      "courseId": "course-isrm",
+      "subjectId": "isrm-2025-2027-s02",
+      "learningUnitId": "isrm-2025-2027-s02-u02",
+      "scenarioType": "SECURIUM_SYNTHETIC_SCENARIO",
+      "fictional": true,
+      "objectiveIds": ["ISRM-S02-U02-O01"],
+      "theoryIds": ["ISRM-S02-U02-T01"],
+      "prompt": "가상의 파일 서비스에는 민감한 계약서가 저장되어 있고 협력사 네트워크에서 접근할 수 있으며, 접근 게이트웨이에 미적용 패치가 있다. 가장 정확한 위험 분석 표현은 무엇인가?",
+      "options": [
+        { "id": "A", "text": "계약서와 파일 서비스는 취약성이고, 미적용 패치는 자산 중요도의 지표이다." },
+        { "id": "B", "text": "협력사 네트워크와 접근 게이트웨이는 보호 자산이고, 계약정보는 위협 경로이다." },
+        { "id": "C", "text": "파일 서비스와 계약정보는 자산, 협력사 접근은 위협 경로, 게이트웨이 미적용 패치는 취약성으로 구분한다." },
+        { "id": "D", "text": "게이트웨이 패치 날짜만으로 위험을 확정하고 서비스 영향은 기록하지 않는다." }
+      ],
+      "correctOptionId": "C",
+      "answerExplanation": "보호 대상인 파일 서비스·계약정보, 자산에 도달할 수 있는 접근 경로, 위험을 가능하게 하는 미적용 패치를 각각 자산·위협 경로·취약성으로 구분해야 위험 진술을 이어갈 수 있습니다.",
+      "incorrectExplanations": {
+        "A": "계약서는 보호해야 할 정보자산이지, 그 자체로 자산을 약화시키는 취약성이 아닙니다.",
+        "B": "협력사 네트워크는 접근 조건 또는 위협 경로로 검토할 대상이며 보호 대상 자산과 같은 의미가 아닙니다.",
+        "D": "패치 날짜만으로는 어떤 자산에 어떤 영향이 생기는지와 취약성의 상태를 설명할 수 없습니다."
+      },
+      "claimIds": ["ISRM-S02-U02-C03", "ISRM-S02-U02-C04", "ISRM-S02-U02-C05"],
+      "ambiguityReview": "ONE_BEST_ANSWER",
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
+      "sourceExpressionReuse": 0,
+      "officialQuestionReconstruction": 0,
+      "rightsStatus": "REVIEW_REQUIRED",
+      "currentness": "PARTIAL",
+      "canonicalRevisionBinding": "NOT_ISSUED"
+    },
+    {
+      "id": "isrm-q-v2-10",
+      "status": "DRAFT_UNPUBLISHED",
+      "type": "SINGLE_CHOICE",
+      "difficulty": "PRACTICE",
+      "courseId": "course-isrm",
+      "subjectId": "isrm-2025-2027-s02",
+      "learningUnitId": "isrm-2025-2027-s02-u02",
+      "scenarioType": "SECURIUM_SYNTHETIC_SCENARIO",
+      "fictional": true,
+      "objectiveIds": ["ISRM-S02-U02-O02"],
+      "theoryIds": ["ISRM-S02-U02-T01"],
+      "prompt": "두 시나리오의 추정 발생 가능성이 같지만, 하나는 준거성 검토가 필요한 데이터 처리 업무에 영향을 주고 다른 하나는 내부 편의 도구에 영향을 준다. 평가자는 무엇을 해야 하는가?",
+      "options": [
+        { "id": "A", "text": "발생 가능성이 같으므로 두 시나리오를 동일 우선순위로 자동 처리한다." },
+        { "id": "B", "text": "영향·준거성·목표 위험수준을 검토하고 우선순위 이유를 기록한다." },
+        { "id": "C", "text": "발생 가능성이 같으므로 준거성 검토가 필요한 업무도 별도로 보지 않는다." },
+        { "id": "D", "text": "위험 영향보다 가장 짧게 끝나는 개선 작업을 먼저 처리한다." }
+      ],
+      "correctOptionId": "B",
+      "answerExplanation": "발생 가능성 하나만으로 우선순위를 정할 수 없습니다. 자산과 업무 영향, 적용 가능한 준거성, 조직의 목표 위험수준을 함께 비교하고 판단 이유를 남겨야 합니다.",
+      "incorrectExplanations": {
+        "A": "같은 가능성은 영향과 준거성 조건까지 같다는 뜻이 아니므로 동일한 우선순위를 자동으로 정하지 못합니다.",
+        "C": "발생 가능성이 같아도 준거성 조건과 업무 영향은 위험 판단에 포함되어야 합니다.",
+        "D": "처리 시간이 짧다는 이유만으로 위험 영향과 목표 수준을 대체할 수 없습니다."
+      },
+      "claimIds": ["ISRM-S02-U02-C03", "ISRM-S02-U02-C04", "ISRM-S02-U02-C05"],
+      "ambiguityReview": "ONE_BEST_ANSWER",
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
+      "sourceExpressionReuse": 0,
+      "officialQuestionReconstruction": 0,
+      "rightsStatus": "REVIEW_REQUIRED",
+      "currentness": "PARTIAL",
+      "canonicalRevisionBinding": "NOT_ISSUED"
+    },
+    {
+      "id": "isrm-q-v2-11",
+      "status": "DRAFT_UNPUBLISHED",
+      "type": "SINGLE_CHOICE",
+      "difficulty": "FOUNDATION",
+      "courseId": "course-isrm",
+      "subjectId": "isrm-2025-2027-s02",
+      "learningUnitId": "isrm-2025-2027-s02-u02",
+      "scenarioType": "SECURIUM_SYNTHETIC_SCENARIO",
+      "fictional": true,
+      "objectiveIds": ["ISRM-S02-U02-O02"],
+      "theoryIds": ["ISRM-S02-U02-T01"],
+      "prompt": "취약점이 단순히 언급된 것이 아니라 평가되었다는 주장을 가장 직접적으로 뒷받침하는 기록은 무엇인가?",
+      "options": [
+        { "id": "A", "text": "'위험해 보인다'는 의견만 적은 채팅 메시지와 발견 시점" },
+        { "id": "B", "text": "영향 자산·점검 증거·가능성/영향 이유·날짜·검토자를 포함한 발견 기록" },
+        { "id": "C", "text": "대상과 근거 없이 어떤 취약점도 위험할 수 있다고 적은 일반 보안 문구" },
+        { "id": "D", "text": "점검 대상과 날짜·판단 근거 없이 소프트웨어 이름만 나열한 목록" }
+      ],
+      "correctOptionId": "B",
+      "answerExplanation": "취약점 평가 기록은 영향받는 자산, 관찰 또는 점검 증거, 가능성·영향을 판단한 이유, 날짜와 검토자를 연결해야 다른 사람이 판단 과정을 확인할 수 있습니다.",
+      "incorrectExplanations": {
+        "A": "주관적 표현만 있고 대상·근거·판단 기준이 없어 평가 과정을 재현할 수 없습니다.",
+        "C": "일반 문구는 특정 자산의 취약점이 실제로 점검되었는지 보여 주지 못합니다.",
+        "D": "소프트웨어 목록만으로는 취약점의 증거, 영향, 평가 시점과 검토자를 확인할 수 없습니다."
+      },
+      "claimIds": ["ISRM-S02-U02-C04", "ISRM-S02-U02-C05"],
+      "ambiguityReview": "ONE_BEST_ANSWER",
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
+      "sourceExpressionReuse": 0,
+      "officialQuestionReconstruction": 0,
+      "rightsStatus": "REVIEW_REQUIRED",
+      "currentness": "PARTIAL",
+      "canonicalRevisionBinding": "NOT_ISSUED"
+    }
+  ],
+  "limitations": [
+    "These are independent draft questions, not official KCA questions and not exam-prediction claims.",
+    "Question IDs are retained for planned relation only; no canonical question body or revision binding is overwritten or issued."
+  ]
+}
