@@ -101,6 +101,22 @@ jobs:
               target.parent.mkdir(parents=True, exist_ok=True)
               target.write_bytes(data)
 
+      - name: Verify byte-preserving checkout is clean
+        shell: python
+        run: |
+          import json
+          import subprocess
+
+          status = subprocess.check_output(
+              ["git", "status", "--porcelain", "--untracked-files=all"],
+              text=True,
+              encoding="utf-8",
+              errors="replace",
+          ).strip()
+          print("source_checkout_status=" + ("clean" if not status else json.dumps(status.splitlines())))
+          if status:
+              raise SystemExit("source checkout is dirty after committed-byte preservation")
+
       - name: Record runtime and run extracted-package matrix contract
         env:
           EXPECTED_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
