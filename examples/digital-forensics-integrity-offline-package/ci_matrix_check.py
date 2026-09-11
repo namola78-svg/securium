@@ -23,7 +23,7 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 PACKAGE_ROOT = Path(__file__).resolve().parent
 LAB_ROOT = REPOSITORY_ROOT / "examples" / "digital-forensics-integrity-local-lab"
 BUILDER = PACKAGE_ROOT / "build_offline_package.py"
-EXPECTED_PACKAGE_TESTS = 9
+EXPECTED_PACKAGE_TESTS = 14
 EXPECTED_LAB_TESTS = 25
 WINDOWS_REPARSE_TEST = "test_windows_reparse_point_is_rejected_when_supported"
 CI_ROOT_ENV = "SECURIUM_OFFLINE_CI_ROOT"
@@ -104,7 +104,7 @@ def _run_package_boundary_tests(ci_root: Path) -> dict[str, object]:
         "skipped_ids=sorted(test.id().rsplit('.', 1)[-1] for test, _reason in result.skipped); "
         "summary={'discovered':discovered,'executed':result.testsRun,'failed':len(result.failures),'errors':len(result.errors),'skipped':len(result.skipped),'skipped_ids':skipped_ids,'todo':0}; "
         "print(json.dumps(summary, sort_keys=True)); "
-        "raise SystemExit(0 if discovered == 9 and result.testsRun == 9 and not result.failures and not result.errors and not result.skipped else 1)"
+        f"raise SystemExit(0 if discovered == {EXPECTED_PACKAGE_TESTS} and result.testsRun == {EXPECTED_PACKAGE_TESTS} and not result.failures and not result.errors and not result.skipped else 1)"
     )
     result = _run(
         [sys.executable, "-B", "-c", suite_code],
@@ -382,6 +382,10 @@ def _run_package_flow(ci_root: Path, expected_source_sha: str) -> None:
             str(first_zip),
             "--manifest",
             str(first_dir / "securium-forensics-integrity-offline-package.manifest.json"),
+            "--repository-root",
+            str(REPOSITORY_ROOT),
+            "--source-commit",
+            expected_source_sha,
             "--extract-dir",
             str(extraction),
             "--report",
@@ -391,7 +395,11 @@ def _run_package_flow(ci_root: Path, expected_source_sha: str) -> None:
         expected_code=0,
     )
     verification = _json_output(verify_result)
-    if verification.get("status") != "PASS" or verification.get("entry_count") != 12:
+    if (
+        verification.get("status") != "PASS"
+        or verification.get("source_verification") != "PASS"
+        or verification.get("entry_count") != 12
+    ):
         raise RuntimeError("normal package verification did not pass")
     links = verification.get("markdown_links", {})
     if not isinstance(links, dict) or not links.get("internal") or not links.get("external"):

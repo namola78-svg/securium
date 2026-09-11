@@ -70,7 +70,7 @@ directory outside that repository:
 
 ```text
 python -B examples/digital-forensics-integrity-offline-package/build_offline_package.py build --repository-root . --output-dir <directory-outside-repository> --source-commit <source-commit>
-python -B examples/digital-forensics-integrity-offline-package/build_offline_package.py verify --zip <directory-outside-repository>/securium-forensics-integrity-offline-package.zip --manifest <directory-outside-repository>/securium-forensics-integrity-offline-package.manifest.json --extract-dir <new-disposable-extraction-directory> --report <new-verification-report.json>
+python -B examples/digital-forensics-integrity-offline-package/build_offline_package.py verify --zip <directory-outside-repository>/securium-forensics-integrity-offline-package.zip --manifest <directory-outside-repository>/securium-forensics-integrity-offline-package.manifest.json --repository-root . --source-commit <source-commit> --extract-dir <new-disposable-extraction-directory> --report <new-verification-report.json>
 ```
 
 Use a new, empty artifact and extraction directory for each run. The builder
@@ -103,13 +103,20 @@ this avoids a circular digest.
 The external manifest beside the ZIP records the final ZIP size and SHA-256,
 and points to the internal manifest by its package-relative name. Verify the
 ZIP against that external manifest before extraction, then verify the internal
-entry set and each entry's bytes. These manifests are integrity records, not
-signatures, provenance evidence, or proof that the source commit itself is
-trustworthy. A source-commit mismatch between the two manifests is rejected.
-Because the manifest is unsigned, a party able to replace both the ZIP and
-the external/internal records can still create a self-consistent package;
-that is a trust-boundary limitation, not provenance verification. The matrix
-CI adds the trusted checkout context by pinning the exact event source SHA.
+entry set and each entry's bytes. Source-bound verification additionally
+requires `--repository-root` to name a clean trusted checkout and
+`--source-commit` to name its exact `HEAD`. The verifier reads all eleven
+allowlisted source blobs from that checkout's Git commit and independently
+checks every archive path, source path, size, SHA-256, Git blob ID, and entry
+byte. The ZIP and both manifests are untrusted inputs; changing their hashes
+or source records together does not change the trusted contract. Without the
+trusted checkout, verification is rejected rather than reported as a
+source-verification pass.
+
+These manifests and the trusted-checkout comparison are integrity records,
+not signatures, official provenance evidence, or proof that the selected
+source commit is authentic or licensed. The package's reproducibility claim
+also remains limited to the same source bytes and builder environment.
 
 The builder refuses to overwrite an existing ZIP, manifest, or report. It
 rejects unsafe archive names, duplicate or case-fold-colliding entries,

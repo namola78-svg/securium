@@ -209,6 +209,20 @@ def _run_git(root: Path, *arguments: str) -> str:
     return completed.stdout.strip()
 
 
+def _run_git_bytes(root: Path, *arguments: str) -> bytes:
+    completed = subprocess.run(
+        ["git", "-C", str(root), *arguments],
+        check=False,
+        capture_output=True,
+    )
+    if completed.returncode:
+        detail = completed.stderr.decode("utf-8", errors="replace").strip()
+        if not detail:
+            detail = completed.stdout.decode("utf-8", errors="replace").strip()
+        raise PackageError(detail or "git command failed")
+    return completed.stdout
+
+
 def _source_commit(root: Path, requested: str | None, require_clean: bool) -> tuple[str, str]:
     commit = _run_git(root, "rev-parse", "--verify", "HEAD^{commit}")
     if requested and requested != commit:
@@ -216,7 +230,7 @@ def _source_commit(root: Path, requested: str | None, require_clean: bool) -> tu
     if require_clean:
         status = _run_git(root, "status", "--porcelain", "--untracked-files=all")
         if status:
-            raise PackageError("repository worktree must be clean when building a package")
+            raise PackageError("repository worktree must be clean for source-bound package operations")
     tree = _run_git(root, "rev-parse", f"{commit}^{{tree}}")
     return commit, tree
 
@@ -225,7 +239,11 @@ def _commit_blob(root: Path, commit: str, source_name: str) -> str:
     return _run_git(root, "rev-parse", f"{commit}:{source_name}")
 
 
-def _collect_entries(
+def _commit_bytes(root: Path, commit: str, source_name: str) -> bytes:
+    return _run_git_bytes(root, "cat-file", "blob", f"{commit}:{source_name}")
+
+
+def _committed_entries(
     root: Path,
     commit: str,
     allowlist: Sequence[tuple[str, str]] = PACKAGE_ALLOWLIST,
@@ -234,27 +252,46 @@ def _collect_entries(
     collected: list[dict[str, object]] = []
     total_size = 0
     for source_name, archive_name in allowlist:
-        source_path = _repo_relative(root, source_name)
-        data = source_path.read_bytes()
+        _repo_relative(root, source_name)
+        data = _commit_bytes(root, commit, source_name)
         size = len(data)
         if size > MAX_ENTRY_BYTES:
             raise PackageError(f"source entry exceeds {MAX_ENTRY_BYTES} bytes: {source_name}")
         total_size += size
         if total_size > MAX_PACKAGE_BYTES:
             raise PackageError(f"source entries exceed {MAX_PACKAGE_BYTES} bytes")
-        actual_blob = _git_blob_sha1(data)
-        expected_blob = _commit_blob(root, commit, source_name)
-        if actual_blob != expected_blob:
-            raise PackageError(f"source bytes do not match commit {commit}: {source_name}")
         collected.append(
             {
                 "source_path": source_name,
                 "archive_path": _safe_archive_path(archive_name),
                 "size": size,
                 "sha256": _sha256_bytes(data),
-                "git_blob_sha1": actual_blob,
+                "git_blob_sha1": _git_blob_sha1(data),
                 "_bytes": data,
             }
+        )
+    return sorted(collected, key=lambda entry: str(entry["archive_path"]))
+
+
+def _collect_entries(
+    root: Path,
+    commit: str,
+    allowlist: Sequence[tuple[str, str]] = PACKAGE_ALLOWLIST,
+) -> list[dict[str, object]]:
+    committed = _committed_entries(root, commit, allowlist)
+    collected: list[dict[str, object]] = []
+    for expected in committed:
+        source_name = str(expected["source_path"])
+        source_path = _repo_relative(root, source_name)
+        data = source_path.read_bytes()
+        size = len(data)
+        actual_blob = _git_blob_sha1(data)
+        if actual_blob != expected["git_blob_sha1"] or data != expected["_bytes"]:
+            raise PackageError(f"source bytes do not match commit {commit}: {source_name}")
+        entry = dict(expected)
+        entry["_bytes"] = data
+        collected.append(
+            entry
         )
     return sorted(collected, key=lambda entry: str(entry["archive_path"]))
 
@@ -554,15 +591,32 @@ def verify_package(
     external_manifest_path: Path,
     extract_dir: Path | None = None,
     report_path: Path | None = None,
+    *,
+    trusted_repository_root: Path | None = None,
+    trusted_source_commit: str | None = None,
 ) -> dict[str, object]:
     result: dict[str, object] = {
         "status": "REJECTED",
+        "source_verification": "NOT_VERIFIED",
         "zip_path": str(zip_path.resolve()),
         "external_manifest_path": str(external_manifest_path.resolve()),
         "errors": [],
     }
     owned_extract: Path | None = None
     try:
+        if trusted_repository_root is None:
+            raise PackageError("trusted repository root is required for source-bound verification")
+        trusted_root = trusted_repository_root.resolve()
+        trusted_commit, trusted_tree = _source_commit(
+            trusted_root,
+            trusted_source_commit,
+            require_clean=True,
+        )
+        trusted_entries = _committed_entries(trusted_root, trusted_commit)
+        expected_by_archive = {
+            str(entry["archive_path"]): entry for entry in trusted_entries
+        }
+
         if _is_reparse_point(zip_path) or not zip_path.is_file():
             raise PackageError(f"unsafe or missing ZIP file: {zip_path}")
         if zip_path.stat().st_size > MAX_ARCHIVE_BYTES:
@@ -570,6 +624,13 @@ def verify_package(
         external = _read_json(external_manifest_path)
         if not isinstance(external, dict) or external.get("format") != PACKAGE_FORMAT:
             raise PackageError("external manifest format is not supported")
+        if external.get("manifest_role") != "records the final ZIP bytes; does not replace entry verification":
+            raise PackageError("external manifest role is invalid")
+        if (
+            external.get("reproducibility_scope") != "same source bytes and builder environment only"
+            or external.get("cross_environment_claim") is not False
+        ):
+            raise PackageError("external reproducibility metadata is invalid")
         expected_size = external.get("zip_size")
         expected_hash = external.get("zip_sha256")
         if not isinstance(expected_size, int) or not isinstance(expected_hash, str):
@@ -579,6 +640,12 @@ def verify_package(
             raise PackageError("ZIP bytes do not match the external manifest")
         if external.get("zip_file") != zip_path.name:
             raise PackageError("ZIP filename does not match the external manifest")
+        if external.get("internal_manifest_file") != INTERNAL_MANIFEST_NAME:
+            raise PackageError("external manifest internal filename is not the package manifest")
+        if external.get("source_commit") != trusted_commit:
+            raise PackageError("external manifest source commit does not match the trusted checkout")
+        if external.get("source_tree") != trusted_tree:
+            raise PackageError("external manifest source tree does not match the trusted checkout")
 
         with zipfile.ZipFile(zip_path, "r") as archive:
             infos = archive.infolist()
@@ -616,47 +683,84 @@ def verify_package(
                 raise PackageError("internal package manifest is invalid JSON") from error
             if not isinstance(internal, dict) or internal.get("format") != PACKAGE_FORMAT:
                 raise PackageError("internal package manifest format is not supported")
+            if internal.get("manifest_role") != "describes source entries; does not hash itself or the final ZIP":
+                raise PackageError("internal manifest role is invalid")
             if internal.get("self_not_included_in_entries") is not True:
                 raise PackageError("internal manifest self-hash boundary is missing")
             manifest_entries = internal.get("entries")
             if not isinstance(manifest_entries, list) or internal.get("entry_count") != len(manifest_entries):
                 raise PackageError("internal manifest entry count is invalid")
+            if internal.get("entry_count") != len(expected_by_archive):
+                raise PackageError("internal manifest entry count does not match the trusted source")
             if external.get("entry_count_including_internal_manifest") != len(names):
                 raise PackageError("external manifest entry count is invalid")
             if external.get("internal_manifest_sha256") != _sha256_bytes(internal_bytes):
                 raise PackageError("internal manifest bytes do not match the external manifest")
+            if internal.get("source_commit") != trusted_commit:
+                raise PackageError("internal manifest source commit does not match the trusted checkout")
+            if internal.get("source_tree") != trusted_tree:
+                raise PackageError("internal manifest source tree does not match the trusted checkout")
+            if internal.get("source_worktree_clean") is not True:
+                raise PackageError("internal manifest does not record a clean source worktree")
+            reproducibility = internal.get("reproducibility")
+            if (
+                not isinstance(reproducibility, dict)
+                or reproducibility.get("zip_timestamp") != "1980-01-01T00:00:00Z"
+                or reproducibility.get("compression") != "deflate"
+                or reproducibility.get("compresslevel") != 9
+                or reproducibility.get("scope") != "same source bytes and builder environment only"
+                or reproducibility.get("cross_environment_claim") is not False
+            ):
+                raise PackageError("internal reproducibility metadata is invalid")
             if external.get("source_commit") != internal.get("source_commit"):
                 raise PackageError("source commit differs between manifests")
 
-            expected_entries: dict[str, Mapping[str, object]] = {}
+            manifest_entries_by_archive: dict[str, Mapping[str, object]] = {}
             for entry in manifest_entries:
                 if not isinstance(entry, dict):
                     raise PackageError("internal manifest contains an invalid entry")
                 name = _validate_zip_name(str(entry.get("archive_path", "")))
-                if name == INTERNAL_MANIFEST_NAME or name in expected_entries:
+                if name == INTERNAL_MANIFEST_NAME or name in manifest_entries_by_archive:
                     raise PackageError("internal manifest contains a duplicate or self entry")
                 if _archive_collision_key(name) in {
-                    _archive_collision_key(item) for item in expected_entries
+                    _archive_collision_key(item) for item in manifest_entries_by_archive
                 }:
                     raise PackageError("internal manifest contains a case-fold collision")
                 if not isinstance(entry.get("size"), int) or not isinstance(entry.get("sha256"), str):
                     raise PackageError(f"invalid size or hash for entry: {name}")
-                expected_entries[name] = entry
+                trusted_entry = expected_by_archive.get(name)
+                if trusted_entry is None:
+                    raise PackageError(f"manifest entry is not in the trusted source allowlist: {name}")
+                for field in ("source_path", "archive_path", "size", "sha256", "git_blob_sha1"):
+                    if entry.get(field) != trusted_entry.get(field):
+                        raise PackageError(f"manifest {field} does not match the trusted source: {name}")
+                manifest_entries_by_archive[name] = entry
             actual_source_names = set(names) - {INTERNAL_MANIFEST_NAME}
-            if actual_source_names != set(expected_entries):
-                missing = sorted(set(expected_entries) - actual_source_names)
-                additional = sorted(actual_source_names - set(expected_entries))
+            if actual_source_names != set(expected_by_archive):
+                missing = sorted(set(expected_by_archive) - actual_source_names)
+                additional = sorted(actual_source_names - set(expected_by_archive))
                 raise PackageError(f"entry set mismatch; missing={missing}, additional={additional}")
+            if external.get("entry_count_including_internal_manifest") != len(expected_by_archive) + 1:
+                raise PackageError("external manifest entry count does not match the trusted source")
+            if set(manifest_entries_by_archive) != set(expected_by_archive):
+                missing = sorted(set(expected_by_archive) - set(manifest_entries_by_archive))
+                additional = sorted(set(manifest_entries_by_archive) - set(expected_by_archive))
+                raise PackageError(f"manifest entry set mismatch; missing={missing}, additional={additional}")
 
             source_entry_views: list[dict[str, object]] = []
-            for name in sorted(expected_entries):
+            for name in sorted(expected_by_archive):
                 data = archive.read(name)
-                entry = expected_entries[name]
+                entry = manifest_entries_by_archive[name]
                 observed = {"archive_path": name, "size": len(data), "sha256": _sha256_bytes(data)}
                 if observed["size"] != entry["size"] or observed["sha256"] != entry["sha256"]:
                     raise PackageError(f"entry bytes do not match internal manifest: {name}")
+                trusted_entry = expected_by_archive[name]
+                if data != trusted_entry["_bytes"]:
+                    raise PackageError(f"source entry bytes do not match the trusted Git source: {name}")
                 source_entry_views.append({"archive_path": name, "_bytes": data})
             links = _markdown_links(source_entry_views)
+            if internal.get("markdown_links") != links:
+                raise PackageError("internal Markdown link metadata does not match the trusted source")
 
             if extract_dir is not None:
                 owned_extract = _safe_extract_root(extract_dir)
@@ -668,9 +772,12 @@ def verify_package(
                 "zip_size": actual_size,
                 "zip_sha256": actual_hash,
                 "entry_count": len(names),
-                "source_entry_count": len(expected_entries),
+                "source_entry_count": len(manifest_entries_by_archive),
                 "source_commit": internal["source_commit"],
                 "source_tree": internal.get("source_tree"),
+                "trusted_source_commit": trusted_commit,
+                "trusted_source_tree": trusted_tree,
+                "source_verification": "PASS",
                 "markdown_links": links,
                 "extraction": {
                     "status": "PASS" if extract_dir is not None else "NOT_REQUESTED",
@@ -706,6 +813,8 @@ def _build_parser() -> argparse.ArgumentParser:
     verify = commands.add_parser("verify", help="verify and optionally extract a package")
     verify.add_argument("--zip", dest="zip_path", type=Path, required=True)
     verify.add_argument("--manifest", dest="manifest_path", type=Path, required=True)
+    verify.add_argument("--repository-root", type=Path, required=True)
+    verify.add_argument("--source-commit", required=True)
     verify.add_argument("--extract-dir", type=Path)
     verify.add_argument("--report", type=Path)
     return parser
@@ -728,6 +837,8 @@ def main(argv: list[str] | None = None) -> int:
                 args.manifest_path,
                 extract_dir=args.extract_dir,
                 report_path=args.report,
+                trusted_repository_root=args.repository_root,
+                trusted_source_commit=args.source_commit,
             )
     except (OSError, PackageError) as error:
         print(json.dumps({"status": "REJECTED", "error": str(error)}, sort_keys=True), file=sys.stderr)
