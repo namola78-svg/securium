@@ -1,17 +1,54 @@
 import assert from "node:assert/strict";
+import { mkdtemp, rm } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import { after, before, test } from "node:test";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { startVinextTestServer } from "./support/vinext-test-server.mjs";
 
 let server;
 let baseUrl;
+let d1PersistPath;
 const runId = `${process.pid}-${Date.now()}`;
 const governedQuestionId = "course-isms-p-question-01";
 const governedQuestionVersionId = `${governedQuestionId}-version-01`;
 
 before(async () => {
+  d1PersistPath = await mkdtemp(join(tmpdir(), "securium-evidence-once-producer-d1-"));
+  process.env.D1_TEST_MODE = "1";
+  process.env.D1_TEST_PERSIST_PATH = d1PersistPath;
+  const migration = await runCommand([
+    "scripts/run-wrangler.mjs",
+    "d1",
+    "migrations",
+    "apply",
+    "DB",
+    "--local",
+    "--config",
+    "wrangler.local.jsonc",
+  ]);
+  assert.equal(migration.code, 0, migration.output);
+  const seed = await runCommand([
+    "scripts/run-wrangler.mjs",
+    "d1",
+    "execute",
+    "DB",
+    "--local",
+    "--config",
+    "wrangler.local.jsonc",
+    "--file",
+    "db/seed.sql",
+  ]);
+  assert.equal(seed.code, 0, seed.output);
   server = await startVinextTestServer({
     label: "Question attempt evidence recompute integration",
+    env: {
+      APP_BUILD_TARGET: "cloudflare",
+      APP_ENV: "test",
+      AUTH_PROVIDER: "sites",
+      DB_PROVIDER: "d1",
+      CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV: "false",
+    },
   });
   baseUrl = server.baseUrl;
   await prepareGovernedQuestionFixture();
@@ -19,6 +56,9 @@ before(async () => {
 
 after(async () => {
   await server?.stop();
+  delete process.env.D1_TEST_MODE;
+  delete process.env.D1_TEST_PERSIST_PATH;
+  await rm(d1PersistPath, { recursive: true, force: true }).catch(() => {});
 });
 
 test("governed question submission atomically queues one event-scoped recompute request", async () => {
@@ -238,6 +278,52 @@ test("legacy question submission remains canonical-only and does not enqueue Evi
        WHERE source_event_id = '${result.payload.result.attemptId}'`,
     ),
     0,
+  );
+});
+
+test("manual once subprocess processes the request created by the HTTP producer", async () => {
+  const result = await submitQuestion({
+    email: "dev-user-1@example.invalid",
+    idempotencyKey: `question-evidence-${runId}-worker-once`,
+    questionVersionId: governedQuestionVersionId,
+  });
+  assert.equal(result.response.status, 201, JSON.stringify(result.payload));
+  const attemptId = result.payload.result.attemptId;
+  const pending = await queryOne(
+    `SELECT id, status FROM evidence_recompute_requests WHERE source_event_id = '${attemptId}'`,
+  );
+  assert.equal(pending.status, "PENDING");
+
+  await server.stop();
+  let processedRequestId = null;
+  for (let invocation = 0; invocation < 8 && processedRequestId !== pending.id; invocation += 1) {
+    const runner = await runCommand([
+      "node_modules/tsx/dist/cli.mjs",
+      "scripts/run-question-attempt-evidence-once.mjs",
+      "--local-disposable",
+      "--provider=d1",
+      `--d1-persist-to=${d1PersistPath}`,
+      "--d1-database=00000000-0000-4000-8000-000000000000",
+    ]);
+    assert.equal(runner.code, 0, runner.output);
+    const output = runner.output.trim().split(/\r?\n/).reverse().find((line) => line.trim().startsWith("{"));
+    assert.ok(output, runner.output);
+    const onceResult = JSON.parse(output);
+    assert.equal(onceResult.status, "COMPLETED");
+    assert.ok(onceResult.requestId);
+    processedRequestId = onceResult.requestId;
+  }
+  assert.equal(processedRequestId, pending.id);
+
+  const completed = await queryOne(
+    `SELECT status FROM evidence_recompute_requests WHERE source_event_id = '${attemptId}'`,
+  );
+  assert.equal(completed.status, "COMPLETED");
+  assert.equal(
+    await scalar(
+      `SELECT count(*) AS count FROM evidence_projections WHERE source_event_id = '${attemptId}' AND lifecycle = 'ACTIVE'`,
+    ),
+    1,
   );
 });
 
