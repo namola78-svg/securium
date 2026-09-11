@@ -590,13 +590,7 @@ export async function submitQuestionAttempt(input: {
     operations.push(
       getDb()
         .insert(evidenceRecomputeRequests)
-        .values(recomputeRequestInsertValues(recomputeRequest))
-        .onConflictDoNothing({
-          target: [
-            evidenceRecomputeRequests.requestType,
-            evidenceRecomputeRequests.inputSemanticHash,
-          ],
-        }),
+        .values(recomputeRequestInsertValues(recomputeRequest)),
     );
   }
 

@@ -223,6 +223,48 @@ test("HTTP question producer uses PostgreSQL atomic attempt and recompute reques
   assert.equal(recovered.payload.result.idempotentReplay, false);
   assert.equal(await scalar("SELECT count(*) FROM evidence_recompute_requests WHERE source_event_id = $1", [recovered.payload.result.attemptId]), 1);
 
+  const conflictingRequestKey = `conflicting-request-${runId}`;
+  const requestCountBeforeConflict = await scalar(
+    "SELECT count(*) FROM evidence_recompute_requests WHERE user_id = $1",
+    [userId],
+  );
+  await client.unsafe(`
+    CREATE OR REPLACE FUNCTION public.qae_seed_conflicting_request() RETURNS trigger
+    LANGUAGE plpgsql AS $$
+    BEGIN
+      IF pg_trigger_depth() = 1 THEN
+        INSERT INTO public.evidence_recompute_requests
+          (id, request_type, scope_type, source_type, source_event_id,
+           source_revision_identity, user_id, concept_id, projection_version,
+           reason_code, input_semantic_hash, status, cursor)
+        VALUES
+          (NEW.id || '-conflict', NEW.request_type, NEW.scope_type,
+           NEW.source_type, 'conflicting-event', 'conflicting-revision',
+           '${secondUserId}', NEW.concept_id, NEW.projection_version,
+           NEW.reason_code, NEW.input_semantic_hash, 'PENDING', NEW.cursor)
+        ON CONFLICT DO NOTHING;
+      END IF;
+      RETURN NEW;
+    END;
+    $$;
+    CREATE TRIGGER qae_seed_conflicting_request
+    BEFORE INSERT ON public.evidence_recompute_requests
+    FOR EACH ROW EXECUTE FUNCTION public.qae_seed_conflicting_request();
+  `);
+  try {
+    const conflictingRequest = await submitQuestion({
+      email: "pg-qae-user-1@example.invalid",
+      idempotencyKey: conflictingRequestKey,
+      answer: wrongChoiceId,
+    });
+    assert.equal(conflictingRequest.response.status, 500, responseDiagnostic(conflictingRequest));
+    assert.equal(conflictingRequest.payload.code, "DATABASE_UNIQUE_VIOLATION");
+    assert.equal(await scalar("SELECT count(*) FROM question_attempts WHERE idempotency_key = $1", [conflictingRequestKey]), 0);
+    assert.equal(await scalar("SELECT count(*) FROM evidence_recompute_requests WHERE user_id = $1", [userId]), requestCountBeforeConflict);
+  } finally {
+    await client.unsafe("DROP TRIGGER qae_seed_conflicting_request ON public.evidence_recompute_requests; DROP FUNCTION public.qae_seed_conflicting_request();");
+  }
+
   const scheduleFailedKey = `schedule-failure-${runId}`;
   await client.unsafe(`
     DELETE FROM review_schedules WHERE user_id = '${userId}' AND course_id = '${courseId}' AND target_id = '${questionId}';
