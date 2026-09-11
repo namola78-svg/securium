@@ -50,8 +50,9 @@ when discovery finds zero tests or when failures, import errors, or skips are
 reported; a changed non-zero test count is recorded for review rather than
 hard-coded as a failure, so future tests can be added normally. The local
 baseline was Windows PowerShell 5.1 / Python 3.14.5; that is distinct from the
-GitHub-hosted `pwsh` run. The successful matrix was run at PR head
-`cc410ddcb39588eaa60ee71ef0c1fd9927e51db2` (workflow run `34555475433`).
+GitHub-hosted `pwsh` run. The latest completed matrix run for this PR reports
+the results above; the matrix is re-run when this workflow or the lab bundle
+changes.
 Results for Python 3.12, 3.13, macOS, real browsers, and learner rehearsal are
 not inferred from this matrix.
 
