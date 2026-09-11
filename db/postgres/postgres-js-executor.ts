@@ -175,6 +175,7 @@ export class PostgresJsExecutor implements PostgresExecutor {
 
 type RuntimePostgresScope = {
   executorPromise?: Promise<PostgresJsExecutor>;
+  closePromise?: Promise<void>;
 };
 
 const runtimePostgresScope = new AsyncLocalStorage<RuntimePostgresScope>();
@@ -183,16 +184,63 @@ let runtimeExecutorPromise: Promise<PostgresJsExecutor> | undefined;
 export async function withRuntimePostgresRequestScope<T>(
   callback: () => Promise<T>,
 ) {
-  return runtimePostgresScope.run({}, async () => {
+  const scope: RuntimePostgresScope = {};
+  return runtimePostgresScope.run(scope, async () => {
     try {
-      return await callback();
-    } finally {
-      const executorPromise = runtimePostgresScope.getStore()?.executorPromise;
-      if (executorPromise) {
-        await (await executorPromise).close();
+      const result = await callback();
+      if (result instanceof Response && result.body) {
+        return responseWithDeferredExecutorClose(result, scope) as T;
       }
+      await closeRuntimePostgresScope(scope);
+      return result;
+    } catch (error) {
+      await closeRuntimePostgresScope(scope).catch(() => {});
+      throw error;
     }
   });
+}
+
+function responseWithDeferredExecutorClose(
+  response: Response,
+  scope: RuntimePostgresScope,
+) {
+  const reader = response.body!.getReader();
+  const body = new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      try {
+        const result = await runtimePostgresScope.run(scope, () =>
+          reader.read(),
+        );
+        if (result.done) {
+          await closeRuntimePostgresScope(scope);
+          controller.close();
+          return;
+        }
+        controller.enqueue(result.value);
+      } catch (error) {
+        controller.error(error);
+        await closeRuntimePostgresScope(scope).catch(() => {});
+      }
+    },
+    async cancel(reason) {
+      try {
+        await runtimePostgresScope.run(scope, () => reader.cancel(reason));
+      } finally {
+        await closeRuntimePostgresScope(scope);
+      }
+    },
+  });
+  return new Response(body, {
+    headers: response.headers,
+    status: response.status,
+    statusText: response.statusText,
+  });
+}
+
+async function closeRuntimePostgresScope(scope: RuntimePostgresScope) {
+  if (!scope.executorPromise) return;
+  scope.closePromise ??= scope.executorPromise.then((executor) => executor.close());
+  await scope.closePromise;
 }
 
 export async function getRuntimePostgresExecutor(
@@ -238,6 +286,13 @@ export async function createPostgresJsExecutor(
 }
 
 export async function disconnectRuntimePostgresExecutor() {
+  const scope = runtimePostgresScope.getStore();
+  if (scope?.executorPromise) {
+    await closeRuntimePostgresScope(scope);
+    scope.executorPromise = undefined;
+    scope.closePromise = undefined;
+    return;
+  }
   const executorPromise = runtimeExecutorPromise;
   runtimeExecutorPromise = undefined;
   if (executorPromise) await (await executorPromise).close();

@@ -223,6 +223,40 @@ test("HTTP question producer uses PostgreSQL atomic attempt and recompute reques
   assert.equal(recovered.payload.result.idempotentReplay, false);
   assert.equal(await scalar("SELECT count(*) FROM evidence_recompute_requests WHERE source_event_id = $1", [recovered.payload.result.attemptId]), 1);
 
+  const scheduleFailedKey = `schedule-failure-${runId}`;
+  await client.unsafe(`
+    DELETE FROM review_schedules WHERE user_id = '${userId}' AND course_id = '${courseId}' AND target_id = '${questionId}';
+    CREATE OR REPLACE FUNCTION public.qae_test_abort_schedule() RETURNS trigger
+    LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'test review schedule failure'; END; $$;
+    CREATE TRIGGER qae_test_abort_schedule BEFORE INSERT OR UPDATE ON public.review_schedules
+    FOR EACH ROW EXECUTE FUNCTION public.qae_test_abort_schedule();
+  `);
+  try {
+    const scheduleFailed = await submitQuestion({
+      email: "pg-qae-user-1@example.invalid",
+      idempotencyKey: scheduleFailedKey,
+      answer: wrongChoiceId,
+    });
+    assert.equal(scheduleFailed.response.status, 500, responseDiagnostic(scheduleFailed));
+    const scheduleFailedAttempt = await one(
+      "SELECT id FROM question_attempts WHERE idempotency_key = $1",
+      [scheduleFailedKey],
+    );
+    assert.ok(scheduleFailedAttempt);
+    assert.equal(await scalar("SELECT count(*) FROM evidence_recompute_requests WHERE source_event_id = $1", [scheduleFailedAttempt.id]), 1);
+    assert.equal(await scalar("SELECT count(*) FROM review_schedules WHERE user_id = $1 AND course_id = $2 AND target_id = $3", [userId, courseId, questionId]), 0);
+  } finally {
+    await client.unsafe("DROP TRIGGER qae_test_abort_schedule ON public.review_schedules; DROP FUNCTION public.qae_test_abort_schedule();");
+  }
+  const scheduleReplay = await submitQuestion({
+    email: "pg-qae-user-1@example.invalid",
+    idempotencyKey: scheduleFailedKey,
+    answer: wrongChoiceId,
+  });
+  assert.equal(scheduleReplay.response.status, 201, responseDiagnostic(scheduleReplay));
+  assert.equal(scheduleReplay.payload.result.idempotentReplay, true);
+  assert.equal(await scalar("SELECT count(*) FROM review_schedules WHERE user_id = $1 AND course_id = $2 AND target_id = $3", [userId, courseId, questionId]), 0);
+
   const concurrentKey = `concurrent-${runId}`;
   const concurrent = await Promise.all([
     submitQuestion({ email: "pg-qae-user-1@example.invalid", idempotencyKey: concurrentKey, answer: wrongChoiceId }),
@@ -230,6 +264,10 @@ test("HTTP question producer uses PostgreSQL atomic attempt and recompute reques
   ]);
   const concurrentSuccesses = concurrent.filter((result) => result.response.status === 201);
   assert.equal(concurrentSuccesses.length, 1, concurrent.map(responseDiagnostic).join("\n"));
+  const concurrentLosers = concurrent.filter((result) => result.response.status !== 201);
+  assert.equal(concurrentLosers.length, 1, concurrent.map(responseDiagnostic).join("\n"));
+  assert.equal(concurrentLosers[0].response.status, 500);
+  assert.equal(concurrentLosers[0].payload.code, "DATABASE_UNIQUE_VIOLATION");
   assert.equal(await scalar("SELECT count(*) FROM question_attempts WHERE idempotency_key = $1", [concurrentKey]), 1);
   assert.equal(await scalar("SELECT count(*) FROM evidence_recompute_requests WHERE source_event_id = (SELECT id FROM question_attempts WHERE idempotency_key = $1)", [concurrentKey]), 1);
   const concurrentRetry = await submitQuestion({
