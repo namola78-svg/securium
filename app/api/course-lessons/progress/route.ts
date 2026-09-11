@@ -27,6 +27,7 @@ export async function POST(request: Request) {
       action: input.action,
       progressPercent: input.progressPercent,
       timeSpentSeconds: input.timeSpentSeconds,
+      contentVersion: input.contentVersion,
     });
     return successResponse(request, { result });
   } catch (error) {

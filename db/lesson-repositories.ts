@@ -726,6 +726,7 @@ export async function listCourseTheoryProgress(
         eq(userCourseLessonProgress.userId, userId),
         eq(userCourseLessonProgress.courseId, courseLessons.courseId),
         eq(userCourseLessonProgress.courseLessonId, courseLessons.id),
+        eq(userCourseLessonProgress.contentVersion, contents.version),
       ),
     )
     .where(

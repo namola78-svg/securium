@@ -1632,6 +1632,7 @@ export async function getIntegratedStatistics(userId: string) {
                 userCourseLessonProgress.courseLessonId,
                 courseLessons.id,
               ),
+              eq(userCourseLessonProgress.contentVersion, contents.version),
             ),
           )
           .where(

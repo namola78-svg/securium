@@ -1099,10 +1099,11 @@ export const userCourseLessonProgress = sqliteTable(
     ...timestamps,
   },
   (table) => [
-    uniqueIndex("user_course_lesson_progress_unique").on(
+    uniqueIndex("user_course_lesson_progress_revision_unique").on(
       table.userId,
       table.courseId,
       table.courseLessonId,
+      table.contentVersion,
     ),
     index("user_course_lesson_progress_user_course_idx").on(
       table.userId,

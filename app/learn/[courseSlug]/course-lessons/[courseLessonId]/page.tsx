@@ -138,6 +138,7 @@ export default async function CourseLessonPage({
             </nav>
             <CourseLessonActions
               courseLessonId={lesson.id}
+              contentVersion={lesson.version}
               initialStatus={lesson.status}
               initialProgressPercent={lesson.progressPercent}
               completionRule={lesson.completionRule}

@@ -356,6 +356,9 @@ export const courseLessonProgressSchema = z.object({
   action: z.enum(["START", "UPDATE", "COMPLETE"]),
   progressPercent: z.coerce.number().int().min(0).max(100).default(0),
   timeSpentSeconds: z.coerce.number().int().min(0).max(86400).default(0),
+  // This is an optimistic concurrency hint only. The repository resolves and
+  // persists the server-side contents.version value.
+  contentVersion: z.string().trim().min(1).max(200).optional(),
 });
 
 export const audioProgressSchema = z.object({
