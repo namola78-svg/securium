@@ -36,7 +36,15 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _configure_console() -> None:
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            reconfigure(encoding="utf-8", errors="backslashreplace")
+
+
 def main(argv: list[str] | None = None) -> int:
+    _configure_console()
     args = _parser().parse_args(argv)
     try:
         if args.command == "generate":

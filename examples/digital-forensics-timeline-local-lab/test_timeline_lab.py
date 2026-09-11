@@ -160,7 +160,13 @@ class TimelineLabTests(unittest.TestCase):
             "--fixture-created-at",
             "2026-09-11T09:15:00+09:00",
         ]
-        generated = subprocess.run(command, capture_output=True, text=True, check=False)
+        generated = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=False,
+        )
         self.assertEqual(generated.returncode, 0, generated.stderr)
         input_bytes = input_path.read_bytes()
 
@@ -178,6 +184,7 @@ class TimelineLabTests(unittest.TestCase):
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
             check=False,
         )
         self.assertEqual(analyzed.returncode, 0, analyzed.stderr)
@@ -199,6 +206,7 @@ class TimelineLabTests(unittest.TestCase):
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
             check=False,
         )
         self.assertEqual(overwrite.returncode, 2)
@@ -218,6 +226,7 @@ class TimelineLabTests(unittest.TestCase):
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
             check=False,
         )
         self.assertEqual(same_path.returncode, 2)
