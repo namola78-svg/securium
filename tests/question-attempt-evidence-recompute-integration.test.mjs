@@ -1,20 +1,35 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
 import { spawn } from "node:child_process";
 import { after, before, test } from "node:test";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import {
+  createD1FixtureMetadata,
+  D1_FIXTURE_MARKER,
+} from "../scripts/run-question-attempt-evidence-once.mjs";
 import { startVinextTestServer } from "./support/vinext-test-server.mjs";
 
 let server;
 let baseUrl;
 let d1PersistPath;
+const d1DatabaseName = "00000000-0000-4000-8000-000000000000";
+const d1FixtureOwnerToken = `producer-${randomUUID()}`;
 const runId = `${process.pid}-${Date.now()}`;
 const governedQuestionId = "course-isms-p-question-01";
 const governedQuestionVersionId = `${governedQuestionId}-version-01`;
 
 before(async () => {
   d1PersistPath = await mkdtemp(join(tmpdir(), "securium-evidence-once-producer-d1-"));
+  await writeFile(
+    join(d1PersistPath, D1_FIXTURE_MARKER),
+    JSON.stringify(createD1FixtureMetadata({
+      persistPath: d1PersistPath,
+      databaseName: d1DatabaseName,
+      ownerToken: d1FixtureOwnerToken,
+    })),
+  );
   process.env.D1_TEST_MODE = "1";
   process.env.D1_TEST_PERSIST_PATH = d1PersistPath;
   const migration = await runCommand([
@@ -303,7 +318,8 @@ test("manual once subprocess processes the request created by the HTTP producer"
       "--local-disposable",
       "--provider=d1",
       `--d1-persist-to=${d1PersistPath}`,
-      "--d1-database=00000000-0000-4000-8000-000000000000",
+      `--d1-database=${d1DatabaseName}`,
+      `--d1-fixture-owner=${d1FixtureOwnerToken}`,
     ]);
     assert.equal(runner.code, 0, runner.output);
     const output = runner.output.trim().split(/\r?\n/).reverse().find((line) => line.trim().startsWith("{"));

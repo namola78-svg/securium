@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { execFile as execFileCallback } from "node:child_process";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
@@ -9,7 +10,12 @@ import { Miniflare } from "miniflare";
 import { computeConceptMappingSetHash } from "../lib/services/learning-event-contracts.ts";
 import { D1DatabaseProvider } from "../db/provider/d1-database-provider.ts";
 import { EvidenceProjectionRepository, createRecomputeRequest } from "../db/evidence-projection-repository.ts";
-import { presentResult, resultExitCode } from "../scripts/run-question-attempt-evidence-once.mjs";
+import {
+  createD1FixtureMetadata,
+  D1_FIXTURE_MARKER,
+  presentResult,
+  resultExitCode,
+} from "../scripts/run-question-attempt-evidence-once.mjs";
 
 const execFile = promisify(execFileCallback);
 const runnerScript = "scripts/run-question-attempt-evidence-once.mjs";
@@ -55,7 +61,7 @@ test("D1 subprocess processes at most one eligible request and leaves replay/no-
     const second = await enqueueEvent(fixture, "once-attempt-b");
     await fixture.miniflare.dispose();
 
-    const one = await runOnce(fixture.persistPath, fixture.databaseName);
+    const one = await runOnce(fixture);
     assert.equal(one.exitCode, 0);
     assert.equal(one.result.status, "COMPLETED");
     assert.equal(one.result.projectionCount, 2);
@@ -69,7 +75,7 @@ test("D1 subprocess processes at most one eligible request and leaves replay/no-
     assert.equal(await scalar(afterOne.database, "SELECT count(*) FROM evidence_recompute_requests WHERE scope_type = 'USER' AND status = 'PENDING'"), "1");
     await afterOne.miniflare.dispose();
 
-    const two = await runOnce(fixture.persistPath, fixture.databaseName);
+    const two = await runOnce(fixture);
     assert.equal(two.exitCode, 0);
     assert.equal(two.result.status, "COMPLETED");
     assert.equal(two.result.projectionCount, 2);
@@ -79,7 +85,7 @@ test("D1 subprocess processes at most one eligible request and leaves replay/no-
     assert.equal(await scalar(afterTwo.database, "SELECT count(*) FROM evidence_recompute_requests WHERE request_type = 'MASTERY_RECOMPUTE_REQUIRED'"), "4");
     await afterTwo.miniflare.dispose();
 
-    const three = await runOnce(fixture.persistPath, fixture.databaseName);
+    const three = await runOnce(fixture);
     assert.equal(three.exitCode, 0);
     assert.deepEqual(three.result, {
       status: "NO_REQUEST",
@@ -103,7 +109,7 @@ test("D1 subprocess exposes strict source failure and non-zero exit without proj
     await enqueueEvent(fixture, "once-attempt-wrong-revision", "explicit-wrong-revision");
     await fixture.miniflare.dispose();
 
-    const result = await runOnce(fixture.persistPath, fixture.databaseName);
+    const result = await runOnce(fixture);
     assert.equal(result.exitCode, 1);
     assert.equal(result.result.status, "FAILED");
     assert.equal(result.result.errorClass, "SOURCE_INVALID");
@@ -125,7 +131,7 @@ test("D1 subprocess reports retryable transaction failure after batch rollback",
     await enqueueEvent(fixture, "once-attempt-rollback");
     await fixture.miniflare.dispose();
 
-    const result = await runOnce(fixture.persistPath, fixture.databaseName);
+    const result = await runOnce(fixture);
     assert.equal(result.exitCode, 75);
     assert.deepEqual(result.result.status, "RETRYABLE_FAILURE");
     assert.equal(result.result.errorClass, "TRANSIENT_DB");
@@ -146,10 +152,53 @@ test("once subprocess rejects an unspecified or non-disposable target", async ()
   assert.match(result.stderr, /LOCAL_DISPOSABLE_TARGET_REQUIRED/);
 });
 
+test("once subprocess rejects an unowned synthetic D1 persistence before opening it", async () => {
+  const persistPath = await mkdtemp(join(tmpdir(), "securium-evidence-once-unowned-d1-"));
+  tempFixtures.add(persistPath);
+  const databaseName = `unowned-${randomUUID()}`;
+  const argumentsToRunner = [
+    "--local-disposable",
+    "--provider=d1",
+    `--d1-persist-to=${persistPath}`,
+    `--d1-database=${databaseName}`,
+    "--d1-fixture-owner=caller-owner",
+  ];
+  const missingMarker = await runRunner(argumentsToRunner);
+  assert.equal(missingMarker.exitCode, 2);
+  assert.match(missingMarker.stderr, /D1_FIXTURE_MARKER_REQUIRED/);
+
+  await writeFile(
+    join(persistPath, D1_FIXTURE_MARKER),
+    JSON.stringify(createD1FixtureMetadata({
+      persistPath,
+      databaseName,
+      ownerToken: "different-owner",
+    })),
+  );
+  const wrongOwner = await runRunner(argumentsToRunner);
+  assert.equal(wrongOwner.exitCode, 2);
+  assert.match(wrongOwner.stderr, /D1_FIXTURE_OWNERSHIP_INVALID/);
+});
+
+test("once subprocess rejects a missing synthetic PostgreSQL owner before connecting", async () => {
+  const result = await runRunner(["--local-disposable", "--provider=postgres"], {
+    SECURIUM_EVIDENCE_ONCE_POSTGRES_URL: "postgres://postgres:synthetic-password@127.0.0.1:65432/postgres",
+    SECURIUM_EVIDENCE_ONCE_POSTGRES_CONTAINER: `missing-once-${randomUUID()}`,
+    SECURIUM_EVIDENCE_ONCE_POSTGRES_OWNER: "synthetic-owner",
+  });
+  assert.equal(result.exitCode, 2);
+  assert.match(result.stderr, /DISPOSABLE_POSTGRES_CONTAINER_UNAVAILABLE/);
+});
+
 async function createD1Fixture({ failHandoff = false } = {}) {
   const persistPath = await mkdtemp(join(tmpdir(), "securium-evidence-once-d1-"));
   tempFixtures.add(persistPath);
   const databaseName = `evidence-once-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const ownerToken = `d1-owner-${randomUUID()}`;
+  await writeFile(
+    join(persistPath, D1_FIXTURE_MARKER),
+    JSON.stringify(createD1FixtureMetadata({ persistPath, databaseName, ownerToken })),
+  );
   const miniflare = await openMiniflare(persistPath, databaseName);
   const database = await miniflare.getD1Database("DB");
   await execSql(database, `PRAGMA foreign_keys=ON;
@@ -200,6 +249,7 @@ async function createD1Fixture({ failHandoff = false } = {}) {
     database,
     repository: new EvidenceProjectionRepository(new D1DatabaseProvider(database)),
     mappingHash,
+    ownerToken,
   };
 }
 
@@ -261,12 +311,13 @@ async function scalar(database, sql, parameters = []) {
   return String(row?.value ?? (row ? Object.values(row)[0] : ""));
 }
 
-async function runOnce(persistPath, databaseName) {
+async function runOnce(fixture) {
   return runRunner([
     "--local-disposable",
     "--provider=d1",
-    `--d1-persist-to=${persistPath}`,
-    `--d1-database=${databaseName}`,
+    `--d1-persist-to=${fixture.persistPath}`,
+    `--d1-database=${fixture.databaseName}`,
+    `--d1-fixture-owner=${fixture.ownerToken}`,
   ]);
 }
 

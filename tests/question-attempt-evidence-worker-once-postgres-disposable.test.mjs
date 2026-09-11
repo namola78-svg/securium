@@ -22,7 +22,8 @@ after(async () => {
 test("PostgreSQL subprocess uses the owned loopback container and processes exactly one request", async () => {
   const owner = `once-owner-${randomUUID()}`;
   const password = "question-attempt-worker-once-disposable-password";
-  container = `securium-question-attempt-once-${randomUUID()}`;
+  container = process.env.SECURIUM_EVIDENCE_ONCE_POSTGRES_CONTAINER?.trim()
+    || `securium-question-attempt-once-${randomUUID()}`;
   await execFile("docker", [
     "run", "--detach", "--rm", "--name", container,
     "--label", `com.securium.evidence-once.owner=${owner}`,

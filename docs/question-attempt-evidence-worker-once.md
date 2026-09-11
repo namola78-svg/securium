@@ -17,8 +17,16 @@ The fixture owner must first create a local Miniflare D1 persist directory with
 the current schema and pending request. The runner does not apply migrations or
 create a request.
 
+The fixture owner must write a marker named
+`.securium-evidence-once-d1.json` at the supplied persistence root. The marker
+binds the absolute path, database identity, and a caller-supplied owner token;
+the runner rejects a missing or mismatched marker before opening Miniflare. It
+also rejects a persistence root or Wrangler `v3/d1` path that resolves through
+a symlink or junction. The fixture owner, not the runner, removes the
+persistence directory after the subprocess exits.
+
 ```text
-node node_modules/tsx/dist/cli.mjs scripts/run-question-attempt-evidence-once.mjs --local-disposable --provider=d1 --d1-persist-to=<absolute-local-persist-dir> --d1-database=<local-d1-database-identity>
+node node_modules/tsx/dist/cli.mjs scripts/run-question-attempt-evidence-once.mjs --local-disposable --provider=d1 --d1-persist-to=<absolute-local-persist-dir> --d1-database=<local-d1-database-identity> --d1-fixture-owner=<fixture-owner-token>
 ```
 
 When the fixture was prepared through `scripts/run-wrangler.mjs`, the runner
