@@ -81,11 +81,12 @@ directory. The original guides use the standard library and in-memory or
 temporary fixtures. Do not add real credentials, install a package, contact an
 external service, or turn a fixture into a production claim.
 
-The latest status recorded in the common README reports 49 passing tests on
+The latest status recorded in the common README reports 50 passing tests on
 the Windows PowerShell and Linux Bash matrix with Python 3.11 and 3.14 patch
-versions. It separately identifies the local Windows PowerShell 5.1/Python
-3.14.5 baseline. Python 3.12/3.13, macOS, learner rehearsal, and real browser
-behavior are not inferred from that matrix.
+versions. The earlier 49-test matrix is historical provenance for the
+pre-repair bundle. The README separately identifies the local Windows
+PowerShell 5.1/Python 3.14.5 baseline. Python 3.12/3.13, macOS, learner
+rehearsal, and real browser behavior are not inferred from that matrix.
 
 M05's tests use a Python HTTP client that directly supplies cookie and request
 headers to a loopback fixture. This is not browser verification of cookie,
