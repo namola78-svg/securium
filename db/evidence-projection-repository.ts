@@ -119,6 +119,7 @@ export class EvidenceProjectionRepository {
   async reconcileEventProjectionSet(
     source: CanonicalEvidenceSource,
     candidates: readonly EvidenceCandidate[],
+    claimFence?: Readonly<{ requestId: string; claimToken: string }>,
   ): Promise<ProjectionOutcome> {
     validateCandidateSet(source, candidates);
     const desired = [...candidates].sort((left, right) => left.id.localeCompare(right.id));
@@ -141,6 +142,14 @@ export class EvidenceProjectionRepository {
     const desiredByConcept = new Map(desired.map((candidate) => [candidate.conceptId, candidate]));
     const statements: DatabaseStatement[] = [];
     const semanticWriteIndexes: number[] = [];
+    if (claimFence) {
+      // Acquire the request row lock before any projection write. PostgreSQL
+      // claimers then serialize behind this transaction instead of winning
+      // between the final fence check and commit; D1 executes the same guard
+      // and write sequence atomically as one batch.
+      statements.push(claimFenceLock(claimFence));
+      statements.push(claimFenceGuard(desired[0], claimFence));
+    }
     const initialGuard = completeSourceAndSnapshotGuard(source, desired[0], active.rows);
     statements.push(initialGuard);
 
@@ -201,6 +210,7 @@ export class EvidenceProjectionRepository {
       statements.push(recomputeInsert(request));
     }
     statements.push(finalActiveSetGuard(source, desired[0], desired));
+    if (claimFence) statements.push(claimFenceGuard(desired[0], claimFence));
 
     try {
       const results = await this.database.transaction(statements);
@@ -242,16 +252,35 @@ export class EvidenceProjectionRepository {
     return result.affectedRows === 1 ? "NEW_SUCCESS" as const : "EXACT_REPLAY" as const;
   }
 
-  async claimNext(scopeType: RecomputeScope | null, workerId: string, now = new Date().toISOString()) {
+  async claimNext(
+    scopeType: RecomputeScope | null,
+    workerId: string,
+    now = new Date().toISOString(),
+    filter: Readonly<{
+      requestType?: RecomputeRequestType;
+      sourceType?: LearningEventSourceType;
+    }> = {},
+  ) {
     if (!workerId.trim()) fail("EVIDENCE_WORKER_ID_REQUIRED");
     const candidate = await this.database.queryOne<{ id: string }>({
       sql: `SELECT id FROM evidence_recompute_requests
         WHERE status IN ('PENDING', 'RETRYABLE', 'PROCESSING')
-          AND (CAST(? AS TEXT) IS NULL OR scope_type = CAST(? AS TEXT))
-          AND (lease_expires_at IS NULL OR lease_expires_at <= ?)
-          AND (next_attempt_at IS NULL OR next_attempt_at <= ?)
+        AND (CAST(? AS TEXT) IS NULL OR scope_type = CAST(? AS TEXT))
+        AND (CAST(? AS TEXT) IS NULL OR request_type = CAST(? AS TEXT))
+        AND (CAST(? AS TEXT) IS NULL OR source_type = CAST(? AS TEXT))
+        AND (lease_expires_at IS NULL OR lease_expires_at <= ?)
+        AND (next_attempt_at IS NULL OR next_attempt_at <= ?)
         ORDER BY created_at, id LIMIT 1`,
-      parameters: [scopeType, scopeType, now, now],
+      parameters: [
+        scopeType,
+        scopeType,
+        filter.requestType ?? null,
+        filter.requestType ?? null,
+        filter.sourceType ?? null,
+        filter.sourceType ?? null,
+        now,
+        now,
+      ],
     });
     if (!candidate) return null;
     const token = crypto.randomUUID();
@@ -263,6 +292,60 @@ export class EvidenceProjectionRepository {
         WHERE id = ? AND status IN ('PENDING', 'RETRYABLE', 'PROCESSING')
           AND (lease_expires_at IS NULL OR lease_expires_at <= ?)
           AND (next_attempt_at IS NULL OR next_attempt_at <= ?)`,
+      parameters: [workerId, token, now, leaseExpiresAt, candidate.id, now, now],
+    });
+    if (result.affectedRows !== 1) return null;
+    return this.getRequest(candidate.id);
+  }
+
+  async claimNextQuestionAttemptEvent(workerId: string, now = new Date().toISOString()) {
+    if (!workerId.trim()) fail("EVIDENCE_WORKER_ID_REQUIRED");
+
+    // QUESTION_ATTEMPT is also the source type used by the SW adapter. The
+    // bounded executor must claim only the ordinary question identity path;
+    // the generic claim query cannot make that distinction from request
+    // metadata alone.
+    const candidate = await this.database.queryOne<{ id: string }>({
+      sql: `SELECT request.id FROM evidence_recompute_requests request
+        INNER JOIN question_attempts attempt ON attempt.id = request.source_event_id
+        INNER JOIN question_versions version ON version.id = attempt.question_version_id
+        WHERE request.status IN ('PENDING', 'RETRYABLE', 'PROCESSING')
+        AND request.scope_type = 'EVENT'
+        AND request.request_type = 'EVIDENCE_RECOMPUTE_REQUIRED'
+        AND request.source_type = 'QUESTION_ATTEMPT'
+        AND attempt.question_id IS NOT NULL
+        AND attempt.foundation_question_binding_id IS NULL
+        AND attempt.question_version_id IS NOT NULL
+        AND attempt.concept_mapping_set_hash IS NOT NULL
+        AND version.question_id = attempt.question_id
+        AND version.semantic_hash IS NOT NULL
+        AND (request.lease_expires_at IS NULL OR request.lease_expires_at <= ?)
+        AND (request.next_attempt_at IS NULL OR request.next_attempt_at <= ?)
+        ORDER BY request.created_at, request.id LIMIT 1`,
+      parameters: [now, now],
+    });
+    if (!candidate) return null;
+
+    const token = crypto.randomUUID();
+    const leaseExpiresAt = new Date(Date.now() + E2A_LEASE_DURATION_MS).toISOString();
+    const result = await this.database.execute({
+      sql: `UPDATE evidence_recompute_requests SET status = 'PROCESSING',
+        claimed_by = ?, claim_token = ?, claimed_at = ?, lease_expires_at = ?,
+        attempts = attempts + 1
+        WHERE id = ? AND status IN ('PENDING', 'RETRYABLE', 'PROCESSING')
+          AND (lease_expires_at IS NULL OR lease_expires_at <= ?)
+          AND (next_attempt_at IS NULL OR next_attempt_at <= ?)
+          AND EXISTS (
+            SELECT 1 FROM question_attempts attempt
+            INNER JOIN question_versions version ON version.id = attempt.question_version_id
+            WHERE attempt.id = evidence_recompute_requests.source_event_id
+              AND attempt.question_id IS NOT NULL
+              AND attempt.foundation_question_binding_id IS NULL
+              AND attempt.question_version_id IS NOT NULL
+              AND attempt.concept_mapping_set_hash IS NOT NULL
+              AND version.question_id = attempt.question_id
+              AND version.semantic_hash IS NOT NULL
+          )`,
       parameters: [workerId, token, now, leaseExpiresAt, candidate.id, now, now],
     });
     if (result.affectedRows !== 1) return null;
@@ -308,6 +391,15 @@ export class EvidenceProjectionRepository {
       parameters: [errorClass, nextAttemptAt, id, claimToken],
     });
     return { outcome: result.affectedRows === 1 ? "RETRYABLE" as const : "CONFLICT" as const, nextAttemptAt };
+  }
+
+  async failClaim(id: string, claimToken: string, errorClass: RetryErrorClass, now = new Date()) {
+    return this.database.execute({
+      sql: `UPDATE evidence_recompute_requests SET status = 'FAILED', error_class = ?,
+        completed_at = ?, claimed_by = NULL, claim_token = NULL, lease_expires_at = NULL
+        WHERE id = ? AND status = 'PROCESSING' AND claim_token = ?`,
+      parameters: [errorClass, now.toISOString(), id, claimToken],
+    });
   }
 
   async completeClaim(id: string, claimToken: string) {
@@ -510,6 +602,30 @@ export class EvidenceProjectionRepository {
     });
     return Number(row?.ok ?? 0) === 1;
   }
+}
+
+function claimFenceGuard(
+  seed: EvidenceCandidate,
+  claimFence: Readonly<{ requestId: string; claimToken: string }>,
+): DatabaseStatement {
+  return evidenceGuardStatement(
+    seed,
+    `NOT EXISTS (SELECT 1 FROM evidence_recompute_requests
+      WHERE id = ? AND status = 'PROCESSING' AND claim_token = ?
+        AND lease_expires_at > ?)`,
+    [claimFence.requestId, claimFence.claimToken, new Date().toISOString()],
+  );
+}
+
+function claimFenceLock(
+  claimFence: Readonly<{ requestId: string; claimToken: string }>,
+): DatabaseStatement {
+  return {
+    sql: `UPDATE evidence_recompute_requests SET claim_token = claim_token
+      WHERE id = ? AND status = 'PROCESSING' AND claim_token = ?
+        AND lease_expires_at > ?`,
+    parameters: [claimFence.requestId, claimFence.claimToken, new Date().toISOString()],
+  };
 }
 export async function createRecomputeRequest(
   input: Omit<RecomputeRequestInput, "id" | "inputSemanticHash">,

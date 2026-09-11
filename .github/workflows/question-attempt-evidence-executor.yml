@@ -1,0 +1,161 @@
+name: Question attempt Evidence executor
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/question-attempt-evidence-executor.yml"
+      - "db/**"
+      - "drizzle/**"
+      - "lib/services/**"
+      - "lib/errors.ts"
+      - "tests/question-attempt-evidence-event-executor.test.mjs"
+      - "tests/question-attempt-evidence-event-executor-postgres-disposable.test.mjs"
+      - "tests/support/**"
+      - "scripts/run-d1-test-suite.mjs"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig.json"
+      - "vite.config.ts"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/question-attempt-evidence-executor.yml"
+      - "db/**"
+      - "drizzle/**"
+      - "lib/services/**"
+      - "lib/errors.ts"
+      - "tests/question-attempt-evidence-event-executor.test.mjs"
+      - "tests/question-attempt-evidence-event-executor-postgres-disposable.test.mjs"
+      - "tests/support/**"
+      - "scripts/run-d1-test-suite.mjs"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig.json"
+      - "vite.config.ts"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: question-attempt-evidence-executor-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: "true"
+  APP_ENV: test
+  NODE_OPTIONS: "--experimental-strip-types"
+
+jobs:
+  d1-executor:
+    name: D1 QUESTION_ATTEMPT executor (9 tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out exact tested revision
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22.13.0"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Bind exact tested revision
+        shell: bash
+        run: |
+          expected_sha="${{ github.event.pull_request.head.sha || github.sha }}"
+          test "$(git rev-parse HEAD)" = "$expected_sha"
+
+      - name: Run disposable D1 executor tests
+        shell: bash
+        timeout-minutes: 10
+        run: |
+          set -o pipefail
+          result_path="$RUNNER_TEMP/question-attempt-evidence-executor-d1.tap"
+          node node_modules/tsx/dist/cli.mjs \
+            --test \
+            --test-concurrency=1 \
+            --test-reporter=tap \
+            tests/question-attempt-evidence-event-executor.test.mjs \
+            | tee "$result_path"
+
+          skipped="$(awk '/^# skipped / { print $3 }' "$result_path" | tail -n 1)"
+          todo="$(awk '/^# todo / { print $3 }' "$result_path" | tail -n 1)"
+          passed="$(awk '/^# pass / { print $3 }' "$result_path" | tail -n 1)"
+          failed="$(awk '/^# fail / { print $3 }' "$result_path" | tail -n 1)"
+          test "${skipped:-1}" = "0"
+          test "${todo:-1}" = "0"
+          test "${failed:-1}" = "0"
+          test "${passed:-0}" = "9"
+
+  postgres-executor:
+    name: PostgreSQL QUESTION_ATTEMPT executor (3 tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SECURIUM_EVIDENCE_EXECUTOR_PG_CONTAINER: securium-qae-executor-${{ github.run_id }}-${{ github.run_attempt }}
+
+    steps:
+      - name: Check out exact tested revision
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22.13.0"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Bind exact tested revision
+        shell: bash
+        run: |
+          expected_sha="${{ github.event.pull_request.head.sha || github.sha }}"
+          test "$(git rev-parse HEAD)" = "$expected_sha"
+
+      - name: Run disposable PostgreSQL executor tests
+        shell: bash
+        timeout-minutes: 15
+        run: |
+          set -o pipefail
+          result_path="$RUNNER_TEMP/question-attempt-evidence-executor-postgres.tap"
+          node node_modules/tsx/dist/cli.mjs \
+            --test \
+            --test-concurrency=1 \
+            --test-reporter=tap \
+            tests/question-attempt-evidence-event-executor-postgres-disposable.test.mjs \
+            | tee "$result_path"
+
+          skipped="$(awk '/^# skipped / { print $3 }' "$result_path" | tail -n 1)"
+          todo="$(awk '/^# todo / { print $3 }' "$result_path" | tail -n 1)"
+          passed="$(awk '/^# pass / { print $3 }' "$result_path" | tail -n 1)"
+          failed="$(awk '/^# fail / { print $3 }' "$result_path" | tail -n 1)"
+          test "${skipped:-1}" = "0"
+          test "${todo:-1}" = "0"
+          test "${failed:-1}" = "0"
+          test "${passed:-0}" = "3"
+
+      - name: Cleanup owned disposable PostgreSQL container
+        if: always()
+        shell: bash
+        run: |
+          if docker container inspect "$SECURIUM_EVIDENCE_EXECUTOR_PG_CONTAINER" >/dev/null 2>&1; then
+            docker rm --force "$SECURIUM_EVIDENCE_EXECUTOR_PG_CONTAINER"
+          fi
+          if docker container inspect "$SECURIUM_EVIDENCE_EXECUTOR_PG_CONTAINER" >/dev/null 2>&1; then
+            echo "Owned PostgreSQL container was not removed" >&2
+            exit 1
+          fi
