@@ -34,9 +34,10 @@ before(async () => {
   await exec(`PRAGMA foreign_keys=ON;
     CREATE TABLE users (id text PRIMARY KEY);
     CREATE TABLE ontology_concepts (id text PRIMARY KEY, concept_key text NOT NULL, status text NOT NULL);
-    CREATE TABLE question_versions (id text PRIMARY KEY, semantic_hash text NOT NULL);
+    CREATE TABLE question_versions (id text PRIMARY KEY, question_id text NOT NULL, semantic_hash text NOT NULL);
     CREATE TABLE question_attempts (
       id text PRIMARY KEY, user_id text NOT NULL REFERENCES users(id),
+      question_id text, foundation_question_binding_id text,
       question_version_id text, concept_mapping_set_hash text,
       is_correct integer, score real, attempted_at text
     );
@@ -53,7 +54,7 @@ before(async () => {
     INSERT INTO users VALUES ('user-1'), ('user-2');
     INSERT INTO ontology_concepts VALUES
       ('concept-1', 'concept:one', 'ACTIVE'), ('concept-2', 'concept:two', 'ACTIVE');
-    INSERT INTO question_versions VALUES ('question-version-1', '${"d".repeat(64)}');
+    INSERT INTO question_versions VALUES ('question-version-1', 'question-1', '${"d".repeat(64)}');
     INSERT INTO question_concepts VALUES
       ('mapping-1', 'question-version-1', 'concept-1', 1, NULL, NULL, 'APPROVED'),
       ('mapping-2', 'question-version-1', 'concept-2', 1, NULL, NULL, 'APPROVED');`);
@@ -118,6 +119,41 @@ test("concurrent bounded claims have one winner and leave unsupported requests p
   assert.equal(results.filter((item) => item.outcome === "NO_REQUEST").length, 1);
   assert.equal(await status(request.id), "COMPLETED");
   assert.equal(await scalar("SELECT count(*) FROM evidence_recompute_requests WHERE scope_type = 'USER' AND status = 'PENDING'"), "1");
+});
+
+test("claims only ordinary question identity and skips SW, mock, and full requests", async () => {
+  const ordinaryId = "attempt-executor-ordinary-boundary";
+  const swId = "attempt-executor-sw-boundary";
+  await insertAttempt(ordinaryId, "user-1");
+  await insertSwAttempt(swId, "user-1");
+  const swRequest = await enqueueEvent(swId, "user-1");
+  const mockRequest = await createRecomputeRequest({
+    requestType: "EVIDENCE_RECOMPUTE_REQUIRED",
+    scopeType: "FULL",
+    sourceType: "MOCK_ATTEMPT",
+    sourceEventId: "mock-attempt-boundary",
+    userId: "user-1",
+    projectionVersion: "EVIDENCE_V1",
+    reasonCode: "UNSUPPORTED_SOURCE_TEST",
+  });
+  assert.equal(await repository.enqueue(mockRequest), "NEW_SUCCESS");
+  const fullRequest = await createRecomputeRequest({
+    requestType: "EVIDENCE_RECOMPUTE_REQUIRED",
+    scopeType: "FULL",
+    projectionVersion: "EVIDENCE_V1",
+    reasonCode: "UNSUPPORTED_SCOPE_TEST",
+  });
+  assert.equal(await repository.enqueue(fullRequest), "NEW_SUCCESS");
+  const ordinaryRequest = await enqueueEvent(ordinaryId, "user-1");
+
+  const result = await executor.processNext("worker-ordinary-boundary");
+
+  assert.equal(result.outcome, "COMPLETED");
+  assert.equal(await status(ordinaryRequest.id), "COMPLETED");
+  assert.equal(await status(swRequest.id), "PENDING");
+  assert.equal(await status(mockRequest.id), "PENDING");
+  assert.equal(await status(fullRequest.id), "PENDING");
+  assert.equal(await scalar(`SELECT count(*) FROM evidence_projections WHERE source_event_id = '${swId}'`), "0");
 });
 
 test("rejects a request whose user binding disagrees with the canonical attempt", async () => {
@@ -193,6 +229,31 @@ test("does not complete before projection storage and recovers after a lost comp
   assert.equal(await scalar(`SELECT count(*) FROM evidence_projections WHERE source_event_id = '${id}' AND lifecycle = 'ACTIVE'`), "2");
 });
 
+test("lease fencing prevents a stale worker from duplicating projections or handoffs", async () => {
+  const id = "attempt-executor-lease-fencing";
+  await insertAttempt(id, "user-1");
+  const request = await enqueueEvent(id, "user-1");
+  const baseLifecycle = new EvidenceRecomputeLifecycleExecutor(repository);
+  const claimA = await baseLifecycle.claimQuestionAttemptEvent("worker-a");
+  assert.equal(claimA?.id, request.id);
+
+  await exec(`UPDATE evidence_recompute_requests SET lease_expires_at = '2000-01-01T00:00:00.000Z' WHERE id = '${request.id}'`);
+  const claimB = await baseLifecycle.claimQuestionAttemptEvent("worker-b");
+  assert.equal(claimB?.id, request.id);
+  assert.notEqual(claimA?.claimToken, claimB?.claimToken);
+
+  const stale = await executor.processClaimed(claimA);
+  assert.equal(stale.outcome, "CLAIM_LOST");
+  assert.equal(await status(request.id), "PROCESSING");
+
+  const recovered = await executor.processClaimed(claimB);
+  assert.equal(recovered.outcome, "COMPLETED");
+  assert.equal(recovered.projectionOutcome, "EXACT_REPLAY");
+  assert.equal(await status(request.id), "COMPLETED");
+  assert.equal(await scalar(`SELECT count(*) FROM evidence_projections WHERE source_event_id = '${id}' AND lifecycle = 'ACTIVE'`), "2");
+  assert.equal(await scalar(`SELECT count(*) FROM evidence_recompute_requests WHERE source_event_id = '${id}' AND request_type = 'MASTERY_RECOMPUTE_REQUIRED'`), "2");
+});
+
 test("rolls back projection writes when the projection transaction fails", async () => {
   const id = "attempt-executor-storage-failure";
   await insertAttempt(id, "user-1");
@@ -235,8 +296,14 @@ async function enqueueEvent(sourceEventId, userId, sourceRevisionIdentity = sour
 
 async function insertAttempt(id, userId) {
   await database.prepare(`INSERT INTO question_attempts
-    (id, user_id, question_version_id, concept_mapping_set_hash, is_correct, score, attempted_at)
-    VALUES (?, ?, 'question-version-1', ?, 1, 100, '2026-09-11T00:00:00.000Z')`).bind(id, userId, mappingHash).run();
+    (id, user_id, question_id, foundation_question_binding_id, question_version_id, concept_mapping_set_hash, is_correct, score, attempted_at)
+    VALUES (?, ?, 'question-1', NULL, 'question-version-1', ?, 1, 100, '2026-09-11T00:00:00.000Z')`).bind(id, userId, mappingHash).run();
+}
+
+async function insertSwAttempt(id, userId) {
+  await database.prepare(`INSERT INTO question_attempts
+    (id, user_id, question_id, foundation_question_binding_id, question_version_id, concept_mapping_set_hash, is_correct, score, attempted_at)
+    VALUES (?, ?, NULL, 'foundation-binding-1', NULL, NULL, 1, 100, '2026-09-11T00:00:00.000Z')`).bind(id, userId).run();
 }
 
 async function status(id) {

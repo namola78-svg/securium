@@ -40,9 +40,10 @@ before(async () => {
     CREATE TABLE app_schema_migrations (id text PRIMARY KEY, checksum text NOT NULL, applied_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP);
     CREATE TABLE users (id text PRIMARY KEY);
     CREATE TABLE ontology_concepts (id text PRIMARY KEY, concept_key text NOT NULL, status text NOT NULL);
-    CREATE TABLE question_versions (id text PRIMARY KEY, semantic_hash text NOT NULL);
+    CREATE TABLE question_versions (id text PRIMARY KEY, question_id text NOT NULL, semantic_hash text NOT NULL);
     CREATE TABLE question_attempts (
-      id text PRIMARY KEY, user_id text NOT NULL REFERENCES users(id), question_version_id text,
+      id text PRIMARY KEY, user_id text NOT NULL REFERENCES users(id), question_id text,
+      foundation_question_binding_id text, question_version_id text,
       concept_mapping_set_hash text, is_correct boolean, score real, attempted_at text
     );
     CREATE TABLE question_concepts (
@@ -55,7 +56,7 @@ before(async () => {
     );
     INSERT INTO users VALUES ('user-1'), ('user-2');
     INSERT INTO ontology_concepts VALUES ('concept-1', 'concept:one', 'ACTIVE');
-    INSERT INTO question_versions VALUES ('question-version-1', '${"e".repeat(64)}');
+    INSERT INTO question_versions VALUES ('question-version-1', 'question-1', '${"e".repeat(64)}');
     INSERT INTO question_concepts VALUES ('mapping-1', 'question-version-1', 'concept-1', 1, NULL, NULL, 'APPROVED');`);
   await client.unsafe(await readFile("db/postgres/migrations/0015_evidence_projection_foundation.sql", "utf8"));
   await client.unsafe(await readFile("db/postgres/migrations/0019_evidence_e2_a_recompute_operations.sql", "utf8"));
@@ -81,8 +82,8 @@ after(async () => {
 test("PostgreSQL claim, canonical resolution, projection transaction, and completion are bounded to QuestionAttempt events", async () => {
   const id = "pg-attempt-executor-1";
   await client.unsafe(`INSERT INTO question_attempts
-    (id, user_id, question_version_id, concept_mapping_set_hash, is_correct, score, attempted_at)
-    VALUES ('${id}', 'user-1', 'question-version-1', '${mappingHash}', true, 100, '2026-09-11T00:00:00.000Z')`);
+    (id, user_id, question_id, foundation_question_binding_id, question_version_id, concept_mapping_set_hash, is_correct, score, attempted_at)
+    VALUES ('${id}', 'user-1', 'question-1', NULL, 'question-version-1', '${mappingHash}', true, 100, '2026-09-11T00:00:00.000Z')`);
   const request = await createRecomputeRequest({
     requestType: "EVIDENCE_RECOMPUTE_REQUIRED",
     scopeType: "EVENT",
@@ -110,6 +111,34 @@ test("PostgreSQL claim, canonical resolution, projection transaction, and comple
   assert.equal(await scalar(`SELECT count(*) FROM evidence_projections WHERE source_event_id = '${id}' AND lifecycle = 'ACTIVE'`), "1");
   assert.equal(await scalar("SELECT count(*) FROM evidence_recompute_requests WHERE scope_type = 'USER' AND status = 'PENDING'"), "1");
   assert.equal(await scalar(`SELECT source_revision_identity FROM evidence_projections WHERE source_event_id = '${id}'`), id);
+});
+
+test("PostgreSQL skips the SW identity path while claiming ordinary events", async () => {
+  const ordinaryId = "pg-attempt-executor-boundary-ordinary";
+  const swId = "pg-attempt-executor-boundary-sw";
+  await client.unsafe(`INSERT INTO question_attempts
+    (id, user_id, question_id, foundation_question_binding_id, question_version_id, concept_mapping_set_hash, is_correct, score, attempted_at)
+    VALUES ('${ordinaryId}', 'user-1', 'question-1', NULL, 'question-version-1', '${mappingHash}', true, 100, '2026-09-11T00:00:00.000Z'),
+      ('${swId}', 'user-1', NULL, 'foundation-binding-1', NULL, NULL, true, 100, '2026-09-11T00:00:00.000Z')`);
+  const ordinaryRequest = await createRecomputeRequest({
+    requestType: "EVIDENCE_RECOMPUTE_REQUIRED", scopeType: "EVENT", sourceType: "QUESTION_ATTEMPT",
+    sourceEventId: ordinaryId, sourceRevisionIdentity: ordinaryId, userId: "user-1",
+    projectionVersion: "EVIDENCE_V1", reasonCode: "QUESTION_ATTEMPT_CREATED",
+  });
+  const swRequest = await createRecomputeRequest({
+    requestType: "EVIDENCE_RECOMPUTE_REQUIRED", scopeType: "EVENT", sourceType: "QUESTION_ATTEMPT",
+    sourceEventId: swId, sourceRevisionIdentity: swId, userId: "user-1",
+    projectionVersion: "EVIDENCE_V1", reasonCode: "SW_ATTEMPT_CREATED",
+  });
+  assert.equal(await repository.enqueue(swRequest), "NEW_SUCCESS");
+  assert.equal(await repository.enqueue(ordinaryRequest), "NEW_SUCCESS");
+
+  const result = await executor.processNext("postgres-ordinary-boundary");
+
+  assert.equal(result.outcome, "COMPLETED");
+  assert.equal(await scalar(`SELECT status FROM evidence_recompute_requests WHERE id = '${ordinaryRequest.id}'`), "COMPLETED");
+  assert.equal(await scalar(`SELECT status FROM evidence_recompute_requests WHERE id = '${swRequest.id}'`), "PENDING");
+  assert.equal(await scalar(`SELECT count(*) FROM evidence_projections WHERE source_event_id = '${swId}'`), "0");
 });
 
 function makeProvider(databaseClient) {

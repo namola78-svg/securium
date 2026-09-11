@@ -288,11 +288,58 @@ export class EvidenceProjectionRepository {
     return this.getRequest(candidate.id);
   }
 
-  claimNextQuestionAttemptEvent(workerId: string, now = new Date().toISOString()) {
-    return this.claimNext("EVENT", workerId, now, {
-      requestType: "EVIDENCE_RECOMPUTE_REQUIRED",
-      sourceType: "QUESTION_ATTEMPT",
+  async claimNextQuestionAttemptEvent(workerId: string, now = new Date().toISOString()) {
+    if (!workerId.trim()) fail("EVIDENCE_WORKER_ID_REQUIRED");
+
+    // QUESTION_ATTEMPT is also the source type used by the SW adapter. The
+    // bounded executor must claim only the ordinary question identity path;
+    // the generic claim query cannot make that distinction from request
+    // metadata alone.
+    const candidate = await this.database.queryOne<{ id: string }>({
+      sql: `SELECT request.id FROM evidence_recompute_requests request
+        INNER JOIN question_attempts attempt ON attempt.id = request.source_event_id
+        INNER JOIN question_versions version ON version.id = attempt.question_version_id
+        WHERE request.status IN ('PENDING', 'RETRYABLE', 'PROCESSING')
+        AND request.scope_type = 'EVENT'
+        AND request.request_type = 'EVIDENCE_RECOMPUTE_REQUIRED'
+        AND request.source_type = 'QUESTION_ATTEMPT'
+        AND attempt.question_id IS NOT NULL
+        AND attempt.foundation_question_binding_id IS NULL
+        AND attempt.question_version_id IS NOT NULL
+        AND attempt.concept_mapping_set_hash IS NOT NULL
+        AND version.question_id = attempt.question_id
+        AND version.semantic_hash IS NOT NULL
+        AND (request.lease_expires_at IS NULL OR request.lease_expires_at <= ?)
+        AND (request.next_attempt_at IS NULL OR request.next_attempt_at <= ?)
+        ORDER BY request.created_at, request.id LIMIT 1`,
+      parameters: [now, now],
     });
+    if (!candidate) return null;
+
+    const token = crypto.randomUUID();
+    const leaseExpiresAt = new Date(Date.now() + E2A_LEASE_DURATION_MS).toISOString();
+    const result = await this.database.execute({
+      sql: `UPDATE evidence_recompute_requests SET status = 'PROCESSING',
+        claimed_by = ?, claim_token = ?, claimed_at = ?, lease_expires_at = ?,
+        attempts = attempts + 1
+        WHERE id = ? AND status IN ('PENDING', 'RETRYABLE', 'PROCESSING')
+          AND (lease_expires_at IS NULL OR lease_expires_at <= ?)
+          AND (next_attempt_at IS NULL OR next_attempt_at <= ?)
+          AND EXISTS (
+            SELECT 1 FROM question_attempts attempt
+            INNER JOIN question_versions version ON version.id = attempt.question_version_id
+            WHERE attempt.id = evidence_recompute_requests.source_event_id
+              AND attempt.question_id IS NOT NULL
+              AND attempt.foundation_question_binding_id IS NULL
+              AND attempt.question_version_id IS NOT NULL
+              AND attempt.concept_mapping_set_hash IS NOT NULL
+              AND version.question_id = attempt.question_id
+              AND version.semantic_hash IS NOT NULL
+          )`,
+      parameters: [workerId, token, now, leaseExpiresAt, candidate.id, now, now],
+    });
+    if (result.affectedRows !== 1) return null;
+    return this.getRequest(candidate.id);
   }
 
   async getRequest(id: string) {
