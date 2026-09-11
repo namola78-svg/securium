@@ -20,6 +20,11 @@ export type EvidenceContentRevisionBinding = Readonly<{
   binding: "CONTENT_REVISION_SNAPSHOT";
 }>;
 
+type EvidenceResolutionFields = Readonly<{
+  resolutionStatus?: "RESOLVED" | "UNRESOLVED";
+  unresolvedReason?: string;
+}>;
+
 export type EvidenceMappingGuard =
   | Readonly<{
     kind: "QUESTION_VERSION" | "MOCK_COMPOSITION";
@@ -48,8 +53,6 @@ export type CanonicalEvidenceSource = Readonly<{
   userId: string;
   contentVersionIdentity: string;
   contentRevisionBinding?: EvidenceContentRevisionBinding;
-  resolutionStatus?: "RESOLVED" | "UNRESOLVED";
-  unresolvedReason?: string;
   conceptMappingSetHash: string;
   conceptIds: readonly string[];
   occurredAt: string;
@@ -60,7 +63,7 @@ export type CanonicalEvidenceSource = Readonly<{
   sourceSemanticHash: string;
   mappingTransition: "PRESERVE_EVENT_TIME" | "GOVERNED_CORRECTION";
   mappingGuard: EvidenceMappingGuard;
-}>;
+}> & EvidenceResolutionFields;
 
 export type EvidenceCandidate = Readonly<{
   id: string;
