@@ -11,9 +11,11 @@ import unittest
 from timeline_lab import (
     LAB_FORMAT,
     LabError,
+    MAX_INPUT_BYTES,
     analyze_file,
     analyze_fixture,
     build_synthetic_fixture,
+    ensure_distinct_paths,
     write_fixture,
     write_report,
 )
@@ -58,8 +60,9 @@ class TimelineLabTests(unittest.TestCase):
         fixture = build_synthetic_fixture("2026-09-11T09:15:00+09:00")
         first = dict(fixture, records=list(fixture["records"]))
         second = dict(fixture, records=list(reversed(fixture["records"])))
-        first_report = analyze_fixture(first, "input-hash", "2026-09-11T09:30:00Z")
-        second_report = analyze_fixture(second, "input-hash", "2026-09-11T09:30:00Z")
+        input_hash = "0" * 64
+        first_report = analyze_fixture(first, input_hash, "2026-09-11T09:30:00Z")
+        second_report = analyze_fixture(second, input_hash, "2026-09-11T09:30:00Z")
         self.assertEqual(first_report["records"], second_report["records"])
         self.assertEqual(
             first_report["deterministic_result_sha256"],
@@ -68,11 +71,22 @@ class TimelineLabTests(unittest.TestCase):
 
     def test_csv_input_is_supported_and_original_timestamp_survives(self) -> None:
         fixture = build_synthetic_fixture("2026-09-11T09:15:00+09:00")
-        path = self.root / "fixture.csv"
-        write_fixture(path, fixture, "csv")
-        report = analyze_file(path, "2026-09-11T09:30:00Z")
-        self.assertEqual(len(report["records"]), 6)
-        self.assertEqual(report["records"][0]["timestamp_original"], "2026-09-11T09:00:00+09:00")
+        csv_path = self.root / "fixture.csv"
+        json_path = self.root / "fixture.json"
+        write_fixture(csv_path, fixture, "csv")
+        write_fixture(json_path, fixture, "json")
+        csv_report = analyze_file(csv_path, "2026-09-11T09:30:00Z")
+        json_report = analyze_file(json_path, "2026-09-11T09:30:00Z")
+        self.assertEqual(len(csv_report["records"]), 6)
+        self.assertEqual(csv_report["records"], json_report["records"])
+        self.assertEqual(
+            csv_report["records"][0]["timestamp_original"],
+            "2026-09-11T09:00:00+09:00",
+        )
+        self.assertEqual(
+            csv_report["deterministic_result_sha256"],
+            json_report["deterministic_result_sha256"],
+        )
 
     def test_missing_or_invalid_timezone_is_rejected(self) -> None:
         fixture = build_synthetic_fixture("2026-09-11T09:15:00Z")
@@ -83,6 +97,16 @@ class TimelineLabTests(unittest.TestCase):
 
         fixture["records"][0]["timestamp_original"] = "not-a-time"
         path = self._write_json("invalid-time.json", fixture)
+        with self.assertRaisesRegex(LabError, "valid ISO-8601"):
+            analyze_file(path, "2026-09-11T09:30:00Z")
+
+        fixture["records"][0]["timestamp_original"] = "0001-01-01T00:00:00+14:00"
+        path = self._write_json("utc-underflow.json", fixture)
+        with self.assertRaisesRegex(LabError, "UTC normalization"):
+            analyze_file(path, "2026-09-11T09:30:00Z")
+
+        fixture["records"][0]["timestamp_original"] = "2016-12-31T23:59:60Z"
+        path = self._write_json("leap-second.json", fixture)
         with self.assertRaisesRegex(LabError, "valid ISO-8601"):
             analyze_file(path, "2026-09-11T09:30:00Z")
 
@@ -102,12 +126,25 @@ class TimelineLabTests(unittest.TestCase):
         with self.assertRaisesRegex(LabError, "malformed JSON"):
             analyze_file(malformed, "2026-09-11T09:30:00Z")
 
+        fixture = build_synthetic_fixture("2026-09-11T09:15:00Z")
+        fixture["records"][0]["unexpected"] = "not part of the contract"
+        extra_field = self._write_json("extra-field.json", fixture)
+        with self.assertRaisesRegex(LabError, "unexpected fields"):
+            analyze_file(extra_field, "2026-09-11T09:30:00Z")
+
     def test_oversized_field_is_rejected(self) -> None:
         fixture = build_synthetic_fixture("2026-09-11T09:15:00Z")
         fixture["records"][0]["notes"] = "x" * 2_001
         path = self._write_json("oversized.json", fixture)
         with self.assertRaisesRegex(LabError, "2000-character"):
             analyze_file(path, "2026-09-11T09:30:00Z")
+
+        oversized_input = self._write_json(
+            "oversized-input.json",
+            dict(fixture, limitations=["x" * MAX_INPUT_BYTES]),
+        )
+        with self.assertRaisesRegex(LabError, "input exceeds"):
+            analyze_file(oversized_input, "2026-09-11T09:30:00Z")
 
     def test_cli_success_failure_unicode_path_and_no_overwrite(self) -> None:
         lab_dir = Path(__file__).resolve().parent
@@ -166,6 +203,50 @@ class TimelineLabTests(unittest.TestCase):
         )
         self.assertEqual(overwrite.returncode, 2)
         self.assertIn("overwrite", overwrite.stderr)
+
+        same_path = subprocess.run(
+            [
+                sys.executable,
+                str(cli),
+                "analyze",
+                "--input",
+                str(input_path),
+                "--output",
+                str(input_path),
+                "--analysis-run-at",
+                "2026-09-11T09:30:00+09:00",
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(same_path.returncode, 2)
+        self.assertIn("different files", same_path.stderr)
+
+    def test_csv_extra_columns_and_invalid_hash_are_rejected(self) -> None:
+        fixture = build_synthetic_fixture("2026-09-11T09:15:00Z")
+        csv_path = self.root / "extra-column.csv"
+        write_fixture(csv_path, fixture, "csv")
+        csv_path.write_text(
+            csv_path.read_text(encoding="utf-8").replace("\n", ",unexpected\n", 1),
+            encoding="utf-8",
+        )
+        with self.assertRaisesRegex(LabError, "CSV header"):
+            analyze_file(csv_path, "2026-09-11T09:30:00Z")
+        with self.assertRaisesRegex(LabError, "SHA-256"):
+            analyze_fixture(fixture, "not-a-hash", "2026-09-11T09:30:00Z")
+
+    def test_symlink_input_is_rejected_when_supported(self) -> None:
+        fixture = build_synthetic_fixture("2026-09-11T09:15:00Z")
+        real = self.root / "real.json"
+        link = self.root / "link.json"
+        write_fixture(real, fixture)
+        try:
+            link.symlink_to(real)
+        except (OSError, NotImplementedError) as error:
+            self.fail(f"symlink boundary could not be exercised: {error}")
+        with self.assertRaisesRegex(LabError, "symlink or reparse"):
+            analyze_file(link, "2026-09-11T09:30:00Z")
 
     def test_report_bytes_and_deterministic_result_are_distinct(self) -> None:
         fixture = build_synthetic_fixture("2026-09-11T09:15:00Z")

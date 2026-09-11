@@ -11,6 +11,8 @@ import csv
 import hashlib
 import io
 import json
+import os
+import stat
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -38,6 +40,15 @@ REQUIRED_FIELDS = (
     "timestamp_meaning",
 )
 CSV_FIELDS = ("fixture_id", "scope", "fixture_created_at", *REQUIRED_FIELDS, "notes")
+ALLOWED_ROOT_FIELDS = {
+    "format",
+    "scope",
+    "fixture_id",
+    "fixture_created_at",
+    "records",
+    "limitations",
+}
+ALLOWED_RECORD_FIELDS = set(REQUIRED_FIELDS) | {"notes"}
 
 # The fixture timestamps are deliberately fixed. The caller supplies the
 # fixture creation time so it cannot be confused with an event observation.
@@ -136,7 +147,10 @@ def parse_aware_timestamp(value: Any, field: str) -> datetime:
 
 
 def _timestamp_utc(parsed: datetime) -> str:
-    return parsed.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+    try:
+        return parsed.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+    except (OverflowError, ValueError) as error:
+        raise LabError("timestamp cannot be represented after UTC normalization") from error
 
 
 def _validate_identifier(value: Any, field: str) -> str:
@@ -158,6 +172,9 @@ def _validate_text(value: Any, field: str, limit: int = MAX_FIELD_CHARS) -> str:
 
 
 def _validate_scope(root: dict[str, Any]) -> tuple[str, str, str]:
+    unexpected = sorted(set(root) - ALLOWED_ROOT_FIELDS)
+    if unexpected:
+        raise LabError(f"unexpected fixture fields: {', '.join(unexpected)}")
     if root.get("format") != LAB_FORMAT:
         raise LabError(f"format must be {LAB_FORMAT}")
     scope = root.get("scope")
@@ -182,6 +199,9 @@ def _normalize_records(raw_records: Any) -> list[dict[str, Any]]:
     for index, raw in enumerate(raw_records, start=1):
         if not isinstance(raw, dict):
             raise LabError(f"record {index} must be an object")
+        unexpected = sorted(set(raw) - ALLOWED_RECORD_FIELDS)
+        if unexpected:
+            raise LabError(f"record {index} has unexpected fields: {', '.join(unexpected)}")
         missing = [field for field in REQUIRED_FIELDS if field not in raw]
         if missing:
             raise LabError(f"record {index} is missing required fields: {', '.join(missing)}")
@@ -247,15 +267,81 @@ def _prepare_fixture(root: Any) -> tuple[str, str, str, list[dict[str, Any]]]:
     return fixture_id, scope, created_at, records
 
 
+def _is_reparse_point(path: Path) -> bool:
+    """Reject symlinks and Windows reparse points without following them."""
+
+    if path.is_symlink():
+        return True
+    try:
+        attributes = getattr(path.lstat(), "st_file_attributes", 0)
+    except OSError:
+        return False
+    return bool(attributes & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0))
+
+
+def _check_path_components(path: Path, role: str) -> None:
+    """Check existing path components before any read or write."""
+
+    path = Path(path)
+    current = Path(path.anchor) if path.is_absolute() else Path.cwd()
+    for part in path.parts:
+        if path.is_absolute() and part == path.anchor:
+            continue
+        current = current / part
+        if _is_reparse_point(current):
+            raise LabError(f"{role} symlink or reparse path is not allowed: {path}")
+
+
+def _validate_input_path(path: Path) -> Path:
+    path = Path(path)
+    _check_path_components(path, "input")
+    if _is_reparse_point(path) or not path.is_file():
+        raise LabError(f"input must be a regular non-link file: {path}")
+    return path
+
+
+def _validate_output_path(path: Path) -> Path:
+    path = Path(path)
+    _check_path_components(path, "output")
+    if _is_reparse_point(path):
+        raise LabError(f"output symlink or reparse path is not allowed: {path}")
+    if path.exists():
+        raise LabError(f"refusing to overwrite existing output: {path}")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    _check_path_components(path, "output")
+    if _is_reparse_point(path.parent) or path.exists():
+        raise LabError(f"refusing to use an unsafe or existing output path: {path}")
+    return path
+
+
+def ensure_distinct_paths(input_path: Path, output_path: Path) -> None:
+    input_path = _validate_input_path(Path(input_path))
+    output_path = Path(output_path)
+    _check_path_components(output_path, "output")
+    try:
+        if input_path.resolve(strict=True) == output_path.resolve(strict=False):
+            raise LabError("input and output must be different files")
+    except OSError as error:
+        raise LabError("could not compare input and output paths") from error
+
+
 def _write_new_text(path: Path, content: str) -> bytes:
     path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
     data = content.encode("utf-8")
+    _validate_output_path(path)
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_BINARY", 0)
     try:
-        with path.open("xb") as handle:
+        descriptor = os.open(str(path), flags, 0o600)
+        with os.fdopen(descriptor, "wb") as handle:
             handle.write(data)
     except FileExistsError as error:
         raise LabError(f"refusing to overwrite existing output: {path}") from error
+    except OSError as error:
+        try:
+            path.unlink()
+        except OSError:
+            pass
+        raise LabError(f"could not create output: {path}") from error
     return data
 
 
@@ -287,6 +373,7 @@ def write_fixture(path: Path, fixture: dict[str, Any], file_format: str = "json"
 
 def _read_input(path: Path) -> tuple[dict[str, Any], bytes]:
     path = Path(path)
+    _validate_input_path(path)
     try:
         raw = path.read_bytes()
     except OSError as error:
@@ -309,13 +396,19 @@ def _read_input(path: Path) -> tuple[dict[str, Any], bytes]:
         return root, raw
 
     reader = csv.DictReader(io.StringIO(text, newline=""))
-    if reader.fieldnames is None or set(reader.fieldnames) != set(CSV_FIELDS):
+    if (
+        reader.fieldnames is None
+        or len(reader.fieldnames) != len(set(reader.fieldnames))
+        or set(reader.fieldnames) != set(CSV_FIELDS)
+    ):
         raise LabError("CSV header must contain exactly the documented fixture fields")
     rows = list(reader)
     if not rows:
         raise LabError("CSV input must contain at least one record")
     metadata = {key: rows[0].get(key, "") for key in ("fixture_id", "scope", "fixture_created_at")}
     for row_number, row in enumerate(rows, start=2):
+        if None in row or set(row) != set(CSV_FIELDS):
+            raise LabError(f"CSV row {row_number} has unexpected or missing columns")
         for key, value in metadata.items():
             if row.get(key, "") != value:
                 raise LabError(f"CSV metadata differs at row {row_number}: {key}")
@@ -382,6 +475,12 @@ def _potential_conflicts(records: Iterable[dict[str, Any]]) -> list[dict[str, An
 
 
 def analyze_fixture(root: dict[str, Any], input_sha256: str, analysis_run_at: str | None = None) -> dict[str, Any]:
+    if (
+        not isinstance(input_sha256, str)
+        or len(input_sha256) != 64
+        or any(character not in "0123456789abcdef" for character in input_sha256)
+    ):
+        raise LabError("input_sha256 must be a lowercase SHA-256 hex digest")
     fixture_id, scope, fixture_created_at, records = _prepare_fixture(root)
     run_at = analysis_run_at or utc_now_iso()
     _validate_text(run_at, "analysis_run_at")

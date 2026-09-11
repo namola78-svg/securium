@@ -102,6 +102,9 @@ python "$lab\cli.py" analyze `
   source identity를 먼저 확인한다. 이 lab은 ambiguous input을 거부한다.
 - `scope must be explicitly marked`: 실제 파일을 사용하지 말고 root scope와
   synthetic fixture metadata를 갖춘 교육용 입력만 사용한다.
+- `symlink or reparse path`: path-based 안전 경계가 실제 link/reparse를 따라가지
+  않도록 입력·출력 경로를 새 regular file로 준비한다. link 생성 권한 실패를
+  성공으로 바꾸지 않는다.
 - `refusing to overwrite`: 새로운 report filename을 사용한다. 기존 report와
   Foundation 보고서를 지우지 않는다.
 - 한글 경로 오류: PowerShell에서 경로를 따옴표로 감싸고 Python UTF-8 환경을

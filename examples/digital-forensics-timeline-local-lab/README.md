@@ -110,8 +110,11 @@ timezone으로 추정하지 않고 거부한다. 입력 record는 최대 100개,
 최대 1 MiB이며, archive·shell·pickle·eval은 사용하지 않는다.
 
 원본 입력은 read-only로 읽고 raw input SHA-256을 report에 기록한다. report output은
-exclusive create로만 쓰며 이미 있는 report를 덮어쓰지 않는다. 사용자가 지정한
-입력은 반드시 창작 local record임을 root의 `scope`로 표시해야 한다.
+exclusive create로만 쓰며 이미 있는 report를 덮어쓰지 않는다. 입력과 출력이 같은
+파일이거나 기존 symlink/Windows reparse 경로를 통과하면 거부한다. 출력 생성 중
+오류가 나면 lab이 만든 partial output을 정리한다. 이 검사는 path-based 경계이며
+TOCTOU를 해결한다고 주장하지 않는다. 사용자가 지정한 입력은 반드시 창작 local
+record임을 root의 `scope`로 표시해야 한다.
 
 ## 출력 해석
 
@@ -135,7 +138,8 @@ report는 다음을 분리한다.
 python -m py_compile `
   "$lab\timeline_lab.py" `
   "$lab\cli.py" `
-  "$lab\test_timeline_lab.py"
+  "$lab\test_timeline_lab.py" `
+  "$lab\run_tests.py"
 
 python -m unittest discover `
   -s "$lab" `
@@ -144,8 +148,13 @@ python -m unittest discover `
 ```
 
 테스트는 offset 동치, 입력 순서 독립성, tie 해석 제한, timezone/invalid 입력,
-duplicate identity, potential conflict, malformed/과대 field, 정상/실패 CLI,
-한글 경로, 입력 보존, report hash 차이를 확인한다.
+UTC 범위 초과와 leap second 거부, duplicate identity, unexpected field와 CSV
+extra column, potential conflict, malformed/과대 field, 정상/실패 CLI, 한글 경로,
+symlink 입력, 입력 보존, 동일 입출력 경로, report hash 차이를 확인한다.
+
+현재 로컬 검증은 Windows 11 build 26200 / PowerShell 5.1 / Python 3.14.5에서
+10개 테스트 PASS다. 전용 CI는 Windows/Linux × Python 3.11/3.14를 별도로 실행하며,
+CI가 실행되기 전에는 해당 조합을 검증 완료로 집계하지 않는다.
 
 이 package는 Securium runtime, Evidence projection, learner state, scoring,
 canonical practical registration, approval, publication 또는 delivery readiness와

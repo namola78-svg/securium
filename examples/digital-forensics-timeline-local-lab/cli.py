@@ -8,7 +8,14 @@ import json
 from pathlib import Path
 import sys
 
-from timeline_lab import LabError, analyze_file, build_synthetic_fixture, write_fixture, write_report
+from timeline_lab import (
+    LabError,
+    analyze_file,
+    build_synthetic_fixture,
+    ensure_distinct_paths,
+    write_fixture,
+    write_report,
+)
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -50,6 +57,7 @@ def main(argv: list[str] | None = None) -> int:
             )
             return 0
 
+        ensure_distinct_paths(args.input, args.output)
         report = analyze_file(args.input, args.analysis_run_at)
         raw = write_report(args.output, report)
         print(
