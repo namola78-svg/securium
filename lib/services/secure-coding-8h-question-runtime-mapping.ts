@@ -14,6 +14,11 @@ const MAPPING_CONTRACT_VERSION =
   "SECURIUM_SECURE_CODING_8H_QUESTION_MAPPING_V1" as const;
 const LEGACY_Q36_V1_SEMANTIC_HASH =
   "dc89bfe1e0fd3f8ad8f7879fbe5f9a6d42e9718d98dacd80a6c274e7c819b025" as const;
+export const SECURE_CODING_8H_Q36_CANDIDATE_SOURCE_REVISION_ID =
+  "q36-answer-binding-repair-candidate" as const;
+export const SECURE_CODING_8H_Q36_CANDIDATE_SOURCE_REVISION_VERSION =
+  "candidate-1" as const;
+export const SECURE_CODING_8H_Q36_CANDIDATE_QUESTION_VERSION = 2 as const;
 const QUESTION_COUNT = 40;
 const RUNTIME_QUESTION_TYPE = "SINGLE_CHOICE" as const;
 const RUNTIME_DIFFICULTY = "MEDIUM" as const;
@@ -593,12 +598,23 @@ function normalizeRevisionContext(
     !input ||
     typeof input !== "object" ||
     Array.isArray(input) ||
+    Object.keys(input).length !== 3 ||
+    Object.keys(input).some(
+      (key) =>
+        key !== "sourceRevisionId" &&
+        key !== "sourceRevisionVersion" &&
+        key !== "questionVersionOverrides",
+    ) ||
     typeof input.sourceRevisionId !== "string" ||
     input.sourceRevisionId.trim() !== input.sourceRevisionId ||
     input.sourceRevisionId.length === 0 ||
+    input.sourceRevisionId !==
+      SECURE_CODING_8H_Q36_CANDIDATE_SOURCE_REVISION_ID ||
     typeof input.sourceRevisionVersion !== "string" ||
     input.sourceRevisionVersion.trim() !== input.sourceRevisionVersion ||
     input.sourceRevisionVersion.length === 0 ||
+    input.sourceRevisionVersion !==
+      SECURE_CODING_8H_Q36_CANDIDATE_SOURCE_REVISION_VERSION ||
     !input.questionVersionOverrides ||
     typeof input.questionVersionOverrides !== "object" ||
     Array.isArray(input.questionVersionOverrides)
@@ -618,9 +634,9 @@ function normalizeRevisionContext(
     );
   }
   const questionVersion = input.questionVersionOverrides.Q36;
-  if (!Number.isInteger(questionVersion) || questionVersion < 2) {
+  if (questionVersion !== SECURE_CODING_8H_Q36_CANDIDATE_QUESTION_VERSION) {
     throw new AppError(
-      "Secure Coding Q36 revision must be a new positive version.",
+      "Secure Coding Q36 candidate revision must use the approved v2 projection.",
       409,
       "QUESTION_VERSION_MISMATCH",
     );

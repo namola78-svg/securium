@@ -143,6 +143,34 @@ test("projects Q36 as an immutable candidate v2 while preserving the other 39", 
     }),
     "QUESTION_REVISION_CONTEXT_INVALID",
   );
+  await expectCode(
+    () => buildSecureCoding8HQuestionRuntimeMapping({
+      ...REVISION_CONTEXT,
+      sourceRevisionId: "caller-forged-source",
+    }),
+    "QUESTION_REVISION_CONTEXT_INVALID",
+  );
+  await expectCode(
+    () => buildSecureCoding8HQuestionRuntimeMapping({
+      ...REVISION_CONTEXT,
+      sourceRevisionVersion: "v999",
+    }),
+    "QUESTION_REVISION_CONTEXT_INVALID",
+  );
+  await expectCode(
+    () => buildSecureCoding8HQuestionRuntimeMapping({
+      ...REVISION_CONTEXT,
+      questionVersionOverrides: { Q36: 3 },
+    }),
+    "QUESTION_VERSION_MISMATCH",
+  );
+  await expectCode(
+    () => buildSecureCoding8HQuestionRuntimeMapping({
+      ...REVISION_CONTEXT,
+      approvalEvidence: { status: "APPROVED" },
+    }),
+    "QUESTION_REVISION_CONTEXT_INVALID",
+  );
 });
 
 test("does not expose revised Q36 through the context-free v1 mapping", async () => {
@@ -225,6 +253,33 @@ test("preflight binds candidate hashes and versions without granting authority",
       approvalEvidence: { status: "APPROVED" },
     }),
     "UNTRUSTED_AUTHORITY_INPUT",
+  );
+  await expectCode(
+    () => preflightSecureCoding8HQuestionMaterialization({
+      candidateRevisionContext: {
+        ...REVISION_CONTEXT,
+        sourceRevisionId: "caller-forged-source",
+      },
+    }),
+    "FOUNDATION_REVISION_INVALID",
+  );
+  await expectCode(
+    () => preflightSecureCoding8HQuestionMaterialization({
+      candidateRevisionContext: {
+        ...REVISION_CONTEXT,
+        sourceRevisionVersion: "v999",
+      },
+    }),
+    "FOUNDATION_REVISION_INVALID",
+  );
+  await expectCode(
+    () => preflightSecureCoding8HQuestionMaterialization({
+      candidateRevisionContext: {
+        ...REVISION_CONTEXT,
+        questionVersionOverrides: { Q36: 3 },
+      },
+    }),
+    "FOUNDATION_REVISION_INVALID",
   );
 
   const staleCandidate = clone(candidateMapping);

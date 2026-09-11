@@ -4,6 +4,9 @@ import {
   buildSecureCoding8HQuestionRuntimeMapping,
   secureCoding8HRuntimeQuestionId,
   secureCoding8HRuntimeQuestionVersionId,
+  SECURE_CODING_8H_Q36_CANDIDATE_QUESTION_VERSION,
+  SECURE_CODING_8H_Q36_CANDIDATE_SOURCE_REVISION_ID,
+  SECURE_CODING_8H_Q36_CANDIDATE_SOURCE_REVISION_VERSION,
   type SecureCoding8HRuntimeQuestionChoice,
   type SecureCoding8HRuntimeQuestionMappingManifest,
   type SecureCoding8HQuestionRevisionContext,
@@ -657,7 +660,9 @@ function parseCandidateRevisionContext(
     typeof value.sourceRevisionId !== "string" ||
     typeof value.sourceRevisionVersion !== "string" ||
     value.sourceRevisionId.length === 0 ||
-    value.sourceRevisionVersion.length === 0
+    value.sourceRevisionVersion.length === 0 ||
+    value.sourceRevisionId !== SECURE_CODING_8H_Q36_CANDIDATE_SOURCE_REVISION_ID ||
+    value.sourceRevisionVersion !== SECURE_CODING_8H_Q36_CANDIDATE_SOURCE_REVISION_VERSION
   ) {
     throw new AppError(
       "Secure Coding candidate revision context is invalid.",
@@ -665,13 +670,23 @@ function parseCandidateRevisionContext(
       "FOUNDATION_REVISION_INVALID",
     );
   }
+  const questionVersionOverrides = parseQuestionVersionOverrides(
+    value.questionVersionOverrides,
+    "FOUNDATION_REVISION_INVALID",
+  );
+  if (
+    questionVersionOverrides.Q36 !== SECURE_CODING_8H_Q36_CANDIDATE_QUESTION_VERSION
+  ) {
+    throw new AppError(
+      "Secure Coding Q36 candidate revision must use the approved v2 projection.",
+      400,
+      "FOUNDATION_REVISION_INVALID",
+    );
+  }
   return {
     sourceRevisionId: value.sourceRevisionId,
     sourceRevisionVersion: value.sourceRevisionVersion,
-    questionVersionOverrides: parseQuestionVersionOverrides(
-      value.questionVersionOverrides,
-      "FOUNDATION_REVISION_INVALID",
-    ),
+    questionVersionOverrides,
   };
 }
 
