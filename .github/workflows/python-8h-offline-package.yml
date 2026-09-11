@@ -48,16 +48,35 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v6
 
-      - name: Preserve committed source bytes
-        run: |
-          git config --local core.autocrlf false
-          git config --local core.eol lf
-          git checkout -- .github/workflows/python-8h-offline-package.yml examples/python-secure-coding-8h-priority-labs verification/python-8h-offline
-
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python_version }}
+
+      - name: Preserve committed source bytes
+        shell: python
+        run: |
+          import subprocess
+          from pathlib import Path
+
+          prefixes = (
+              ".github/workflows/python-8h-offline-package.yml",
+              "examples/python-secure-coding-8h-priority-labs",
+              "verification/python-8h-offline",
+          )
+          tracked = subprocess.check_output(
+              ["git", "ls-files", "-z", "--", *prefixes]
+          ).split(b"\0")
+          for raw_path in tracked:
+              if not raw_path:
+                  continue
+              relative = raw_path.decode("utf-8")
+              data = subprocess.check_output(
+                  ["git", "cat-file", "blob", f"HEAD:{relative}"]
+              )
+              target = Path(relative)
+              target.parent.mkdir(parents=True, exist_ok=True)
+              target.write_bytes(data)
 
       - name: Build and verify extracted offline package
         run: python verification/python-8h-offline/ci_matrix_check.py
