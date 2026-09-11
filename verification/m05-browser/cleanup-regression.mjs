@@ -124,6 +124,7 @@ async function testPortConflictPreservesListener() {
     "--runtime-dir", runtimeDir,
   ]);
   const exit = await waitForExit(child);
+  assert.equal(occupied.listening, true);
   occupied.close();
   assert.equal(exit.code, 2);
   assert.match(stdout.join(""), /START_ERROR/);

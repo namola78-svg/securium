@@ -19,6 +19,11 @@ Origin required by the existing secure tests. The repair adds only an
 explicit service configuration parameter so the isolated HTTP browser
 fixture can use its actual server-owned `http://app.local` Origin.
 
+This follow-up also bounds cleanup to the harness processes and runtime
+directory owned by the current run, and repairs current M05/instructor test
+count wording. The historical 6/49 results remain provenance rather than the
+current expectation.
+
 ## 2. Worktree, branch, and source scope
 
 - Worktree:
@@ -30,14 +35,19 @@ fixture can use its actual server-owned `http://app.local` Origin.
 - Latest-main harness commit: `69ec964` plus isolated dependency commits
   `b0ec63f` and `a730ee5`
 - Latest `origin/main` at publication: `c3c1220c4e2e7bdce8e8d99e057536c3c0f1a9bc`
+- Fresh `origin/main` checked for this cleanup follow-up:
+  `455bafc9323b67c1e3eda031603b22d78ae49049`
 - PR #143 merge / publish base: `8e7baf8a3e156f7dc3666313fb7c88d7e6e7d8df`
+- Cleanup and documentation repair commit: `1381ac9` (local candidate before
+  publication)
 
 The M05 source blobs from merged #143 are recorded in `source-metadata.md`.
-This candidate adds only the explicit `trusted_origin` fixture configuration,
-its focused regression test, the isolated browser harness, and the minimal
-M05 README guidance for the path included in this PR. No parallel instructor
-kit files, CI workflow, canonical content, Q36/Foundation, runtime/schema, or
-root dependency/lockfile was changed.
+This candidate retains the explicit `trusted_origin` fixture configuration,
+focused regression test, and isolated browser harness, and adds only bounded
+harness cleanup regression coverage plus current M05/instructor test-count
+wording. No Q36/Foundation content, runtime/schema, Python CI workflow, or
+root dependency/lockfile was changed. The existing parallel Q36 and
+instructor-kit changes were not merged wholesale.
 
 ## 3. Browser, version, OS, and execution method
 
@@ -61,8 +71,12 @@ Run used:
 
 ```powershell
 npm install --prefix verification/m05-browser --ignore-scripts
+npm run --prefix verification/m05-browser test:cleanup
 npm run --prefix verification/m05-browser verify
 ```
+
+The cleanup command uses only controlled child fixtures and an ephemeral
+loopback listener; it does not search for or terminate unrelated processes.
 
 ## 4. Failure recovery and fixture shape
 
@@ -114,6 +128,11 @@ the observed browser Cookie behavior, not on a guessed header.
 
 The HTTP scenarios all passed their functional assertions. Because the
 required HTTPS coverage is not run, the overall result remains partial.
+
+The same run recorded `browser_closed: true`, `server_stop.terminated: true`,
+`runtime_dir_removed: true`, and no cleanup errors. The controlled cleanup
+regression suite also passed, including missing-Python, browser-start failure,
+port-conflict listener preservation, and bounded fallback for an owned child.
 
 ## 6. Origin, site, Cookie, SameSite, and CORS scope
 
@@ -184,6 +203,13 @@ pair for the HTTPS fixture. With it, set `M05_BROWSER_MODE=https`,
 `M05_BROWSER_CERT_PATH`, and `M05_BROWSER_KEY_PATH`; the harness will run the
 HTTPS scenarios without importing or deleting certificates.
 
+The follow-up cleanup repair is in `1381ac9`: the run-owned runtime directory
+is removed on normal and failure paths, child-process errors become explicit
+failure results, server stop has bounded graceful and forced phases, and
+cleanup errors are retained without replacing the original failure. Forced
+termination is limited to the directly owned child; the harness does not claim
+to clean arbitrary descendants.
+
 ## 10. Report, harness, and screenshot locations
 
 - Harness: `verification/m05-browser/`
@@ -192,8 +218,10 @@ HTTPS scenarios without importing or deleting certificates.
 - Sanitized evidence: `verification/m05-browser/evidence/browser-verification-result.json`
 - Screenshots: `verification/m05-browser/evidence/attacker-page.png`,
   `secure-xss.png`, and `vulnerable-xss.png`
+- Cleanup regression: `verification/m05-browser/cleanup-regression.mjs`
+- Owned-child stop helper: `verification/m05-browser/lifecycle.mjs`
 
-## 11. Exact README text proposed for PR #143
+## 11. Exact README text for the published harness path
 
 ```markdown
 ### M05 real-browser verification
@@ -212,8 +240,10 @@ HTTP scenarios pass; otherwise report `BROWSER_VERIFICATION_PARTIAL` or
 `BROWSER_VERIFICATION_NOT_RUN` with the missing environment condition.
 ```
 
-This text is proposed only; the common README was not modified in this
-verification worktree.
+The common README guidance is present in the candidate under review; the
+instructor-kit documents additionally distinguish the current 7/50 expected
+counts from the historical 6/49 provenance. Neither change removes the Q36
+caveat or the HTTPS `NOT_RUN` limitation.
 
 ## 12. Remaining classroom-delivery work
 
@@ -221,15 +251,17 @@ verification worktree.
   cover `Secure` and real HTTPS cross-site `SameSite` behavior.
 - Keep the classroom claim bounded to the observed HTML text context for
   `html.escape`; do not extend it to JavaScript, URL, or other sinks.
-- If the harness is accepted for the PR, add the proposed text to the PR's
-  README through the normal review process; it was intentionally not added
-  here.
+- The classroom delivery claim remains incomplete until HTTPS Secure-cookie
+  and cross-site `SameSite=None; Secure` behavior is run with a trusted
+  certificate/key pair and the actual rehearsal requirements are completed.
 
 ## 13. Runtime DB I/O and remote mutation
 
 - Runtime DB I/O: none. The fixture used temporary in-memory demo state only.
-- Remote mutation: none. No push, PR, merge, deployment, publication, or
-  external-service write was performed.
+- Remote mutation for this follow-up is limited to the authorized normal push
+  of the existing Draft PR branch and its PR-body update. No merge,
+  auto-merge, deployment, publication, or external-service write is part of
+  the work.
 - Local temporary resources: isolated Playwright installation, short-lived
   Python/browser fixture processes, temporary runtime data, and screenshot /
   sanitized evidence files. The HTTPS trust-store operation that timed out in
