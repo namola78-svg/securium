@@ -131,3 +131,12 @@ only the Windows-specific junction/reparse test is an explicit Linux skip.
 - This lab is not connected to Securium's Evidence projection, recompute,
   learner-skill, or scoring systems. It makes no legal, certification, or
   delivery-readiness claim.
+
+## Rehearsal kit
+
+Use the [rehearsal kit](rehearsal-kit/instructor-runbook.md) for the
+instructor runbook, learner workbook, observation rubric, and rehearsal
+checklist. These are preparation materials for one independent synthetic
+local lab; they do not mean that the classroom rehearsal or delivery is
+complete, and they do not change `DF-H02-P01` (`SYNTHETIC_SPEC_ONLY`) or the
+Foundation's `executableLabs: 0` status.
