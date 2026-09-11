@@ -187,12 +187,12 @@ test("PostgreSQL migration and app repository preserve CourseLesson revision ide
   const concurrentActivities = await client.unsafe(`SELECT count(*)::int AS count FROM learning_activities WHERE target_id = '${lessonConcurrent}'`);
   assert.equal(Number(concurrentActivities[0].count), 1);
 
-  const legacyRows = await client.unsafe(`
+  const legacyRows = Array.from(await client.unsafe(`
     INSERT INTO user_course_lesson_progress
       (id, user_id, course_id, course_lesson_id, content_id, content_version, status, progress_percent, completed_at, last_viewed_at, time_spent_seconds, last_studied_at)
     VALUES ('pg-legacy-progress', '${userOne}', '${courseA}', '${lessonFailure}', NULL, NULL, 'COMPLETED', 100, CURRENT_TIMESTAMP::text, CURRENT_TIMESTAMP::text, 5, CURRENT_TIMESTAMP::text)
     RETURNING content_id AS "contentId", content_version AS "contentVersion", status
-  `);
+  `));
   assert.deepEqual(legacyRows, [{ contentId: null, contentVersion: null, status: "COMPLETED" }]);
   const current = await save(userOne, {
     courseLessonId: lessonFailure,
@@ -229,11 +229,11 @@ test("PostgreSQL migration and app repository preserve CourseLesson revision ide
       progressPercent: 100,
     });
     assert.ok(failed.response.status >= 400, JSON.stringify(failed.payload));
-    const failedRows = await client.unsafe(`
-      SELECT count(*)::int AS count FROM user_course_lesson_progress
+    const failedRows = Array.from(await client.unsafe(`
+      SELECT status FROM user_course_lesson_progress
       WHERE course_lesson_id = '${lessonFailure}' AND content_id = '${contentFailure}' AND content_version = 'FAIL'
-    `);
-    assert.equal(Number(failedRows[0].count), 0);
+    `));
+    assert.deepEqual(failedRows, [{ status: "IN_PROGRESS" }]);
     const remainingActivity = await client.unsafe(`SELECT count(*)::int AS count FROM learning_activities WHERE target_id = '${lessonFailure}'`);
     assert.equal(Number(remainingActivity[0].count), 1);
   } finally {
@@ -309,7 +309,7 @@ async function progressRows(courseLessonId) {
     WHERE user_id = '${userOne}' AND course_lesson_id = '${courseLessonId}'
     ORDER BY content_id NULLS FIRST, content_version NULLS FIRST
   `);
-  return rows;
+  return Array.from(rows);
 }
 
 async function save(userId, body) {
