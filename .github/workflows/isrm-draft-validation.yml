@@ -9,8 +9,10 @@ on:
       - "content-drafts/securium-isrm-s*-u*-authoring/**"
       - "scripts/validate-securium-isrm-foundation-product-authority.mjs"
       - "scripts/validate-securium-isrm-s*-u*-draft.mjs"
+      - "scripts/validate-securium-isrm-source-claim-references.mjs"
       - "tests/securium-isrm-foundation-product-authority.test.mjs"
       - "tests/securium-isrm-s*-u*-draft.test.mjs"
+      - "tests/securium-isrm-source-claim-references.test.mjs"
       - "package.json"
       - "package-lock.json"
   push:
@@ -23,8 +25,10 @@ on:
       - "content-drafts/securium-isrm-s*-u*-authoring/**"
       - "scripts/validate-securium-isrm-foundation-product-authority.mjs"
       - "scripts/validate-securium-isrm-s*-u*-draft.mjs"
+      - "scripts/validate-securium-isrm-source-claim-references.mjs"
       - "tests/securium-isrm-foundation-product-authority.test.mjs"
       - "tests/securium-isrm-s*-u*-draft.test.mjs"
+      - "tests/securium-isrm-source-claim-references.test.mjs"
       - "package.json"
       - "package-lock.json"
   workflow_dispatch:
@@ -108,6 +112,18 @@ jobs:
           while IFS= read -r validator; do
             node --check "$validator"
           done < <(find scripts -maxdepth 1 -type f -name 'validate-securium-isrm-s*-u*-draft.mjs' -print | sort)
+          node --check scripts/validate-securium-isrm-source-claim-references.mjs
+
+      - name: Run source claim reference validator
+        shell: bash
+        run: |
+          set -euo pipefail
+          output="$(node scripts/validate-securium-isrm-source-claim-references.mjs)"
+          printf '%s\n' "$output"
+          grep -Eq '"status"[[:space:]]*:[[:space:]]*"PASS"' <<< "$output"
+          grep -Eq '"packageCount"[[:space:]]*:[[:space:]]*12' <<< "$output"
+          grep -Eq '"claimCount"[[:space:]]*:[[:space:]]*60' <<< "$output"
+          ! grep -Eiq 'skip|skipped|zero' <<< "$output"
 
       - name: Run ISRM unit validators
         shell: bash
@@ -149,10 +165,11 @@ jobs:
             tests/securium-isrm-s04-u02-draft.test.mjs
             tests/securium-isrm-s05-u01-draft.test.mjs
             tests/securium-isrm-foundation-product-authority.test.mjs
+            tests/securium-isrm-source-claim-references.test.mjs
           )
           node --test "${test_files[@]}" | tee "$test_output"
-          grep -Eq 'tests 25$' "$test_output"
-          grep -Eq 'pass 25$' "$test_output"
+          grep -Eq 'tests 30$' "$test_output"
+          grep -Eq 'pass 30$' "$test_output"
           grep -Eq 'fail 0$' "$test_output"
           grep -Eq 'cancelled 0$' "$test_output"
           grep -Eq 'skipped 0$' "$test_output"
