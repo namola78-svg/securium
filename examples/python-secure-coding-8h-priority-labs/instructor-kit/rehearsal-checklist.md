@@ -187,14 +187,17 @@ pre-completed result.
 - [ ] Instructor can require owner/path/reachability/upgrade evidence for a
   dependency and source/integrity/owner/build/CI evidence for provenance.
   Observation: ___________________________________________________
-- [ ] The instructor records that user approval of the Q36 answer-binding
-  correction is complete, while canonical application, immutable revision
-  binding, and verification are not confirmed. Q36 remains excluded from
-  confirmed-answer use and scoring; no guessed answer is used.
+- [ ] The instructor records that the repository canonical Q36 answer is now
+  B/2 after #147 and that the immutable revision-boundary checks are verified.
+  The fixed candidate context projects Q36-v2 only; source/approval remains
+  `UNKNOWN`, candidate preflight is `BLOCKED`, persistence is `NOT_READY`, and
+  no humanReviewHash or canonical receipt exists. The candidate is not an
+  authority-issued Runtime revision and must not be presented as automated
+  scoring/publication readiness.
   Observation: ___________________________________________________
 - [ ] Instructor records the learning-evaluation impact: O28 can be observed
-  through P07 reasoning and evidence, while the Q36 item remains incomplete
-  and unscored.
+  through P07 reasoning and evidence, Q36's corrected content answer is B/2,
+  and any Runtime score requiring authority binding remains unbound.
   Observation: ___________________________________________________
 
 ### M08 dry-run checks
@@ -232,12 +235,13 @@ pre-completed result.
 
 ## 7. Q36 and delivery decision
 
-- [ ] Confirm the instructor announcement: user approval of the Q36 correction
-  is complete, but canonical application, revision binding, and verification
-  are pending; Q36 is excluded from confirmed-answer use and item-level scoring.
+- [ ] Confirm the instructor announcement: Q36's repository canonical answer is
+  B/2 after #147, while candidate v2 is only a fixed-context projection and
+  source/approval binding remains pending. Do not claim an authority-issued
+  Runtime revision or automated scoring/publication readiness.
   Announcement evidence: _________________________________________
-- [ ] Confirm the exclusion is recorded as an evaluation limitation and does
-  not alter canonical Q36 content.
+- [ ] Confirm any score exclusion is recorded specifically as a Runtime
+  authority-binding limitation and does not obscure the corrected B/2 content.
   Observation: ___________________________________________________
 - [ ] Confirm no one describes the package as actual rehearsal complete or
   full delivery ready.

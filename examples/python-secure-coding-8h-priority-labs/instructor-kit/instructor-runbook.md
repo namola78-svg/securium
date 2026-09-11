@@ -579,25 +579,27 @@ python -m unittest m07_secrets_dependencies.test_m07 -v
 
 ### Q36 handling
 
-User approval of the Q36 answer-binding correction is complete. At this PR
-head, the canonical answer application, immutable revision binding, and
-verification are not confirmed. Until those states are separately confirmed,
-do not use Q36 as a confirmed-answer key, do not score it, and do not present
-an answer position as authoritative. Record the exclusion in the workbook or
-instructor notes. The impact is that the M07 item-level question set is
-incomplete for Q36; it must not be silently replaced by a guessed item score.
-O28 can still be discussed and observed through P07 provenance evidence,
-review questions, and human reasoning, but that practical evidence is not a
-substitute canonical answer or a certification rule. Do not edit the
-canonical Q36 content or approval artifact here.
+The repository canonical Q36 record now has `answer: 1`, so B/2 is the
+corrected answer for content discussion and learner reasoning. #147 also
+verified the immutable revision-boundary checks. The default mapping/preflight
+path requires `QUESTION_REVISION_CONTEXT_REQUIRED`; only the fixed candidate
+context projects Q36-v2. This candidate projection is not an authority-issued
+Runtime revision: source and approval remain `UNKNOWN`, candidate preflight is
+`BLOCKED`, persistence is `NOT_READY`, and no `humanReviewHash` or canonical
+receipt exists. Do not claim platform automated scoring or publication
+readiness. If the delivery path requires authority-backed Runtime scoring,
+leave Q36 unbound rather than substituting a guessed score. O28 can still be
+discussed and observed through P07 provenance evidence, review questions, and
+human reasoning. Do not issue approval or alter Runtime state from this kit.
 
 ### Learner practice
 
 Learners record every token channel, the provider/client boundary, the
 dependency evidence needed for a decision, and the provenance gaps in the
-model-suggested package. They record Q36 as an approved correction whose
-canonical application, revision binding, and verification remain pending, and
-exclude it from scoring rather than entering a guessed answer.
+model-suggested package. They record Q36's corrected canonical answer as B/2
+and distinguish it from the unapproved Runtime candidate v2. They must not
+claim automated scoring/publication readiness or enter a Runtime score where
+source/approval binding is required.
 
 ### Discussion and review questions
 
@@ -622,8 +624,9 @@ normal processing with a narrow provider boundary.
 
 The learner can show the intended leak, explain why passing leak assertions are
 not secure results, trace the narrow credential sink, make an evidence-based
-dependency/provenance decision, and accurately leave Q36 unscored pending
-canonical application, revision binding, and verification.
+dependency/provenance decision, identify B/2 as the corrected Q36 answer, and
+distinguish the verified candidate revision boundary from the still-unbound
+Runtime source/approval state.
 
 ## M08 — Vibe-Coding Capstone and Human Re-verification
 
@@ -706,6 +709,7 @@ Skill State.
 
 This package reaches SECURIUM_PYTHON_8H_INSTRUCTOR_KIT_READY_FOR_REHEARSAL.
 It does not report that an instructor/student rehearsal has happened or that
-the complete delivery is ready. Rehearsal, scheduling, accessibility checks,
-and canonical Q36 application, revision binding, and verification remain
-delivery-owner work.
+the complete delivery is ready. Rehearsal, scheduling, and accessibility
+checks remain delivery-owner work; the canonical Q36 correction and revision
+boundary are merged and verified, while source/approval binding remains a
+delivery-owner Runtime gate.
