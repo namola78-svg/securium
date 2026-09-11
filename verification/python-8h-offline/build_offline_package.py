@@ -185,6 +185,16 @@ def run_git_bytes(*args: str) -> bytes:
     return result.stdout
 
 
+def source_history_ref() -> str:
+    parents = run_git("rev-list", "--parents", "-n", "1", "HEAD").split()
+    if len(parents) > 2:
+        # GitHub's pull-request merge ref has the base as its first parent and
+        # the proposed head as its second.  Follow the proposed head history
+        # so a synthetic merge object cannot become package provenance.
+        return parents[2]
+    return "HEAD"
+
+
 def source_commit_and_files() -> tuple[str, list[dict[str, Any]], list[str]]:
     lab_root = (REPOSITORY_ROOT / LAB_ROOT_REL).resolve()
     if not lab_root.is_dir():
@@ -222,7 +232,15 @@ def source_commit_and_files() -> tuple[str, list[dict[str, Any]], list[str]]:
 
     # The package provenance is the last commit that changed the packaged lab
     # tree, not a later commit that only changes this packaging helper.
-    commit = run_git("log", "-1", "--no-merges", "--format=%H", "--", str(LAB_ROOT_REL))
+    commit = run_git(
+        "log",
+        "-1",
+        "--no-merges",
+        "--format=%H",
+        source_history_ref(),
+        "--",
+        str(LAB_ROOT_REL),
+    )
     records: list[dict[str, Any]] = []
     for relative in SOURCE_FILES:
         path = lab_root / Path(relative)

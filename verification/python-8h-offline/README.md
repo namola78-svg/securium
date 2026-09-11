@@ -19,7 +19,8 @@ python verification/python-8h-offline/build_offline_package.py build `
 ```
 
 The builder records the last non-merge source commit that changed the lab tree,
-the source file list, byte sizes, SHA-256
+following the proposed-head parent when run on a pull-request merge ref. It
+also records the source file list, byte sizes, SHA-256
 digests, archive member list, archive size, and archive SHA-256 in an adjacent
 manifest. It normalizes member ordering, timestamps, permissions, and DEFLATE
 settings so repeated builds from identical input bytes have the same hash. It
