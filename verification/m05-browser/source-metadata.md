@@ -2,8 +2,10 @@
 
 - Harness checkpoint: `1500f48`
 - M05 fixture repair commit: `18b6aa1`
-- PR #143 head at recovery start: `7e15ef3ff74306f2d3725c8a8cba1855c83c34c1`
-- PR #143 head at final check: `7e15ef3ff74306f2d3725c8a8cba1855c83c34c1`
+- Latest-main M05 repair commit: `1c36dc6`
+- Latest-main harness commit: `7ebfbe8`
+- Isolated harness dependency commit: `f7c5a9b`
+- PR #143 merge / publish base: `8e7baf8a3e156f7dc3666313fb7c88d7e6e7d8df`
 - M05 path: `examples/python-secure-coding-8h-priority-labs/m05_web_context`
 - M05 blobs at start:
   - `__init__.py`: `8565980e0af688a06b02ca2ada33fc57e7d1a09e`
@@ -16,8 +18,10 @@
   - `vulnerable.py`: `89225a922df2a9409018bd12d748136937bdc7ff`
 
 The M05 repair is limited to an explicit keyword-only `trusted_origin` service
-configuration parameter with the original `https://app.local` default. The
-browser fixture uses it only to bind the HTTP recovery fixture to its actual
-server-owned `http://app.local` origin. No shared README, Python CI workflow,
-canonical Q36/Foundation, product runtime/schema, or product dependency file
-is changed by this worktree.
+configuration parameter with the original `https://app.local` default, plus a
+focused regression test for exact override and rejection of another Origin.
+The browser fixture uses it only to bind the HTTP recovery fixture to its
+actual server-owned `http://app.local` origin. The only shared documentation
+change is the minimal M05 harness guidance in the lab README; no Python CI
+workflow, canonical Q36/Foundation, product runtime/schema, or root product
+dependency file is changed by this worktree.

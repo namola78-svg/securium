@@ -11,8 +11,9 @@ the earlier certificate preparation blocked at `certutil.exe -user -f
 not change a system or current-user trust store. A full browser PASS is not
 claimed from the HTTP run.
 
-The fixture integration gap was repaired in the separate local commit
-`18b6aa1` (`fix(m05): allow explicit trusted origin for browser fixture`).
+The fixture integration gap was repaired in the source commit `18b6aa1`
+(`fix(m05): allow explicit trusted origin for browser fixture`) and carried
+onto this latest-main branch as `1c36dc6`.
 The default product behavior remains the exact `https://app.local` trusted
 Origin required by the existing secure tests. The repair adds only an
 explicit service configuration parameter so the isolated HTTP browser
@@ -21,21 +22,21 @@ fixture can use its actual server-owned `http://app.local` Origin.
 ## 2. Worktree, branch, and source scope
 
 - Worktree:
-  `C:\Users\user\Documents\Codex\2026-07-24\securium-python-8h-m05-browser-verification`
-- Branch: `review/python-8h-m05-browser-verification`
+  `C:\Users\user\Documents\Codex\2026-07-24\securium-python-8h-m05-browser-publish`
+- Branch: `fix/python-8h-m05-browser-fixture`
 - Existing harness checkpoint: `1500f48`
-- M05 fixture repair commit: `18b6aa1`
-- PR #143 head at recovery start: `7e15ef3ff74306f2d3725c8a8cba1855c83c34c1`
-- PR #143 head at final check: recorded after the run; it remained
-  `7e15ef3ff74306f2d3725c8a8cba1855c83c34c1`.
+- Source M05 fixture repair commit: `18b6aa1`
+- Latest-main M05 repair commit: `1c36dc6`
+- Latest-main harness commit: `7ebfbe8` plus isolated dependency commit
+  `f7c5a9b`
+- PR #143 merge / publish base: `8e7baf8a3e156f7dc3666313fb7c88d7e6e7d8df`
 
-The M05 implementation blobs at the PR head remained unchanged from the
-start lock in `source-metadata.md`. No parallel CI/README change was
-overwritten. The only product-file change in this worktree is the minimum
-explicit `trusted_origin` fixture configuration in `secure.py`; the harness,
-report, screenshots, and run instructions remain under
-`verification/m05-browser/`. No root dependency/lockfile, canonical content,
-Q36/Foundation, runtime/schema, or common README was changed.
+The M05 source blobs from merged #143 are recorded in `source-metadata.md`.
+This candidate adds only the explicit `trusted_origin` fixture configuration,
+its focused regression test, the isolated browser harness, and the minimal
+M05 README guidance for the path included in this PR. No parallel instructor
+kit files, CI workflow, canonical content, Q36/Foundation, runtime/schema, or
+root dependency/lockfile was changed.
 
 ## 3. Browser, version, OS, and execution method
 
@@ -153,12 +154,15 @@ presence flags are retained.
 
 ## 8. Difference from the existing HTTP client result
 
-The existing focused Python test remains `6/6` (`Ran 6 tests`, `OK`) and is
-not counted as browser verification. It directly supplies Cookie, Origin, and
+The pre-repair focused Python result was `6/6`; this candidate adds one
+explicit trusted-origin regression and passes `7/7`. Neither result is
+counted as browser verification. The tests directly supply Cookie, Origin, and
 CSRF headers, so it cannot establish browser Cookie policy, SameSite behavior,
 form encoding, CORS preflight, opaque responses, or whether a browser request
 actually reached the server. The HTTP browser run added those observations;
 the HTTPS portion is still outstanding.
+
+The candidate-wide Python labs regression ran `50` tests and completed `OK`.
 
 ## 9. Defect and minimum repair
 

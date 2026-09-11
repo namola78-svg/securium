@@ -32,18 +32,19 @@ that instructor/student rehearsal or complete delivery is ready.
   other operating systems, and full browser coverage remain unverified.
 - M05's HTTP checks use a direct Python client against a loopback server. They
   do not prove browser cookie, SameSite, form, or Origin behavior.
-- A separate M05 browser-harness/report result at commit `62a8a0c` exercised a
-  fixture containing the separate repair `18b6aa1`; neither commit is in
-  `main`, so it is not browser verification of this current lab bundle. That
-  report is `BROWSER_VERIFICATION_PARTIAL`: HTTP-compatible scenarios completed
-  in an actual local Chrome process, while HTTPS Secure-cookie and HTTPS
-  cross-site scenarios remain `NOT_RUN`. No full browser PASS is inferred from
-  the partial run or from the focused Python client tests.
 - User approval of the Q36 answer-binding correction is complete. At this PR
   head, canonical answer application, immutable revision binding, and
   verification are not confirmed. Until those states are separately
   confirmed, exclude Q36 from confirmed-answer use and scoring. Do not change
   the canonical answer or approval artifact in this lab bundle.
+- The separate reviewer harness at `verification/m05-browser/` exercises the
+  HTTP-compatible M05 flow in a real local browser. Its current result is
+  `BROWSER_VERIFICATION_PARTIAL`: HTTP scenarios passed, while HTTPS
+  Secure-cookie and HTTPS cross-site SameSite scenarios remain `NOT_RUN`.
+  Install its dependency only in that directory with
+  `npm install --prefix verification/m05-browser --ignore-scripts`, then run
+  `npm run --prefix verification/m05-browser verify`. This is not a classroom
+  delivery-readiness claim.
 - Canonical practical records P01-P08 remain `SPEC_ONLY`; this bundle does not
   perform runtime registration, provisioning, publication, or deployment.
 - The manifest's 480-minute total and 350-minute Python / 130-minute AI split
@@ -57,10 +58,10 @@ Windows and Linux runners:
 
 | Runner | CI shell | Python target / actual patch | Result |
 |---|---|---|---:|
-| Windows | `pwsh` | 3.11 / 3.11.9 | 49 PASS |
-| Windows | `pwsh` | 3.14 / 3.14.7 | 49 PASS |
-| Linux | `bash` | 3.11 / 3.11.16 | 49 PASS |
-| Linux | `bash` | 3.14 / 3.14.7 | 49 PASS |
+| Windows | `pwsh` | 3.11 / 3.11.9 | 50 PASS |
+| Windows | `pwsh` | 3.14 / 3.14.7 | 50 PASS |
+| Linux | `bash` | 3.11 / 3.11.16 | 50 PASS |
+| Linux | `bash` | 3.14 / 3.14.7 | 50 PASS |
 
 Each matrix job records the actual Python patch version and platform. It fails
 when discovery finds zero tests or when failures, import errors, or skips are
@@ -106,7 +107,7 @@ python --version
 python -m unittest discover -s . -p "test_*.py" -v
 ```
 
-The expected final result is `Ran 49 tests ... OK` (the exact elapsed time is
+The expected final result is `Ran 50 tests ... OK` (the exact elapsed time is
 environment-dependent). A failed test is a lab failure, not a successful
 security result.
 
