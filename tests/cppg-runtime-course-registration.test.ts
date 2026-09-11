@@ -48,6 +48,7 @@ class RecordingAdapter implements CppgDraftPersistenceAdapter {
   readonly applied: ProjectionRecord[][] = [];
   committed = false;
   rolledBack = false;
+  began = 0;
   private readonly readback: CppgObservedRuntimeState;
   private readonly failAt?: CppgPersistenceStage;
   constructor(readback: CppgObservedRuntimeState, failAt?: CppgPersistenceStage) {
@@ -56,6 +57,7 @@ class RecordingAdapter implements CppgDraftPersistenceAdapter {
   }
   async inspect() { return this.readback; }
   async begin() {
+    this.began += 1;
     return {
       apply: async (stage: CppgPersistenceStage, records: readonly ProjectionRecord[]) => {
         this.stages.push(stage);
@@ -119,7 +121,9 @@ test("replays deterministically, excludes actor identity from semantic hashes, a
   assert.ok(firstUnit);
   const changedUnit = { ...firstUnit, purpose: firstUnit.purpose + " changed" };
   const changed = await buildCppgCourseTheoryDraftProjection({ ...changedBundle, theory: { ...changedBundle.theory, units: [changedUnit, ...changedBundle.theory.units.slice(1)] } }, OPTIONS);
-  assert.equal(compareCppgProjectionReplay(first, changed), "NEW_IMMUTABLE_REVISION");
+  assert.equal(compareCppgProjectionReplay(first, changed), "CONFLICTING_IMMUTABLE_REVISION");
+  assert.equal(first.revisionRegistration.subjects[0]?.semanticRevisionId, changed.revisionRegistration.subjects[0]?.semanticRevisionId);
+  assert.equal(first.revisionRegistration.subjects[0]?.version, changed.revisionRegistration.subjects[0]?.version);
   assert.equal(first.revisionRegistration.identities.registrationSemanticIdentity.length, 64);
 });
 
@@ -136,12 +140,40 @@ test("classifies collision states only from trusted expected projection and obse
   assert.equal(classifyCppgRuntimeCollision(expected, exact), "REGISTERED_EXACT");
   assert.equal(classifyCppgRuntimeCollision(expected, readbackFor(value, { courseCount: 1, recordCount: 1, recordIds: [value.course.id], semanticHashes: { [value.course.id]: value.course.semanticHash } })), "REGISTERED_PARTIAL");
   assert.equal(classifyCppgRuntimeCollision(expected, { ...exact, semanticHashes: { ...exact.semanticHashes, [value.course.id]: "wrong" } }), "REGISTERED_CONFLICTING");
-  assert.equal(classifyCppgRuntimeCollision(expected, { ...exact, duplicateAuthorityCount: 1 }), "DUPLICATE_AUTHORITY");
+  assert.equal(classifyCppgRuntimeCollision(expected, { ...readbackFor(value), duplicateAuthorityCount: 1 }), "DUPLICATE_AUTHORITY");
+  assert.equal(classifyCppgRuntimeCollision(expected, { ...exact, recordCount: expected.recordIds.length + 1 }), "REGISTERED_CONFLICTING");
+  assert.equal(classifyCppgRuntimeCollision(expected, { ...exact, recordCount: expected.recordIds.length - 1 }), "REGISTERED_CONFLICTING");
+  assert.equal(classifyCppgRuntimeCollision(expected, { ...exact, courseCount: 0 }), "REGISTERED_CONFLICTING");
+  assert.equal(classifyCppgRuntimeCollision(expected, { ...readbackFor(value), courseCount: -1 }), "REGISTERED_CONFLICTING");
+  assert.equal(classifyCppgRuntimeCollision(expected, { ...exact, recordIds: [expected.recordIds[0], expected.recordIds[0], ...expected.recordIds.slice(1)], recordCount: expected.recordIds.length + 1 }), "REGISTERED_CONFLICTING");
+  const missing = expected.recordIds.slice(0, -1);
+  assert.equal(classifyCppgRuntimeCollision(expected, { ...exact, recordIds: missing, recordCount: missing.length, semanticHashes: Object.fromEntries(missing.map((id) => [id, expected.semanticHashes[id]])) }), "REGISTERED_PARTIAL");
+  const unexpected = [...expected.recordIds.slice(0, -1), "course-cppg:unexpected"];
+  assert.equal(classifyCppgRuntimeCollision(expected, { ...exact, recordIds: unexpected, recordCount: unexpected.length, semanticHashes: Object.fromEntries(unexpected.map((id) => [id, expected.semanticHashes[id] ?? "unexpected"])) }), "REGISTERED_CONFLICTING");
+  assert.equal(classifyCppgRuntimeCollision(expected, { ...exact, courseCount: 1, recordCount: 0, recordIds: [], semanticHashes: {} }), "REGISTERED_CONFLICTING");
   const callerForgedExpected = { ...expected, semanticHashes: Object.fromEntries(expected.recordIds.map((id) => [id, "caller-forged"])) };
   assert.equal(classifyCppgRuntimeCollision(callerForgedExpected, exact), "REGISTERED_CONFLICTING");
-  const adapter = new RecordingAdapter(readbackFor(value, { courseCount: 1, recordCount: 1, recordIds: [value.course.id], semanticHashes: { [value.course.id]: value.course.semanticHash } }));
-  await assert.rejects(() => persistCppgCourseTheoryDraft(value, adapter), /REGISTERED_PARTIAL/);
-  assert.deepEqual(adapter.stages, []);
+  const rejectedReadbacks: readonly [string, CppgObservedRuntimeState][] = [
+    ["duplicate authority in empty state", { ...readbackFor(value), duplicateAuthorityCount: 1 }],
+    ["multiple course authorities", { ...exact, courseCount: 2 }],
+    ["count too high", { ...exact, recordCount: expected.recordIds.length + 1 }],
+    ["count too low", { ...exact, recordCount: expected.recordIds.length - 1 }],
+    ["valid partial registration", { ...readbackFor(value, { courseCount: 1, recordCount: 1, recordIds: [value.course.id], semanticHashes: { [value.course.id]: value.course.semanticHash } }) }],
+    ["course metadata contradiction", { ...exact, courseCount: 0 }],
+    ["course row missing from non-empty state", { ...exact, courseCount: 1, recordCount: 0, recordIds: [], semanticHashes: {} }],
+    ["invalid count", { ...readbackFor(value), courseCount: -1 }],
+    ["fractional count", { ...readbackFor(value), recordCount: 1.5 }],
+    ["duplicate id", { ...exact, recordIds: [expected.recordIds[0], expected.recordIds[0], ...expected.recordIds.slice(1)], recordCount: expected.recordIds.length + 1 }],
+    ["missing id", { ...exact, recordIds: missing, recordCount: missing.length, semanticHashes: Object.fromEntries(missing.map((id) => [id, expected.semanticHashes[id]])) }],
+    ["unexpected id", { ...exact, recordIds: unexpected, recordCount: unexpected.length, semanticHashes: Object.fromEntries(unexpected.map((id) => [id, expected.semanticHashes[id] ?? "unexpected"])) }],
+    ["stale semantic hash", { ...exact, semanticHashes: { ...exact.semanticHashes, [value.course.id]: "wrong" } }],
+  ];
+  for (const [label, readback] of rejectedReadbacks) {
+    const adapter = new RecordingAdapter(readback);
+    await assert.rejects(() => persistCppgCourseTheoryDraft(value, adapter), label);
+    assert.equal(adapter.began, 0, label);
+    assert.deepEqual(adapter.stages, [], label);
+  }
 });
 
 test("persists only the atomic Course/Theory Draft plan through an injected adapter", async () => {
@@ -185,4 +217,17 @@ test("exact runtime state replays without beginning a transaction", async () => 
   const result = await persistCppgCourseTheoryDraft(value, exactAdapter);
   assert.equal(result.outcome, "EXACT_REPLAY");
   assert.deepEqual(exactAdapter.stages, []);
+});
+
+test("does not overwrite v1 when the same revision identity has changed content", async () => {
+  const original = await projection();
+  const changedBundle = await foundationBundle();
+  const firstUnit = changedBundle.theory.units[0];
+  assert.ok(firstUnit);
+  const changed = await buildCppgCourseTheoryDraftProjection({ ...changedBundle, theory: { ...changedBundle.theory, units: [{ ...firstUnit, purpose: firstUnit.purpose + " changed" }, ...changedBundle.theory.units.slice(1)] } }, OPTIONS);
+  const expectedChanged = expectedCppgRuntimeState(changed);
+  const existingV1 = new RecordingAdapter(readbackFor(original, { courseCount: 1, recordCount: expectedChanged.recordIds.length, recordIds: expectedChanged.recordIds, semanticHashes: expectedCppgRuntimeState(original).semanticHashes }));
+  await assert.rejects(() => persistCppgCourseTheoryDraft(changed, existingV1), /REGISTERED_CONFLICTING/);
+  assert.equal(existingV1.began, 0);
+  assert.deepEqual(existingV1.stages, []);
 });

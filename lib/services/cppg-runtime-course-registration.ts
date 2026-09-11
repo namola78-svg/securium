@@ -156,19 +156,39 @@ export async function buildCppgCourseTheoryDraftProjection(bundle: CppgFoundatio
   const projectionSemanticHash = await sha256Canonical({ contractVersion: CPPG_RUNTIME_PROJECTION_V1, courseId: CPPG_RUNTIME_COURSE_ID, packageKey: CPPG_RUNTIME_PACKAGE_KEY, recordHashes: persistentRecords.map(({ id, kind, semanticHash }) => ({ id, kind, semanticHash })), revisionRegistration: identities, counts, futurePersistenceRowCounts });
   return { contractVersion: CPPG_RUNTIME_PROJECTION_V1, courseId: CPPG_RUNTIME_COURSE_ID, packageKey: CPPG_RUNTIME_PACKAGE_KEY, course, curriculumTree, subjects: subjectRecords, curriculumNodes: [...subjectNodes, ...unitNodes], topics: topicRecords, learningUnits: unitRecords, objectives: objectiveRecords, contents: contentRecords, lessons: lessonRecords, courseLessons: courseLessonRecords, contentRevisions: revisionRecords, revisionRegistration: { resourceType: CPPG_RUNTIME_RESOURCE_TYPE, qualificationId: "CPPG", packageKey: CPPG_RUNTIME_PACKAGE_KEY, identities, subjects: registrationSubjects }, conceptReadiness: { exact: 2, alias: 0, missing: 72, ambiguous: 0, writes: 0, classifications: { readyNewConcept: 54, needsDecomposition: 13, notAConcept: 5 } }, excluded: { assessmentQuestions: 100, practicalSpecs: 10, ontologyWrites: 0, publication: false }, counts, futurePersistenceRowCounts, projectionSemanticHash };
 }
-export function compareCppgProjectionReplay(existing: CppgCourseTheoryDraftProjection, incoming: CppgCourseTheoryDraftProjection): "EXACT_REPLAY" | "NEW_IMMUTABLE_REVISION" { return existing.courseId === incoming.courseId && existing.packageKey === incoming.packageKey && existing.projectionSemanticHash === incoming.projectionSemanticHash && existing.revisionRegistration.identities.registrationSemanticIdentity === incoming.revisionRegistration.identities.registrationSemanticIdentity ? "EXACT_REPLAY" : "NEW_IMMUTABLE_REVISION"; }
+export type CppgProjectionReplayState = "EXACT_REPLAY" | "CONFLICTING_IMMUTABLE_REVISION";
+export function compareCppgProjectionReplay(existing: CppgCourseTheoryDraftProjection, incoming: CppgCourseTheoryDraftProjection): CppgProjectionReplayState { return existing.courseId === incoming.courseId && existing.packageKey === incoming.packageKey && existing.projectionSemanticHash === incoming.projectionSemanticHash && existing.revisionRegistration.identities.registrationSemanticIdentity === incoming.revisionRegistration.identities.registrationSemanticIdentity ? "EXACT_REPLAY" : "CONFLICTING_IMMUTABLE_REVISION"; }
 export type CppgRuntimeCollisionState = "NOT_REGISTERED" | "REGISTERED_EXACT" | "REGISTERED_PARTIAL" | "REGISTERED_CONFLICTING" | "DUPLICATE_AUTHORITY";
 export type CppgExpectedRuntimeState = Readonly<{ courseId: typeof CPPG_RUNTIME_COURSE_ID; recordIds: readonly string[]; semanticHashes: Readonly<Record<string, string>> }>;
-export type CppgObservedRuntimeState = Readonly<{ courseCount: number; recordCount: number; recordIds: readonly string[]; semanticHashes: Readonly<Record<string, string>>; duplicateAuthorityCount: number }>;
+export type CppgObservedRuntimeState = Readonly<{
+  /** Number of course authority rows in the scoped readback; separate from recordCount. */
+  courseCount: number;
+  /** Number of all persistent projection rows in the scoped readback, including the course row. */
+  recordCount: number;
+  /** IDs of every row counted by recordCount, including unexpected rows if present. */
+  recordIds: readonly string[];
+  /** One semantic hash for every recordId and no keys outside recordIds. */
+  semanticHashes: Readonly<Record<string, string>>;
+  /** Readback evidence for duplicate course/authority rows. */
+  duplicateAuthorityCount: number;
+}>;
 export type CppgRuntimeReadbackRequest = Readonly<{ courseId: typeof CPPG_RUNTIME_COURSE_ID; recordIds: readonly string[] }>;
 function persistentProjectionRecords(projection: CppgCourseTheoryDraftProjection): readonly ProjectionRecord[] { return [projection.course, projection.curriculumTree, ...projection.subjects, ...projection.curriculumNodes, ...projection.topics, ...projection.learningUnits, ...projection.contents, ...projection.lessons, ...projection.courseLessons, ...projection.contentRevisions]; }
 export function expectedCppgRuntimeState(projection: CppgCourseTheoryDraftProjection): CppgExpectedRuntimeState { const records = persistentProjectionRecords(projection); return { courseId: projection.courseId, recordIds: records.map((record) => record.id), semanticHashes: Object.fromEntries(records.map((record) => [record.id, record.semanticHash])) }; }
+function isNonNegativeSafeInteger(value: number): boolean { return Number.isSafeInteger(value) && value >= 0; }
+function hasUniqueNonEmptyIds(ids: readonly string[]): boolean { return ids.every((id) => typeof id === "string" && id.length > 0) && new Set(ids).size === ids.length; }
+function sameSortedIds(left: readonly string[], right: readonly string[]): boolean { const a = [...left].sort(), b = [...right].sort(); return a.length === b.length && a.every((id, index) => id === b[index]); }
+function hasExactHashKeys(ids: readonly string[], hashes: Readonly<Record<string, string>>): boolean { const keys = Object.keys(hashes); return sameSortedIds(ids, keys) && ids.every((id) => typeof hashes[id] === "string" && hashes[id].length > 0); }
 export function classifyCppgRuntimeCollision(expected: CppgExpectedRuntimeState, observed: CppgObservedRuntimeState): CppgRuntimeCollisionState {
-  if (observed.courseCount === 0 && observed.recordCount === 0) return "NOT_REGISTERED";
+  const expectedIds = [...expected.recordIds], observedIds = [...observed.recordIds];
+  if (!hasUniqueNonEmptyIds(expectedIds) || expectedIds.length === 0 || !expectedIds.includes(expected.courseId) || !hasExactHashKeys(expectedIds, expected.semanticHashes)) return "REGISTERED_CONFLICTING";
+  if (!isNonNegativeSafeInteger(observed.courseCount) || !isNonNegativeSafeInteger(observed.recordCount) || !isNonNegativeSafeInteger(observed.duplicateAuthorityCount)) return "REGISTERED_CONFLICTING";
   if (observed.duplicateAuthorityCount > 0 || observed.courseCount > 1) return "DUPLICATE_AUTHORITY";
-  if (observed.courseCount > 0 && observed.recordCount < expected.recordIds.length) return "REGISTERED_PARTIAL";
-  const observedIds = [...observed.recordIds].sort(), expectedIds = [...expected.recordIds].sort();
-  if (observed.courseCount > 0 && observedIds.length === expectedIds.length && observedIds.every((id, index) => id === expectedIds[index]) && expectedIds.every((id) => observed.semanticHashes[id] === expected.semanticHashes[id])) return "REGISTERED_EXACT";
+  if (!hasUniqueNonEmptyIds(observedIds) || observed.recordCount !== observedIds.length || !hasExactHashKeys(observedIds, observed.semanticHashes)) return "REGISTERED_CONFLICTING";
+  if (observed.courseCount === 0) return observed.recordCount === 0 && observedIds.length === 0 ? "NOT_REGISTERED" : "REGISTERED_CONFLICTING";
+  if (observed.courseCount !== 1 || !observedIds.includes(expected.courseId)) return "REGISTERED_CONFLICTING";
+  if (observed.recordCount < expectedIds.length) return "REGISTERED_PARTIAL";
+  if (observed.recordCount === expectedIds.length && sameSortedIds(observedIds, expectedIds) && expectedIds.every((id) => observed.semanticHashes[id] === expected.semanticHashes[id])) return "REGISTERED_EXACT";
   return "REGISTERED_CONFLICTING";
 }
 export function interpretCppgStaticSeed(): Readonly<{ staticState: "STATIC_REGISTERED_EXACT"; runtimeState: "UNKNOWN_NOT_QUERIED" }> { return { staticState: "STATIC_REGISTERED_EXACT", runtimeState: "UNKNOWN_NOT_QUERIED" }; }
