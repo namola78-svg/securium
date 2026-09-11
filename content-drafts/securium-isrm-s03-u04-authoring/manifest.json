@@ -1,0 +1,71 @@
+{
+  "schema": "securium.isrm.s03_u04.authoring_draft.v1",
+  "status": "DRAFT_UNPUBLISHED_REVIEW_REQUIRED",
+  "courseId": "course-isrm",
+  "subjectId": "isrm-2025-2027-s03",
+  "learningUnitId": "isrm-2025-2027-s03-u04",
+  "draftTitle": "정보보호산업 적용 보호대책을 맥락에 맞게 점검하기",
+  "titleAuthority": "SECURIUM_DRAFT_TITLE_NOT_OFFICIAL_UNIT_TITLE",
+  "officialScopeAnchor": {
+    "subjectNumber": "III",
+    "subjectName": "정보보호 위험 대응",
+    "majorItem": "정보보호산업 적용 보호대책",
+    "subitems": [
+      "정보보호산업 적용 법률 및 제도 개요",
+      "정보보호 산업 준수 법률 요구사항",
+      "정보보호산업 준수 제도"
+    ],
+    "claimIds": ["ISRM-S03-U04-C01", "ISRM-S03-U04-C02"],
+    "officialUnitId": "UNKNOWN"
+  },
+  "continuity": {
+    "priorUnitIds": [
+      "isrm-2025-2027-s03-u01",
+      "isrm-2025-2027-s03-u02",
+      "isrm-2025-2027-s03-u03"
+    ],
+    "priorOutcomeIds": [
+      "ISRM-S03-U01-O01",
+      "ISRM-S03-U01-O02",
+      "ISRM-S03-U02-O01",
+      "ISRM-S03-U02-O02",
+      "ISRM-S03-U03-O01",
+      "ISRM-S03-U03-O02"
+    ],
+    "input": "U01의 처리전략·구현계획, U02의 운영 책임·적용성·증거 연결, U03의 이행점검·개선 결과",
+    "newBoundary": "정보보호산업의 법·제도 사실 앵커를 사용하여 보호기술·서비스 주장의 적용 적합성을 판단하고, 서비스 범위 변경의 영향과 후속 기록을 검토",
+    "repeatedContentExcluded": "U01의 전략 재선택, U02의 일반 책임·적용성 mapping, U03의 개별 이행점검 절차를 독립 lesson으로 반복하지 않음"
+  },
+  "objectiveIds": ["ISRM-S03-U04-O01", "ISRM-S03-U04-O02"],
+  "theoryIds": ["ISRM-S03-U04-T01"],
+  "questionIds": ["isrm-q-v2-19", "isrm-q-v2-20"],
+  "existingCanonicalAuthorityRows": [
+    { "id": "isrm-q-v2-19", "answerAuthority": "PRESENT", "explanation": "PRESENT", "decision": "ACCEPT", "bodyPayloadPresent": false },
+    { "id": "isrm-q-v2-20", "answerAuthority": "PRESENT", "explanation": "PRESENT", "decision": "ACCEPT", "bodyPayloadPresent": false }
+  ],
+  "sourcePolicy": {
+    "officialUse": "FACTUAL_SCOPE_ANCHOR_ONLY",
+    "officialExpressionReuse": "UNKNOWN_REQUIRES_PERMISSION",
+    "commercialSources": "EXCLUDED",
+    "officialQuestionReuse": "EXCLUDED",
+    "sourceExpressionReuse": 0,
+    "officialQuestionReconstruction": 0
+  },
+  "governance": {
+    "canonicalApproval": "NOT_REQUESTED",
+    "revisionBinding": "NOT_ISSUED",
+    "publication": "NOT_AUTHORIZED",
+    "runtimeImport": "NONE",
+    "runtimeRegistration": 0,
+    "runtimeDbIo": 0
+  },
+  "currentness": {
+    "status": "PARTIAL",
+    "officialSemanticVersion": "UNKNOWN",
+    "officialScopeDetail": "PARTIAL",
+    "identityPageReviewedOn": "2026-09-11",
+    "unitIdYearRangeNotUsedAsEvidence": true
+  },
+  "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
+  "reviewRequired": true
+}

@@ -1,0 +1,109 @@
+{
+  "schema": "securium.isrm.s01_u03.theory_draft.v1",
+  "status": "DRAFT_UNPUBLISHED_REVIEW_REQUIRED",
+  "id": "ISRM-S01-U03-T01",
+  "courseId": "course-isrm",
+  "subjectId": "isrm-2025-2027-s01",
+  "learningUnitId": "isrm-2025-2027-s01-u03",
+  "title": "정보보호 관리체계의 생명주기 운영",
+  "summary": "앞 단위에서 자산과 우선순위를 기록했다면, 이번 단위에서는 정책·교육·점검의 결과를 다시 검토하고 변화에 맞춰 개선하는 운영 흐름을 학습합니다.",
+  "objectiveIds": ["ISRM-S01-U03-O01", "ISRM-S01-U03-O02"],
+  "claimIds": ["ISRM-S01-U03-C02", "ISRM-S01-U03-C03", "ISRM-S01-U03-C04", "ISRM-S01-U03-C05"],
+  "sections": [
+    {
+      "id": "bridge-from-u02",
+      "heading": "1. 기록한 계획을 운영과 검토로 이어 간다",
+      "body": "U01에서 보호대상과 요구사항을 확인하고 U02에서 자산·역할·우선순위를 기록했다면, 이제 그 기록이 실제 정책·교육·점검과 연결되는지 확인해야 합니다. 관리체계는 승인 문서를 한 번 만드는 작업이 아니라, 책임 있는 사람이 실행 결과와 변화 신호를 검토하고 필요한 개선을 남기는 반복적인 운영 활동입니다. 이 단위의 순서는 공식 인증 절차나 고정 주기표가 아니라, 학습자가 운영 증거와 재검토 조건을 연결하기 위한 독립적인 학습 순서입니다.",
+      "claimIds": ["ISRM-S01-U03-C03", "ISRM-S01-U03-C05"]
+    },
+    {
+      "id": "policy-and-documents",
+      "heading": "2. 정책과 하위 시행문서를 구분한다",
+      "body": "정책은 경영진의 정보보호 방향과 목표를 제시하는 상위 문서이고, 지침·절차·매뉴얼은 그 방향을 실제 업무에서 수행하는 방법과 책임·주기·산출물을 구체화합니다. 정책과 하위 문서는 승인된 대상과 범위, 역할·책임, 관련 활동의 근거를 드러내야 하며, 실제 업무를 수행할 사람에게 이해 가능한 방식으로 전달되어야 합니다. 문서의 존재는 운영의 출발점이지 실행 결과 그 자체가 아닙니다.",
+      "relationships": [
+        "정책의 방향·범위·책임 -> 하위 문서의 방법·주기·산출물",
+        "승인·전달 -> 실제 담당자의 이해와 수행",
+        "변화 신호·검토 결과 -> 정책 또는 하위 문서의 개정 판단"
+      ],
+      "claimIds": ["ISRM-S01-U03-C03", "ISRM-S01-U03-C05"]
+    },
+    {
+      "id": "review-triggers",
+      "heading": "3. 변화가 있으면 문서와 통제를 다시 검토한다",
+      "body": "정책과 시행문서는 정기적인 타당성 검토 대상입니다. 법규·규제, 조직과 서비스의 환경, 보호대상, 책임자 또는 운영 방식이 바뀌면 기존 문서와 통제가 여전히 맞는지 영향과 근거를 확인해야 합니다. 검토 기록에는 변화의 내용, 영향을 받는 범위, 책임자, 결정, 개정 필요 여부, 다음 검토 조건을 남깁니다. 특정 조직의 검토 주기나 법적 의무는 이 초안이 정하지 않으며 해당 조직의 승인된 기준을 별도로 확인해야 합니다.",
+      "claimIds": ["ISRM-S01-U03-C03", "ISRM-S01-U03-C05"]
+    },
+    {
+      "id": "education-evidence",
+      "heading": "4. 교육 계획과 운영 증거를 연결한다",
+      "body": "교육 운영은 대상·목적·내용·방법·일정이 포함된 계획에서 시작합니다. 계획을 세웠다는 사실과 실제 실시를 구분하고, 공지·자료·출석 또는 완료 기록을 남깁니다. 그다음 학습 내용이 직무와 정책을 이해하고 따르는 데 도움이 되었는지 설문·시험·업무 점검 등 정해 둔 방법으로 평가하며, 결과에서 나온 개선점을 다음 계획에 반영합니다. 법규나 내부 절차의 중대한 변경이 있으면 추가 안내나 교육이 필요한지 판단합니다.",
+      "claimIds": ["ISRM-S01-U03-C04", "ISRM-S01-U03-C05"]
+    },
+    {
+      "id": "operating-sequence",
+      "heading": "5. 검토 가능한 운영 순서를 만든다",
+      "steps": [
+        "정책·하위 문서의 적용 범위와 책임자를 확인한다.",
+        "승인본을 대상자에게 전달하고 필요한 교육·안내를 계획한다.",
+        "실시 기록과 실제 업무 점검 결과를 정책·요구사항과 연결한다.",
+        "서비스·조직·법규·책임자 변화와 정기 검토 시점을 확인한다.",
+        "문서 개정, 추가 교육, 통제 개선 또는 보류 사유와 다음 검토 조건을 기록한다."
+      ],
+      "body": "위 순서는 Securium이 만든 학습용 점검 순서입니다. 특정 법률의 모든 의무, KCA 공식 절차, 인증 합격 조건 또는 조직의 승인된 방법론을 대신하지 않습니다.",
+      "claimIds": ["ISRM-S01-U03-C03", "ISRM-S01-U03-C04", "ISRM-S01-U03-C05"]
+    },
+    {
+      "id": "fictional-case",
+      "heading": "6. 창작 사례: 솔바람 예약서비스",
+      "fictional": true,
+      "body": "솔바람 예약서비스는 고객 예약과 운영자 배정 기능을 제공하는 가상의 조직이라고 가정합니다. 조직은 정보보호 정책과 운영자용 접근 지침을 승인하고, 운영자에게 변경된 승인 절차를 교육했습니다. 그러나 예약 API가 새 외부 연동으로 바뀐 뒤 접근 검토 기록과 담당자 목록이 갱신되지 않았습니다. 학습자는 변경된 범위와 책임자를 확인하고, 정책·지침의 타당성을 재검토하며, 교육 완료 기록과 실제 접근 점검 결과를 함께 확인해야 합니다. 이 조직·서비스·문서·수치는 모두 학습을 위해 만든 것이며 실제 기관이나 공식 시험 사례가 아닙니다.",
+      "claimIds": ["ISRM-S01-U03-C05"]
+    },
+    {
+      "id": "common-confusions",
+      "heading": "7. 자주 혼동하는 지점",
+      "items": [
+        {
+          "confusion": "승인된 정책 파일이 있으면 운영이 입증되었다고 생각한다.",
+          "correction": "정책의 전달·교육·실제 점검·검토 결과를 연결해야 실행과 개선을 확인할 수 있다."
+        },
+        {
+          "confusion": "교육 계획을 세우면 교육이 완료되었다고 생각한다.",
+          "correction": "대상별 실시 기록과 효과 평가를 구분하고, 미참여·낮은 효과에 대한 후속 조치를 남긴다."
+        },
+        {
+          "confusion": "정기 검토일이 오기 전에는 변경된 서비스를 다시 볼 필요가 없다고 생각한다.",
+          "correction": "서비스·법규·조직·책임자 변화는 예정된 검토일과 별도의 재검토 신호가 될 수 있다."
+        },
+        {
+          "confusion": "문서가 개정되면 과거 기록을 지워도 된다고 생각한다.",
+          "correction": "무엇이 왜 바뀌었고 누가 검토·승인했는지 추적할 수 있게 변경 근거와 이전 기록의 관계를 남긴다."
+        }
+      ],
+      "claimIds": ["ISRM-S01-U03-C03", "ISRM-S01-U03-C04", "ISRM-S01-U03-C05"]
+    },
+    {
+      "id": "summary-check",
+      "heading": "8. 요약과 자기점검",
+      "summary": "관리체계 운영은 정책을 게시하는 데서 끝나지 않습니다. 승인·전달·교육·실제 점검·정기 검토를 연결하고, 서비스나 법규 등 변화가 생기면 영향과 개선 결과를 기록해야 합니다.",
+      "selfCheck": [
+        "정책과 하위 시행문서의 범위·책임·승인 관계가 보이는가?",
+        "계획, 실시 기록, 효과 평가를 서로 구분했는가?",
+        "서비스·조직·법규·책임자 변화가 재검토 조건으로 기록되어 있는가?",
+        "문서 게시 외에 실제 업무 점검이나 운영 증거가 있는가?",
+        "개정·추가 교육·개선 조치의 담당자와 다음 확인 조건이 남아 있는가?"
+      ],
+      "claimIds": ["ISRM-S01-U03-C05"]
+    }
+  ],
+  "limitations": [
+    "This is an independent Securium draft and does not reproduce the official KCA guidebook or official exam content.",
+    "The operating sequence is a teaching device, not an official certification procedure, fixed review schedule, or legal determination.",
+    "Organization-specific legal duties, training frequency, and approved review methods must be checked from authoritative sources.",
+    "No exam prediction, pass-rate claim, or official unit-level title is asserted."
+  ],
+  "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
+  "sourceExpressionReuse": 0,
+  "canonicalApproval": "NOT_REQUESTED",
+  "publication": "NOT_AUTHORIZED"
+}

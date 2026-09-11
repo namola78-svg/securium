@@ -1,0 +1,29 @@
+{
+  "schema": "securium.isrm.s03_u03.objective_draft.v1",
+  "status": "DRAFT_UNPUBLISHED_REVIEW_REQUIRED",
+  "learningUnitId": "isrm-2025-2027-s03-u03",
+  "objectives": [
+    {
+      "id": "ISRM-S03-U03-O01",
+      "outcome": "U01의 구현계획과 U02의 책임·증거 mapping을 바탕으로 보호대책 구현 결과의 완료·정확성·효과성을 운영 증거로 점검하고 판단 근거를 설명할 수 있다.",
+      "theoryIds": ["ISRM-S03-U03-T01"],
+      "questionIds": ["isrm-q-v2-17", "isrm-q-v2-18"],
+      "claimIds": ["ISRM-S03-U03-C03", "ISRM-S03-U03-C05"],
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT"
+    },
+    {
+      "id": "ISRM-S03-U03-O02",
+      "outcome": "지연·미이행·증거 부족 또는 효과성 의문을 원인 분석, 구현계획 변경, 추가 위험평가·보완조치와 관리 보고로 연결할 수 있다.",
+      "theoryIds": ["ISRM-S03-U03-T01"],
+      "questionIds": ["isrm-q-v2-30"],
+      "claimIds": ["ISRM-S03-U03-C04", "ISRM-S03-U03-C05"],
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT"
+    }
+  ],
+  "limitations": [
+    "Objectives are Securium pedagogical outcomes, not official KCA unit objectives.",
+    "The official unit-level title, detailed scope, and semantic version remain UNKNOWN.",
+    "Evidence examples are synthetic learning devices; an actual organization must verify its applicable requirements, review criteria, authority, independence, and approval rules.",
+    "A completion status or isolated record does not by itself prove control effectiveness."
+  ]
+}

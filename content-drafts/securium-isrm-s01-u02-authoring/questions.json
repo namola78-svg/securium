@@ -1,0 +1,81 @@
+{
+  "schema": "securium.isrm.s01_u02.question_draft.v1",
+  "status": "DRAFT_UNPUBLISHED_REVIEW_REQUIRED",
+  "learningUnitId": "isrm-2025-2027-s01-u02",
+  "questions": [
+    {
+      "id": "isrm-q-v2-03",
+      "status": "DRAFT_UNPUBLISHED",
+      "type": "SINGLE_CHOICE",
+      "difficulty": "FOUNDATION",
+      "courseId": "course-isrm",
+      "subjectId": "isrm-2025-2027-s01",
+      "learningUnitId": "isrm-2025-2027-s01-u02",
+      "scenarioType": "SECURIUM_SYNTHETIC_SCENARIO",
+      "fictional": true,
+      "objectiveIds": ["ISRM-S01-U02-O01"],
+      "theoryIds": ["ISRM-S01-U02-T01"],
+      "prompt": "보호 우선순위를 검토하기 위한 첫 자산대장 행으로 가장 적절한 기록은 무엇인가?",
+      "options": [
+        { "id": "A", "text": "이름 + 위치 + CPU 사용량 + 벤더" },
+        { "id": "B", "text": "식별번호 + 유형 + 업무 연결 + 소유자·사용자·관리자 + 가치 근거" },
+        { "id": "C", "text": "제품명 + 라이선스 + 구매일 + 비용" },
+        { "id": "D", "text": "위협 + 취약성 + 대책 + 심각도" }
+      ],
+      "correctOptionId": "B",
+      "answerExplanation": "자산대장은 대상을 다시 확인할 식별정보와 업무 연결, 소유자·사용자·관리자 역할, 가치나 업무 영향의 근거를 기록해야 합니다. 나머지 선택지는 일부 기술·구매·위험 정보만 제시하여 자산 자체와 책임 관계를 확인하기 어렵습니다.",
+      "incorrectExplanations": {
+        "A": "위치와 CPU 사용량은 기술 상태의 일부일 뿐이며 자산의 업무 연결과 책임 역할을 대신하지 못합니다.",
+        "C": "구매와 비용 정보는 관리에 참고할 수 있지만 보호대상의 식별·업무 가치·책임 관계를 충분히 나타내지 못합니다.",
+        "D": "위협·취약성·대책은 자산을 평가할 때의 별도 근거이며, 자산대장의 기본 식별정보와 역할 기록을 대신하지 못합니다."
+      },
+      "claimIds": ["ISRM-S01-U02-C03", "ISRM-S01-U02-C04"],
+      "ambiguityReview": "ONE_BEST_ANSWER",
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
+      "sourceExpressionReuse": 0,
+      "officialQuestionReconstruction": 0,
+      "rightsStatus": "REVIEW_REQUIRED",
+      "currentness": "PARTIAL",
+      "canonicalRevisionBinding": "NOT_ISSUED"
+    },
+    {
+      "id": "isrm-q-v2-04",
+      "status": "DRAFT_UNPUBLISHED",
+      "type": "SINGLE_CHOICE",
+      "difficulty": "FOUNDATION",
+      "courseId": "course-isrm",
+      "subjectId": "isrm-2025-2027-s01",
+      "learningUnitId": "isrm-2025-2027-s01-u02",
+      "scenarioType": "SECURIUM_SYNTHETIC_SCENARIO",
+      "fictional": true,
+      "objectiveIds": ["ISRM-S01-U02-O02"],
+      "theoryIds": ["ISRM-S01-U02-T01"],
+      "prompt": "자원이 제한된 조직에서 두 자산의 보호 우선순위를 정할 때 가장 검토 가능한 판단은 무엇인가?",
+      "options": [
+        { "id": "A", "text": "자산명 + 중요 표시 + 동일 순위 + 전체 시스템 적용" },
+        { "id": "B", "text": "가치·영향 + 위협·취약성 + 통제·불확실성 + 기준 기록" },
+        { "id": "C", "text": "취약점 수 + 단순 합산 + 높은 값 우선 + 영향 생략" },
+        { "id": "D", "text": "벤더 점수 + 기본 심각도 + 조직 순위 고정 + 검토 생략" }
+      ],
+      "correctOptionId": "B",
+      "answerExplanation": "우선순위는 자산의 가치와 업무 영향에 위협·취약성·현재 통제·불확실성의 근거를 함께 비교해 조직의 방법론으로 검토해야 합니다. 이 초안은 하나의 공식 점수식이나 식별자 개수만으로 정하는 규칙을 주장하지 않습니다.",
+      "incorrectExplanations": {
+        "A": "같은 순위를 일괄 적용하면 자산별 업무 영향과 보호 근거의 차이를 숨기게 됩니다.",
+        "C": "식별자 개수는 취약성의 존재를 보일 수 있지만 자산 가치와 업무상 결과, 현재 통제를 보여 주지 못합니다.",
+        "D": "벤더의 일반 심각도는 조직의 자산 맥락과 통제 상태를 대체하지 못하므로 순위를 고정할 단독 근거가 아닙니다."
+      },
+      "claimIds": ["ISRM-S01-U02-C03", "ISRM-S01-U02-C04"],
+      "ambiguityReview": "ONE_BEST_ANSWER",
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
+      "sourceExpressionReuse": 0,
+      "officialQuestionReconstruction": 0,
+      "rightsStatus": "REVIEW_REQUIRED",
+      "currentness": "PARTIAL",
+      "canonicalRevisionBinding": "NOT_ISSUED"
+    }
+  ],
+  "limitations": [
+    "These are independent draft questions, not official KCA questions and not exam-prediction claims.",
+    "Question IDs are retained for planned relation only; no canonical question body or revision binding is overwritten or issued."
+  ]
+}

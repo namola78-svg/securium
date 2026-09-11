@@ -1,0 +1,74 @@
+{
+  "schema": "securium.isrm.s04_u02.source_claims.v1",
+  "status": "DRAFT_UNPUBLISHED_REVIEW_REQUIRED",
+  "learningUnitId": "isrm-2025-2027-s04-u02",
+  "claims": [
+    {
+      "id": "ISRM-S04-U02-C01",
+      "claim": "The official written-exam criteria identifies Subject IV as information-security management-system operation and lists information-security risk-management planning and information-security risk assessment as broad major items; the risk-assessment item includes method selection/preparation and information-security risk assessment.",
+      "sourceType": "OFFICIAL_LOCAL_PDF_REFERENCE_WITH_BOUNDED_PARAPHRASE",
+      "sourceUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
+      "sourceLocation": "local exam-criteria PDF page 3; printed page 3, Subject IV",
+      "localSha256": "1FF4981397462274BFDE7BBA35753EC613D834AFB7FBDB309687AB4BD83F6DA3",
+      "sourceSupport": "Official subject identity and broad risk-assessment boundary only; it does not establish the Securium U02 title, detailed objectives, or semantic version.",
+      "currentness": "PARTIAL; CRITERIA_SEMANTIC_VERSION_UNKNOWN",
+      "rights": "REFERENCE_ONLY; NO_SOURCE_EXPRESSION_REUSE",
+      "usedIn": ["manifest.json", "theory.json", "objectives.json"]
+    },
+    {
+      "id": "ISRM-S04-U02-C02",
+      "claim": "The official guidebook describes protection planning as including risk assessment and prioritization and describes risk management activities that connect identification, evaluation, response strategy, monitoring, and reporting/communication.",
+      "sourceType": "OFFICIAL_LOCAL_PDF_REFERENCE_WITH_BOUNDED_PARAPHRASE",
+      "sourceUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
+      "sourceLocation": "local guidebook PDF pages 190-191; printed pages 186-187, Subject IV planning and risk-management material",
+      "localSha256": "BD15551DCA7A7E72197C713244D5AB165D7C26C89DA56A174CA15BB4E4AC82D0",
+      "sourceSupport": "Bounded description of planning and risk-management activities; it does not prescribe the Securium U02 record format or one universal assessment method.",
+      "currentness": "PARTIAL; GUIDEBOOK_SEMANTIC_VERSION_UNKNOWN",
+      "rights": "REFERENCE_ONLY; NO_SOURCE_EXPRESSION_REUSE",
+      "usedIn": ["theory.json", "objectives.json"]
+    },
+    {
+      "id": "ISRM-S04-U02-C03",
+      "claim": "The official guidebook presents risk management as an activity that includes identification, evaluation, response strategy, monitoring, and periodic reporting/communication; this supports keeping assessment results connected to later operating decisions without treating the stages as identical.",
+      "sourceType": "OFFICIAL_LOCAL_PDF_REFERENCE_PLUS_BOUNDED_INDEPENDENT_SYNTHESIS",
+      "sourceUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
+      "sourceLocation": "local guidebook PDF page 191; printed page 187, Subject IV risk-management components",
+      "localSha256": "BD15551DCA7A7E72197C713244D5AB165D7C26C89DA56A174CA15BB4E4AC82D0",
+      "sourceSupport": "The source supports the bounded activity sequence; the separation of assessment from treatment approval and the specific update workflow are Securium synthesis.",
+      "currentness": "PARTIAL; GUIDEBOOK_SEMANTIC_VERSION_UNKNOWN",
+      "rights": "REFERENCE_ONLY; NO_SOURCE_EXPRESSION_REUSE",
+      "usedIn": ["theory.json", "objectives.json", "questions.json"]
+    },
+    {
+      "id": "ISRM-S04-U02-C04",
+      "claim": "The official guidebook discusses asset importance, threat classification and likelihood, vulnerability identification/evaluation, legal conformity, and comprehensive risk assessment with a target risk level in its risk-assessment material.",
+      "sourceType": "OFFICIAL_LOCAL_PDF_REFERENCE_WITH_BOUNDED_PARAPHRASE",
+      "sourceUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
+      "sourceLocation": "local guidebook PDF pages 217-227; printed pages 213-223, Subject IV risk-assessment material",
+      "localSha256": "BD15551DCA7A7E72197C713244D5AB165D7C26C89DA56A174CA15BB4E4AC82D0",
+      "sourceSupport": "Bounded factual anchors for the listed assessment inputs and target-risk concept; the source does not establish a universal numerical scale, threshold, or organization-specific evidence rule.",
+      "currentness": "PARTIAL; GUIDEBOOK_SEMANTIC_VERSION_UNKNOWN",
+      "rights": "REFERENCE_ONLY; NO_SOURCE_EXPRESSION_REUSE",
+      "usedIn": ["theory.json", "objectives.json", "questions.json"]
+    },
+    {
+      "id": "ISRM-S04-U02-C05",
+      "claim": "The distinction between assessment purpose, scope, method, evidence, uncertainty, target-risk comparison, change-triggered update, and downstream treatment/approval, together with the Onsamm Logistics case, self-checks, and questions, is Securium-created pedagogical synthesis and fictional example content.",
+      "sourceType": "INDEPENDENT_PEDAGOGICAL_SYNTHESIS_AND_SYNTHETIC_EXAMPLE",
+      "sourceLocation": "theory.json sections bridge-from-s03-and-s04-u01, purpose-scope-method, assessment-inputs, likelihood-impact-target-risk, change-and-update, fictional-case, common-confusions, summary-check; questions.json q23/q24",
+      "sourceSupport": "Independent teaching content; not an official unit title, objective, question wording, legal instruction, universal scoring method, or exam-prediction claim.",
+      "currentness": "NOT_AN_OFFICIAL_CLAIM",
+      "rights": "INDEPENDENT_EXPRESSION; REVIEW_REQUIRED",
+      "usedIn": ["manifest.json", "objectives.json", "theory.json", "questions.json"]
+    }
+  ],
+  "gate": {
+    "officialExpressionReusePermission": "UNKNOWN_BLOCKED",
+    "detailedOfficialScope": "PARTIAL",
+    "officialSemanticVersion": "UNKNOWN",
+    "commercialSourcesUsed": 0,
+    "officialQuestionReproduction": 0,
+    "sourceBindingApproval": "NOT_ISSUED",
+    "canonicalApproval": "NOT_REQUESTED"
+  }
+}

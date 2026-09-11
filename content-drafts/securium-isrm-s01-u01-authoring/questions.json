@@ -1,0 +1,116 @@
+{
+  "schema": "securium.isrm.s01_u01.question_draft.v1",
+  "status": "DRAFT_UNPUBLISHED_REVIEW_REQUIRED",
+  "learningUnitId": "isrm-2025-2027-s01-u01",
+  "questions": [
+    {
+      "id": "isrm-q-v2-01",
+      "status": "DRAFT_UNPUBLISHED",
+      "type": "SINGLE_CHOICE",
+      "difficulty": "FOUNDATION",
+      "courseId": "course-isrm",
+      "subjectId": "isrm-2025-2027-s01",
+      "learningUnitId": "isrm-2025-2027-s01-u01",
+      "scenarioType": "SECURIUM_SYNTHETIC_SCENARIO",
+      "fictional": true,
+      "objectiveIds": ["ISRM-S01-U01-O01"],
+      "theoryIds": ["ISRM-S01-U01-T01"],
+      "prompt": "새로운 고객 반품 포털의 위험관리 범위를 처음 정하려고 한다. 다음 중 가장 먼저 확인할 근거는 무엇인가?",
+      "options": [
+        {"id": "A", "text": "도구 비용과 계약 조건부터 확인한다"},
+        {"id": "B", "text": "업무, 처리 정보, 책임자, 업무 영향부터 확인한다"},
+        {"id": "C", "text": "서버 성능과 사용량부터 확인한다"},
+        {"id": "D", "text": "추천 제품과 도입 사례부터 확인한다"}
+      ],
+      "correctOptionId": "B",
+      "answerExplanation": "위험관리 범위는 기술의 새로움이나 비용보다 조직의 업무 의존성, 처리 정보, 보호 책임, 예상 영향을 먼저 확인해야 검토 가능한 근거가 됩니다.",
+      "incorrectExplanations": {
+        "A": "비용은 우선순위 판단의 한 입력일 수 있지만, 무엇을 보호해야 하는지와 업무 영향부터 정하지는 못합니다.",
+        "C": "현재 자원 사용량은 보호대상의 업무 가치나 정보 요구사항을 대신하지 못합니다.",
+        "D": "제품 선택은 보호대상과 요구사항을 확인한 뒤 검토할 대응 수단이며 범위의 출발점이 아닙니다."
+      },
+      "claimIds": ["ISRM-S01-U01-C03", "ISRM-S01-U01-C04"],
+      "ambiguityReview": "ONE_BEST_ANSWER",
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
+      "sourceExpressionReuse": 0,
+      "officialQuestionReconstruction": 0,
+      "rightsStatus": "REVIEW_REQUIRED",
+      "currentness": "PARTIAL",
+      "canonicalRevisionBinding": "NOT_ISSUED"
+    },
+    {
+      "id": "isrm-q-v2-02",
+      "status": "DRAFT_UNPUBLISHED",
+      "type": "SINGLE_CHOICE",
+      "difficulty": "FOUNDATION",
+      "courseId": "course-isrm",
+      "subjectId": "isrm-2025-2027-s01",
+      "learningUnitId": "isrm-2025-2027-s01-u01",
+      "scenarioType": "SECURIUM_SYNTHETIC_SCENARIO",
+      "fictional": true,
+      "objectiveIds": ["ISRM-S01-U01-O02"],
+      "theoryIds": ["ISRM-S01-U01-T01"],
+      "prompt": "초안에 ‘예약 데이터베이스’만 적혀 있고 담당자, 업무 목적, 요구사항이 비어 있다. 다음 단계로 가장 적절한 것은 무엇인가?",
+      "options": [
+        {"id": "A", "text": "모든 데이터베이스에 같은 보호수준을 부여한다"},
+        {"id": "B", "text": "업무 목적, 정보 유형, 책임자, CIA 요구사항과 의무를 확인한다"},
+        {"id": "C", "text": "취약점 스캔 결과로 요구사항을 정한다"},
+        {"id": "D", "text": "일반 위협 목록으로 위험평가를 끝낸다"}
+      ],
+      "correctOptionId": "B",
+      "answerExplanation": "보호대상은 업무 맥락과 책임, 필요한 정보보호 상태가 연결되어야 평가 가능한 단위가 됩니다. 기술 결과나 일반 위협 목록은 이 확인을 대체하지 않습니다.",
+      "incorrectExplanations": {
+        "A": "모든 대상에 같은 수준을 부여하면 업무 영향과 요구사항의 차이를 숨기게 됩니다.",
+        "C": "스캐너는 특정 기술 조건을 보여 줄 수 있지만 업무 목적과 보호 요구사항을 정하지는 못합니다.",
+        "D": "위협 목록은 검토 입력일 뿐이며 대상별 맥락과 취약성, 영향 확인 없이 결과가 되지 않습니다."
+      },
+      "claimIds": ["ISRM-S01-U01-C03", "ISRM-S01-U01-C04"],
+      "ambiguityReview": "ONE_BEST_ANSWER",
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
+      "sourceExpressionReuse": 0,
+      "officialQuestionReconstruction": 0,
+      "rightsStatus": "REVIEW_REQUIRED",
+      "currentness": "PARTIAL",
+      "canonicalRevisionBinding": "NOT_ISSUED"
+    },
+    {
+      "id": "isrm-q-v2-27",
+      "status": "DRAFT_UNPUBLISHED",
+      "type": "SINGLE_CHOICE",
+      "difficulty": "FOUNDATION",
+      "courseId": "course-isrm",
+      "subjectId": "isrm-2025-2027-s01",
+      "learningUnitId": "isrm-2025-2027-s01-u01",
+      "scenarioType": "SECURIUM_SYNTHETIC_SCENARIO",
+      "fictional": true,
+      "objectiveIds": ["ISRM-S01-U01-O01"],
+      "theoryIds": ["ISRM-S01-U01-T01"],
+      "prompt": "‘오래된 라이브러리의 취약성’만 적힌 위험 문장을 더 검토 가능하게 만들려면 무엇을 보완해야 하는가?",
+      "options": [
+        {"id": "A", "text": "영향 서비스·정보와 업무상 결과를 적는다"},
+        {"id": "B", "text": "문장 서식과 글자 크기를 바꾼다"},
+        {"id": "C", "text": "모든 시스템에 같은 위험도를 부여한다"},
+        {"id": "D", "text": "업무 맥락 없이 식별자만 추가한다"}
+      ],
+      "correctOptionId": "A",
+      "answerExplanation": "취약성은 위험 판단에 필요한 한 요소입니다. 영향을 받는 보호대상과 업무 결과를 연결해야 같은 취약성이 어떤 상황에서 더 중요한지 검토할 수 있습니다.",
+      "incorrectExplanations": {
+        "B": "표시 형식은 근거와 업무 영향을 추가하지 않으므로 판단 가능성을 높이지 않습니다.",
+        "C": "대상별 업무 영향과 요구사항이 다르므로 동일한 위험도를 기계적으로 적용할 수 없습니다.",
+        "D": "식별자는 기술 정보를 보충할 수 있지만 보호대상과 업무 결과를 대신하지 못합니다."
+      },
+      "claimIds": ["ISRM-S01-U01-C03", "ISRM-S01-U01-C04"],
+      "ambiguityReview": "ONE_BEST_ANSWER",
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
+      "sourceExpressionReuse": 0,
+      "officialQuestionReconstruction": 0,
+      "rightsStatus": "REVIEW_REQUIRED",
+      "currentness": "PARTIAL",
+      "canonicalRevisionBinding": "NOT_ISSUED"
+    }
+  ],
+  "limitations": [
+    "These are independent draft questions, not official KCA questions and not exam-prediction claims.",
+    "Question IDs are retained for planned relation only; no canonical question body or revision binding is overwritten or issued."
+  ]
+}

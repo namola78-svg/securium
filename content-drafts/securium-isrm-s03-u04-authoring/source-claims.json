@@ -1,0 +1,74 @@
+{
+  "schema": "securium.isrm.s03_u04.source_claims.v1",
+  "status": "DRAFT_UNPUBLISHED_REVIEW_REQUIRED",
+  "learningUnitId": "isrm-2025-2027-s03-u04",
+  "claims": [
+    {
+      "id": "ISRM-S03-U04-C01",
+      "claim": "KCA written-exam criteria identifies Subject III as information-security risk response and lists information-security-industry applied protection measures with legal/system overview, applicable legal requirements, and compliance systems as its three subitems.",
+      "sourceType": "OFFICIAL_LOCAL_PDF_REFERENCE_WITH_BOUNDED_PARAPHRASE",
+      "sourceUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
+      "sourceLocation": "local exam-criteria PDF page 3; printed page 3, Subject III item 4",
+      "localSha256": "1FF4981397462274BFDE7BBA35753EC613D834AFB7FBDB309687AB4BD83F6DA3",
+      "sourceSupport": "Subject identity and official boundary only; it does not establish the Securium U04 title or objectives.",
+      "currentness": "PARTIAL; CRITERIA_SEMANTIC_VERSION_UNKNOWN",
+      "rights": "REFERENCE_ONLY; NO_SOURCE_EXPRESSION_REUSE",
+      "usedIn": ["manifest.json", "theory.json", "objectives.json"]
+    },
+    {
+      "id": "ISRM-S03-U04-C02",
+      "claim": "The official guidebook describes the Information Security Industry Promotion Act as establishing the industry foundation and strengthening competitiveness, and places industry-related legal and system examples in the subject material.",
+      "sourceType": "OFFICIAL_LOCAL_PDF_REFERENCE_WITH_BOUNDED_PARAPHRASE",
+      "sourceUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
+      "sourceLocation": "local guidebook PDF pages 45-46 and 350; printed pages 41-42 and 346, information-security-industry law and legal-system examples",
+      "localSha256": "BD15551DCA7A7E72197C713244D5AB165D7C26C89DA56A174CA15BB4E4AC82D0",
+      "sourceSupport": "Factual purpose and listed legal/system context only; current applicability and legal conclusions require separate verification.",
+      "currentness": "PARTIAL; GUIDEBOOK_SEMANTIC_VERSION_UNKNOWN",
+      "rights": "REFERENCE_ONLY; NO_SOURCE_EXPRESSION_REUSE",
+      "usedIn": ["theory.json", "objectives.json"]
+    },
+    {
+      "id": "ISRM-S03-U04-C03",
+      "claim": "The official guidebook presents examples of information-security disclosure, excellent information-security technology/company designation, and information-security specialized-service company designation, including that designated specialized-service organizations are subject to follow-up management and related records must be retained.",
+      "sourceType": "OFFICIAL_LOCAL_PDF_REFERENCE_WITH_BOUNDED_PARAPHRASE",
+      "sourceUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
+      "sourceLocation": "local guidebook PDF pages 351-354; printed pages 347-350, information-security industry disclosure/designation/specialized-service sections",
+      "localSha256": "BD15551DCA7A7E72197C713244D5AB165D7C26C89DA56A174CA15BB4E4AC82D0",
+      "sourceSupport": "Existence and described features of the named regimes; it does not prove that any particular product fits an organization's risk.",
+      "currentness": "PARTIAL; GUIDEBOOK_SEMANTIC_VERSION_UNKNOWN",
+      "rights": "REFERENCE_ONLY; NO_SOURCE_EXPRESSION_REUSE",
+      "usedIn": ["theory.json", "objectives.json", "questions.json"]
+    },
+    {
+      "id": "ISRM-S03-U04-C04",
+      "claim": "The official guidebook describes follow-up review, record preservation, and change/status handling for information-security specialized-service organizations; using those facts as a trigger for an organization's broader change-impact review is explicitly Securium synthesis.",
+      "sourceType": "OFFICIAL_LOCAL_PDF_REFERENCE_PLUS_INDEPENDENT_SYNTHESIS",
+      "sourceUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
+      "sourceLocation": "local guidebook PDF pages 352-354; printed pages 348-350, specialized-service designation, follow-up review, records, transfer/merger/closure handling",
+      "localSha256": "BD15551DCA7A7E72197C713244D5AB165D7C26C89DA56A174CA15BB4E4AC82D0",
+      "sourceSupport": "Bounded facts about the named service regime; the draft does not claim the source mandates one universal change-review workflow or cadence.",
+      "currentness": "PARTIAL; GUIDEBOOK_SEMANTIC_VERSION_UNKNOWN",
+      "rights": "REFERENCE_ONLY; NO_SOURCE_EXPRESSION_REUSE",
+      "usedIn": ["theory.json", "objectives.json", "questions.json"]
+    },
+    {
+      "id": "ISRM-S03-U04-C05",
+      "claim": "The U01-U03 continuity bridge, evidence-fit test, change-impact workflow, fictional Raon Security Operations case, question stems/options/explanations, and self-checks are Securium-created pedagogical synthesis; they do not assert official unit wording, legal advice, official question wording, or exam prediction.",
+      "sourceType": "INDEPENDENT_PEDAGOGICAL_SYNTHESIS_AND_SYNTHETIC_EXAMPLE",
+      "sourceLocation": "theory.json sections bridge-from-s03-u01-u03, evidence-and-fit, scope-change-impact, records-and-follow-up, fictional-case, common-confusions, summary-check; questions.json q19/q20",
+      "sourceSupport": "Independent teaching content; not an official source claim.",
+      "currentness": "NOT_AN_OFFICIAL_CLAIM",
+      "rights": "INDEPENDENT_EXPRESSION; REVIEW_REQUIRED",
+      "usedIn": ["objectives.json", "theory.json", "questions.json"]
+    }
+  ],
+  "gate": {
+    "officialExpressionReusePermission": "UNKNOWN_BLOCKED",
+    "detailedOfficialScope": "PARTIAL",
+    "officialSemanticVersion": "UNKNOWN",
+    "commercialSourcesUsed": 0,
+    "officialQuestionReproduction": 0,
+    "sourceBindingApproval": "NOT_ISSUED",
+    "canonicalApproval": "NOT_REQUESTED"
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "schema": "securium.isrm.s01_u01.authoring_draft.v1",
+  "status": "DRAFT_UNPUBLISHED_REVIEW_REQUIRED",
+  "courseId": "course-isrm",
+  "subjectId": "isrm-2025-2027-s01",
+  "learningUnitId": "isrm-2025-2027-s01-u01",
+  "draftTitle": "정보보호 관리의 이해: 보호대상과 요구사항",
+  "titleAuthority": "SECURIUM_DRAFT_TITLE_NOT_OFFICIAL_UNIT_TITLE",
+  "officialScopeAnchor": {
+    "subjectNumber": "I",
+    "subjectName": "정보보호 위험관리 계획",
+    "majorItem": "정보보호 관리의 이해",
+    "subitems": [
+      "정보보호의 정의 및 이해",
+      "조직의 법적 준수해야 할 보호대상 선정",
+      "보호대상의 정보보호 요구사항 파악"
+    ],
+    "claimIds": ["ISRM-S01-U01-C01", "ISRM-S01-U01-C02"],
+    "officialUnitId": "UNKNOWN"
+  },
+  "objectiveIds": ["ISRM-S01-U01-O01", "ISRM-S01-U01-O02"],
+  "theoryIds": ["ISRM-S01-U01-T01"],
+  "questionIds": ["isrm-q-v2-01", "isrm-q-v2-02", "isrm-q-v2-27"],
+  "existingCanonicalAuthorityRows": [
+    {"id": "isrm-q-v2-01", "answerAuthority": "PRESENT", "explanation": "PRESENT", "decision": "ACCEPT", "bodyPayloadPresent": false},
+    {"id": "isrm-q-v2-02", "answerAuthority": "PRESENT", "explanation": "PRESENT", "decision": "ACCEPT", "bodyPayloadPresent": false},
+    {"id": "isrm-q-v2-27", "answerAuthority": "PRESENT", "explanation": "PRESENT", "decision": "ACCEPT", "bodyPayloadPresent": false}
+  ],
+  "sourcePolicy": {
+    "officialUse": "FACTUAL_SCOPE_ANCHOR_ONLY",
+    "officialExpressionReuse": "UNKNOWN_REQUIRES_PERMISSION",
+    "commercialSources": "EXCLUDED",
+    "officialQuestionReuse": "EXCLUDED",
+    "sourceExpressionReuse": 0,
+    "officialQuestionReconstruction": 0
+  },
+  "governance": {
+    "canonicalApproval": "NOT_REQUESTED",
+    "revisionBinding": "NOT_ISSUED",
+    "publication": "NOT_AUTHORIZED",
+    "runtimeImport": "NONE",
+    "runtimeRegistration": 0,
+    "runtimeDbIo": 0
+  },
+  "currentness": {
+    "status": "PARTIAL",
+    "officialSemanticVersion": "UNKNOWN",
+    "officialScopeDetail": "PARTIAL",
+    "identityPageReviewedOn": "2026-09-11",
+    "unitIdYearRangeNotUsedAsEvidence": true
+  },
+  "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
+  "reviewRequired": true
+}
