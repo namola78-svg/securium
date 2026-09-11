@@ -1,0 +1,6 @@
+[project]
+name = "securium-python-secure-coding-priority-labs"
+version = "0.1.0"
+description = "Local-only teaching labs for the Securium Python secure-coding course"
+requires-python = ">=3.11"
+dependencies = []
