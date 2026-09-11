@@ -11,6 +11,11 @@ import {
 const COURSE_ID = "developer-secure-coding-8h-python-vibe";
 const CANDIDATE_ID =
   "securium-developer-secure-coding-8h-python-vibe-foundation-v1";
+const REVISION_CONTEXT = {
+  sourceRevisionId: "q36-answer-binding-repair-candidate",
+  sourceRevisionVersion: "candidate-1",
+  questionVersionOverrides: { Q36: 2 },
+};
 
 function clone(value) {
   return structuredClone(value);
@@ -21,7 +26,9 @@ async function expectCode(operation, code) {
 }
 
 test("validates the canonical projection and keeps unresolved authority blocked", async () => {
-  const result = await preflightSecureCoding8HQuestionMaterialization();
+  const result = await preflightSecureCoding8HQuestionMaterialization({
+    candidateRevisionContext: REVISION_CONTEXT,
+  });
 
   assert.equal(result.projectionStatus, "VERIFIED");
   assert.equal(result.foundationStatus, "VERIFIED");
@@ -56,24 +63,31 @@ test("validates the canonical projection and keeps unresolved authority blocked"
     ),
   ]);
   assert.equal(result.choiceRows.every((row) => row.questionId.startsWith(`question-${COURSE_ID}-`)), true);
-  assert.equal(result.versionRows.every((row) => row.version === 1), true);
+  assert.equal(result.versionRows.filter((row) => row.version === 1).length, 39);
+  assert.equal(result.versionRows.filter((row) => row.version === 2).length, 1);
   assert.equal(result.courseBindingRows.every((row) => row.weight === 100), true);
   assert.equal(Object.isFrozen(result), true);
   assert.equal("approvalEvidence" in result, false);
 });
 
 test("canonical input is deterministic and a valid submitted hash is not approval", async () => {
-  const first = await preflightSecureCoding8HQuestionMaterialization();
-  const second = await preflightSecureCoding8HQuestionMaterialization();
+  const first = await preflightSecureCoding8HQuestionMaterialization({
+    candidateRevisionContext: REVISION_CONTEXT,
+  });
+  const second = await preflightSecureCoding8HQuestionMaterialization({
+    candidateRevisionContext: REVISION_CONTEXT,
+  });
   assert.deepEqual(first, second);
 
-  const mapping = await buildSecureCoding8HQuestionRuntimeMapping();
+  const mapping = await buildSecureCoding8HQuestionRuntimeMapping(REVISION_CONTEXT);
   const withTrustedComparisons = await preflightSecureCoding8HQuestionMaterialization({
+    candidateRevisionContext: REVISION_CONTEXT,
     candidateMapping: mapping,
     submittedPayloadHash: first.payload.canonicalHash,
     expectedRevision: {
       candidateId: CANDIDATE_ID,
       version: "v1",
+      questionVersionOverrides: { Q36: 2 },
     },
     expectedSource: first.source,
   });
@@ -85,33 +99,33 @@ test("canonical input is deterministic and a valid submitted hash is not approva
 });
 
 test("rejects same-count identity, duplicate, missing, extra, and payload mutations", async () => {
-  const mapping = await buildSecureCoding8HQuestionRuntimeMapping();
+  const mapping = await buildSecureCoding8HQuestionRuntimeMapping(REVISION_CONTEXT);
 
   const sameCountIdentityMutation = clone(mapping);
   sameCountIdentityMutation.mappings[0].foundationQuestionId = "Q02";
   await expectCode(
-    () => preflightSecureCoding8HQuestionMaterialization({ candidateMapping: sameCountIdentityMutation }),
+    () => preflightSecureCoding8HQuestionMaterialization({ candidateRevisionContext: REVISION_CONTEXT, candidateMapping: sameCountIdentityMutation }),
     "MAPPING_PROJECTION_MISMATCH",
   );
 
   const duplicate = clone(mapping);
   duplicate.mappings[1] = duplicate.mappings[0];
   await expectCode(
-    () => preflightSecureCoding8HQuestionMaterialization({ candidateMapping: duplicate }),
+    () => preflightSecureCoding8HQuestionMaterialization({ candidateRevisionContext: REVISION_CONTEXT, candidateMapping: duplicate }),
     "MAPPING_PROJECTION_MISMATCH",
   );
 
   const missing = clone(mapping);
   missing.mappings.pop();
   await expectCode(
-    () => preflightSecureCoding8HQuestionMaterialization({ candidateMapping: missing }),
+    () => preflightSecureCoding8HQuestionMaterialization({ candidateRevisionContext: REVISION_CONTEXT, candidateMapping: missing }),
     "MAPPING_PROJECTION_MISMATCH",
   );
 
   const extra = clone(mapping);
   extra.mappings.push(clone(extra.mappings[0]));
   await expectCode(
-    () => preflightSecureCoding8HQuestionMaterialization({ candidateMapping: extra }),
+    () => preflightSecureCoding8HQuestionMaterialization({ candidateRevisionContext: REVISION_CONTEXT, candidateMapping: extra }),
     "MAPPING_PROJECTION_MISMATCH",
   );
 
@@ -119,6 +133,7 @@ test("rejects same-count identity, duplicate, missing, extra, and payload mutati
   payloadAndHashMutation.mappings[0].question.content += " caller spoof";
   await expectCode(
     () => preflightSecureCoding8HQuestionMaterialization({
+      candidateRevisionContext: REVISION_CONTEXT,
       candidateMapping: payloadAndHashMutation,
       submittedPayloadHash: "1".repeat(64),
     }),
@@ -127,32 +142,33 @@ test("rejects same-count identity, duplicate, missing, extra, and payload mutati
 });
 
 test("rejects choice, version, course, and submitted hash tampering", async () => {
-  const mapping = await buildSecureCoding8HQuestionRuntimeMapping();
+  const mapping = await buildSecureCoding8HQuestionRuntimeMapping(REVISION_CONTEXT);
 
   const choiceMutation = clone(mapping);
   choiceMutation.mappings[0].choices[0].questionId = "question-other-course-Q01";
   await expectCode(
-    () => preflightSecureCoding8HQuestionMaterialization({ candidateMapping: choiceMutation }),
+    () => preflightSecureCoding8HQuestionMaterialization({ candidateRevisionContext: REVISION_CONTEXT, candidateMapping: choiceMutation }),
     "MAPPING_PROJECTION_MISMATCH",
   );
 
   const versionMutation = clone(mapping);
   versionMutation.mappings[0].version.id = "version-forged-v1";
   await expectCode(
-    () => preflightSecureCoding8HQuestionMaterialization({ candidateMapping: versionMutation }),
+    () => preflightSecureCoding8HQuestionMaterialization({ candidateRevisionContext: REVISION_CONTEXT, candidateMapping: versionMutation }),
     "MAPPING_PROJECTION_MISMATCH",
   );
 
   const courseMutation = clone(mapping);
   courseMutation.mappings[0].courseBinding.courseId = "course-forged";
   await expectCode(
-    () => preflightSecureCoding8HQuestionMaterialization({ candidateMapping: courseMutation }),
+    () => preflightSecureCoding8HQuestionMaterialization({ candidateRevisionContext: REVISION_CONTEXT, candidateMapping: courseMutation }),
     "MAPPING_PROJECTION_MISMATCH",
   );
 
-  const canonical = await preflightSecureCoding8HQuestionMaterialization();
+  const canonical = await preflightSecureCoding8HQuestionMaterialization({ candidateRevisionContext: REVISION_CONTEXT });
   await expectCode(
     () => preflightSecureCoding8HQuestionMaterialization({
+      candidateRevisionContext: REVISION_CONTEXT,
       submittedPayloadHash: "0".repeat(64),
     }),
     "PAYLOAD_HASH_MISMATCH",
@@ -161,10 +177,11 @@ test("rejects choice, version, course, and submitted hash tampering", async () =
 });
 
 test("rejects revision/source/action replacement and caller-supplied authority", async () => {
-  const canonical = await preflightSecureCoding8HQuestionMaterialization();
+  const canonical = await preflightSecureCoding8HQuestionMaterialization({ candidateRevisionContext: REVISION_CONTEXT });
 
   await expectCode(
     () => preflightSecureCoding8HQuestionMaterialization({
+      candidateRevisionContext: REVISION_CONTEXT,
       expectedRevision: { candidateId: CANDIDATE_ID, version: "v2" },
     }),
     "FOUNDATION_REVISION_MISMATCH",
@@ -172,6 +189,7 @@ test("rejects revision/source/action replacement and caller-supplied authority",
 
   await expectCode(
     () => preflightSecureCoding8HQuestionMaterialization({
+      candidateRevisionContext: REVISION_CONTEXT,
       expectedSource: {
         ...canonical.source,
         manifestHash: "0".repeat(64),
@@ -181,7 +199,7 @@ test("rejects revision/source/action replacement and caller-supplied authority",
   );
 
   await expectCode(
-    () => preflightSecureCoding8HQuestionMaterialization({ requestedAction: "PUBLISH" }),
+    () => preflightSecureCoding8HQuestionMaterialization({ candidateRevisionContext: REVISION_CONTEXT, requestedAction: "PUBLISH" }),
     "PREFLIGHT_ACTION_UNSUPPORTED",
   );
 
@@ -215,29 +233,29 @@ test("rejects malformed direct-JS values before canonical serialization", async 
     "PREFLIGHT_INPUT_INVALID",
   );
 
-  const mapping = await buildSecureCoding8HQuestionRuntimeMapping();
+  const mapping = await buildSecureCoding8HQuestionRuntimeMapping(REVISION_CONTEXT);
   const nonFiniteMapping = clone(mapping);
   nonFiniteMapping.mappings[0].question.version = NaN;
   await expectCode(
-    () => preflightSecureCoding8HQuestionMaterialization({ candidateMapping: nonFiniteMapping }),
+    () => preflightSecureCoding8HQuestionMaterialization({ candidateRevisionContext: REVISION_CONTEXT, candidateMapping: nonFiniteMapping }),
     "PREFLIGHT_INPUT_INVALID",
   );
 });
 
 test("rejects sparse, decorated, accessor, cyclic, and non-plain inputs at the entrypoint boundary", async () => {
-  const mapping = await buildSecureCoding8HQuestionRuntimeMapping();
+  const mapping = await buildSecureCoding8HQuestionRuntimeMapping(REVISION_CONTEXT);
 
   const sparse = clone(mapping);
   sparse.mappings = new Array(40);
   await expectCode(
-    () => preflightSecureCoding8HQuestionMaterialization({ candidateMapping: sparse }),
+    () => preflightSecureCoding8HQuestionMaterialization({ candidateRevisionContext: REVISION_CONTEXT, candidateMapping: sparse }),
     "PREFLIGHT_INPUT_INVALID",
   );
 
   const arrayExtra = clone(mapping);
   arrayExtra.mappings.extra = "unsupported";
   await expectCode(
-    () => preflightSecureCoding8HQuestionMaterialization({ candidateMapping: arrayExtra }),
+    () => preflightSecureCoding8HQuestionMaterialization({ candidateRevisionContext: REVISION_CONTEXT, candidateMapping: arrayExtra }),
     "PREFLIGHT_INPUT_INVALID",
   );
 
@@ -304,14 +322,14 @@ test("rejects sparse, decorated, accessor, cyclic, and non-plain inputs at the e
     "PREFLIGHT_INPUT_INVALID",
   );
 
-  const missingFields = await preflightSecureCoding8HQuestionMaterialization({});
+  const missingFields = await preflightSecureCoding8HQuestionMaterialization({ candidateRevisionContext: REVISION_CONTEXT });
   assert.equal(missingFields.preflightStatus, "BLOCKED");
   assert.equal(missingFields.approvalStatus, "UNKNOWN");
 });
 
 test("rejects a self-consistent hash over a caller-mutated payload", async () => {
-  const trusted = await preflightSecureCoding8HQuestionMaterialization();
-  const mutated = clone(await buildSecureCoding8HQuestionRuntimeMapping());
+  const trusted = await preflightSecureCoding8HQuestionMaterialization({ candidateRevisionContext: REVISION_CONTEXT });
+  const mutated = clone(await buildSecureCoding8HQuestionRuntimeMapping(REVISION_CONTEXT));
   mutated.mappings[0].question.content += " caller mutation";
   const forgedHash = await sha256Canonical({
     contractVersion: trusted.contractVersion,
@@ -345,6 +363,7 @@ test("rejects a self-consistent hash over a caller-mutated payload", async () =>
 
   await expectCode(
     () => preflightSecureCoding8HQuestionMaterialization({
+      candidateRevisionContext: REVISION_CONTEXT,
       candidateMapping: mutated,
       submittedPayloadHash: forgedHash,
     }),
@@ -353,8 +372,9 @@ test("rejects a self-consistent hash over a caller-mutated payload", async () =>
 });
 
 test("snapshots caller input and does not expose a mutation path", async () => {
-  const mapping = clone(await buildSecureCoding8HQuestionRuntimeMapping());
+  const mapping = clone(await buildSecureCoding8HQuestionRuntimeMapping(REVISION_CONTEXT));
   const preflightPromise = preflightSecureCoding8HQuestionMaterialization({
+    candidateRevisionContext: REVISION_CONTEXT,
     candidateMapping: mapping,
   });
   mapping.mappings[0].question.content = "mutated before await";

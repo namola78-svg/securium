@@ -12,6 +12,13 @@ const FOUNDATION_CANDIDATE_ID =
 const FOUNDATION_VERSION = "v1" as const;
 const MAPPING_CONTRACT_VERSION =
   "SECURIUM_SECURE_CODING_8H_QUESTION_MAPPING_V1" as const;
+const LEGACY_Q36_V1_SEMANTIC_HASH =
+  "dc89bfe1e0fd3f8ad8f7879fbe5f9a6d42e9718d98dacd80a6c274e7c819b025" as const;
+export const SECURE_CODING_8H_Q36_CANDIDATE_SOURCE_REVISION_ID =
+  "q36-answer-binding-repair-candidate" as const;
+export const SECURE_CODING_8H_Q36_CANDIDATE_SOURCE_REVISION_VERSION =
+  "candidate-1" as const;
+export const SECURE_CODING_8H_Q36_CANDIDATE_QUESTION_VERSION = 2 as const;
 const QUESTION_COUNT = 40;
 const RUNTIME_QUESTION_TYPE = "SINGLE_CHOICE" as const;
 const RUNTIME_DIFFICULTY = "MEDIUM" as const;
@@ -32,6 +39,18 @@ type NormalizedQuestion = Readonly<{
   moduleId: string;
   objectiveIds: readonly string[];
   semanticHash: string;
+}>;
+
+/**
+ * Candidate-only revision context for an already loaded Foundation source.
+ * This is deliberately not an approval or persistence authority. The
+ * question-version override is restricted to Q36 so a repair cannot silently
+ * create a new version for the other 39 questions.
+ */
+export type SecureCoding8HQuestionRevisionContext = Readonly<{
+  sourceRevisionId: string;
+  sourceRevisionVersion: string;
+  questionVersionOverrides: Readonly<Record<string, number>>;
 }>;
 
 export type SecureCoding8HRuntimeQuestionChoice = Readonly<{
@@ -62,7 +81,7 @@ export type SecureCoding8HRuntimeQuestionMapping = Readonly<{
     status: "DRAFT";
     source: "SECURIUM_INDEPENDENTLY_AUTHORED";
     sourceDate: null;
-    version: 1;
+    version: number;
     answerConfigJson: "{}";
     isSample: false;
   }>;
@@ -75,7 +94,7 @@ export type SecureCoding8HRuntimeQuestionMapping = Readonly<{
   version: Readonly<{
     id: string;
     questionId: string;
-    version: 1;
+    version: number;
     snapshotJson: string;
     semanticHash: string;
     blueprintId: null;
@@ -95,6 +114,7 @@ export type SecureCoding8HRuntimeQuestionMappingManifest = Readonly<{
   foundationVersion: typeof FOUNDATION_VERSION;
   questionCount: 40;
   mappings: readonly SecureCoding8HRuntimeQuestionMapping[];
+  revisionContext?: SecureCoding8HQuestionRevisionContext;
 }>;
 
 /**
@@ -129,7 +149,9 @@ export function secureCoding8HRuntimeQuestionVersionId(
  * This function has no database, network, filesystem-write, or learner-state
  * dependency. The imported adapter performs the fixed server-side file load.
  */
-export async function buildSecureCoding8HQuestionRuntimeMapping(): Promise<SecureCoding8HRuntimeQuestionMappingManifest> {
+export async function buildSecureCoding8HQuestionRuntimeMapping(
+  revisionContext?: SecureCoding8HQuestionRevisionContext,
+): Promise<SecureCoding8HRuntimeQuestionMappingManifest> {
   const model = loadSecureCoding8HRuntimeModel({
     runtimeCourse: {
       id: COURSE_ID,
@@ -140,7 +162,7 @@ export async function buildSecureCoding8HQuestionRuntimeMapping(): Promise<Secur
     },
     exposure: "registration",
   });
-  return projectSecureCoding8HQuestionRuntimeMapping(model);
+  return projectSecureCoding8HQuestionRuntimeMapping(model, revisionContext);
 }
 
 /**
@@ -150,10 +172,15 @@ export async function buildSecureCoding8HQuestionRuntimeMapping(): Promise<Secur
  */
 export async function projectSecureCoding8HQuestionRuntimeMapping(
   model: SecureCoding8HRuntimeModel,
+  revisionContext?: SecureCoding8HQuestionRevisionContext,
 ): Promise<SecureCoding8HRuntimeQuestionMappingManifest> {
+  const normalizedRevisionContext = normalizeRevisionContext(revisionContext);
   const normalized = await normalizeFoundationQuestions(model);
-  const mappings = normalized.map((question) => createMapping(question));
-  return deepFreeze({
+  assertDefaultRevisionBoundary(normalized, normalizedRevisionContext);
+  const mappings = normalized.map((question) =>
+    createMapping(question, normalizedRevisionContext),
+  );
+  const projection: SecureCoding8HRuntimeQuestionMappingManifest = {
     contractVersion: MAPPING_CONTRACT_VERSION,
     courseId: COURSE_ID,
     courseSlug: COURSE_SLUG,
@@ -161,7 +188,11 @@ export async function projectSecureCoding8HQuestionRuntimeMapping(
     foundationVersion: FOUNDATION_VERSION,
     questionCount: QUESTION_COUNT,
     mappings,
-  });
+    ...(normalizedRevisionContext
+      ? { revisionContext: normalizedRevisionContext }
+      : {}),
+  };
+  return deepFreeze(projection);
 }
 
 /**
@@ -172,6 +203,7 @@ export async function projectSecureCoding8HQuestionRuntimeMapping(
 export async function assertSecureCoding8HQuestionRuntimeMapping(
   candidate: SecureCoding8HRuntimeQuestionMappingManifest,
   model: SecureCoding8HRuntimeModel,
+  revisionContext?: SecureCoding8HQuestionRevisionContext,
 ): Promise<void> {
   if (!candidate || typeof candidate !== "object") {
     throw new AppError(
@@ -180,7 +212,10 @@ export async function assertSecureCoding8HQuestionRuntimeMapping(
       "MAPPING_PROJECTION_MISMATCH",
     );
   }
-  const expected = await projectSecureCoding8HQuestionRuntimeMapping(model);
+  const expected = await projectSecureCoding8HQuestionRuntimeMapping(
+    model,
+    revisionContext,
+  );
   if (stableJson(candidate) !== stableJson(expected)) {
     throw new AppError(
       "Secure Coding question mapping does not match its Foundation projection.",
@@ -444,12 +479,19 @@ async function computeFoundationQuestionSemanticHash(input: {
 
 function createMapping(
   normalized: NormalizedQuestion,
+  revisionContext?: SecureCoding8HQuestionRevisionContext,
 ): SecureCoding8HRuntimeQuestionMapping {
   const source = normalized.source;
   const runtimeQuestionId = secureCoding8HRuntimeQuestionId(source.id);
+  const questionVersion =
+    revisionContext?.questionVersionOverrides[source.id] ?? 1;
+  const questionRevisionContext =
+    revisionContext?.questionVersionOverrides[source.id] === undefined
+      ? undefined
+      : revisionContext;
   const runtimeQuestionVersionId = secureCoding8HRuntimeQuestionVersionId(
     source.id,
-    1,
+    questionVersion,
   );
   const choices = source.options.map((content, index) =>
     Object.freeze({
@@ -472,7 +514,7 @@ function createMapping(
     status: "DRAFT" as const,
     source: "SECURIUM_INDEPENDENTLY_AUTHORED" as const,
     sourceDate: null,
-    version: 1 as const,
+    version: questionVersion,
     answerConfigJson: "{}" as const,
     isSample: false as const,
   });
@@ -485,12 +527,25 @@ function createMapping(
     moduleId: normalized.moduleId,
     objectiveIds: [...normalized.objectiveIds],
     sourceSemanticHash: normalized.semanticHash,
+    ...(questionRevisionContext
+      ? {
+          sourceRevisionId: questionRevisionContext.sourceRevisionId,
+          sourceRevisionVersion: questionRevisionContext.sourceRevisionVersion,
+          questionVersion,
+        }
+      : {}),
   };
   const snapshot = {
     foundation: {
       courseId: COURSE_ID,
       candidateId: FOUNDATION_CANDIDATE_ID,
       version: FOUNDATION_VERSION,
+      ...(questionRevisionContext
+        ? {
+            sourceRevisionId: questionRevisionContext.sourceRevisionId,
+            sourceRevisionVersion: questionRevisionContext.sourceRevisionVersion,
+          }
+        : {}),
       question: {
         id: source.id,
         module: source.module,
@@ -522,7 +577,7 @@ function createMapping(
     version: Object.freeze({
       id: runtimeQuestionVersionId,
       questionId: runtimeQuestionId,
-      version: 1 as const,
+      version: questionVersion,
       snapshotJson: stableJson(snapshot),
       semanticHash: normalized.semanticHash,
       blueprintId: null,
@@ -533,6 +588,79 @@ function createMapping(
     }),
     conceptMappingSetHash: null,
   });
+}
+
+function normalizeRevisionContext(
+  input?: SecureCoding8HQuestionRevisionContext,
+): SecureCoding8HQuestionRevisionContext | undefined {
+  if (input === undefined) return undefined;
+  if (
+    !input ||
+    typeof input !== "object" ||
+    Array.isArray(input) ||
+    Object.keys(input).length !== 3 ||
+    Object.keys(input).some(
+      (key) =>
+        key !== "sourceRevisionId" &&
+        key !== "sourceRevisionVersion" &&
+        key !== "questionVersionOverrides",
+    ) ||
+    typeof input.sourceRevisionId !== "string" ||
+    input.sourceRevisionId.trim() !== input.sourceRevisionId ||
+    input.sourceRevisionId.length === 0 ||
+    input.sourceRevisionId !==
+      SECURE_CODING_8H_Q36_CANDIDATE_SOURCE_REVISION_ID ||
+    typeof input.sourceRevisionVersion !== "string" ||
+    input.sourceRevisionVersion.trim() !== input.sourceRevisionVersion ||
+    input.sourceRevisionVersion.length === 0 ||
+    input.sourceRevisionVersion !==
+      SECURE_CODING_8H_Q36_CANDIDATE_SOURCE_REVISION_VERSION ||
+    !input.questionVersionOverrides ||
+    typeof input.questionVersionOverrides !== "object" ||
+    Array.isArray(input.questionVersionOverrides)
+  ) {
+    throw new AppError(
+      "Secure Coding question revision context is invalid.",
+      409,
+      "QUESTION_REVISION_CONTEXT_INVALID",
+    );
+  }
+  const keys = Object.keys(input.questionVersionOverrides);
+  if (keys.length !== 1 || keys[0] !== "Q36") {
+    throw new AppError(
+      "Only the approved Q36 question revision may be overridden.",
+      409,
+      "QUESTION_REVISION_CONTEXT_INVALID",
+    );
+  }
+  const questionVersion = input.questionVersionOverrides.Q36;
+  if (questionVersion !== SECURE_CODING_8H_Q36_CANDIDATE_QUESTION_VERSION) {
+    throw new AppError(
+      "Secure Coding Q36 candidate revision must use the approved v2 projection.",
+      409,
+      "QUESTION_VERSION_MISMATCH",
+    );
+  }
+  return Object.freeze({
+    sourceRevisionId: input.sourceRevisionId,
+    sourceRevisionVersion: input.sourceRevisionVersion,
+    questionVersionOverrides: Object.freeze({ Q36: questionVersion }),
+  });
+}
+
+function assertDefaultRevisionBoundary(
+  normalized: readonly NormalizedQuestion[],
+  revisionContext?: SecureCoding8HQuestionRevisionContext,
+): void {
+  if (revisionContext) return;
+  const q36 = normalized.find((question) => question.source.id === "Q36");
+  if (!q36 || q36.semanticHash !== LEGACY_Q36_V1_SEMANTIC_HASH) {
+    throw new AppError(
+      "Q36 has changed since immutable v1; an explicit candidate revision context is required.",
+      409,
+      "QUESTION_REVISION_CONTEXT_REQUIRED",
+    );
+  }
 }
 
 function assertRuntimeModelIdentity(model: SecureCoding8HRuntimeModel): void {

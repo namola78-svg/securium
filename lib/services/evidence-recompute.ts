@@ -13,6 +13,8 @@ export interface CanonicalEvidenceSourceResolver {
     sourceType: LearningEventSourceType;
     sourceEventId: string;
     sourceRevisionIdentity: string;
+    /** Caller identity is an access guard, never a source authority. */
+    expectedUserId?: string;
   }>): Promise<CanonicalEvidenceSource | null>;
   resolveLineageInvalidation?(input: Readonly<{
     sourceType: LearningEventSourceType;
@@ -50,6 +52,7 @@ export class EvidenceRecomputeService {
     sourceType: LearningEventSourceType;
     sourceEventId: string;
     sourceRevisionIdentity: string;
+    userId?: string;
     invalidationReason?: string;
   }>): Promise<EventRecomputeResult> {
     if (input.sourceType === "PRACTICAL_ATTEMPT") {
@@ -58,7 +61,10 @@ export class EvidenceRecomputeService {
       const outcome = await this.repository.invalidateLineage(target);
       return { outcome, projectionCount: 0 };
     }
-    const source = await this.resolver.resolveEvent(input);
+    const source = await this.resolver.resolveEvent({
+      ...input,
+      expectedUserId: input.userId,
+    });
     if (!source || source.validity === "LEGACY_INELIGIBLE") return { outcome: "INVALID_SOURCE", projectionCount: 0 };
     const practicalRedirect = input.sourceType === "PRACTICAL_EVALUATION" &&
       source.sourceType === "PRACTICAL_EVALUATION";

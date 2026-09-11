@@ -180,7 +180,7 @@
     "total": 40,
     "actualByModule": {"M01": 5, "M02": 6, "M03": 6, "M04": 6, "M05": 5, "M06": 4, "M07": 4, "M08": 4},
     "manifestClaimRejected": "5x8 was not used because accepted questions are distributed by module need.",
-    "answerPositionDistribution": {"0": 10, "1": 10, "2": 10, "3": 10},
+    "answerPositionDistribution": {"0": 9, "1": 11, "2": 10, "3": 10},
     "answerBinding": "deterministic integer answer index; explanation is stored with and reviewed against that answer"
   },
   "weaknessCoverage": {

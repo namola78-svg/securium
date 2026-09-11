@@ -519,19 +519,39 @@ export async function createRecomputeRequest(
   return Object.freeze({ ...semantics, id: inputSemanticHash, inputSemanticHash });
 }
 
+export function recomputeRequestInsertValues(input: RecomputeRequestInput) {
+  return {
+    id: input.id,
+    requestType: input.requestType,
+    scopeType: input.scopeType,
+    sourceType: input.sourceType ?? null,
+    sourceEventId: input.sourceEventId ?? null,
+    sourceRevisionIdentity: input.sourceRevisionIdentity ?? null,
+    userId: input.userId ?? null,
+    conceptId: input.conceptId ?? null,
+    projectionVersion: input.projectionVersion,
+    reasonCode: input.reasonCode,
+    inputSemanticHash: input.inputSemanticHash,
+    status: "PENDING" as const,
+    cursor: input.cursor ?? null,
+    generationId: input.generationId ?? null,
+  };
+}
+
 export function recomputeInsert(input: RecomputeRequestInput): DatabaseStatement {
   const hasGeneration = input.generationId !== undefined;
+  const values = recomputeRequestInsertValues(input);
   return {
     sql: `INSERT INTO evidence_recompute_requests
       (id, request_type, scope_type, source_type, source_event_id, source_revision_identity,
        user_id, concept_id, projection_version, reason_code, input_semantic_hash, status, cursor${hasGeneration ? ", generation_id" : ""})
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?${hasGeneration ? ", ?" : ""})
       ON CONFLICT (request_type, input_semantic_hash) DO NOTHING`,
-    parameters: [input.id, input.requestType, input.scopeType, input.sourceType ?? null,
-      input.sourceEventId ?? null, input.sourceRevisionIdentity ?? null, input.userId ?? null,
-      input.conceptId ?? null, input.projectionVersion, input.reasonCode,
-      input.inputSemanticHash, input.cursor ?? null,
-      ...(hasGeneration ? [input.generationId ?? null] : [])],
+    parameters: [values.id, values.requestType, values.scopeType, values.sourceType,
+      values.sourceEventId, values.sourceRevisionIdentity, values.userId,
+      values.conceptId, values.projectionVersion, values.reasonCode,
+      values.inputSemanticHash, values.cursor,
+      ...(hasGeneration ? [values.generationId] : [])],
   };
 }
 

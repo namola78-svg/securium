@@ -1,0 +1,101 @@
+name: Question attempt PostgreSQL producer
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/question-attempt-postgres-producer.yml"
+      - "app/api/question-attempts/**"
+      - "db/**"
+      - "lib/**"
+      - "worker/**"
+      - "tests/question-attempt-evidence-recompute-postgres-producer.test.mjs"
+      - "tests/support/**"
+      - "scripts/run-vinext.mjs"
+      - "vite.config.ts"
+      - "package.json"
+      - "package-lock.json"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/question-attempt-postgres-producer.yml"
+      - "app/api/question-attempts/**"
+      - "db/**"
+      - "lib/**"
+      - "worker/**"
+      - "tests/question-attempt-evidence-recompute-postgres-producer.test.mjs"
+      - "tests/support/**"
+      - "scripts/run-vinext.mjs"
+      - "vite.config.ts"
+      - "package.json"
+      - "package-lock.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: question-attempt-postgres-producer-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: "true"
+  APP_ENV: test
+  NODE_OPTIONS: "--experimental-strip-types"
+
+jobs:
+  producer:
+    name: PostgreSQL question attempt producer
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out exact tested revision
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22.13.0"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Bind exact tested revision
+        shell: bash
+        run: |
+          expected_sha="${{ github.event.pull_request.head.sha || github.sha }}"
+          test "$(git rev-parse HEAD)" = "$expected_sha"
+
+      - name: Run disposable PostgreSQL producer test
+        shell: bash
+        timeout-minutes: 15
+        run: |
+          set -o pipefail
+          result_path="$RUNNER_TEMP/question-attempt-postgres-producer.tap"
+          node --test \
+            --test-concurrency=1 \
+            --test-reporter=tap \
+            tests/question-attempt-evidence-recompute-postgres-producer.test.mjs \
+            | tee "$result_path"
+
+          skipped="$(awk '/^# skipped / { print $3 }' "$result_path" | tail -n 1)"
+          todo="$(awk '/^# todo / { print $3 }' "$result_path" | tail -n 1)"
+          passed="$(awk '/^# pass / { print $3 }' "$result_path" | tail -n 1)"
+          test "${skipped:-1}" = "0"
+          test "${todo:-1}" = "0"
+          test "${passed:-0}" = "1"
+
+      - name: Cleanup disposable PostgreSQL containers
+        if: always()
+        shell: bash
+        run: |
+          mapfile -t containers < <(docker ps -aq --filter 'name=^securium-qae-producer-')
+          if ((${#containers[@]} > 0)); then
+            docker rm --force "${containers[@]}"
+          fi
+          test -z "$(docker ps -aq --filter 'name=^securium-qae-producer-')"

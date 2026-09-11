@@ -14,11 +14,14 @@ import type {
   EvidenceLineageInvalidation,
 } from "../lib/services/evidence-recompute.ts";
 import type { DatabaseProvider } from "./provider/database-provider.ts";
+import { SwAttemptEvidenceSourceAdapter } from "./sw-attempt-evidence-source-adapter.ts";
 
 type ResolveInput = Readonly<{
   sourceType: LearningEventSourceType;
   sourceEventId: string;
   sourceRevisionIdentity: string;
+  /** Caller identity is a guard only; the canonical row remains authoritative. */
+  expectedUserId?: string;
 }>;
 
 type QuestionMappingRow = Readonly<{
@@ -37,21 +40,30 @@ type EdgeRow = Readonly<{ edge_key: string; concept_id: string }>;
 export class DatabaseEvidenceSourceResolver
 implements CanonicalEvidenceSourceResolver {
   private readonly database: DatabaseProvider;
+  private readonly swAttempts: SwAttemptEvidenceSourceAdapter;
 
   constructor(database: DatabaseProvider) {
     this.database = database;
+    this.swAttempts = new SwAttemptEvidenceSourceAdapter(database);
   }
 
   async resolveEvent(input: ResolveInput): Promise<CanonicalEvidenceSource | null> {
+    let source: CanonicalEvidenceSource | null;
     if (input.sourceType === "QUESTION_ATTEMPT" || input.sourceType === "MOCK_ITEM_RESULT") {
-      return this.resolveQuestion(input);
+      source = await this.resolveQuestion(input);
+    } else if (input.sourceType === "MOCK_ATTEMPT") {
+      source = await this.resolveMock(input);
+    } else if (input.sourceType === "PRACTICAL_EVALUATION") {
+      source = await this.resolvePractical(input);
+    } else if (["LESSON_PROGRESS", "COURSE_LESSON_PROGRESS", "LECTURE_PROGRESS", "AUDIO_PROGRESS"].includes(input.sourceType)) {
+      source = await this.resolveProgress(input);
+    } else {
+      source = null;
     }
-    if (input.sourceType === "MOCK_ATTEMPT") return this.resolveMock(input);
-    if (input.sourceType === "PRACTICAL_EVALUATION") return this.resolvePractical(input);
-    if (["LESSON_PROGRESS", "COURSE_LESSON_PROGRESS", "LECTURE_PROGRESS", "AUDIO_PROGRESS"].includes(input.sourceType)) {
-      return this.resolveProgress(input);
+    if (source && input.expectedUserId && source.userId !== input.expectedUserId) {
+      invalid("EVIDENCE_SOURCE_OWNER_MISMATCH");
     }
-    return null;
+    return source;
   }
 
   async resolveLineageInvalidation(input: ResolveInput): Promise<EvidenceLineageInvalidation | null> {
@@ -87,6 +99,23 @@ implements CanonicalEvidenceSourceResolver {
       parameters: [input.sourceEventId],
     });
     if (!row) return null;
+    if (
+      !mock &&
+      row.question_version_id != null &&
+      (await this.swAttempts.readBindingIdentity(input.sourceEventId)) !== null
+    ) {
+      // The canonical identity check also exists in the schema, but the
+      // resolver must fail closed before either adapter can reinterpret a
+      // contradictory row (especially in a drifted/read-only fixture).
+      invalid("EVIDENCE_SOURCE_IDENTITY_CONFLICT");
+    }
+    if (!mock && !row.question_version_id) {
+      const sw = await this.swAttempts.resolve(
+        { ...input, sourceType: "QUESTION_ATTEMPT" },
+        row,
+      );
+      if (sw) return sw.source;
+    }
     if (
       mock &&
       (row.attempt_status !== "SUBMITTED" && row.attempt_status !== "EXPIRED" ||

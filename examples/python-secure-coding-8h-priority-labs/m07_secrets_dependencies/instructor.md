@@ -45,11 +45,15 @@
 ## Canonical question note
 
 `Q33–Q35` bind to the semantically correct answer positions in the current
-foundation JSON. `Q36` currently has `answer: 0`, while its explanation and
-the wording identify option 1 (review source, integrity, owner, build context,
-and CI exposure) as correct. This lab does not edit canonical foundation
-artifacts; integration should repair that answer binding through the separate
-content-governance path.
+foundation JSON. The merged Q36 record has `answer: 1`, so the second option
+(B/2: review source, integrity, owner, build context, and CI exposure) is the
+correct canonical answer. The #147 revision-boundary checks are verified, but
+the lab does not issue approval artifacts or alter Runtime state. The default
+mapping/preflight path requires `QUESTION_REVISION_CONTEXT_REQUIRED`; only the
+fixed candidate context projects Q36-v2. Its source/approval state remains
+`UNKNOWN`, with candidate preflight `BLOCKED` and persistence `NOT_READY`, so
+do not describe Q36-v2 as an authority-issued Runtime revision or as ready for
+automated scoring/publication.
 
 ## Check questions
 
