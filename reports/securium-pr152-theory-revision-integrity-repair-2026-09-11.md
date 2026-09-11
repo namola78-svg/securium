@@ -6,6 +6,7 @@ Worktree: `securium-theory-revision-integrity-repair`
 Branch: `fix/theory-revision-integrity`
 Repair base/head before commit: `e0705c08e5475d304f7c91ff446f79b8637514f5`
 Fresh `origin/main` observed after CI drift: `e67293d285ff913070af5fc1634ecfd5fc4e6405`
+Final local commits: `e213fc7629b53a97e6b917614bea7b3c0c1aecb6`, `4c52bf7bd29bd0322252ebf43908cd1c0c2e3f8e`
 PR: #152, still Draft at the time of this report
 
 ## Finding and selected minimum repair
@@ -64,7 +65,7 @@ All checks were local/disposable only; Runtime/shared/production databases were 
 - Migration namespace guard: PASS, 2/2.
 - `git diff --check`: PASS.
 - Browser verification: NOT_RUN; it is not a prerequisite for this server-side repair.
-- Exact-head CI for `e213fc7` initially failed at typecheck because the concurrently advanced main (`e67293d`) already exposed the optional Evidence resolution fields and the PR declared them a second time. The follow-up keeps that existing contract and adds only the revision-binding type through an intersection; the replacement exact-head CI is pending.
+- Exact-head CI for `e213fc7` initially failed at typecheck because the concurrently advanced main (`e67293d`) already exposed the optional Evidence resolution fields and the PR declared them a second time. The follow-up `4c52bf7` keeps that existing contract and adds only the revision-binding type through an intersection. As of this report, GitHub has not created a replacement check-run for `4c52bf7` (`NOT_RUN`); the local typecheck and focused resolver regression pass after the fix. The e213 producer CI `34573391939` was SUCCESS.
 
 The disposable PostgreSQL fixture included legacy NULL-version progress, revision A activity, multiple users/courses/lessons, A completion, B completion, replay, concurrent completion, stale/forged/cross-course/auth guards, and activity-failure rollback. It confirmed A/B rows and activities remain distinct and failed authoring batches leave no partial content/revision state. Hard delete remains FK-restricted; soft delete preserves revision snapshots.
 
