@@ -28,6 +28,10 @@ function unique(values, label) {
   assert.equal(new Set(values).size, values.length, `${label} contains duplicates`);
 }
 
+function claimPrefix(learningUnitId) {
+  return `${learningUnitId.replace(/^isrm-2025-2027-/, "ISRM-").toUpperCase()}-`;
+}
+
 function claimIdsByFile({ manifest, objectives, theory, questions }) {
   return new Map([
     ["manifest.json", manifest.officialScopeAnchor?.claimIds ?? []],
@@ -49,14 +53,32 @@ export async function validateSourceClaimReferences(root) {
     readJson(root, "source-claims.json"),
   ]);
 
+  assert.equal(typeof manifest.learningUnitId, "string", `${root}/manifest.json must declare learningUnitId`);
+  for (const [fileName, entity] of [
+    ["objectives.json", objectives],
+    ["theory.json", theory],
+    ["questions.json", questions],
+  ]) {
+    assert.equal(
+      entity.learningUnitId,
+      manifest.learningUnitId,
+      `${root}/${fileName}.learningUnitId must match manifest.json`,
+    );
+  }
+
   const sourceClaimIds = claims.claims.map((claim) => claim.id);
   unique(sourceClaimIds, `${root} source claim IDs`);
+  const expectedClaimPrefix = claimPrefix(manifest.learningUnitId);
+  for (const claimId of sourceClaimIds) {
+    assert.ok(claimId.startsWith(expectedClaimPrefix), `${root}/${claimId} does not belong to ${manifest.learningUnitId}`);
+  }
   const sourceClaimSet = new Set(sourceClaimIds);
   const actualClaimIdsByFile = claimIdsByFile({ manifest, objectives, theory, questions });
   const referenceErrors = [];
 
   for (const [fileName, claimIds] of actualClaimIdsByFile) {
     for (const claimId of claimIds) {
+      assert.ok(claimId.startsWith(expectedClaimPrefix), `${root}/${fileName} references claim from another learning unit ${claimId}`);
       if (!sourceClaimSet.has(claimId)) {
         referenceErrors.push(`${root}/${fileName} references unknown source claim ${claimId}`);
       }
@@ -86,6 +108,11 @@ export async function validateSourceClaimReferences(root) {
 }
 
 export async function validateAllSourceClaimReferences(roots = ISRM_DRAFT_ROOTS) {
+  assert.deepEqual(
+    roots,
+    ISRM_DRAFT_ROOTS,
+    "source claim validation must cover the configured ISRM draft package roots",
+  );
   const packages = [];
   for (const root of roots) {
     packages.push(await validateSourceClaimReferences(root));

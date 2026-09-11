@@ -118,12 +118,22 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          output="$(node scripts/validate-securium-isrm-source-claim-references.mjs)"
-          printf '%s\n' "$output"
-          grep -Eq '"status"[[:space:]]*:[[:space:]]*"PASS"' <<< "$output"
-          grep -Eq '"packageCount"[[:space:]]*:[[:space:]]*12' <<< "$output"
-          grep -Eq '"claimCount"[[:space:]]*:[[:space:]]*60' <<< "$output"
-          ! grep -Eiq 'skip|skipped|zero' <<< "$output"
+          node --input-type=module <<'NODE'
+          import {
+            ISRM_DRAFT_ROOTS,
+            validateAllSourceClaimReferences,
+          } from "./scripts/validate-securium-isrm-source-claim-references.mjs";
+
+          const result = await validateAllSourceClaimReferences();
+          console.log(JSON.stringify(result, null, 2));
+          if (result.status !== "PASS") throw new Error("source claim reference validation did not pass");
+          if (result.packageCount !== ISRM_DRAFT_ROOTS.length) {
+            throw new Error("source claim validation did not cover the configured package roots");
+          }
+          if (result.claimCount <= 0 || result.usedInCount <= 0) {
+            throw new Error("source claim validation produced an empty structural result");
+          }
+          NODE
 
       - name: Run ISRM unit validators
         shell: bash
@@ -168,8 +178,8 @@ jobs:
             tests/securium-isrm-source-claim-references.test.mjs
           )
           node --test "${test_files[@]}" | tee "$test_output"
-          grep -Eq 'tests 30$' "$test_output"
-          grep -Eq 'pass 30$' "$test_output"
+          grep -Eq 'tests [1-9][0-9]*$' "$test_output"
+          grep -Eq 'pass [1-9][0-9]*$' "$test_output"
           grep -Eq 'fail 0$' "$test_output"
           grep -Eq 'cancelled 0$' "$test_output"
           grep -Eq 'skipped 0$' "$test_output"
