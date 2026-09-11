@@ -61,63 +61,40 @@ jobs:
         run: >-
           python -c "import os, subprocess; actual = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(); expected = os.environ['EXPECTED_SOURCE_SHA']; print(f'expected_source_sha={expected}'); print(f'actual_source_sha={actual}'); raise SystemExit(0 if actual == expected else 1)"
 
-      - name: Configure normalized checkout status
-        shell: python
-        run: |
-          import subprocess
-
-          subprocess.run(["git", "config", "core.autocrlf", "true"], check=True)
-          subprocess.run(["git", "config", "core.eol", "crlf"], check=True)
-
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python_version }}
 
-      - name: Preserve committed source bytes
+      - name: Create byte-preserved source worktree
         shell: python
+        env:
+          SECURIUM_OFFLINE_SOURCE_ROOT: ${{ runner.temp }}/securium-forensics-integrity-offline-source-${{ github.run_id }}-${{ matrix.os_label }}-${{ matrix.python_version }}
         run: |
+          import os
           import subprocess
           from pathlib import Path
 
-          prefixes = (
-              ".github/workflows/digital-forensics-integrity-offline-package.yml",
-              ".github/workflows/digital-forensics-integrity-local-lab.yml",
-              "content-drafts/digital-forensics-8h-foundation",
-              "examples/digital-forensics-integrity-local-lab",
-              "examples/digital-forensics-integrity-offline-package",
+          source_root = Path(os.environ["SECURIUM_OFFLINE_SOURCE_ROOT"])
+          subprocess.run(
+              ["git", "worktree", "add", "--detach", "--no-checkout", str(source_root), "HEAD"],
+              check=True,
           )
-          tracked = subprocess.check_output(
-              ["git", "ls-files", "-z", "--", *prefixes]
-          ).split(b"\0")
-          for raw_path in tracked:
-              if not raw_path:
-                  continue
-              relative = raw_path.decode("utf-8")
-              data = subprocess.check_output(
-                  ["git", "cat-file", "blob", f"HEAD:{relative}"]
-              )
-              target = Path(relative)
-              target.parent.mkdir(parents=True, exist_ok=True)
-              target.write_bytes(data)
-
-      - name: Verify byte-preserving checkout is clean
-        shell: python
-        run: |
-          import json
-          import subprocess
-
+          subprocess.run(["git", "-C", str(source_root), "config", "core.autocrlf", "false"], check=True)
+          subprocess.run(["git", "-C", str(source_root), "config", "core.eol", "lf"], check=True)
+          subprocess.run(["git", "-C", str(source_root), "checkout", "--force", "HEAD"], check=True)
           status = subprocess.check_output(
-              ["git", "status", "--porcelain", "--untracked-files=all"],
+              ["git", "-C", str(source_root), "status", "--porcelain", "--untracked-files=all"],
               text=True,
               encoding="utf-8",
               errors="replace",
           ).strip()
-          print("source_checkout_status=" + ("clean" if not status else json.dumps(status.splitlines())))
+          print("source_worktree_status=" + ("clean" if not status else status))
           if status:
-              raise SystemExit("source checkout is dirty after committed-byte preservation")
+              raise SystemExit("byte-preserved source worktree is dirty")
 
       - name: Record runtime and run extracted-package matrix contract
+        working-directory: ${{ runner.temp }}/securium-forensics-integrity-offline-source-${{ github.run_id }}-${{ matrix.os_label }}-${{ matrix.python_version }}
         env:
           EXPECTED_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           MATRIX_PYTHON: ${{ matrix.python_version }}
@@ -149,6 +126,45 @@ jobs:
                   pass
               shutil.rmtree(root)
               print("ci_owned_workspace=removed")
+
+      - name: Remove CI-owned source worktree
+        if: always()
+        shell: python
+        env:
+          SECURIUM_OFFLINE_SOURCE_ROOT: ${{ runner.temp }}/securium-forensics-integrity-offline-source-${{ github.run_id }}-${{ matrix.os_label }}-${{ matrix.python_version }}
+        run: |
+          import os
+          import stat
+          import subprocess
+          from pathlib import Path
+
+          source_root = Path(os.environ["SECURIUM_OFFLINE_SOURCE_ROOT"])
+          if not source_root.exists():
+              print("ci_owned_source_worktree=absent")
+          else:
+              if source_root.is_symlink() or not source_root.is_dir():
+                  raise SystemExit("refusing cleanup of a replaced source worktree")
+              reparse_flag = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
+              try:
+                  if source_root.stat(follow_symlinks=False).st_file_attributes & reparse_flag:
+                      raise SystemExit("refusing cleanup of a reparse source worktree")
+              except AttributeError:
+                  pass
+              listed = subprocess.check_output(
+                  ["git", "worktree", "list", "--porcelain"],
+                  text=True,
+                  encoding="utf-8",
+                  errors="replace",
+              )
+              registered = {
+                  Path(line.removeprefix("worktree ")).resolve()
+                  for line in listed.splitlines()
+                  if line.startswith("worktree ")
+              }
+              if source_root.resolve() not in registered:
+                  raise SystemExit("refusing cleanup of an unregistered source worktree")
+              subprocess.run(["git", "worktree", "remove", "--force", str(source_root)], check=True)
+              print("ci_owned_source_worktree=removed")
 
       - name: Remove generated Python caches
         if: always()
