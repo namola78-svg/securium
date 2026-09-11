@@ -49,6 +49,9 @@ export type CanonicalEvidenceSource = Readonly<{
   sourceSemanticHash: string;
   mappingTransition: "PRESERVE_EVENT_TIME" | "GOVERNED_CORRECTION";
   mappingGuard: EvidenceMappingGuard;
+  /** Optional read-side explanation when a source is deliberately unresolved. */
+  resolutionStatus?: "RESOLVED" | "UNRESOLVED";
+  unresolvedReason?: string;
 }>;
 
 export type EvidenceCandidate = Readonly<{
