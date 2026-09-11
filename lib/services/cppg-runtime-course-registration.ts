@@ -27,6 +27,51 @@ export type CppgFoundationBundle = Readonly<{
   dryRun: Readonly<{ writes: number; summary: Readonly<{ exact: number; alias: number; missing: number; ambiguous: number }> }>;
   provenanceRights: Readonly<{ rightsPolicy: Readonly<{ localReferencePackage: string; sourceImageExposure: number; sourceQuestionIngestion: number; highRiskReconstruction: number; canonicalOcrIngestion: number }> }>;
 }>;
+type CanonicalCppgFoundationBundle = CppgFoundationBundle & Readonly<{
+  curriculum: CppgFoundationBundle["curriculum"] & Readonly<{ manifestId: string; authorityStatus: string }>;
+  theory: CppgFoundationBundle["theory"] & Readonly<{ courseId: string; provenance?: Readonly<{ officialScopeBasis?: string }> }>;
+  objectives: CppgFoundationBundle["objectives"] & Readonly<{ courseId: string; provenance?: Readonly<{ officialScopeBasis?: string }> }>;
+  assessment: CppgFoundationBundle["assessment"] & Readonly<{ courseId: string; semanticHash: string; provenance?: Readonly<{ officialScopeBasis?: string }> }>;
+  provenanceRights: CppgFoundationBundle["provenanceRights"] & Readonly<{ manifestId: string }>;
+  sourceManifest: Readonly<{ manifestId: string; sourceRoot: string; snapshotDate: string; packageHash: string }>;
+  projection: Readonly<{ generatedFrom: string; projectionMode: string; semanticHash: string }>;
+}>;
+type CppgFoundationValidatorModule = Readonly<{
+  loadBundle(repoRoot: string): Promise<unknown>;
+  validateFoundation(bundle: unknown): Readonly<{ status: string }>;
+  revalidateSourceManifest(sourceManifest: unknown): Promise<unknown>;
+}>;
+
+const CPPG_CANONICAL_FOUNDATION = Object.freeze({
+  revision: "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
+  curriculumManifestId: "SECURIUM_CPPG_CURRICULUM_AUTHORITY_V1",
+  theoryAuthorityId: "SECURIUM_CPPG_THEORY_AUTHORITY_V1",
+  objectiveAuthorityId: "SECURIUM_CPPG_OBJECTIVE_AUTHORITY_V1",
+  assessmentAuthorityId: "SECURIUM_CPPG_ASSESSMENT_AUTHORITY_V1",
+  assessmentSemanticHash: "d9944e1d7b62031a262dbf04b078a61e659df1eb4603815e2e8f940bbc23057f",
+  rightsManifestId: "SECURIUM_CPPG_FOUNDATION_PROVENANCE_RIGHTS_V1",
+  sourceManifestId: "SECURIUM_CPPG_FOUNDATION_SOURCE_SHA256_V1",
+  sourceRoot: "../source-evidence-original/cppg",
+  sourceSnapshotDate: "2026-09-08",
+  sourcePackageHash: "cf4ada7c7f325aa405c76db7993d314b782ff4f69f07b467793dc11cf1913a80",
+}) as const;
+
+export type CppgAuthorityBindingFailureCode =
+  | "CPPG_CANONICAL_VALIDATOR_UNAVAILABLE"
+  | "CPPG_CANONICAL_IDENTITY_MISMATCH"
+  | "CPPG_SOURCE_REVALIDATION_BLOCKED"
+  | "CPPG_APPROVAL_BINDING_UNAVAILABLE"
+  | "CPPG_PROJECTION_ENTRYPOINT_INPUT_INVALID"
+  | "CPPG_TEST_ONLY_PERSISTENCE_PRIMITIVE";
+
+export class CppgAuthorityBindingError extends Error {
+  readonly code: CppgAuthorityBindingFailureCode;
+  constructor(code: CppgAuthorityBindingFailureCode, message: string, options?: { cause?: unknown }) {
+    super(message, options);
+    this.name = "CppgAuthorityBindingError";
+    this.code = code;
+  }
+}
 type CourseInsert = typeof courses.$inferInsert;
 type CurriculumTreeInsert = typeof curriculumTrees.$inferInsert;
 type CurriculumNodeInsert = typeof curriculumNodes.$inferInsert;
@@ -64,6 +109,53 @@ function assertNoForbiddenKeys(value: unknown, label: string): void {
   invariant(!serialized.includes("SOURCE_QUESTION_INGESTED"), label + " contains source-question ingestion");
   invariant(!serialized.includes("EXECUTABLE_LAB"), label + " contains executable Lab state");
 }
+function freezeJsonSnapshot<T>(value: T): T {
+  if (value === null || typeof value !== "object" || Object.isFrozen(value)) return value;
+  for (const child of Object.values(value as Record<string, unknown>)) freezeJsonSnapshot(child);
+  return Object.freeze(value);
+}
+function canonicalBindingInvariant(condition: unknown, message: string): asserts condition {
+  if (!condition) throw new CppgAuthorityBindingError("CPPG_CANONICAL_IDENTITY_MISMATCH", message);
+}
+function assertCanonicalCppgFoundationBinding(value: unknown): asserts value is CanonicalCppgFoundationBundle {
+  const bundle = value as CanonicalCppgFoundationBundle;
+  canonicalBindingInvariant(bundle.curriculum.courseId === CPPG_RUNTIME_COURSE_ID, "canonical curriculum course identity changed");
+  canonicalBindingInvariant(bundle.curriculum.manifestId === CPPG_CANONICAL_FOUNDATION.curriculumManifestId, "canonical curriculum manifest changed");
+  canonicalBindingInvariant(bundle.curriculum.authorityStatus === "CURRENT_CPPG_AUTHORITY_COMPLETE", "canonical curriculum authority status changed");
+  canonicalBindingInvariant(bundle.theory.courseId === CPPG_RUNTIME_COURSE_ID && bundle.theory.authorityId === CPPG_CANONICAL_FOUNDATION.theoryAuthorityId, "canonical theory authority changed");
+  canonicalBindingInvariant(bundle.theory.provenance?.officialScopeBasis === CPPG_CANONICAL_FOUNDATION.revision, "canonical theory revision changed");
+  canonicalBindingInvariant(bundle.objectives.courseId === CPPG_RUNTIME_COURSE_ID && bundle.objectives.authorityId === CPPG_CANONICAL_FOUNDATION.objectiveAuthorityId, "canonical objective authority changed");
+  canonicalBindingInvariant(bundle.objectives.provenance?.officialScopeBasis === CPPG_CANONICAL_FOUNDATION.revision, "canonical objective revision changed");
+  canonicalBindingInvariant(bundle.assessment.courseId === CPPG_RUNTIME_COURSE_ID && bundle.assessment.authorityId === CPPG_CANONICAL_FOUNDATION.assessmentAuthorityId, "canonical assessment authority changed");
+  canonicalBindingInvariant(bundle.assessment.semanticHash === CPPG_CANONICAL_FOUNDATION.assessmentSemanticHash && bundle.assessment.provenance?.officialScopeBasis === CPPG_CANONICAL_FOUNDATION.revision, "canonical assessment revision or payload hash changed");
+  canonicalBindingInvariant(bundle.provenanceRights.manifestId === CPPG_CANONICAL_FOUNDATION.rightsManifestId, "canonical rights manifest changed");
+  canonicalBindingInvariant(bundle.sourceManifest.manifestId === CPPG_CANONICAL_FOUNDATION.sourceManifestId && bundle.sourceManifest.sourceRoot === CPPG_CANONICAL_FOUNDATION.sourceRoot && bundle.sourceManifest.snapshotDate === CPPG_CANONICAL_FOUNDATION.sourceSnapshotDate && bundle.sourceManifest.packageHash === CPPG_CANONICAL_FOUNDATION.sourcePackageHash, "canonical source manifest identity or package hash changed");
+  canonicalBindingInvariant(bundle.projection.generatedFrom === CPPG_CANONICAL_FOUNDATION.assessmentAuthorityId && bundle.projection.projectionMode === "AUTHORITY_ONLY" && bundle.projection.semanticHash === CPPG_CANONICAL_FOUNDATION.assessmentSemanticHash, "canonical assessment projection binding changed");
+}
+async function loadCanonicalCppgFoundationBundle(): Promise<CanonicalCppgFoundationBundle> {
+  let validator: CppgFoundationValidatorModule;
+  try {
+    validator = await import("../../scripts/validate-securium-cppg-foundation-wave-a.mjs") as unknown as CppgFoundationValidatorModule;
+  } catch (error) {
+    throw new CppgAuthorityBindingError("CPPG_CANONICAL_VALIDATOR_UNAVAILABLE", "canonical CPPG validator could not be loaded", { cause: error });
+  }
+  let bundle: unknown;
+  try {
+    bundle = freezeJsonSnapshot(await validator.loadBundle(process.cwd()));
+    const validation = validator.validateFoundation(bundle);
+    if (validation.status !== "PASS") throw new Error("canonical Foundation validator did not return PASS");
+    assertCanonicalCppgFoundationBinding(bundle);
+  } catch (error) {
+    if (error instanceof CppgAuthorityBindingError) throw error;
+    throw new CppgAuthorityBindingError("CPPG_CANONICAL_IDENTITY_MISMATCH", "canonical CPPG Foundation structural validation failed", { cause: error });
+  }
+  try {
+    await validator.revalidateSourceManifest((bundle as CanonicalCppgFoundationBundle).sourceManifest);
+  } catch (error) {
+    throw new CppgAuthorityBindingError("CPPG_SOURCE_REVALIDATION_BLOCKED", "canonical CPPG source manifest could not be revalidated; registration remains blocked", { cause: error });
+  }
+  throw new CppgAuthorityBindingError("CPPG_APPROVAL_BINDING_UNAVAILABLE", "no trusted CPPG approval/currentness/revocation contract exists; REFERENCE_ONLY and REVIEW_REQUIRED cannot authorize registration");
+}
 export function buildCppgRuntimeId(kind: string, sourceId: string): string {
   invariant(typeof sourceId === "string" && sourceId.length > 0, "stable source ID is required");
   invariant(!/[\\/]/u.test(sourceId), "source ID cannot contain a path separator: " + sourceId);
@@ -92,7 +184,11 @@ function assertFoundationShape(bundle: CppgFoundationBundle): void {
 }
 export type CppgProjectionOptions = Readonly<{ actorUserId: string }>;
 
-export async function buildCppgCourseTheoryDraftProjection(bundle: CppgFoundationBundle, options: CppgProjectionOptions): Promise<CppgCourseTheoryDraftProjection> {
+function assertProjectionEntryPointOptions(options: unknown): asserts options is CppgProjectionOptions {
+  if (!options || typeof options !== "object" || typeof (options as CppgProjectionOptions).actorUserId !== "string" || (options as CppgProjectionOptions).actorUserId.trim().length === 0) throw new CppgAuthorityBindingError("CPPG_PROJECTION_ENTRYPOINT_INPUT_INVALID", "registered CPPG projection entrypoint accepts actor options only; caller bundle and authority inputs are not accepted");
+}
+
+export async function buildCppgCourseTheoryDraftProjectionFromBundle(bundle: CppgFoundationBundle, options: CppgProjectionOptions): Promise<CppgCourseTheoryDraftProjection> {
   assertFoundationShape(bundle);
   invariant(options.actorUserId.trim().length > 0, "runtime actor is required for generic revision registration");
   const units = [...bundle.theory.units].sort((a, b) => a.id.localeCompare(b.id));
@@ -156,6 +252,10 @@ export async function buildCppgCourseTheoryDraftProjection(bundle: CppgFoundatio
   const projectionSemanticHash = await sha256Canonical({ contractVersion: CPPG_RUNTIME_PROJECTION_V1, courseId: CPPG_RUNTIME_COURSE_ID, packageKey: CPPG_RUNTIME_PACKAGE_KEY, recordHashes: persistentRecords.map(({ id, kind, semanticHash }) => ({ id, kind, semanticHash })), revisionRegistration: identities, counts, futurePersistenceRowCounts });
   return { contractVersion: CPPG_RUNTIME_PROJECTION_V1, courseId: CPPG_RUNTIME_COURSE_ID, packageKey: CPPG_RUNTIME_PACKAGE_KEY, course, curriculumTree, subjects: subjectRecords, curriculumNodes: [...subjectNodes, ...unitNodes], topics: topicRecords, learningUnits: unitRecords, objectives: objectiveRecords, contents: contentRecords, lessons: lessonRecords, courseLessons: courseLessonRecords, contentRevisions: revisionRecords, revisionRegistration: { resourceType: CPPG_RUNTIME_RESOURCE_TYPE, qualificationId: "CPPG", packageKey: CPPG_RUNTIME_PACKAGE_KEY, identities, subjects: registrationSubjects }, conceptReadiness: { exact: 2, alias: 0, missing: 72, ambiguous: 0, writes: 0, classifications: { readyNewConcept: 54, needsDecomposition: 13, notAConcept: 5 } }, excluded: { assessmentQuestions: 100, practicalSpecs: 10, ontologyWrites: 0, publication: false }, counts, futurePersistenceRowCounts, projectionSemanticHash };
 }
+export async function buildCppgCourseTheoryDraftProjection(options: CppgProjectionOptions): Promise<CppgCourseTheoryDraftProjection> {
+  assertProjectionEntryPointOptions(options);
+  return buildCppgCourseTheoryDraftProjectionFromBundle(await loadCanonicalCppgFoundationBundle(), options);
+}
 export type CppgProjectionReplayState = "EXACT_REPLAY" | "CONFLICTING_IMMUTABLE_REVISION";
 export function compareCppgProjectionReplay(existing: CppgCourseTheoryDraftProjection, incoming: CppgCourseTheoryDraftProjection): CppgProjectionReplayState { return existing.courseId === incoming.courseId && existing.packageKey === incoming.packageKey && existing.projectionSemanticHash === incoming.projectionSemanticHash && existing.revisionRegistration.identities.registrationSemanticIdentity === incoming.revisionRegistration.identities.registrationSemanticIdentity ? "EXACT_REPLAY" : "CONFLICTING_IMMUTABLE_REVISION"; }
 export type CppgRuntimeCollisionState = "NOT_REGISTERED" | "REGISTERED_EXACT" | "REGISTERED_PARTIAL" | "REGISTERED_CONFLICTING" | "DUPLICATE_AUTHORITY";
@@ -200,7 +300,7 @@ export class CppgRuntimeCollisionError extends Error {
   readonly collisionState: Exclude<CppgRuntimeCollisionState, "NOT_REGISTERED" | "REGISTERED_EXACT">;
   constructor(collisionState: Exclude<CppgRuntimeCollisionState, "NOT_REGISTERED" | "REGISTERED_EXACT">) { super("CPPG runtime registration refused: " + collisionState); this.name = "CppgRuntimeCollisionError"; this.collisionState = collisionState; }
 }
-export async function persistCppgCourseTheoryDraft(projection: CppgCourseTheoryDraftProjection, adapter: CppgDraftPersistenceAdapter): Promise<CppgPersistenceResult> {
+async function persistCppgCourseTheoryDraftPlan(projection: CppgCourseTheoryDraftProjection, adapter: CppgDraftPersistenceAdapter): Promise<CppgPersistenceResult> {
   const expected = expectedCppgRuntimeState(projection);
   const collisionState = classifyCppgRuntimeCollision(expected, await adapter.inspect({ courseId: projection.courseId, recordIds: expected.recordIds }));
   if (collisionState === "REGISTERED_EXACT") return { outcome: "EXACT_REPLAY", collisionState, appliedStages: [] };
@@ -213,4 +313,13 @@ export async function persistCppgCourseTheoryDraft(projection: CppgCourseTheoryD
     await transaction.commit();
     return { outcome: "NEW_SUCCESS", collisionState, appliedStages };
   } catch (error) { try { await transaction.rollback(); } catch { /* preserve original failure */ } throw error; }
+}
+export async function persistCppgCourseTheoryDraft(options: CppgProjectionOptions, adapter: CppgDraftPersistenceAdapter): Promise<CppgPersistenceResult> {
+  assertProjectionEntryPointOptions(options);
+  return persistCppgCourseTheoryDraftPlan(await buildCppgCourseTheoryDraftProjection(options), adapter);
+}
+/** Internal transaction tests only; this is never a registration authority entrypoint. */
+export async function persistCppgCourseTheoryDraftForTesting(projection: CppgCourseTheoryDraftProjection, adapter: CppgDraftPersistenceAdapter): Promise<CppgPersistenceResult> {
+  if (process.env.NODE_ENV !== "test") throw new CppgAuthorityBindingError("CPPG_TEST_ONLY_PERSISTENCE_PRIMITIVE", "projection persistence test primitive is disabled outside NODE_ENV=test");
+  return persistCppgCourseTheoryDraftPlan(projection, adapter);
 }

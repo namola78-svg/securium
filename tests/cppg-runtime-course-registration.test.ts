@@ -4,12 +4,14 @@ import { test } from "node:test";
 import {
   CPPG_PERSISTENCE_ORDER,
   buildCppgCourseTheoryDraftProjection,
+  buildCppgCourseTheoryDraftProjectionFromBundle,
   buildCppgRuntimeId,
   classifyCppgRuntimeCollision,
   compareCppgProjectionReplay,
   expectedCppgRuntimeState,
   interpretCppgStaticSeed,
   persistCppgCourseTheoryDraft,
+  persistCppgCourseTheoryDraftForTesting,
   type CppgDraftPersistenceAdapter,
   type CppgFoundationBundle,
   type CppgPersistenceStage,
@@ -18,6 +20,7 @@ import {
   type ProjectionRecord,
 } from "../lib/services/cppg-runtime-course-registration.ts";
 
+process.env.NODE_ENV = "test";
 const root = new URL("../content-drafts/securium-cppg-foundation/", import.meta.url);
 const OPTIONS = { actorUserId: "test-actor" };
 
@@ -35,7 +38,7 @@ async function foundationBundle(): Promise<CppgFoundationBundle> {
 }
 
 async function projection(options = OPTIONS): Promise<CppgCourseTheoryDraftProjection> {
-  return buildCppgCourseTheoryDraftProjection(await foundationBundle(), options);
+  return buildCppgCourseTheoryDraftProjectionFromBundle(await foundationBundle(), options);
 }
 
 function readbackFor(value: CppgCourseTheoryDraftProjection, overrides: Partial<CppgObservedRuntimeState> = {}): CppgObservedRuntimeState {
@@ -85,6 +88,36 @@ test("projects approved Foundation counts and reports objective metadata without
   assert.equal(value.course.payload.published, false);
 });
 
+test("canonical loader and structural validator pass without granting source or approval authority", async () => {
+  const validator = await import("../scripts/validate-securium-cppg-foundation-wave-a.mjs") as unknown as {
+    loadBundle(repoRoot: string): Promise<{ sourceManifest: { sourceRoot: string; manifestId: string } }>;
+    validateFoundation(bundle: unknown): { status: string };
+  };
+  const bundle = await validator.loadBundle(process.cwd());
+  assert.equal(validator.validateFoundation(bundle).status, "PASS");
+  assert.equal(bundle.sourceManifest.manifestId, "SECURIUM_CPPG_FOUNDATION_SOURCE_SHA256_V1");
+  assert.equal(bundle.sourceManifest.sourceRoot, "../source-evidence-original/cppg");
+});
+
+test("registered entrypoints ignore caller authority inputs and fail closed before adapter begin", async () => {
+  const value = await projection();
+  const adapter = new RecordingAdapter(readbackFor(value));
+  const forgedOptions = {
+    actorUserId: "test-actor",
+    bundle: { ...await foundationBundle(), sourceRoot: "caller-controlled", authorityId: "caller-controlled", approval: true },
+    sourceRoot: "caller-controlled",
+    authorityId: "caller-controlled",
+    approved: true,
+    approvalResolver: async () => ({ approved: true }),
+  } as unknown as Parameters<typeof buildCppgCourseTheoryDraftProjection>[0];
+  await assert.rejects(() => buildCppgCourseTheoryDraftProjection(forgedOptions), (error: unknown) => (error as { code?: string }).code === "CPPG_SOURCE_REVALIDATION_BLOCKED");
+  await assert.rejects(() => persistCppgCourseTheoryDraft(forgedOptions, adapter), (error: unknown) => (error as { code?: string }).code === "CPPG_SOURCE_REVALIDATION_BLOCKED");
+  assert.equal(adapter.began, 0);
+  const directProjectionAttempt = persistCppgCourseTheoryDraft as unknown as (input: unknown, target: CppgDraftPersistenceAdapter) => Promise<unknown>;
+  await assert.rejects(() => directProjectionAttempt(value, adapter), (error: unknown) => (error as { code?: string }).code === "CPPG_PROJECTION_ENTRYPOINT_INPUT_INVALID");
+  assert.equal(adapter.began, 0);
+});
+
 test("emits payloads compatible with current generic runtime contracts", async () => {
   const value = await projection();
   assert.equal(value.course.payload.code, "CPPG");
@@ -120,7 +153,7 @@ test("replays deterministically, excludes actor identity from semantic hashes, a
   const firstUnit = changedBundle.theory.units[0];
   assert.ok(firstUnit);
   const changedUnit = { ...firstUnit, purpose: firstUnit.purpose + " changed" };
-  const changed = await buildCppgCourseTheoryDraftProjection({ ...changedBundle, theory: { ...changedBundle.theory, units: [changedUnit, ...changedBundle.theory.units.slice(1)] } }, OPTIONS);
+  const changed = await buildCppgCourseTheoryDraftProjectionFromBundle({ ...changedBundle, theory: { ...changedBundle.theory, units: [changedUnit, ...changedBundle.theory.units.slice(1)] } }, OPTIONS);
   assert.equal(compareCppgProjectionReplay(first, changed), "CONFLICTING_IMMUTABLE_REVISION");
   assert.equal(first.revisionRegistration.subjects[0]?.semanticRevisionId, changed.revisionRegistration.subjects[0]?.semanticRevisionId);
   assert.equal(first.revisionRegistration.subjects[0]?.version, changed.revisionRegistration.subjects[0]?.version);
@@ -170,7 +203,7 @@ test("classifies collision states only from trusted expected projection and obse
   ];
   for (const [label, readback] of rejectedReadbacks) {
     const adapter = new RecordingAdapter(readback);
-    await assert.rejects(() => persistCppgCourseTheoryDraft(value, adapter), label);
+    await assert.rejects(() => persistCppgCourseTheoryDraftForTesting(value, adapter), label);
     assert.equal(adapter.began, 0, label);
     assert.deepEqual(adapter.stages, [], label);
   }
@@ -179,7 +212,7 @@ test("classifies collision states only from trusted expected projection and obse
 test("persists only the atomic Course/Theory Draft plan through an injected adapter", async () => {
   const value = await projection();
   const adapter = new RecordingAdapter(readbackFor(value));
-  const result = await persistCppgCourseTheoryDraft(value, adapter);
+  const result = await persistCppgCourseTheoryDraftForTesting(value, adapter);
   assert.equal(result.outcome, "NEW_SUCCESS");
   assert.deepEqual(adapter.stages, [...CPPG_PERSISTENCE_ORDER]);
   assert.equal(adapter.committed, true);
@@ -193,7 +226,7 @@ test("rolls back early, mid, and late failures with zero committed partial autho
   const value = await projection();
   for (const stage of ["COURSE", "CONTENTS", "CONTENT_REVISIONS"] as const) {
     const failure = new RecordingAdapter(readbackFor(value), stage);
-    await assert.rejects(() => persistCppgCourseTheoryDraft(value, failure), /injected failure/);
+    await assert.rejects(() => persistCppgCourseTheoryDraftForTesting(value, failure), /injected failure/);
     assert.equal(failure.committed, false);
     assert.equal(failure.rolledBack, true);
     assert.deepEqual(failure.stages, []);
@@ -204,9 +237,9 @@ test("rolls back early, mid, and late failures with zero committed partial autho
 test("failed transaction does not become a false exact replay", async () => {
   const value = await projection();
   const failure = new RecordingAdapter(readbackFor(value), "CONTENT_REVISIONS");
-  await assert.rejects(() => persistCppgCourseTheoryDraft(value, failure));
+  await assert.rejects(() => persistCppgCourseTheoryDraftForTesting(value, failure));
   const retry = new RecordingAdapter(readbackFor(value));
-  const result = await persistCppgCourseTheoryDraft(value, retry);
+  const result = await persistCppgCourseTheoryDraftForTesting(value, retry);
   assert.equal(result.outcome, "NEW_SUCCESS");
 });
 
@@ -214,7 +247,7 @@ test("exact runtime state replays without beginning a transaction", async () => 
   const value = await projection();
   const expected = expectedCppgRuntimeState(value);
   const exactAdapter = new RecordingAdapter(readbackFor(value, { courseCount: 1, recordCount: expected.recordIds.length, recordIds: expected.recordIds, semanticHashes: expected.semanticHashes }));
-  const result = await persistCppgCourseTheoryDraft(value, exactAdapter);
+  const result = await persistCppgCourseTheoryDraftForTesting(value, exactAdapter);
   assert.equal(result.outcome, "EXACT_REPLAY");
   assert.deepEqual(exactAdapter.stages, []);
 });
@@ -224,10 +257,10 @@ test("does not overwrite v1 when the same revision identity has changed content"
   const changedBundle = await foundationBundle();
   const firstUnit = changedBundle.theory.units[0];
   assert.ok(firstUnit);
-  const changed = await buildCppgCourseTheoryDraftProjection({ ...changedBundle, theory: { ...changedBundle.theory, units: [{ ...firstUnit, purpose: firstUnit.purpose + " changed" }, ...changedBundle.theory.units.slice(1)] } }, OPTIONS);
+  const changed = await buildCppgCourseTheoryDraftProjectionFromBundle({ ...changedBundle, theory: { ...changedBundle.theory, units: [{ ...firstUnit, purpose: firstUnit.purpose + " changed" }, ...changedBundle.theory.units.slice(1)] } }, OPTIONS);
   const expectedChanged = expectedCppgRuntimeState(changed);
   const existingV1 = new RecordingAdapter(readbackFor(original, { courseCount: 1, recordCount: expectedChanged.recordIds.length, recordIds: expectedChanged.recordIds, semanticHashes: expectedCppgRuntimeState(original).semanticHashes }));
-  await assert.rejects(() => persistCppgCourseTheoryDraft(changed, existingV1), /REGISTERED_CONFLICTING/);
+  await assert.rejects(() => persistCppgCourseTheoryDraftForTesting(changed, existingV1), /REGISTERED_CONFLICTING/);
   assert.equal(existingV1.began, 0);
   assert.deepEqual(existingV1.stages, []);
 });
