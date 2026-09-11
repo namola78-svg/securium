@@ -16,29 +16,29 @@ concurrency:
 
 jobs:
   verify:
-    name: ${{ matrix.os-label }} / Python ${{ matrix.python-version }}
+    name: ${{ matrix.os_label }} / Python ${{ matrix.python_version }}
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os-label: Windows
+          - os_label: Windows
             runner: windows-latest
             shell: pwsh
-            python-version: "3.11"
-          - os-label: Windows
+            python_version: "3.11"
+          - os_label: Windows
             runner: windows-latest
             shell: pwsh
-            python-version: "3.14"
-          - os-label: Linux
+            python_version: "3.14"
+          - os_label: Linux
             runner: ubuntu-latest
             shell: bash
-            python-version: "3.11"
-          - os-label: Linux
+            python_version: "3.11"
+          - os_label: Linux
             runner: ubuntu-latest
             shell: bash
-            python-version: "3.14"
+            python_version: "3.14"
 
     steps:
       - name: Check out source
@@ -47,15 +47,15 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ matrix.python_version }}
 
       - name: Record runtime and shell
         shell: ${{ matrix.shell }}
         working-directory: examples/python-secure-coding-8h-priority-labs
         run: |
-          echo "matrix_os=${{ matrix.os-label }}"
+          echo "matrix_os=${{ matrix.os_label }}"
           echo "runner_os=${{ runner.os }}"
-          echo "matrix_python=${{ matrix.python-version }}"
+          echo "matrix_python=${{ matrix.python_version }}"
           echo "matrix_shell=${{ matrix.shell }}"
           python --version
           python -c "import platform, sys; print(f'python_patch={platform.python_version()}'); print(f'platform={platform.platform()}'); print(f'executable={sys.executable}')"
