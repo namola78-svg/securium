@@ -29,8 +29,8 @@ the implementation guide or invent commands.
 
 ## Time model
 
-The Foundation manifest assigns `DF-H06` **60 minutes** and the course total **480 minutes**.
-The manifest says breaks and administration are excluded from those values. The table below
+The current Securium Foundation manifest assigns `DF-H06` **60 minutes** and the course total
+**480 minutes**. The manifest says breaks and administration are excluded from those values. The table below
 is a **proposed 75-minute facilitator rehearsal block**, not a measured learner duration or
 an official course allocation. Breaks, lunch, room setup, account setup, and administration
 remain separate.
@@ -104,6 +104,10 @@ expected observations for the facilitator are:
 - the report exposes tie groups, observed facts, potential conflicts, interpretation limits,
   and additional evidence requests.
 
+For this synthetic fixture, the expected report counts are two tie groups and one potential
+conflict. These are fixture-specific observations for facilitator comparison, not findings
+about a real event and not evidence that a learner completed the exercise.
+
 Treat these as facilitator expectations to compare with the learner's actual output, not as
 a prefilled learner answer.
 
@@ -166,6 +170,10 @@ Ask the learner to identify all three documented values:
 - `deterministic_result_sha256`: hash of the documented analysis result, excluding dynamic
   report metadata as specified by the lab; and
 - `report_bytes_sha256`: hash of the exact report bytes.
+
+Any report-byte equality claim is limited to the same input bytes and the same fixed
+`--analysis-run-at` value. Do not generalize it to reports produced with different analysis
+times.
 
 Ask what each comparison covers and what it does not prove. A matching hash here does not
 prove source authenticity, signature, lawful collection, legal admissibility, or truth of an

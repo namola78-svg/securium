@@ -31,8 +31,8 @@ The [rehearsal kit](rehearsal-kit/) contains a future human-run preparation set:
 `PREPARED_NOT_REHEARSED`: no human learner rehearsal has been completed, and the kit does
 not change canonical registration, runtime mapping, publication, or delivery readiness.
 
-The Foundation assigns `DF-H06` 60 minutes and the Foundation totals 480 minutes (with
-breaks and administration excluded). The kit proposes a separate, unmeasured 75-minute
+The current Securium Foundation assigns `DF-H06` 60 minutes and the Foundation totals 480
+minutes (with breaks and administration excluded). The kit proposes a separate, unmeasured 75-minute
 facilitator rehearsal block for setup, repetition, feedback, and closeout. That proposal is
 not an official module allocation and does not change the 60- or 480-minute values.
 

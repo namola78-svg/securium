@@ -43,9 +43,10 @@ not completion of this checklist.
 
 ## Time plan and actual time
 
-The 75-minute plan is a proposed facilitator rehearsal block, not official Foundation time
-and not a measured learner-time claim. Foundation metadata assigns `DF-H06` 60 minutes and
-the course total 480 minutes; breaks, lunch, room setup, and administration are separate.
+The 75-minute plan is a proposed facilitator rehearsal block, not official course time and
+not a measured learner-time claim. Current Securium Foundation metadata assigns `DF-H06` 60
+minutes and the course total 480 minutes; breaks, lunch, room setup, and administration are
+separate.
 
 | Stage | Proposed minutes | Actual start | Actual end | Actual minutes | Difference/reason |
 | --- | ---: | --- | --- | ---: | --- |
