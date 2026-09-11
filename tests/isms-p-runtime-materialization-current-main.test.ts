@@ -95,6 +95,16 @@ test("canonical registry projects 12 subjects and derives readiness from actual 
     status: "PARTIAL",
     approvedPreviewVerifiedRecordCount: 12,
     totalRecordCount: 12,
+    sourceLessonHashVerification: {
+      status: "UNRESOLVED",
+      counts: {
+        VERIFIED: 0,
+        MISSING: 0,
+        MISMATCH: 0,
+        IDENTITY_MISMATCH: 0,
+        UNRESOLVED: 12,
+      },
+    },
     unresolvedChecks: ["SOURCE_LESSONS_HASH_RECOMPUTATION_REQUIRED", "FULL_SOURCE_BINDING_VALIDATION_REQUIRED"],
   });
   assert.equal(authority.currentness.evaluatedRecordCount, 12);
