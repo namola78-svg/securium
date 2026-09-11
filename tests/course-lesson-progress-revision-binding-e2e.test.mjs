@@ -219,6 +219,7 @@ test("CourseLesson progress remains bound to the server-resolved revision", asyn
   assert.equal(wrongCourseLesson.response.status, 404);
 
   await runLocalSql(`
+    UPDATE contents SET version = 'L1' WHERE id = '${encryptionContentId}';
     INSERT INTO user_course_lesson_progress
       (id, user_id, course_id, course_lesson_id, status, progress_percent,
        completed_at, last_viewed_at, time_spent_seconds, last_studied_at)
