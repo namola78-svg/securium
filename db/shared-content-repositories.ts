@@ -3,6 +3,7 @@ import type { BatchItem } from "drizzle-orm/batch";
 import { getDb } from ".";
 import {
   contents,
+  contentRevisions,
   courseLessonExtensions,
   courseLessons,
   courses,
@@ -23,6 +24,11 @@ import {
   normalizeCourseLessonTimeSpentSeconds,
   mergeCourseLessonPresentation,
 } from "@/lib/services/shared-content-service";
+import {
+  SHARED_CONTENT_REVISION_SNAPSHOT_KIND,
+  stableJson,
+  THEORY_REVISION_CONTENT_TYPE,
+} from "@/lib/services/content-revision-service";
 import type {
   courseLessonExtensionSchema,
   courseLessonSchema,
@@ -41,6 +47,177 @@ function batchItems(items: BatchItem<"sqlite">[]) {
 function optionalText(value: string | null | undefined) {
   const normalized = value?.trim();
   return normalized ? normalized : null;
+}
+
+type SharedContentRevisionPayload = Readonly<{
+  title: string;
+  summary: string;
+  body: string;
+  bodyFormat: string;
+  learningObjectivesJson: string;
+  coreConceptsJson: string;
+  practicalExamplesJson: string;
+  diagramsJson: string;
+  mediaJson: string;
+}>;
+
+type SharedContentRevisionSnapshot = Readonly<{
+  kind: typeof SHARED_CONTENT_REVISION_SNAPSHOT_KIND;
+  contentId: string;
+  version: string;
+  payload: SharedContentRevisionPayload;
+}>;
+
+function sharedContentRevisionPayload(
+  input: SharedContentRevisionPayload,
+): SharedContentRevisionPayload {
+  return {
+    title: input.title,
+    summary: input.summary,
+    body: input.body,
+    bodyFormat: input.bodyFormat,
+    learningObjectivesJson: input.learningObjectivesJson,
+    coreConceptsJson: input.coreConceptsJson,
+    practicalExamplesJson: input.practicalExamplesJson,
+    diagramsJson: input.diagramsJson,
+    mediaJson: input.mediaJson,
+  };
+}
+
+function sharedContentRevisionSnapshot(
+  contentId: string,
+  input: Pick<SharedContentInput, "version"> & SharedContentRevisionPayload,
+): SharedContentRevisionSnapshot {
+  return {
+    kind: SHARED_CONTENT_REVISION_SNAPSHOT_KIND,
+    contentId,
+    version: input.version,
+    payload: sharedContentRevisionPayload(input),
+  };
+}
+
+function sharedContentRevisionSnapshotFromRow(
+  row: typeof contents.$inferSelect,
+): SharedContentRevisionSnapshot {
+  return sharedContentRevisionSnapshot(row.id, {
+    ...sharedContentRevisionPayload(row),
+    version: row.version,
+  });
+}
+
+function parseSharedContentRevisionSnapshot(
+  value: string,
+): SharedContentRevisionSnapshot | null {
+  try {
+    const parsed = JSON.parse(value) as Partial<SharedContentRevisionSnapshot>;
+    if (
+      parsed.kind !== SHARED_CONTENT_REVISION_SNAPSHOT_KIND ||
+      typeof parsed.contentId !== "string" ||
+      typeof parsed.version !== "string" ||
+      !parsed.payload ||
+      typeof parsed.payload !== "object"
+    ) {
+      return null;
+    }
+    return parsed as SharedContentRevisionSnapshot;
+  } catch {
+    return null;
+  }
+}
+
+function snapshotJson(snapshot: SharedContentRevisionSnapshot) {
+  const value = stableJson(snapshot);
+  if (new TextEncoder().encode(value).byteLength > 100_000) {
+    throw new AppError(
+      "This published revision is too large for the existing immutable snapshot contract.",
+      409,
+      "SHARED_CONTENT_REVISION_SNAPSHOT_TOO_LARGE",
+    );
+  }
+  return value;
+}
+
+async function snapshotSemanticHash(value: string) {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(value),
+  );
+  return [...new Uint8Array(digest)]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+async function getSharedContentRevision(contentId: string, version: string) {
+  const [revision] = await getDb()
+    .select()
+    .from(contentRevisions)
+    .where(
+      and(
+        eq(contentRevisions.contentType, THEORY_REVISION_CONTENT_TYPE),
+        eq(contentRevisions.contentId, contentId),
+        eq(contentRevisions.version, version),
+      ),
+    )
+    .limit(1);
+  return revision ?? null;
+}
+
+async function assertSharedContentRevisionMatches(
+  revision: typeof contentRevisions.$inferSelect,
+  snapshot: SharedContentRevisionSnapshot,
+) {
+  const json = snapshotJson(snapshot);
+  const stored = parseSharedContentRevisionSnapshot(revision.snapshotJson);
+  const semanticHash = await snapshotSemanticHash(json);
+  if (
+    !stored ||
+    stableJson(stored) !== json ||
+    revision.semanticHash !== semanticHash
+  ) {
+    throw new AppError(
+      "The existing shared-content revision is immutable and conflicts with the requested payload.",
+      409,
+      "SHARED_CONTENT_REVISION_CONFLICT",
+    );
+  }
+}
+
+function sharedContentRevisionInsert(
+  revisionId: string,
+  snapshot: SharedContentRevisionSnapshot,
+  actorUserId: string,
+  now: string,
+  semanticHash: string,
+  options: {
+    revisionStatus: "published" | "superseded";
+    isLatest: boolean;
+    previousVersionId: string | null;
+  },
+) {
+  const json = snapshotJson(snapshot);
+  return getDb().insert(contentRevisions).values({
+    id: revisionId,
+    contentType: THEORY_REVISION_CONTENT_TYPE,
+    contentId: snapshot.contentId,
+    courseId: null,
+    title: snapshot.payload.title,
+    contentDate: now.slice(0, 10),
+    version: snapshot.version,
+    revisionStatus: options.revisionStatus,
+    snapshotJson: json,
+    reviewedAt: null,
+    reviewedBy: null,
+    publishedAt: now,
+    supersededAt: options.revisionStatus === "superseded" ? now : null,
+    changeSummary: "Shared content immutable revision snapshot",
+    previousVersionId: options.previousVersionId,
+    isLatest: options.isLatest,
+    createdBy: actorUserId,
+    createdAt: now,
+    updatedAt: now,
+    semanticHash,
+    humanReviewHash: null,
+  });
 }
 
 export async function listSharedContents(status?: string) {
@@ -114,6 +291,136 @@ export async function saveSharedContent(
     );
   }
 
+  const now = new Date().toISOString();
+  const revisionStatements: BatchItem<"sqlite">[] = [];
+  if (!existing) {
+    if (input.status === "PUBLISHED") {
+      const snapshot = sharedContentRevisionSnapshot(id, {
+        ...sharedContentRevisionPayload(input),
+        version: input.version,
+      });
+      revisionStatements.push(
+        sharedContentRevisionInsert(
+          crypto.randomUUID(),
+          snapshot,
+          actorUserId,
+          now,
+          await snapshotSemanticHash(snapshotJson(snapshot)),
+          { revisionStatus: "published", isLatest: true, previousVersionId: null },
+        ),
+      );
+    }
+  } else {
+    const currentSnapshot = sharedContentRevisionSnapshotFromRow(existing);
+    const requestedSnapshot = sharedContentRevisionSnapshot(id, {
+      ...sharedContentRevisionPayload(input),
+      version: input.version,
+    });
+    const sameVersion = existing.version === input.version;
+    const payloadChanged =
+      stableJson(currentSnapshot.payload) !==
+      stableJson(requestedSnapshot.payload);
+    const currentRevision = await getSharedContentRevision(id, existing.version);
+
+    if (currentRevision) {
+      await assertSharedContentRevisionMatches(currentRevision, currentSnapshot);
+    }
+    if (
+      sameVersion &&
+      currentRevision &&
+      payloadChanged
+    ) {
+      throw new AppError(
+        "The existing shared-content revision is immutable and conflicts with the requested payload.",
+        409,
+        "SHARED_CONTENT_REVISION_CONFLICT",
+      );
+    }
+    if (
+      sameVersion &&
+      existing.status !== "DRAFT" &&
+      payloadChanged
+    ) {
+      throw new AppError(
+        "Published shared-content revisions cannot change their learning payload without a new version.",
+        409,
+        "SHARED_CONTENT_REVISION_CONFLICT",
+      );
+    }
+
+    if (sameVersion) {
+      if (!currentRevision && input.status !== "DRAFT") {
+        revisionStatements.push(
+          sharedContentRevisionInsert(
+            crypto.randomUUID(),
+            requestedSnapshot,
+            actorUserId,
+            now,
+            await snapshotSemanticHash(snapshotJson(requestedSnapshot)),
+            { revisionStatus: "published", isLatest: true, previousVersionId: null },
+          ),
+        );
+      }
+    } else {
+      const requestedRevision = await getSharedContentRevision(id, input.version);
+      if (requestedRevision) {
+        throw new AppError(
+          "The requested shared-content version already has an immutable revision.",
+          409,
+          "SHARED_CONTENT_REVISION_EXISTS",
+        );
+      }
+
+      let previousVersionId = currentRevision?.id ?? null;
+      if (!currentRevision && existing.status !== "DRAFT") {
+        previousVersionId = crypto.randomUUID();
+        revisionStatements.push(
+          sharedContentRevisionInsert(
+            previousVersionId,
+            currentSnapshot,
+            actorUserId,
+            now,
+            await snapshotSemanticHash(snapshotJson(currentSnapshot)),
+            {
+              revisionStatus: input.status === "DRAFT" ? "published" : "superseded",
+              isLatest: input.status === "DRAFT",
+              previousVersionId: null,
+            },
+          ),
+        );
+      } else if (currentRevision && input.status !== "DRAFT") {
+        revisionStatements.push(
+          getDb()
+            .update(contentRevisions)
+            .set({
+              revisionStatus: "superseded",
+              isLatest: false,
+              supersededAt: now,
+              updatedAt: now,
+            })
+            .where(eq(contentRevisions.id, currentRevision.id)),
+        );
+      }
+
+      if (input.status === "PUBLISHED") {
+        revisionStatements.push(
+          sharedContentRevisionInsert(
+            crypto.randomUUID(),
+            requestedSnapshot,
+            actorUserId,
+            now,
+            await snapshotSemanticHash(snapshotJson(requestedSnapshot)),
+            {
+              revisionStatus: "published",
+              isLatest: true,
+              previousVersionId,
+            },
+          ),
+        );
+      }
+    }
+  }
+
   const values = {
     slug: input.slug,
     canonicalKey: normalizeCanonicalKey(input.canonicalKey),
@@ -134,6 +441,7 @@ export async function saveSharedContent(
 
   await getDb().batch(
     batchItems([
+      ...revisionStatements,
       existing
         ? getDb().update(contents).set(values).where(eq(contents.id, id))
         : getDb().insert(contents).values({ id, ...values }),

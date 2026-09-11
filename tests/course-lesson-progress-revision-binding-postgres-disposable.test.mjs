@@ -271,13 +271,91 @@ test("PostgreSQL migration and app repository preserve CourseLesson revision ide
   const overviewHtml = await overview.text();
   assert.equal(overview.status, 200, overviewHtml.slice(0, 1000));
   assert.match(overviewHtml, /2\/3/);
+
+  const contentRow = (await client.unsafe(`
+    SELECT id, slug, canonical_key AS "canonicalKey", title, summary, body,
+      body_format AS "bodyFormat",
+      learning_objectives_json AS "learningObjectivesJson",
+      core_concepts_json AS "coreConceptsJson",
+      practical_examples_json AS "practicalExamplesJson",
+      diagrams_json AS "diagramsJson", media_json AS "mediaJson", version, status
+    FROM contents WHERE id = '${contentA}'
+  `))[0];
+  const adminHeaders = {
+    "content-type": "application/json",
+    origin: server.baseUrl,
+    "oai-authenticated-user-email": "pg-revision-admin@example.invalid",
+  };
+  const sameRevision = await saveContent(adminHeaders, contentInput(contentRow));
+  assert.equal(sameRevision.response.status, 200, JSON.stringify(sameRevision.payload));
+  const sameVersionMutation = await saveContent(adminHeaders, contentInput({
+    ...contentRow,
+    body: "Changed PostgreSQL v2 body",
+  }));
+  assert.equal(sameVersionMutation.response.status, 409, JSON.stringify(sameVersionMutation.payload));
+  assert.equal(sameVersionMutation.payload.code, "SHARED_CONTENT_REVISION_CONFLICT");
+
+  const newRevision = await saveContent(adminHeaders, contentInput({
+    ...contentRow,
+    version: "C",
+    body: "PostgreSQL revision C body",
+  }));
+  assert.equal(newRevision.response.status, 200, JSON.stringify(newRevision.payload));
+  assert.deepEqual(Array.from(await client.unsafe(`
+    SELECT version, revision_status AS "revisionStatus", is_latest AS "isLatest",
+      snapshot_json AS "snapshotJson"
+    FROM content_revisions
+    WHERE content_type = 'LEARNING_UNIT' AND content_id = '${contentA}'
+    ORDER BY version
+  `)).map((row) => ({
+    version: row.version,
+    revisionStatus: row.revisionStatus,
+    isLatest: Boolean(row.isLatest),
+    body: JSON.parse(row.snapshotJson).payload.body,
+  })), [
+    { version: "B", revisionStatus: "superseded", isLatest: false, body: "Body A" },
+    { version: "C", revisionStatus: "published", isLatest: true, body: "PostgreSQL revision C body" },
+  ]);
+
+  const rollback = await saveContent(adminHeaders, contentInput({
+    ...contentRow,
+    version: "D",
+    body: "PostgreSQL revision D body",
+    slug: "pg-revision-content-b",
+    canonicalKey: "pg.revision.content.d",
+  }));
+  assert.ok(rollback.response.status >= 400, JSON.stringify(rollback.payload));
+  assert.deepEqual(Array.from(await client.unsafe(`
+    SELECT version, body FROM contents WHERE id = '${contentA}'
+  `)), [{ version: "C", body: "PostgreSQL revision C body" }]);
+  assert.deepEqual(Array.from(await client.unsafe(`
+    SELECT version FROM content_revisions
+    WHERE content_type = 'LEARNING_UNIT' AND content_id = '${contentA}'
+    ORDER BY version
+  `)), [{ version: "B" }, { version: "C" }]);
+
+  await assert.rejects(
+    client.unsafe(`DELETE FROM contents WHERE id = '${contentA}'`),
+    /violates foreign key constraint/,
+  );
+  await client.unsafe(`UPDATE contents SET deleted_at = CURRENT_TIMESTAMP::text WHERE id = '${contentA}'`);
+  assert.equal(Number((await client.unsafe(`
+    SELECT count(*)::int AS count FROM content_revisions
+    WHERE content_type = 'LEARNING_UNIT' AND content_id = '${contentA}'
+  `))[0].count), 2);
+  await client.unsafe(`UPDATE contents SET deleted_at = NULL WHERE id = '${contentA}'`);
 });
 
 async function seedFixture() {
   await client.unsafe(`
     INSERT INTO users (id, email, display_name) VALUES
       ('${userOne}', 'pg-revision-user-1@example.invalid', 'Revision User 1'),
-      ('${userTwo}', 'pg-revision-user-2@example.invalid', 'Revision User 2');
+      ('${userTwo}', 'pg-revision-user-2@example.invalid', 'Revision User 2'),
+      ('pg-revision-admin', 'pg-revision-admin@example.invalid', 'Revision Admin');
+    INSERT INTO roles (id, code, name, description)
+      VALUES ('pg-revision-role-admin', 'ADMIN', 'Admin', 'Disposable test admin');
+    INSERT INTO user_roles (id, user_id, role_id, granted_by)
+      VALUES ('pg-revision-admin-role', 'pg-revision-admin', 'pg-revision-role-admin', 'pg-revision-admin');
     INSERT INTO course_groups (id, code, name, description) VALUES
       ('pg-revision-group', 'PG_REVISION', 'Revision fixture', 'Disposable PostgreSQL fixture');
     INSERT INTO courses (id, course_group_id, code, slug, name, short_name, description, active, published) VALUES
@@ -322,6 +400,34 @@ async function save(userId, body) {
     body: JSON.stringify(body),
   });
   return { response, payload: await response.json() };
+}
+
+async function saveContent(headers, content) {
+  const response = await fetch(`${server.baseUrl}/api/admin/shared-content`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ operation: "saveContent", content }),
+  });
+  return { response, payload: await response.json() };
+}
+
+function contentInput(row) {
+  return {
+    id: row.id,
+    slug: row.slug,
+    canonicalKey: row.canonicalKey,
+    title: row.title,
+    summary: row.summary ?? "",
+    body: row.body,
+    bodyFormat: row.bodyFormat ?? "MARKDOWN",
+    learningObjectivesJson: row.learningObjectivesJson ?? "[]",
+    coreConceptsJson: row.coreConceptsJson ?? "[]",
+    practicalExamplesJson: row.practicalExamplesJson ?? "[]",
+    diagramsJson: row.diagramsJson ?? "[]",
+    mediaJson: row.mediaJson ?? "[]",
+    version: row.version,
+    status: row.status,
+  };
 }
 
 async function waitForConnection() {

@@ -7,8 +7,13 @@ import {
 } from "../lib/services/learning-event-contracts.ts";
 import type {
   CanonicalEvidenceSource,
+  EvidenceContentRevisionBinding,
   EvidenceMappingGuard,
 } from "../lib/services/evidence-projection.ts";
+import {
+  SHARED_CONTENT_REVISION_SNAPSHOT_KIND,
+  THEORY_REVISION_CONTENT_TYPE,
+} from "../lib/services/content-revision-service.ts";
 import type {
   CanonicalEvidenceSourceResolver,
   EvidenceLineageInvalidation,
@@ -250,20 +255,42 @@ implements CanonicalEvidenceSourceResolver {
     if (!config) return null;
     const row = await this.database.queryOne<Record<string, unknown>>({
       sql: `SELECT id, user_id, ${config.parentColumn} AS parent_id,
-        ${config.versionColumn} AS version_id, ${config.completedColumn} AS completed,
+        ${config.versionColumn} AS version_id, ${config.completedColumn} AS completed${
+          config.contentIdColumn ? `, ${config.contentIdColumn} AS content_identity_id` : ""
+        },
         ${config.occurredColumn} AS occurred_at FROM ${config.table} WHERE id = ? LIMIT 1`,
       parameters: [input.sourceEventId],
     });
     if (!row) return null;
     if (!row.version_id) return legacy(input, row);
+    const contentRevisionBinding = config.contentRevisionType
+      ? await this.resolveCourseLessonRevisionBinding(row)
+      : null;
+    if (config.contentRevisionType && !contentRevisionBinding) {
+      return unresolvedProgress(input, row, "COURSE_LESSON_REVISION_SNAPSHOT_MISSING");
+    }
     const revision = await this.latestRevision(input);
+    const sourceSemanticHash = await sha256(stableJson(
+      contentRevisionBinding
+        ? {
+          contentRevisionBinding,
+          contentVersionIdentity: row.version_id,
+          completed: Boolean(row.completed),
+        }
+        : {
+          contentVersionIdentity: row.version_id,
+          completed: Boolean(row.completed),
+        },
+    ));
     if (revision?.action === "INVALIDATE") {
       return invalidatedSource(
         input,
         row,
         revision.semantic_hash,
         String(row.version_id),
-        await sha256(stableJson({ contentVersionIdentity: row.version_id, completed: Boolean(row.completed) })),
+        sourceSemanticHash,
+        input.sourceEventId,
+        contentRevisionBinding ?? undefined,
       );
     }
     const concepts = await this.edgeConcepts(config.ontologyType, String(row.parent_id));
@@ -273,9 +300,13 @@ implements CanonicalEvidenceSourceResolver {
       sourceType: input.sourceType as CanonicalEvidenceSource["sourceType"],
       sourceEventId: input.sourceEventId,
       sourceLineageIdentity: input.sourceEventId,
-      sourceRevisionIdentity: revision?.semantic_hash ?? input.sourceRevisionIdentity,
+      sourceRevisionIdentity:
+        revision?.semantic_hash ??
+        contentRevisionBinding?.revisionId ??
+        input.sourceRevisionIdentity,
       userId: String(row.user_id),
       contentVersionIdentity: String(row.version_id),
+      ...(contentRevisionBinding ? { contentRevisionBinding } : {}),
       conceptMappingSetHash: mappingHash,
       conceptIds: concepts.map((item) => item.concept_id).sort(),
       occurredAt: String(row.occurred_at),
@@ -283,13 +314,55 @@ implements CanonicalEvidenceSourceResolver {
       evidenceType: "LEARNING_ACTIVITY",
       quality: "SUPPORTING_ACTIVITY",
       resultSummary: { completed: Boolean(row.completed) },
-      sourceSemanticHash: await sha256(stableJson({
-        contentVersionIdentity: row.version_id,
-        completed: Boolean(row.completed),
-      })),
+      sourceSemanticHash,
       mappingTransition: "PRESERVE_EVENT_TIME",
       mappingGuard: edgeMappingGuard(config.ontologyType, String(row.parent_id), concepts),
     };
+  }
+
+  private async resolveCourseLessonRevisionBinding(
+    row: Record<string, unknown>,
+  ): Promise<EvidenceContentRevisionBinding | null> {
+    const contentId = String(row.content_identity_id ?? "");
+    const version = String(row.version_id ?? "");
+    if (!contentId || !version) return null;
+    const revision = await this.database.queryOne<{
+      id: string;
+      version: string;
+      semantic_hash: string | null;
+      snapshot_json: string;
+      revision_status: string;
+    }>({
+      sql: `SELECT id, version, semantic_hash, snapshot_json, revision_status
+        FROM content_revisions
+        WHERE content_type = ? AND content_id = ? AND version = ? LIMIT 1`,
+      parameters: [THEORY_REVISION_CONTENT_TYPE, contentId, version],
+    });
+    if (
+      !revision ||
+      !["published", "superseded", "archived"].includes(revision.revision_status) ||
+      revision.version !== version ||
+      !revision.semantic_hash ||
+      !/^[0-9a-f]{64}$/.test(revision.semantic_hash)
+    ) return null;
+    try {
+      const snapshot = JSON.parse(revision.snapshot_json) as Record<string, unknown>;
+      if (
+        snapshot.kind !== SHARED_CONTENT_REVISION_SNAPSHOT_KIND ||
+        snapshot.contentId !== contentId ||
+        snapshot.version !== version ||
+        await sha256(stableJson(snapshot)) !== revision.semantic_hash
+      ) return null;
+    } catch {
+      return null;
+    }
+    return Object.freeze({
+      contentId,
+      version,
+      revisionId: revision.id,
+      semanticHash: revision.semantic_hash,
+      binding: "CONTENT_REVISION_SNAPSHOT" as const,
+    });
   }
 
   private async questionMappings(questionVersionId: string) {
@@ -345,9 +418,26 @@ implements CanonicalEvidenceSourceResolver {
   }
 }
 
-const progressConfig = {
+type ProgressSourceType =
+  | "LESSON_PROGRESS"
+  | "COURSE_LESSON_PROGRESS"
+  | "LECTURE_PROGRESS"
+  | "AUDIO_PROGRESS";
+
+type ProgressConfig = Readonly<{
+  table: string;
+  parentColumn: string;
+  contentIdColumn?: string;
+  contentRevisionType?: "LEARNING_UNIT";
+  versionColumn: string;
+  completedColumn: string;
+  occurredColumn: string;
+  ontologyType: string;
+}>;
+
+const progressConfig: Record<ProgressSourceType, ProgressConfig> = {
   LESSON_PROGRESS: { table: "user_lesson_progress", parentColumn: "lesson_id", versionColumn: "content_version", completedColumn: "status = 'COMPLETED'", occurredColumn: "last_studied_at", ontologyType: "LESSON" },
-  COURSE_LESSON_PROGRESS: { table: "user_course_lesson_progress", parentColumn: "course_lesson_id", versionColumn: "content_version", completedColumn: "status = 'COMPLETED'", occurredColumn: "last_studied_at", ontologyType: "COURSE_LESSON" },
+  COURSE_LESSON_PROGRESS: { table: "user_course_lesson_progress", parentColumn: "course_lesson_id", contentIdColumn: "content_id", contentRevisionType: "LEARNING_UNIT", versionColumn: "content_version", completedColumn: "status = 'COMPLETED'", occurredColumn: "last_studied_at", ontologyType: "COURSE_LESSON" },
   LECTURE_PROGRESS: { table: "lecture_progress", parentColumn: "lecture_id", versionColumn: "content_revision_id", completedColumn: "completed", occurredColumn: "last_played_at", ontologyType: "LECTURE" },
   AUDIO_PROGRESS: { table: "audio_progress", parentColumn: "audio_content_id", versionColumn: "content_revision_id", completedColumn: "completed", occurredColumn: "last_played_at", ontologyType: "AUDIO_CONTENT" },
 } as const;
@@ -419,6 +509,7 @@ function invalidatedSource(
   contentVersionIdentity: string,
   sourceSemanticHash: string,
   sourceLineageIdentity = input.sourceEventId,
+  contentRevisionBinding?: EvidenceContentRevisionBinding,
 ): CanonicalEvidenceSource {
   return {
     sourceType: input.sourceType as CanonicalEvidenceSource["sourceType"],
@@ -427,6 +518,7 @@ function invalidatedSource(
     sourceRevisionIdentity,
     userId: String(row.user_id),
     contentVersionIdentity,
+    ...(contentRevisionBinding ? { contentRevisionBinding } : {}),
     conceptMappingSetHash: "0".repeat(64),
     conceptIds: [],
     occurredAt: String(row.occurred_at ?? row.evaluated_at ?? ""),
@@ -446,6 +538,38 @@ function invalidatedSource(
       parentType: "INVALIDATION_CONTROL",
       members: Object.freeze([]),
     }),
+  };
+}
+
+function unresolvedProgress(
+  input: ResolveInput,
+  row: Record<string, unknown>,
+  reason: string,
+): CanonicalEvidenceSource {
+  return {
+    sourceType: input.sourceType as CanonicalEvidenceSource["sourceType"],
+    sourceEventId: input.sourceEventId,
+    sourceLineageIdentity: input.sourceEventId,
+    sourceRevisionIdentity: "UNRESOLVED",
+    userId: String(row.user_id),
+    contentVersionIdentity: "UNKNOWN",
+    conceptMappingSetHash: "0".repeat(64),
+    conceptIds: ["UNKNOWN"],
+    occurredAt: String(row.occurred_at ?? ""),
+    validity: "LEGACY_INELIGIBLE",
+    evidenceType: "LEARNING_ACTIVITY",
+    quality: "SUPPORTING_ACTIVITY",
+    resultSummary: {},
+    sourceSemanticHash: "0".repeat(64),
+    mappingTransition: "PRESERVE_EVENT_TIME",
+    mappingGuard: Object.freeze({
+      kind: "ONTOLOGY_EDGES",
+      parentIdentity: input.sourceEventId,
+      parentType: "UNRESOLVED",
+      members: Object.freeze([]),
+    }),
+    resolutionStatus: "UNRESOLVED",
+    unresolvedReason: reason,
   };
 }
 
