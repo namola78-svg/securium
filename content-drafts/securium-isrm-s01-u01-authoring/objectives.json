@@ -1,0 +1,27 @@
+{
+  "schema": "securium.isrm.s01_u01.objective_draft.v1",
+  "status": "DRAFT_UNPUBLISHED_REVIEW_REQUIRED",
+  "learningUnitId": "isrm-2025-2027-s01-u01",
+  "objectives": [
+    {
+      "id": "ISRM-S01-U01-O01",
+      "outcome": "조직의 업무 맥락에서 보호해야 할 정보자산과 보호대상의 범위를 설명하고, 범위를 정한 근거를 구분할 수 있다.",
+      "theoryIds": ["ISRM-S01-U01-T01"],
+      "questionIds": ["isrm-q-v2-01", "isrm-q-v2-27"],
+      "claimIds": ["ISRM-S01-U01-C02", "ISRM-S01-U01-C03"],
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT"
+    },
+    {
+      "id": "ISRM-S01-U01-O02",
+      "outcome": "보호대상에 필요한 기밀성·무결성·가용성 요구사항과 담당자·적용 의무를 확인한 뒤, 이를 위협·취약성·위험 판단과 혼동하지 않고 기록할 수 있다.",
+      "theoryIds": ["ISRM-S01-U01-T01"],
+      "questionIds": ["isrm-q-v2-02"],
+      "claimIds": ["ISRM-S01-U01-C02", "ISRM-S01-U01-C03", "ISRM-S01-U01-C04"],
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT"
+    }
+  ],
+  "limitations": [
+    "Objectives are Securium pedagogical outcomes, not official KCA learning objectives.",
+    "The current official semantic version and detailed unit-level scope remain UNKNOWN."
+  ]
+}

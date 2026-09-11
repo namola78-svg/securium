@@ -1,0 +1,71 @@
+{
+  "schema": "securium.isrm.s01_u02.source_claims.v1",
+  "status": "DRAFT_SOURCE_REVIEW_REQUIRED",
+  "claims": [
+    {
+      "id": "ISRM-S01-U02-C01",
+      "claim": "KCA currently identifies 정보보호위험관리사(ISRM) as registration 2024-004467 and lists 정보보호 위험관리 계획 as the first subject.",
+      "sourceType": "OFFICIAL_PRIMARY_WEB_PAGE",
+      "sourceUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
+      "sourceLocation": "official page qualification and exam-subject text reviewed on 2026-09-11; page lines 247-285 in the reviewed rendering",
+      "localSource": null,
+      "currentness": "VERIFIED_IDENTITY_AND_SUBJECT_PAGE_ON_2026-09-11",
+      "rights": "FACTUAL_REFERENCE_ONLY; EXPRESSION_REUSE_UNKNOWN",
+      "usedIn": ["manifest.json"]
+    },
+    {
+      "id": "ISRM-S01-U02-C02",
+      "claim": "The official exam-criteria artifact places this work under subject I 정보보호 위험관리 계획 and the major item 정보보호 관리의 이해, whose bounded subitems include selecting protection targets and identifying information-security requirements.",
+      "sourceType": "OFFICIAL_LOCAL_PDF_REFERENCE",
+      "sourceUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
+      "sourceLocation": "local PDF page 1; hash checked against the reviewed source-manifest.json",
+      "localSource": "C:\\Users\\user\\Documents\\Codex\\2026-07-24\\1-2-3-4-5-6\\source-evidence-original\\isrm\\[출제기준] 정보보호위험관리사(ISRM).pdf",
+      "localSha256": "1FF4981397462274BFDE7BBA35753EC613D834AFB7FBDB309687AB4BD83F6DA3",
+      "applicabilityShownInArtifact": "2025-01-01 to 2027-12-31",
+      "currentness": "PARTIAL; ARTIFACT_SEMANTIC_VERSION_UNKNOWN",
+      "rights": "REFERENCE_ONLY; DO_NOT_REPUBLISH_OR_COPY_EXPRESSION",
+      "usedIn": ["manifest.json", "theory.json"]
+    },
+    {
+      "id": "ISRM-S01-U02-C03",
+      "claim": "The local guidebook reference states that information assets should be identified and cataloged, may be assigned unique identifiers and role information, differ in value and threat exposure, and be prioritized when resources are limited.",
+      "sourceType": "OFFICIAL_LOCAL_PDF_REFERENCE_WITH_BOUNDED_PARAPHRASE",
+      "sourceUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
+      "sourceLocation": "local guidebook PDF pages 15-16; asset identification, asset inventory fields, importance, and priority context",
+      "localSource": "C:\\Users\\user\\Documents\\Codex\\2026-07-24\\1-2-3-4-5-6\\source-evidence-original\\isrm\\[가이드북] 정보보호위험관리사(ISRM).pdf",
+      "localSha256": "BD15551DCA7A7E72197C713244D5AB165D7C26C89DA56A174CA15BB4E4AC82D0",
+      "currentness": "PARTIAL; GUIDEBOOK_SEMANTIC_VERSION_UNKNOWN",
+      "rights": "REFERENCE_ONLY; NO_SOURCE_EXPRESSION_REUSE",
+      "usedIn": ["objectives.json", "theory.json", "questions.json"]
+    },
+    {
+      "id": "ISRM-S01-U02-C04",
+      "claim": "For this independent lesson, asset identity and role facts are kept separate from value, impact, priority, evidence, and uncertainty judgments; threat or vulnerability labels alone do not establish a protection order.",
+      "sourceType": "INDEPENDENT_PEDAGOGICAL_SYNTHESIS",
+      "sourceUrl": null,
+      "sourceLocation": "Securium original register and priority design; bounded by C03 without reproducing source expression",
+      "currentness": "NOT_AN_OFFICIAL_CLAIM",
+      "rights": "INDEPENDENT_EXPRESSION; REVIEW_REQUIRED",
+      "usedIn": ["objectives.json", "theory.json", "questions.json"]
+    },
+    {
+      "id": "ISRM-S01-U02-C05",
+      "claim": "The record fields, review sequence, and 푸른강 배송센터 example are Securium-created teaching devices, not official KCA procedure, official case material, or a legal compliance determination.",
+      "sourceType": "SECURIUM_ORIGINAL_SYNTHETIC_EXAMPLE",
+      "sourceUrl": null,
+      "sourceLocation": "theory.json sections planning-sequence, fictional-case, and common-confusions",
+      "currentness": "NOT_APPLICABLE",
+      "rights": "INDEPENDENT_EXPRESSION",
+      "usedIn": ["theory.json"]
+    }
+  ],
+  "gate": {
+    "officialExpressionReusePermission": "UNKNOWN_BLOCKED",
+    "detailedOfficialScope": "PARTIAL",
+    "officialSemanticVersion": "UNKNOWN",
+    "commercialSourcesUsed": 0,
+    "officialQuestionReproduction": 0,
+    "sourceBindingApproval": "NOT_ISSUED",
+    "canonicalApproval": "NOT_REQUESTED"
+  }
+}

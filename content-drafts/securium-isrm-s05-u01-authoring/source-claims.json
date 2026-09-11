@@ -1,0 +1,78 @@
+{
+  "schema": "securium.isrm.s05_u01.source_claims.v1",
+  "status": "DRAFT_UNPUBLISHED_REVIEW_REQUIRED",
+  "learningUnitId": "isrm-2025-2027-s05-u01",
+  "claims": [
+    {
+      "id": "ISRM-S05-U01-C01",
+      "claim": "The official written-exam criteria identifies Subject V as information-security risk-countermeasure management and lists information-security risk response with subitems for countermeasure implementation, information-communications service providers, personal-credit information operators, and the information-security industry.",
+      "sourceType": "OFFICIAL_LOCAL_PDF_REFERENCE_WITH_BOUNDED_PARAPHRASE",
+      "sourceUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
+      "sourceLocation": "local exam-criteria PDF page 3; printed page 3, Subject V",
+      "localSource": "C:\\Users\\user\\Documents\\Codex\\2026-07-24\\1-2-3-4-5-6\\source-evidence-original\\isrm\\[출제기준] 정보보호위험관리사(ISRM).pdf",
+      "localSha256": "1FF4981397462274BFDE7BBA35753EC613D834AFB7FBDB309687AB4BD83F6DA3",
+      "sourceSupport": "Official Subject V identity, problem count, broad major item, and four subitems only; it does not establish the Securium U01 title or detailed objectives.",
+      "currentness": "PARTIAL; CRITERIA_SEMANTIC_VERSION_UNKNOWN",
+      "rights": "REFERENCE_ONLY; NO_SOURCE_EXPRESSION_REUSE",
+      "usedIn": ["manifest.json", "theory.json", "objectives.json"]
+    },
+    {
+      "id": "ISRM-S05-U01-C02",
+      "claim": "The official guidebook describes selecting countermeasures according to a risk-treatment direction and considering severity/urgency, implementation feasibility, budget, resources, and dependencies; it also describes an implementation plan with responsibility and schedule that is reported for review or approval.",
+      "sourceType": "OFFICIAL_LOCAL_PDF_REFERENCE_WITH_BOUNDED_PARAPHRASE",
+      "sourceUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
+      "sourceLocation": "local guidebook PDF page 235; printed page 231, Subject V 1.1 countermeasure selection",
+      "localSource": "C:\\Users\\user\\Documents\\Codex\\2026-07-24\\1-2-3-4-5-6\\source-evidence-original\\isrm\\[가이드북] 정보보호위험관리사(ISRM).pdf",
+      "localSha256": "BD15551DCA7A7E72197C713244D5AB165D7C26C89DA56A174CA15BB4E4AC82D0",
+      "sourceSupport": "Bounded selection and planning considerations; it does not prescribe one universal strategy, approval authority, or Securium implementation-plan schema.",
+      "currentness": "PARTIAL; GUIDEBOOK_SEMANTIC_VERSION_UNKNOWN",
+      "rights": "REFERENCE_ONLY; NO_SOURCE_EXPRESSION_REUSE",
+      "usedIn": ["theory.json", "objectives.json"]
+    },
+    {
+      "id": "ISRM-S05-U01-C03",
+      "claim": "The official guidebook describes implementing selected countermeasures, reporting progress and non-implementation or delay reasons, and having management review whether implementation is accurate and effective.",
+      "sourceType": "OFFICIAL_LOCAL_PDF_REFERENCE_WITH_BOUNDED_PARAPHRASE",
+      "sourceUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
+      "sourceLocation": "local guidebook PDF page 236; printed page 232, Subject V implementation and progress review",
+      "localSource": "C:\\Users\\user\\Documents\\Codex\\2026-07-24\\1-2-3-4-5-6\\source-evidence-original\\isrm\\[가이드북] 정보보호위험관리사(ISRM).pdf",
+      "localSha256": "BD15551DCA7A7E72197C713244D5AB165D7C26C89DA56A174CA15BB4E4AC82D0",
+      "sourceSupport": "Bounded implementation and review activities; the evidence bundle, effectiveness test, and residual-risk decision path are Securium synthesis.",
+      "currentness": "PARTIAL; GUIDEBOOK_SEMANTIC_VERSION_UNKNOWN",
+      "rights": "REFERENCE_ONLY; NO_SOURCE_EXPRESSION_REUSE",
+      "usedIn": ["theory.json", "objectives.json", "questions.json"]
+    },
+    {
+      "id": "ISRM-S05-U01-C04",
+      "claim": "The official guidebook describes sharing implemented countermeasures with operating departments and responsible personnel, providing related education, and managing recurring or continuous information-security activities by period, timing, performer, and status.",
+      "sourceType": "OFFICIAL_LOCAL_PDF_REFERENCE_WITH_BOUNDED_PARAPHRASE",
+      "sourceUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
+      "sourceLocation": "local guidebook PDF page 237; printed page 233, Subject V sharing/training and operating-status management",
+      "localSource": "C:\\Users\\user\\Documents\\Codex\\2026-07-24\\1-2-3-4-5-6\\source-evidence-original\\isrm\\[가이드북] 정보보호위험관리사(ISRM).pdf",
+      "localSha256": "BD15551DCA7A7E72197C713244D5AB165D7C26C89DA56A174CA15BB4E4AC82D0",
+      "sourceSupport": "Bounded sharing, education, and operating-status facts; the draft's currentness/effectiveness evidence bundle is independent synthesis.",
+      "currentness": "PARTIAL; GUIDEBOOK_SEMANTIC_VERSION_UNKNOWN",
+      "rights": "REFERENCE_ONLY; NO_SOURCE_EXPRESSION_REUSE",
+      "usedIn": ["theory.json", "objectives.json", "questions.json"]
+    },
+    {
+      "id": "ISRM-S05-U01-C05",
+      "claim": "The Subject I-to-V continuity bridge, assessment-to-countermeasure translation, evidence and residual-risk distinctions, exception/improvement workflow, Byeolbit Payment case, self-checks, and q25/q26 are Securium-created pedagogical synthesis and fictional examples.",
+      "sourceType": "INDEPENDENT_PEDAGOGICAL_SYNTHESIS_AND_SYNTHETIC_EXAMPLE",
+      "sourceLocation": "theory.json sections bridge-from-subjects-i-to-iv, from-assessment-to-countermeasure, selection-and-plan, implementation-sharing-and-status, effectiveness-and-residual-risk, change-exception-and-improvement, fictional-case, common-confusions, summary-check; questions.json q25/q26",
+      "sourceSupport": "Independent teaching content; not an official unit title, objective, question wording, legal instruction, universal audit checklist, or exam-prediction claim.",
+      "currentness": "NOT_AN_OFFICIAL_CLAIM",
+      "rights": "INDEPENDENT_EXPRESSION; REVIEW_REQUIRED",
+      "usedIn": ["manifest.json", "objectives.json", "theory.json", "questions.json"]
+    }
+  ],
+  "gate": {
+    "officialExpressionReusePermission": "UNKNOWN_BLOCKED",
+    "detailedOfficialScope": "PARTIAL",
+    "officialSemanticVersion": "UNKNOWN",
+    "commercialSourcesUsed": 0,
+    "officialQuestionReproduction": 0,
+    "sourceBindingApproval": "NOT_ISSUED",
+    "canonicalApproval": "NOT_REQUESTED"
+  }
+}

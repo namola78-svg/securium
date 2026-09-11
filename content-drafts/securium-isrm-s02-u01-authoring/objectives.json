@@ -1,0 +1,28 @@
+{
+  "schema": "securium.isrm.s02_u01.objective_draft.v1",
+  "status": "DRAFT_UNPUBLISHED_REVIEW_REQUIRED",
+  "learningUnitId": "isrm-2025-2027-s02-u01",
+  "objectives": [
+    {
+      "id": "ISRM-S02-U01-O01",
+      "outcome": "조직의 범위·자산·목표·자원과 필요한 분석 깊이를 비교해 위험평가 방법론을 선택하고, 선택 이유와 한계를 설명할 수 있다.",
+      "theoryIds": ["ISRM-S02-U01-T01"],
+      "questionIds": ["isrm-q-v2-07"],
+      "claimIds": ["ISRM-S02-U01-C03", "ISRM-S02-U01-C05"],
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT"
+    },
+    {
+      "id": "ISRM-S02-U01-O02",
+      "outcome": "위험평가 관리계획에 범위·대상·수행인력·기간·방법·책임·예산·완료 증거와 재검토 조건을 기록할 수 있다.",
+      "theoryIds": ["ISRM-S02-U01-T01"],
+      "questionIds": ["isrm-q-v2-08", "isrm-q-v2-29"],
+      "claimIds": ["ISRM-S02-U01-C04", "ISRM-S02-U01-C05"],
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT"
+    }
+  ],
+  "limitations": [
+    "Objectives are Securium pedagogical outcomes, not official KCA unit objectives.",
+    "The official unit-level title, detailed scope, and semantic version remain UNKNOWN.",
+    "Organization-specific risk methods, schedules, legal duties, and approval requirements must be checked from authoritative sources."
+  ]
+}

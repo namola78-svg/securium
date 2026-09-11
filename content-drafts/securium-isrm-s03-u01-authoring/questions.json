@@ -1,0 +1,151 @@
+{
+  "schema": "securium.isrm.s03_u01.question_draft.v1",
+  "status": "DRAFT_UNPUBLISHED_REVIEW_REQUIRED",
+  "learningUnitId": "isrm-2025-2027-s03-u01",
+  "questions": [
+    {
+      "id": "isrm-q-v2-12",
+      "status": "DRAFT_UNPUBLISHED",
+      "type": "SINGLE_CHOICE",
+      "difficulty": "PRACTICE",
+      "courseId": "course-isrm",
+      "subjectId": "isrm-2025-2027-s03",
+      "learningUnitId": "isrm-2025-2027-s03-u01",
+      "scenarioType": "SECURIUM_SYNTHETIC_SCENARIO",
+      "fictional": true,
+      "objectiveIds": ["ISRM-S03-U01-O01"],
+      "theoryIds": ["ISRM-S03-U01-T01"],
+      "prompt": "가상의 사내 공유 서비스에 외부 공개 기능이 있지만 업무상 필요하지 않다. 이 노출에 가장 직접적으로 맞는 처리전략은 무엇인가?",
+      "options": [
+        { "id": "A", "text": "불필요한 외부 공개 기능을 제거하거나 비활성화한다." },
+        { "id": "B", "text": "위험을 수용하고 사유·책임자·재검토 조건을 기록하지 않는다." },
+        { "id": "C", "text": "서비스의 모든 보안 책임을 사용자에게 이전한다고 선언한다." },
+        { "id": "D", "text": "처리전략 없이 위험 점수만 높여 문제가 사라진 것으로 표시한다." }
+      ],
+      "correctOptionId": "A",
+      "answerExplanation": "업무에 필요하지 않은 기능을 제거하거나 비활성화하면 위험을 만드는 활동 자체를 줄일 수 있으므로 위험회피 전략에 해당합니다.",
+      "incorrectExplanations": {
+        "B": "수용은 명확한 사유·책임·기간·재검토 조건을 가진 결정이어야 하며 기록을 생략할 수 없습니다.",
+        "C": "사용자에게 책임을 선언하는 것만으로 조직의 운영 책임이나 위험이 다른 주체에게 이전되지는 않습니다.",
+        "D": "점수 표시는 처리전략이나 위험을 줄이는 실제 조치가 아닙니다."
+      },
+      "claimIds": ["ISRM-S03-U01-C03", "ISRM-S03-U01-C05"],
+      "ambiguityReview": "ONE_BEST_ANSWER",
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
+      "sourceExpressionReuse": 0,
+      "officialQuestionReconstruction": 0,
+      "rightsStatus": "REVIEW_REQUIRED",
+      "currentness": "PARTIAL",
+      "canonicalRevisionBinding": "NOT_ISSUED"
+    },
+    {
+      "id": "isrm-q-v2-13",
+      "status": "DRAFT_UNPUBLISHED",
+      "type": "SINGLE_CHOICE",
+      "difficulty": "FOUNDATION",
+      "courseId": "course-isrm",
+      "subjectId": "isrm-2025-2027-s03",
+      "learningUnitId": "isrm-2025-2027-s03-u01",
+      "scenarioType": "SECURIUM_SYNTHETIC_SCENARIO",
+      "fictional": true,
+      "objectiveIds": ["ISRM-S03-U01-O01"],
+      "theoryIds": ["ISRM-S03-U01-T01"],
+      "prompt": "가상의 조직이 특정 재정적 손실에 대한 보험을 들었지만 서비스의 안전한 운영 책임은 계속 보유한다. 어떤 처리전략의 설명이 가장 정확한가?",
+      "options": [
+        { "id": "A", "text": "특정 결과의 부담을 배분하는 위험전가이며 운영 책임 전체를 없애지는 않는다." },
+        { "id": "B", "text": "서비스의 모든 위험이 사라지는 위험제거이며 별도 운영 검토가 필요 없다." },
+        { "id": "C", "text": "위험을 측정했을 뿐이므로 원인과 처리 우선순위는 정하지 않는다." },
+        { "id": "D", "text": "아무 근거와 책임을 기록하지 않고 위험수용으로 처리한 뒤 재검토하지 않는다." }
+      ],
+      "correctOptionId": "A",
+      "answerExplanation": "보험이나 계약은 정의된 결과의 재정적 부담을 배분할 수 있지만, 조직이 서비스를 안전하게 운영할 책임과 다른 잔여 위험까지 없애지는 않습니다.",
+      "incorrectExplanations": {
+        "B": "전가는 특정 결과의 부담을 나누는 것이지 서비스 전체의 위험이나 운영 책임을 제거하는 것이 아닙니다.",
+        "C": "보험을 선택한 것은 정의된 결과에 대한 처리전략을 선택한 것이며 단순한 측정에 그치지 않습니다.",
+        "D": "전가와 수용은 다른 전략이며, 수용을 선택하더라도 근거와 책임을 기록해야 합니다."
+      },
+      "claimIds": ["ISRM-S03-U01-C03", "ISRM-S03-U01-C05"],
+      "ambiguityReview": "ONE_BEST_ANSWER",
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
+      "sourceExpressionReuse": 0,
+      "officialQuestionReconstruction": 0,
+      "rightsStatus": "REVIEW_REQUIRED",
+      "currentness": "PARTIAL",
+      "canonicalRevisionBinding": "NOT_ISSUED"
+    },
+    {
+      "id": "isrm-q-v2-14",
+      "status": "DRAFT_UNPUBLISHED",
+      "type": "SINGLE_CHOICE",
+      "difficulty": "PRACTICE",
+      "courseId": "course-isrm",
+      "subjectId": "isrm-2025-2027-s03",
+      "learningUnitId": "isrm-2025-2027-s03-u01",
+      "scenarioType": "SECURIUM_SYNTHETIC_SCENARIO",
+      "fictional": true,
+      "objectiveIds": ["ISRM-S03-U01-O02"],
+      "theoryIds": ["ISRM-S03-U01-T01"],
+      "prompt": "선정한 접근통제 개선대책이 완료로 표시되었다. 실제 구현과 의도한 동작을 확인하는 후속 조치는 무엇인가?",
+      "options": [
+        { "id": "A", "text": "담당자의 구두 확인만 보관하고 대표 조건 시험은 하지 않는다." },
+        { "id": "B", "text": "대표 조건에서 접근규칙의 작동을 시험하고 결과를 기록한다." },
+        { "id": "C", "text": "정책 제목만 만들고 구현 여부를 보여 주는 증거는 남기지 않는다." },
+        { "id": "D", "text": "회의 횟수만 세어 통제 효과성의 증거로 사용한다." }
+      ],
+      "correctOptionId": "B",
+      "answerExplanation": "구현 완료 표시는 실행 여부를 알려 줄 뿐입니다. 대표 조건에서 의도한 접근규칙이 실제로 작동하는지 시험한 결과가 구현 정확성과 효과성 확인에 직접 연결됩니다.",
+      "incorrectExplanations": {
+        "A": "구두 확인만으로는 대책이 실제 조건에서 의도대로 작동했는지 재현할 수 없습니다.",
+        "C": "정책 제목은 대책의 실행과 동작 결과를 보여 주는 증거가 아닙니다.",
+        "D": "회의 횟수는 활동량을 보여 줄 수 있지만 통제가 효과적으로 작동했다는 증거가 아닙니다."
+      },
+      "claimIds": ["ISRM-S03-U01-C03", "ISRM-S03-U01-C04", "ISRM-S03-U01-C05"],
+      "ambiguityReview": "ONE_BEST_ANSWER",
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
+      "sourceExpressionReuse": 0,
+      "officialQuestionReconstruction": 0,
+      "rightsStatus": "REVIEW_REQUIRED",
+      "currentness": "PARTIAL",
+      "canonicalRevisionBinding": "NOT_ISSUED"
+    },
+    {
+      "id": "isrm-q-v2-28",
+      "status": "DRAFT_UNPUBLISHED",
+      "type": "SINGLE_CHOICE",
+      "difficulty": "PRACTICE",
+      "courseId": "course-isrm",
+      "subjectId": "isrm-2025-2027-s03",
+      "learningUnitId": "isrm-2025-2027-s03-u01",
+      "scenarioType": "SECURIUM_SYNTHETIC_SCENARIO",
+      "fictional": true,
+      "objectiveIds": ["ISRM-S03-U01-O01"],
+      "theoryIds": ["ISRM-S03-U01-T01"],
+      "prompt": "가상의 팀이 낮은 잔여 위험을 6개월 동안 수용하기로 했다. 이 결정을 검토 가능하게 만드는 기록은 무엇인가?",
+      "options": [
+        { "id": "A", "text": "담당자 없이 '수용'이라고만 적은 한 줄 기록으로 끝낸다." },
+        { "id": "B", "text": "기준·사유·승인자·재검토 시점·모니터링 조건을 기록한다." },
+        { "id": "C", "text": "개발자 개인 편집기에만 남긴 비공개 메모로 관리한다." },
+        { "id": "D", "text": "앞으로 환경이 바뀌어도 위험이 변하지 않는다는 약속만 남긴다." }
+      ],
+      "correctOptionId": "B",
+      "answerExplanation": "위험수용은 영구적인 방치가 아니라 기준과 사유, 책임 있는 승인, 기간·재검토 시점, 모니터링 조건이 있는 제한된 결정이어야 합니다.",
+      "incorrectExplanations": {
+        "A": "수용이라는 단어만으로는 왜 허용했는지, 누가 책임지는지, 언제 다시 볼지를 확인할 수 없습니다.",
+        "C": "개인 편집기의 숨은 메모는 조직의 결정과 책임을 공유하거나 추적할 수 있는 기록이 아닙니다.",
+        "D": "위험은 환경과 자산 변화에 따라 달라질 수 있으므로 변하지 않는다는 약속은 재검토를 대체하지 못합니다."
+      },
+      "claimIds": ["ISRM-S03-U01-C03", "ISRM-S03-U01-C04", "ISRM-S03-U01-C05"],
+      "ambiguityReview": "ONE_BEST_ANSWER",
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
+      "sourceExpressionReuse": 0,
+      "officialQuestionReconstruction": 0,
+      "rightsStatus": "REVIEW_REQUIRED",
+      "currentness": "PARTIAL",
+      "canonicalRevisionBinding": "NOT_ISSUED"
+    }
+  ],
+  "limitations": [
+    "These are independent draft questions, not official KCA questions and not exam-prediction claims.",
+    "Question IDs are retained for planned relation only; no canonical question body or revision binding is overwritten or issued."
+  ]
+}

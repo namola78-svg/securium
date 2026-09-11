@@ -1,0 +1,73 @@
+{
+  "schema": "securium.isrm.s03_u01.source_claims.v1",
+  "status": "DRAFT_SOURCE_REVIEW_REQUIRED",
+  "claims": [
+    {
+      "id": "ISRM-S03-U01-C01",
+      "claim": "KCA identifies ISRM as registration 2024-004467 and lists 정보보호 위험 대응 as the third subject.",
+      "sourceType": "OFFICIAL_PRIMARY_WEB_PAGE",
+      "sourceUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
+      "sourceLocation": "official page qualification and exam-subject text reviewed on 2026-09-11",
+      "localSource": null,
+      "currentness": "VERIFIED_IDENTITY_AND_SUBJECT_PAGE_ON_2026-09-11",
+      "rights": "FACTUAL_REFERENCE_ONLY; EXPRESSION_REUSE_UNKNOWN",
+      "usedIn": ["manifest.json"]
+    },
+    {
+      "id": "ISRM-S03-U01-C02",
+      "claim": "The official written-exam criteria lists subject III major item 1, protection-measure implementation, with treatment strategy/protection-measure planning, implementation considerations, and post-implementation follow-up checking.",
+      "sourceType": "OFFICIAL_LOCAL_PDF_REFERENCE",
+      "sourceUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
+      "sourceLocation": "local exam-criteria PDF pages 1-2",
+      "localSource": "C:\\Users\\user\\Documents\\Codex\\2026-07-24\\1-2-3-4-5-6\\source-evidence-original\\isrm\\[출제기준] 정보보호위험관리사(ISRM).pdf",
+      "localSha256": "1FF4981397462274BFDE7BBA35753EC613D834AFB7FBDB309687AB4BD83F6DA3",
+      "applicabilityShownInArtifact": "2025-01-01 to 2027-12-31",
+      "currentness": "PARTIAL; ARTIFACT_SEMANTIC_VERSION_UNKNOWN",
+      "rights": "REFERENCE_ONLY; DO_NOT_REPUBLISH_OR_COPY_EXPRESSION",
+      "usedIn": ["manifest.json", "theory.json"]
+    },
+    {
+      "id": "ISRM-S03-U01-C03",
+      "claim": "The guidebook reference describes selecting treatment strategies and protection measures from assessed risks, prioritizing and planning schedule/owners/budget, management reporting or approval, and checking implementation accuracy and effectiveness.",
+      "sourceType": "OFFICIAL_LOCAL_PDF_REFERENCE_WITH_BOUNDED_PARAPHRASE",
+      "sourceUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
+      "sourceLocation": "local guidebook printed pages 99-101 (review PDF pages 103-105); treatment, protection measures, planning, approval, implementation, and effectiveness checks",
+      "localSource": "C:\\Users\\user\\Documents\\Codex\\2026-07-24\\1-2-3-4-5-6\\source-evidence-original\\isrm\\[가이드북] 정보보호위험관리사(ISRM).pdf",
+      "localSha256": "BD15551DCA7A7E72197C713244D5AB165D7C26C89DA56A174CA15BB4E4AC82D0",
+      "currentness": "PARTIAL; GUIDEBOOK_SEMANTIC_VERSION_UNKNOWN",
+      "rights": "REFERENCE_ONLY; NO_SOURCE_EXPRESSION_REUSE",
+      "usedIn": ["objectives.json", "theory.json", "questions.json"]
+    },
+    {
+      "id": "ISRM-S03-U01-C04",
+      "claim": "The guidebook reference describes sharing and educating implementation owners, maintaining traceable operation records, and continuing legal/currentness and management-system checks after implementation.",
+      "sourceType": "OFFICIAL_LOCAL_PDF_REFERENCE_WITH_BOUNDED_PARAPHRASE",
+      "sourceUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
+      "sourceLocation": "local guidebook printed pages 102-106 (review PDF pages 106-110); sharing, operating records, legal-currentness, and management-system checks",
+      "localSource": "C:\\Users\\user\\Documents\\Codex\\2026-07-24\\1-2-3-4-5-6\\source-evidence-original\\isrm\\[가이드북] 정보보호위험관리사(ISRM).pdf",
+      "localSha256": "BD15551DCA7A7E72197C713244D5AB165D7C26C89DA56A174CA15BB4E4AC82D0",
+      "currentness": "PARTIAL; GUIDEBOOK_SEMANTIC_VERSION_UNKNOWN",
+      "rights": "REFERENCE_ONLY; NO_SOURCE_EXPRESSION_REUSE",
+      "usedIn": ["objectives.json", "theory.json", "questions.json"]
+    },
+    {
+      "id": "ISRM-S03-U01-C05",
+      "claim": "The S02-to-S03 bridge, strategy boundaries, implementation/effectiveness distinction, acceptance record, and 파란우체국 example are Securium-created teaching devices and do not assert an official strategy, legal conclusion, or official question wording.",
+      "sourceType": "INDEPENDENT_PEDAGOGICAL_SYNTHESIS_AND_SYNTHETIC_EXAMPLE",
+      "sourceUrl": null,
+      "sourceLocation": "theory.json sections bridge-from-s02, strategy-selection, risk-reduction, bounded-acceptance, implementation-plan, effectiveness-check, fictional-case, common-confusions, and summary-check",
+      "currentness": "NOT_AN_OFFICIAL_CLAIM",
+      "rights": "INDEPENDENT_EXPRESSION; REVIEW_REQUIRED",
+      "usedIn": ["objectives.json", "theory.json", "questions.json"]
+    }
+  ],
+  "gate": {
+    "officialExpressionReusePermission": "UNKNOWN_BLOCKED",
+    "detailedOfficialScope": "PARTIAL",
+    "officialSemanticVersion": "UNKNOWN",
+    "commercialSourcesUsed": 0,
+    "officialQuestionReproduction": 0,
+    "sourceBindingApproval": "NOT_ISSUED",
+    "canonicalApproval": "NOT_REQUESTED"
+  }
+}

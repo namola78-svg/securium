@@ -1,0 +1,29 @@
+{
+  "schema": "securium.isrm.s04_u01.objective_draft.v1",
+  "status": "DRAFT_UNPUBLISHED_REVIEW_REQUIRED",
+  "learningUnitId": "isrm-2025-2027-s04-u01",
+  "objectives": [
+    {
+      "id": "ISRM-S04-U01-O01",
+      "outcome": "학습자는 Subject III에서 정한 위험 처리·보호대책 결과를 범위, 책임자, 주기, 수행방법, 기대 증거, 재검토 조건이 포함된 반복 가능한 위험관리 운영계획으로 변환하고, 정책·위험목록·운영계획의 역할을 구분할 수 있다.",
+      "theoryIds": ["ISRM-S04-U01-T01"],
+      "questionIds": ["isrm-q-v2-21"],
+      "claimIds": ["ISRM-S04-U01-C01", "ISRM-S04-U01-C02", "ISRM-S04-U01-C03", "ISRM-S04-U01-C05"],
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT"
+    },
+    {
+      "id": "ISRM-S04-U01-O02",
+      "outcome": "학습자는 담당자나 조직 조건이 바뀐 창작 사례에서 운영 공백과 위험 영향을 확인하고, 새 책임자·보완조치·승인·변경 이력을 관리계획에 연결할 수 있다.",
+      "theoryIds": ["ISRM-S04-U01-T01"],
+      "questionIds": ["isrm-q-v2-22"],
+      "claimIds": ["ISRM-S04-U01-C03", "ISRM-S04-U01-C04", "ISRM-S04-U01-C05"],
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT"
+    }
+  ],
+  "limitations": [
+    "Objectives are Securium pedagogical outcomes, not official KCA unit objectives.",
+    "Subject IV identity and broad major items are official anchors; the Securium U01 title, detailed objectives, and semantic version remain UNKNOWN.",
+    "The operating-plan fields and ownership-change workflow are independent synthesis and must be adapted to the organization's authority, requirements, and approval rules.",
+    "A plan or status entry does not by itself prove that an activity occurred or that a control is effective."
+  ]
+}

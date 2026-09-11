@@ -1,0 +1,28 @@
+{
+  "schema": "securium.isrm.s01_u03.objective_draft.v1",
+  "status": "DRAFT_UNPUBLISHED_REVIEW_REQUIRED",
+  "learningUnitId": "isrm-2025-2027-s01-u03",
+  "objectives": [
+    {
+      "id": "ISRM-S01-U03-O01",
+      "outcome": "정보보호 정책과 하위 시행문서의 목적·승인·전달·정기 타당성 검토를 설명하고, 서비스·법규·조직 변화가 생겼을 때 재검토 근거를 기록할 수 있다.",
+      "theoryIds": ["ISRM-S01-U03-T01"],
+      "questionIds": ["isrm-q-v2-05"],
+      "claimIds": ["ISRM-S01-U03-C03", "ISRM-S01-U03-C05"],
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT"
+    },
+    {
+      "id": "ISRM-S01-U03-O02",
+      "outcome": "정보보호 교육의 대상·내용·방법·일정과 실시·효과 평가 기록을 구분하고, 문서 게시만으로 운영을 입증하지 않도록 후속 확인과 개선을 제안할 수 있다.",
+      "theoryIds": ["ISRM-S01-U03-T01"],
+      "questionIds": ["isrm-q-v2-06"],
+      "claimIds": ["ISRM-S01-U03-C04", "ISRM-S01-U03-C05"],
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT"
+    }
+  ],
+  "limitations": [
+    "Objectives are Securium pedagogical outcomes, not official KCA unit objectives.",
+    "The official unit-level title, detailed scope, and semantic version remain UNKNOWN.",
+    "Organization-specific legal duties and review frequencies must be checked from authoritative sources."
+  ]
+}

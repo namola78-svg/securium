@@ -1,0 +1,29 @@
+{
+  "schema": "securium.isrm.s03_u04.objective_draft.v1",
+  "status": "DRAFT_UNPUBLISHED_REVIEW_REQUIRED",
+  "learningUnitId": "isrm-2025-2027-s03-u04",
+  "objectives": [
+    {
+      "id": "ISRM-S03-U04-O01",
+      "outcome": "학습자는 정보보호산업의 법·제도와 지정·공시·전문서비스 관련 사실을 서로 다른 목적의 근거로 구분하고, 보호기술 또는 서비스 주장의 적용 범위·유효성·대상 위험과의 적합성을 설명할 수 있다.",
+      "theoryIds": ["ISRM-S03-U04-T01"],
+      "questionIds": ["isrm-q-v2-19"],
+      "claimIds": ["ISRM-S03-U04-C01", "ISRM-S03-U04-C02", "ISRM-S03-U04-C03", "ISRM-S03-U04-C05"],
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT"
+    },
+    {
+      "id": "ISRM-S03-U04-O02",
+      "outcome": "학습자는 정보보호 서비스 또는 제공자의 범위가 바뀐 창작 사례에서 적용 의무·역할·증거·잔여위험의 영향을 검토하고, 결정·후속조치·이력을 연결한 재검토 계획을 제시할 수 있다.",
+      "theoryIds": ["ISRM-S03-U04-T01"],
+      "questionIds": ["isrm-q-v2-20"],
+      "claimIds": ["ISRM-S03-U04-C03", "ISRM-S03-U04-C04", "ISRM-S03-U04-C05"],
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT"
+    }
+  ],
+  "limitations": [
+    "Objectives are Securium pedagogical outcomes, not official KCA unit objectives.",
+    "The official subject anchor identifies the information-security-industry protection area, but the official unit-level title, detailed learning objectives, and semantic version remain UNKNOWN.",
+    "Designation, disclosure, and specialized-service examples are factual source anchors; applicability to a particular organization requires a separate current legal and contractual review.",
+    "The change-impact workflow and fit judgment are independent synthesis, not a claim that the source prescribes one universal procedure or cadence."
+  ]
+}

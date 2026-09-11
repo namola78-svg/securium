@@ -1,0 +1,78 @@
+{
+  "schema": "securium.isrm.s04_u01.source_claims.v1",
+  "status": "DRAFT_UNPUBLISHED_REVIEW_REQUIRED",
+  "learningUnitId": "isrm-2025-2027-s04-u01",
+  "claims": [
+    {
+      "id": "ISRM-S04-U01-C01",
+      "claim": "KCA written-exam criteria identifies Subject IV as information-security management-system operation and lists information-security risk-management planning and information-security risk assessment as its two broad major items; the first includes management understanding, governance, and management-system lifecycle establishment.",
+      "sourceType": "OFFICIAL_LOCAL_PDF_REFERENCE_WITH_BOUNDED_PARAPHRASE",
+      "sourceUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
+      "sourceLocation": "local exam-criteria PDF page 3; printed page 3, Subject IV",
+      "localSource": "C:\\Users\\user\\Documents\\Codex\\2026-07-24\\1-2-3-4-5-6\\source-evidence-original\\isrm\\[출제기준] 정보보호위험관리사(ISRM).pdf",
+      "localSha256": "1FF4981397462274BFDE7BBA35753EC613D834AFB7FBDB309687AB4BD83F6DA3",
+      "sourceSupport": "Official subject identity and broad boundary only; it does not establish the Securium U01 title or detailed objectives.",
+      "currentness": "PARTIAL; CRITERIA_SEMANTIC_VERSION_UNKNOWN",
+      "rights": "REFERENCE_ONLY; NO_SOURCE_EXPRESSION_REUSE",
+      "usedIn": ["manifest.json", "theory.json", "objectives.json"]
+    },
+    {
+      "id": "ISRM-S04-U01-C02",
+      "claim": "The official guidebook describes information-protection planning as involving policy, roles and responsibilities, risk assessment and prioritization, incident response, and continuity considerations.",
+      "sourceType": "OFFICIAL_LOCAL_PDF_REFERENCE_WITH_BOUNDED_PARAPHRASE",
+      "sourceUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
+      "sourceLocation": "local guidebook PDF page 190; printed page 186, Subject IV 1.2.3 information-protection plan components",
+      "localSource": "C:\\Users\\user\\Documents\\Codex\\2026-07-24\\1-2-3-4-5-6\\source-evidence-original\\isrm\\[가이드북] 정보보호위험관리사(ISRM).pdf",
+      "localSha256": "BD15551DCA7A7E72197C713244D5AB165D7C26C89DA56A174CA15BB4E4AC82D0",
+      "sourceSupport": "Bounded planning-component facts; the source does not provide a canonical Securium operating-plan schema.",
+      "currentness": "PARTIAL; GUIDEBOOK_SEMANTIC_VERSION_UNKNOWN",
+      "rights": "REFERENCE_ONLY; NO_SOURCE_EXPRESSION_REUSE",
+      "usedIn": ["theory.json", "objectives.json", "questions.json"]
+    },
+    {
+      "id": "ISRM-S04-U01-C03",
+      "claim": "The official guidebook describes risk management as including identification, evaluation, response strategy, monitoring, and periodic reporting/communication.",
+      "sourceType": "OFFICIAL_LOCAL_PDF_REFERENCE_WITH_BOUNDED_PARAPHRASE",
+      "sourceUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
+      "sourceLocation": "local guidebook PDF page 191; printed page 187, Subject IV risk-management components",
+      "localSource": "C:\\Users\\user\\Documents\\Codex\\2026-07-24\\1-2-3-4-5-6\\source-evidence-original\\isrm\\[가이드북] 정보보호위험관리사(ISRM).pdf",
+      "localSha256": "BD15551DCA7A7E72197C713244D5AB165D7C26C89DA56A174CA15BB4E4AC82D0",
+      "sourceSupport": "Bounded description of risk-management activities; organization-specific cadence, authority, and evidence remain to be verified.",
+      "currentness": "PARTIAL; GUIDEBOOK_SEMANTIC_VERSION_UNKNOWN",
+      "rights": "REFERENCE_ONLY; NO_SOURCE_EXPRESSION_REUSE",
+      "usedIn": ["theory.json", "objectives.json", "questions.json"]
+    },
+    {
+      "id": "ISRM-S04-U01-C04",
+      "claim": "The official guidebook's management-system lifecycle material describes policy goals, role and responsibility definition, communication, and recurring security activities; the draft applies those facts to an ownership-change gap as independent synthesis.",
+      "sourceType": "OFFICIAL_LOCAL_PDF_REFERENCE_PLUS_INDEPENDENT_SYNTHESIS",
+      "sourceUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
+      "sourceLocation": "local guidebook PDF pages 194-196; printed pages 190-192, Subject IV 1.3 lifecycle/policy/roles/communication material",
+      "localSource": "C:\\Users\\user\\Documents\\Codex\\2026-07-24\\1-2-3-4-5-6\\source-evidence-original\\isrm\\[가이드북] 정보보호위험관리사(ISRM).pdf",
+      "localSha256": "BD15551DCA7A7E72197C713244D5AB165D7C26C89DA56A174CA15BB4E4AC82D0",
+      "sourceSupport": "Bounded lifecycle and responsibility facts; it does not prescribe one universal ownership-change workflow.",
+      "currentness": "PARTIAL; GUIDEBOOK_SEMANTIC_VERSION_UNKNOWN",
+      "rights": "REFERENCE_ONLY; NO_SOURCE_EXPRESSION_REUSE",
+      "usedIn": ["theory.json", "objectives.json", "questions.json"]
+    },
+    {
+      "id": "ISRM-S04-U01-C05",
+      "claim": "The Subject III-to-IV continuity bridge, policy/register/operating-plan distinction, operating-plan checklist, ownership-change workflow, fictional Haesol Commerce case, questions, and self-checks are Securium-created pedagogical synthesis and do not assert official unit wording, legal advice, official question wording, or exam prediction.",
+      "sourceType": "INDEPENDENT_PEDAGOGICAL_SYNTHESIS_AND_SYNTHETIC_EXAMPLE",
+      "sourceLocation": "theory.json sections bridge-from-s03, plan-register-policy, operating-plan-fields, monitoring-and-reporting, ownership-change, fictional-case, common-confusions, summary-check; questions.json q21/q22",
+      "sourceSupport": "Independent teaching content; not an official source claim.",
+      "currentness": "NOT_AN_OFFICIAL_CLAIM",
+      "rights": "INDEPENDENT_EXPRESSION; REVIEW_REQUIRED",
+      "usedIn": ["objectives.json", "theory.json", "questions.json"]
+    }
+  ],
+  "gate": {
+    "officialExpressionReusePermission": "UNKNOWN_BLOCKED",
+    "detailedOfficialScope": "PARTIAL",
+    "officialSemanticVersion": "UNKNOWN",
+    "commercialSourcesUsed": 0,
+    "officialQuestionReproduction": 0,
+    "sourceBindingApproval": "NOT_ISSUED",
+    "canonicalApproval": "NOT_REQUESTED"
+  }
+}
