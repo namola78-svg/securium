@@ -49,6 +49,13 @@ test("disposable PostgreSQL 17 proves governed NEW_SUCCESS and EXACT_REPLAY", as
   assert.equal(Number(counts[0].questions), 1);
   assert.equal(Number(counts[0].versions), 1);
   assert.equal(Number(counts[0].concepts), 1);
+  const [storedVersion] = await client.unsafe("SELECT snapshot_json FROM question_versions WHERE question_id = $1 AND version = $2", [candidate.id, candidate.version]);
+  const storedChoices = await client.unsafe("SELECT id, display_order FROM question_choices WHERE question_id = $1 ORDER BY display_order", [candidate.id]);
+  const snapshotChoices = JSON.parse(storedVersion.snapshot_json).choices;
+  assert.deepEqual(
+    snapshotChoices.map((choice) => [choice.id, choice.displayOrder]),
+    storedChoices.map((choice) => [choice.id, Number(choice.display_order)]),
+  );
 
   const failureStages = [
     ["F2", 1], ["F3", 2], ["F4", 3], ["F5", 4], ["F6", 5], ["F7", 6], ["F8", 8],
