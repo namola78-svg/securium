@@ -74,10 +74,11 @@ python --version
 
 ## 4. Existing compatibility record and limits
 
-The common README records the latest matrix as 49 passing tests on Windows
+The common README records the latest matrix as 50 passing tests on Windows
 PowerShell and Linux Bash with Python 3.11 and 3.14 patch versions, and
-separately records a local Windows PowerShell 5.1/Python 3.14.5 baseline. This
-is repository evidence, not a rehearsal result. Python 3.12/3.13, macOS,
+separately records a local Windows PowerShell 5.1/Python 3.14.5 baseline. The
+earlier 49-test matrix is historical provenance for the pre-repair bundle.
+This is repository evidence, not a rehearsal result. Python 3.12/3.13, macOS,
 learner rehearsal, and browser behavior are not inferred.
 
 - [ ] Compare the rehearsal environment with the recorded matrix.
@@ -104,7 +105,7 @@ pre-completed result.
 | M02 | python -m unittest m02_injection.test_m02 -v | 5 | |
 | M03 | python -m unittest m03_deserialization.test_m03 -v | 6 | |
 | M04 | python -m unittest m04_files_ssrf.test_m04 -v | 6 | |
-| M05 | python -m unittest m05_web_context.test_m05 -v | 6 | |
+| M05 | python -m unittest m05_web_context.test_m05 -v | 7 | |
 | M06 | python -m unittest m06_authorization.test_m06 -v | 5 | |
 | M07 | python -m unittest m07_secrets_dependencies.test_m07 -v | 10 | |
 | M08 | python -m unittest m08_capstone.test_m08 -v | 6 | |

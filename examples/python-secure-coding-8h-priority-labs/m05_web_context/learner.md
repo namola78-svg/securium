@@ -67,10 +67,11 @@ python -m unittest discover -s . -p "test_*.py" -v
 python -m compileall -q .
 ```
 
-Expected focused result: `Ran 6 tests ... OK`. After integrating M07 into the
-bundle, the aggregate result is `Ran 49 tests ... OK`. Every test creates a fresh fake
-state and shuts down its loopback server. No reset command or persistent data
-is required.
+Expected focused result: `Ran 7 tests ... OK`. The earlier pre-repair bundle
+reported 6 focused tests and 49 aggregate tests; those counts are historical
+provenance, not the current expectation. The current aggregate result is
+`Ran 50 tests ... OK`. Every test creates a fresh fake state and shuts down its
+loopback server. No reset command or persistent data is required.
 
 ## Scope limits
 

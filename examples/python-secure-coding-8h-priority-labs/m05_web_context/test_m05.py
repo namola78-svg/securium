@@ -44,6 +44,38 @@ def call_json(
 
 
 class M05WebContextTests(unittest.TestCase):
+    def test_trusted_origin_override_is_explicit_and_exact(self) -> None:
+        self.assertEqual(SecureService().trusted_origin, TRUSTED_ORIGIN)
+
+        service = SecureService(trusted_origin="http://app.local")
+        with LocalServiceServer(service) as server:
+            status, response = call_json(
+                server,
+                "/settings/theme",
+                method="POST",
+                cookie="session_id=alice",
+                csrf_token="alice-csrf-token",
+                origin="http://app.local",
+                payload={"theme": "dark"},
+            )
+            self.assertEqual(status, 200)
+            self.assertEqual(response, {"changed": True, "theme": "dark"})
+            self.assertEqual(service.state.sessions["alice"].theme, "dark")
+
+            service.state.sessions["alice"].theme = "light"
+            status, response = call_json(
+                server,
+                "/settings/theme",
+                method="POST",
+                cookie="session_id=alice",
+                csrf_token="alice-csrf-token",
+                origin="http://app.local:8080",
+                payload={"theme": "dark"},
+            )
+            self.assertEqual(status, 403)
+            self.assertEqual(response, {"error": "csrf_failed"})
+            self.assertEqual(service.state.sessions["alice"].theme, "light")
+
     def test_normal_comment_and_theme_change_work_after_repair(self) -> None:
         service = SecureService()
         with LocalServiceServer(service) as server:

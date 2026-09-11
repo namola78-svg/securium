@@ -62,12 +62,13 @@ The original aggregate command is:
 python -m unittest discover -s . -p 'test_*.py' -v
 ~~~
 
-The repository's latest compatibility record reports Ran 49 tests ... OK
-for its listed Windows PowerShell/Linux Bash and Python 3.11/3.14 matrix. A
-focused command should report the module's own test count; exact elapsed time
-is environment-dependent. If a learner changes code, require the focused test
-and then the aggregate command as appropriate. Test output is evidence for
-the fixture only.
+The repository's latest compatibility record reports Ran 50 tests ... OK
+for its listed Windows PowerShell/Linux Bash and Python 3.11/3.14 matrix. The
+earlier 49-test record is historical provenance for the pre-repair bundle. A
+focused command should report the module's own current test count; exact
+elapsed time is environment-dependent. If a learner changes code, require the
+focused test and then the aggregate command as appropriate. Test output is
+evidence for the fixture only.
 
 Important interpretation boundaries:
 

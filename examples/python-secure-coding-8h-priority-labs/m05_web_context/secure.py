@@ -23,8 +23,14 @@ from .common import (
 class SecureService:
     """Local reference implementation; deliberately not production-ready."""
 
-    def __init__(self, state: ServiceState | None = None) -> None:
+    def __init__(
+        self,
+        state: ServiceState | None = None,
+        *,
+        trusted_origin: str = TRUSTED_ORIGIN,
+    ) -> None:
         self.state = state or demo_state()
+        self.trusted_origin = trusted_origin
 
     def handle(self, method: str, request_target: str, headers: dict[str, str], body: bytes):
         try:
@@ -61,7 +67,7 @@ class SecureService:
 
             # The state-changing browser contract requires both a known origin
             # and a token bound to this existing server-side session.
-            if header_value(headers, "Origin") != TRUSTED_ORIGIN:
+            if header_value(headers, "Origin") != self.trusted_origin:
                 return make_response(403, error="csrf_failed")
             supplied_token = header_value(headers, "X-CSRF-Token") or ""
             if not hmac.compare_digest(supplied_token, session.csrf_token):

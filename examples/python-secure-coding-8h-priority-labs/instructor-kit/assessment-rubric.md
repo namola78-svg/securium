@@ -101,10 +101,11 @@ Look for:
 - separation of normal, attack, regression, and boundary evidence;
 - honest treatment of failures and skipped/not-applicable evidence.
 
-The repository's 49-test compatibility record is context, not a substitute
-for the learner's own focused evidence. Do not require a repeat of all 49
-tests merely because this kit was added; run what is proportionate to actual
-code changes and rehearsal needs.
+The repository's current 50-test compatibility record is context, not a
+substitute for the learner's own focused evidence. The earlier 49-test record
+is historical provenance for the pre-repair bundle. Do not require a repeat of
+all 50 tests merely because this kit was added; run what is proportionate to
+actual code changes and rehearsal needs.
 
 ### 6. Remaining-limitations awareness
 
