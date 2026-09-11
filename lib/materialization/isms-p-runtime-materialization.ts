@@ -3,7 +3,10 @@ import {
   getApprovedIsmsPTheoryBatch1Records,
   ISMS_P_THEORY_BATCH1_READY_CODES,
 } from "../data/isms-p-theory-batch1.mjs";
-import { buildIsmsPBatch1MaterializationManifest } from "../data/isms-p-theory-batch1-materializer.mjs";
+import {
+  buildIsmsPBatch1MaterializationManifest,
+  verifyIsmsPSourceLessonsJsonHash,
+} from "../data/isms-p-theory-batch1-materializer.mjs";
 import { ISMS_P_SOURCE_BINDING_TARGETS } from "../provenance/isms-p-source-binding.ts";
 import {
   courseLessonExtensionSchema,
@@ -59,6 +62,20 @@ export class IsmsPMaterializationError extends Error {
 }
 
 type ClosureStatus = "VERIFIED" | "UNRESOLVED";
+export type IsmsPSourceLessonHashVerificationStatus =
+  | "VERIFIED"
+  | "MISSING"
+  | "MISMATCH"
+  | "IDENTITY_MISMATCH"
+  | "UNRESOLVED";
+
+export type IsmsPSourceLessonHashVerification = Readonly<{
+  sourceLessonId: string;
+  expectedLessonsJsonSha256: string;
+  actualLessonsJsonSha256: string | null;
+  status: IsmsPSourceLessonHashVerificationStatus;
+  reason: string;
+}>;
 
 export type IsmsPAuthoringSubject = Readonly<{
   authoringId: string;
@@ -72,6 +89,7 @@ export type IsmsPAuthoringSubject = Readonly<{
     lessonsJsonSha256: string;
     approvedPreviewBodySha256: string;
     approvedPreviewSummarySha256: string;
+    sourceLessonHashVerification: IsmsPSourceLessonHashVerification;
   }>;
 }>;
 
@@ -82,6 +100,10 @@ export type IsmsPAuthoringAuthority = Readonly<{
     status: "PARTIAL";
     approvedPreviewVerifiedRecordCount: number;
     totalRecordCount: number;
+    sourceLessonHashVerification: Readonly<{
+      status: "VERIFIED" | "PARTIAL" | "UNRESOLVED";
+      counts: Readonly<Record<IsmsPSourceLessonHashVerificationStatus, number>>;
+    }>;
     unresolvedChecks: readonly string[];
   }>;
   currentness: Readonly<{
@@ -146,6 +168,7 @@ export type MaterializationDryRunRow = Readonly<{
   semanticHashDomain: "PENDING_CANONICAL_GOVERNANCE";
   runtimeContent: RuntimeContentProjection;
   runtimeRevision: RuntimeRevisionProjection;
+  sourceLessonHashVerification: IsmsPSourceLessonHashVerification;
   sourceIdentityId: null;
   sourceBinding: "CANONICAL_SOURCE_RESOLUTION_REQUIRED";
   governance: "AUTHENTICATED_HUMAN_GOVERNANCE_REQUIRED";
@@ -290,6 +313,41 @@ function authoringRevisionId(record: RegistryRecord) {
   return `${authoringId(record)}@${record.content.version}`;
 }
 
+function unresolvedSourceLessonHashVerification(record: RegistryRecord): IsmsPSourceLessonHashVerification {
+  return Object.freeze({
+    sourceLessonId: record.metadata.provenance.sourceLessonId,
+    expectedLessonsJsonSha256: record.metadata.provenance.lessonsJsonSha256,
+    actualLessonsJsonSha256: null,
+    status: "UNRESOLVED" as const,
+    reason: "CANONICAL_SOURCE_LESSON_LOADER_UNAVAILABLE",
+  });
+}
+
+/**
+ * Compares a source document with the expected hash from the canonical
+ * registry. This is an integrity comparison only; the supplied document is
+ * never promoted to a source authority or source binding.
+ */
+export function compareCanonicalIsmsPSourceLessonHash(input: Readonly<{
+  officialCode: string;
+  sourceLessonsJson: string | Uint8Array | null;
+}>): IsmsPSourceLessonHashVerification {
+  const record = getCanonicalRegistrySnapshot().records.find(
+    (candidate) => candidate.metadata.officialCode === input.officialCode,
+  );
+  if (!record) {
+    throw new IsmsPMaterializationError(
+      "PROVENANCE_GATE_FAILED",
+      `No canonical ISMS-P source lesson exists for ${input.officialCode}.`,
+    );
+  }
+  return Object.freeze(verifyIsmsPSourceLessonsJsonHash({
+    sourceLessonId: record.metadata.provenance.sourceLessonId,
+    expectedLessonsJsonSha256: record.metadata.provenance.lessonsJsonSha256,
+    sourceLessonsJson: input.sourceLessonsJson,
+  }));
+}
+
 function toAuthoringSubject(record: RegistryRecord): IsmsPAuthoringSubject {
   return Object.freeze({
     authoringId: authoringId(record),
@@ -303,6 +361,7 @@ function toAuthoringSubject(record: RegistryRecord): IsmsPAuthoringSubject {
       lessonsJsonSha256: record.metadata.provenance.lessonsJsonSha256,
       approvedPreviewBodySha256: record.metadata.provenance.approvedPreviewBodySha256,
       approvedPreviewSummarySha256: record.metadata.provenance.approvedPreviewSummarySha256,
+      sourceLessonHashVerification: unresolvedSourceLessonHashVerification(record),
     }),
   });
 }
@@ -398,6 +457,9 @@ function currentnessSnapshot(records: readonly RegistryRecord[]): IsmsPAuthoring
 
 function buildAuthority(records: readonly RegistryRecord[]): IsmsPAuthoringAuthority {
   const subjects = records.map(toAuthoringSubject);
+  const sourceLessonHashVerification = sourceLessonHashVerificationSummary(
+    subjects.map((subject) => subject.provenanceIdentity.sourceLessonHashVerification),
+  );
   return Object.freeze({
     contract: ISMS_P_RUNTIME_MATERIALIZATION_CONTRACT,
     subjects: Object.freeze(subjects),
@@ -405,12 +467,35 @@ function buildAuthority(records: readonly RegistryRecord[]): IsmsPAuthoringAutho
       status: "PARTIAL" as const,
       approvedPreviewVerifiedRecordCount: records.length,
       totalRecordCount: records.length,
+      sourceLessonHashVerification,
       unresolvedChecks: Object.freeze([
         "SOURCE_LESSONS_HASH_RECOMPUTATION_REQUIRED",
         "FULL_SOURCE_BINDING_VALIDATION_REQUIRED",
       ]),
     }),
     currentness: currentnessSnapshot(records),
+  });
+}
+
+function sourceLessonHashVerificationSummary(
+  verifications: readonly IsmsPSourceLessonHashVerification[],
+): IsmsPAuthoringAuthority["provenance"]["sourceLessonHashVerification"] {
+  const counts = {
+    VERIFIED: 0,
+    MISSING: 0,
+    MISMATCH: 0,
+    IDENTITY_MISMATCH: 0,
+    UNRESOLVED: 0,
+  } satisfies Record<IsmsPSourceLessonHashVerificationStatus, number>;
+  for (const verification of verifications) counts[verification.status] += 1;
+  const verifiedCount = counts.VERIFIED;
+  return Object.freeze({
+    status: verifiedCount === verifications.length
+      ? "VERIFIED" as const
+      : verifiedCount === 0
+        ? "UNRESOLVED" as const
+        : "PARTIAL" as const,
+    counts: Object.freeze(counts),
   });
 }
 
@@ -503,6 +588,7 @@ function toDryRunRow(record: RegistryRecord, bridge: IsmsPRuntimeIdentityBridge)
     semanticHashDomain: "PENDING_CANONICAL_GOVERNANCE",
     runtimeContent,
     runtimeRevision,
+    sourceLessonHashVerification: unresolvedSourceLessonHashVerification(record),
     sourceIdentityId: null,
     sourceBinding: "CANONICAL_SOURCE_RESOLUTION_REQUIRED",
     governance: "AUTHENTICATED_HUMAN_GOVERNANCE_REQUIRED",
