@@ -20,7 +20,7 @@ import {
   type ProjectionRecord,
 } from "../lib/services/cppg-runtime-course-registration.ts";
 
-process.env.NODE_ENV = "test";
+(process.env as unknown as { NODE_ENV?: string }).NODE_ENV = "test";
 const root = new URL("../content-drafts/securium-cppg-foundation/", import.meta.url);
 const OPTIONS = { actorUserId: "test-actor" };
 

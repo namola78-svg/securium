@@ -54,7 +54,7 @@ const CPPG_CANONICAL_FOUNDATION = Object.freeze({
   sourceRoot: "../source-evidence-original/cppg",
   sourceSnapshotDate: "2026-09-08",
   sourcePackageHash: "cf4ada7c7f325aa405c76db7993d314b782ff4f69f07b467793dc11cf1913a80",
-}) as const;
+} as const);
 
 export type CppgAuthorityBindingFailureCode =
   | "CPPG_CANONICAL_VALIDATOR_UNAVAILABLE"
