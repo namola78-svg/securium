@@ -8,6 +8,7 @@ import styles from "@/components/v2/learn-experience.module.css";
 import { getEnrollmentForCourse, getPublicCourseBySlug } from "@/db/repositories";
 import { getPublishedCourseLessonForUser } from "@/db/shared-content-repositories";
 import { requireCurrentAppUser } from "@/lib/auth";
+import { courseLessonHref } from "@/lib/services/learning-route";
 import { publicCopy } from "@/lib/public-copy";
 
 export const dynamic = "force-dynamic";
@@ -180,13 +181,13 @@ function CourseLessonNavigation({
   return (
     <nav className={styles.lessonNavigation} aria-label="이전 및 다음 레슨">
       {previousLesson ? (
-        <Link href={`/learn/${courseSlug}/course-lessons/${previousLesson.id}`}>
+        <Link href={courseLessonHref(courseSlug, previousLesson.id)}>
           <span>이전 레슨</span>
           <strong>{publicCopy(previousLesson.title)}</strong>
         </Link>
       ) : <span />}
       {nextLesson ? (
-        <Link href={`/learn/${courseSlug}/course-lessons/${nextLesson.id}`}>
+        <Link href={courseLessonHref(courseSlug, nextLesson.id)}>
           <span>다음 학습</span>
           <strong>{publicCopy(nextLesson.title)}</strong>
         </Link>

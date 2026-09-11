@@ -8,6 +8,7 @@ import { courseAudienceLabel, courseDescription, courseLearningGoals, courseType
 import { getOptionalCurrentAppUser } from "@/lib/auth";
 import { getPublicCourseBySlugCached, listCurriculumCached } from "@/lib/cached-catalog";
 import { publicCopy } from "@/lib/public-copy";
+import { hasPublicLearningContent } from "@/lib/services/course-availability";
 
 export const dynamic = "force-dynamic";
 type PageProps = { params: Promise<{ courseSlug: string }> };
@@ -27,7 +28,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
   const description = courseDescription(course.description);
   const topicCount = safeCount(course.topicCount) || curriculum.reduce((sum, subject) => sum + subject.topics.length, 0);
   const questionCount = safeCount(course.questionCount);
-  const available = course.active && course.published && (curriculum.length > 0 || topicCount > 0 || questionCount > 0);
+  const available = hasPublicLearningContent(course);
   const audience = courseAudienceLabel(course);
   const courseType = courseTypeLabel(course);
   const goals = courseLearningGoals(course.name);

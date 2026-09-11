@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, isNull, notLike, sql } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
 import { getDb } from ".";
 import {
@@ -41,6 +41,25 @@ function batchItems(items: BatchItem<"sqlite">[]) {
 function optionalText(value: string | null | undefined) {
   const normalized = value?.trim();
   return normalized ? normalized : null;
+}
+
+function linkedSubjectIds(metadata: string | null | undefined) {
+  if (!metadata) return new Set<string>();
+  try {
+    const parsed = JSON.parse(metadata) as {
+      linkedContent?: Array<{ type?: unknown; id?: unknown }>;
+    };
+    return new Set(
+      (Array.isArray(parsed.linkedContent) ? parsed.linkedContent : [])
+        .filter(
+          (link): link is { type: "SUBJECT"; id: string } =>
+            link?.type === "SUBJECT" && typeof link.id === "string",
+        )
+        .map((link) => link.id),
+    );
+  } catch {
+    return new Set<string>();
+  }
 }
 
 export async function listSharedContents(status?: string) {
@@ -426,6 +445,7 @@ export async function listSharedContentUsage(contentId: string) {
 export async function listPublishedCourseLessonsForUser(
   userId: string,
   courseId: string,
+  subjectId?: string,
 ) {
   const rows = await getDb()
     .select({
@@ -444,6 +464,10 @@ export async function listPublishedCourseLessonsForUser(
       completionRule: courseLessons.completionRule,
       unlockCondition: courseLessons.unlockCondition,
       curriculumNodeId: courseLessons.curriculumNodeId,
+      lessonCourseId: lessons.courseId,
+      lessonSubjectId: lessons.subjectId,
+      curriculumNodeMetadata: curriculumNodes.metadata,
+      curriculumTreeCourseId: curriculumTrees.courseId,
       status: courseLessons.status,
       progressStatus: sql<string>`coalesce(${userCourseLessonProgress.status}, 'NOT_STARTED')`,
       progressPercent: sql<number>`coalesce(${userCourseLessonProgress.progressPercent}, 0)`,
@@ -451,6 +475,9 @@ export async function listPublishedCourseLessonsForUser(
     })
     .from(courseLessons)
     .innerJoin(contents, eq(courseLessons.contentId, contents.id))
+    .leftJoin(lessons, eq(courseLessons.lessonId, lessons.id))
+    .leftJoin(curriculumNodes, eq(courseLessons.curriculumNodeId, curriculumNodes.id))
+    .leftJoin(curriculumTrees, eq(curriculumNodes.curriculumTreeId, curriculumTrees.id))
     .leftJoin(
       userCourseLessonProgress,
       and(
@@ -466,12 +493,21 @@ export async function listPublishedCourseLessonsForUser(
         isNull(courseLessons.deletedAt),
         eq(contents.status, "PUBLISHED"),
         isNull(contents.deletedAt),
+        notLike(contents.canonicalKey, "sample.%"),
       ),
     )
     .orderBy(asc(courseLessons.sortOrder), asc(courseLessons.displayTitle));
 
-  const totalLessons = rows.length;
-  const completedLessons = rows.filter(
+  const visibleRows = subjectId
+    ? rows.filter(
+        (row) =>
+          (row.lessonCourseId === courseId && row.lessonSubjectId === subjectId) ||
+          (row.curriculumTreeCourseId === courseId &&
+            linkedSubjectIds(row.curriculumNodeMetadata).has(subjectId)),
+      )
+    : rows;
+  const totalLessons = visibleRows.length;
+  const completedLessons = visibleRows.filter(
     (row) => row.progressStatus === "COMPLETED",
   ).length;
 
@@ -481,7 +517,7 @@ export async function listPublishedCourseLessonsForUser(
     progressPercent: totalLessons
       ? Math.round((completedLessons / totalLessons) * 100)
       : 0,
-    lessons: rows.map((row) => ({
+    lessons: visibleRows.map((row) => ({
       id: row.id,
       courseId: row.courseId,
       contentId: row.contentId,
@@ -501,6 +537,14 @@ export async function listPublishedCourseLessonsForUser(
       completedAt: row.completedAt,
     })),
   };
+}
+
+export async function listPublishedCourseLessonsForSubject(
+  userId: string,
+  courseId: string,
+  subjectId: string,
+) {
+  return listPublishedCourseLessonsForUser(userId, courseId, subjectId);
 }
 
 export async function getPublishedCourseLessonProgressSummary(
@@ -531,6 +575,7 @@ export async function getPublishedCourseLessonProgressSummary(
           isNull(courseLessons.deletedAt),
           eq(contents.status, "PUBLISHED"),
           isNull(contents.deletedAt),
+          notLike(contents.canonicalKey, "sample.%"),
         ),
       ),
     getDb()
@@ -557,6 +602,7 @@ export async function getPublishedCourseLessonProgressSummary(
           isNull(courseLessons.deletedAt),
           eq(contents.status, "PUBLISHED"),
           isNull(contents.deletedAt),
+          notLike(contents.canonicalKey, "sample.%"),
           sql`coalesce(${userCourseLessonProgress.status}, 'NOT_STARTED') <> 'COMPLETED'`,
         ),
       )
@@ -585,6 +631,7 @@ export async function getPublishedCourseLessonProgressSummary(
           isNull(courseLessons.deletedAt),
           eq(contents.status, "PUBLISHED"),
           isNull(contents.deletedAt),
+          notLike(contents.canonicalKey, "sample.%"),
         ),
       )
       .orderBy(desc(userCourseLessonProgress.lastViewedAt))
@@ -678,6 +725,7 @@ export async function getPublishedCourseLessonForUser(input: {
         isNull(courseLessons.deletedAt),
         eq(contents.status, "PUBLISHED"),
         isNull(contents.deletedAt),
+        notLike(contents.canonicalKey, "sample.%"),
       ),
     )
     .limit(1);
@@ -697,6 +745,7 @@ export async function getPublishedCourseLessonForUser(input: {
         isNull(courseLessons.deletedAt),
         eq(contents.status, "PUBLISHED"),
         isNull(contents.deletedAt),
+        notLike(contents.canonicalKey, "sample.%"),
       ),
     )
     .orderBy(asc(courseLessons.sortOrder), asc(courseLessons.displayTitle));
@@ -783,6 +832,7 @@ async function requireAccessibleCourseLesson(input: {
         isNull(courseLessons.deletedAt),
         eq(contents.status, "PUBLISHED"),
         isNull(contents.deletedAt),
+        notLike(contents.canonicalKey, "sample.%"),
         eq(courses.active, true),
         eq(courses.published, true),
         isNull(courses.deletedAt),

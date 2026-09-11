@@ -5,13 +5,13 @@ import { LearnCurriculumPathTree } from "@/components/learn-curriculum-path-tree
 import { ProgressBar } from "@/components/progress-bar";
 import styles from "@/components/v2/learn-experience.module.css";
 import { getPublishedCurriculumPathOverviewForCourse } from "@/db/curriculum-repositories";
-import { getCourseTheoryProgress } from "@/db/lesson-repositories";
 import { getLearnCourseActivitySummary } from "@/db/phase3-repositories";
 import { getLearnCourseAccessBySlug, listCurriculumForLearnOverview } from "@/db/repositories";
 import { getPublishedCourseLessonProgressSummary } from "@/db/shared-content-repositories";
 import { requireCurrentAppUser } from "@/lib/auth";
 import { publicCopy } from "@/lib/public-copy";
 import { hasPrimaryCurriculumPath } from "@/lib/services/learn-overview-service";
+import { courseLessonHref } from "@/lib/services/learning-route";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -31,21 +31,18 @@ export default async function LearnCoursePage({
   if (!course) notFound();
   if (!enrollment) redirect(`/courses/${course.slug}`);
 
-  const [activity, curriculum, curriculumPath, lessonSummary, legacyTheory] =
+  const [activity, curriculum, curriculumPath, lessonSummary] =
     await Promise.all([
       getLearnCourseActivitySummary(user.id, course.id),
       listCurriculumForLearnOverview(course.id),
       getPublishedCurriculumPathOverviewForCourse(course.id, user.id),
       getPublishedCourseLessonProgressSummary(user.id, course.id),
-      getCourseTheoryProgress(user.id, course.id),
     ]);
 
-  const theory = lessonSummary.totalLessons ? lessonSummary : legacyTheory;
-  const nextLesson = lessonSummary.nextLesson ?? legacyTheory?.nextLesson ?? null;
+  const theory = lessonSummary;
+  const nextLesson = lessonSummary.nextLesson;
   const continueHref = nextLesson
-    ? lessonSummary.nextLesson
-      ? `/learn/${course.slug}/course-lessons/${nextLesson.id}`
-      : `/learn/${course.slug}/lessons/${nextLesson.id}`
+    ? courseLessonHref(course.slug, nextLesson.id)
     : `/practice/${course.slug}?random=1&count=10`;
   const isSecurityCertificationCourse =
     course.id === "course-ise" || course.id === "course-isie";
@@ -161,7 +158,7 @@ export default async function LearnCoursePage({
               {lessonSummary.lessons.map((lesson, index) => (
                 <Link
                   className={styles.lessonRow}
-                  href={`/learn/${course.slug}/course-lessons/${lesson.id}`}
+                  href={courseLessonHref(course.slug, lesson.id)}
                   key={lesson.id}
                   aria-current={lesson.id === nextLesson?.id ? "step" : undefined}
                 >

@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, notLike, sql } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
 import { getDb } from ".";
 import {
@@ -735,6 +735,7 @@ export async function listCourseTheoryProgress(
         isNull(courseLessons.deletedAt),
         eq(contents.status, "PUBLISHED"),
         isNull(contents.deletedAt),
+        notLike(contents.canonicalKey, "sample.%"),
       ),
     )
     .groupBy(courseLessons.courseId);

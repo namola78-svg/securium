@@ -1,6 +1,7 @@
 import { ActionButton } from "@/components/design-system-primitives";
 import type { CourseListItem } from "@/db/repositories";
 import { courseAudienceLabel, courseDescription, courseTypeLabel, estimateWeeks, safeCount } from "@/lib/course-display";
+import { hasPublicLearningContent } from "@/lib/services/course-availability";
 
 export function CourseCard({ course }: { course: CourseListItem }) {
   const description = courseDescription(course.description);
@@ -10,7 +11,7 @@ export function CourseCard({ course }: { course: CourseListItem }) {
   const questionCount = safeCount(course.questionCount);
   const estimatedWeeks = estimateWeeks(course.totalLevels);
   const typeLabel = courseTypeLabel(course);
-  const available = course.active && course.published && (subjectCount > 0 || topicCount > 0 || questionCount > 0);
+  const available = hasPublicLearningContent(course);
   const status = available ? "학습 가능" : "개설 예정";
   const courseName = course.name || course.shortName || "이름 없는 과정";
 

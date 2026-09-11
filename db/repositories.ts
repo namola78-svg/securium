@@ -57,6 +57,7 @@ export type CourseListItem = {
   subjectCount?: number;
   topicCount?: number;
   questionCount?: number;
+  publishedLessonCount?: number;
 };
 
 type SwRuntimeCourseProjectionInput = Pick<
@@ -135,6 +136,18 @@ export async function listPublishedCourses(): Promise<CourseListItem[]> {
         FROM ${questionCourses}
         WHERE ${questionCourses.courseId} = ${courses.id}
       )`,
+      publishedLessonCount: sql<number>`(
+        SELECT COUNT(*)
+        FROM ${courseLessons}
+        INNER JOIN ${contents}
+          ON ${courseLessons.contentId} = ${contents.id}
+        WHERE ${courseLessons.courseId} = ${courses.id}
+          AND ${courseLessons.status} = 'PUBLISHED'
+          AND ${courseLessons.deletedAt} IS NULL
+          AND ${contents.status} = 'PUBLISHED'
+          AND ${contents.deletedAt} IS NULL
+          AND ${contents.canonicalKey} NOT LIKE 'sample.%'
+      )`,
     })
     .from(courses)
     .innerJoin(courseGroups, eq(courses.courseGroupId, courseGroups.id))
@@ -190,6 +203,18 @@ export async function getPublicCourseBySlug(slug: string) {
         SELECT COUNT(*)
         FROM ${questionCourses}
         WHERE ${questionCourses.courseId} = ${courses.id}
+      )`,
+      publishedLessonCount: sql<number>`(
+        SELECT COUNT(*)
+        FROM ${courseLessons}
+        INNER JOIN ${contents}
+          ON ${courseLessons.contentId} = ${contents.id}
+        WHERE ${courseLessons.courseId} = ${courses.id}
+          AND ${courseLessons.status} = 'PUBLISHED'
+          AND ${courseLessons.deletedAt} IS NULL
+          AND ${contents.status} = 'PUBLISHED'
+          AND ${contents.deletedAt} IS NULL
+          AND ${contents.canonicalKey} NOT LIKE 'sample.%'
       )`,
     })
     .from(courses)
