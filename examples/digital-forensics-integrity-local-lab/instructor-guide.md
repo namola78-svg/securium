@@ -40,8 +40,10 @@ records, and external network targets.
 
 Explain that the code's `tamper` and `remove` operations are deliberately
 limited to `working-copy/`. The verifier rejects traversal and symlinks, and
-the report writer uses exclusive creation. No command should be pointed at a
-pre-existing user directory.
+the report writer uses exclusive creation. It also requires an owner record
+bound to the marked workspace path, rejects Windows reparse points, and does
+not treat a marker copied into another directory as cleanup authority. No
+command should be pointed at a pre-existing user directory.
 
 ## Suggested facilitation sequence
 
@@ -60,8 +62,13 @@ The sequence below is a planning aid, not a measured learner-duration claim:
 6. Demonstrate manifest path escape, custody omission, symlink rejection, and
    report overwrite protection. Let learners explain the relevant boundary.
 7. Collect the learner conclusion before showing this guide's observations.
-8. Run `cleanup` and inspect that only the marked temporary workspace was
-   removed.
+8. Demonstrate duplicate, missing, and additional manifest pairs; malformed
+   JSON/fields; and the 4 MiB file / 1 MiB JSON record limits.
+9. Demonstrate a forged marker, replaced workspace marker, root symlink, and
+   partial prepare failure with an outside sentinel. Confirm the sentinel and
+   original remain untouched.
+10. Run `cleanup` and inspect that only the marked, owner-bound temporary
+    workspace was removed.
 
 ## Commands used in the demonstration
 
@@ -99,14 +106,19 @@ observations against the following behavior:
 | Manifest size mutation | A size mismatch is reported even if the bytes were not changed. | Learner changed the file instead of the expected record. | Explain expected metadata versus observed bytes. |
 | Missing custody field | Verification is rejected for the named required handoff field. | JSON syntax was broken or the wrong record was edited. | Keep the edit synthetic and use a fresh workspace afterward. |
 | `../` or absolute manifest path | The path is rejected before anything outside the fixture root is read. | Path was changed in an unlisted record. | The verifier only trusts safe relative paths under the role root. |
-| Symlink under workspace | Verification is rejected and the symlink path is listed. | OS policy denied symlink creation. | Record `NOT_RUN`; do not replace it with a regular file. |
+| Symlink under workspace | Verification is rejected and the symlink path is listed. | Symlink creation failed on a runner that is meant to verify this boundary. | Treat permission failure as a failed check; do not replace it with a regular file. |
+| Windows junction/reparse point | On Windows, verification is rejected and the path is listed; Linux records this platform-specific test as the one expected skip. | `mklink /J` failed on Windows. | Fail the Windows job; an unavailable junction check is not PASS. |
+| Duplicate/missing/additional manifest pair | Verification rejects the inventory instead of accepting a partial or repeated record. | `file_count` was edited without preserving the exact synthetic inventory. | Compare both original and working-copy paths to the three generated pairs. |
+| Malformed/oversized record | Verification fails explicitly for bad JSON/fields or over-limit input. | The wrong JSON file was edited or the limit was misunderstood. | Preserve the error and exit code as an observation. |
 | Existing report path | Exclusive report creation refuses to overwrite it. | Learner reused a report filename. | Use a new path under `reports/`. |
-| `cleanup` | Only a workspace with this lab marker is eligible for removal. | Marker missing or workspace already removed. | Never broaden the cleanup target. |
+| `cleanup` | Only the owner-bound workspace with the matching marker/path is eligible for removal. | Marker copied, root replaced, root symlinked, or owner record missing. | Keep an outside sentinel and original file to prove they survive. |
 
-The actual verified environment for this draft is Windows 11 Pro build 26200,
-PowerShell 5.1, Python 3.14.5. Python 3.11, Linux, macOS, and other symlink
-policies remain unverified. The local test run on this worktree did exercise
-symlink rejection successfully on the stated Windows environment.
+The local verified environment for this draft is Windows 11 Pro build 26200,
+PowerShell 5.1, Python 3.14.5. The lab-specific CI is the source of evidence
+for the Windows/Linux × Python 3.11/3.14 matrix; Python 3.11 and Linux are
+not local results, and macOS/other filesystem policies remain unverified.
+The Windows symlink and junction/reparse checks must execute successfully;
+the Linux job may report only the explicitly platform-specific junction skip.
 
 ## Discussion and answer points
 
@@ -127,6 +139,10 @@ Use questions before revealing the explanation:
    why is that still not a signature or identity proof?
 8. What source, authorization, provenance, collection, or interpretation
    question remains unanswered after every local check passes?
+9. Why would changing both a file and its manifest fail to establish
+   provenance or original authenticity?
+10. Where is the time-of-check/time-of-use boundary between path validation
+    and opening a file, and what does this lab deliberately not guarantee?
 
 The key teaching point is bounded reasoning: a matching digest supports byte
 identity for the compared objects under the stated algorithm and scope. It
@@ -138,7 +154,10 @@ handoff format improves reviewability but is not identity authentication.
 
 Require each learner to submit the completed record with actual observations,
 not only check marks. Confirm the workspace was cleaned and no real data was
-used. Record an OS-policy limitation when a symlink case could not run.
+used. Do not mark an unavailable symlink/junction boundary as PASS. Record an
+OS-policy limitation only for the explicitly platform-specific case, and
+record a failure when the target matrix runner cannot create the symlink it is
+expected to check.
 
 If the package is later proposed for canonical course integration, perform a
 separate content review and approval process. This draft does not change the

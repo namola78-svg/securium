@@ -6,7 +6,9 @@ This independent local exercise lets you create a small synthetic evidence
 set, separate an `original` from a `working-copy`, calculate size and
 streaming SHA-256 values, and record what the verifier actually observed.
 It also lets you demonstrate rejection of tampering, missing files, unsafe
-paths, symlinks, incomplete handoff records, and report overwrites.
+paths, symlinks/reparse points, incomplete handoff records, oversized or
+malformed records, manifest duplicate/missing/additional entries, and report
+overwrites.
 
 It is conceptually aligned with the existing foundation's preservation and
 integrity discussion, especially the `DF-H02-P01` specification, but it is not
@@ -23,6 +25,11 @@ that canonical practical and does not change its `SYNTHETIC_SPEC_ONLY` or
   negative-test edit to the synthetic manifest/custody record.
 - Treat a non-zero verification exit code as an observation to record. Do not
   replace it with a mock or manually change the report to make it pass.
+- The manifest is part of the exercise input. A matching file and manifest
+  does not independently prove that either was authentic before the run.
+- The workspace marker is not a general deletion permission. `cleanup` also
+  checks the path-bound owner record and rejects a copied marker, replaced
+  root, root symlink, or Windows reparse-point path.
 
 ## Procedure
 
@@ -81,9 +88,12 @@ Use a fresh workspace for each case. For a path-boundary case, make an
 intentional edit to a synthetic manifest entry so a path contains `../`; do
 not create or read a real outside file. For a symlink case, create a symlink
 inside the synthetic `working-copy` that points at another synthetic file, if
-your OS policy permits it. Run `verify` and record the exact rejection. If the
-OS denies symlink creation, record that the case was not run rather than
-substituting a regular file.
+your OS policy permits it. Run `verify` and record the exact rejection. A
+symlink creation failure on a target compatibility runner is a failed check,
+not a PASS; do not substitute a regular file. On Linux, the Windows junction
+case is platform-specific and may be recorded as the one explicit `NOT_RUN`
+case. Input files are bounded to 4 MiB and JSON records to 1 MiB; malformed
+JSON and invalid fields must fail explicitly.
 
 Remove one required field from a synthetic custody entry and verify again.
 Finally write one report, run the same report command a second time, and
@@ -144,6 +154,7 @@ are intentional: this is a record sheet, not a pre-filled answer.
 | path outside fixture root | | | | |
 | unapproved symlink | | | | |
 | report overwrite attempt | | | | |
+| forged marker or replaced/root-link cleanup | | | | |
 
 ### Human conclusion
 
@@ -151,8 +162,11 @@ are intentional: this is a record sheet, not a pre-filled answer.
 |---|---|
 | What exactly did the hash comparison establish? | |
 | What did it not establish? | |
+| Why does changing both the files and manifest fail to prove provenance? | |
 | Why is a working copy not the same as forensic acquisition? | |
 | Why is the handoff JSON not identity or signature verification? | |
+| Which exact code paths enforce the workspace and file boundaries? | |
+| What race between path validation and file opening is not defended? | |
 | What limitation remains in this run? | |
 | Final human judgment, with the observed paths/output supporting it | |
 
@@ -168,4 +182,5 @@ python .\examples\digital-forensics-integrity-local-lab\cli.py `
 
 Record whether cleanup completed and whether the workspace path still exists.
 This exercise has no Securium Evidence record, score, mastery state, or
-publication step.
+publication step. It also does not implement legal evidence handling,
+forensic acquisition, or hardware write-blocking.

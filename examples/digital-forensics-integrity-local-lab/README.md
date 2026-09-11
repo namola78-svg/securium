@@ -29,7 +29,9 @@ foundation manifest, or register a runtime practical.
    verifying after each change with a new report path.
 5. Use the negative tests for path escape, symlink rejection, missing custody
    fields, and report overwrite protection. Do not use real files as targets.
-6. Run `cleanup` and confirm that the marked temporary workspace is gone.
+6. Run `cleanup` and confirm that only the owned, marked temporary workspace
+   is gone. A marker copied into another directory, a replaced workspace
+   root, or a root symlink/reparse point must not authorize deletion.
 7. Instructors should use [`instructor-guide.md`](instructor-guide.md) for
    expected observations and discussion; it is intentionally separate from
    the learner record.
@@ -68,17 +70,26 @@ python .\examples\digital-forensics-integrity-local-lab\cli.py `
 
 `verify` writes no report unless `--report` is supplied. A report path must be
 new and under `reports/`; an existing path is rejected instead of silently
-overwritten. `cleanup` removes only a workspace carrying this lab's marker.
+overwritten. Manifest entries must be the exact three synthetic original /
+working-copy pairs; duplicate, missing, or additional pairs are rejected.
+Malformed JSON, invalid fields, and files over 4 MiB or JSON records over 1 MiB
+are rejected explicitly. `cleanup` requires the marker's path-bound ownership
+token and owner record in addition to the lab format; marker presence alone is
+not sufficient.
 
 ## Implementation and test commands
 
 The implementation uses only the Python standard library:
 
 - `lab.py`: fixture generation, streaming SHA-256, safe path handling,
-  verification, mutation controls, report writing, and marked cleanup.
+  verification, mutation controls, report writing, and path-bound marked
+  cleanup. Symlinks and Windows reparse points are not accepted as workspace,
+  manifest, or fixture paths.
 - `cli.py`: `prepare`, `verify`, `tamper`, `remove`, and `cleanup` commands.
 - `test_lab.py`: normal, tamper, missing, size mismatch, custody omission,
-  path escape, symlink, original immutability, overwrite, and cleanup tests.
+  duplicate/missing/additional manifest entries, malformed/oversized records,
+  path escape, symlink/reparse-point, original immutability, overwrite,
+  partial-creation, and cleanup-boundary tests.
 
 ```powershell
 python -m py_compile `
@@ -89,10 +100,13 @@ python -m unittest discover `
   -s examples/digital-forensics-integrity-local-lab -p "test_*.py" -v
 ```
 
-Verified in this worktree on Windows 11 Pro build 26200, PowerShell 5.1, and
-64-bit Python 3.14.5. Python 3.11, Linux, macOS, and other filesystem policy
-configurations are not verified by this draft. The test suite creates and
-cleans its own temporary workspaces.
+The local verification recorded for this worktree is Windows 11 Pro build
+26200, PowerShell 5.1, and 64-bit Python 3.14.5. The lab-specific CI is
+intended to exercise Windows/Linux with Python 3.11/3.14; its result is the
+evidence for those runner combinations, not a claim about unrun local
+environments. macOS and other filesystem policies remain unverified. A
+symlink-creation permission failure is a failed boundary check, not a PASS;
+only the Windows-specific junction/reparse test is an explicit Linux skip.
 
 ## Safety and interpretation boundary
 
@@ -106,8 +120,14 @@ cleans its own temporary workspaces.
   this exercise is not a hardware write blocker.
 - The JSON handoff record is an educational format, not a signature,
   identity-authentication mechanism, or legal chain-of-custody determination.
+- The manifest is an input to this exercise, not an independently trusted
+  authority. Changing the files and the manifest together can make this
+  comparison agree without proving which bytes were originally collected.
 - `recorded_at` is supplied by the caller. `verified_at` is generated when
   verification observes the workspace; they must not be silently conflated.
+- Validation and later file opening are separate path-based operations. This
+  lab does not provide OS-handle-level no-follow or atomic acquisition
+  guarantees against a time-of-check/time-of-use race.
 - This lab is not connected to Securium's Evidence projection, recompute,
   learner-skill, or scoring systems. It makes no legal, certification, or
   delivery-readiness claim.

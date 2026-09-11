@@ -9,7 +9,9 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import secrets
 import shutil
+import stat
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -21,6 +23,7 @@ class LabError(Exception):
 
 
 MARKER_FILE = ".forensics-integrity-lab-workspace.json"
+OWNER_FILE = ".forensics-integrity-lab-owner"
 MANIFEST_FILE = "evidence-manifest.json"
 CUSTODY_FILE = "chain-of-custody.json"
 REPORTS_DIR = Path("reports")
@@ -28,6 +31,8 @@ ORIGINAL_DIR = Path("original")
 WORKING_COPY_DIR = Path("working-copy")
 ALGORITHM = "sha256"
 LAB_FORMAT = "securium-local-forensics-integrity-lab-v1"
+MAX_FILE_BYTES = 4 * 1024 * 1024
+MAX_RECORD_BYTES = 1024 * 1024
 
 SYNTHETIC_FILES: tuple[tuple[str, bytes], ...] = (
     (
@@ -76,11 +81,23 @@ def validate_recorded_at(value: str) -> str:
 
 def _validate_root(root: Path) -> Path:
     root = Path(root)
-    if root.is_symlink():
-        raise LabError("workspace root symlinks are not allowed")
+    if _is_reparse_point(root):
+        raise LabError("workspace root symlinks and reparse points are not allowed")
     if not root.exists() or not root.is_dir():
         raise LabError(f"workspace is not a directory: {root}")
     return root
+
+
+def _is_reparse_point(path: Path) -> bool:
+    """Detect symlinks and Windows reparse points without following them."""
+
+    if path.is_symlink():
+        return True
+    try:
+        attributes = getattr(path.lstat(), "st_file_attributes", 0)
+    except OSError:
+        return False
+    return bool(attributes & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0))
 
 
 def _is_under(relative: str | Path, prefix: str | Path) -> bool:
@@ -110,8 +127,8 @@ def safe_relative_path(root: Path, relative: str) -> Path:
         if part == "..":
             raise LabError(f"path escapes fixture root: {relative}")
         current = current / part
-        if current.is_symlink():
-            raise LabError(f"symlink path is not allowed: {relative}")
+        if _is_reparse_point(current):
+            raise LabError(f"symlink or reparse-point path is not allowed: {relative}")
 
     candidate = root / rel
     root_resolved = root.resolve()
@@ -126,13 +143,17 @@ def safe_relative_path(root: Path, relative: str) -> Path:
 def streaming_sha256(path: Path, chunk_size: int = 1024 * 1024) -> dict[str, int | str]:
     """Compute byte length and SHA-256 using bounded streaming reads."""
 
-    if path.is_symlink() or not path.is_file():
+    if not isinstance(chunk_size, int) or isinstance(chunk_size, bool) or chunk_size <= 0:
+        raise LabError("hash chunk_size must be a positive integer")
+    if _is_reparse_point(path) or not path.is_file():
         raise LabError(f"regular file required for hashing: {path}")
     digest = hashlib.sha256()
     size = 0
     with path.open("rb") as handle:
         while chunk := handle.read(chunk_size):
             size += len(chunk)
+            if size > MAX_FILE_BYTES:
+                raise LabError(f"input file exceeds the {MAX_FILE_BYTES}-byte lab limit: {path}")
             digest.update(chunk)
     return {"size": size, "sha256": digest.hexdigest()}
 
@@ -156,10 +177,20 @@ def _write_json_no_overwrite(path: Path, value: dict[str, Any]) -> None:
         handle.write("\n")
 
 
+def _write_text_no_overwrite(path: Path, value: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("x", encoding="utf-8", newline="\n") as handle:
+        handle.write(value)
+
+
 def _read_json(path: Path) -> Any:
     try:
+        if path.stat().st_size > MAX_RECORD_BYTES:
+            raise LabError(f"JSON record exceeds the {MAX_RECORD_BYTES}-byte lab limit: {path}")
         with path.open("r", encoding="utf-8") as handle:
             return json.load(handle)
+    except LabError:
+        raise
     except (OSError, json.JSONDecodeError) as error:
         raise LabError(f"could not read JSON record: {path}") from error
 
@@ -178,12 +209,14 @@ def prepare_workspace(workspace: Path | None, recorded_at: str) -> dict[str, Any
     auto_workspace = workspace is None
     root = Path(tempfile.mkdtemp(prefix="securium-forensics-integrity-")) if auto_workspace else Path(workspace)
     created_root = auto_workspace
+    ownership_token = secrets.token_hex(32)
     try:
         if not auto_workspace and root.exists():
             raise LabError(f"refusing to overwrite existing workspace: {root}")
         if not auto_workspace:
             root.parent.mkdir(parents=True, exist_ok=True)
             root.mkdir()
+            created_root = True
 
         manifest_entries: list[dict[str, Any]] = []
         for relative, contents in SYNTHETIC_FILES:
@@ -210,6 +243,7 @@ def prepare_workspace(workspace: Path | None, recorded_at: str) -> dict[str, Any
             "format": LAB_FORMAT,
             "algorithm": ALGORITHM,
             "scope": "synthetic local-only training fixture",
+            "workspace_token": ownership_token,
             "recorded_at": recorded_at,
             "file_count": len(manifest_entries),
             "files": manifest_entries,
@@ -221,6 +255,7 @@ def prepare_workspace(workspace: Path | None, recorded_at: str) -> dict[str, Any
         custody = {
             "format": f"{LAB_FORMAT}-custody",
             "scope": "synthetic local-only training fixture",
+            "workspace_token": ownership_token,
             "recorded_at": recorded_at,
             "entries": [
                 {
@@ -248,8 +283,14 @@ def prepare_workspace(workspace: Path | None, recorded_at: str) -> dict[str, Any
         _write_json_no_overwrite(root / CUSTODY_FILE, custody)
         _write_json_no_overwrite(
             root / MARKER_FILE,
-            {"format": LAB_FORMAT, "workspace": "generated-by-lab", "version": 1},
+            {
+                "format": LAB_FORMAT,
+                "workspace_path": str(root.resolve()),
+                "workspace_token": ownership_token,
+                "version": 1,
+            },
         )
+        _write_text_no_overwrite(root / OWNER_FILE, ownership_token + "\n")
         return {
             "status": "PREPARED",
             "workspace": str(root),
@@ -265,15 +306,30 @@ def prepare_workspace(workspace: Path | None, recorded_at: str) -> dict[str, Any
         raise
 
 
-def _assert_generated_workspace(workspace: Path) -> Path:
+def _assert_generated_workspace(workspace: Path) -> tuple[Path, dict[str, Any]]:
     root = _validate_root(Path(workspace))
     marker = safe_relative_path(root, MARKER_FILE)
-    if marker.is_symlink() or not marker.is_file():
+    if _is_reparse_point(marker) or not marker.is_file():
         raise LabError("workspace marker is missing or unsafe")
     marker_data = _read_json(marker)
     if not isinstance(marker_data, dict) or marker_data.get("format") != LAB_FORMAT:
         raise LabError("workspace marker does not belong to this lab")
-    return root
+    marker_path = marker_data.get("workspace_path")
+    token = marker_data.get("workspace_token")
+    if not isinstance(marker_path, str) or not isinstance(token, str) or len(token) != 64:
+        raise LabError("workspace marker ownership fields are invalid")
+    if os.path.normcase(str(Path(marker_path).resolve())) != os.path.normcase(str(root.resolve())):
+        raise LabError("workspace marker is bound to a different root")
+    owner = safe_relative_path(root, OWNER_FILE)
+    if _is_reparse_point(owner) or not owner.is_file():
+        raise LabError("workspace owner record is missing or unsafe")
+    try:
+        owner_token = owner.read_text(encoding="utf-8").strip()
+    except OSError as error:
+        raise LabError("workspace owner record could not be read") from error
+    if owner_token != token:
+        raise LabError("workspace owner record does not match the marker")
+    return root, marker_data
 
 
 def _find_symlinks(root: Path) -> list[str]:
@@ -282,12 +338,12 @@ def _find_symlinks(root: Path) -> list[str]:
         directory_path = Path(directory)
         for name in list(directory_names):
             candidate = directory_path / name
-            if candidate.is_symlink():
+            if _is_reparse_point(candidate):
                 found.append(candidate.relative_to(root).as_posix())
                 directory_names.remove(name)
         for name in file_names:
             candidate = directory_path / name
-            if candidate.is_symlink():
+            if _is_reparse_point(candidate):
                 found.append(candidate.relative_to(root).as_posix())
     return sorted(found)
 
@@ -326,7 +382,9 @@ def _check_file_record(root: Path, record: Any, role: str, errors: list[str]) ->
     expected_size = record.get("size")
     expected_hash = record.get("sha256")
     valid_expected = isinstance(expected_size, int) and not isinstance(expected_size, bool)
+    valid_expected = valid_expected and 0 <= expected_size <= MAX_FILE_BYTES
     valid_expected = valid_expected and isinstance(expected_hash, str) and len(expected_hash) == 64
+    valid_expected = valid_expected and all(character in "0123456789abcdef" for character in expected_hash)
     if not valid_expected:
         result["error"] = f"{role} expected size/sha256 is invalid: {relative}"
         errors.append(result["error"])
@@ -334,8 +392,8 @@ def _check_file_record(root: Path, record: Any, role: str, errors: list[str]) ->
 
     result["expected_size"] = expected_size
     result["expected_sha256"] = expected_hash
-    if path.is_symlink():
-        result["error"] = f"symlink file is not allowed: {relative}"
+    if _is_reparse_point(path):
+        result["error"] = f"symlink or reparse-point file is not allowed: {relative}"
         errors.append(result["error"])
         return result
     if not path.exists() or not path.is_file():
@@ -388,7 +446,7 @@ def _check_custody(root: Path, custody: Any, errors: list[str]) -> dict[str, Any
 def verify_workspace(workspace: Path, verified_at: str | None = None) -> dict[str, Any]:
     """Verify the generated records and return a report without modifying them."""
 
-    root = _assert_generated_workspace(Path(workspace))
+    root, marker_data = _assert_generated_workspace(Path(workspace))
     verification_time = verified_at or utc_now_iso()
     validate_recorded_at(verification_time)
     errors: list[str] = []
@@ -425,6 +483,10 @@ def verify_workspace(workspace: Path, verified_at: str | None = None) -> dict[st
         errors.append("evidence manifest algorithm is not sha256")
     if manifest.get("scope") != "synthetic local-only training fixture":
         errors.append("evidence manifest scope is not local-only synthetic training")
+    if manifest.get("workspace_token") != marker_data.get("workspace_token"):
+        errors.append("evidence manifest is not bound to this workspace")
+    if isinstance(custody, dict) and custody.get("workspace_token") != marker_data.get("workspace_token"):
+        errors.append("chain-of-custody record is not bound to this workspace")
     custody_recorded_at = custody.get("recorded_at") if isinstance(custody, dict) else None
     if manifest.get("recorded_at") != custody_recorded_at:
         errors.append("manifest and chain-of-custody recorded_at values differ")
@@ -436,6 +498,37 @@ def verify_workspace(workspace: Path, verified_at: str | None = None) -> dict[st
         entries = []
     if not isinstance(expected_count, int) or expected_count != len(entries):
         errors.append("evidence manifest file_count does not match its entries")
+
+    expected_pairs = {
+        (
+            (ORIGINAL_DIR / relative).as_posix(),
+            (WORKING_COPY_DIR / relative).as_posix(),
+        )
+        for relative, _contents in SYNTHETIC_FILES
+    }
+    seen_manifest_paths: set[str] = set()
+    seen_manifest_pairs: set[tuple[str, str]] = set()
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        original_record = entry.get("original")
+        working_record = entry.get("working_copy")
+        original_path = original_record.get("path") if isinstance(original_record, dict) else None
+        working_path = working_record.get("path") if isinstance(working_record, dict) else None
+        for path_value in (original_path, working_path):
+            if isinstance(path_value, str):
+                if path_value in seen_manifest_paths:
+                    errors.append(f"duplicate manifest path: {path_value}")
+                seen_manifest_paths.add(path_value)
+        if isinstance(original_path, str) and isinstance(working_path, str):
+            pair = (original_path, working_path)
+            if pair in seen_manifest_pairs:
+                errors.append(f"duplicate manifest pair: {original_path} / {working_path}")
+            seen_manifest_pairs.add(pair)
+    for missing_pair in sorted(expected_pairs - seen_manifest_pairs):
+        errors.append(f"missing manifest pair: {missing_pair[0]} / {missing_pair[1]}")
+    for extra_pair in sorted(seen_manifest_pairs - expected_pairs):
+        errors.append(f"additional manifest pair: {extra_pair[0]} / {extra_pair[1]}")
 
     for index, entry in enumerate(entries):
         original_result = _check_file_record(root, entry.get("original") if isinstance(entry, dict) else None, "original", errors)
@@ -473,12 +566,12 @@ def verify_workspace(workspace: Path, verified_at: str | None = None) -> dict[st
 def write_verification_report(workspace: Path, report: dict[str, Any], relative_report: str) -> Path:
     """Write a report only to a new reports path; never overwrite."""
 
-    root = _assert_generated_workspace(Path(workspace))
+    root, _marker_data = _assert_generated_workspace(Path(workspace))
     target = safe_relative_path(root, relative_report)
     if not _is_under(relative_report, REPORTS_DIR):
         raise LabError("verification reports must stay under the reports directory")
     target.parent.mkdir(parents=True, exist_ok=True)
-    if target.exists() or target.is_symlink():
+    if target.exists() or _is_reparse_point(target):
         raise FileExistsError(f"refusing to overwrite existing report: {target}")
     _write_json_no_overwrite(target, report)
     return target
@@ -487,11 +580,11 @@ def write_verification_report(workspace: Path, report: dict[str, Any], relative_
 def tamper_working_copy(workspace: Path, relative_path: str) -> Path:
     """Append a synthetic marker to a working-copy file only."""
 
-    root = _assert_generated_workspace(Path(workspace))
+    root, _marker_data = _assert_generated_workspace(Path(workspace))
     path = safe_relative_path(root, relative_path)
     if not _is_under(relative_path, WORKING_COPY_DIR):
         raise LabError("tamper operation is restricted to working-copy files")
-    if path.is_symlink() or not path.is_file():
+    if _is_reparse_point(path) or not path.is_file():
         raise LabError("tamper operation requires a regular working-copy file")
     with path.open("ab") as handle:
         handle.write(b"\nSYNTHETIC TRAINING MUTATION\n")
@@ -501,11 +594,11 @@ def tamper_working_copy(workspace: Path, relative_path: str) -> Path:
 def remove_working_copy(workspace: Path, relative_path: str) -> Path:
     """Remove one explicitly named working-copy file for the missing-file case."""
 
-    root = _assert_generated_workspace(Path(workspace))
+    root, _marker_data = _assert_generated_workspace(Path(workspace))
     path = safe_relative_path(root, relative_path)
     if not _is_under(relative_path, WORKING_COPY_DIR):
         raise LabError("remove operation is restricted to working-copy files")
-    if path.is_symlink() or not path.is_file():
+    if _is_reparse_point(path) or not path.is_file():
         raise LabError("remove operation requires an existing regular working-copy file")
     path.unlink()
     return path
@@ -514,5 +607,5 @@ def remove_working_copy(workspace: Path, relative_path: str) -> Path:
 def cleanup_workspace(workspace: Path) -> None:
     """Delete only a workspace carrying this lab's marker."""
 
-    root = _assert_generated_workspace(Path(workspace))
+    root, _marker_data = _assert_generated_workspace(Path(workspace))
     shutil.rmtree(root)

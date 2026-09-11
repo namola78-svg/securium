@@ -1,0 +1,80 @@
+name: Digital Forensics Integrity Local Lab
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/digital-forensics-integrity-local-lab.yml"
+      - "examples/digital-forensics-integrity-local-lab/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: digital-forensics-integrity-local-lab-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: ${{ matrix.os_label }} / Python ${{ matrix.python_version }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os_label: Windows
+            runner: windows-latest
+            python_version: "3.11"
+          - os_label: Windows
+            runner: windows-latest
+            python_version: "3.14"
+          - os_label: Linux
+            runner: ubuntu-latest
+            python_version: "3.11"
+          - os_label: Linux
+            runner: ubuntu-latest
+            python_version: "3.14"
+
+    steps:
+      - name: Check out exact event revision
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert checked out revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: >-
+          python -c "import os, subprocess, sys; actual = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(); expected = os.environ['EXPECTED_SHA']; print(f'expected_sha={expected}'); print(f'actual_sha={actual}'); raise SystemExit(0 if actual == expected else 1)"
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python_version }}
+
+      - name: Record runtime
+        working-directory: examples/digital-forensics-integrity-local-lab
+        run: >-
+          python -c "import platform, sys; print('matrix_os=${{ matrix.os_label }}'); print('runner_os=${{ runner.os }}'); print('matrix_python=${{ matrix.python_version }}'); print(f'python_patch={platform.python_version()}'); print(f'platform={platform.platform()}'); print(f'executable={sys.executable}')"
+
+      - name: Compile lab sources
+        working-directory: examples/digital-forensics-integrity-local-lab
+        run: python -m compileall -q .
+
+      - name: Discover and run boundary tests
+        working-directory: examples/digital-forensics-integrity-local-lab
+        run: >-
+          python -c "import os, sys, unittest; suite = unittest.defaultTestLoader.discover('.', pattern='test_*.py'); count = suite.countTestCases(); baseline = 25; print(f'discovered_tests={count} baseline_tests={baseline} baseline_match={count == baseline}'); result = unittest.TextTestRunner(verbosity=2).run(suite); skipped_ids = {test.id().rsplit('.', 1)[-1] for test, _reason in result.skipped}; expected_skips = {'test_windows_reparse_point_is_rejected_when_supported'} if os.name != 'nt' else set(); print(f'failures={len(result.failures)} errors={len(result.errors)} skipped={len(result.skipped)}'); print(f'skipped_ids={sorted(skipped_ids)} expected_platform_skips={sorted(expected_skips)}'); sys.exit(0 if count == baseline and not result.failures and not result.errors and skipped_ids == expected_skips else 1)"
+
+      - name: Remove generated Python caches
+        if: always()
+        working-directory: examples/digital-forensics-integrity-local-lab
+        run: >-
+          python -c "import shutil; from pathlib import Path; root = Path('.'); caches = sorted((path for path in root.rglob('__pycache__') if path.is_dir()), key=lambda path: len(path.parts), reverse=True); [shutil.rmtree(path) for path in caches]; print(f'removed_python_cache_directories={len(caches)}')"
+
+      - name: Verify lab working tree cleanup
+        if: always()
+        working-directory: examples/digital-forensics-integrity-local-lab
+        run: >-
+          python -c "from pathlib import Path; root = Path('.'); generated = [path for path in root.rglob('*') if path.is_file() and (path.suffix in {'.log', '.tmp'} or '__pycache__' in path.parts or path.suffix == '.pyc')]; print(f'generated_artifacts={len(generated)}'); print('\n'.join(map(str, generated))); raise SystemExit(1 if generated else 0)"
