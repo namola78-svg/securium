@@ -14,6 +14,10 @@ import {
 const fixtureSourceLessonsJson = JSON.stringify({
   lessons: [{ id: "lesson-fixture", title: "Fixture only" }],
 });
+const fixtureMultiLessonJson =
+  '{"lessons":[{"id":"lesson-fixture","title":"Fixture only"},{"id":"lesson-other","title":"Other"}]}';
+const fixtureMultiLessonJsonSha256 =
+  "a97e9511a0ae457d6d5fbbef2f551cb76b59549677a71131e718f763630d0e75";
 
 test("source hash helper verifies a matching fixture without granting authority", () => {
   const expectedLessonsJsonSha256 = computeIsmsPSourceLessonsJsonSha256(
@@ -28,6 +32,26 @@ test("source hash helper verifies a matching fixture without granting authority"
   assert.equal(result.status, "VERIFIED");
   assert.equal(result.actualLessonsJsonSha256, expectedLessonsJsonSha256);
   assert.equal(result.reason, "SOURCE_LESSONS_JSON_HASH_MATCHES_EXPECTATION");
+});
+
+test("lessonsJsonSha256 covers the full source document, not one lesson serialization", () => {
+  for (const sourceLessonId of ["lesson-fixture", "lesson-other"]) {
+    const result = verifyIsmsPSourceLessonsJsonHash({
+      sourceLessonId,
+      expectedLessonsJsonSha256: fixtureMultiLessonJsonSha256,
+      sourceLessonsJson: fixtureMultiLessonJson,
+    });
+
+    assert.equal(result.status, "VERIFIED");
+    assert.equal(result.actualLessonsJsonSha256, fixtureMultiLessonJsonSha256);
+  }
+
+  assert.notEqual(
+    computeIsmsPSourceLessonsJsonSha256(
+      '{"id":"lesson-fixture","title":"Fixture only"}',
+    ),
+    fixtureMultiLessonJsonSha256,
+  );
 });
 
 test("source mutation is rejected while preserving the requested identity", () => {
@@ -72,6 +96,24 @@ test("missing, malformed, and foreign source identities fail closed", () => {
       sourceLessonsJson: "not-json",
     }).status,
     "IDENTITY_MISMATCH",
+  );
+  assert.equal(
+    verifyIsmsPSourceLessonsJsonHash({
+      sourceLessonId: "lesson-fixture",
+      expectedLessonsJsonSha256,
+      sourceLessonsJson: new Uint8Array([0xff, 0xfe]),
+    }).reason,
+    "SOURCE_LESSONS_JSON_IS_NOT_VALID_UTF8",
+  );
+  assert.equal(
+    verifyIsmsPSourceLessonsJsonHash({
+      sourceLessonId: "lesson-fixture",
+      expectedLessonsJsonSha256,
+      sourceLessonsJson: JSON.stringify({
+        lessons: [{ id: "lesson-fixture" }, { id: "lesson-fixture" }],
+      }),
+    }).reason,
+    "SOURCE_LESSON_ID_NOT_UNIQUE_IN_SOURCE_DOCUMENT",
   );
 });
 
