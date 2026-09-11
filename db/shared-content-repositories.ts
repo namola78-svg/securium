@@ -457,6 +457,7 @@ export async function listPublishedCourseLessonsForUser(
         eq(userCourseLessonProgress.userId, userId),
         eq(userCourseLessonProgress.courseId, courseLessons.courseId),
         eq(userCourseLessonProgress.courseLessonId, courseLessons.id),
+        eq(userCourseLessonProgress.contentId, courseLessons.contentId),
         eq(userCourseLessonProgress.contentVersion, contents.version),
       ),
     )
@@ -523,6 +524,7 @@ export async function getPublishedCourseLessonProgressSummary(
           eq(userCourseLessonProgress.userId, userId),
           eq(userCourseLessonProgress.courseId, courseLessons.courseId),
           eq(userCourseLessonProgress.courseLessonId, courseLessons.id),
+          eq(userCourseLessonProgress.contentId, courseLessons.contentId),
           eq(userCourseLessonProgress.contentVersion, contents.version),
         ),
       )
@@ -550,6 +552,7 @@ export async function getPublishedCourseLessonProgressSummary(
           eq(userCourseLessonProgress.userId, userId),
           eq(userCourseLessonProgress.courseId, courseLessons.courseId),
           eq(userCourseLessonProgress.courseLessonId, courseLessons.id),
+          eq(userCourseLessonProgress.contentId, courseLessons.contentId),
           eq(userCourseLessonProgress.contentVersion, contents.version),
         ),
       )
@@ -584,6 +587,7 @@ export async function getPublishedCourseLessonProgressSummary(
           eq(userCourseLessonProgress.userId, userId),
           eq(userCourseLessonProgress.courseId, courseId),
           eq(courseLessons.courseId, courseId),
+          eq(userCourseLessonProgress.contentId, courseLessons.contentId),
           eq(userCourseLessonProgress.contentVersion, contents.version),
           eq(courseLessons.status, "PUBLISHED"),
           isNull(courseLessons.deletedAt),
@@ -672,6 +676,7 @@ export async function getPublishedCourseLessonForUser(input: {
         eq(userCourseLessonProgress.userId, input.userId),
         eq(userCourseLessonProgress.courseId, courseLessons.courseId),
         eq(userCourseLessonProgress.courseLessonId, courseLessons.id),
+        eq(userCourseLessonProgress.contentId, courseLessons.contentId),
         eq(userCourseLessonProgress.contentVersion, contents.version),
       ),
     )
@@ -767,6 +772,7 @@ async function requireAccessibleCourseLesson(input: {
     .select({
       id: courseLessons.id,
       courseId: courseLessons.courseId,
+      contentId: courseLessons.contentId,
       contentVersion: contents.version,
       completionRule: courseLessons.completionRule,
       enrollmentStatus: userCourseEnrollments.status,
@@ -817,12 +823,14 @@ export async function updateCourseLessonProgress(input: {
   action: "START" | "UPDATE" | "COMPLETE";
   progressPercent: number;
   timeSpentSeconds?: number;
+  contentId?: string;
   contentVersion?: string;
 }) {
   const lesson = await requireAccessibleCourseLesson(input);
   if (
-    input.contentVersion !== undefined &&
-    input.contentVersion !== lesson.contentVersion
+    (input.contentId !== undefined && input.contentId !== lesson.contentId) ||
+    (input.contentVersion !== undefined &&
+      input.contentVersion !== lesson.contentVersion)
   ) {
     throw new AppError(
       "The CourseLesson revision changed while it was open.",
@@ -845,6 +853,7 @@ export async function updateCourseLessonProgress(input: {
         eq(userCourseLessonProgress.userId, input.userId),
         eq(userCourseLessonProgress.courseId, lesson.courseId),
         eq(userCourseLessonProgress.courseLessonId, lesson.id),
+        eq(userCourseLessonProgress.contentId, lesson.contentId),
         eq(userCourseLessonProgress.contentVersion, lesson.contentVersion),
       ),
     )
@@ -865,6 +874,7 @@ export async function updateCourseLessonProgress(input: {
       status: "COMPLETED",
       progressPercent: 100,
       completedAt: current.completedAt,
+      contentId: lesson.contentId,
       contentVersion: lesson.contentVersion,
       idempotentReplay: true,
     };
@@ -878,6 +888,7 @@ export async function updateCourseLessonProgress(input: {
         userId: input.userId,
         courseId: lesson.courseId,
         courseLessonId: lesson.id,
+        contentId: lesson.contentId,
         contentVersion: lesson.contentVersion,
         status: "IN_PROGRESS",
         progressPercent: Math.max(current?.progressPercent ?? 0, progressPercent),
@@ -893,10 +904,12 @@ export async function updateCourseLessonProgress(input: {
           userCourseLessonProgress.userId,
           userCourseLessonProgress.courseId,
           userCourseLessonProgress.courseLessonId,
+          userCourseLessonProgress.contentId,
           userCourseLessonProgress.contentVersion,
         ],
         set: {
           status: "IN_PROGRESS",
+          contentId: lesson.contentId,
           contentVersion: lesson.contentVersion,
           progressPercent: sql`max(${userCourseLessonProgress.progressPercent}, ${progressPercent})`,
           lastViewedAt: nowIso,
@@ -909,6 +922,7 @@ export async function updateCourseLessonProgress(input: {
       status: "IN_PROGRESS",
       progressPercent: Math.max(current?.progressPercent ?? 0, progressPercent),
       completedAt: null,
+      contentId: lesson.contentId,
       contentVersion: lesson.contentVersion,
       idempotentReplay: Boolean(current),
     };
@@ -921,7 +935,7 @@ export async function updateCourseLessonProgress(input: {
   });
 
   const activityId =
-    `course-lesson-completed:${input.userId}:${lesson.id}:${lesson.contentVersion}`;
+    `course-lesson-completed:${input.userId}:${lesson.id}:${lesson.contentId}:${lesson.contentVersion}`;
   await getDb().batch(
     batchItems([
       getDb()
@@ -931,6 +945,7 @@ export async function updateCourseLessonProgress(input: {
           userId: input.userId,
           courseId: lesson.courseId,
           courseLessonId: lesson.id,
+          contentId: lesson.contentId,
           contentVersion: lesson.contentVersion,
           status: "COMPLETED",
           progressPercent: 100,
@@ -947,10 +962,12 @@ export async function updateCourseLessonProgress(input: {
             userCourseLessonProgress.userId,
             userCourseLessonProgress.courseId,
             userCourseLessonProgress.courseLessonId,
+            userCourseLessonProgress.contentId,
             userCourseLessonProgress.contentVersion,
           ],
           set: {
             status: "COMPLETED",
+            contentId: lesson.contentId,
             contentVersion: lesson.contentVersion,
             progressPercent: 100,
             completedAt: sql`coalesce(${userCourseLessonProgress.completedAt}, ${nowIso})`,
@@ -970,6 +987,7 @@ export async function updateCourseLessonProgress(input: {
           targetId: lesson.id,
           metadataJson: JSON.stringify({
             contentModel: "COURSE_LESSON",
+            contentId: lesson.contentId,
             contentVersion: lesson.contentVersion,
             revisionBinding: "SERVER_RESOLVED",
           }),
@@ -994,6 +1012,7 @@ export async function updateCourseLessonProgress(input: {
             JOIN contents c ON c.id = cl.content_id
             WHERE uclp.user_id = ${input.userId}
               AND uclp.course_id = ${lesson.courseId}
+              AND uclp.content_id = c.id
               AND uclp.content_version = c.version
               AND uclp.status = 'COMPLETED'
           ), 0))`,
@@ -1012,6 +1031,7 @@ export async function updateCourseLessonProgress(input: {
     status: "COMPLETED",
     progressPercent: 100,
     completedAt: nowIso,
+    contentId: lesson.contentId,
     contentVersion: lesson.contentVersion,
     idempotentReplay: false,
   };

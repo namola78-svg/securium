@@ -10,6 +10,25 @@ const LOCAL_D1_TEST_DATABASE_NAME = "shield-academy-local";
 
 const { d1, r2 } = hostingConfig;
 const isD1TestMode = process.env.D1_TEST_MODE === "1";
+const isPostgresTestMode =
+  process.env.DB_PROVIDER?.trim().toLowerCase() === "supabase" &&
+  process.env.APP_ENV?.trim().toLowerCase() === "test";
+
+const postgresTestVars = Object.fromEntries(
+  [
+    "APP_ENV",
+    "DB_PROVIDER",
+    "DATABASE_URL",
+    "DIRECT_URL",
+    "POSTGRES_MAX_CONNECTIONS",
+    "POSTGRES_IDLE_TIMEOUT_SECONDS",
+    "POSTGRES_CONNECT_TIMEOUT_SECONDS",
+    "POSTGRES_QUERY_TIMEOUT_MS",
+    "POSTGRES_SSL_MODE",
+  ]
+    .map((name) => [name, process.env[name]] as const)
+    .filter(([, value]) => value !== undefined),
+);
 
 // macOS Seatbelt blocks FSEvents, so Codex previews need polling for HMR.
 const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
@@ -19,7 +38,11 @@ const localBindingConfig = {
   compatibility_flags: ["nodejs_compat"],
   // Explicit Wrangler vars take precedence over a developer's `.env.local`.
   // Keep this test-only so production configuration remains control-plane owned.
-  vars: isD1TestMode ? { DB_PROVIDER: "d1" } : undefined,
+  vars: isD1TestMode
+    ? { DB_PROVIDER: "d1" }
+    : isPostgresTestMode
+      ? postgresTestVars
+      : undefined,
   d1_databases: d1
     ? [
         {

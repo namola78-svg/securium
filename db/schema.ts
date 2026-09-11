@@ -1089,6 +1089,9 @@ export const userCourseLessonProgress = sqliteTable(
     courseLessonId: text("course_lesson_id")
       .notNull()
       .references(() => courseLessons.id, { onDelete: "restrict" }),
+    contentId: text("content_id").references(() => contents.id, {
+      onDelete: "restrict",
+    }),
     contentVersion: text("content_version"),
     status: text("status").notNull().default("IN_PROGRESS"),
     progressPercent: integer("progress_percent").notNull().default(0),
@@ -1103,6 +1106,7 @@ export const userCourseLessonProgress = sqliteTable(
       table.userId,
       table.courseId,
       table.courseLessonId,
+      table.contentId,
       table.contentVersion,
     ),
     index("user_course_lesson_progress_user_course_idx").on(

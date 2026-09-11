@@ -46,6 +46,7 @@ before(async () => {
       WHERE user_id = '${userId}'
         AND course_id = '${courseId}'
         AND course_lesson_id IN ('${accessLessonId}', '${encryptionLessonId}', '${failureLessonId}');
+    UPDATE course_lessons SET content_id = '${accessContentId}' WHERE id = '${accessLessonId}';
     UPDATE contents SET version = 'A' WHERE id = '${accessContentId}';
     UPDATE contents SET version = 'L1' WHERE id = '${encryptionContentId}';
     UPDATE contents SET version = 'FAIL' WHERE id = '${failureContentId}';
@@ -63,6 +64,7 @@ after(async () => {
       WHERE user_id = '${userId}'
         AND course_id = '${courseId}'
         AND course_lesson_id IN ('${accessLessonId}', '${encryptionLessonId}', '${failureLessonId}');
+    UPDATE course_lessons SET content_id = '${accessContentId}' WHERE id = '${accessLessonId}';
   `);
   await server?.stop();
 });
@@ -70,6 +72,7 @@ after(async () => {
 test("CourseLesson progress remains bound to the server-resolved revision", async () => {
   const first = await save(userHeaders, {
     courseLessonId: accessLessonId,
+    contentId: accessContentId,
     contentVersion: "A",
     action: "COMPLETE",
     progressPercent: 100,
@@ -80,18 +83,37 @@ test("CourseLesson progress remains bound to the server-resolved revision", asyn
   assert.equal(first.payload.result.idempotentReplay, false);
 
   const revisionA = await queryRows(`
-    SELECT content_version AS contentVersion, status, progress_percent AS progressPercent
+    SELECT content_id AS contentId, content_version AS contentVersion, status, progress_percent AS progressPercent
     FROM user_course_lesson_progress
     WHERE user_id = '${userId}' AND course_lesson_id = '${accessLessonId}';
   `);
   assert.deepEqual(revisionA, [
-    { contentVersion: "A", status: "COMPLETED", progressPercent: 100 },
+    { contentId: accessContentId, contentVersion: "A", status: "COMPLETED", progressPercent: 100 },
   ]);
 
-  await runLocalSql(`UPDATE contents SET version = 'B' WHERE id = '${accessContentId}';`);
+  await runLocalSql(`
+    UPDATE contents SET version = 'A' WHERE id = '${encryptionContentId}';
+    UPDATE course_lessons SET content_id = '${encryptionContentId}' WHERE id = '${accessLessonId}';
+  `);
+
+  const staleContentBinding = await save(userHeaders, {
+    courseLessonId: accessLessonId,
+    contentId: accessContentId,
+    contentVersion: "A",
+    action: "COMPLETE",
+    progressPercent: 100,
+  });
+  assert.equal(staleContentBinding.response.status, 409);
+  assert.equal(staleContentBinding.payload.code, "COURSE_LESSON_REVISION_MISMATCH");
+
+  await runLocalSql(`
+    UPDATE course_lessons SET content_id = '${accessContentId}' WHERE id = '${accessLessonId}';
+    UPDATE contents SET version = 'B' WHERE id = '${accessContentId}';
+  `);
 
   const stalePage = await save(userHeaders, {
     courseLessonId: accessLessonId,
+    contentId: accessContentId,
     contentVersion: "A",
     action: "COMPLETE",
     progressPercent: 100,
@@ -102,6 +124,7 @@ test("CourseLesson progress remains bound to the server-resolved revision", asyn
 
   const forgedRevision = await save(userHeaders, {
     courseLessonId: accessLessonId,
+    contentId: accessContentId,
     contentVersion: "forged-revision",
     action: "COMPLETE",
     progressPercent: 100,
@@ -112,6 +135,7 @@ test("CourseLesson progress remains bound to the server-resolved revision", asyn
 
   const revisionB = await save(userHeaders, {
     courseLessonId: accessLessonId,
+    contentId: accessContentId,
     contentVersion: "B",
     action: "COMPLETE",
     progressPercent: 100,
@@ -123,6 +147,7 @@ test("CourseLesson progress remains bound to the server-resolved revision", asyn
 
   const replay = await save(userHeaders, {
     courseLessonId: accessLessonId,
+    contentId: accessContentId,
     contentVersion: "B",
     action: "COMPLETE",
     progressPercent: 100,
@@ -133,14 +158,14 @@ test("CourseLesson progress remains bound to the server-resolved revision", asyn
   assert.equal(replay.payload.result.contentVersion, "B");
 
   const revisions = await queryRows(`
-    SELECT content_version AS contentVersion, status, progress_percent AS progressPercent
+    SELECT content_id AS contentId, content_version AS contentVersion, status, progress_percent AS progressPercent
     FROM user_course_lesson_progress
     WHERE user_id = '${userId}' AND course_lesson_id = '${accessLessonId}'
     ORDER BY content_version;
   `);
   assert.deepEqual(revisions, [
-    { contentVersion: "A", status: "COMPLETED", progressPercent: 100 },
-    { contentVersion: "B", status: "COMPLETED", progressPercent: 100 },
+    { contentId: accessContentId, contentVersion: "A", status: "COMPLETED", progressPercent: 100 },
+    { contentId: accessContentId, contentVersion: "B", status: "COMPLETED", progressPercent: 100 },
   ]);
 
   const activities = await queryRows(`
@@ -153,6 +178,10 @@ test("CourseLesson progress remains bound to the server-resolved revision", asyn
   assert.deepEqual(
     activities.map((row) => JSON.parse(row.metadataJson).contentVersion),
     ["A", "B"],
+  );
+  assert.deepEqual(
+    activities.map((row) => JSON.parse(row.metadataJson).contentId),
+    [accessContentId, accessContentId],
   );
 
   const unauthenticated = await save(
@@ -186,6 +215,7 @@ test("CourseLesson progress remains bound to the server-resolved revision", asyn
   `);
   const currentAfterLegacy = await save(userHeaders, {
     courseLessonId: encryptionLessonId,
+    contentId: encryptionContentId,
     contentVersion: "L1",
     action: "START",
     progressPercent: 10,
@@ -206,7 +236,7 @@ test("CourseLesson progress remains bound to the server-resolved revision", asyn
   await runLocalSql(`
     CREATE TRIGGER test_course_lesson_progress_activity_failure
     BEFORE INSERT ON learning_activities
-    WHEN NEW.id = 'course-lesson-completed:${userId}:${failureLessonId}:FAIL'
+    WHEN NEW.id = 'course-lesson-completed:${userId}:${failureLessonId}:${failureContentId}:FAIL'
     BEGIN
       SELECT RAISE(ABORT, 'intentional activity failure');
     END;
@@ -214,6 +244,7 @@ test("CourseLesson progress remains bound to the server-resolved revision", asyn
   try {
     const failed = await save(userHeaders, {
       courseLessonId: failureLessonId,
+      contentId: failureContentId,
       contentVersion: "FAIL",
       action: "COMPLETE",
       progressPercent: 100,

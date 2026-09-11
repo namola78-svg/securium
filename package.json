@@ -28,6 +28,7 @@
     "test:fact-domain": "node --test tests/fact-domain.test.ts",
     "test:fact-persistence": "node scripts/run-d1-test-suite.mjs --test --test-concurrency=1 tests/fact-persistence-integration.test.mjs",
     "test:course-lesson-progress-revision-binding": "node scripts/run-d1-test-suite.mjs --test --test-concurrency=1 tests/course-lesson-progress-revision-binding-e2e.test.mjs",
+    "test:course-lesson-progress-revision-binding:postgres": "node --test --test-concurrency=1 tests/course-lesson-progress-revision-binding-postgres-disposable.test.mjs",
     "test:postgres-migration-guard": "node --test --test-concurrency=1 tests/postgres-migration-guard.test.mjs",
     "test:legacy-concept-rls": "node --test --test-concurrency=1 tests/legacy-concept-rls-hardening-postgres-disposable.test.mjs",
     "test:legacy-concept-shadow": "node --test --test-concurrency=1 tests/canonical-concept-shadow-authority.test.ts",
