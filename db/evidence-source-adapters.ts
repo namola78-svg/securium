@@ -22,6 +22,7 @@ type ResolveInput = Readonly<{
   sourceRevisionIdentity: string;
   /** Caller identity is a guard only; the canonical row remains authoritative. */
   expectedUserId?: string;
+  enforceQuestionAttemptRevisionBinding?: boolean;
 }>;
 
 type QuestionMappingRow = Readonly<{
@@ -134,6 +135,17 @@ implements CanonicalEvidenceSourceResolver {
     const correction = revision?.action === "CORRECT_CONCEPT_MAPPING"
       ? mappingCorrection(revision.correction_payload_json)
       : null;
+    const canonicalRevisionIdentity = revision?.semantic_hash ?? (
+      input.sourceType === "QUESTION_ATTEMPT" ? input.sourceEventId : input.sourceRevisionIdentity
+    );
+    if (input.enforceQuestionAttemptRevisionBinding &&
+      input.sourceType === "QUESTION_ATTEMPT" &&
+      input.sourceRevisionIdentity !== canonicalRevisionIdentity) {
+      invalid("EVIDENCE_SOURCE_REVISION_MISMATCH");
+    }
+    const sourceRevisionIdentity = input.enforceQuestionAttemptRevisionBinding
+      ? canonicalRevisionIdentity
+      : (revision?.semantic_hash ?? input.sourceRevisionIdentity);
     const expectedMappingHash = correction?.conceptMappingSetHash ?? String(row.concept_mapping_set_hash);
     const mappings = await this.questionMappings(String(row.question_version_id));
     const mappingHash = await questionMappingHash(mappings);
@@ -145,7 +157,7 @@ implements CanonicalEvidenceSourceResolver {
       sourceType: input.sourceType as CanonicalEvidenceSource["sourceType"],
       sourceEventId: input.sourceEventId,
       sourceLineageIdentity: input.sourceEventId,
-      sourceRevisionIdentity: revision?.semantic_hash ?? input.sourceRevisionIdentity,
+      sourceRevisionIdentity,
       userId: String(row.user_id),
       contentVersionIdentity: String(row.question_version_id),
       conceptMappingSetHash: mappingHash,

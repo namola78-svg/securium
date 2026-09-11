@@ -15,6 +15,7 @@ export interface CanonicalEvidenceSourceResolver {
     sourceRevisionIdentity: string;
     /** Caller identity is an access guard, never a source authority. */
     expectedUserId?: string;
+    enforceQuestionAttemptRevisionBinding?: boolean;
   }>): Promise<CanonicalEvidenceSource | null>;
   resolveLineageInvalidation?(input: Readonly<{
     sourceType: LearningEventSourceType;
@@ -53,6 +54,9 @@ export class EvidenceRecomputeService {
     sourceEventId: string;
     sourceRevisionIdentity: string;
     userId?: string;
+    expectedUserId?: string;
+    enforceQuestionAttemptRevisionBinding?: boolean;
+    claimFence?: Readonly<{ requestId: string; claimToken: string }>;
     invalidationReason?: string;
   }>): Promise<EventRecomputeResult> {
     if (input.sourceType === "PRACTICAL_ATTEMPT") {
@@ -61,14 +65,21 @@ export class EvidenceRecomputeService {
       const outcome = await this.repository.invalidateLineage(target);
       return { outcome, projectionCount: 0 };
     }
+    const expectedUserId = input.expectedUserId ?? input.userId;
     const source = await this.resolver.resolveEvent({
-      ...input,
-      expectedUserId: input.userId,
+      sourceType: input.sourceType,
+      sourceEventId: input.sourceEventId,
+      sourceRevisionIdentity: input.sourceRevisionIdentity,
+      expectedUserId,
+      enforceQuestionAttemptRevisionBinding: input.enforceQuestionAttemptRevisionBinding,
     });
     if (!source || source.validity === "LEGACY_INELIGIBLE") return { outcome: "INVALID_SOURCE", projectionCount: 0 };
     const practicalRedirect = input.sourceType === "PRACTICAL_EVALUATION" &&
       source.sourceType === "PRACTICAL_EVALUATION";
     if (source.userId.length === 0 || (!practicalRedirect && source.sourceEventId !== input.sourceEventId) || source.sourceType !== input.sourceType) {
+      return { outcome: "INVALID_SOURCE", projectionCount: 0 };
+    }
+    if (expectedUserId !== undefined && source.userId !== expectedUserId) {
       return { outcome: "INVALID_SOURCE", projectionCount: 0 };
     }
     if (source.validity === "INVALIDATED") {
@@ -79,7 +90,7 @@ export class EvidenceRecomputeService {
       return { outcome, projectionCount: 0 };
     }
     const candidates = await buildEvidenceCandidates(source);
-    const outcome = await this.repository.reconcileEventProjectionSet(source, candidates);
+    const outcome = await this.repository.reconcileEventProjectionSet(source, candidates, input.claimFence);
     return {
       outcome,
       projectionCount: outcome === "INVALID_SOURCE" || outcome === "CONFLICT"
