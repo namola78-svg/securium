@@ -242,16 +242,35 @@ export class EvidenceProjectionRepository {
     return result.affectedRows === 1 ? "NEW_SUCCESS" as const : "EXACT_REPLAY" as const;
   }
 
-  async claimNext(scopeType: RecomputeScope | null, workerId: string, now = new Date().toISOString()) {
+  async claimNext(
+    scopeType: RecomputeScope | null,
+    workerId: string,
+    now = new Date().toISOString(),
+    filter: Readonly<{
+      requestType?: RecomputeRequestType;
+      sourceType?: LearningEventSourceType;
+    }> = {},
+  ) {
     if (!workerId.trim()) fail("EVIDENCE_WORKER_ID_REQUIRED");
     const candidate = await this.database.queryOne<{ id: string }>({
       sql: `SELECT id FROM evidence_recompute_requests
         WHERE status IN ('PENDING', 'RETRYABLE', 'PROCESSING')
-          AND (CAST(? AS TEXT) IS NULL OR scope_type = CAST(? AS TEXT))
-          AND (lease_expires_at IS NULL OR lease_expires_at <= ?)
-          AND (next_attempt_at IS NULL OR next_attempt_at <= ?)
+        AND (CAST(? AS TEXT) IS NULL OR scope_type = CAST(? AS TEXT))
+        AND (CAST(? AS TEXT) IS NULL OR request_type = CAST(? AS TEXT))
+        AND (CAST(? AS TEXT) IS NULL OR source_type = CAST(? AS TEXT))
+        AND (lease_expires_at IS NULL OR lease_expires_at <= ?)
+        AND (next_attempt_at IS NULL OR next_attempt_at <= ?)
         ORDER BY created_at, id LIMIT 1`,
-      parameters: [scopeType, scopeType, now, now],
+      parameters: [
+        scopeType,
+        scopeType,
+        filter.requestType ?? null,
+        filter.requestType ?? null,
+        filter.sourceType ?? null,
+        filter.sourceType ?? null,
+        now,
+        now,
+      ],
     });
     if (!candidate) return null;
     const token = crypto.randomUUID();
@@ -267,6 +286,13 @@ export class EvidenceProjectionRepository {
     });
     if (result.affectedRows !== 1) return null;
     return this.getRequest(candidate.id);
+  }
+
+  claimNextQuestionAttemptEvent(workerId: string, now = new Date().toISOString()) {
+    return this.claimNext("EVENT", workerId, now, {
+      requestType: "EVIDENCE_RECOMPUTE_REQUIRED",
+      sourceType: "QUESTION_ATTEMPT",
+    });
   }
 
   async getRequest(id: string) {
@@ -308,6 +334,15 @@ export class EvidenceProjectionRepository {
       parameters: [errorClass, nextAttemptAt, id, claimToken],
     });
     return { outcome: result.affectedRows === 1 ? "RETRYABLE" as const : "CONFLICT" as const, nextAttemptAt };
+  }
+
+  async failClaim(id: string, claimToken: string, errorClass: RetryErrorClass, now = new Date()) {
+    return this.database.execute({
+      sql: `UPDATE evidence_recompute_requests SET status = 'FAILED', error_class = ?,
+        completed_at = ?, claimed_by = NULL, claim_token = NULL, lease_expires_at = NULL
+        WHERE id = ? AND status = 'PROCESSING' AND claim_token = ?`,
+      parameters: [errorClass, now.toISOString(), id, claimToken],
+    });
   }
 
   async completeClaim(id: string, claimToken: string) {

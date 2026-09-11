@@ -110,7 +110,9 @@ implements CanonicalEvidenceSourceResolver {
       sourceType: input.sourceType as CanonicalEvidenceSource["sourceType"],
       sourceEventId: input.sourceEventId,
       sourceLineageIdentity: input.sourceEventId,
-      sourceRevisionIdentity: revision?.semantic_hash ?? input.sourceRevisionIdentity,
+      sourceRevisionIdentity: revision?.semantic_hash ?? (
+        input.sourceType === "QUESTION_ATTEMPT" ? input.sourceEventId : input.sourceRevisionIdentity
+      ),
       userId: String(row.user_id),
       contentVersionIdentity: String(row.question_version_id),
       conceptMappingSetHash: mappingHash,

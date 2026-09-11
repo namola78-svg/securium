@@ -50,6 +50,7 @@ export class EvidenceRecomputeService {
     sourceType: LearningEventSourceType;
     sourceEventId: string;
     sourceRevisionIdentity: string;
+    expectedUserId?: string;
     invalidationReason?: string;
   }>): Promise<EventRecomputeResult> {
     if (input.sourceType === "PRACTICAL_ATTEMPT") {
@@ -63,6 +64,9 @@ export class EvidenceRecomputeService {
     const practicalRedirect = input.sourceType === "PRACTICAL_EVALUATION" &&
       source.sourceType === "PRACTICAL_EVALUATION";
     if (source.userId.length === 0 || (!practicalRedirect && source.sourceEventId !== input.sourceEventId) || source.sourceType !== input.sourceType) {
+      return { outcome: "INVALID_SOURCE", projectionCount: 0 };
+    }
+    if (input.expectedUserId !== undefined && source.userId !== input.expectedUserId) {
       return { outcome: "INVALID_SOURCE", projectionCount: 0 };
     }
     if (source.validity === "INVALIDATED") {
