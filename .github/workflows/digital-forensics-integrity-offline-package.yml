@@ -97,14 +97,14 @@ jobs:
         env:
           EXPECTED_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           MATRIX_PYTHON: ${{ matrix.python_version }}
-          SECURIUM_OFFLINE_CI_ROOT: ${{ runner.temp }}/securium-forensics-integrity-offline-${{ github.run_id }}-${{ strategy.job-index }}
+          SECURIUM_OFFLINE_CI_ROOT: ${{ runner.temp }}/securium-forensics-integrity-offline-${{ github.run_id }}-${{ matrix.os_label }}-${{ matrix.python_version }}
         run: python -B examples/digital-forensics-integrity-offline-package/ci_matrix_check.py
 
       - name: Remove CI-owned package workspaces
         if: always()
         shell: python
         env:
-          SECURIUM_OFFLINE_CI_ROOT: ${{ runner.temp }}/securium-forensics-integrity-offline-${{ github.run_id }}-${{ strategy.job-index }}
+          SECURIUM_OFFLINE_CI_ROOT: ${{ runner.temp }}/securium-forensics-integrity-offline-${{ github.run_id }}-${{ matrix.os_label }}-${{ matrix.python_version }}
         run: |
           import os
           import shutil
