@@ -128,7 +128,7 @@ test("all governed PostgreSQL migrations expose the existing checksum convention
   const files = (await readdir("db/postgres/migrations"))
     .filter((file) => /^\d{4}_.+\.sql$/.test(file))
     .sort();
-  assert.equal(files.length, 33);
+  assert.equal(files.length, 34);
   for (const file of files) {
     const migration = {
       id: file.replace(/\.sql$/, ""),

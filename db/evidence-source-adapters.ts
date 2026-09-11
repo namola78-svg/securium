@@ -5,6 +5,8 @@ import {
   stableJson,
   type LearningEventSourceType,
 } from "../lib/services/learning-event-contracts.ts";
+import { resolveMockQuestionVersionSnapshotVerified } from "../lib/services/mock-exam-revision.ts";
+import { resolveMockExamCompositionSnapshot } from "../lib/services/mock-exam-composition.ts";
 import type {
   CanonicalEvidenceSource,
   EvidenceMappingGuard,
@@ -88,10 +90,12 @@ implements CanonicalEvidenceSourceResolver {
     const mock = input.sourceType === "MOCK_ITEM_RESULT";
     const row = await this.database.queryOne<Record<string, unknown>>({
       sql: mock
-        ? `SELECT a.id, m.user_id, a.question_version_id, a.concept_mapping_set_hash,
+        ? `SELECT a.id, a.question_id, m.user_id, m.composition_snapshot_json,
+            a.question_version_id, a.concept_mapping_set_hash,
             a.is_correct, a.score, a.answered_at AS occurred_at,
             m.status AS attempt_status, m.submitted_at AS attempt_submitted_at,
-            v.semantic_hash AS version_hash
+            v.question_id AS version_question_id, v.version AS version_number,
+            v.semantic_hash AS version_hash, v.snapshot_json AS version_snapshot_json
           FROM mock_exam_answers a JOIN mock_exam_attempts m ON m.id = a.attempt_id
           LEFT JOIN question_versions v ON v.id = a.question_version_id WHERE a.id = ? LIMIT 1`
         : `SELECT a.id, a.user_id, a.question_version_id, a.concept_mapping_set_hash,
@@ -125,8 +129,19 @@ implements CanonicalEvidenceSourceResolver {
     ) {
       return null;
     }
+    if (mock && !row.question_version_id && row.composition_snapshot_json) {
+      invalid("EVIDENCE_VERSION_BINDING_MISSING");
+    }
     if (!row.question_version_id || !row.concept_mapping_set_hash || !row.version_hash) {
       return legacy(input, row);
+    }
+    if (mock) {
+      await resolveMockQuestionVersionSnapshotVerified(
+        String(row.version_snapshot_json ?? ""),
+        String(row.question_id),
+        String(row.version_hash),
+        Number(row.version_number),
+      );
     }
     const revision = await this.latestRevision(input);
     if (revision?.action === "INVALIDATE") {
@@ -182,13 +197,18 @@ implements CanonicalEvidenceSourceResolver {
 
   private async resolveMock(input: ResolveInput): Promise<CanonicalEvidenceSource | null> {
     const row = await this.database.queryOne<Record<string, unknown>>({
-      sql: `SELECT id, user_id, composition_semantic_hash, score, correct_count,
-        wrong_count, unanswered_count, submitted_at
+      sql: `SELECT id, user_id, composition_semantic_hash,
+        composition_snapshot_json, score, correct_count, wrong_count,
+        unanswered_count, submitted_at
         FROM mock_exam_attempts WHERE id = ? LIMIT 1`,
       parameters: [input.sourceEventId],
     });
     if (!row) return null;
     if (!row.composition_semantic_hash || !row.submitted_at) return legacy(input, row);
+    const composition = await resolveMockExamCompositionSnapshot(
+      String(row.composition_snapshot_json ?? ""),
+      String(row.composition_semantic_hash),
+    );
     const revision = await this.latestRevision(input);
     if (revision?.action === "INVALIDATE") {
       return invalidatedSource(input, row, revision.semantic_hash, String(row.composition_semantic_hash), String(row.composition_semantic_hash));
@@ -198,10 +218,38 @@ implements CanonicalEvidenceSourceResolver {
       : null;
     const bindings = await this.mockAnswerBindings(input.sourceEventId);
     if (
-      !bindings.length ||
-      bindings.some((item) => !item.question_version_id || !item.concept_mapping_set_hash)
+      bindings.length !== composition.items.length ||
+      bindings.some((item) =>
+        !item.question_version_id ||
+        !item.concept_mapping_set_hash ||
+        !item.version_hash ||
+        !item.version_snapshot_json ||
+        !item.version_question_id ||
+        !item.version_number
+      )
     ) {
       invalid("EVIDENCE_VERSION_BINDING_MISSING");
+    }
+    const compositionItems = new Map(
+      composition.items.map((item) => [item.questionIdentity, item]),
+    );
+    for (const binding of bindings) {
+      const item = compositionItems.get(binding.question_id);
+      if (
+        !item ||
+        item.questionVersionId !== binding.question_version_id ||
+        item.questionVersionSemanticHash !== binding.version_hash ||
+        item.conceptMappingSetHash !== binding.concept_mapping_set_hash ||
+        binding.version_question_id !== binding.question_id
+      ) {
+        invalid("EVIDENCE_COMPOSITION_MISMATCH");
+      }
+      await resolveMockQuestionVersionSnapshotVerified(
+        binding.version_snapshot_json,
+        binding.question_id,
+        binding.version_hash,
+        Number(binding.version_number),
+      );
     }
     const mappings = await this.mockMappings(input.sourceEventId);
     for (const binding of bindings) {
@@ -390,9 +438,17 @@ implements CanonicalEvidenceSourceResolver {
       question_id: string;
       question_version_id: string | null;
       concept_mapping_set_hash: string | null;
+      version_question_id: string | null;
+      version_number: number | string | null;
+      version_hash: string | null;
+      version_snapshot_json: string | null;
     }>({
-      sql: `SELECT question_id, question_version_id, concept_mapping_set_hash
-        FROM mock_exam_answers WHERE attempt_id = ? ORDER BY question_id`,
+      sql: `SELECT a.question_id, a.question_version_id, a.concept_mapping_set_hash,
+        v.question_id AS version_question_id, v.version AS version_number,
+        v.semantic_hash AS version_hash, v.snapshot_json AS version_snapshot_json
+        FROM mock_exam_answers a
+        LEFT JOIN question_versions v ON v.id = a.question_version_id
+        WHERE a.attempt_id = ? ORDER BY a.question_id`,
       parameters: [attemptId],
     });
     return result.rows;

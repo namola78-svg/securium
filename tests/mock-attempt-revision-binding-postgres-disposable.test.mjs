@@ -6,6 +6,7 @@ import { readFile, readdir } from "node:fs/promises";
 import { after, before, test } from "node:test";
 import { promisify } from "node:util";
 import postgres from "postgres";
+import { computeMockQuestionVersionSemanticHash } from "../lib/services/mock-exam-revision.ts";
 
 const execFile = promisify(execFileCallback);
 const userId = "a0000000-0000-4000-8000-000000000001";
@@ -81,6 +82,45 @@ before(async () => {
 });
 
 test("the actual PostgreSQL provider preserves mock attempt revisions", async () => {
+  const countRows = async () => {
+    const [row] = await client.unsafe(
+      "SELECT count(*)::int AS attempts, (SELECT count(*)::int FROM mock_exam_answers WHERE attempt_id IN (SELECT id FROM mock_exam_attempts WHERE mock_exam_id = $1)) AS answers FROM mock_exam_attempts WHERE mock_exam_id = $1",
+      [examId],
+    );
+    return [Number(row.attempts), Number(row.answers)];
+  };
+  const beforeInvalidStarts = await countRows();
+  const [storedVersionOne] = await client.unsafe(
+    "SELECT snapshot_json FROM question_versions WHERE id = $1",
+    [questionVersionOneId],
+  );
+
+  await client.unsafe("DELETE FROM question_concepts WHERE id = $1", [mappingOneId]);
+  await assert.rejects(
+    phase3.startMockExam(userId, examId),
+    (error) => error?.code === "QUESTION_VERSION_NOT_ELIGIBLE",
+  );
+  assert.deepEqual(await countRows(), beforeInvalidStarts);
+  await insertMapping(mappingOneId, questionVersionOneId, 1);
+
+  await client.unsafe("UPDATE question_versions SET snapshot_json = '{}' WHERE id = $1", [questionVersionOneId]);
+  await assert.rejects(
+    phase3.startMockExam(userId, examId),
+    (error) => error?.code === "MOCK_QUESTION_VERSION_UNAVAILABLE",
+  );
+  assert.deepEqual(await countRows(), beforeInvalidStarts);
+  await client.unsafe("UPDATE question_versions SET snapshot_json = $1 WHERE id = $2", [storedVersionOne.snapshot_json, questionVersionOneId]);
+
+  await client.unsafe("DELETE FROM question_concepts WHERE id = $1", [mappingOneId]);
+  await client.unsafe("DELETE FROM question_versions WHERE id = $1", [questionVersionOneId]);
+  await assert.rejects(
+    phase3.startMockExam(userId, examId),
+    (error) => error?.code === "EXAM_INCOMPLETE",
+  );
+  assert.deepEqual(await countRows(), beforeInvalidStarts);
+  await insertVersion(questionVersionOneId, 1, "Mock PostgreSQL question v1", "Mock PostgreSQL content v1", "Mock PostgreSQL explanation v1", "Mock PostgreSQL wrong explanation v1", "Mock PostgreSQL old correct", "Mock PostgreSQL old wrong");
+  await insertMapping(mappingOneId, questionVersionOneId, 1);
+
   const first = await phase3.startMockExam(userId, examId);
   const firstAttempt = await phase3.getMockExamAttempt(userId, first.id);
   assert.equal(firstAttempt.questions[0].title, "Mock PostgreSQL question v1");
@@ -94,6 +134,32 @@ test("the actual PostgreSQL provider preserves mock attempt revisions", async ()
   assert.equal(bound[0].question_version_id, questionVersionOneId);
   assert.match(bound[0].concept_mapping_set_hash, /^[0-9a-f]{64}$/);
   assert.match(bound[0].composition_semantic_hash, /^[0-9a-f]{64}$/);
+
+  await client.unsafe(
+    "UPDATE question_versions SET snapshot_json = '{}' WHERE id = $1",
+    [questionVersionOneId],
+  );
+  await assert.rejects(
+    phase3.getMockExamAttempt(userId, first.id),
+    (error) => error?.code === "MOCK_QUESTION_VERSION_UNAVAILABLE",
+  );
+  await client.unsafe(
+    "UPDATE question_versions SET snapshot_json = $1 WHERE id = $2",
+    [storedVersionOne.snapshot_json, questionVersionOneId],
+  );
+
+  await client.unsafe(
+    "UPDATE mock_exam_answers SET concept_mapping_set_hash = $1 WHERE attempt_id = $2",
+    ["f".repeat(64), first.id],
+  );
+  await assert.rejects(
+    phase3.getMockExamAttempt(userId, first.id),
+    (error) => error?.code === "MOCK_COMPOSITION_MISMATCH",
+  );
+  await client.unsafe(
+    "UPDATE mock_exam_answers SET concept_mapping_set_hash = $1 WHERE attempt_id = $2",
+    [bound[0].concept_mapping_set_hash, first.id],
+  );
 
   await assert.rejects(
     phase3.getMockExamAttempt(otherUserId, first.id),
@@ -176,6 +242,35 @@ test("the actual PostgreSQL provider preserves mock attempt revisions", async ()
       [mappingOneId],
     );
   }
+
+  const attemptEvidence = await resolver.resolveEvent({
+    sourceType: "MOCK_ATTEMPT",
+    sourceEventId: first.id,
+    sourceRevisionIdentity: "1".repeat(64),
+  });
+  assert.equal(attemptEvidence?.validity, "ELIGIBLE");
+  const [storedAttempt] = await client.unsafe(
+    "SELECT composition_snapshot_json FROM mock_exam_attempts WHERE id = $1",
+    [first.id],
+  );
+  const mutatedComposition = JSON.parse(storedAttempt.composition_snapshot_json);
+  mutatedComposition.items[0].possibleScore = 20;
+  await client.unsafe(
+    "UPDATE mock_exam_attempts SET composition_snapshot_json = $1 WHERE id = $2",
+    [JSON.stringify(mutatedComposition), first.id],
+  );
+  await assert.rejects(
+    resolver.resolveEvent({
+      sourceType: "MOCK_ATTEMPT",
+      sourceEventId: first.id,
+      sourceRevisionIdentity: "1".repeat(64),
+    }),
+    (error) => error?.code === "MOCK_COMPOSITION_MISMATCH",
+  );
+  await client.unsafe(
+    "UPDATE mock_exam_attempts SET composition_snapshot_json = $1 WHERE id = $2",
+    [storedAttempt.composition_snapshot_json, first.id],
+  );
 
   const replay = await assert.rejects(
     phase3.submitMockExam(userId, first.id),
@@ -283,6 +378,7 @@ async function mutateCurrentQuestionToVersionTwo() {
 async function insertVersion(id, version, title, content, explanation, wrongExplanation, correctChoice, wrongChoice) {
   const snapshot = JSON.stringify({
     id: questionId,
+    version,
     title,
     content,
     type: "SINGLE_CHOICE",
@@ -294,10 +390,38 @@ async function insertVersion(id, version, title, content, explanation, wrongExpl
       { id: choiceOneId, content: correctChoice, displayOrder: 1, isCorrect: version === 1, explanation: "" },
       { id: choiceTwoId, content: wrongChoice, displayOrder: 2, isCorrect: version !== 1, explanation: "" },
     ],
+    source: null,
+    sourceDate: null,
+    courseIds: [courseId],
+    conceptMappings: [{
+      conceptId,
+      qualificationJson: "{}",
+      provenanceJson: "{}",
+      mappingStatus: "APPROVED",
+      reviewedBy: authorId,
+      reviewedAt: "2026-09-11T00:00:00.000Z",
+    }],
+    governance: {
+      blueprintId: "mock-pg-blueprint",
+      qualificationJson: "{}",
+      provenanceJson: "{}",
+      governanceJson: "{}",
+      humanReviewHash: String(version + 1).repeat(64),
+      humanReviewedBy: authorId,
+      humanReviewedAt: "2026-09-11T00:00:00.000Z",
+    },
   });
+  const semanticHash = await computeMockQuestionVersionSemanticHash(snapshot, questionId);
   await client.unsafe(
     "INSERT INTO question_versions (id, question_id, version, snapshot_json, review_comment, semantic_hash, human_review_hash, human_reviewed_by, human_reviewed_at, created_by) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP::text, $8)",
-    [id, questionId, version, snapshot, `Mock PG revision ${version}`, String(version).repeat(64), String(version + 1).repeat(64), authorId],
+    [id, questionId, version, snapshot, `Mock PG revision ${version}`, semanticHash, String(version + 1).repeat(64), authorId],
+  );
+}
+
+async function insertMapping(id, versionId, mappingVersion) {
+  await client.unsafe(
+    "INSERT INTO question_concepts (id, question_version_id, concept_id, created_by, relation_type, qualification_json, provenance_json, mapping_status, mapping_version, reviewed_by, reviewed_at) VALUES ($1, $2, $3, $4, 'MAPS_TO', '{}', '{}', 'APPROVED', $5, $4, CURRENT_TIMESTAMP::text)",
+    [id, versionId, conceptId, authorId, mappingVersion],
   );
 }
 

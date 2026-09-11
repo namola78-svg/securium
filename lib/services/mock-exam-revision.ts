@@ -1,5 +1,9 @@
 import { AppError } from "../errors.ts";
 import type { QuestionType, ShortAnswerConfig } from "./grading-service.ts";
+import {
+  computeQuestionSemanticHash,
+  type QuestionSemanticProjection,
+} from "./question-governance.ts";
 
 const questionTypes: readonly QuestionType[] = [
   "TRUE_FALSE",
@@ -85,6 +89,57 @@ export function resolveMockQuestionVersionSnapshot(
   });
 }
 
+export async function resolveMockQuestionVersionSnapshotVerified(
+  snapshotJson: string | null | undefined,
+  expectedQuestionId: string,
+  expectedSemanticHash: string | null | undefined,
+  expectedVersion?: number | null,
+): Promise<MockQuestionRevision> {
+  const revision = resolveMockQuestionVersionSnapshot(
+    snapshotJson,
+    expectedQuestionId,
+  );
+  const value = parseObject(snapshotJson);
+  const version = value.version;
+  if (
+    typeof version !== "number" ||
+    !Number.isInteger(version) ||
+    version < 1 ||
+    (expectedVersion !== undefined && version !== expectedVersion) ||
+    typeof expectedSemanticHash !== "string" ||
+    !/^[0-9a-f]{64}$/.test(expectedSemanticHash)
+  ) {
+    unavailable();
+  }
+  const semanticProjection = parseSemanticProjection(value, revision);
+  const actualSemanticHash = await computeQuestionSemanticHash(semanticProjection);
+  if (actualSemanticHash !== expectedSemanticHash) {
+    throw new AppError(
+      "The QuestionVersion semantic hash does not match its immutable snapshot.",
+      409,
+      "QUESTION_VERSION_SEMANTIC_HASH_MISMATCH",
+    );
+  }
+  return revision;
+}
+
+/** Computes the semantic identity of a canonical QuestionVersion snapshot. */
+export async function computeMockQuestionVersionSemanticHash(
+  snapshotJson: string | null | undefined,
+  expectedQuestionId: string,
+): Promise<string> {
+  const revision = resolveMockQuestionVersionSnapshot(
+    snapshotJson,
+    expectedQuestionId,
+  );
+  const value = parseObject(snapshotJson);
+  const version = value.version;
+  if (typeof version !== "number" || !Number.isInteger(version) || version < 1) {
+    unavailable();
+  }
+  return computeQuestionSemanticHash(parseSemanticProjection(value, revision));
+}
+
 function parseObject(snapshotJson: string | null | undefined) {
   if (!snapshotJson) unavailable();
   try {
@@ -132,6 +187,50 @@ function serializeAnswerConfig(value: unknown) {
     return JSON.stringify(value as ShortAnswerConfig);
   }
   unavailable();
+}
+
+function parseSemanticProjection(
+  value: Record<string, unknown>,
+  revision: MockQuestionRevision,
+): QuestionSemanticProjection {
+  const source = value.source;
+  const sourceDate = value.sourceDate;
+  const courseIds = value.courseIds;
+  const conceptMappings = value.conceptMappings;
+  const governance = value.governance;
+  if (
+    (source !== undefined && source !== null && typeof source !== "string") ||
+    (sourceDate !== undefined && sourceDate !== null && typeof sourceDate !== "string") ||
+    !Array.isArray(courseIds) ||
+    !courseIds.every((courseId) => typeof courseId === "string" && courseId.trim()) ||
+    !Array.isArray(conceptMappings) ||
+    !governance ||
+    typeof governance !== "object" ||
+    Array.isArray(governance)
+  ) {
+    unavailable();
+  }
+  return {
+    id: revision.id,
+    version: value.version as number,
+    title: revision.title,
+    content: revision.content,
+    type: revision.type,
+    difficulty: revision.difficulty,
+    explanation: revision.explanation,
+    wrongAnswerExplanation: revision.wrongAnswerExplanation,
+    answerConfigJson: JSON.parse(revision.answerConfigJson),
+    source: source == null ? null : source,
+    sourceDate: sourceDate == null ? null : sourceDate,
+    choices: revision.choices.map((choice) => {
+      const { id: ignoredId, ...semanticChoice } = choice;
+      void ignoredId;
+      return semanticChoice;
+    }),
+    courseIds: [...(courseIds as string[])].sort(),
+    conceptMappings: conceptMappings as QuestionSemanticProjection["conceptMappings"],
+    governance: governance as QuestionSemanticProjection["governance"],
+  };
 }
 
 function isQuestionType(value: unknown): value is QuestionType {

@@ -309,6 +309,13 @@
       "when": 1789024910987,
       "tag": "0043_sw_foundation_identity_version_binding",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "6",
+      "when": 1789116085448,
+      "tag": "0044_sweet_apocalypse",
+      "breakpoints": true
     }
   ]
 }
