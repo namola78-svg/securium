@@ -5,7 +5,7 @@ Repository: `namola78-svg/securium`
 Worktree: `securium-theory-revision-integrity-repair`
 Branch: `fix/theory-revision-integrity`
 Repair base/head before commit: `e0705c08e5475d304f7c91ff446f79b8637514f5`
-Fresh `origin/main` observed after CI drift: `e67293d285ff913070af5fc1634ecfd5fc4e6405`
+Fresh `origin/main` observed at final review: `40089519e8642a44e8a2636e2db2426894aa8417` (it was `e67293d285ff913070af5fc1634ecfd5fc4e6405` during the first exact-head CI run)
 Final local commits: `e213fc7629b53a97e6b917614bea7b3c0c1aecb6`, `4c52bf7bd29bd0322252ebf43908cd1c0c2e3f8e`
 PR: #152, still Draft at the time of this report
 
@@ -71,7 +71,7 @@ The disposable PostgreSQL fixture included legacy NULL-version progress, revisio
 
 ## Freshness and integration notes
 
-`origin/main` advanced from the review baseline `04d2175d971b8b849c80a0510b462a8c7b328deb` to `b7f06e39919d92bac166a67aec274754ec21a2c7`, then to `e67293d285ff913070af5fc1634ecfd5fc4e6405` during CI. It is not an ancestor of the repair head, so no unrelated rebase was performed. The PR source branch was still at `e0705c08e5475d304f7c91ff446f79b8637514f5` before publication. The only follow-up compatibility adjustment reuses the resolution-field contract already present on the advanced main; it does not import unrelated main changes.
+`origin/main` advanced from the review baseline `04d2175d971b8b849c80a0510b462a8c7b328deb` to `b7f06e39919d92bac166a67aec274754ec21a2c7`, then to `e67293d285ff913070af5fc1634ecfd5fc4e6405` during the first CI run, and finally to `40089519e8642a44e8a2636e2db2426894aa8417` after unrelated #155 work. It is not an ancestor of the repair head, so no unrelated rebase was performed. The PR source branch was still at `e0705c08e5475d304f7c91ff446f79b8637514f5` before publication. The only follow-up compatibility adjustment reuses the resolution-field contract already present on the advanced main; it does not import unrelated main changes.
 
 The #144 worktree/branch was preserved. The known file overlap is `db/shared-content-repositories.ts` and `package.json`; the repair changes are limited to immutable revision persistence and dedicated verification, and do not alter #144 availability/route behavior. The #144 branch was not modified and its unmerged changes were not included. The PR #152 progress identity contract, including stale screen mismatch rejection, remains the caller-validation boundary.
 
