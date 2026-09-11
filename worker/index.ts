@@ -9,6 +9,7 @@ import {
   isProductionEnvironment,
   validateRuntimeEnvironment,
 } from "../lib/environment";
+import { withRuntimePostgresRequestScope } from "../db/postgres/postgres-js-executor";
 
 interface Env {
   ASSETS: Fetcher;
@@ -68,7 +69,9 @@ const worker = {
       return withSecurityHeaders(imageResponse, request, env, production);
     }
 
-    const response = await handler.fetch(request, env, ctx);
+    const response = await withRuntimePostgresRequestScope(() =>
+      handler.fetch(request, env, ctx),
+    );
     return withSecurityHeaders(response, request, env, production);
   },
 };

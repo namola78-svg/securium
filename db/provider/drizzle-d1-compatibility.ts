@@ -323,7 +323,10 @@ function databaseValue(value: unknown): DatabaseValue {
     typeof value === "boolean" ||
     value instanceof Uint8Array
   ) {
-    return value;
+    // The shared D1-compatible schema stores boolean-mode columns as integer
+    // values. D1 accepts booleans directly, while PostgreSQL rejects a boolean
+    // bind for those integer columns, so normalize at the provider boundary.
+    return typeof value === "boolean" ? (value ? 1 : 0) : value;
   }
   throw compatibilityError("A repository query contained an unsupported value.");
 }

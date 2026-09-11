@@ -1,4 +1,5 @@
 import { AppError } from "../../lib/errors.ts";
+import { AsyncLocalStorage } from "node:async_hooks";
 import {
   createPostgreSqlConnectionPlan,
   type PostgreSqlConnectionEnvironment,
@@ -172,12 +173,42 @@ export class PostgresJsExecutor implements PostgresExecutor {
   }
 }
 
+type RuntimePostgresScope = {
+  executorPromise?: Promise<PostgresJsExecutor>;
+};
+
+const runtimePostgresScope = new AsyncLocalStorage<RuntimePostgresScope>();
 let runtimeExecutorPromise: Promise<PostgresJsExecutor> | undefined;
+
+export async function withRuntimePostgresRequestScope<T>(
+  callback: () => Promise<T>,
+) {
+  return runtimePostgresScope.run({}, async () => {
+    try {
+      return await callback();
+    } finally {
+      const executorPromise = runtimePostgresScope.getStore()?.executorPromise;
+      if (executorPromise) {
+        await (await executorPromise).close();
+      }
+    }
+  });
+}
 
 export async function getRuntimePostgresExecutor(
   environment: PostgreSqlConnectionEnvironment,
   loader: PostgresJsModuleLoader = loadPostgresJs,
 ) {
+  const scope = runtimePostgresScope.getStore();
+  if (scope) {
+    scope.executorPromise ??= createPostgresJsExecutor(environment, loader).catch(
+      (error) => {
+        scope.executorPromise = undefined;
+        throw error;
+      },
+    );
+    return scope.executorPromise;
+  }
   runtimeExecutorPromise ??= createPostgresJsExecutor(environment, loader).catch(
     (error) => {
       runtimeExecutorPromise = undefined;
