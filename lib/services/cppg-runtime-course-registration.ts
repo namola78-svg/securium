@@ -320,6 +320,7 @@ export async function persistCppgCourseTheoryDraft(options: CppgProjectionOption
 }
 /** Internal transaction tests only; this is never a registration authority entrypoint. */
 export async function persistCppgCourseTheoryDraftForTesting(projection: CppgCourseTheoryDraftProjection, adapter: CppgDraftPersistenceAdapter): Promise<CppgPersistenceResult> {
-  if (process.env.NODE_ENV !== "test") throw new CppgAuthorityBindingError("CPPG_TEST_ONLY_PERSISTENCE_PRIMITIVE", "projection persistence test primitive is disabled outside NODE_ENV=test");
+  const runningNodeTest = typeof process.env.NODE_TEST_CONTEXT === "string";
+  if (process.env.NODE_ENV !== "test" || !runningNodeTest) throw new CppgAuthorityBindingError("CPPG_TEST_ONLY_PERSISTENCE_PRIMITIVE", "projection persistence test primitive is disabled outside the Node test runner");
   return persistCppgCourseTheoryDraftPlan(projection, adapter);
 }
