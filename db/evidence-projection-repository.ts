@@ -142,7 +142,14 @@ export class EvidenceProjectionRepository {
     const desiredByConcept = new Map(desired.map((candidate) => [candidate.conceptId, candidate]));
     const statements: DatabaseStatement[] = [];
     const semanticWriteIndexes: number[] = [];
-    if (claimFence) statements.push(claimFenceGuard(desired[0], claimFence));
+    if (claimFence) {
+      // Acquire the request row lock before any projection write. PostgreSQL
+      // claimers then serialize behind this transaction instead of winning
+      // between the final fence check and commit; D1 executes the same guard
+      // and write sequence atomically as one batch.
+      statements.push(claimFenceLock(claimFence));
+      statements.push(claimFenceGuard(desired[0], claimFence));
+    }
     const initialGuard = completeSourceAndSnapshotGuard(source, desired[0], active.rows);
     statements.push(initialGuard);
 
@@ -608,6 +615,17 @@ function claimFenceGuard(
         AND lease_expires_at > ?)`,
     [claimFence.requestId, claimFence.claimToken, new Date().toISOString()],
   );
+}
+
+function claimFenceLock(
+  claimFence: Readonly<{ requestId: string; claimToken: string }>,
+): DatabaseStatement {
+  return {
+    sql: `UPDATE evidence_recompute_requests SET claim_token = claim_token
+      WHERE id = ? AND status = 'PROCESSING' AND claim_token = ?
+        AND lease_expires_at > ?`,
+    parameters: [claimFence.requestId, claimFence.claimToken, new Date().toISOString()],
+  };
 }
 export async function createRecomputeRequest(
   input: Omit<RecomputeRequestInput, "id" | "inputSemanticHash">,

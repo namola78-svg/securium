@@ -18,6 +18,7 @@ const container = process.env.SECURIUM_EVIDENCE_EXECUTOR_PG_CONTAINER?.trim()
 const password = "question-attempt-evidence-executor-disposable-password";
 let client;
 let repository;
+let resolver;
 let service;
 let executor;
 let mappingHash;
@@ -68,7 +69,8 @@ before(async () => {
       WHERE lifecycle = 'ACTIVE';`);
   const provider = makeProvider(client);
   repository = new EvidenceProjectionRepository(provider);
-  service = new EvidenceRecomputeService(repository, new DatabaseEvidenceSourceResolver(provider));
+  resolver = new DatabaseEvidenceSourceResolver(provider);
+  service = new EvidenceRecomputeService(repository, resolver);
   executor = new QuestionAttemptEvidenceEventExecutor(
     new EvidenceRecomputeLifecycleExecutor(repository),
     service,
@@ -157,18 +159,37 @@ test("PostgreSQL lease fencing blocks stale projection and handoff writes", asyn
   const lifecycle = new EvidenceRecomputeLifecycleExecutor(repository);
   const claimA = await lifecycle.claimQuestionAttemptEvent("postgres-worker-a");
   assert.equal(claimA?.id, request.id);
+
+  const staleGate = gateFirstSourceResolution(resolver);
+  const staleExecutor = new QuestionAttemptEvidenceEventExecutor(
+    new EvidenceRecomputeLifecycleExecutor(repository),
+    new EvidenceRecomputeService(repository, staleGate.resolver),
+  );
+  const stalePromise = staleExecutor.processClaimed(claimA);
+  await staleGate.reached;
+
   await client.unsafe(`UPDATE evidence_recompute_requests
     SET lease_expires_at = '2000-01-01T00:00:00.000Z' WHERE id = '${request.id}'`);
   const claimB = await lifecycle.claimQuestionAttemptEvent("postgres-worker-b");
   assert.equal(claimB?.id, request.id);
   assert.notEqual(claimA?.claimToken, claimB?.claimToken);
 
-  const stale = await executor.processClaimed(claimA);
+  const recoveredGate = gateFirstSourceResolution(resolver);
+  const recoveredExecutor = new QuestionAttemptEvidenceEventExecutor(
+    new EvidenceRecomputeLifecycleExecutor(repository),
+    new EvidenceRecomputeService(repository, recoveredGate.resolver),
+  );
+  const recoveredPromise = recoveredExecutor.processClaimed(claimB);
+  await recoveredGate.reached;
+
+  staleGate.release();
+  const stale = await stalePromise;
   assert.equal(stale.outcome, "CLAIM_LOST");
   assert.equal(await scalar(`SELECT count(*) FROM evidence_projections WHERE source_event_id = '${id}'`), "0");
   assert.equal(await scalar(`SELECT count(*) FROM evidence_recompute_requests WHERE source_event_id = '${id}' AND request_type = 'MASTERY_RECOMPUTE_REQUIRED'`), "0");
 
-  const recovered = await executor.processClaimed(claimB);
+  recoveredGate.release();
+  const recovered = await recoveredPromise;
   assert.equal(recovered.outcome, "COMPLETED");
   assert.equal(recovered.projectionOutcome, "NEW_SUCCESS");
   assert.equal(await scalar(`SELECT count(*) FROM evidence_projections WHERE source_event_id = '${id}' AND lifecycle = 'ACTIVE'`), "1");
@@ -188,6 +209,29 @@ function makeProvider(databaseClient) {
       },
     })),
   });
+}
+
+function gateFirstSourceResolution(baseResolver) {
+  let signalReached;
+  const reached = new Promise((resolve) => { signalReached = resolve; });
+  let release;
+  const released = new Promise((resolve) => { release = resolve; });
+  let pause = true;
+  return {
+    reached,
+    release: () => release(),
+    resolver: {
+      resolveEvent: async (input) => {
+        const source = await baseResolver.resolveEvent(input);
+        if (pause) {
+          pause = false;
+          signalReached();
+          await released;
+        }
+        return source;
+      },
+    },
+  };
 }
 
 async function scalar(sql) {

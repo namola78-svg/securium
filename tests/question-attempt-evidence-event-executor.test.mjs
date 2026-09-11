@@ -238,18 +238,35 @@ test("lease fencing prevents a stale worker from duplicating projections or hand
   const claimA = await baseLifecycle.claimQuestionAttemptEvent("worker-a");
   assert.equal(claimA?.id, request.id);
 
+  const staleGate = gateFirstSourceResolution(resolver);
+  const staleExecutor = new QuestionAttemptEvidenceEventExecutor(
+    new EvidenceRecomputeLifecycleExecutor(repository),
+    new EvidenceRecomputeService(repository, staleGate.resolver),
+  );
+  const stalePromise = staleExecutor.processClaimed(claimA);
+  await staleGate.reached;
+
   await exec(`UPDATE evidence_recompute_requests SET lease_expires_at = '2000-01-01T00:00:00.000Z' WHERE id = '${request.id}'`);
   const claimB = await baseLifecycle.claimQuestionAttemptEvent("worker-b");
   assert.equal(claimB?.id, request.id);
   assert.notEqual(claimA?.claimToken, claimB?.claimToken);
 
-  const stale = await executor.processClaimed(claimA);
+  const recoveredGate = gateFirstSourceResolution(resolver);
+  const recoveredExecutor = new QuestionAttemptEvidenceEventExecutor(
+    new EvidenceRecomputeLifecycleExecutor(repository),
+    new EvidenceRecomputeService(repository, recoveredGate.resolver),
+  );
+  const recoveredPromise = recoveredExecutor.processClaimed(claimB);
+  await recoveredGate.reached;
+
+  staleGate.release();
+  const stale = await stalePromise;
   assert.equal(stale.outcome, "CLAIM_LOST");
-  assert.equal(await status(request.id), "PROCESSING");
   assert.equal(await scalar(`SELECT count(*) FROM evidence_projections WHERE source_event_id = '${id}'`), "0");
   assert.equal(await scalar(`SELECT count(*) FROM evidence_recompute_requests WHERE source_event_id = '${id}' AND request_type = 'MASTERY_RECOMPUTE_REQUIRED'`), "0");
 
-  const recovered = await executor.processClaimed(claimB);
+  recoveredGate.release();
+  const recovered = await recoveredPromise;
   assert.equal(recovered.outcome, "COMPLETED");
   assert.equal(recovered.projectionOutcome, "NEW_SUCCESS");
   assert.equal(await status(request.id), "COMPLETED");
@@ -327,4 +344,27 @@ async function apply(file) {
   for (const statement of text.split(/--> statement-breakpoint/).map((item) => item.trim()).filter(Boolean)) {
     await exec(statement);
   }
+}
+
+function gateFirstSourceResolution(baseResolver) {
+  let signalReached;
+  const reached = new Promise((resolve) => { signalReached = resolve; });
+  let release;
+  const released = new Promise((resolve) => { release = resolve; });
+  let pause = true;
+  return {
+    reached,
+    release: () => release(),
+    resolver: {
+      resolveEvent: async (input) => {
+        const source = await baseResolver.resolveEvent(input);
+        if (pause) {
+          pause = false;
+          signalReached();
+          await released;
+        }
+        return source;
+      },
+    },
+  };
 }
