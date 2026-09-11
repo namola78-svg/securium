@@ -55,7 +55,11 @@ def _run(
         check=False,
     )
     if expected_code is not None and result.returncode != expected_code:
-        raise RuntimeError(f"unexpected exit code {result.returncode}; expected {expected_code}")
+        detail = result.stderr.strip() or result.stdout.strip() or "no command output"
+        raise RuntimeError(
+            f"unexpected exit code {result.returncode}; expected {expected_code}; "
+            f"output={detail[-2000:]}"
+        )
     return result
 
 
