@@ -99,7 +99,10 @@ function batchItems(items: BatchItem<"sqlite">[]) {
 function isUniqueConstraintError(error: unknown) {
   return (
     error instanceof Error &&
-    /UNIQUE constraint failed|SQLITE_CONSTRAINT_UNIQUE/i.test(error.message)
+    (
+      /UNIQUE constraint failed|SQLITE_CONSTRAINT_UNIQUE/i.test(error.message) ||
+      ("code" in error && error.code === "DATABASE_UNIQUE_VIOLATION")
+    )
   );
 }
 

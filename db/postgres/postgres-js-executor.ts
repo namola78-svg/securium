@@ -34,12 +34,20 @@ type PostgresJsPendingValuesQuery = PromiseLike<PostgresJsValuesResult> & {
   cancel?: () => void;
 };
 
-export type PostgresJsClient = {
+type PostgresJsQueryClient = {
   unsafe<Row extends Record<string, unknown>>(
     sql: string,
     parameters: readonly DatabaseValue[],
   ): PostgresJsPendingQuery<Row>;
+};
+
+type PostgresJsReservedClient = PostgresJsQueryClient & {
+  release(): void;
+};
+
+export type PostgresJsClient = PostgresJsQueryClient & {
   begin<T>(callback: (client: PostgresJsClient) => Promise<T>): Promise<T>;
+  reserve?(): Promise<PostgresJsReservedClient>;
   end(options?: { timeout?: number }): Promise<void>;
 };
 
@@ -123,6 +131,45 @@ export class PostgresJsExecutor implements PostgresExecutor {
     callback: (executor: PostgresTransactionExecutor) => Promise<T>,
   ): Promise<T> {
     try {
+      // postgres.js rejects client.begin() when the pool has more than one
+      // connection because an unreserved connection could be reused by a
+      // concurrent query. Runtime pools intentionally allow multiple
+      // connections, so reserve one explicitly for the transaction instead
+      // of weakening the pool limit to one connection.
+      if (this.client.reserve) {
+        const reserved = await this.client.reserve();
+        try {
+          await withQueryTimeout(
+            reserved.unsafe("begin", []),
+            this.queryTimeoutMs,
+          );
+          try {
+            const result = await callback({
+              query: <Row extends Record<string, unknown>>(
+                sql: string,
+                parameters: readonly DatabaseValue[],
+              ) => this.queryWithClient<Row>(reserved, sql, parameters),
+            });
+            await withQueryTimeout(
+              reserved.unsafe("commit", []),
+              this.queryTimeoutMs,
+            );
+            return result;
+          } catch (error) {
+            try {
+              await withQueryTimeout(
+                reserved.unsafe("rollback", []),
+                this.queryTimeoutMs,
+              );
+            } catch {
+              // Preserve the original transaction error.
+            }
+            throw error;
+          }
+        } finally {
+          reserved.release();
+        }
+      }
       return await this.client.begin(async (transactionClient) =>
         callback({
           query: <Row extends Record<string, unknown>>(
@@ -154,7 +201,7 @@ export class PostgresJsExecutor implements PostgresExecutor {
   }
 
   private async queryWithClient<Row extends Record<string, unknown>>(
-    client: PostgresJsClient,
+    client: PostgresJsQueryClient,
     sql: string,
     parameters: readonly DatabaseValue[],
   ): Promise<PostgresQueryResult<Row>> {
