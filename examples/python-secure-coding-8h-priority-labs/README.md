@@ -38,20 +38,22 @@ publish course content.
 The pull-request-only Python CI runs the same local-only bundle on both hosted
 Windows and Linux runners:
 
-| Runner | CI shell | Python target | Expected discovery baseline |
+| Runner | CI shell | Python target / actual patch | Result |
 |---|---|---|---:|
-| Windows | `pwsh` | 3.11 | 49 tests |
-| Windows | `pwsh` | 3.14 | 49 tests |
-| Linux | `bash` | 3.11 | 49 tests |
-| Linux | `bash` | 3.14 | 49 tests |
+| Windows | `pwsh` | 3.11 / 3.11.9 | 49 PASS |
+| Windows | `pwsh` | 3.14 / 3.14.7 | 49 PASS |
+| Linux | `bash` | 3.11 / 3.11.16 | 49 PASS |
+| Linux | `bash` | 3.14 / 3.14.7 | 49 PASS |
 
 Each matrix job records the actual Python patch version and platform. It fails
 when discovery finds zero tests or when failures, import errors, or skips are
 reported; a changed non-zero test count is recorded for review rather than
 hard-coded as a failure, so future tests can be added normally. The local
 baseline was Windows PowerShell 5.1 / Python 3.14.5; that is distinct from the
-GitHub-hosted `pwsh` run. Results for Python 3.12, 3.13, macOS, real browsers,
-and learner rehearsal are not inferred from this matrix.
+GitHub-hosted `pwsh` run. The successful matrix was run at PR head
+`cc410ddcb39588eaa60ee71ef0c1fd9927e51db2` (workflow run `34555475433`).
+Results for Python 3.12, 3.13, macOS, real browsers, and learner rehearsal are
+not inferred from this matrix.
 
 ## Safety and reproducibility
 
