@@ -216,6 +216,64 @@ test("mapping revision mismatch fails closed", async () => {
   }
 });
 
+test("mapping changes after the attempt are not treated as event-time evidence", async () => {
+  await exec("INSERT INTO ontology_concepts VALUES ('concept-sw-2', 'ACTIVE')");
+  await exec(`UPDATE ontology_edges
+    SET edge_key = 'edge-sw-2', to_id = 'concept-sw-2'
+    WHERE edge_key = 'edge-sw-1'`);
+  try {
+    await assert.rejects(
+      resolver.resolveEvent({
+        sourceType: "QUESTION_ATTEMPT",
+        sourceEventId: attemptId,
+        sourceRevisionIdentity: "forged",
+      }),
+      (error) => error?.code === "EVIDENCE_MAPPING_SET_MISMATCH",
+    );
+  } finally {
+    await exec(`UPDATE ontology_edges
+      SET edge_key = 'edge-sw-1', to_id = 'concept-sw-1'
+      WHERE edge_key = 'edge-sw-2'`);
+  }
+});
+
+test("a correction for another event does not bind this attempt", async () => {
+  await exec(`DELETE FROM learning_event_revisions WHERE source_event_id = '${attemptId}'`);
+  await exec(`INSERT INTO learning_event_revisions VALUES (
+    'QUESTION_ATTEMPT', 'other-attempt', 1, 'CORRECT_CONCEPT_MAPPING',
+    '${"b".repeat(64)}', '${JSON.stringify({ kind: "CONCEPT_MAPPING", conceptMappingSetHash: mappingHash }).replaceAll("'", "''")}'
+  )`);
+  try {
+    const source = await resolver.resolveEvent({
+      sourceType: "QUESTION_ATTEMPT",
+      sourceEventId: attemptId,
+      sourceRevisionIdentity: "forged",
+    });
+    assert.ok(source);
+    assert.equal(source.validity, "LEGACY_INELIGIBLE");
+    assert.equal(source.unresolvedReason, "SW_MAPPING_REVISION_MISSING");
+  } finally {
+    await exec("DELETE FROM learning_event_revisions WHERE source_event_id = 'other-attempt'");
+    await restoreMappingRevision();
+  }
+});
+
+test("contradictory Foundation and question-version identities fail before fallback", async () => {
+  await exec(`INSERT INTO question_versions VALUES ('conflicting-version', '${"c".repeat(64)}')`);
+  await exec(`INSERT INTO question_attempts VALUES (
+    'sw-attempt-conflict', '${userId}', '${seed.courseId}', NULL, '${seed.id}',
+    'conflicting-version', NULL, 1, 87, '2026-09-11T00:00:00.000Z', 'VULNERABLE'
+  )`);
+  await assert.rejects(
+    resolver.resolveEvent({
+      sourceType: "QUESTION_ATTEMPT",
+      sourceEventId: "sw-attempt-conflict",
+      sourceRevisionIdentity: "forged",
+    }),
+    (error) => error?.code === "EVIDENCE_SOURCE_IDENTITY_CONFLICT",
+  );
+});
+
 test("repeated canonical snapshot lookup is stable and read-only", async () => {
   const first = await resolver.resolveEvent({
     sourceType: "QUESTION_ATTEMPT",

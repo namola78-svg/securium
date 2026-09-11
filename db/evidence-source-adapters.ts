@@ -95,6 +95,16 @@ implements CanonicalEvidenceSourceResolver {
       parameters: [input.sourceEventId],
     });
     if (!row) return null;
+    if (
+      !mock &&
+      row.question_version_id != null &&
+      (await this.swAttempts.readBindingIdentity(input.sourceEventId)) !== null
+    ) {
+      // The canonical identity check also exists in the schema, but the
+      // resolver must fail closed before either adapter can reinterpret a
+      // contradictory row (especially in a drifted/read-only fixture).
+      invalid("EVIDENCE_SOURCE_IDENTITY_CONFLICT");
+    }
     if (!mock && !row.question_version_id) {
       const sw = await this.swAttempts.resolve(
         { ...input, sourceType: "QUESTION_ATTEMPT" },

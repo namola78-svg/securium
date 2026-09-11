@@ -91,7 +91,7 @@ export class SwAttemptEvidenceSourceAdapter {
     input: ResolveInput,
     baseRow: BaseAttemptRow,
   ): Promise<SwAttemptResolution | null> {
-    const bindingIdentity = await this.loadBindingIdentity(input.sourceEventId);
+    const bindingIdentity = await this.readBindingIdentity(input.sourceEventId);
     if (bindingIdentity === null) return null;
 
     const row = await this.loadCanonicalRow(input.sourceEventId);
@@ -213,7 +213,7 @@ export class SwAttemptEvidenceSourceAdapter {
     };
   }
 
-  private async loadBindingIdentity(attemptId: string) {
+  async readBindingIdentity(attemptId: string) {
     try {
       const row = await this.database.queryOne<{ foundation_question_binding_id: string | null }>({
         sql: "SELECT foundation_question_binding_id FROM question_attempts WHERE id = ? LIMIT 1",
