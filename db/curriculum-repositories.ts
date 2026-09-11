@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, isNull, ne, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, ne, notLike, sql } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
 import { getDb } from ".";
 import {
@@ -371,6 +371,7 @@ export async function getPublishedCurriculumPathOverviewForCourse(
                 isNull(courseLessons.deletedAt),
                 eq(contents.status, "PUBLISHED"),
                 isNull(contents.deletedAt),
+                notLike(contents.canonicalKey, "sample.%"),
                 inArray(courseLessons.curriculumNodeId, nodeIds),
               ),
             )

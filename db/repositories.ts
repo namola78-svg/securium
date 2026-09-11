@@ -5,6 +5,7 @@ import {
   courseGroups,
   courseLessons,
   questionCourses,
+  questions,
   courses,
   learningUnits,
   lessons,
@@ -56,7 +57,8 @@ export type CourseListItem = {
   updatedAt?: string;
   subjectCount?: number;
   topicCount?: number;
-  questionCount?: number;
+  publishedQuestionCount?: number;
+  publishedLessonCount?: number;
 };
 
 type SwRuntimeCourseProjectionInput = Pick<
@@ -130,10 +132,25 @@ export async function listPublishedCourses(): Promise<CourseListItem[]> {
           AND ${topics.active} = 1
           AND ${topics.deletedAt} IS NULL
       )`,
-      questionCount: sql<number>`(
+      publishedQuestionCount: sql<number>`(
         SELECT COUNT(*)
         FROM ${questionCourses}
+        INNER JOIN ${questions}
+          ON ${questionCourses.questionId} = ${questions.id}
         WHERE ${questionCourses.courseId} = ${courses.id}
+          AND ${questions.status} = 'PUBLISHED'
+      )`,
+      publishedLessonCount: sql<number>`(
+        SELECT COUNT(*)
+        FROM ${courseLessons}
+        INNER JOIN ${contents}
+          ON ${courseLessons.contentId} = ${contents.id}
+        WHERE ${courseLessons.courseId} = ${courses.id}
+          AND ${courseLessons.status} = 'PUBLISHED'
+          AND ${courseLessons.deletedAt} IS NULL
+          AND ${contents.status} = 'PUBLISHED'
+          AND ${contents.deletedAt} IS NULL
+          AND ${contents.canonicalKey} NOT LIKE 'sample.%'
       )`,
     })
     .from(courses)
@@ -186,10 +203,25 @@ export async function getPublicCourseBySlug(slug: string) {
           AND ${topics.active} = 1
           AND ${topics.deletedAt} IS NULL
       )`,
-      questionCount: sql<number>`(
+      publishedQuestionCount: sql<number>`(
         SELECT COUNT(*)
         FROM ${questionCourses}
+        INNER JOIN ${questions}
+          ON ${questionCourses.questionId} = ${questions.id}
         WHERE ${questionCourses.courseId} = ${courses.id}
+          AND ${questions.status} = 'PUBLISHED'
+      )`,
+      publishedLessonCount: sql<number>`(
+        SELECT COUNT(*)
+        FROM ${courseLessons}
+        INNER JOIN ${contents}
+          ON ${courseLessons.contentId} = ${contents.id}
+        WHERE ${courseLessons.courseId} = ${courses.id}
+          AND ${courseLessons.status} = 'PUBLISHED'
+          AND ${courseLessons.deletedAt} IS NULL
+          AND ${contents.status} = 'PUBLISHED'
+          AND ${contents.deletedAt} IS NULL
+          AND ${contents.canonicalKey} NOT LIKE 'sample.%'
       )`,
     })
     .from(courses)

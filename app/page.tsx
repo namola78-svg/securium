@@ -89,7 +89,7 @@ function LandingCourseCard({ course }: { course: CourseListItem }) {
         <dl className={styles.courseFacts}>
           <div><dt>과목</dt><dd>{safeCount(course.subjectCount)}개</dd></div>
           <div><dt>주제</dt><dd>{safeCount(course.topicCount)}개</dd></div>
-          <div><dt>문제</dt><dd>{safeCount(course.questionCount)}개</dd></div>
+          <div><dt>문제</dt><dd>{safeCount(course.publishedQuestionCount)}개</dd></div>
         </dl>
       </div>
       <V2Button fullWidth href={`/courses/${course.slug}`} variant="secondary">

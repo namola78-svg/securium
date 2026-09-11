@@ -4,6 +4,7 @@ import { CourseCard } from "@/components/course-card";
 import { EmptyState } from "@/components/state-ui";
 import { listPublishedCoursesCached } from "@/lib/cached-catalog";
 import { courseAudienceLabel, courseDescription, courseTypeLabel } from "@/lib/course-display";
+import { hasPublicLearningContent } from "@/lib/services/course-availability";
 
 export const metadata: Metadata = {
   title: "과정 둘러보기",
@@ -36,7 +37,7 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
       .toLocaleLowerCase("ko-KR");
     const matchesQuery = !normalizedQuery || searchable.includes(normalizedQuery);
     const matchesPath = path === "all" || (path === "certification" ? isCertificationCourse(course) : !isCertificationCourse(course));
-    const available = course.active && course.published;
+    const available = hasPublicLearningContent(course);
     const matchesStatus = status === "all" || (status === "available" ? available : !available);
     return matchesQuery && matchesPath && matchesStatus;
   });

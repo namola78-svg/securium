@@ -5,17 +5,15 @@ import { ProgressBar } from "@/components/progress-bar";
 import { EmptyState } from "@/components/state-ui";
 import styles from "@/components/v2/learn-experience.module.css";
 import {
-  getSubjectTheoryProgress,
-  listPublishedLearningUnitsForSubject,
-} from "@/db/lesson-repositories";
-import {
   getEnrollmentForCourse,
   getPublicCourseBySlug,
   getSubjectById,
   listTopicsForSubject,
 } from "@/db/repositories";
+import { listPublishedCourseLessonsForSubject } from "@/db/shared-content-repositories";
 import { requireCurrentAppUser } from "@/lib/auth";
 import { publicCopy } from "@/lib/public-copy";
+import { courseLessonHref } from "@/lib/services/learning-route";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -38,13 +36,24 @@ export default async function SubjectPage({
   const enrollment = await getEnrollmentForCourse(user.id, course.id);
   if (!enrollment) redirect(`/courses/${course.slug}`);
 
-  const [topics, learningUnits, theoryProgress] = await Promise.all([
+  const [topics, theoryProgress] = await Promise.all([
     listTopicsForSubject(subject.id),
-    listPublishedLearningUnitsForSubject(user.id, course.id, subject.id),
-    getSubjectTheoryProgress(user.id, course.id, subject.id),
+    listPublishedCourseLessonsForSubject(user.id, course.id, subject.id),
   ]);
-  const allLessons = learningUnits.flatMap((unit) => unit.lessons);
+  const allLessons = theoryProgress.lessons;
   const nextLesson = allLessons.find((lesson) => lesson.status !== "COMPLETED") ?? allLessons[0];
+  const learningUnits = theoryProgress.totalLessons
+    ? [{
+        id: "published-course-lessons",
+        title: "공개 이론",
+        description: "이 과목에 연결된 공개 이론 콘텐츠입니다.",
+        topicName: null,
+        progressPercent: theoryProgress.progressPercent,
+        completedLessons: theoryProgress.completedLessons,
+        totalLessons: theoryProgress.totalLessons,
+        lessons: allLessons,
+      }]
+    : [];
 
   return (
     <main className={styles.page} data-learn-subject-v2="">
@@ -77,7 +86,7 @@ export default async function SubjectPage({
               <h2 id="subject-next-title">{publicCopy(nextLesson.title)}</h2>
               <p>{publicCopy(nextLesson.summary)}</p>
             </div>
-            <Link className={styles.primaryButton} href={`/learn/${course.slug}/lessons/${nextLesson.id}`}>
+            <Link className={styles.primaryButton} href={courseLessonHref(course.slug, nextLesson.id)}>
               {nextLesson.status === "IN_PROGRESS" ? "이어서 학습" : "레슨 시작"}
               <span aria-hidden="true">→</span>
             </Link>
@@ -109,7 +118,7 @@ export default async function SubjectPage({
                     {unit.lessons.map((lesson, lessonIndex) => (
                       <Link
                         className={styles.lessonRow}
-                        href={`/learn/${course.slug}/lessons/${lesson.id}`}
+                        href={courseLessonHref(course.slug, lesson.id)}
                         key={lesson.id}
                         aria-current={lesson.id === nextLesson?.id ? "step" : undefined}
                       >
