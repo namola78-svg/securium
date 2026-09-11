@@ -5,7 +5,6 @@ import {
   secureCoding8HRuntimeQuestionId,
   secureCoding8HRuntimeQuestionVersionId,
   type SecureCoding8HRuntimeQuestionChoice,
-  type SecureCoding8HRuntimeQuestionMapping,
   type SecureCoding8HRuntimeQuestionMappingManifest,
 } from "./secure-coding-8h-question-runtime-mapping.ts";
 import {
