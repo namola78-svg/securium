@@ -8,7 +8,6 @@ lab from its extracted working directory without repository import paths.
 from __future__ import annotations
 
 import hashlib
-import io
 import json
 import os
 from pathlib import Path
@@ -91,37 +90,30 @@ def _test_id(test: unittest.case.TestCase) -> str:
 
 
 def _run_package_boundary_tests() -> dict[str, object]:
-    suite = unittest.defaultTestLoader.discover(
-        str(PACKAGE_ROOT),
-        pattern="test_*.py",
-        top_level_dir=str(PACKAGE_ROOT),
+    suite_code = (
+        "import json, os, sys, unittest; "
+        f"package_root={str(PACKAGE_ROOT)!r}; sys.path.insert(0, package_root); "
+        "suite=unittest.defaultTestLoader.discover(package_root, pattern='test_*.py', top_level_dir=package_root); "
+        "discovered=suite.countTestCases(); result=unittest.TextTestRunner(verbosity=0).run(suite); "
+        "skipped_ids=sorted(test.id().rsplit('.', 1)[-1] for test, _reason in result.skipped); "
+        "summary={'discovered':discovered,'executed':result.testsRun,'failed':len(result.failures),'errors':len(result.errors),'skipped':len(result.skipped),'skipped_ids':skipped_ids,'todo':0}; "
+        "print(json.dumps(summary, sort_keys=True)); "
+        "raise SystemExit(0 if discovered == 9 and result.testsRun == 9 and not result.failures and not result.errors and not result.skipped else 1)"
     )
-    discovered = suite.countTestCases()
-    stream = io.StringIO()
-    result = unittest.TextTestRunner(stream=stream, verbosity=1).run(suite)
-    skipped_ids = sorted(_test_id(test) for test, _reason in result.skipped)
-    failed_ids = sorted(_test_id(test) for test, _traceback in result.failures)
-    error_ids = sorted(_test_id(test) for test, _traceback in result.errors)
-    summary = {
-        "discovered": discovered,
-        "executed": result.testsRun,
-        "failed": len(result.failures),
-        "errors": len(result.errors),
-        "skipped": len(result.skipped),
-        "skipped_ids": skipped_ids,
-        "failed_ids": failed_ids,
-        "error_ids": error_ids,
-        "todo": 0,
-    }
+    result = _run(
+        [sys.executable, "-B", "-c", suite_code],
+        cwd=REPOSITORY_ROOT,
+    )
+    summary = _json_output(result)
+    summary["process_exit"] = result.returncode
     print("packaging_boundary=" + json.dumps(summary, sort_keys=True))
-    if result.failures or result.errors:
-        print("packaging_boundary_output_tail=" + json.dumps(stream.getvalue()[-3000:]))
     if (
-        discovered != EXPECTED_PACKAGE_TESTS
-        or result.testsRun != EXPECTED_PACKAGE_TESTS
-        or result.failures
-        or result.errors
-        or result.skipped
+        result.returncode != 0
+        or summary.get("discovered") != EXPECTED_PACKAGE_TESTS
+        or summary.get("executed") != EXPECTED_PACKAGE_TESTS
+        or summary.get("failed")
+        or summary.get("errors")
+        or summary.get("skipped")
     ):
         raise RuntimeError("packaging boundary test accounting did not pass")
     return summary
