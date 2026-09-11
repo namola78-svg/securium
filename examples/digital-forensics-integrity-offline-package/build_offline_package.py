@@ -732,7 +732,9 @@ def main(argv: list[str] | None = None) -> int:
     except (OSError, PackageError) as error:
         print(json.dumps({"status": "REJECTED", "error": str(error)}, sort_keys=True), file=sys.stderr)
         return 2
-    print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
+    # Keep machine-readable CLI output safe on Windows consoles that are not
+    # UTF-8 capable; package and manifest files remain UTF-8 bytes.
+    print(json.dumps(result, ensure_ascii=True, indent=2, sort_keys=True))
     return 0 if result.get("status") in {"BUILT", "PASS"} else 1
 
 
