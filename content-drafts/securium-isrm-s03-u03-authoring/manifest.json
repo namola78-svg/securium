@@ -1,0 +1,66 @@
+{
+  "schema": "securium.isrm.s03_u03.authoring_draft.v1",
+  "status": "DRAFT_UNPUBLISHED_REVIEW_REQUIRED",
+  "courseId": "course-isrm",
+  "subjectId": "isrm-2025-2027-s03",
+  "learningUnitId": "isrm-2025-2027-s03-u03",
+  "draftTitle": "구현 결과를 이행점검과 개선으로 연결하기",
+  "titleAuthority": "SECURIUM_DRAFT_TITLE_NOT_OFFICIAL_UNIT_TITLE",
+  "officialScopeAnchor": {
+    "subjectNumber": "III",
+    "subjectName": "정보보호 위험 대응",
+    "majorItem": "보호대책 구현",
+    "subitems": [
+      "식별된 위험에 대한 처리 전략 및 보호대책 수립",
+      "보호대책 구현 시 고려사항",
+      "보호대책 구현 완료 후 이행점검"
+    ],
+    "claimIds": ["ISRM-S03-U03-C01", "ISRM-S03-U03-C02"],
+    "officialUnitId": "UNKNOWN"
+  },
+  "continuity": {
+    "priorUnitIds": ["isrm-2025-2027-s03-u01", "isrm-2025-2027-s03-u02"],
+    "priorOutcomeIds": [
+      "ISRM-S03-U01-O01",
+      "ISRM-S03-U01-O02",
+      "ISRM-S03-U02-O01",
+      "ISRM-S03-U02-O02"
+    ],
+    "input": "U01의 처리전략·구현계획과 U02의 운영 책임·적용성·증거 mapping",
+    "newBoundary": "구현 결과 점검, 운영 효과성 판단, 지연·미이행 원인 분석, 개선·추가 위험평가·관리 후속조치",
+    "repeatedContentExcluded": "전략 재선택과 책임·적용성 mapping의 독립 설명"
+  },
+  "objectiveIds": ["ISRM-S03-U03-O01", "ISRM-S03-U03-O02"],
+  "theoryIds": ["ISRM-S03-U03-T01"],
+  "questionIds": ["isrm-q-v2-17", "isrm-q-v2-18", "isrm-q-v2-30"],
+  "existingCanonicalAuthorityRows": [
+    { "id": "isrm-q-v2-17", "answerAuthority": "PRESENT", "explanation": "PRESENT", "decision": "ACCEPT", "bodyPayloadPresent": false },
+    { "id": "isrm-q-v2-18", "answerAuthority": "PRESENT", "explanation": "PRESENT", "decision": "ACCEPT", "bodyPayloadPresent": false },
+    { "id": "isrm-q-v2-30", "answerAuthority": "PRESENT", "explanation": "PRESENT", "decision": "ACCEPT", "bodyPayloadPresent": false }
+  ],
+  "sourcePolicy": {
+    "officialUse": "FACTUAL_SCOPE_ANCHOR_ONLY",
+    "officialExpressionReuse": "UNKNOWN_REQUIRES_PERMISSION",
+    "commercialSources": "EXCLUDED",
+    "officialQuestionReuse": "EXCLUDED",
+    "sourceExpressionReuse": 0,
+    "officialQuestionReconstruction": 0
+  },
+  "governance": {
+    "canonicalApproval": "NOT_REQUESTED",
+    "revisionBinding": "NOT_ISSUED",
+    "publication": "NOT_AUTHORIZED",
+    "runtimeImport": "NONE",
+    "runtimeRegistration": 0,
+    "runtimeDbIo": 0
+  },
+  "currentness": {
+    "status": "PARTIAL",
+    "officialSemanticVersion": "UNKNOWN",
+    "officialScopeDetail": "PARTIAL",
+    "identityPageReviewedOn": "2026-09-11",
+    "unitIdYearRangeNotUsedAsEvidence": true
+  },
+  "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
+  "reviewRequired": true
+}

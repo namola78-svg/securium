@@ -1,0 +1,116 @@
+{
+  "schema": "securium.isrm.s02_u01.question_draft.v1",
+  "status": "DRAFT_UNPUBLISHED_REVIEW_REQUIRED",
+  "learningUnitId": "isrm-2025-2027-s02-u01",
+  "questions": [
+    {
+      "id": "isrm-q-v2-07",
+      "status": "DRAFT_UNPUBLISHED",
+      "type": "SINGLE_CHOICE",
+      "difficulty": "PRACTICE",
+      "courseId": "course-isrm",
+      "subjectId": "isrm-2025-2027-s02",
+      "learningUnitId": "isrm-2025-2027-s02-u01",
+      "scenarioType": "SECURIUM_SYNTHETIC_SCENARIO",
+      "fictional": true,
+      "objectiveIds": ["ISRM-S02-U01-O01"],
+      "theoryIds": ["ISRM-S02-U01-T01"],
+      "prompt": "가상의 서비스 조직이 여러 서비스의 위험을 빠르게 1차 비교한 뒤 우선순위가 높은 영역만 더 깊게 분석하려 한다. 가장 적절한 방법 선택은 무엇인가?",
+      "options": [
+        { "id": "A", "text": "모든 서비스에 처음부터 같은 상세 위험분석을 적용한다." },
+        { "id": "B", "text": "전체를 넓게 선별한 뒤 우선순위가 높은 영역에 상세 분석을 적용한다." },
+        { "id": "C", "text": "한 수행자의 경험만으로 중요한 위험을 정하고 다른 근거는 수집하지 않는다." },
+        { "id": "D", "text": "다른 조직이 사용한 방법을 조직의 범위와 자원 검토 없이 그대로 따른다." }
+      ],
+      "correctOptionId": "B",
+      "answerExplanation": "전체 범위를 빠르게 비교하면서 고위험 영역에 분석 자원을 집중하려는 요구에는 복합 접근법이 맞습니다. 방법 선택은 범위와 필요한 분석 깊이에 비례해야 하며, 선택 이유와 한계를 계획에 남겨야 합니다.",
+      "incorrectExplanations": {
+        "A": "모든 대상에 상세 분석을 적용하면 필요 이상의 시간과 숙련 인력이 들 수 있어 제시된 비례적 분석 요구와 맞지 않습니다.",
+        "C": "경험 중심의 비정형 판단만 사용하면 수행자의 전문성에 따라 결과가 달라지고 전체 비교와 근거가 약해질 수 있습니다.",
+        "D": "다른 조직의 방법은 범위·자산·자원·목표가 다를 수 있으므로 조직 맥락을 검토하지 않고 복사할 근거가 되지 않습니다."
+      },
+      "claimIds": ["ISRM-S02-U01-C03", "ISRM-S02-U01-C05"],
+      "ambiguityReview": "ONE_BEST_ANSWER",
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
+      "sourceExpressionReuse": 0,
+      "officialQuestionReconstruction": 0,
+      "rightsStatus": "REVIEW_REQUIRED",
+      "currentness": "PARTIAL",
+      "canonicalRevisionBinding": "NOT_ISSUED"
+    },
+    {
+      "id": "isrm-q-v2-08",
+      "status": "DRAFT_UNPUBLISHED",
+      "type": "SINGLE_CHOICE",
+      "difficulty": "FOUNDATION",
+      "courseId": "course-isrm",
+      "subjectId": "isrm-2025-2027-s02",
+      "learningUnitId": "isrm-2025-2027-s02-u01",
+      "scenarioType": "SECURIUM_SYNTHETIC_SCENARIO",
+      "fictional": true,
+      "objectiveIds": ["ISRM-S02-U01-O02"],
+      "theoryIds": ["ISRM-S02-U01-T01"],
+      "prompt": "나중에 수행 여부와 판단 근거를 확인할 수 있는 위험평가 관리계획에 가장 필요한 기록 조합은 무엇인가?",
+      "options": [
+        { "id": "A", "text": "보고서의 표지 디자인과 선호하는 평가 도구 이름" },
+        { "id": "B", "text": "범위·대상·수행인력·방법·기간·책임·예산·완료 evidence" },
+        { "id": "C", "text": "평가자가 선호하는 점수표와 결과가 없다는 사전 약속" },
+        { "id": "D", "text": "회의 초대장과 평가가 잘 진행될 것이라는 일반적인 문장" }
+      ],
+      "correctOptionId": "B",
+      "answerExplanation": "검토 가능한 계획은 무엇을 어떤 방법으로 누가 언제 평가하고, 책임과 예산을 어떻게 배정하며, 완료를 어떤 evidence로 확인할지 보여 줘야 합니다. 표지나 도구 이름만으로는 범위와 실행 책임을 확인할 수 없습니다.",
+      "incorrectExplanations": {
+        "A": "표지 디자인과 도구 이름은 계획의 범위·책임·기간·완료 조건을 설명하지 못합니다.",
+        "C": "점수표와 결과를 내지 않겠다는 약속은 계획의 실행 가능성과 검토 evidence를 약화시킵니다.",
+        "D": "초대장과 일반적인 의지는 평가가 수행되었는지 판단할 범위·방법·책임·완료 기준을 제공하지 않습니다."
+      },
+      "claimIds": ["ISRM-S02-U01-C04", "ISRM-S02-U01-C05"],
+      "ambiguityReview": "ONE_BEST_ANSWER",
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
+      "sourceExpressionReuse": 0,
+      "officialQuestionReconstruction": 0,
+      "rightsStatus": "REVIEW_REQUIRED",
+      "currentness": "PARTIAL",
+      "canonicalRevisionBinding": "NOT_ISSUED"
+    },
+    {
+      "id": "isrm-q-v2-29",
+      "status": "DRAFT_UNPUBLISHED",
+      "type": "SINGLE_CHOICE",
+      "difficulty": "PRACTICE",
+      "courseId": "course-isrm",
+      "subjectId": "isrm-2025-2027-s02",
+      "learningUnitId": "isrm-2025-2027-s02-u01",
+      "scenarioType": "SECURIUM_SYNTHETIC_SCENARIO",
+      "fictional": true,
+      "objectiveIds": ["ISRM-S02-U01-O02"],
+      "theoryIds": ["ISRM-S02-U01-T01"],
+      "prompt": "기존 위험평가 범위 밖에 새로운 클라우드 의존성이 추가되었다. 가장 먼저 해야 할 조치는 무엇인가?",
+      "options": [
+        { "id": "A", "text": "기존 평가 결과를 변경 없이 새 의존성에도 적용한다." },
+        { "id": "B", "text": "범위와 방법의 적합성을 다시 검토하고 새 가정과 평가 결과를 추적 가능하게 기록한다." },
+        { "id": "C", "text": "이전 평가 기록을 삭제하고 새 평가만 남긴다." },
+        { "id": "D", "text": "클라우드 서비스는 기본적으로 안전하다고 보고 평가 대상에서 제외한다." }
+      ],
+      "correctOptionId": "B",
+      "answerExplanation": "범위 밖의 의존성은 기존 가정과 방법이 현재 상황에도 맞는지 확인하게 하는 변화 신호입니다. 이전 결과를 무조건 재사용하거나 삭제하지 말고, 범위·방법·새 가정·결과의 관계를 추적 가능하게 남겨야 합니다.",
+      "incorrectExplanations": {
+        "A": "새 의존성이 기존 범위와 가정에 포함되는지 확인하지 않으면 평가 결과의 적용 범위를 과장할 수 있습니다.",
+        "C": "이전 기록을 삭제하면 판단의 변화와 가정의 차이를 추적할 수 없으므로 검토 가능한 관리계획과 맞지 않습니다.",
+        "D": "클라우드라는 배치 방식만으로 위험이나 평가 필요성이 사라지지 않으며 조직의 범위와 의존성을 확인해야 합니다."
+      },
+      "claimIds": ["ISRM-S02-U01-C04", "ISRM-S02-U01-C05"],
+      "ambiguityReview": "ONE_BEST_ANSWER",
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
+      "sourceExpressionReuse": 0,
+      "officialQuestionReconstruction": 0,
+      "rightsStatus": "REVIEW_REQUIRED",
+      "currentness": "PARTIAL",
+      "canonicalRevisionBinding": "NOT_ISSUED"
+    }
+  ],
+  "limitations": [
+    "These are independent draft questions, not official KCA questions and not exam-prediction claims.",
+    "Question IDs are retained for planned relation only; no canonical question body or revision binding is overwritten or issued."
+  ]
+}

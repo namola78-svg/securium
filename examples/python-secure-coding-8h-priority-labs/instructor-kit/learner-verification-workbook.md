@@ -22,7 +22,7 @@ confidence, formatter result, or green test run alone is not security evidence.
 | M04 | P04, O13–O16, Q18–Q23 — [learner guide](../m04_files_ssrf/learner.md) | Use this common block |
 | M05 | P05, O17–O20, Q24–Q28 — [learner guide](../m05_web_context/learner.md) | [verification record](../m05_web_context/verification-record.md) |
 | M06 | P06, O21–O24, Q29–Q32 — [learner guide](../m06_authorization/learner.md) | Use this common block |
-| M07 | P07, O25–O28, Q33–Q36 — [learner guide](../m07_secrets_dependencies/learner.md) | Use this common block; Q36 application pending |
+| M07 | P07, O25–O28, Q33–Q36 — [learner guide](../m07_secrets_dependencies/learner.md) | Use this common block; Q36 answer is B/2; Runtime authority binding pending |
 | M08 | P08, O29–O32, Q37–Q40 — [learner guide](../m08_capstone/learner.md) | [human-review template](../m08_capstone/human-review-template.md) |
 
 ## How to complete one record
@@ -302,11 +302,14 @@ Use the [M07 learner guide](../m07_secrets_dependencies/learner.md).
   reachability, and upgrade evidence.
 - For the model-suggested package, record source, integrity, owner, build
   context, CI credential exposure, and human-review evidence.
-- User approval of the Q36 answer-binding correction is complete, but
-  canonical application, immutable revision binding, and verification are not
-  confirmed at this PR head. Mark Q36 excluded from confirmed-answer use and
-  scoring until those states are separately confirmed; do not enter a guessed
-  answer.
+- The repository canonical Q36 answer is now `1` (B/2), merged and verified in
+  #147. The default mapping/preflight path requires
+  `QUESTION_REVISION_CONTEXT_REQUIRED`; only the fixed candidate context
+  projects Q36-v2. Source/approval remains `UNKNOWN`, candidate preflight is
+  `BLOCKED`, persistence is `NOT_READY`, and no `humanReviewHash` or canonical
+  receipt exists. Record B/2 for content discussion, but do not describe the
+  candidate as an authority-issued Runtime revision or claim automated
+  scoring/publication readiness.
 
 Focused command:
 

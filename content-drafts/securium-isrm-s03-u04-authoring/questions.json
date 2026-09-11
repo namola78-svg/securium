@@ -1,0 +1,82 @@
+{
+  "schema": "securium.isrm.s03_u04.question_draft.v1",
+  "status": "DRAFT_UNPUBLISHED_REVIEW_REQUIRED",
+  "learningUnitId": "isrm-2025-2027-s03-u04",
+  "questions": [
+    {
+      "id": "isrm-q-v2-19",
+      "status": "DRAFT_UNPUBLISHED",
+      "type": "SINGLE_CHOICE",
+      "difficulty": "FOUNDATION",
+      "courseId": "course-isrm",
+      "subjectId": "isrm-2025-2027-s03",
+      "learningUnitId": "isrm-2025-2027-s03-u04",
+      "scenarioType": "SECURIUM_SYNTHETIC_SCENARIO",
+      "fictional": true,
+      "objectiveIds": ["ISRM-S03-U04-O01"],
+      "theoryIds": ["ISRM-S03-U04-T01"],
+      "prompt": "창작 시나리오. 중요 서비스를 운영하는 조직이 보안기업의 제품을 도입하려 한다. 제공자는 ‘우수 정보보호기술 지정’ 표지와 홍보 설명만 제시했다. 위험관리자가 먼저 해야 할 판단은 무엇인가?",
+      "options": [
+        { "id": "A", "text": "표지의 존재를 확인한 뒤 조직 위험과의 적합성은 검토하지 않는다." },
+        { "id": "B", "text": "근거의 범위·유효성과 조직 위험의 적합성을 확인하고 잔여위험을 기록한다." },
+        { "id": "C", "text": "가격·일정만 비교하여 가장 저렴한 기술을 선택한다." },
+        { "id": "D", "text": "기업 설명을 신뢰하여 추가 근거 없이 바로 도입한다." }
+      ],
+      "correctOptionId": "B",
+      "answerExplanation": "산업 관련 지정이나 설명은 확인할 가치가 있는 근거지만, 그것만으로 특정 조직의 위험에 대한 적합성과 운영 효과성이 증명되지는 않는다. 근거의 대상·기간·범위와 조직의 자산·위험·통제 목적을 대조하고 남는 위험을 기록해야 한다.",
+      "incorrectExplanations": {
+        "A": "표지의 존재만으로 적용 범위와 조직의 위험 적합성이 확인되지는 않으므로 판단 조건이 빠져 있다.",
+        "C": "가격과 일정은 도입 판단의 일부일 수 있지만, 보호기술이 다루는 위험과 조직의 운영조건을 검토하지 못한다.",
+        "D": "같은 산업에 속한다는 사실은 해당 제품의 근거 범위, 운영조건, 잔여위험을 대신 증명하지 않는다."
+      },
+      "claimIds": ["ISRM-S03-U04-C03", "ISRM-S03-U04-C05"],
+      "ambiguityReview": "ONE_BEST_ANSWER",
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
+      "sourceExpressionReuse": 0,
+      "officialQuestionReconstruction": 0,
+      "rightsStatus": "REVIEW_REQUIRED",
+      "currentness": "PARTIAL",
+      "canonicalRevisionBinding": "NOT_ISSUED"
+    },
+    {
+      "id": "isrm-q-v2-20",
+      "status": "DRAFT_UNPUBLISHED",
+      "type": "SINGLE_CHOICE",
+      "difficulty": "PRACTICE",
+      "courseId": "course-isrm",
+      "subjectId": "isrm-2025-2027-s03",
+      "learningUnitId": "isrm-2025-2027-s03-u04",
+      "scenarioType": "SECURIUM_SYNTHETIC_SCENARIO",
+      "fictional": true,
+      "objectiveIds": ["ISRM-S03-U04-O02"],
+      "theoryIds": ["ISRM-S03-U04-T01"],
+      "prompt": "창작 시나리오. 외부 모니터링 제공자가 로그 보존기간을 줄이고 야간 모니터링을 하도급하겠다고 통지했다. 가장 적절한 다음 조치는 무엇인가?",
+      "options": [
+        { "id": "A", "text": "외부 제공자 변경은 영향이 없다고 보고 기존 위험·계약·증거 연결을 유지한다." },
+        { "id": "B", "text": "이전 기록은 삭제하고 변경된 서비스만 새 기록으로 남겨 비교를 생략한다." },
+        { "id": "C", "text": "변경 전후의 의무·책임·증거·잔여위험을 검토하고 결정·조치·이력을 보존한다." },
+        { "id": "D", "text": "제공자 명칭·가격만 확인하고 보호대책의 운영 범위는 다시 검토하지 않는다." }
+      ],
+      "correctOptionId": "C",
+      "answerExplanation": "로그 보존과 하도급 범위는 기존 통제의 전제, 책임 분담, 증거의 충분성, 잔여위험에 영향을 줄 수 있다. 변경 전후를 비교하여 적용 의무·책임·증거를 재검토하고, 결정과 보완조치 및 이력을 남겨야 한다.",
+      "incorrectExplanations": {
+        "A": "외부 제공자라는 사실은 조직이 자신의 적용 의무와 잔여위험을 다시 확인할 필요를 없애지 않는다.",
+        "B": "이전 기록을 삭제하면 변경 전후의 범위와 판단 근거를 추적할 수 없고, 종결·재검토의 연속성이 끊긴다.",
+        "D": "명칭과 가격만으로 로그·하도급·책임·증거의 변화나 보호대책의 실제 운영 범위를 판단할 수 없다."
+      },
+      "claimIds": ["ISRM-S03-U04-C04", "ISRM-S03-U04-C05"],
+      "ambiguityReview": "ONE_BEST_ANSWER",
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
+      "sourceExpressionReuse": 0,
+      "officialQuestionReconstruction": 0,
+      "rightsStatus": "REVIEW_REQUIRED",
+      "currentness": "PARTIAL",
+      "canonicalRevisionBinding": "NOT_ISSUED"
+    }
+  ],
+  "limitations": [
+    "These are independent draft questions, not official KCA questions and not exam-prediction claims.",
+    "Question IDs are retained for the planned Foundation relation only; no canonical question body or revision binding is overwritten or issued.",
+    "Both scenarios and all organization names are fictional."
+  ]
+}

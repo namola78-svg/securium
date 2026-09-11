@@ -1,0 +1,109 @@
+{
+  "schema": "securium.isrm.s02_u01.theory_draft.v1",
+  "status": "DRAFT_UNPUBLISHED_REVIEW_REQUIRED",
+  "id": "ISRM-S02-U01-T01",
+  "courseId": "course-isrm",
+  "subjectId": "isrm-2025-2027-s02",
+  "learningUnitId": "isrm-2025-2027-s02-u01",
+  "title": "위험평가 방법론과 관리계획의 설계",
+  "summary": "앞 단위에서 보호대상·요구사항·관리체계의 운영 조건을 정리했다면, 이번 단위에서는 위험을 평가할 방법과 이를 실행·검토할 관리계획을 범위와 근거에 맞춰 설계합니다.",
+  "objectiveIds": ["ISRM-S02-U01-O01", "ISRM-S02-U01-O02"],
+  "claimIds": ["ISRM-S02-U01-C02", "ISRM-S02-U01-C03", "ISRM-S02-U01-C04", "ISRM-S02-U01-C05"],
+  "sections": [
+    {
+      "id": "bridge-from-s01",
+      "heading": "1. 관리체계 운영에서 평가 준비로 이어 간다",
+      "body": "S01에서 보호대상과 요구사항을 확인하고, S01-U02에서 자산의 우선순위와 운영 조건을 기록하고, S01-U03에서 정책·교육·검토가 이어지는 운영 조건을 연결했다면 이제 위험을 어떤 깊이와 절차로 평가할지 준비해야 합니다. 방법론 선택은 도구 이름을 고르는 일이 아니라 범위·자산·목표·자원·변화 가능성을 비교해 평가의 일관성과 검토 가능성을 확보하는 일입니다. 이 단위의 순서는 공식 인증 절차나 하나의 정답 점수식이 아니라, 평가 준비를 설명하기 위한 Securium 독립 학습 순서입니다.",
+      "claimIds": ["ISRM-S02-U01-C03", "ISRM-S02-U01-C05"]
+    },
+    {
+      "id": "method-types",
+      "heading": "2. 방법론의 깊이와 범위를 비교한다",
+      "body": "베이스라인 접근법은 표준 통제 목록을 넓게 적용해 빠르게 현재 상태를 비교하는 데 유리하지만, 자산별 차이와 환경 변화를 세밀하게 반영하기 어려울 수 있습니다. 비정형 접근법은 수행자의 경험과 지식을 활용할 수 있지만 사람의 전문성에 따라 결과가 달라질 수 있습니다. 상세 위험분석은 자산·위협·취약성을 단계적으로 분석해 구체적인 판단을 돕지만 시간과 숙련 인력이 필요합니다. 복합 접근법은 넓은 선별 뒤 고위험 영역에 상세 분석을 적용하는 방식입니다. 어느 방법이 항상 우월한 것이 아니며, 조직의 범위와 목적에 맞는 선택 이유를 남겨야 합니다.",
+      "relationships": [
+        "넓은 선별과 표준 비교 -> 베이스라인 접근법",
+        "경험 중심의 제한된 분석 -> 비정형 접근법",
+        "자산·위협·취약성의 단계별 분석 -> 상세 위험분석",
+        "범위 전체의 선별 + 고위험 영역의 깊은 분석 -> 복합 접근법"
+      ],
+      "claimIds": ["ISRM-S02-U01-C03", "ISRM-S02-U01-C05"]
+    },
+    {
+      "id": "method-selection",
+      "heading": "3. 방법 선택의 이유와 한계를 기록한다",
+      "body": "방법을 선택할 때는 평가 범위, 자산과 서비스의 다양성, 목표 위험수준, 필요한 분석 깊이, 일정과 수행인력, 사용 가능한 evidence를 함께 비교합니다. 작은 범위에서 빠른 1차 비교가 필요하더라도 고위험 영역을 더 깊게 확인해야 할 수 있고, 상세 분석이 필요한 조직은 그 비용과 숙련도도 계획해야 합니다. 다른 조직이 사용했다는 사실이나 특정 도구의 보유만으로 방법을 정하지 말고, 선택하지 않은 대안과 예상되는 한계도 기록합니다.",
+      "claimIds": ["ISRM-S02-U01-C03", "ISRM-S02-U01-C05"]
+    },
+    {
+      "id": "assessment-plan",
+      "heading": "4. 위험평가 관리계획을 검토 가능하게 만든다",
+      "body": "관리계획에는 무엇을 평가하는지와 무엇을 제외하는지, 수행인력과 책임, 기간, 대상, 방법, 예산, 필요한 자료와 완료 evidence를 적습니다. 범위에는 서비스·조직·자산과 관련된 적용 조건을 포함하고, 역할과 책임은 누가 자료를 수집하고 누가 판단을 승인하는지 구분해 기록합니다. 계획을 세우는 것과 평가를 완료하는 것은 다르므로, 결과물과 완료 기준도 계획에 포함해야 합니다.",
+      "relationships": [
+        "범위·대상 -> 평가에 포함되는 서비스와 자산",
+        "수행인력·역할·책임 -> 자료 수집과 판단의 accountability",
+        "기간·방법·예산 -> 실행 가능성",
+        "완료 evidence·검토 조건 -> 계획이 실제로 수행되었는지 확인"
+      ],
+      "claimIds": ["ISRM-S02-U01-C04", "ISRM-S02-U01-C05"]
+    },
+    {
+      "id": "change-review",
+      "heading": "5. 범위와 방법이 여전히 맞는지 다시 확인한다",
+      "body": "위협·취약성·서비스·기술 환경이 변하면 기존 범위나 방법이 현재 상황에 맞지 않을 수 있습니다. 새 시스템이나 외부 클라우드 의존성이 원래 범위 밖에서 추가되면 기존 결과를 그대로 재사용하기 전에 범위와 방법의 적합성을 검토하고, 새 가정·자료·평가 결과를 이전 결과와 추적 가능하게 연결합니다. 이 review trigger는 특정 조직의 법적 주기나 고정 일정의 대체가 아니라, 관리계획에 재검토 조건을 명시하는 독립적 학습 원칙입니다.",
+      "claimIds": ["ISRM-S02-U01-C04", "ISRM-S02-U01-C05"]
+    },
+    {
+      "id": "fictional-case",
+      "heading": "6. 창작 사례: 햇살마켓 서비스 묶음",
+      "fictional": true,
+      "body": "햇살마켓은 주문·배송 상태를 제공하는 소규모 가상 서비스 조직이라고 가정합니다. 처음에는 12개 서비스의 보호대상과 기본 통제를 넓게 비교하고, 고객정보와 결제 연동이 있는 상위 영역만 상세 위험분석 대상으로 정했습니다. 계획서에는 범위와 제외 기준, 참여자, 일정, 방법, 예산, 완료 evidence를 적었습니다. 이후 새 배송 클라우드 의존성이 추가되자 기존 범위 밖의 요소를 안전하다고 가정하지 않고, 범위와 방법의 적합성을 다시 확인한 뒤 변경된 가정과 결과를 이전 계획에 연결했습니다. 조직·서비스·수치·선택은 모두 이 학습을 위해 만든 것이며 실제 기관이나 공식 시험 사례가 아닙니다.",
+      "claimIds": ["ISRM-S02-U01-C05"]
+    },
+    {
+      "id": "common-confusions",
+      "heading": "7. 자주 혼동하는 지점",
+      "items": [
+        {
+          "confusion": "모든 조직은 같은 방법론과 같은 분석 깊이를 사용해야 한다고 생각한다.",
+          "correction": "범위·자산·목표·자원·변화 가능성에 따라 방법과 깊이를 선택하고 이유를 기록한다."
+        },
+        {
+          "confusion": "방법론을 선택하면 평가 관리계획은 필요 없다고 생각한다.",
+          "correction": "범위·대상·인력·기간·책임·예산·완료 evidence를 계획에 남겨 실행 가능성과 검토 가능성을 확보한다."
+        },
+        {
+          "confusion": "예전 평가 결과가 있으면 새 시스템이나 외부 의존성을 자동으로 포함한다고 생각한다.",
+          "correction": "새 범위와 방법의 적합성을 먼저 검토하고, 새 가정과 결과를 이전 기록과 연결한다."
+        },
+        {
+          "confusion": "도구 이름이나 숫자 점수만 있으면 방법 선택이 설명된다고 생각한다.",
+          "correction": "선택 이유, 제외한 대안, 한계, 검토 조건을 함께 기록해야 판단을 재현할 수 있다."
+        }
+      ],
+      "claimIds": ["ISRM-S02-U01-C03", "ISRM-S02-U01-C04", "ISRM-S02-U01-C05"]
+    },
+    {
+      "id": "summary-check",
+      "heading": "8. 요약과 자기점검",
+      "summary": "위험평가 준비는 방법론 이름을 고르는 데서 끝나지 않습니다. 범위와 자산, 필요한 분석 깊이와 자원을 비교해 방법을 선택하고, 수행인력·기간·대상·방법·예산·완료 evidence를 계획에 남겨야 합니다. 환경이 변하면 범위와 방법의 적합성을 다시 검토합니다.",
+      "selfCheck": [
+        "평가 범위와 포함·제외 대상이 한 문장으로 설명되는가?",
+        "선택한 방법과 선택하지 않은 대안의 이유·한계가 기록되어 있는가?",
+        "수행인력·기간·대상·방법·책임·예산·완료 evidence가 계획에 있는가?",
+        "새 시스템·서비스·외부 의존성이 생길 때 재검토할 조건이 있는가?",
+        "변경된 가정과 결과가 이전 평가 기록과 추적 가능하게 연결되는가?"
+      ],
+      "claimIds": ["ISRM-S02-U01-C05"]
+    }
+  ],
+  "limitations": [
+    "This is an independent Securium draft and does not reproduce the official KCA guidebook or official exam content.",
+    "The method-selection sequence is a teaching device, not an official scoring formula, mandatory method, or legal determination.",
+    "Organization-specific risk methods, approval requirements, schedules, and legal duties must be checked from authoritative sources.",
+    "No exam prediction, pass-rate claim, or official unit-level title is asserted."
+  ],
+  "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
+  "sourceExpressionReuse": 0,
+  "canonicalApproval": "NOT_REQUESTED",
+  "publication": "NOT_AUTHORIZED"
+}

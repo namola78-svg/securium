@@ -20,11 +20,6 @@ export type EvidenceContentRevisionBinding = Readonly<{
   binding: "CONTENT_REVISION_SNAPSHOT";
 }>;
 
-type EvidenceResolutionFields = Readonly<{
-  resolutionStatus?: "RESOLVED" | "UNRESOLVED";
-  unresolvedReason?: string;
-}>;
-
 export type EvidenceMappingGuard =
   | Readonly<{
     kind: "QUESTION_VERSION" | "MOCK_COMPOSITION";
@@ -63,7 +58,10 @@ export type CanonicalEvidenceSource = Readonly<{
   sourceSemanticHash: string;
   mappingTransition: "PRESERVE_EVENT_TIME" | "GOVERNED_CORRECTION";
   mappingGuard: EvidenceMappingGuard;
-}> & EvidenceResolutionFields;
+  /** Optional read-side explanation when a source is deliberately unresolved. */
+  resolutionStatus?: "RESOLVED" | "UNRESOLVED";
+  unresolvedReason?: string;
+}>;
 
 export type EvidenceCandidate = Readonly<{
   id: string;

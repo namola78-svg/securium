@@ -1,0 +1,29 @@
+{
+  "schema": "securium.isrm.s03_u01.objective_draft.v1",
+  "status": "DRAFT_UNPUBLISHED_REVIEW_REQUIRED",
+  "learningUnitId": "isrm-2025-2027-s03-u01",
+  "objectives": [
+    {
+      "id": "ISRM-S03-U01-O01",
+      "outcome": "S02-U02의 위험평가 결과와 목표 위험수준을 바탕으로 위험감소·위험회피·위험전가·위험수용 전략을 구분하고, 선택 이유와 조건을 설명할 수 있다.",
+      "theoryIds": ["ISRM-S03-U01-T01"],
+      "questionIds": ["isrm-q-v2-12", "isrm-q-v2-13", "isrm-q-v2-28"],
+      "claimIds": ["ISRM-S03-U01-C03", "ISRM-S03-U01-C04", "ISRM-S03-U01-C05"],
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT"
+    },
+    {
+      "id": "ISRM-S03-U01-O02",
+      "outcome": "선정한 보호대책을 담당자·일정·예산·공유·승인·완료 증거와 함께 구현하고, 구현 결과의 정확성과 효과성을 확인할 수 있다.",
+      "theoryIds": ["ISRM-S03-U01-T01"],
+      "questionIds": ["isrm-q-v2-14"],
+      "claimIds": ["ISRM-S03-U01-C03", "ISRM-S03-U01-C04", "ISRM-S03-U01-C05"],
+      "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT"
+    }
+  ],
+  "limitations": [
+    "Objectives are Securium pedagogical outcomes, not official KCA unit objectives.",
+    "The official unit-level title, detailed scope, and semantic version remain UNKNOWN.",
+    "Treatment examples are learning devices; an actual organization must verify its authority, legal requirements, risk criteria, and approval rules.",
+    "A completed implementation record does not by itself prove control effectiveness."
+  ]
+}

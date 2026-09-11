@@ -141,14 +141,18 @@ ______________________________________________________________________________
 
 ______________________________________________________________________________
 
-## Q36 exception
+## Q36 revision boundary
 
-User approval of the Q36 answer-binding correction is complete, but canonical
-application, immutable revision binding, and verification are not confirmed
-at this PR head. Q36 remains excluded from confirmed-answer use and item-level
-scoring until those states are separately confirmed. Do not award or remove
-rubric evidence points based on a guessed answer position. Evaluate M07
-security reasoning through P07 Source/Validation/Sink evidence, dependency
-triage, provenance discussion, tests, and the learner's human judgment. Record
-that the item-level question evidence is incomplete for Q36 and that this
-does not redefine the rubric as a certification standard.
+The repository canonical Q36 record now has `answer: 1` (B/2), and #147
+merged the correction with verified immutable revision-boundary checks. Use
+B/2 when discussing the content and evaluating the learner's reasoning. The
+default mapping/preflight path requires `QUESTION_REVISION_CONTEXT_REQUIRED`;
+only the fixed candidate context projects Q36-v2. This does not establish
+source/approval authority: source and approval remain `UNKNOWN`, candidate
+preflight is `BLOCKED`, persistence is `NOT_READY`, and no `humanReviewHash` or
+canonical receipt exists. Do not present Q36-v2 as an authority-issued Runtime
+revision or as automated scoring/publication evidence. If a score requires
+Runtime authority binding, leave that item score unbound rather than inventing
+one. Evaluate M07 security reasoning through P07 Source/Validation/Sink
+evidence, dependency triage, provenance discussion, tests, and the learner's
+human judgment; this does not redefine the rubric as a certification standard.

@@ -1,0 +1,70 @@
+{
+  "schema": "securium.isrm.s02_u02.source_claims.v1",
+  "status": "DRAFT_SOURCE_REVIEW_REQUIRED",
+  "claims": [
+    {
+      "id": "ISRM-S02-U02-C01",
+      "claim": "KCA identifies ISRM as registration 2024-004467 and lists 정보보호 위험 평가 및 준비 as the second subject.",
+      "sourceType": "OFFICIAL_PRIMARY_WEB_PAGE",
+      "sourceUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
+      "sourceLocation": "official page qualification and exam-subject text reviewed on 2026-09-11",
+      "localSource": null,
+      "currentness": "VERIFIED_IDENTITY_AND_SUBJECT_PAGE_ON_2026-09-11",
+      "rights": "FACTUAL_REFERENCE_ONLY; EXPRESSION_REUSE_UNKNOWN",
+      "usedIn": ["manifest.json"]
+    },
+    {
+      "id": "ISRM-S02-U02-C02",
+      "claim": "The official written-exam criteria lists subject II major item 2, information-security risk assessment, with asset importance, threat and likelihood, vulnerability, legal conformity, and integrated risk/target-risk evaluation subitems.",
+      "sourceType": "OFFICIAL_LOCAL_PDF_REFERENCE",
+      "sourceUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
+      "sourceLocation": "local exam-criteria PDF pages 1-2",
+      "localSha256": "1FF4981397462274BFDE7BBA35753EC613D834AFB7FBDB309687AB4BD83F6DA3",
+      "applicabilityShownInArtifact": "2025-01-01 to 2027-12-31",
+      "currentness": "PARTIAL; ARTIFACT_SEMANTIC_VERSION_UNKNOWN",
+      "rights": "REFERENCE_ONLY; DO_NOT_REPUBLISH_OR_COPY_EXPRESSION",
+      "usedIn": ["manifest.json", "theory.json"]
+    },
+    {
+      "id": "ISRM-S02-U02-C03",
+      "claim": "The guidebook reference describes information-asset categories, importance and CIA/service-continuity considerations, and risk-priority examples while allowing organization-specific criteria.",
+      "sourceType": "OFFICIAL_LOCAL_PDF_REFERENCE_WITH_BOUNDED_PARAPHRASE",
+      "sourceUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
+      "sourceLocation": "local guidebook printed pages 64-67 (review PDF pages 68-71); asset identification, importance, CIA, continuity, and risk-priority examples",
+      "localSha256": "BD15551DCA7A7E72197C713244D5AB165D7C26C89DA56A174CA15BB4E4AC82D0",
+      "currentness": "PARTIAL; GUIDEBOOK_SEMANTIC_VERSION_UNKNOWN",
+      "rights": "REFERENCE_ONLY; NO_SOURCE_EXPRESSION_REUSE",
+      "usedIn": ["objectives.json", "theory.json", "questions.json"]
+    },
+    {
+      "id": "ISRM-S02-U02-C04",
+      "claim": "The guidebook reference describes threat classification and likelihood, vulnerability assessment approaches and constraints, and legal-conformity/current-guidance review.",
+      "sourceType": "OFFICIAL_LOCAL_PDF_REFERENCE_WITH_BOUNDED_PARAPHRASE",
+      "sourceUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
+      "sourceLocation": "local guidebook printed pages 73-77 (review PDF pages 77-81); threat, vulnerability, legal conformity, and currentness review",
+      "localSha256": "BD15551DCA7A7E72197C713244D5AB165D7C26C89DA56A174CA15BB4E4AC82D0",
+      "currentness": "PARTIAL; GUIDEBOOK_SEMANTIC_VERSION_UNKNOWN",
+      "rights": "REFERENCE_ONLY; NO_SOURCE_EXPRESSION_REUSE",
+      "usedIn": ["objectives.json", "theory.json", "questions.json"]
+    },
+    {
+      "id": "ISRM-S02-U02-C05",
+      "claim": "The asset-threat-vulnerability separation, evidence-chain rule, proportional interpretation of scores, legal-currentness caution, and 별빛서재 example are Securium-created teaching devices and do not assert an official method, legal conclusion, or official question wording.",
+      "sourceType": "INDEPENDENT_PEDAGOGICAL_SYNTHESIS_AND_SYNTHETIC_EXAMPLE",
+      "sourceUrl": null,
+      "sourceLocation": "theory.json sections bridge-from-u01, asset-context, threat-identification, vulnerability-assessment, conformity-currentness, integrated-risk, fictional-case, common-confusions, and summary-check",
+      "currentness": "NOT_AN_OFFICIAL_CLAIM",
+      "rights": "INDEPENDENT_EXPRESSION; REVIEW_REQUIRED",
+      "usedIn": ["objectives.json", "theory.json", "questions.json"]
+    }
+  ],
+  "gate": {
+    "officialExpressionReusePermission": "UNKNOWN_BLOCKED",
+    "detailedOfficialScope": "PARTIAL",
+    "officialSemanticVersion": "UNKNOWN",
+    "commercialSourcesUsed": 0,
+    "officialQuestionReproduction": 0,
+    "sourceBindingApproval": "NOT_ISSUED",
+    "canonicalApproval": "NOT_REQUESTED"
+  }
+}

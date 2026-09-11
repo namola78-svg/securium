@@ -1,0 +1,84 @@
+{
+  "schema": "securium.isrm.s04_u01.authoring_draft.v1",
+  "status": "DRAFT_UNPUBLISHED_REVIEW_REQUIRED",
+  "courseId": "course-isrm",
+  "subjectId": "isrm-2025-2027-s04",
+  "learningUnitId": "isrm-2025-2027-s04-u01",
+  "draftTitle": "위험관리 계획을 반복 가능한 관리체계 운영으로 정착시키기",
+  "titleAuthority": "SECURIUM_DRAFT_TITLE_NOT_OFFICIAL_UNIT_TITLE",
+  "officialScopeAnchor": {
+    "subjectNumber": "IV",
+    "subjectName": "정보보호 관리체계 운영",
+    "majorItem": "정보보호 위험 관리 계획",
+    "subitems": [
+      "정보보호 관리의 이해",
+      "정보보호 위험 관리 거버넌스",
+      "정보보호 관리체계(생명주기) 수립"
+    ],
+    "subjectRange": [
+      {
+        "majorItem": "정보보호 위험 관리 계획",
+        "subitems": ["정보보호 관리의 이해", "정보보호 위험 관리 거버넌스", "정보보호 관리체계(생명주기) 수립"]
+      },
+      {
+        "majorItem": "정보보호 위험 평가",
+        "subitems": ["위험관리 평가 방법론 선정 및 준비", "정보보호 위험 평가"]
+      }
+    ],
+    "claimIds": ["ISRM-S04-U01-C01", "ISRM-S04-U01-C02"],
+    "officialUnitId": "UNKNOWN"
+  },
+  "continuity": {
+    "priorUnitIds": [
+      "isrm-2025-2027-s03-u01",
+      "isrm-2025-2027-s03-u02",
+      "isrm-2025-2027-s03-u03",
+      "isrm-2025-2027-s03-u04"
+    ],
+    "priorOutcomeIds": [
+      "ISRM-S03-U01-O01",
+      "ISRM-S03-U01-O02",
+      "ISRM-S03-U02-O01",
+      "ISRM-S03-U02-O02",
+      "ISRM-S03-U03-O01",
+      "ISRM-S03-U03-O02",
+      "ISRM-S03-U04-O01",
+      "ISRM-S03-U04-O02"
+    ],
+    "input": "Subject III에서 처리한 위험·구현·운영·이행점검 결과",
+    "newBoundary": "보호대책과 산업 맥락의 결과를 반복 가능한 위험관리 계획과 관리체계 운영활동으로 정착시키고, 담당자·범위·주기·증거·변경 이력을 유지",
+    "repeatedContentExcluded": "Subject III의 보호대책을 다시 설계하거나 개별 구현점검을 반복하지 않고 관리체계 운영계획과 소유권 변경의 영향에 집중"
+  },
+  "objectiveIds": ["ISRM-S04-U01-O01", "ISRM-S04-U01-O02"],
+  "theoryIds": ["ISRM-S04-U01-T01"],
+  "questionIds": ["isrm-q-v2-21", "isrm-q-v2-22"],
+  "existingCanonicalAuthorityRows": [
+    { "id": "isrm-q-v2-21", "answerAuthority": "PRESENT", "explanation": "PRESENT", "decision": "ACCEPT", "bodyPayloadPresent": false },
+    { "id": "isrm-q-v2-22", "answerAuthority": "PRESENT", "explanation": "PRESENT", "decision": "ACCEPT", "bodyPayloadPresent": false }
+  ],
+  "sourcePolicy": {
+    "officialUse": "FACTUAL_SCOPE_ANCHOR_ONLY",
+    "officialExpressionReuse": "UNKNOWN_REQUIRES_PERMISSION",
+    "commercialSources": "EXCLUDED",
+    "officialQuestionReuse": "EXCLUDED",
+    "sourceExpressionReuse": 0,
+    "officialQuestionReconstruction": 0
+  },
+  "governance": {
+    "canonicalApproval": "NOT_REQUESTED",
+    "revisionBinding": "NOT_ISSUED",
+    "publication": "NOT_AUTHORIZED",
+    "runtimeImport": "NONE",
+    "runtimeRegistration": 0,
+    "runtimeDbIo": 0
+  },
+  "currentness": {
+    "status": "PARTIAL",
+    "officialSemanticVersion": "UNKNOWN",
+    "officialScopeDetail": "PARTIAL",
+    "identityPageReviewedOn": "2026-09-11",
+    "unitIdYearRangeNotUsedAsEvidence": true
+  },
+  "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
+  "reviewRequired": true
+}

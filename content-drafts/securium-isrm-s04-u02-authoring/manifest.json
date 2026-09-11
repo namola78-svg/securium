@@ -1,0 +1,86 @@
+{
+  "schema": "securium.isrm.s04_u02.authoring_draft.v1",
+  "status": "DRAFT_UNPUBLISHED_REVIEW_REQUIRED",
+  "courseId": "course-isrm",
+  "subjectId": "isrm-2025-2027-s04",
+  "learningUnitId": "isrm-2025-2027-s04-u02",
+  "draftTitle": "변화에 맞춰 위험평가를 갱신하고 결과를 운영에 연결하기",
+  "titleAuthority": "SECURIUM_DRAFT_TITLE_NOT_OFFICIAL_UNIT_TITLE",
+  "officialScopeAnchor": {
+    "subjectNumber": "IV",
+    "subjectName": "정보보호 관리체계 운영",
+    "majorItem": "정보보호 위험 평가",
+    "subitems": [
+      "위험관리 평가 방법론 선정 및 준비",
+      "정보보호 위험 평가"
+    ],
+    "subjectRange": [
+      {
+        "majorItem": "정보보호 위험 관리 계획",
+        "subitems": ["정보보호 관리의 이해", "정보보호 위험 관리 거버넌스", "정보보호 관리체계(생명주기) 수립"]
+      },
+      {
+        "majorItem": "정보보호 위험 평가",
+        "subitems": ["위험관리 평가 방법론 선정 및 준비", "정보보호 위험 평가"]
+      }
+    ],
+    "claimIds": ["ISRM-S04-U02-C01", "ISRM-S04-U02-C02"],
+    "officialUnitId": "UNKNOWN"
+  },
+  "continuity": {
+    "priorUnitIds": [
+      "isrm-2025-2027-s03-u01",
+      "isrm-2025-2027-s03-u02",
+      "isrm-2025-2027-s03-u03",
+      "isrm-2025-2027-s03-u04",
+      "isrm-2025-2027-s04-u01"
+    ],
+    "priorOutcomeIds": [
+      "ISRM-S03-U01-O01",
+      "ISRM-S03-U01-O02",
+      "ISRM-S03-U02-O01",
+      "ISRM-S03-U02-O02",
+      "ISRM-S03-U03-O01",
+      "ISRM-S03-U03-O02",
+      "ISRM-S03-U04-O01",
+      "ISRM-S03-U04-O02",
+      "ISRM-S04-U01-O01",
+      "ISRM-S04-U01-O02"
+    ],
+    "input": "Subject III의 위험 처리·보호대책·이행점검 결과와 S04-U01의 반복 가능한 운영계획",
+    "newBoundary": "운영 중인 범위와 위험평가 입력을 목적에 맞게 확인하고, 자산·위협·취약성·준거성·가능성·영향 및 목표 위험수준을 근거와 함께 갱신하여 평가 결과를 운영 의사결정으로 연결",
+    "repeatedContentExcluded": "S04-U01의 책임자·주기·운영계획을 다시 설계하거나 Subject III의 처리전략·보호대책을 반복하지 않고, 평가 방법과 입력의 적합성·변경 시 재평가·목표 위험수준 비교에 집중"
+  },
+  "objectiveIds": ["ISRM-S04-U02-O01", "ISRM-S04-U02-O02"],
+  "theoryIds": ["ISRM-S04-U02-T01"],
+  "questionIds": ["isrm-q-v2-23", "isrm-q-v2-24"],
+  "existingCanonicalAuthorityRows": [
+    { "id": "isrm-q-v2-23", "answerAuthority": "PRESENT", "explanation": "PRESENT", "decision": "ACCEPT", "bodyPayloadPresent": false },
+    { "id": "isrm-q-v2-24", "answerAuthority": "PRESENT", "explanation": "PRESENT", "decision": "ACCEPT", "bodyPayloadPresent": false }
+  ],
+  "sourcePolicy": {
+    "officialUse": "FACTUAL_SCOPE_ANCHOR_ONLY",
+    "officialExpressionReuse": "UNKNOWN_REQUIRES_PERMISSION",
+    "commercialSources": "EXCLUDED",
+    "officialQuestionReuse": "EXCLUDED",
+    "sourceExpressionReuse": 0,
+    "officialQuestionReconstruction": 0
+  },
+  "governance": {
+    "canonicalApproval": "NOT_REQUESTED",
+    "revisionBinding": "NOT_ISSUED",
+    "publication": "NOT_AUTHORIZED",
+    "runtimeImport": "NONE",
+    "runtimeRegistration": 0,
+    "runtimeDbIo": 0
+  },
+  "currentness": {
+    "status": "PARTIAL",
+    "officialSemanticVersion": "UNKNOWN",
+    "officialScopeDetail": "PARTIAL",
+    "identityPageReviewedOn": "2026-09-11",
+    "unitIdYearRangeNotUsedAsEvidence": true
+  },
+  "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
+  "reviewRequired": true
+}
