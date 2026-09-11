@@ -2,7 +2,8 @@
 
 `build_offline_package.py` creates a deterministic ZIP from the committed
 `examples/python-secure-coding-8h-priority-labs/` tree. It uses only Python's
-standard library and an explicit 61-file allowlist. It rejects symlinks,
+standard library and an explicit 61-file lab allowlist plus one separately
+provenance-bound learner preflight support file. It rejects symlinks,
 unexpected files, source modifications, path traversal, existing output files,
 and output paths inside the repository.
 
@@ -46,6 +47,7 @@ python verification/python-8h-offline/build_offline_package.py verify `
 
 Verification validates the archive and manifest, safely extracts only the
 archive's own paths, checks Markdown links, clears `PYTHONPATH`/`PYTHONHOME`,
+also runs the extracted `preflight/preflight.py` diagnostic, then
 runs M01–M08 focused commands plus full discovery, records the actual test
 counts, and removes the extraction directory even after a test failure. It
 does not run the separate browser harness and does not claim browser or
@@ -64,7 +66,9 @@ temporary directories outside the checkout, compares the ZIP bytes and
 SHA-256, verifies an extraction under a path containing spaces and non-ASCII
 characters, and checks M01–M08 plus 50-test discovery. It also exercises
 tamper rejection, repository-internal output rejection, overwrite rejection,
-and extraction cleanup. The workflow installs Python and checks out the
+and extraction cleanup. The matrix also runs the packaged preflight from the
+extracted package root; its regression count is reported separately from the
+lab test count. The workflow installs Python and checks out the
 repository as CI prerequisites; the extracted labs themselves use only the
 Python standard library and no package-manager download. ZIPs and manifests
 are not committed or uploaded as CI artifacts.

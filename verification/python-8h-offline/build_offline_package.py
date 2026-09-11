@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Build and verify a deterministic, repository-independent Python lab ZIP.
 
-The builder intentionally has a narrow source allowlist.  It packages only the
-Python 8H local-lab bundle and the instructor kit; the browser reviewer harness,
-repository metadata, and generated evidence remain outside the archive.
+The builder intentionally has a narrow source allowlist. It packages the
+Python 8H local-lab bundle, the instructor kit, and one separately
+provenance-bound learner preflight script. The browser reviewer harness,
+repository metadata, regression tests, and generated evidence remain outside
+the archive.
 """
 
 from __future__ import annotations
@@ -28,6 +30,8 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 LAB_ROOT_REL = Path("examples/python-secure-coding-8h-priority-labs")
 PACKAGE_ROOT = "python-secure-coding-8h-offline"
 PACKAGE_README_SOURCE = Path(__file__).with_name("package-readme.md")
+PREFLIGHT_SOURCE_REL = Path("verification/python-8h-learner-preflight/preflight.py")
+PREFLIGHT_ARCHIVE_PATH = f"{PACKAGE_ROOT}/preflight/preflight.py"
 MANIFEST_VERSION = 1
 LINK_RE = re.compile(r"(?<!!)\[[^\]]+\]\(([^)]+)\)")
 REPOSITORY_ONLY_LINKS = {
@@ -132,6 +136,7 @@ def expected_archive_paths() -> set[str]:
     return {
         f"{PACKAGE_ROOT}/README.md",
         f"{PACKAGE_ROOT}/SOURCE-MANIFEST.json",
+        PREFLIGHT_ARCHIVE_PATH,
         *(f"{PACKAGE_ROOT}/lab/{relative}" for relative in SOURCE_FILES),
     }
 
@@ -266,11 +271,95 @@ def source_commit_and_files() -> tuple[str, list[dict[str, Any]], list[str]]:
     return commit, records, excluded_files
 
 
-def package_readme(source_commit: str) -> bytes:
+def support_commit_and_files() -> tuple[str, list[dict[str, Any]]]:
+    source_path = (REPOSITORY_ROOT / PREFLIGHT_SOURCE_REL).resolve()
+    if not source_path.is_file() or source_path.is_symlink():
+        raise PackageError("learner preflight source is missing or symlinked")
+
+    source_diff = subprocess.run(
+        ["git", "-C", str(REPOSITORY_ROOT), "diff", "--quiet", "HEAD", "--", PREFLIGHT_SOURCE_REL.as_posix()],
+        check=False,
+    )
+    if source_diff.returncode:
+        raise PackageError("learner preflight source has uncommitted changes")
+
+    commit = run_git(
+        "log",
+        "-1",
+        "--no-merges",
+        "--format=%H",
+        source_history_ref(),
+        "--",
+        PREFLIGHT_SOURCE_REL.as_posix(),
+    )
+    if not commit:
+        raise PackageError("could not determine learner preflight source commit")
+    data = source_path.read_bytes()
+    committed_data = run_git_bytes("show", f"{commit}:{PREFLIGHT_SOURCE_REL.as_posix()}")
+    if data != committed_data:
+        raise PackageError(
+            "learner preflight bytes differ from the recorded Git blob; "
+            "line-ending or checkout conversion detected"
+        )
+    return commit, [
+        {
+            "archive_path": PREFLIGHT_ARCHIVE_PATH,
+            "source_path": PREFLIGHT_SOURCE_REL.as_posix(),
+            "source_commit": commit,
+            "bytes": len(data),
+            "sha256": sha256_bytes(data),
+        }
+    ]
+
+
+def package_readme_source_commit() -> str:
+    commit = run_git(
+        "log",
+        "-1",
+        "--no-merges",
+        "--format=%H",
+        source_history_ref(),
+        "--",
+        PACKAGE_README_REL.as_posix(),
+    )
+    if not commit:
+        raise PackageError("could not determine package README source commit")
+    return commit
+
+
+def source_provenance(
+    lab_commit: str,
+    preflight_commit: str,
+    package_readme_commit: str,
+) -> dict[str, Any]:
+    return {
+        "lab": {
+            "source_commit": lab_commit,
+            "source_path": LAB_ROOT_REL.as_posix(),
+        },
+        "preflight": {
+            "source_commit": preflight_commit,
+            "source_path": PREFLIGHT_SOURCE_REL.as_posix(),
+            "archive_path": PREFLIGHT_ARCHIVE_PATH,
+        },
+        "package_readme": {
+            "source_commit": package_readme_commit,
+            "source_path": PACKAGE_README_REL.as_posix(),
+        },
+    }
+
+
+def package_readme(lab_source_commit: str, preflight_source_commit: str) -> bytes:
     text = PACKAGE_README_SOURCE.read_text(encoding="utf-8")
     if "{{SOURCE_COMMIT}}" not in text:
         raise PackageError("package guide is missing the {{SOURCE_COMMIT}} marker")
-    return text.replace("{{SOURCE_COMMIT}}", source_commit).encode("utf-8")
+    if "{{PREFLIGHT_SOURCE_COMMIT}}" not in text:
+        raise PackageError("package guide is missing the {{PREFLIGHT_SOURCE_COMMIT}} marker")
+    return (
+        text.replace("{{SOURCE_COMMIT}}", lab_source_commit)
+        .replace("{{PREFLIGHT_SOURCE_COMMIT}}", preflight_source_commit)
+        .encode("utf-8")
+    )
 
 
 def zip_info(name: str) -> ZipInfo:
@@ -297,16 +386,25 @@ def build(output_dir: Path) -> dict[str, Any]:
     ensure_outside(output_dir, REPOSITORY_ROOT, "output directory")
     output_dir.mkdir(parents=True, exist_ok=True)
     commit, source_records, excluded_files = source_commit_and_files()
+    preflight_commit, support_records = support_commit_and_files()
+    readme_commit = package_readme_source_commit()
     builder_commit = run_git("rev-parse", "HEAD^{commit}")
-    readme_data = package_readme(commit)
-    committed_readme = run_git_bytes("show", f"{builder_commit}:{PACKAGE_README_REL.as_posix()}")
-    committed_readme = committed_readme.decode("utf-8").replace("{{SOURCE_COMMIT}}", commit).encode("utf-8")
+    readme_data = package_readme(commit, preflight_commit)
+    committed_readme = run_git_bytes("show", f"{readme_commit}:{PACKAGE_README_REL.as_posix()}")
+    committed_readme = (
+        committed_readme.decode("utf-8")
+        .replace("{{SOURCE_COMMIT}}", commit)
+        .replace("{{PREFLIGHT_SOURCE_COMMIT}}", preflight_commit)
+        .encode("utf-8")
+    )
     if readme_data != committed_readme:
         raise PackageError(
             "package README bytes differ from the recorded builder Git blob; "
             "line-ending or checkout conversion detected"
         )
     lab_root = (REPOSITORY_ROOT / LAB_ROOT_REL).resolve()
+    preflight_root = (REPOSITORY_ROOT / PREFLIGHT_SOURCE_REL).resolve()
+    provenance = source_provenance(commit, preflight_commit, readme_commit)
 
     source_manifest = {
         "manifest_version": MANIFEST_VERSION,
@@ -314,6 +412,8 @@ def build(output_dir: Path) -> dict[str, Any]:
         "source_path": LAB_ROOT_REL.as_posix(),
         "excluded_source_files": excluded_files,
         "files": source_records,
+        "support_files": support_records,
+        "source_provenance": provenance,
     }
     internal_manifest_data = json_bytes(source_manifest)
     entries: list[tuple[str, bytes]] = [
@@ -322,6 +422,8 @@ def build(output_dir: Path) -> dict[str, Any]:
     ]
     for record in source_records:
         entries.append((record["archive_path"], (lab_root / Path(record["source_path"])).read_bytes()))
+    for record in support_records:
+        entries.append((record["archive_path"], preflight_root.read_bytes()))
     entries.sort(key=lambda item: item[0])
 
     archive_name = f"securium-python-8h-offline-lab-{commit[:12]}.zip"
@@ -347,8 +449,12 @@ def build(output_dir: Path) -> dict[str, Any]:
             "source_path": LAB_ROOT_REL.as_posix(),
             "excluded_source_files": excluded_files,
             "source_file_count": len(source_records),
+            "support_file_count": len(support_records),
             "archive_file_count": len(entries),
             "files": source_records,
+            "support_files": support_records,
+            "source_provenance": provenance,
+            "package_readme_commit": readme_commit,
             "archive_entries": archive_entries,
             "archive": {
                 "filename": archive_name,
@@ -367,6 +473,10 @@ def build(output_dir: Path) -> dict[str, Any]:
         "source_commit": commit,
         "builder_commit": builder_commit,
         "source_file_count": len(source_records),
+        "support_source_commit": preflight_commit,
+        "support_file_count": len(support_records),
+        "package_readme_commit": readme_commit,
+        "source_provenance": provenance,
         "archive_file_count": len(entries),
         "archive": {"path": str(archive_path), "bytes": len(archive_data), "sha256": sha256_bytes(archive_data)},
         "manifest": str(manifest_path),
@@ -489,6 +599,63 @@ def run_test(
         }
 
 
+def run_extracted_preflight(package_dir: Path) -> dict[str, Any]:
+    """Run the packaged diagnostic from its extracted package root."""
+    environment = os.environ.copy()
+    environment.pop("PYTHONPATH", None)
+    environment.pop("PYTHONHOME", None)
+    environment["PYTHONNOUSERSITE"] = "1"
+    command = [sys.executable, str(package_dir / "preflight" / "preflight.py"), "--json"]
+    try:
+        result = subprocess.run(
+            command,
+            cwd=package_dir,
+            env=environment,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=30,
+            check=False,
+        )
+    except subprocess.TimeoutExpired as error:
+        raise PackageError("extracted learner preflight exceeded its 30 second timeout") from error
+    if result.returncode != 0:
+        raise PackageError(
+            "extracted learner preflight returned a failure exit code "
+            f"({result.returncode})"
+        )
+    try:
+        payload = json.loads(result.stdout)
+    except json.JSONDecodeError as error:
+        raise PackageError("extracted learner preflight did not produce valid JSON") from error
+    if payload.get("overall_status") != "PASS":
+        raise PackageError(
+            "extracted learner preflight did not pass: "
+            f"{payload.get('overall_status', 'missing status')}"
+        )
+    probes = payload.get("probes")
+    if not isinstance(probes, list):
+        raise PackageError("extracted learner preflight JSON is missing its probe list")
+    required = {
+        probe.get("name"): probe.get("status")
+        for probe in probes
+        if isinstance(probe, dict) and probe.get("required") is True
+    }
+    if not required or any(status != "PASS" for status in required.values()):
+        raise PackageError("extracted learner preflight has a non-PASS required probe")
+    return {
+        "status": "PASS",
+        "overall_status": payload["overall_status"],
+        "required_probe_statuses": required,
+        "not_checked": [
+            probe.get("name")
+            for probe in probes
+            if isinstance(probe, dict) and probe.get("status") == "NOT_CHECKED"
+        ],
+    }
+
+
 def verify(archive_path: Path, manifest_path: Path, extract_dir: Path, report_path: Path) -> dict[str, Any]:
     archive_path = archive_path.expanduser().resolve()
     manifest_path = manifest_path.expanduser().resolve()
@@ -508,6 +675,7 @@ def verify(archive_path: Path, manifest_path: Path, extract_dir: Path, report_pa
         "extraction_directory": str(extract_dir),
         "python": sys.version,
         "commands": [],
+        "preflight": {"status": "NOT_RUN"},
         "links": {},
         "manifest_validation": {},
         "execution_boundary": {
@@ -522,6 +690,13 @@ def verify(archive_path: Path, manifest_path: Path, extract_dir: Path, report_pa
     try:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         current_source_commit, current_source_records, current_excluded_files = source_commit_and_files()
+        current_preflight_commit, current_support_records = support_commit_and_files()
+        current_readme_commit = package_readme_source_commit()
+        current_provenance = source_provenance(
+            current_source_commit,
+            current_preflight_commit,
+            current_readme_commit,
+        )
         if manifest["source_commit"] != current_source_commit:
             raise PackageError(
                 "manifest source commit does not match the committed lab source: "
@@ -533,6 +708,14 @@ def verify(archive_path: Path, manifest_path: Path, extract_dir: Path, report_pa
             raise PackageError("manifest excluded-source record does not match the current lab tree")
         if manifest["source_file_count"] != len(SOURCE_FILES):
             raise PackageError("manifest source file count differs from the reviewed allowlist")
+        if manifest["support_files"] != current_support_records:
+            raise PackageError("manifest support-file records do not match current source bytes")
+        if manifest["support_file_count"] != len(current_support_records):
+            raise PackageError("manifest support-file count differs from the reviewed support allowlist")
+        if manifest["package_readme_commit"] != current_readme_commit:
+            raise PackageError("manifest package README source commit does not match the current source")
+        if manifest["source_provenance"] != current_provenance:
+            raise PackageError("manifest source provenance does not match the current source selection")
         archive_data = archive_path.read_bytes()
         archive_metadata = manifest["archive"]
         if len(archive_data) != archive_metadata["bytes"] or sha256_bytes(archive_data) != archive_metadata["sha256"]:
@@ -541,6 +724,8 @@ def verify(archive_path: Path, manifest_path: Path, extract_dir: Path, report_pa
             "status": "PASS",
             "source_commit": manifest["source_commit"],
             "source_file_count": manifest["source_file_count"],
+            "support_file_count": manifest["support_file_count"],
+            "source_provenance": manifest["source_provenance"],
             "archive_file_count": manifest["archive_file_count"],
             "archive_sha256": archive_metadata["sha256"],
             "source_tree_comparison": "PASS",
@@ -586,9 +771,21 @@ def verify(archive_path: Path, manifest_path: Path, extract_dir: Path, report_pa
             "source_path": manifest["source_path"],
             "excluded_source_files": manifest["excluded_source_files"],
             "files": manifest["files"],
+            "support_files": manifest["support_files"],
+            "source_provenance": manifest["source_provenance"],
         }
         if internal_manifest != expected_internal:
             raise PackageError("internal source manifest differs from adjacent manifest")
+
+        support_path = package_dir / Path(*PurePosixPath(PREFLIGHT_ARCHIVE_PATH).parts)
+        for record in manifest["support_files"]:
+            if record["archive_path"] != PREFLIGHT_ARCHIVE_PATH:
+                raise PackageError(f"unexpected support archive path: {record['archive_path']}")
+            data = support_path.read_bytes()
+            if len(data) != record["bytes"] or sha256_bytes(data) != record["sha256"]:
+                raise PackageError(f"extracted support hash mismatch: {record['source_path']}")
+
+        report["preflight"] = run_extracted_preflight(package_dir)
 
         lab_dir = package_dir / "lab"
         for record in manifest["files"]:

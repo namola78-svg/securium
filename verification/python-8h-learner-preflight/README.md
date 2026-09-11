@@ -82,18 +82,18 @@ Runtime authority, canonical registration, or publication.
 
 ## Packaging boundary
 
-This directory is **not included** in the #159 offline ZIP. The current
-package builder still uses its 61-file allowlist for the lab and instructor
-kit, and this preflight does not modify that builder, workflow, or generated
-ZIP.
+The offline package includes only `preflight/preflight.py`, copied from this
+directory as one separately provenance-bound support entry. The package keeps
+the existing 61-file lab/instructor allowlist; this support entry is recorded
+separately in the manifest and is not counted as a lab file. The packaged
+command is run from the extracted package root:
 
-If a future package explicitly includes the diagnostic, the minimum reviewed
-runtime/document files are:
+```text
+python preflight/preflight.py
+```
 
-1. `verification/python-8h-learner-preflight/preflight.py`
-2. `verification/python-8h-learner-preflight/README.md`
-
-`test_preflight.py` is a repository verification file, not a learner runtime
-requirement. A future package change would additionally need an explicit
-allowlist/archive-layout decision, builder/manifest tests, and CI coverage;
-those changes are intentionally not part of this work.
+`test_preflight.py` remains a repository verification file and is not included
+in the learner ZIP. The package does not include this directory's README or
+the generated probe report. Its preflight result is separate from the M05 7
+focused tests, aggregate 50 lab tests, browser verification, and classroom
+rehearsal.

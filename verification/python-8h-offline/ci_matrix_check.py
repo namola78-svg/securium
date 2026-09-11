@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import re
 import subprocess
 import sys
 import tempfile
@@ -15,6 +16,8 @@ import tempfile
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 BUILDER = Path(__file__).with_name("build_offline_package.py")
 GUARD_TEST = Path(__file__).with_name("test_builder_guards.py")
+PREFLIGHT_TEST = REPOSITORY_ROOT / "verification/python-8h-learner-preflight/test_preflight.py"
+EXPECTED_PREFLIGHT_TESTS = 7
 EXPECTED_FOCUSED = {
     "M01": 5,
     "M02": 5,
@@ -80,6 +83,11 @@ def assert_normal_verification(report: dict[str, object]) -> None:
         raise RuntimeError(f"package-relative link verification failed: {report.get('links')}")
     if report.get("cleanup", {}).get("extraction_removed") is not True:
         raise RuntimeError("verification extraction directory was not removed")
+    preflight = report.get("preflight", {})
+    if preflight.get("status") != "PASS" or preflight.get("overall_status") != "PASS":
+        raise RuntimeError(f"extracted preflight did not pass: {preflight}")
+    if any(status != "PASS" for status in preflight.get("required_probe_statuses", {}).values()):
+        raise RuntimeError(f"extracted preflight has a non-PASS required probe: {preflight}")
 
     command_results = {entry["label"]: entry for entry in report["commands"]}
     expected = {**EXPECTED_FOCUSED, "ALL": 50}
@@ -93,8 +101,22 @@ def assert_normal_verification(report: dict[str, object]) -> None:
             raise RuntimeError(f"non-pass test accounting for {label}: {entry}")
 
 
+def run_preflight_regression() -> int:
+    result = run([sys.executable, str(PREFLIGHT_TEST)], expect_success=False)
+    output = f"{result.stdout}\n{result.stderr}"
+    matches = list(re.finditer(r"Ran (\d+) tests?", output))
+    actual = int(matches[-1].group(1)) if matches else None
+    if result.returncode != 0 or actual != EXPECTED_PREFLIGHT_TESTS:
+        raise RuntimeError(
+            "preflight regression failed: "
+            f"returncode={result.returncode} tests={actual}"
+        )
+    return actual
+
+
 def main() -> int:
     run([sys.executable, str(GUARD_TEST)])
+    preflight_tests = run_preflight_regression()
     with tempfile.TemporaryDirectory(prefix="securium-python-8h-offline-ci-") as temporary:
         root = Path(temporary)
         first_dir = root / "build one"
@@ -105,6 +127,10 @@ def main() -> int:
         second_archive = Path(second["archive"]["path"])
         if first["source_commit"] != second["source_commit"]:
             raise RuntimeError("two builds used different source commits")
+        if first["support_source_commit"] != second["support_source_commit"]:
+            raise RuntimeError("two builds used different learner preflight source commits")
+        if first["source_provenance"] != second["source_provenance"]:
+            raise RuntimeError("two builds used different source provenance")
         if first["archive"]["sha256"] != second["archive"]["sha256"]:
             raise RuntimeError("two builds from identical input did not produce the same ZIP SHA-256")
         if first_archive.read_bytes() != second_archive.read_bytes():
@@ -173,6 +199,10 @@ def main() -> int:
             f"source_commit={first['source_commit']} "
             f"zip_sha256={first['archive']['sha256']} "
             f"zip_bytes={first['archive']['bytes']} "
+            f"lab_source_files={first['source_file_count']} "
+            f"support_files={first['support_file_count']} "
+            f"archive_entries={first['archive_file_count']} "
+            f"preflight_tests={preflight_tests} extracted_preflight=PASS "
             "focused=M01:5,M02:5,M03:6,M04:6,M05:7,M06:5,M07:10,M08:6 "
             "aggregate=50 "
             "dependencies=python-standard-library-only "

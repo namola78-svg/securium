@@ -1,6 +1,8 @@
 # Securium Python 8H Offline Lab Package
 
-Source commit: `{{SOURCE_COMMIT}}`
+Lab source commit: `{{SOURCE_COMMIT}}`
+
+Learner preflight source commit: `{{PREFLIGHT_SOURCE_COMMIT}}`
 
 This archive contains the M01–M08 Python local teaching labs and the
 instructor kit from the Securium repository. It is an offline Python exercise
@@ -12,20 +14,32 @@ bundle, not a copy of the repository and not a runtime or approval artifact.
    outside the directory selected by the extractor.
 2. Install Python 3.11 or newer. Git and Node are not required for the Python
    lab commands in this archive.
-3. Change directory into `lab/`, then check `python --version`.
-4. Run a focused lab, for example:
+3. From the package root, check `python --version`.
+4. From the package root, run the learner environment preflight:
+
+   ```text
+   python preflight/preflight.py
+   python preflight/preflight.py --json
+   ```
+
+   `PASS` means only that the local probes succeeded. It does not certify
+   the full lab suite, browser verification, or classroom delivery. The
+   diagnostic uses Python's standard library and does not install software or
+   require Node, Git, or Docker.
+
+5. Change into `lab/` and run a focused lab, for example:
 
    ```text
    python -m unittest m05_web_context.test_m05 -v
    ```
 
-5. Run the complete local discovery after working through the exercises:
+6. Run the complete local discovery after working through the exercises:
 
    ```text
    python -m unittest discover -s . -p "test_*.py" -v
    ```
 
-6. Record observations in the supplied verification records and learner
+7. Record observations in the supplied verification records and learner
    workbook. A green test run is not a substitute for the learner or
    instructor evidence record.
 
