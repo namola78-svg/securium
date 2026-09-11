@@ -37,6 +37,18 @@ This run is real browser coverage for the HTTP-compatible scenarios. It ends
 with `BROWSER_VERIFICATION_PARTIAL`, because it does not prove Secure-cookie
 or HTTPS cross-site behavior.
 
+The controlled cleanup checks use only child fixtures and an ephemeral
+loopback listener:
+
+```powershell
+npm run --prefix verification/m05-browser test:cleanup
+```
+
+They do not search for or terminate unrelated processes. The evidence records
+whether the owned server exited gracefully or required a bounded fallback; a
+forced child stop does not claim cleanup of unrelated processes or arbitrary
+descendants.
+
 ## HTTPS browser run
 
 HTTPS does not invoke `certutil`, change a trust store, or disable browser

@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "verify": "node run-browser-verification.mjs"
+    "verify": "node run-browser-verification.mjs",
+    "test:cleanup": "node cleanup-regression.mjs"
   },
   "dependencies": {
     "playwright": "^1.63.0"

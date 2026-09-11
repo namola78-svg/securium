@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 import readline from "node:readline";
 import { chromium } from "playwright";
+import { stopOwnedChild } from "./lifecycle.mjs";
 
 const harnessDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(harnessDir, "..", "..");
@@ -114,6 +115,19 @@ function redactUrl(url) {
   return url.replaceAll("client-supplied-secret", "[redacted]");
 }
 
+function errorText(error) {
+  return error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+}
+
+function removeRuntimeDir() {
+  try {
+    fs.rmSync(runtimeDir, { recursive: true, force: true });
+    return { removed: !fs.existsSync(runtimeDir), error: null };
+  } catch (error) {
+    return { removed: false, error: errorText(error) };
+  }
+}
+
 function attachPageObservers(page) {
   page.on("request", async (request) => {
     if (!relevantUrl(request.url())) return;
@@ -164,6 +178,10 @@ function attachPageObservers(page) {
 function waitForServerReady() {
   return new Promise((resolve, reject) => {
     const timeout = setTimeout(() => reject(new Error("server did not become ready")), 15000);
+    const fail = (error) => {
+      clearTimeout(timeout);
+      reject(error);
+    };
     const onLine = (line) => {
       serverLines.push(line);
       if (line.startsWith("READY ")) {
@@ -171,8 +189,7 @@ function waitForServerReady() {
         resolve(JSON.parse(line.slice("READY ".length)));
       }
       if (line.startsWith("START_ERROR ")) {
-        clearTimeout(timeout);
-        reject(new Error(line));
+        fail(new Error(line));
       }
     };
     const rl = readline.createInterface({ input: serverProcess.stdout });
@@ -185,8 +202,12 @@ function waitForServerReady() {
       }
     });
     serverProcess.stderr.on("data", (chunk) => serverLines.push(`STDERR ${String(chunk).trim()}`));
+    serverProcess.on("error", (error) => {
+      serverLines.push(`PROCESS_ERROR ${errorText(error)}`);
+      fail(error);
+    });
     serverProcess.once("exit", (code, signal) => {
-      if (code !== 0) reject(new Error(`server exited before ready code=${code} signal=${signal}`));
+      if (code !== 0) fail(new Error(`server exited before ready code=${code} signal=${signal}`));
     });
   });
 }
@@ -290,9 +311,7 @@ async function xssRender(page, host, outputPath) {
 }
 
 async function stopServer() {
-  if (!serverProcess || serverProcess.exitCode !== null) return;
-  try { serverProcess.stdin.write("STOP\n"); } catch {}
-  await new Promise((resolve) => serverProcess.once("exit", resolve));
+  return stopOwnedChild(serverProcess);
 }
 
 async function main() {
@@ -328,6 +347,12 @@ async function main() {
     browser_network: browserNetwork,
     server_events: events,
     notes: [],
+    cleanup: {
+      browser_closed: false,
+      server_stop: null,
+      runtime_dir_removed: false,
+      cleanup_errors: [],
+    },
   };
 
   try {
@@ -541,22 +566,66 @@ async function main() {
     }
   } finally {
     if (browser) {
-      try { await browser.close(); } catch {}
+      try {
+        await browser.close();
+        result.cleanup.browser_closed = true;
+      } catch (error) {
+        result.cleanup.cleanup_errors.push(`browser close: ${errorText(error)}`);
+      }
     }
-    await stopServer();
+    try {
+      result.cleanup.server_stop = await stopServer();
+      if (result.cleanup.server_stop.cleanup_error) {
+        result.cleanup.cleanup_errors.push(result.cleanup.server_stop.cleanup_error);
+      }
+      if (!result.cleanup.server_stop.terminated) {
+        result.cleanup.cleanup_errors.push("owned server did not terminate within the cleanup deadline");
+      }
+    } catch (error) {
+      result.cleanup.cleanup_errors.push(`server cleanup: ${errorText(error)}`);
+    }
+    const runtimeCleanup = removeRuntimeDir();
+    result.cleanup.runtime_dir_removed = runtimeCleanup.removed;
+    if (runtimeCleanup.error) {
+      result.cleanup.cleanup_errors.push(`runtime directory cleanup: ${runtimeCleanup.error}`);
+    }
     result.server_events = events;
     result.browser_network = browserNetwork;
     writeJson("browser-verification-result.json", result);
   }
 
-  writeJson("browser-verification-result.json", result);
   console.log(JSON.stringify({ final_status: result.final_status, browser: result.browser, evidence: path.join(evidenceDir, "browser-verification-result.json") }, null, 2));
   if (result.final_status !== "SECURIUM_PYTHON_8H_M05_BROWSER_VERIFICATION_PASS") process.exitCode = 1;
 }
 
 main().catch(async (error) => {
-  const report = { final_status: "BROWSER_VERIFICATION_NOT_RUN", error: String(error), server_lines: serverLines, evidence: path.join(evidenceDir, "browser-verification-result.json") };
-  await stopServer();
+  const report = {
+    final_status: "BROWSER_VERIFICATION_NOT_RUN",
+    error: errorText(error),
+    server_lines: serverLines,
+    cleanup: {
+      server_stop: null,
+      runtime_dir_removed: false,
+      cleanup_errors: [],
+    },
+    evidence: path.join(evidenceDir, "browser-verification-result.json"),
+  };
+  try {
+    report.cleanup.server_stop = await stopServer();
+    if (report.cleanup.server_stop.cleanup_error) {
+      report.cleanup.cleanup_errors.push(report.cleanup.server_stop.cleanup_error);
+    }
+    if (!report.cleanup.server_stop.terminated) {
+      report.cleanup.cleanup_errors.push("owned server did not terminate within the cleanup deadline");
+    }
+  } catch (cleanupError) {
+    report.cleanup.cleanup_errors.push(`server cleanup: ${errorText(cleanupError)}`);
+  }
+  const runtimeCleanup = removeRuntimeDir();
+  report.cleanup.runtime_dir_removed = runtimeCleanup.removed;
+  if (runtimeCleanup.error) {
+    report.cleanup.cleanup_errors.push(`runtime directory cleanup: ${runtimeCleanup.error}`);
+  }
   writeJson("browser-verification-result.json", report);
   console.error(JSON.stringify(report, null, 2));
   process.exitCode = 2;
