@@ -1,0 +1,86 @@
+name: Python Secure Coding Local Labs
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/python-secure-coding-labs.yml"
+      - "examples/python-secure-coding-8h-priority-labs/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: python-secure-coding-labs-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: ${{ matrix.os-label }} / Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os-label: Windows
+            runner: windows-latest
+            shell: pwsh
+            python-version: "3.11"
+          - os-label: Windows
+            runner: windows-latest
+            shell: pwsh
+            python-version: "3.14"
+          - os-label: Linux
+            runner: ubuntu-latest
+            shell: bash
+            python-version: "3.11"
+          - os-label: Linux
+            runner: ubuntu-latest
+            shell: bash
+            python-version: "3.14"
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Record runtime and shell
+        shell: ${{ matrix.shell }}
+        working-directory: examples/python-secure-coding-8h-priority-labs
+        run: |
+          echo "matrix_os=${{ matrix.os-label }}"
+          echo "runner_os=${{ runner.os }}"
+          echo "matrix_python=${{ matrix.python-version }}"
+          echo "matrix_shell=${{ matrix.shell }}"
+          python --version
+          python -c "import platform, sys; print(f'python_patch={platform.python_version()}'); print(f'platform={platform.platform()}'); print(f'executable={sys.executable}')"
+
+      - name: Compile lab sources
+        shell: ${{ matrix.shell }}
+        working-directory: examples/python-secure-coding-8h-priority-labs
+        run: python -m compileall -q .
+
+      - name: Discover and run all lab tests
+        shell: ${{ matrix.shell }}
+        working-directory: examples/python-secure-coding-8h-priority-labs
+        run: >-
+          python -c "import sys, unittest; suite = unittest.defaultTestLoader.discover('.', pattern='test_*.py'); count = suite.countTestCases(); baseline = 49; print(f'discovered_tests={count} baseline_tests={baseline} baseline_match={count == baseline}'); result = unittest.TextTestRunner(verbosity=2).run(suite); print(f'failures={len(result.failures)} errors={len(result.errors)} skipped={len(result.skipped)}'); sys.exit(0 if count > 0 and not result.failures and not result.errors and not result.skipped else 1)"
+
+      - name: Remove generated Python caches
+        if: always()
+        shell: ${{ matrix.shell }}
+        working-directory: examples/python-secure-coding-8h-priority-labs
+        run: >-
+          python -c "import shutil; from pathlib import Path; root = Path('.'); caches = sorted((path for path in root.rglob('__pycache__') if path.is_dir()), key=lambda path: len(path.parts), reverse=True); [shutil.rmtree(path) for path in caches]; print(f'removed_python_cache_directories={len(caches)}')"
+
+      - name: Verify lab working tree cleanup
+        if: always()
+        shell: ${{ matrix.shell }}
+        working-directory: examples/python-secure-coding-8h-priority-labs
+        run: >-
+          python -c "from pathlib import Path; root = Path('.'); generated = [path for path in root.rglob('*') if path.is_file() and (path.suffix in {'.log', '.tmp'} or '__pycache__' in path.parts or path.suffix == '.pyc')]; print(f'generated_artifacts={len(generated)}'); print('\n'.join(map(str, generated))); raise SystemExit(1 if generated else 0)"

@@ -33,6 +33,26 @@ publish course content.
   are planning values. The automated test duration is not learner or classroom
   rehearsal time.
 
+## Compatibility matrix
+
+The pull-request-only Python CI runs the same local-only bundle on both hosted
+Windows and Linux runners:
+
+| Runner | CI shell | Python target | Expected discovery baseline |
+|---|---|---|---:|
+| Windows | `pwsh` | 3.11 | 49 tests |
+| Windows | `pwsh` | 3.14 | 49 tests |
+| Linux | `bash` | 3.11 | 49 tests |
+| Linux | `bash` | 3.14 | 49 tests |
+
+Each matrix job records the actual Python patch version and platform. It fails
+when discovery finds zero tests or when failures, import errors, or skips are
+reported; a changed non-zero test count is recorded for review rather than
+hard-coded as a failure, so future tests can be added normally. The local
+baseline was Windows PowerShell 5.1 / Python 3.14.5; that is distinct from the
+GitHub-hosted `pwsh` run. Results for Python 3.12, 3.13, macOS, real browsers,
+and learner rehearsal are not inferred from this matrix.
+
 ## Safety and reproducibility
 
 - Supported Python: **3.11 or newer**. Only the Python standard library is used.
