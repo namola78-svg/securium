@@ -74,10 +74,11 @@ python --version
 
 ## 4. Existing compatibility record and limits
 
-The common README records the latest matrix as 49 passing tests on Windows
+The common README records the latest matrix as 50 passing tests on Windows
 PowerShell and Linux Bash with Python 3.11 and 3.14 patch versions, and
-separately records a local Windows PowerShell 5.1/Python 3.14.5 baseline. This
-is repository evidence, not a rehearsal result. Python 3.12/3.13, macOS,
+separately records a local Windows PowerShell 5.1/Python 3.14.5 baseline. The
+earlier 49-test matrix is historical provenance for the pre-repair bundle.
+This is repository evidence, not a rehearsal result. Python 3.12/3.13, macOS,
 learner rehearsal, and browser behavior are not inferred.
 
 - [ ] Compare the rehearsal environment with the recorded matrix.
@@ -104,7 +105,7 @@ pre-completed result.
 | M02 | python -m unittest m02_injection.test_m02 -v | 5 | |
 | M03 | python -m unittest m03_deserialization.test_m03 -v | 6 | |
 | M04 | python -m unittest m04_files_ssrf.test_m04 -v | 6 | |
-| M05 | python -m unittest m05_web_context.test_m05 -v | 6 | |
+| M05 | python -m unittest m05_web_context.test_m05 -v | 7 | |
 | M06 | python -m unittest m06_authorization.test_m06 -v | 5 | |
 | M07 | python -m unittest m07_secrets_dependencies.test_m07 -v | 10 | |
 | M08 | python -m unittest m08_capstone.test_m08 -v | 6 | |
@@ -186,14 +187,17 @@ pre-completed result.
 - [ ] Instructor can require owner/path/reachability/upgrade evidence for a
   dependency and source/integrity/owner/build/CI evidence for provenance.
   Observation: ___________________________________________________
-- [ ] The instructor records that user approval of the Q36 answer-binding
-  correction is complete, while canonical application, immutable revision
-  binding, and verification are not confirmed. Q36 remains excluded from
-  confirmed-answer use and scoring; no guessed answer is used.
+- [ ] The instructor records that the repository canonical Q36 answer is now
+  B/2 after #147 and that the immutable revision-boundary checks are verified.
+  The fixed candidate context projects Q36-v2 only; source/approval remains
+  `UNKNOWN`, candidate preflight is `BLOCKED`, persistence is `NOT_READY`, and
+  no humanReviewHash or canonical receipt exists. The candidate is not an
+  authority-issued Runtime revision and must not be presented as automated
+  scoring/publication readiness.
   Observation: ___________________________________________________
 - [ ] Instructor records the learning-evaluation impact: O28 can be observed
-  through P07 reasoning and evidence, while the Q36 item remains incomplete
-  and unscored.
+  through P07 reasoning and evidence, Q36's corrected content answer is B/2,
+  and any Runtime score requiring authority binding remains unbound.
   Observation: ___________________________________________________
 
 ### M08 dry-run checks
@@ -231,12 +235,13 @@ pre-completed result.
 
 ## 7. Q36 and delivery decision
 
-- [ ] Confirm the instructor announcement: user approval of the Q36 correction
-  is complete, but canonical application, revision binding, and verification
-  are pending; Q36 is excluded from confirmed-answer use and item-level scoring.
+- [ ] Confirm the instructor announcement: Q36's repository canonical answer is
+  B/2 after #147, while candidate v2 is only a fixed-context projection and
+  source/approval binding remains pending. Do not claim an authority-issued
+  Runtime revision or automated scoring/publication readiness.
   Announcement evidence: _________________________________________
-- [ ] Confirm the exclusion is recorded as an evaluation limitation and does
-  not alter canonical Q36 content.
+- [ ] Confirm any score exclusion is recorded specifically as a Runtime
+  authority-binding limitation and does not obscure the corrected B/2 content.
   Observation: ___________________________________________________
 - [ ] Confirm no one describes the package as actual rehearsal complete or
   full delivery ready.

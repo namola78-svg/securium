@@ -13,6 +13,8 @@ export interface CanonicalEvidenceSourceResolver {
     sourceType: LearningEventSourceType;
     sourceEventId: string;
     sourceRevisionIdentity: string;
+    /** Caller identity is an access guard, never a source authority. */
+    expectedUserId?: string;
   }>): Promise<CanonicalEvidenceSource | null>;
   resolveLineageInvalidation?(input: Readonly<{
     sourceType: LearningEventSourceType;
@@ -50,6 +52,7 @@ export class EvidenceRecomputeService {
     sourceType: LearningEventSourceType;
     sourceEventId: string;
     sourceRevisionIdentity: string;
+    userId?: string;
     expectedUserId?: string;
     invalidationReason?: string;
   }>): Promise<EventRecomputeResult> {
@@ -59,14 +62,20 @@ export class EvidenceRecomputeService {
       const outcome = await this.repository.invalidateLineage(target);
       return { outcome, projectionCount: 0 };
     }
-    const source = await this.resolver.resolveEvent(input);
+    const expectedUserId = input.expectedUserId ?? input.userId;
+    const source = await this.resolver.resolveEvent({
+      sourceType: input.sourceType,
+      sourceEventId: input.sourceEventId,
+      sourceRevisionIdentity: input.sourceRevisionIdentity,
+      expectedUserId,
+    });
     if (!source || source.validity === "LEGACY_INELIGIBLE") return { outcome: "INVALID_SOURCE", projectionCount: 0 };
     const practicalRedirect = input.sourceType === "PRACTICAL_EVALUATION" &&
       source.sourceType === "PRACTICAL_EVALUATION";
     if (source.userId.length === 0 || (!practicalRedirect && source.sourceEventId !== input.sourceEventId) || source.sourceType !== input.sourceType) {
       return { outcome: "INVALID_SOURCE", projectionCount: 0 };
     }
-    if (input.expectedUserId !== undefined && source.userId !== input.expectedUserId) {
+    if (expectedUserId !== undefined && source.userId !== expectedUserId) {
       return { outcome: "INVALID_SOURCE", projectionCount: 0 };
     }
     if (source.validity === "INVALIDATED") {

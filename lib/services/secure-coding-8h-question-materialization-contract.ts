@@ -4,14 +4,19 @@ import {
   buildSecureCoding8HQuestionRuntimeMapping,
   secureCoding8HRuntimeQuestionId,
   secureCoding8HRuntimeQuestionVersionId,
+  SECURE_CODING_8H_Q36_CANDIDATE_QUESTION_VERSION,
+  SECURE_CODING_8H_Q36_CANDIDATE_SOURCE_REVISION_ID,
+  SECURE_CODING_8H_Q36_CANDIDATE_SOURCE_REVISION_VERSION,
   type SecureCoding8HRuntimeQuestionChoice,
   type SecureCoding8HRuntimeQuestionMappingManifest,
+  type SecureCoding8HQuestionRevisionContext,
 } from "./secure-coding-8h-question-runtime-mapping.ts";
 import {
   loadSecureCoding8HRuntimeModel,
   type SecureCoding8HRuntimeModel,
 } from "./secure-coding-8h-runtime-adapter.ts";
 import { sha256Canonical } from "../policy/stable-canonical-hash.ts";
+import { stableJson } from "./question-governance.ts";
 
 export const SECURE_CODING_8H_QUESTION_PREFLIGHT_CONTRACT_V1 =
   "SECURIUM_SECURE_CODING_8H_QUESTION_PREFLIGHT_V1" as const;
@@ -32,6 +37,7 @@ const EXPECTED_COURSE_BINDING_COUNT = 40;
 
 type PreflightInputObject = Readonly<{
   candidateMapping?: unknown;
+  candidateRevisionContext?: unknown;
   submittedPayloadHash?: unknown;
   expectedRevision?: unknown;
   expectedSource?: unknown;
@@ -79,6 +85,7 @@ export type SecureCoding8HQuestionMaterializationPreflight = Readonly<{
     foundationVersion: typeof FOUNDATION_VERSION;
     manifestHash: string;
     revisionBindingHash: string;
+    revisionContext?: SecureCoding8HQuestionRevisionContext;
   }>;
   payload: Readonly<{
     canonicalHash: string;
@@ -107,7 +114,7 @@ export type SecureCoding8HQuestionMaterializationQuestionRow = Readonly<{
   status: "DRAFT";
   source: "SECURIUM_INDEPENDENTLY_AUTHORED";
   sourceDate: null;
-  version: 1;
+  version: number;
   answerConfigJson: "{}";
   isSample: false;
 }>;
@@ -118,7 +125,7 @@ export type SecureCoding8HQuestionMaterializationChoiceRow =
 export type SecureCoding8HQuestionMaterializationVersionRow = Readonly<{
   id: string;
   questionId: string;
-  version: 1;
+  version: number;
   snapshotJson: string;
   semanticHash: string;
   blueprintId: null;
@@ -147,6 +154,9 @@ export async function preflightSecureCoding8HQuestionMaterialization(
   input?: SecureCoding8HQuestionMaterializationPreflightInput,
 ): Promise<SecureCoding8HQuestionMaterializationPreflight> {
   const snapshot = snapshotInput(input);
+  const revisionContext = parseCandidateRevisionContext(
+    snapshot?.candidateRevisionContext,
+  );
   const model = loadSecureCoding8HRuntimeModel({
     runtimeCourse: {
       id: COURSE_ID,
@@ -157,15 +167,23 @@ export async function preflightSecureCoding8HQuestionMaterialization(
     },
     exposure: "registration",
   });
-  const canonicalMapping = await buildSecureCoding8HQuestionRuntimeMapping();
-  await assertSecureCoding8HQuestionRuntimeMapping(canonicalMapping, model);
-  assertCanonicalProjectionShape(canonicalMapping);
+  const canonicalMapping = await buildSecureCoding8HQuestionRuntimeMapping(
+    revisionContext,
+  );
+  await assertSecureCoding8HQuestionRuntimeMapping(
+    canonicalMapping,
+    model,
+    revisionContext,
+  );
+  assertCanonicalProjectionShape(canonicalMapping, revisionContext);
 
   const expectedRevision = parseExpectedRevision(snapshot?.expectedRevision);
   if (
     expectedRevision &&
     (expectedRevision.candidateId !== FOUNDATION_CANDIDATE_ID ||
-      expectedRevision.version !== FOUNDATION_VERSION)
+      expectedRevision.version !== FOUNDATION_VERSION ||
+      stableJson(expectedRevision.questionVersionOverrides ?? null) !==
+        stableJson(revisionContext?.questionVersionOverrides ?? null))
   ) {
     throw new AppError(
       "Secure Coding Foundation revision does not match the trusted authority.",
@@ -176,13 +194,19 @@ export async function preflightSecureCoding8HQuestionMaterialization(
 
   const requestedAction = parseRequestedAction(snapshot?.requestedAction);
   const expectedSource = parseExpectedSource(snapshot?.expectedSource);
-  const source = await buildSourceSnapshot(model, canonicalMapping);
+  const source = await buildSourceSnapshot(
+    model,
+    canonicalMapping,
+    revisionContext,
+  );
   if (
     expectedSource &&
     (expectedSource.candidateId !== source.candidateId ||
       expectedSource.foundationVersion !== source.foundationVersion ||
       expectedSource.manifestHash !== source.manifestHash ||
-      expectedSource.revisionBindingHash !== source.revisionBindingHash)
+      expectedSource.revisionBindingHash !== source.revisionBindingHash ||
+      stableJson(expectedSource.revisionContext ?? null) !==
+        stableJson(source.revisionContext ?? null))
   ) {
     throw new AppError(
       "Secure Coding source snapshot does not match the trusted Foundation.",
@@ -196,6 +220,7 @@ export async function preflightSecureCoding8HQuestionMaterialization(
     await assertSecureCoding8HQuestionRuntimeMapping(
       candidateMapping as SecureCoding8HRuntimeQuestionMappingManifest,
       model,
+      revisionContext,
     );
   }
 
@@ -275,6 +300,7 @@ export async function preflightSecureCoding8HQuestionMaterialization(
 async function buildSourceSnapshot(
   model: SecureCoding8HRuntimeModel,
   mapping: SecureCoding8HRuntimeQuestionMappingManifest,
+  revisionContext?: SecureCoding8HQuestionRevisionContext,
 ) {
   const manifest = model.foundation.manifest;
   assertJsonSafe(manifest, "Foundation manifest");
@@ -289,6 +315,7 @@ async function buildSourceSnapshot(
     candidateId: FOUNDATION_CANDIDATE_ID,
     foundationVersion: FOUNDATION_VERSION,
     manifestHash,
+    ...(revisionContext ? { revisionContext } : {}),
     questions: mapping.mappings.map((entry) => ({
       foundationQuestionId: entry.foundationQuestionId,
       runtimeQuestionId: entry.runtimeQuestionId,
@@ -302,6 +329,7 @@ async function buildSourceSnapshot(
     foundationVersion: FOUNDATION_VERSION,
     manifestHash,
     revisionBindingHash,
+    ...(revisionContext ? { revisionContext } : {}),
   });
 }
 
@@ -324,6 +352,9 @@ async function computeCanonicalPayloadHash(
     source: {
       manifestHash: source.manifestHash,
       revisionBindingHash: source.revisionBindingHash,
+      ...(source.revisionContext
+        ? { revisionContext: source.revisionContext }
+        : {}),
     },
     mappings: mapping.mappings.map((entry) => ({
       foundationQuestionId: entry.foundationQuestionId,
@@ -343,6 +374,7 @@ async function computeCanonicalPayloadHash(
 
 function assertCanonicalProjectionShape(
   mapping: SecureCoding8HRuntimeQuestionMappingManifest,
+  revisionContext?: SecureCoding8HQuestionRevisionContext,
 ): void {
   if (
     mapping.questionCount !== EXPECTED_QUESTION_COUNT ||
@@ -360,7 +392,10 @@ function assertCanonicalProjectionShape(
     0,
   );
   const versionCount = mapping.mappings.filter(
-    (entry) => entry.version.version === 1,
+    (entry) =>
+      entry.version.version ===
+      (revisionContext?.questionVersionOverrides[entry.foundationQuestionId] ??
+        1),
   ).length;
   const courseBindingCount = mapping.mappings.filter(
     (entry) =>
@@ -385,9 +420,11 @@ function assertCanonicalProjectionShape(
   for (const [index, entry] of mapping.mappings.entries()) {
     const foundationQuestionId = `Q${String(index + 1).padStart(2, "0")}`;
     const runtimeQuestionId = secureCoding8HRuntimeQuestionId(foundationQuestionId);
+    const expectedVersion =
+      revisionContext?.questionVersionOverrides[foundationQuestionId] ?? 1;
     const runtimeVersionId = secureCoding8HRuntimeQuestionVersionId(
       foundationQuestionId,
-      1,
+      expectedVersion,
     );
     if (
       entry.foundationQuestionId !== foundationQuestionId ||
@@ -396,6 +433,8 @@ function assertCanonicalProjectionShape(
       entry.question.id !== runtimeQuestionId ||
       entry.version.id !== runtimeVersionId ||
       entry.version.questionId !== runtimeQuestionId ||
+      entry.question.version !== expectedVersion ||
+      entry.version.version !== expectedVersion ||
       entry.courseBinding.questionId !== runtimeQuestionId ||
       entry.courseBinding.courseId !== COURSE_ID ||
       entry.courseBinding.weight !== 100 ||
@@ -472,6 +511,7 @@ function snapshotInput(
     input,
     [
       "candidateMapping",
+      "candidateRevisionContext",
       "submittedPayloadHash",
       "expectedRevision",
       "expectedSource",
@@ -505,7 +545,11 @@ function parseRequestedAction(
 }
 
 function parseExpectedRevision(value: unknown):
-  | Readonly<{ candidateId: string; version: string }>
+  | Readonly<{
+      candidateId: string;
+      version: string;
+      questionVersionOverrides?: Readonly<Record<string, number>>;
+    }>
   | undefined {
   if (value === undefined) return undefined;
   if (!isRecord(value)) {
@@ -515,7 +559,11 @@ function parseExpectedRevision(value: unknown):
       "FOUNDATION_REVISION_INVALID",
     );
   }
-  assertExactKeys(value, ["candidateId", "version"], "FOUNDATION_REVISION_INVALID");
+  assertExactKeys(
+    value,
+    ["candidateId", "version", "questionVersionOverrides"],
+    "FOUNDATION_REVISION_INVALID",
+  );
   if (typeof value.candidateId !== "string" || typeof value.version !== "string") {
     throw new AppError(
       "Secure Coding expected Foundation revision is invalid.",
@@ -523,7 +571,18 @@ function parseExpectedRevision(value: unknown):
       "FOUNDATION_REVISION_INVALID",
     );
   }
-  return { candidateId: value.candidateId, version: value.version };
+  return {
+    candidateId: value.candidateId,
+    version: value.version,
+    ...(value.questionVersionOverrides === undefined
+      ? {}
+      : {
+          questionVersionOverrides: parseQuestionVersionOverrides(
+            value.questionVersionOverrides,
+            "FOUNDATION_REVISION_INVALID",
+          ),
+        }),
+  };
 }
 
 function parseExpectedSource(value: unknown):
@@ -533,6 +592,7 @@ function parseExpectedSource(value: unknown):
       foundationVersion: string;
       manifestHash: string;
       revisionBindingHash: string;
+      revisionContext?: SecureCoding8HQuestionRevisionContext;
     }>
   | undefined {
   if (value === undefined) return undefined;
@@ -551,6 +611,7 @@ function parseExpectedSource(value: unknown):
       "foundationVersion",
       "manifestHash",
       "revisionBindingHash",
+      "revisionContext",
     ],
     "SOURCE_SNAPSHOT_INVALID",
   );
@@ -573,7 +634,82 @@ function parseExpectedSource(value: unknown):
     foundationVersion: value.foundationVersion,
     manifestHash: value.manifestHash,
     revisionBindingHash: value.revisionBindingHash,
+    ...(value.revisionContext === undefined
+      ? {}
+      : { revisionContext: parseCandidateRevisionContext(value.revisionContext) }),
   };
+}
+
+function parseCandidateRevisionContext(
+  value: unknown,
+): SecureCoding8HQuestionRevisionContext | undefined {
+  if (value === undefined) return undefined;
+  if (!isRecord(value)) {
+    throw new AppError(
+      "Secure Coding candidate revision context is invalid.",
+      400,
+      "FOUNDATION_REVISION_INVALID",
+    );
+  }
+  assertExactKeys(
+    value,
+    ["sourceRevisionId", "sourceRevisionVersion", "questionVersionOverrides"],
+    "FOUNDATION_REVISION_INVALID",
+  );
+  if (
+    typeof value.sourceRevisionId !== "string" ||
+    typeof value.sourceRevisionVersion !== "string" ||
+    value.sourceRevisionId.length === 0 ||
+    value.sourceRevisionVersion.length === 0 ||
+    value.sourceRevisionId !== SECURE_CODING_8H_Q36_CANDIDATE_SOURCE_REVISION_ID ||
+    value.sourceRevisionVersion !== SECURE_CODING_8H_Q36_CANDIDATE_SOURCE_REVISION_VERSION
+  ) {
+    throw new AppError(
+      "Secure Coding candidate revision context is invalid.",
+      400,
+      "FOUNDATION_REVISION_INVALID",
+    );
+  }
+  const questionVersionOverrides = parseQuestionVersionOverrides(
+    value.questionVersionOverrides,
+    "FOUNDATION_REVISION_INVALID",
+  );
+  if (
+    questionVersionOverrides.Q36 !== SECURE_CODING_8H_Q36_CANDIDATE_QUESTION_VERSION
+  ) {
+    throw new AppError(
+      "Secure Coding Q36 candidate revision must use the approved v2 projection.",
+      400,
+      "FOUNDATION_REVISION_INVALID",
+    );
+  }
+  return {
+    sourceRevisionId: value.sourceRevisionId,
+    sourceRevisionVersion: value.sourceRevisionVersion,
+    questionVersionOverrides,
+  };
+}
+
+function parseQuestionVersionOverrides(
+  value: unknown,
+  code: "FOUNDATION_REVISION_INVALID",
+): Readonly<Record<string, number>> {
+  if (!isRecord(value)) {
+    throw new AppError(
+      "Secure Coding question version overrides are invalid.",
+      400,
+      code,
+    );
+  }
+  assertExactKeys(value, ["Q36"], code);
+  if (!Number.isInteger(value.Q36) || (value.Q36 as number) < 2) {
+    throw new AppError(
+      "Secure Coding Q36 revision must be a new positive version.",
+      400,
+      code,
+    );
+  }
+  return Object.freeze({ Q36: value.Q36 as number });
 }
 
 function parseSubmittedPayloadHash(value: unknown): string | null {

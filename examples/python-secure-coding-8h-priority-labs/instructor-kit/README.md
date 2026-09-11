@@ -81,11 +81,12 @@ directory. The original guides use the standard library and in-memory or
 temporary fixtures. Do not add real credentials, install a package, contact an
 external service, or turn a fixture into a production claim.
 
-The latest status recorded in the common README reports 49 passing tests on
+The latest status recorded in the common README reports 50 passing tests on
 the Windows PowerShell and Linux Bash matrix with Python 3.11 and 3.14 patch
-versions. It separately identifies the local Windows PowerShell 5.1/Python
-3.14.5 baseline. Python 3.12/3.13, macOS, learner rehearsal, and real browser
-behavior are not inferred from that matrix.
+versions. The earlier 49-test matrix is historical provenance for the
+pre-repair bundle. The README separately identifies the local Windows
+PowerShell 5.1/Python 3.14.5 baseline. Python 3.12/3.13, macOS, learner
+rehearsal, and real browser behavior are not inferred from that matrix.
 
 M05's tests use a Python HTTP client that directly supplies cookie and request
 headers to a loopback fixture. This is not browser verification of cookie,
@@ -93,12 +94,15 @@ SameSite, form-submission, or Origin behavior. M04 and M08 use loopback or
 mocked opener/resolver fixtures; these demonstrate application policy, not
 production network egress isolation.
 
-User approval of the Q36 answer-binding correction is complete. At this PR
-head, canonical answer application, immutable revision binding, and
-verification are not confirmed. Until those states are separately confirmed,
-Q36 is discussion-only and excluded from confirmed-answer use and item-level
-scoring. The instructor must record this exclusion; this kit does not change
-the canonical question or approval artifact.
+The repository canonical Q36 record now has `answer: 1` (B/2), and #147 merged
+the correction with verified immutable revision-boundary checks. Use B/2 for
+content discussion and learner reasoning. The default mapping/preflight path
+requires `QUESTION_REVISION_CONTEXT_REQUIRED`; only the fixed candidate
+context projects Q36-v2. Source/approval remains `UNKNOWN`, candidate
+preflight is `BLOCKED`, persistence is `NOT_READY`, and no `humanReviewHash` or
+canonical receipt exists. This kit must not describe Q36-v2 as an
+authority-issued Runtime revision or claim automated scoring/publication
+readiness. It does not issue approval or change Runtime state.
 
 ## Integration hand-off
 
