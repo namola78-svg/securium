@@ -50,6 +50,15 @@ archive records every included file's size and SHA-256. Those hashes support
 integrity comparison for this package; they are not a signature or proof of
 publisher authenticity.
 
+The package README is also bound to its committed repository source. The
+manifest records the Git source commit/path and raw source hash, plus the
+archive path and the bytes/hash produced by replacing the two source-commit
+markers above. The verifier reads the committed Git blob selected by the
+existing source-history rules, applies the same substitutions, and compares
+those expected bytes directly with the archive README. Dirty README checkouts,
+malformed binding records, and consistent re-hashing of a changed README are
+rejected before the packaged preflight or lab commands run.
+
 ## Scope and safety boundaries
 
 - The package uses only the Python standard library and the empty dependency

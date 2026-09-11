@@ -32,6 +32,7 @@ PACKAGE_ROOT = "python-secure-coding-8h-offline"
 PACKAGE_README_SOURCE = Path(__file__).with_name("package-readme.md")
 PREFLIGHT_SOURCE_REL = Path("verification/python-8h-learner-preflight/preflight.py")
 PREFLIGHT_ARCHIVE_PATH = f"{PACKAGE_ROOT}/preflight/preflight.py"
+PACKAGE_README_ARCHIVE_PATH = f"{PACKAGE_ROOT}/README.md"
 MANIFEST_VERSION = 1
 LINK_RE = re.compile(r"(?<!!)\[[^\]]+\]\(([^)]+)\)")
 REPOSITORY_ONLY_LINKS = {
@@ -327,10 +328,39 @@ def package_readme_source_commit() -> str:
     return commit
 
 
+def package_readme_source() -> tuple[str, bytes]:
+    if not PACKAGE_README_SOURCE.is_file() or PACKAGE_README_SOURCE.is_symlink():
+        raise PackageError(f"package README source is missing or symlinked: {PACKAGE_README_SOURCE}")
+    source_diff = subprocess.run(
+        [
+            "git",
+            "-C",
+            str(REPOSITORY_ROOT),
+            "diff",
+            "--quiet",
+            "HEAD",
+            "--",
+            PACKAGE_README_REL.as_posix(),
+        ],
+        check=False,
+    )
+    if source_diff.returncode:
+        raise PackageError("package README source has uncommitted changes")
+    commit = package_readme_source_commit()
+    data = PACKAGE_README_SOURCE.read_bytes()
+    committed_data = run_git_bytes("show", f"{commit}:{PACKAGE_README_REL.as_posix()}")
+    if data != committed_data:
+        raise PackageError(
+            "package README bytes differ from the recorded Git blob; "
+            "line-ending or checkout conversion detected"
+        )
+    return commit, committed_data
+
+
 def source_provenance(
     lab_commit: str,
     preflight_commit: str,
-    package_readme_commit: str,
+    package_readme_record: dict[str, Any],
 ) -> dict[str, Any]:
     return {
         "lab": {
@@ -342,15 +372,17 @@ def source_provenance(
             "source_path": PREFLIGHT_SOURCE_REL.as_posix(),
             "archive_path": PREFLIGHT_ARCHIVE_PATH,
         },
-        "package_readme": {
-            "source_commit": package_readme_commit,
-            "source_path": PACKAGE_README_REL.as_posix(),
-        },
+        "package_readme": package_readme_record,
     }
 
 
-def package_readme(lab_source_commit: str, preflight_source_commit: str) -> bytes:
-    text = PACKAGE_README_SOURCE.read_text(encoding="utf-8")
+def render_package_readme(
+    source_data: bytes, lab_source_commit: str, preflight_source_commit: str
+) -> bytes:
+    try:
+        text = source_data.decode("utf-8")
+    except UnicodeDecodeError as error:
+        raise PackageError("package README Git blob is not valid UTF-8") from error
     if "{{SOURCE_COMMIT}}" not in text:
         raise PackageError("package guide is missing the {{SOURCE_COMMIT}} marker")
     if "{{PREFLIGHT_SOURCE_COMMIT}}" not in text:
@@ -359,6 +391,25 @@ def package_readme(lab_source_commit: str, preflight_source_commit: str) -> byte
         text.replace("{{SOURCE_COMMIT}}", lab_source_commit)
         .replace("{{PREFLIGHT_SOURCE_COMMIT}}", preflight_source_commit)
         .encode("utf-8")
+    )
+
+
+def package_readme_source_record(
+    lab_source_commit: str, preflight_source_commit: str
+) -> tuple[dict[str, Any], bytes]:
+    source_commit, source_data = package_readme_source()
+    archive_data = render_package_readme(source_data, lab_source_commit, preflight_source_commit)
+    return (
+        {
+            "source_commit": source_commit,
+            "source_path": PACKAGE_README_REL.as_posix(),
+            "source_bytes": len(source_data),
+            "source_sha256": sha256_bytes(source_data),
+            "archive_path": PACKAGE_README_ARCHIVE_PATH,
+            "archive_bytes": len(archive_data),
+            "archive_sha256": sha256_bytes(archive_data),
+        },
+        archive_data,
     )
 
 
@@ -387,24 +438,12 @@ def build(output_dir: Path) -> dict[str, Any]:
     output_dir.mkdir(parents=True, exist_ok=True)
     commit, source_records, excluded_files = source_commit_and_files()
     preflight_commit, support_records = support_commit_and_files()
-    readme_commit = package_readme_source_commit()
+    readme_record, readme_data = package_readme_source_record(commit, preflight_commit)
+    readme_commit = readme_record["source_commit"]
     builder_commit = run_git("rev-parse", "HEAD^{commit}")
-    readme_data = package_readme(commit, preflight_commit)
-    committed_readme = run_git_bytes("show", f"{readme_commit}:{PACKAGE_README_REL.as_posix()}")
-    committed_readme = (
-        committed_readme.decode("utf-8")
-        .replace("{{SOURCE_COMMIT}}", commit)
-        .replace("{{PREFLIGHT_SOURCE_COMMIT}}", preflight_commit)
-        .encode("utf-8")
-    )
-    if readme_data != committed_readme:
-        raise PackageError(
-            "package README bytes differ from the recorded builder Git blob; "
-            "line-ending or checkout conversion detected"
-        )
     lab_root = (REPOSITORY_ROOT / LAB_ROOT_REL).resolve()
     preflight_root = (REPOSITORY_ROOT / PREFLIGHT_SOURCE_REL).resolve()
-    provenance = source_provenance(commit, preflight_commit, readme_commit)
+    provenance = source_provenance(commit, preflight_commit, readme_record)
 
     source_manifest = {
         "manifest_version": MANIFEST_VERSION,
@@ -417,7 +456,7 @@ def build(output_dir: Path) -> dict[str, Any]:
     }
     internal_manifest_data = json_bytes(source_manifest)
     entries: list[tuple[str, bytes]] = [
-        (f"{PACKAGE_ROOT}/README.md", readme_data),
+        (PACKAGE_README_ARCHIVE_PATH, readme_data),
         (f"{PACKAGE_ROOT}/SOURCE-MANIFEST.json", internal_manifest_data),
     ]
     for record in source_records:
@@ -691,11 +730,14 @@ def verify(archive_path: Path, manifest_path: Path, extract_dir: Path, report_pa
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         current_source_commit, current_source_records, current_excluded_files = source_commit_and_files()
         current_preflight_commit, current_support_records = support_commit_and_files()
-        current_readme_commit = package_readme_source_commit()
+        current_readme_record, expected_readme_data = package_readme_source_record(
+            current_source_commit, current_preflight_commit
+        )
+        current_readme_commit = current_readme_record["source_commit"]
         current_provenance = source_provenance(
             current_source_commit,
             current_preflight_commit,
-            current_readme_commit,
+            current_readme_record,
         )
         if manifest["source_commit"] != current_source_commit:
             raise PackageError(
@@ -712,9 +754,25 @@ def verify(archive_path: Path, manifest_path: Path, extract_dir: Path, report_pa
             raise PackageError("manifest support-file records do not match current source bytes")
         if manifest["support_file_count"] != len(current_support_records):
             raise PackageError("manifest support-file count differs from the reviewed support allowlist")
-        if manifest["package_readme_commit"] != current_readme_commit:
+        if manifest.get("package_readme_commit") != current_readme_commit:
             raise PackageError("manifest package README source commit does not match the current source")
-        if manifest["source_provenance"] != current_provenance:
+        manifest_provenance = manifest.get("source_provenance")
+        if not isinstance(manifest_provenance, dict):
+            raise PackageError("manifest source provenance record is malformed")
+        manifest_readme_record = manifest_provenance.get("package_readme")
+        if not isinstance(manifest_readme_record, dict):
+            raise PackageError("manifest package README source binding is malformed")
+        missing_readme_fields = sorted(set(current_readme_record) - set(manifest_readme_record))
+        if missing_readme_fields:
+            raise PackageError(
+                "manifest package README source binding is missing fields: "
+                + ", ".join(missing_readme_fields)
+            )
+        if manifest_readme_record != current_readme_record:
+            raise PackageError(
+                "manifest package README source binding does not match the current committed source"
+            )
+        if manifest_provenance != current_provenance:
             raise PackageError("manifest source provenance does not match the current source selection")
         archive_data = archive_path.read_bytes()
         archive_metadata = manifest["archive"]
@@ -726,6 +784,7 @@ def verify(archive_path: Path, manifest_path: Path, extract_dir: Path, report_pa
             "source_file_count": manifest["source_file_count"],
             "support_file_count": manifest["support_file_count"],
             "source_provenance": manifest["source_provenance"],
+            "package_readme_binding": current_readme_record,
             "archive_file_count": manifest["archive_file_count"],
             "archive_sha256": archive_metadata["sha256"],
             "source_tree_comparison": "PASS",
@@ -746,6 +805,19 @@ def verify(archive_path: Path, manifest_path: Path, extract_dir: Path, report_pa
                 raise PackageError("manifest archive entries differ from the reviewed package allowlist")
             if set(names) != expected_paths:
                 raise PackageError("archive member list differs from manifest")
+            readme_infos = [info for info, name in zip(infos, names) if name == PACKAGE_README_ARCHIVE_PATH]
+            if len(readme_infos) != 1:
+                raise PackageError("archive package README member is missing or duplicated")
+            readme_data = archive.read(readme_infos[0])
+            if (
+                len(readme_data) != current_readme_record["archive_bytes"]
+                or sha256_bytes(readme_data) != current_readme_record["archive_sha256"]
+                or readme_data != expected_readme_data
+            ):
+                raise PackageError(
+                    "archive package README bytes do not match the committed README Git blob "
+                    "after marker substitution"
+                )
             extract_dir.mkdir(parents=True)
             created_extract = True
             for info, name in zip(infos, names):

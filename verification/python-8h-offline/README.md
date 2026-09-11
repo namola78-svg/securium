@@ -33,6 +33,14 @@ signature or proof of publisher authenticity. Hash equality is claimed only
 within the same source bytes and build environment; it is not assumed across
 different Python, zlib, operating-system, or checkout environments.
 
+The package README has an explicit source binding in the manifest: its Git
+commit/path, raw source byte count and SHA-256, archive path, and the byte
+count and SHA-256 after the two documented marker substitutions. The builder
+and verifier share the same substitution helper. Verification independently
+selects the current committed Git blob, rejects a dirty README checkout, and
+compares the actual archive README bytes directly with the reconstructed
+expected bytes; manifest fields do not select or authorize a source.
+
 ## Verify an extracted copy
 
 Use a new extraction directory. Spaces and non-ASCII characters are valid:

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 from pathlib import Path
 import platform
@@ -11,6 +12,7 @@ import re
 import subprocess
 import sys
 import tempfile
+from zipfile import ZipFile
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -28,6 +30,8 @@ EXPECTED_FOCUSED = {
     "M07": 10,
     "M08": 6,
 }
+README_ARCHIVE_PATH = "python-secure-coding-8h-offline/README.md"
+README_SOURCE_REL = Path("verification/python-8h-offline/package-readme.md")
 
 
 def run(command: list[str], *, expect_success: bool = True) -> subprocess.CompletedProcess[str]:
@@ -72,6 +76,114 @@ def verify(archive: Path, manifest: Path, extraction: Path, report: Path) -> dic
         ]
     )
     return json.loads(result.stdout)
+
+
+def mutate_readme_payload(
+    source_archive: Path,
+    source_manifest: Path,
+    target_archive: Path,
+    target_manifest: Path,
+) -> None:
+    with ZipFile(source_archive) as source:
+        members = [(info, source.read(info)) for info in source.infolist()]
+    mutated = {info.filename: data for info, data in members}
+    mutated[README_ARCHIVE_PATH] += b"\nDISPOSABLE README PAYLOAD TAMPER\n"
+    with ZipFile(target_archive, "w") as target:
+        for info, _ in members:
+            target.writestr(info, mutated[info.filename])
+
+    manifest = json.loads(source_manifest.read_text(encoding="utf-8"))
+    readme_entry = next(
+        entry for entry in manifest["archive_entries"] if entry["path"] == README_ARCHIVE_PATH
+    )
+    readme_data = mutated[README_ARCHIVE_PATH]
+    readme_entry["bytes"] = len(readme_data)
+    readme_entry["sha256"] = hashlib.sha256(readme_data).hexdigest()
+    archive_data = target_archive.read_bytes()
+    manifest["archive"]["bytes"] = len(archive_data)
+    manifest["archive"]["sha256"] = hashlib.sha256(archive_data).hexdigest()
+    target_manifest.write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+
+def mutate_readme_source_binding(source_manifest: Path, target_manifest: Path) -> None:
+    manifest = json.loads(source_manifest.read_text(encoding="utf-8"))
+    record = manifest["source_provenance"]["package_readme"]
+    record["source_commit"] = "0" * 40
+    record["source_path"] = "verification/other/package-readme.md"
+    record["source_sha256"] = "0" * 64
+    manifest["package_readme_commit"] = "0" * 40
+    target_manifest.write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+
+def expect_readme_rejection(
+    archive: Path,
+    manifest: Path,
+    extraction: Path,
+    report: Path,
+    error_fragment: str,
+) -> dict[str, object]:
+    result = run(
+        [
+            sys.executable,
+            str(BUILDER),
+            "verify",
+            "--archive",
+            str(archive),
+            "--manifest",
+            str(manifest),
+            "--extract-dir",
+            str(extraction),
+            "--report",
+            str(report),
+        ],
+        expect_success=False,
+    )
+    if result.returncode == 0 or extraction.exists() or not report.exists():
+        raise RuntimeError("README binding regression was not rejected before extraction")
+    payload = json.loads(report.read_text(encoding="utf-8"))
+    if payload.get("status") != "FAIL":
+        raise RuntimeError(f"README binding regression report was not FAIL: {payload}")
+    if payload.get("preflight", {}).get("status") != "NOT_RUN":
+        raise RuntimeError("README binding rejection started preflight")
+    if payload.get("commands"):
+        raise RuntimeError("README binding rejection started lab commands")
+    if payload.get("cleanup", {}).get("extraction_removed") is not True:
+        raise RuntimeError("README binding rejection did not confirm extraction cleanup")
+    if error_fragment not in payload.get("error", ""):
+        raise RuntimeError(f"unexpected README binding rejection: {payload.get('error')}")
+    return payload
+
+
+def run_dirty_readme_regression(
+    archive: Path, manifest: Path, extraction: Path, report: Path
+) -> None:
+    source_path = REPOSITORY_ROOT / README_SOURCE_REL
+    original = source_path.read_bytes()
+    clean_before = subprocess.run(
+        ["git", "diff", "--quiet", "HEAD", "--", README_SOURCE_REL.as_posix()],
+        cwd=REPOSITORY_ROOT,
+        check=False,
+    )
+    if clean_before.returncode:
+        raise RuntimeError("cannot run dirty README regression with a pre-existing README change")
+    try:
+        source_path.write_bytes(original + b"\nDISPOSABLE DIRTY CHECKOUT PROBE\n")
+        expect_readme_rejection(archive, manifest, extraction, report, "uncommitted changes")
+    finally:
+        source_path.write_bytes(original)
+    clean_after = subprocess.run(
+        ["git", "diff", "--quiet", "HEAD", "--", README_SOURCE_REL.as_posix()],
+        cwd=REPOSITORY_ROOT,
+        check=False,
+    )
+    if clean_after.returncode or source_path.read_bytes() != original:
+        raise RuntimeError("dirty README regression did not restore the original source bytes")
 
 
 def assert_normal_verification(report: dict[str, object]) -> None:
@@ -145,6 +257,48 @@ def main() -> int:
             report_path,
         )
         assert_normal_verification(report)
+        readme_binding_tests = 1
+
+        # A README payload mutation remains invalid even when its ZIP entry and
+        # outer archive hashes are regenerated consistently.
+        payload_archive = root / "README payload tampered.zip"
+        payload_manifest = root / "README payload tampered.manifest.json"
+        mutate_readme_payload(
+            first_archive,
+            Path(first["manifest"]),
+            payload_archive,
+            payload_manifest,
+        )
+        expect_readme_rejection(
+            payload_archive,
+            payload_manifest,
+            root / "README payload extraction",
+            root / "README payload report.json",
+            "committed README Git blob",
+        )
+        readme_binding_tests += 1
+
+        # Caller-provided README commit/path/hash fields cannot select or
+        # authorize a different source record.
+        record_manifest = root / "README source record tampered.manifest.json"
+        mutate_readme_source_binding(Path(first["manifest"]), record_manifest)
+        expect_readme_rejection(
+            first_archive,
+            record_manifest,
+            root / "README source record extraction",
+            root / "README source record report.json",
+            "source commit",
+        )
+        readme_binding_tests += 1
+
+        # A dirty checkout is rejected before package extraction and execution.
+        run_dirty_readme_regression(
+            first_archive,
+            Path(first["manifest"]),
+            root / "README dirty extraction",
+            root / "README dirty report.json",
+        )
+        readme_binding_tests += 1
 
         # Verify that an archive mutation is rejected before extraction.
         tampered_archive = root / "tampered.zip"
@@ -203,6 +357,8 @@ def main() -> int:
             f"support_files={first['support_file_count']} "
             f"archive_entries={first['archive_file_count']} "
             f"preflight_tests={preflight_tests} extracted_preflight=PASS "
+            f"readme_binding_tests={readme_binding_tests} readme_payload=REJECTED "
+            "readme_source_record=REJECTED readme_dirty_checkout=REJECTED "
             "focused=M01:5,M02:5,M03:6,M04:6,M05:7,M06:5,M07:10,M08:6 "
             "aggregate=50 "
             "dependencies=python-standard-library-only "
