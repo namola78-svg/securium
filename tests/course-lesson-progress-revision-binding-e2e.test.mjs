@@ -47,6 +47,14 @@ before(async () => {
         AND course_id = '${courseId}'
         AND course_lesson_id IN ('${accessLessonId}', '${encryptionLessonId}', '${failureLessonId}');
     UPDATE course_lessons SET content_id = '${accessContentId}' WHERE id = '${accessLessonId}';
+    UPDATE contents
+    SET canonical_key = CASE id
+      WHEN '${accessContentId}' THEN 'fixture.revision.access-control'
+      WHEN '${encryptionContentId}' THEN 'fixture.revision.encryption'
+      WHEN '${failureContentId}' THEN 'fixture.revision.failure'
+      ELSE canonical_key
+    END
+    WHERE id IN ('${accessContentId}', '${encryptionContentId}', '${failureContentId}');
     UPDATE contents SET version = 'A' WHERE id = '${accessContentId}';
     UPDATE contents SET version = 'L1' WHERE id = '${encryptionContentId}';
     UPDATE contents SET version = 'FAIL' WHERE id = '${failureContentId}';
@@ -65,6 +73,13 @@ after(async () => {
         AND course_id = '${courseId}'
         AND course_lesson_id IN ('${accessLessonId}', '${encryptionLessonId}', '${failureLessonId}');
     UPDATE course_lessons SET content_id = '${accessContentId}' WHERE id = '${accessLessonId}';
+    UPDATE contents SET canonical_key = CASE id
+      WHEN '${accessContentId}' THEN 'sample.shared.access-control-basics'
+      WHEN '${encryptionContentId}' THEN 'sample.shared.personal-data-encryption'
+      WHEN '${failureContentId}' THEN 'sample.shared.incident-response-lifecycle'
+      ELSE canonical_key
+    END
+    WHERE id IN ('${accessContentId}', '${encryptionContentId}', '${failureContentId}');
   `);
   await server?.stop();
 });
