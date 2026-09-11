@@ -105,7 +105,11 @@ and points to the internal manifest by its package-relative name. Verify the
 ZIP against that external manifest before extraction, then verify the internal
 entry set and each entry's bytes. These manifests are integrity records, not
 signatures, provenance evidence, or proof that the source commit itself is
-trustworthy.
+trustworthy. A source-commit mismatch between the two manifests is rejected.
+Because the manifest is unsigned, a party able to replace both the ZIP and
+the external/internal records can still create a self-consistent package;
+that is a trust-boundary limitation, not provenance verification. The matrix
+CI adds the trusted checkout context by pinning the exact event source SHA.
 
 The builder refuses to overwrite an existing ZIP, manifest, or report. It
 rejects unsafe archive names, duplicate or case-fold-colliding entries,

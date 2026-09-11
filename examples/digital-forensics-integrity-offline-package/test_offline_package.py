@@ -128,16 +128,31 @@ class OfflinePackageBoundaryTests(unittest.TestCase):
     def test_unsafe_allowlist_and_source_reparse_path_are_refused(self) -> None:
         with self.assertRaises(PackageError):
             _validate_allowlist([("a.txt", "A.txt"), ("b.txt", "a.TXT")])
+        with self.assertRaises(PackageError):
+            _validate_allowlist([("a.txt", "é.txt"), ("b.txt", "e\u0301.txt")])
+        with self.assertRaises(PackageError):
+            _validate_allowlist([("a.txt", "CON.txt")])
         fixture = self.temp_root / "fixture"
         fixture.mkdir()
-        (fixture / "real.txt").write_text("synthetic", encoding="utf-8")
+        real = fixture / "real.txt"
+        real.write_text("synthetic", encoding="utf-8")
         link = fixture / "linked.txt"
         try:
-            link.symlink_to(fixture / "real.txt")
+            link.symlink_to("real.txt")
         except (OSError, NotImplementedError) as error:
             self.fail(f"symlink boundary could not be exercised: {error}")
         with self.assertRaises(PackageError):
             _collect_entries(fixture, self.source_commit, [("linked.txt", "linked.txt")])
+
+    def test_external_manifest_source_mismatch_is_rejected(self) -> None:
+        package, manifest, _ = self._build()
+        external = json.loads(manifest.read_text(encoding="utf-8"))
+        external["source_commit"] = "0" * 40
+        mismatched = self.temp_root / "mismatched-source.manifest.json"
+        mismatched.write_text(json.dumps(external), encoding="utf-8")
+        result = verify_package(package, mismatched)
+        self.assertEqual(result["status"], "REJECTED")
+        self.assertIn("source commit differs", result["errors"][0])
 
     def test_cleanup_removes_only_owned_workspace(self) -> None:
         owned = self.temp_root / "owned workspace"

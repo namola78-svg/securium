@@ -100,6 +100,8 @@ def _run_package_boundary_tests() -> dict[str, object]:
     stream = io.StringIO()
     result = unittest.TextTestRunner(stream=stream, verbosity=1).run(suite)
     skipped_ids = sorted(_test_id(test) for test, _reason in result.skipped)
+    failed_ids = sorted(_test_id(test) for test, _traceback in result.failures)
+    error_ids = sorted(_test_id(test) for test, _traceback in result.errors)
     summary = {
         "discovered": discovered,
         "executed": result.testsRun,
@@ -107,9 +109,13 @@ def _run_package_boundary_tests() -> dict[str, object]:
         "errors": len(result.errors),
         "skipped": len(result.skipped),
         "skipped_ids": skipped_ids,
+        "failed_ids": failed_ids,
+        "error_ids": error_ids,
         "todo": 0,
     }
     print("packaging_boundary=" + json.dumps(summary, sort_keys=True))
+    if result.failures or result.errors:
+        print("packaging_boundary_output_tail=" + json.dumps(stream.getvalue()[-3000:]))
     if (
         discovered != EXPECTED_PACKAGE_TESTS
         or result.testsRun != EXPECTED_PACKAGE_TESTS

@@ -20,6 +20,7 @@ import stat
 import subprocess
 import sys
 import tempfile
+import unicodedata
 import zipfile
 import zlib
 from pathlib import Path, PurePosixPath
@@ -33,6 +34,16 @@ DEFAULT_EXTERNAL_MANIFEST_NAME = "securium-forensics-integrity-offline-package.m
 MAX_ENTRY_BYTES = 16 * 1024 * 1024
 MAX_PACKAGE_BYTES = 128 * 1024 * 1024
 MAX_MANIFEST_BYTES = 2 * 1024 * 1024
+MAX_ARCHIVE_BYTES = 128 * 1024 * 1024
+MAX_ARCHIVE_ENTRIES = 256
+WINDOWS_RESERVED_NAMES = {
+    "AUX",
+    "CON",
+    "NUL",
+    "PRN",
+    *(f"COM{index}" for index in range(1, 10)),
+    *(f"LPT{index}" for index in range(1, 10)),
+}
 
 # This is the complete source allowlist.  Builder code and package tests are
 # intentionally not included in the extracted teaching package.
@@ -134,7 +145,16 @@ def _safe_archive_path(value: str) -> str:
     path = PurePosixPath(value)
     if path.is_absolute() or any(part in {"", ".", ".."} for part in path.parts):
         raise PackageError(f"unsafe archive path: {value!r}")
+    for part in path.parts:
+        if part.endswith((".", " ")):
+            raise PackageError(f"Windows-unsafe archive path: {value!r}")
+        if part.split(".", 1)[0].upper() in WINDOWS_RESERVED_NAMES:
+            raise PackageError(f"Windows reserved archive path: {value!r}")
     return "/".join(path.parts)
+
+
+def _archive_collision_key(value: str) -> str:
+    return unicodedata.normalize("NFKC", value).casefold()
 
 
 def _validate_allowlist(allowlist: Sequence[tuple[str, str]]) -> None:
@@ -143,8 +163,8 @@ def _validate_allowlist(allowlist: Sequence[tuple[str, str]]) -> None:
     for source_name, archive_name in allowlist:
         safe_source = _safe_archive_path(source_name)
         safe_archive = _safe_archive_path(archive_name)
-        source_key = safe_source.casefold()
-        archive_key = safe_archive.casefold()
+        source_key = _archive_collision_key(safe_source)
+        archive_key = _archive_collision_key(safe_archive)
         if source_key in source_names:
             raise PackageError(f"duplicate source path: {source_name}")
         if archive_key in archive_names:
@@ -344,6 +364,9 @@ def _safe_output_dir(path: Path, repository_root: Path) -> Path:
         raise PackageError("artifact output directory must be outside the repository")
     if path.exists() and (_is_reparse_point(path) or not path.is_dir()):
         raise PackageError(f"unsafe artifact output directory: {path}")
+    for ancestor in path.parents:
+        if ancestor.exists() and _is_reparse_point(ancestor):
+            raise PackageError(f"reparse path in artifact output parents: {path}")
     path.mkdir(parents=True, exist_ok=True)
     if _is_reparse_point(path):
         raise PackageError(f"unsafe artifact output directory: {path}")
@@ -355,6 +378,8 @@ def _safe_filename(name: str, label: str) -> str:
         raise PackageError(f"{label} must be a simple filename")
     if name in {".", ".."}:
         raise PackageError(f"unsafe {label}: {name}")
+    if name.endswith((".", " ")) or name.split(".", 1)[0].upper() in WINDOWS_RESERVED_NAMES:
+        raise PackageError(f"Windows-unsafe {label}: {name}")
     return name
 
 
@@ -484,6 +509,9 @@ def _zip_has_symlink(info: zipfile.ZipInfo) -> bool:
 def _safe_extract_root(path: Path) -> Path:
     if path.exists() or path.is_symlink() or _is_reparse_point(path):
         raise PackageError(f"extraction directory must not already exist: {path}")
+    for ancestor in path.parents:
+        if ancestor.exists() and _is_reparse_point(ancestor):
+            raise PackageError(f"reparse path in extraction parents: {path}")
     path.mkdir(parents=True, exist_ok=False)
     if _is_reparse_point(path):
         raise PackageError(f"unsafe extraction directory: {path}")
@@ -537,6 +565,8 @@ def verify_package(
     try:
         if _is_reparse_point(zip_path) or not zip_path.is_file():
             raise PackageError(f"unsafe or missing ZIP file: {zip_path}")
+        if zip_path.stat().st_size > MAX_ARCHIVE_BYTES:
+            raise PackageError(f"ZIP exceeds {MAX_ARCHIVE_BYTES} bytes")
         external = _read_json(external_manifest_path)
         if not isinstance(external, dict) or external.get("format") != PACKAGE_FORMAT:
             raise PackageError("external manifest format is not supported")
@@ -554,20 +584,26 @@ def verify_package(
             infos = archive.infolist()
             if not infos:
                 raise PackageError("ZIP contains no entries")
+            if len(infos) > MAX_ARCHIVE_ENTRIES:
+                raise PackageError(f"ZIP contains more than {MAX_ARCHIVE_ENTRIES} entries")
             names: list[str] = []
             seen_exact: set[str] = set()
             seen_folded: set[str] = set()
+            total_uncompressed_size = 0
             for info in infos:
                 safe_name = _validate_zip_name(info.filename)
                 if info.is_dir() or _zip_has_symlink(info):
                     raise PackageError(f"directory or symlink ZIP entry is not allowed: {info.filename}")
-                if safe_name in seen_exact or safe_name.casefold() in seen_folded:
+                if safe_name in seen_exact or _archive_collision_key(safe_name) in seen_folded:
                     raise PackageError(f"duplicate or case-fold collision in ZIP: {info.filename}")
                 if info.file_size > MAX_ENTRY_BYTES:
                     raise PackageError(f"ZIP entry exceeds {MAX_ENTRY_BYTES} bytes: {info.filename}")
+                total_uncompressed_size += info.file_size
+                if total_uncompressed_size > MAX_PACKAGE_BYTES:
+                    raise PackageError(f"ZIP uncompressed entries exceed {MAX_PACKAGE_BYTES} bytes")
                 names.append(safe_name)
                 seen_exact.add(safe_name)
-                seen_folded.add(safe_name.casefold())
+                seen_folded.add(_archive_collision_key(safe_name))
 
             if INTERNAL_MANIFEST_NAME not in seen_exact:
                 raise PackageError("internal package manifest is missing")
@@ -599,7 +635,9 @@ def verify_package(
                 name = _validate_zip_name(str(entry.get("archive_path", "")))
                 if name == INTERNAL_MANIFEST_NAME or name in expected_entries:
                     raise PackageError("internal manifest contains a duplicate or self entry")
-                if name.casefold() in {item.casefold() for item in expected_entries}:
+                if _archive_collision_key(name) in {
+                    _archive_collision_key(item) for item in expected_entries
+                }:
                     raise PackageError("internal manifest contains a case-fold collision")
                 if not isinstance(entry.get("size"), int) or not isinstance(entry.get("sha256"), str):
                     raise PackageError(f"invalid size or hash for entry: {name}")
