@@ -222,7 +222,7 @@ def source_commit_and_files() -> tuple[str, list[dict[str, Any]], list[str]]:
 
     # The package provenance is the last commit that changed the packaged lab
     # tree, not a later commit that only changes this packaging helper.
-    commit = run_git("log", "-1", "--format=%H", "--", str(LAB_ROOT_REL))
+    commit = run_git("log", "-1", "--no-merges", "--format=%H", "--", str(LAB_ROOT_REL))
     records: list[dict[str, Any]] = []
     for relative in SOURCE_FILES:
         path = lab_root / Path(relative)
