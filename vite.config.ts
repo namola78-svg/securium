@@ -24,7 +24,7 @@ const localVars: Record<string, string> | undefined = isD1TestMode
         POSTGRES_QUERY_TIMEOUT_MS:
           process.env.POSTGRES_QUERY_TIMEOUT_MS ?? "10000",
       }
-     : undefined;
+    : undefined;
 
 // macOS Seatbelt blocks FSEvents, so Codex previews need polling for HMR.
 const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
