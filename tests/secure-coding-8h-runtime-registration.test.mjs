@@ -117,14 +117,15 @@ test("registration record is exact, unpublished, and idempotent", () => {
   );
 });
 
-test("provider SQL is fixed to courses identity and cannot publish", () => {
+test("provider SQL encodes integer-backed visibility flags without publishing", () => {
   const d1 = buildRegistrationInsertSql("d1");
   const postgres = buildRegistrationInsertSql("postgres");
   for (const sql of [d1, postgres]) {
     assert.match(sql, /INSERT INTO courses/);
     assert.match(sql, /secure-coding-8h-python-vibe/);
     assert.match(sql, /SECURE_CODING_8H/);
-    assert.match(sql, /0|false/);
+    assert.match(sql, /, 0, 0, 8, 0\)$/);
+    assert.doesNotMatch(sql, /\btrue\b|\bfalse\b/);
     assert.doesNotMatch(sql, /ON CONFLICT|OR IGNORE/i);
   }
   assert.match(buildCourseGroupLookupSql(), /course_groups/);
