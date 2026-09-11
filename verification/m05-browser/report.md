@@ -27,8 +27,8 @@ fixture can use its actual server-owned `http://app.local` Origin.
 - Existing harness checkpoint: `1500f48`
 - Source M05 fixture repair commit: `18b6aa1`
 - Latest-main M05 repair commit: `1c36dc6`
-- Latest-main harness commit: `7ebfbe8` plus isolated dependency commit
-  `f7c5a9b`
+- Latest-main harness commit: `7ebfbe8` plus isolated dependency commits
+  `f7c5a9b` and `21348a6`
 - PR #143 merge / publish base: `8e7baf8a3e156f7dc3666313fb7c88d7e6e7d8df`
 
 The M05 source blobs from merged #143 are recorded in `source-metadata.md`.
@@ -44,7 +44,7 @@ root dependency/lockfile was changed.
 - Executable:
   `C:\Program Files\Google\Chrome\Application\chrome.exe`
 - OS: Windows 11 Pro 64-bit, build `26200` (`10.0.26200`)
-- Playwright: `1.51.1`, installed only under this harness directory
+- Playwright: `1.63.0`, installed only under this harness directory
 - Browser mode: HTTP, service `127.0.0.1:80`, attacker/static server
   `127.0.0.1:8080`
 - Browser context: `ignoreHTTPSErrors: false`; no web-security override

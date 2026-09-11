@@ -4,7 +4,7 @@
 - M05 fixture repair commit: `18b6aa1`
 - Latest-main M05 repair commit: `1c36dc6`
 - Latest-main harness commit: `7ebfbe8`
-- Isolated harness dependency commit: `f7c5a9b`
+- Isolated harness dependency commits: `f7c5a9b`, `21348a6`
 - PR #143 merge / publish base: `8e7baf8a3e156f7dc3666313fb7c88d7e6e7d8df`
 - M05 path: `examples/python-secure-coding-8h-priority-labs/m05_web_context`
 - M05 blobs at start:
