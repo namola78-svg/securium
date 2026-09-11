@@ -28,6 +28,7 @@ export async function startVinextTestServer({
   label = "Vinext integration",
   timeoutMs = DEFAULT_TIMEOUT_MS,
   slowStartupThresholdMs = SLOW_STARTUP_THRESHOLD_MS,
+  readinessPath = "/",
 } = {}) {
   const runId = `${process.pid}-${Date.now()}-${randomUUID()}`;
   const startedAt = Date.now();
@@ -134,7 +135,7 @@ export async function startVinextTestServer({
       }
       if (state.baseUrl) {
         try {
-          const response = await fetch(state.baseUrl, {
+          const response = await fetch(new URL(readinessPath, state.baseUrl), {
             signal: AbortSignal.timeout(HTTP_PROBE_TIMEOUT_MS),
           });
           if (response.status > 0) {

@@ -2,11 +2,15 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { like } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import {
   createPostgresJsExecutor,
+  getRuntimePostgresExecutor,
   PostgresJsExecutor,
   type PostgresJsClient,
   type PostgresJsFactory,
+  type PostgresJsModuleLoader,
+  withRuntimePostgresRequestScope,
 } from "../db/postgres/postgres-js-executor.ts";
 import {
   createPostgreSqlConnectionPlan,
@@ -132,6 +136,7 @@ test("query, queryOne, execute and parameter binding preserve common results", a
   );
   assert.deepEqual(calls[0].parameters, ["row-1"]);
   assert.equal(calls[0].sql, "SELECT id FROM users WHERE id = $1");
+  assert.deepEqual(calls[2].parameters, [true]);
 });
 
 test("transaction commits on success and rolls back on failure", async () => {
@@ -243,6 +248,64 @@ test("installed postgres.js driver loads lazily without opening a connection", a
   await assert.doesNotReject(executor.close());
 });
 
+test("request scope keeps PostgreSQL executor open until response body completion", async () => {
+  let closeCalls = 0;
+  let releaseBody: (() => void) | undefined;
+  const bodyReady = new Promise<void>((resolve) => {
+    releaseBody = resolve;
+  });
+  const client = createFakeClient({
+    onQuery: () => rows([{ ok: 1 }]),
+    onEnd: () => {
+      closeCalls += 1;
+    },
+  });
+  const loader: PostgresJsModuleLoader = async () => ({
+    default: () => client,
+  });
+
+  const response = await withRuntimePostgresRequestScope(async () => {
+    const executor = await getRuntimePostgresExecutor(runtimeEnvironment, loader);
+    assert.equal(await executor.healthCheck(), true);
+    return new Response(
+      new ReadableStream({
+        async start(controller) {
+          await bodyReady;
+          controller.enqueue(new TextEncoder().encode("body"));
+          controller.close();
+        },
+      }),
+    );
+  });
+
+  assert.equal(closeCalls, 0);
+  releaseBody?.();
+  assert.equal(await response.text(), "body");
+  assert.equal(closeCalls, 1);
+});
+
+test("request scope closes PostgreSQL executor when handler fails", async () => {
+  let closeCalls = 0;
+  const client = createFakeClient({
+    onQuery: () => rows([{ ok: 1 }]),
+    onEnd: () => {
+      closeCalls += 1;
+    },
+  });
+  const loader: PostgresJsModuleLoader = async () => ({
+    default: () => client,
+  });
+
+  await assert.rejects(
+    withRuntimePostgresRequestScope(async () => {
+      await getRuntimePostgresExecutor(runtimeEnvironment, loader);
+      throw new Error("handler failed");
+    }),
+    /handler failed/,
+  );
+  assert.equal(closeCalls, 1);
+});
+
 test("D1 Drizzle compatibility adapter preserves repository reads and parameter binding", async () => {
   const provider = new CompatibilityRecordingProvider([
     { id: "course-1", name: "Course" },
@@ -261,6 +324,32 @@ test("D1 Drizzle compatibility adapter preserves repository reads and parameter 
   assert.equal(provider.queries.length, 1);
   assert.match(provider.queries[0].sql, /ILIKE/);
   assert.deepEqual(provider.queries[0].parameters, ["%course%", 1]);
+});
+
+test("D1 compatibility normalizes integer-mode booleans without changing other values", async () => {
+  const provider = new CompatibilityRecordingProvider([]);
+  const compatibility = new DrizzleD1CompatibilityDatabase(() => provider);
+  const compatibilityParameters = sqliteTable("compatibility_parameters", {
+    flag: integer("flag", { mode: "boolean" }),
+    count: integer("count"),
+    metadata: text("metadata", { mode: "json" }),
+    nullableValue: integer("nullable_value"),
+  });
+  const database = drizzle(compatibility, { schema: { compatibilityParameters } });
+
+  await database.insert(compatibilityParameters).values({
+    flag: true,
+    count: 7,
+    metadata: { nested: true },
+    nullableValue: null,
+  });
+
+  assert.deepEqual(provider.queries[0].parameters, [
+    1,
+    7,
+    JSON.stringify({ nested: true }),
+    null,
+  ]);
 });
 
 test("D1 Drizzle batch uses one provider transaction and returns statement results", async () => {
@@ -401,6 +490,7 @@ function createFakeClient(options: {
     | PromiseLike<ReturnType<typeof rawRows>>;
   onCommit?: () => void;
   onRollback?: () => void;
+  onEnd?: () => void;
 }): PostgresJsClient {
   return {
     unsafe(sql, parameters) {
@@ -426,7 +516,9 @@ function createFakeClient(options: {
         throw error;
       }
     },
-    async end() {},
+    async end() {
+      options.onEnd?.();
+    },
   };
 }
 

@@ -10,6 +10,21 @@ const LOCAL_D1_TEST_DATABASE_NAME = "shield-academy-local";
 
 const { d1, r2 } = hostingConfig;
 const isD1TestMode = process.env.D1_TEST_MODE === "1";
+const isPostgresTestMode = process.env.SECURIUM_POSTGRES_TEST_MODE === "1";
+const localVars: Record<string, string> | undefined = isD1TestMode
+  ? { DB_PROVIDER: "d1" }
+  : isPostgresTestMode
+    ? {
+        DB_PROVIDER: "supabase",
+        DATABASE_URL: process.env.DATABASE_URL ?? "",
+        POSTGRES_SSL_MODE: process.env.POSTGRES_SSL_MODE ?? "disable",
+        POSTGRES_MAX_CONNECTIONS: process.env.POSTGRES_MAX_CONNECTIONS ?? "1",
+        POSTGRES_CONNECT_TIMEOUT_SECONDS:
+          process.env.POSTGRES_CONNECT_TIMEOUT_SECONDS ?? "5",
+        POSTGRES_QUERY_TIMEOUT_MS:
+          process.env.POSTGRES_QUERY_TIMEOUT_MS ?? "10000",
+      }
+    : undefined;
 
 // macOS Seatbelt blocks FSEvents, so Codex previews need polling for HMR.
 const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
@@ -18,8 +33,8 @@ const localBindingConfig = {
   main: "./worker/index.ts",
   compatibility_flags: ["nodejs_compat"],
   // Explicit Wrangler vars take precedence over a developer's `.env.local`.
-  // Keep this test-only so production configuration remains control-plane owned.
-  vars: isD1TestMode ? { DB_PROVIDER: "d1" } : undefined,
+  // Keep these test-only so production configuration remains control-plane owned.
+  vars: localVars,
   d1_databases: d1
     ? [
         {

@@ -16,6 +16,7 @@ import {
   bookmarks,
   contentRevisions,
   courses,
+  evidenceRecomputeRequests,
   learningActivities,
   ontologyConcepts,
   questionAttempts,
@@ -62,6 +63,11 @@ import {
   computeConceptMappingSetHash,
   type GovernedConceptMapping,
 } from "@/lib/services/learning-event-contracts";
+import { EVIDENCE_PROJECTION_VERSION } from "@/lib/services/evidence-projection";
+import {
+  createRecomputeRequest,
+  recomputeRequestInsertValues,
+} from "./evidence-projection-repository";
 
 function batchItems(items: BatchItem<"sqlite">[]) {
   return items as unknown as Parameters<ReturnType<typeof getDb>["batch"]>[0];
@@ -540,6 +546,18 @@ export async function submitQuestionAttempt(input: {
   const activityId = crypto.randomUUID();
   const progressId = crypto.randomUUID();
   const selectedAnswer = JSON.stringify(input.answer);
+  const recomputeRequest = question.binding
+    ? await createRecomputeRequest({
+        requestType: "EVIDENCE_RECOMPUTE_REQUIRED",
+        scopeType: "EVENT",
+        sourceType: "QUESTION_ATTEMPT",
+        sourceEventId: attemptId,
+        sourceRevisionIdentity: attemptId,
+        userId: input.userId,
+        projectionVersion: EVIDENCE_PROJECTION_VERSION,
+        reasonCode: "QUESTION_ATTEMPT_CREATED",
+      })
+    : null;
   const operations: BatchItem<"sqlite">[] = [
     getDb().insert(questionAttempts).values({
       id: attemptId,
@@ -568,6 +586,13 @@ export async function submitQuestionAttempt(input: {
       }),
     }),
   ];
+  if (recomputeRequest) {
+    operations.push(
+      getDb()
+        .insert(evidenceRecomputeRequests)
+        .values(recomputeRequestInsertValues(recomputeRequest)),
+    );
+  }
 
   if (question.subjectId && question.topicId) {
     operations.push(
