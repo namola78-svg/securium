@@ -13,7 +13,8 @@ import { EvidenceRecomputeLifecycleExecutor, QuestionAttemptEvidenceEventExecuto
 import { computeConceptMappingSetHash } from "../lib/services/learning-event-contracts.ts";
 
 const execFile = promisify(execFileCallback);
-const container = `securium-question-attempt-evidence-executor-${randomUUID()}`;
+const container = process.env.SECURIUM_EVIDENCE_EXECUTOR_PG_CONTAINER?.trim()
+  || `securium-question-attempt-evidence-executor-${randomUUID()}`;
 const password = "question-attempt-evidence-executor-disposable-password";
 let client;
 let repository;
