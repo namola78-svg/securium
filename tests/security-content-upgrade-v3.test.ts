@@ -105,6 +105,29 @@ test("V3 runner는 source package에 쓰지 않고 임시 SQL만 사용한다", 
   assert.match(runner, /mkdtemp\(join\(tmpdir\(\)/);
 });
 
+test("V3 seed callers preflight immutable content conflicts", async () => {
+  const [upgradeRunner, intelligenceRunner] = await Promise.all([
+    readFile("scripts/security-content-upgrade-v3.mjs", "utf8"),
+    readFile("scripts/security-content-intelligence-v3.mjs", "utf8"),
+  ]);
+  assert.match(upgradeRunner, /assertD1NoImmutableContentConflict/);
+  assert.match(upgradeRunner, /assertPostgresNoImmutableContentConflict/);
+  assert.match(intelligenceRunner, /assertD1NoImmutableContentConflict/);
+  assert.match(intelligenceRunner, /assertPostgresNoImmutableContentConflict/);
+});
+
+test("V3 content import cannot update an existing immutable contents row", () => {
+  for (const dialect of ["d1", "postgres"] as const) {
+    const sql = generateSecurityContentV3Sql(fixture(), { dialect });
+    const contentStatements = sql.match(/INSERT INTO "contents"[\s\S]*?;/g) ?? [];
+    assert.ok(contentStatements.length > 0);
+    for (const statement of contentStatements) {
+      assert.doesNotMatch(statement, /ON CONFLICT \("id"\) DO UPDATE SET/);
+      assert.match(statement, /ON CONFLICT \("id"\) DO NOTHING/);
+    }
+  }
+});
+
 test("V3 intelligence plan은 gap 기반 기사/산업기사 이론과 문제를 분리한다", () => {
   const plan = buildSecurityContentIntelligenceV3Plan();
   assert.deepEqual(plan.sourceSummary, {

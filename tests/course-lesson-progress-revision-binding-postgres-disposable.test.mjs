@@ -5,6 +5,7 @@ import { readFile, readdir } from "node:fs/promises";
 import { after, before, test } from "node:test";
 import { promisify } from "node:util";
 import { startVinextTestServer } from "./support/vinext-test-server.mjs";
+import { generateSecurityContentV3Sql } from "../lib/data/security-content-upgrade-v3.mjs";
 
 const execFile = promisify(execFileCallback);
 const runId = randomUUID();
@@ -336,6 +337,26 @@ test("PostgreSQL migration and app repository preserve CourseLesson revision ide
   assert.equal(sameVersionMutation.response.status, 409, JSON.stringify(sameVersionMutation.payload));
   assert.equal(sameVersionMutation.payload.code, "SHARED_CONTENT_REVISION_CONFLICT");
 
+  await client.unsafe(contentImportStatement({ overview: "Direct import original overview" }));
+  const directImportBefore = Array.from(await client.unsafe(`
+    SELECT title, summary, body, version, status
+    FROM contents WHERE id = 'sec-upgrade-lesson-pg-boundary'
+  `));
+  assert.equal(directImportBefore.length, 1);
+  await client.unsafe(contentImportStatement({
+    title: "Direct import tampered title",
+    overview: "Direct import tampered overview",
+    learningObjectives: ["Tampered learning objective"],
+  }));
+  assert.deepEqual(Array.from(await client.unsafe(`
+    SELECT title, summary, body, version, status
+    FROM contents WHERE id = 'sec-upgrade-lesson-pg-boundary'
+  `)), directImportBefore);
+  assert.equal(Number((await client.unsafe(`
+    SELECT count(*)::int AS count FROM content_revisions
+    WHERE content_type = 'LEARNING_UNIT' AND content_id = 'sec-upgrade-lesson-pg-boundary'
+  `))[0].count), 0);
+
   const newRevision = await saveContent(adminHeaders, contentInput({
     ...contentRow,
     version: "C",
@@ -358,22 +379,65 @@ test("PostgreSQL migration and app repository preserve CourseLesson revision ide
     { version: "C", revisionStatus: "published", isLatest: true, body: "PostgreSQL revision C body" },
   ]);
 
-  const rollback = await saveContent(adminHeaders, contentInput({
+  const concurrentPublishDraft = await saveContent(adminHeaders, contentInput({
     ...contentRow,
     version: "D",
-    body: "PostgreSQL revision D body",
+    body: "PostgreSQL concurrent publish body",
+    status: "DRAFT",
+  }));
+  assert.equal(concurrentPublishDraft.response.status, 200, JSON.stringify(concurrentPublishDraft.payload));
+  const concurrentPublish = await Promise.all([
+    saveContent(adminHeaders, contentInput({
+      ...contentRow,
+      version: "D",
+      body: "PostgreSQL concurrent publish body",
+      status: "PUBLISHED",
+    })),
+    saveContent(adminHeaders, contentInput({
+      ...contentRow,
+      version: "D",
+      body: "PostgreSQL concurrent publish body",
+      status: "PUBLISHED",
+    })),
+  ]);
+  const concurrentPublishResults = concurrentPublish.map((result) => ({
+    status: result.response.status,
+    payload: result.payload,
+  }));
+  assert.ok(
+    concurrentPublish.every((result) => result.response.status === 200 || result.response.status === 409),
+    JSON.stringify(concurrentPublishResults),
+  );
+  assert.ok(concurrentPublish.some((result) => result.response.status === 200), JSON.stringify(concurrentPublishResults));
+  const concurrentPublishRows = Array.from(await client.unsafe(`
+    SELECT id, version, revision_status AS "revisionStatus", is_latest AS "isLatest",
+      previous_version_id AS "previousVersionId"
+    FROM content_revisions
+    WHERE content_type = 'LEARNING_UNIT' AND content_id = '${contentA}'
+    ORDER BY version
+  `));
+  assert.equal(concurrentPublishRows.filter((row) => Boolean(row.isLatest)).length, 1);
+  const latestConcurrentPublish = concurrentPublishRows.find((row) => Boolean(row.isLatest));
+  assert.equal(latestConcurrentPublish.version, "D");
+  assert.equal(latestConcurrentPublish.revisionStatus, "published");
+  assert.equal(latestConcurrentPublish.previousVersionId, concurrentPublishRows.find((row) => row.version === "C").id);
+
+  const rollback = await saveContent(adminHeaders, contentInput({
+    ...contentRow,
+    version: "E",
+    body: "PostgreSQL revision E body",
     slug: "pg-revision-content-b",
     canonicalKey: "pg.revision.content.d",
   }));
   assert.ok(rollback.response.status >= 400, JSON.stringify(rollback.payload));
   assert.deepEqual(Array.from(await client.unsafe(`
     SELECT version, body FROM contents WHERE id = '${contentA}'
-  `)), [{ version: "C", body: "PostgreSQL revision C body" }]);
+  `)), [{ version: "D", body: "PostgreSQL concurrent publish body" }]);
   assert.deepEqual(Array.from(await client.unsafe(`
     SELECT version FROM content_revisions
     WHERE content_type = 'LEARNING_UNIT' AND content_id = '${contentA}'
     ORDER BY version
-  `)), [{ version: "B" }, { version: "C" }]);
+  `)), [{ version: "B" }, { version: "C" }, { version: "D" }]);
 
   await assert.rejects(
     client.unsafe(`DELETE FROM contents WHERE id = '${contentA}'`),
@@ -383,7 +447,7 @@ test("PostgreSQL migration and app repository preserve CourseLesson revision ide
   assert.equal(Number((await client.unsafe(`
     SELECT count(*)::int AS count FROM content_revisions
     WHERE content_type = 'LEARNING_UNIT' AND content_id = '${contentA}'
-  `))[0].count), 2);
+  `))[0].count), 3);
   await client.unsafe(`UPDATE contents SET deleted_at = NULL WHERE id = '${contentA}'`);
 });
 
@@ -469,6 +533,33 @@ function contentInput(row) {
     version: row.version,
     status: row.status,
   };
+}
+
+function contentImportStatement(overrides = {}) {
+  const sql = generateSecurityContentV3Sql({
+    lessons: [
+      {
+        id: "sec-upgrade-lesson-pg-boundary",
+        title: "Direct import original title",
+        concepts: ["DNS security"],
+        source_refs: ["disposable-boundary-fixture"],
+        difficulty: 3,
+        learningObjectives: ["Original learning objective"],
+        overview: "Direct import original overview",
+        keyPoints: ["Original key point"],
+        practiceTip: "Original practice tip",
+        fieldExample: "Original field example",
+        relatedConcepts: [],
+        provenance: { canonicalConcept: "DNS security" },
+        ...overrides,
+      },
+    ],
+    writtenQuestions: [],
+    practicalQuestions: [],
+  }, { dialect: "postgres", actorId: "pg-revision-admin" });
+  const statement = sql.match(/INSERT INTO "contents"[\s\S]*?;/)?.[0];
+  assert.ok(statement, "Expected generated contents import statement.");
+  return statement;
 }
 
 async function waitForConnection() {

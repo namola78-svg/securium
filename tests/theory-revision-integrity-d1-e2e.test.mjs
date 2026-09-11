@@ -3,12 +3,14 @@ import { spawn } from "node:child_process";
 import { createServer } from "node:net";
 import { after, before, test } from "node:test";
 import { startVinextTestServer } from "./support/vinext-test-server.mjs";
+import { generateSecurityContentV3Sql } from "../lib/data/security-content-upgrade-v3.mjs";
 
 const host = "127.0.0.1";
 const courseId = "course-isms-p";
 const userId = "user-learner-1";
 const contentId = "repair-revision-integrity-content";
 const collisionContentId = "repair-revision-integrity-collision";
+const upgradeContentId = "sec-upgrade-lesson-repair-boundary";
 const lessonId = "repair-revision-integrity-lesson";
 const legacyProgressId = "repair-revision-integrity-legacy";
 const port = await getFreeLoopbackPort();
@@ -48,6 +50,7 @@ before(async () => {
       AND version = 'v2';
     DELETE FROM content_revisions WHERE content_type = 'LEARNING_UNIT'
       AND content_id IN ('${contentId}', '${collisionContentId}');
+    DELETE FROM contents WHERE id = '${upgradeContentId}';
     DELETE FROM course_lessons WHERE id = '${lessonId}';
     DELETE FROM contents WHERE id IN ('${contentId}', '${collisionContentId}');
     INSERT INTO contents
@@ -92,6 +95,7 @@ after(async () => {
       AND version = 'v2';
     DELETE FROM content_revisions WHERE content_type = 'LEARNING_UNIT'
       AND content_id IN ('${contentId}', '${collisionContentId}');
+    DELETE FROM contents WHERE id = '${upgradeContentId}';
     DELETE FROM course_lessons WHERE id = '${lessonId}';
     DELETE FROM contents WHERE id IN ('${contentId}', '${collisionContentId}');
   `);
@@ -158,6 +162,44 @@ test("D1 authoring and learning records preserve immutable theory revisions", as
       { version: "v2", revisionStatus: "published", isLatest: 1, hasPrevious: true, body: "Collision revision v2 body" },
     ],
   );
+  const collisionRevisionRows = await queryRows(`
+    SELECT id, version, previous_version_id AS previousVersionId
+    FROM content_revisions
+    WHERE content_type = 'LEARNING_UNIT' AND content_id = '${collisionContentId}'
+    ORDER BY version;
+  `);
+  assert.equal(collisionRevisionRows.length, 2);
+  assert.equal(collisionRevisionRows[1].previousVersionId, collisionRevisionRows[0].id);
+  const collisionReplay = await saveContent(collisionContentInput({
+    version: "v2",
+    body: "Collision revision v2 body",
+    status: "PUBLISHED",
+  }));
+  assert.equal(collisionReplay.response.status, 200, JSON.stringify(collisionReplay.payload));
+  assert.equal(Number((await queryRows(`
+    SELECT count(*) AS count FROM content_revisions
+    WHERE content_type = 'LEARNING_UNIT' AND content_id = '${collisionContentId}'
+  `))[0].count), 2);
+
+  await runLocalSql(contentImportStatement({ overview: "Direct import original overview" }));
+  const directImportBefore = await queryRows(`
+    SELECT title, summary, body, version, status
+    FROM contents WHERE id = '${upgradeContentId}';
+  `);
+  assert.equal(directImportBefore.length, 1);
+  await runLocalSql(contentImportStatement({
+    title: "Direct import tampered title",
+    overview: "Direct import tampered overview",
+    learningObjectives: ["Tampered learning objective"],
+  }));
+  assert.deepEqual(await queryRows(`
+    SELECT title, summary, body, version, status
+    FROM contents WHERE id = '${upgradeContentId}';
+  `), directImportBefore);
+  assert.equal(Number((await queryRows(`
+    SELECT count(*) AS count FROM content_revisions
+    WHERE content_type = 'LEARNING_UNIT' AND content_id = '${upgradeContentId}'
+  `))[0].count), 0);
 
   const sameRevisionMutation = await saveContent(contentInput({ body: "Changed A body" }));
   assert.equal(sameRevisionMutation.response.status, 409, JSON.stringify(sameRevisionMutation.payload));
@@ -271,27 +313,59 @@ test("D1 authoring and learning records preserve immutable theory revisions", as
     WHERE content_type = 'LEARNING_UNIT' AND content_id = '${contentId}' AND version = 'v3';
   `))[0].count), 1);
 
+  const concurrentPublishDraft = await saveContent(contentInput({
+    version: "v4",
+    body: "Concurrent publish draft body",
+    status: "DRAFT",
+  }));
+  assert.equal(concurrentPublishDraft.response.status, 200, JSON.stringify(concurrentPublishDraft.payload));
+  const concurrentPublish = await Promise.all([
+    saveContent(contentInput({ version: "v4", body: "Concurrent publish draft body", status: "PUBLISHED" })),
+    saveContent(contentInput({ version: "v4", body: "Concurrent publish draft body", status: "PUBLISHED" })),
+  ]);
+  assert.ok(concurrentPublish.every((result) => result.response.status === 200 || result.response.status === 409), JSON.stringify(concurrentPublish.map((result) => result.payload)));
+  assert.ok(concurrentPublish.some((result) => result.response.status === 200), JSON.stringify(concurrentPublish.map((result) => result.payload)));
+  const concurrentPublishRows = await queryRows(`
+    SELECT id, version, revision_status AS revisionStatus, is_latest AS isLatest,
+      previous_version_id AS previousVersionId
+    FROM content_revisions
+    WHERE content_type = 'LEARNING_UNIT' AND content_id = '${contentId}'
+    ORDER BY version;
+  `);
+  assert.equal(concurrentPublishRows.filter((row) => Number(row.isLatest) === 1).length, 1);
+  const latestConcurrentPublish = concurrentPublishRows.find((row) => Number(row.isLatest) === 1);
+  assert.equal(latestConcurrentPublish.version, "v4");
+  assert.equal(latestConcurrentPublish.revisionStatus, "published");
+  assert.equal(latestConcurrentPublish.previousVersionId, concurrentPublishRows.find((row) => row.version === "v3").id);
+
   await runLocalSql(`
     UPDATE contents SET slug = 'repair-revision-integrity-collision' WHERE id = '${collisionContentId}';
   `);
   const failedBatch = await saveContent(contentInput({
-    version: "v4",
+    version: "v5",
     body: "Revision D body",
     slug: "repair-revision-integrity-collision",
     canonicalKey: "repair.revision.integrity.c",
   }));
   assert.ok(failedBatch.response.status >= 400, JSON.stringify(failedBatch.payload));
   const currentAfterConcurrent = await queryRows(`
-    SELECT body, version FROM contents WHERE id = '${contentId}';
+    SELECT body, version, status FROM contents WHERE id = '${contentId}';
   `);
   assert.equal(currentAfterConcurrent.length, 1);
-  assert.ok(["Concurrent C body", "Concurrent D body"].includes(currentAfterConcurrent[0].body));
-  assert.equal(currentAfterConcurrent[0].version, "v3");
+  assert.equal(currentAfterConcurrent[0].body, "Concurrent publish draft body");
+  assert.equal(currentAfterConcurrent[0].version, "v4");
+  assert.equal(currentAfterConcurrent[0].status, "PUBLISHED");
   assert.deepEqual(await queryRows(`
-    SELECT version FROM content_revisions
+    SELECT version, revision_status AS revisionStatus, is_latest AS isLatest
+    FROM content_revisions
     WHERE content_type = 'LEARNING_UNIT' AND content_id = '${contentId}'
     ORDER BY version;
-  `), [{ version: "v1" }, { version: "v2" }, { version: "v3" }]);
+  `), [
+    { version: "v1", revisionStatus: "superseded", isLatest: 0 },
+    { version: "v2", revisionStatus: "superseded", isLatest: 0 },
+    { version: "v3", revisionStatus: "superseded", isLatest: 0 },
+    { version: "v4", revisionStatus: "published", isLatest: 1 },
+  ]);
 
   await assert.rejects(
     runLocalSql(`DELETE FROM contents WHERE id = '${contentId}';`),
@@ -303,7 +377,7 @@ test("D1 authoring and learning records preserve immutable theory revisions", as
   assert.equal(Number((await queryRows(`
     SELECT count(*) AS count FROM content_revisions
     WHERE content_type = 'LEARNING_UNIT' AND content_id = '${contentId}';
-  `))[0].count), 3);
+  `))[0].count), 4);
   await runLocalSql(`UPDATE contents SET deleted_at = NULL WHERE id = '${contentId}';`);
 });
 
@@ -345,6 +419,33 @@ function collisionContentInput(overrides = {}) {
     status: "PUBLISHED",
     ...overrides,
   };
+}
+
+function contentImportStatement(overrides = {}) {
+  const sql = generateSecurityContentV3Sql({
+    lessons: [
+      {
+        id: upgradeContentId,
+        title: "Direct import original title",
+        concepts: ["DNS security"],
+        source_refs: ["disposable-boundary-fixture"],
+        difficulty: 3,
+        learningObjectives: ["Original learning objective"],
+        overview: "Direct import original overview",
+        keyPoints: ["Original key point"],
+        practiceTip: "Original practice tip",
+        fieldExample: "Original field example",
+        relatedConcepts: [],
+        provenance: { canonicalConcept: "DNS security" },
+        ...overrides,
+      },
+    ],
+    writtenQuestions: [],
+    practicalQuestions: [],
+  }, { dialect: "d1", actorId: "user-admin" });
+  const statement = sql.match(/INSERT INTO "contents"[\s\S]*?;/)?.[0];
+  assert.ok(statement, "Expected generated contents import statement.");
+  return statement;
 }
 
 async function saveContent(content) {

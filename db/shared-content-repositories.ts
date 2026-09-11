@@ -307,6 +307,10 @@ export async function saveSharedContent(
   }
 
   const now = new Date().toISOString();
+  const requestedSnapshot = sharedContentRevisionSnapshot(id, {
+    ...sharedContentRevisionPayload(input),
+    version: input.version,
+  });
   const revisionStatements: BatchItem<"sqlite">[] = [];
   if (!existing) {
     if (input.status === "PUBLISHED") {
@@ -327,10 +331,6 @@ export async function saveSharedContent(
     }
   } else {
     const currentSnapshot = sharedContentRevisionSnapshotFromRow(existing);
-    const requestedSnapshot = sharedContentRevisionSnapshot(id, {
-      ...sharedContentRevisionPayload(input),
-      version: input.version,
-    });
     const sameVersion = existing.version === input.version;
     const payloadChanged =
       stableJson(currentSnapshot.payload) !==
@@ -469,21 +469,63 @@ export async function saveSharedContent(
     updatedAt: sql`CURRENT_TIMESTAMP`,
   };
 
-  await getDb().batch(
-    batchItems([
-      ...revisionStatements,
+  try {
+    await getDb().batch(
+      batchItems([
+        ...revisionStatements,
+        existing
+          ? getDb().update(contents).set(values).where(eq(contents.id, id))
+          : getDb().insert(contents).values({ id, ...values }),
+        createAuditInsert({
+          actorUserId,
+          action: existing ? "SHARED_CONTENT_UPDATED" : "SHARED_CONTENT_CREATED",
+          resourceType: "CONTENT",
+          resourceId: id,
+        }),
+      ]),
+    );
+  } catch (error) {
+    if (
+      isSharedContentUniqueViolation(error) &&
+      input.status === "PUBLISHED" &&
       existing
-        ? getDb().update(contents).set(values).where(eq(contents.id, id))
-        : getDb().insert(contents).values({ id, ...values }),
-      createAuditInsert({
-        actorUserId,
-        action: existing ? "SHARED_CONTENT_UPDATED" : "SHARED_CONTENT_CREATED",
-        resourceType: "CONTENT",
-        resourceId: id,
-      }),
-    ]),
-  );
+    ) {
+      try {
+        const committed = await getSharedContentById(id);
+        const committedRevision = committed
+          ? await getSharedContentRevision(id, input.version)
+          : null;
+        if (
+          committed?.version === input.version &&
+          committed.status === "PUBLISHED" &&
+          committed.slug === input.slug &&
+          committed.canonicalKey === normalizeCanonicalKey(input.canonicalKey) &&
+          committedRevision?.revisionStatus === "published" &&
+          committedRevision.isLatest
+        ) {
+          await assertSharedContentRevisionMatches(committedRevision, requestedSnapshot);
+          return { id };
+        }
+      } catch (replayError) {
+        if (replayError instanceof AppError && replayError.code === "SHARED_CONTENT_REVISION_CONFLICT") {
+          throw replayError;
+        }
+      }
+    }
+    throw error;
+  }
   return { id };
+}
+
+function isSharedContentUniqueViolation(error: unknown) {
+  if (error instanceof AppError && error.code === "DATABASE_UNIQUE_VIOLATION") {
+    return true;
+  }
+  const message =
+    typeof error === "object" && error !== null && "message" in error
+      ? String(error.message)
+      : String(error);
+  return /23505|SQLITE_CONSTRAINT_UNIQUE|UNIQUE constraint failed|duplicate key/i.test(message);
 }
 
 export async function listCourseLessons(courseId: string) {
