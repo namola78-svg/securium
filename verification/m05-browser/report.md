@@ -260,8 +260,8 @@ caveat or the HTTPS `NOT_RUN` limitation.
 - Runtime DB I/O: none. The fixture used temporary in-memory demo state only.
 - Remote mutation for this follow-up is limited to the authorized normal push
   of the existing Draft PR branch and its PR-body update. No merge,
-  auto-merge, deployment, publication, or external-service write is part of
-  the work.
+  auto-merge, deployment, publication, or other external-service write was
+  performed.
 - Local temporary resources: isolated Playwright installation, short-lived
   Python/browser fixture processes, temporary runtime data, and screenshot /
   sanitized evidence files. The HTTPS trust-store operation that timed out in
