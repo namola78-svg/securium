@@ -5,8 +5,8 @@ Repository: `namola78-svg/securium`
 Worktree: `securium-theory-revision-integrity-repair`
 Branch: `fix/theory-revision-integrity`
 Repair base/head before commit: `e0705c08e5475d304f7c91ff446f79b8637514f5`
-Fresh `origin/main` observed at final review: `40089519e8642a44e8a2636e2db2426894aa8417` (it was `e67293d285ff913070af5fc1634ecfd5fc4e6405` during the first exact-head CI run)
-Final local commits: `e213fc7629b53a97e6b917614bea7b3c0c1aecb6`, `4c52bf7bd29bd0322252ebf43908cd1c0c2e3f8e`
+Fresh `origin/main` observed at final review: `8eff7f1a366941d2076e3e1ddb9dc233ebc22886`
+Final local commits: `e213fc7629b53a97e6b917614bea7b3c0c1aecb6`, `4c52bf7bd29bd0322252ebf43908cd1c0c2e3f8e`, merge `622ea4b`
 PR: #152, still Draft at the time of this report
 
 ## Finding and selected minimum repair
@@ -65,13 +65,15 @@ All checks were local/disposable only; Runtime/shared/production databases were 
 - Migration namespace guard: PASS, 2/2.
 - `git diff --check`: PASS.
 - Browser verification: NOT_RUN; it is not a prerequisite for this server-side repair.
-- Exact-head CI for `e213fc7` initially failed at typecheck because the concurrently advanced main (`e67293d`) already exposed the optional Evidence resolution fields and the PR declared them a second time. The follow-up `4c52bf7` keeps that existing contract and adds only the revision-binding type through an intersection. As of this report, GitHub has not created a replacement check-run for `4c52bf7` (`NOT_RUN`); the local typecheck and focused resolver regression pass after the fix. The e213 producer CI `34573391939` was SUCCESS.
+- Exact-head CI for `e213fc7` (`34573392004`, attempt 1) ran `pull_request` but checked out synthetic merge `2e509b9310bf537e7bb26e3f097c5a8b5cf2c0f8`, not the head commit directly. That merge was `e213fc7` into old main `6983a8f`; typecheck failed on duplicate `resolutionStatus`/`unresolvedReason` declarations at `lib/services/evidence-projection.ts:51-52,64-65`, and all later steps were skipped. The producer run `34573391939` was SUCCESS and explicitly checked out `e213fc7`.
+- For `4c52bf7` and `733c6c0`, GitHub created no workflow run or check suite. Actions permissions were enabled, no queued/waiting run existed, the PR was same-repository/open/Draft, and `ci.yml` has an unconditional `pull_request` trigger. The producer path filter also matched the changed `db/**`, `lib/**`, and `package.json` paths. The recorded PR timeline has commit events for both heads, but no new synchronize event, while `refs/pull/152/merge` remained the stale `2e509b9` synthetic merge. This identifies stale PR synchronization/synthetic-merge regeneration as the cause, not a workflow path, YAML, permission, or approval restriction.
+- The current main `8eff7f1` had a real merge-tree conflict only in `lib/services/evidence-projection.ts`; it was resolved hunk-by-hunk by preserving main's existing resolution fields and the repair's `contentRevisionBinding`. `db/evidence-source-adapters.ts` and `package.json` auto-merged. The merge is `622ea4b` and is ready to trigger a fresh PR synchronization run; exact-head CI is still pending before push.
 
 The disposable PostgreSQL fixture included legacy NULL-version progress, revision A activity, multiple users/courses/lessons, A completion, B completion, replay, concurrent completion, stale/forged/cross-course/auth guards, and activity-failure rollback. It confirmed A/B rows and activities remain distinct and failed authoring batches leave no partial content/revision state. Hard delete remains FK-restricted; soft delete preserves revision snapshots.
 
 ## Freshness and integration notes
 
-`origin/main` advanced from the review baseline `04d2175d971b8b849c80a0510b462a8c7b328deb` to `b7f06e39919d92bac166a67aec274754ec21a2c7`, then to `e67293d285ff913070af5fc1634ecfd5fc4e6405` during the first CI run, and finally to `40089519e8642a44e8a2636e2db2426894aa8417` after unrelated #155 work. It is not an ancestor of the repair head, so no unrelated rebase was performed. The PR source branch was still at `e0705c08e5475d304f7c91ff446f79b8637514f5` before publication. The only follow-up compatibility adjustment reuses the resolution-field contract already present on the advanced main; it does not import unrelated main changes.
+`origin/main` advanced from the review baseline `04d2175d971b8b849c80a0510b462a8c7b328deb` through unrelated drift to `8eff7f1a366941d2076e3e1ddb9dc233ebc22886`. It is not an ancestor of the repair head, so the related merge was performed only after the non-destructive merge-tree exposed the actual Evidence type conflict; no unrelated rebase was performed. The PR source branch was still at `e0705c08e5475d304f7c91ff446f79b8637514f5` before publication. The only follow-up compatibility adjustment reuses the resolution-field contract already present on the advanced main; it does not import unrelated main changes.
 
 The #144 worktree/branch was preserved. The known file overlap is `db/shared-content-repositories.ts` and `package.json`; the repair changes are limited to immutable revision persistence and dedicated verification, and do not alter #144 availability/route behavior. The #144 branch was not modified and its unmerged changes were not included. The PR #152 progress identity contract, including stale screen mismatch rejection, remains the caller-validation boundary.
 
