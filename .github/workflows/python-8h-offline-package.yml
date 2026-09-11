@@ -1,0 +1,57 @@
+name: Python 8H Offline Package
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/python-8h-offline-package.yml"
+      - "examples/python-secure-coding-8h-priority-labs/**"
+      - "verification/python-8h-offline/**"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/python-8h-offline-package.yml"
+      - "examples/python-secure-coding-8h-priority-labs/**"
+      - "verification/python-8h-offline/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: python-8h-offline-package-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: ${{ matrix.os_label }} / Python ${{ matrix.python_version }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os_label: Windows
+            runner: windows-latest
+            python_version: "3.11"
+          - os_label: Windows
+            runner: windows-latest
+            python_version: "3.14"
+          - os_label: Linux
+            runner: ubuntu-latest
+            python_version: "3.11"
+          - os_label: Linux
+            runner: ubuntu-latest
+            python_version: "3.14"
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python_version }}
+
+      - name: Build and verify extracted offline package
+        run: python verification/python-8h-offline/ci_matrix_check.py

@@ -32,7 +32,9 @@ bundle, not a copy of the repository and not a runtime or approval artifact.
 The [lab README](lab/README.md) lists M01–M08. The [instructor
 kit](lab/instructor-kit/README.md) contains the teaching sequence, rubric,
 runbook, workbook, and rehearsal checklist. The source manifest in this
-archive records every included file's size and SHA-256.
+archive records every included file's size and SHA-256. Those hashes support
+integrity comparison for this package; they are not a signature or proof of
+publisher authenticity.
 
 ## Scope and safety boundaries
 

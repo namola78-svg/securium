@@ -21,7 +21,14 @@ python verification/python-8h-offline/build_offline_package.py build `
 The builder records the source commit, source file list, byte sizes, SHA-256
 digests, archive member list, archive size, and archive SHA-256 in an adjacent
 manifest. It normalizes member ordering, timestamps, permissions, and DEFLATE
-settings so repeated builds from identical input bytes have the same hash.
+settings so repeated builds from identical input bytes have the same hash. It
+also compares every packaged working-tree byte with the corresponding Git blob
+from the recorded source commit; line-ending or checkout conversion is a
+build failure, not silently normalized payload.
+The SHA-256 is an integrity comparison for the reviewed bytes, not a
+signature or proof of publisher authenticity. Hash equality is claimed only
+within the same source bytes and build environment; it is not assumed across
+different Python, zlib, operating-system, or checkout environments.
 
 ## Verify an extracted copy
 
@@ -41,3 +48,16 @@ runs M01–M08 focused commands plus full discovery, records the actual test
 counts, and removes the extraction directory even after a test failure. It
 does not run the separate browser harness and does not claim browser or
 classroom-delivery readiness.
+
+## CI contract
+
+`.github/workflows/python-8h-offline-package.yml` runs the same contract on
+Windows and Linux with Python 3.11 and 3.14. Each matrix job builds twice in
+temporary directories outside the checkout, compares the ZIP bytes and
+SHA-256, verifies an extraction under a path containing spaces and non-ASCII
+characters, and checks M01–M08 plus 50-test discovery. It also exercises
+tamper rejection, repository-internal output rejection, overwrite rejection,
+and extraction cleanup. The workflow installs Python and checks out the
+repository as CI prerequisites; the extracted labs themselves use only the
+Python standard library and no package-manager download. ZIPs and manifests
+are not committed or uploaded as CI artifacts.

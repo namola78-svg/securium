@@ -18,7 +18,8 @@ import shutil
 import subprocess
 import sys
 import time
-from typing import Any, Iterable
+from typing import Any
+import unicodedata
 from urllib.parse import unquote
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
@@ -116,6 +117,22 @@ SOURCE_FILES = tuple(
     )
 )
 EXCLUDED_SOURCE_FILES = (".gitignore",)
+WINDOWS_RESERVED_NAMES = {
+    "AUX",
+    "CON",
+    "NUL",
+    "PRN",
+    *(f"COM{index}" for index in range(1, 10)),
+    *(f"LPT{index}" for index in range(1, 10)),
+}
+
+
+def expected_archive_paths() -> set[str]:
+    return {
+        f"{PACKAGE_ROOT}/README.md",
+        f"{PACKAGE_ROOT}/SOURCE-MANIFEST.json",
+        *(f"{PACKAGE_ROOT}/lab/{relative}" for relative in SOURCE_FILES),
+    }
 
 
 class PackageError(RuntimeError):
@@ -153,6 +170,18 @@ def run_git(*args: str) -> str:
         detail = result.stderr.strip() or result.stdout.strip()
         raise PackageError(f"git {' '.join(args)} failed: {detail}")
     return result.stdout.strip()
+
+
+def run_git_bytes(*args: str) -> bytes:
+    result = subprocess.run(
+        ["git", "-C", str(REPOSITORY_ROOT), *args],
+        check=False,
+        capture_output=True,
+    )
+    if result.returncode:
+        detail = result.stderr.decode("utf-8", errors="replace").strip()
+        raise PackageError(f"git {' '.join(args)} failed: {detail}")
+    return result.stdout
 
 
 def source_commit_and_files() -> tuple[str, list[dict[str, Any]], list[str]]:
@@ -199,6 +228,14 @@ def source_commit_and_files() -> tuple[str, list[dict[str, Any]], list[str]]:
         if not path.is_file() or path.is_symlink():
             raise PackageError(f"allowlisted source is not a regular file: {path}")
         data = path.read_bytes()
+        committed_data = run_git_bytes(
+            "show", f"{commit}:{LAB_ROOT_REL.as_posix()}/{relative}"
+        )
+        if data != committed_data:
+            raise PackageError(
+                "working-tree bytes differ from the recorded Git blob; "
+                f"line-ending or checkout conversion detected: {relative}"
+            )
         records.append(
             {
                 "archive_path": f"{PACKAGE_ROOT}/lab/{relative}",
@@ -311,12 +348,35 @@ def build(output_dir: Path) -> dict[str, Any]:
 
 
 def safe_member_name(name: str) -> PurePosixPath:
-    if not name or "\\" in name:
+    if not name or "\\" in name or "\x00" in name:
         raise PackageError(f"invalid archive member path: {name!r}")
     path = PurePosixPath(name)
     if path.is_absolute() or ".." in path.parts or "." in path.parts:
         raise PackageError(f"archive member escapes extraction root: {name!r}")
+    for part in path.parts:
+        if not part or part != part.rstrip(" ."):
+            raise PackageError(f"archive member is not portable on Windows: {name!r}")
+        if any(ord(character) < 32 or character in '<>:"|?*' for character in part):
+            raise PackageError(f"archive member contains an invalid Windows character: {name!r}")
+        if part.split(".", 1)[0].upper() in WINDOWS_RESERVED_NAMES:
+            raise PackageError(f"archive member uses a Windows reserved name: {name!r}")
     return path
+
+
+def normalized_member_key(name: str) -> str:
+    """Return the collision key used by case-insensitive Unicode filesystems."""
+
+    return unicodedata.normalize("NFC", name).casefold()
+
+
+def validate_archive_member_names(names: list[str]) -> list[str]:
+    safe_names = [safe_member_name(name).as_posix() for name in names]
+    if len(safe_names) != len(set(safe_names)):
+        raise PackageError("archive contains duplicate member paths")
+    collision_keys = [normalized_member_key(name) for name in safe_names]
+    if len(collision_keys) != len(set(collision_keys)):
+        raise PackageError("archive contains case-insensitive or Unicode-normalized path collisions")
+    return safe_names
 
 
 def link_targets(root: Path) -> tuple[list[dict[str, str]], list[dict[str, str]]]:
@@ -367,13 +427,24 @@ def run_test(
         output = f"{result.stdout}\n{result.stderr}"
         match = re.findall(r"Ran (\d+) tests?", output)
         actual = int(match[-1]) if match else None
+        skipped_match = re.search(r"\bskipped=(\d+)", output)
+        failures_match = re.search(r"\bfailures=(\d+)", output)
+        errors_match = re.search(r"\berrors=(\d+)", output)
+        skipped = int(skipped_match.group(1)) if skipped_match else 0
+        failures = int(failures_match.group(1)) if failures_match else 0
+        errors = int(errors_match.group(1)) if errors_match else 0
         return {
             "label": label,
             "command": command,
             "expected_tests": expected,
             "actual_tests": actual,
+            "skipped": skipped,
+            "failures": failures,
+            "errors": errors,
             "returncode": result.returncode,
-            "status": "PASS" if result.returncode == 0 and actual == expected else "FAIL",
+            "status": "PASS"
+            if result.returncode == 0 and actual == expected and skipped == 0 and failures == 0 and errors == 0
+            else "FAIL",
             "elapsed_seconds": round(time.monotonic() - started, 3),
         }
     except subprocess.TimeoutExpired:
@@ -382,6 +453,9 @@ def run_test(
             "command": command,
             "expected_tests": expected,
             "actual_tests": None,
+            "skipped": None,
+            "failures": None,
+            "errors": None,
             "returncode": None,
             "status": "FAIL",
             "error": "timeout after 180 seconds; child process was terminated",
@@ -421,6 +495,18 @@ def verify(archive_path: Path, manifest_path: Path, extract_dir: Path, report_pa
     failure: Exception | None = None
     try:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        current_source_commit, current_source_records, current_excluded_files = source_commit_and_files()
+        if manifest["source_commit"] != current_source_commit:
+            raise PackageError(
+                "manifest source commit does not match the committed lab source: "
+                f"{manifest['source_commit']} != {current_source_commit}"
+            )
+        if manifest["files"] != current_source_records:
+            raise PackageError("manifest file records do not match the current lab source bytes")
+        if manifest["excluded_source_files"] != current_excluded_files:
+            raise PackageError("manifest excluded-source record does not match the current lab tree")
+        if manifest["source_file_count"] != len(SOURCE_FILES):
+            raise PackageError("manifest source file count differs from the reviewed allowlist")
         archive_data = archive_path.read_bytes()
         archive_metadata = manifest["archive"]
         if len(archive_data) != archive_metadata["bytes"] or sha256_bytes(archive_data) != archive_metadata["sha256"]:
@@ -431,21 +517,29 @@ def verify(archive_path: Path, manifest_path: Path, extract_dir: Path, report_pa
             "source_file_count": manifest["source_file_count"],
             "archive_file_count": manifest["archive_file_count"],
             "archive_sha256": archive_metadata["sha256"],
+            "source_tree_comparison": "PASS",
         }
 
         with ZipFile(archive_path) as archive:
             if archive.testzip() is not None:
                 raise PackageError("ZIP CRC validation failed")
             infos = archive.infolist()
-            names = [safe_member_name(info.filename).as_posix() for info in infos]
-            if len(names) != len(set(names)):
-                raise PackageError("archive contains duplicate member paths")
-            expected_entries = {entry["path"]: entry for entry in manifest["archive_entries"]}
-            if set(names) != set(expected_entries):
+            names = validate_archive_member_names([info.filename for info in infos])
+            manifest_entries = manifest["archive_entries"]
+            manifest_entry_paths = [entry["path"] for entry in manifest_entries]
+            if len(manifest_entry_paths) != len(set(manifest_entry_paths)):
+                raise PackageError("manifest contains duplicate archive member paths")
+            expected_entries = {entry["path"]: entry for entry in manifest_entries}
+            expected_paths = expected_archive_paths()
+            if manifest["archive_file_count"] != len(expected_paths) or set(expected_entries) != expected_paths:
+                raise PackageError("manifest archive entries differ from the reviewed package allowlist")
+            if set(names) != expected_paths:
                 raise PackageError("archive member list differs from manifest")
             extract_dir.mkdir(parents=True)
             created_extract = True
             for info, name in zip(infos, names):
+                if info.is_dir():
+                    raise PackageError(f"directory archive member is not permitted: {name}")
                 mode = (info.external_attr >> 16) & 0o170000
                 if mode == 0o120000:
                     raise PackageError(f"symlink member is not permitted: {name}")
