@@ -169,16 +169,17 @@ test("rejects a request whose user binding disagrees with the canonical attempt"
   assert.equal(await scalar(`SELECT count(*) FROM evidence_projections WHERE source_event_id = '${id}'`), "0");
 });
 
-test("uses the canonical question-attempt identity when a request revision value is forged", async () => {
+test("rejects a request whose revision identity disagrees with the canonical attempt", async () => {
   const id = "attempt-executor-revision-binding";
   await insertAttempt(id, "user-1");
   const request = await enqueueEvent(id, "user-1", "forged-revision-identity");
 
   const result = await executor.processNext("worker-revision-binding");
 
-  assert.equal(result.outcome, "COMPLETED");
-  assert.equal(await status(request.id), "COMPLETED");
-  assert.equal(await scalar(`SELECT source_revision_identity AS value FROM evidence_projections WHERE source_event_id = '${id}' LIMIT 1`), id);
+  assert.equal(result.outcome, "FAILED");
+  assert.equal(result.errorClass, "SOURCE_INVALID");
+  assert.equal(await status(request.id), "FAILED");
+  assert.equal(await scalar(`SELECT count(*) FROM evidence_projections WHERE source_event_id = '${id}'`), "0");
 });
 
 test("retries a calculation failure and then completes after the source is available", async () => {
@@ -245,10 +246,12 @@ test("lease fencing prevents a stale worker from duplicating projections or hand
   const stale = await executor.processClaimed(claimA);
   assert.equal(stale.outcome, "CLAIM_LOST");
   assert.equal(await status(request.id), "PROCESSING");
+  assert.equal(await scalar(`SELECT count(*) FROM evidence_projections WHERE source_event_id = '${id}'`), "0");
+  assert.equal(await scalar(`SELECT count(*) FROM evidence_recompute_requests WHERE source_event_id = '${id}' AND request_type = 'MASTERY_RECOMPUTE_REQUIRED'`), "0");
 
   const recovered = await executor.processClaimed(claimB);
   assert.equal(recovered.outcome, "COMPLETED");
-  assert.equal(recovered.projectionOutcome, "EXACT_REPLAY");
+  assert.equal(recovered.projectionOutcome, "NEW_SUCCESS");
   assert.equal(await status(request.id), "COMPLETED");
   assert.equal(await scalar(`SELECT count(*) FROM evidence_projections WHERE source_event_id = '${id}' AND lifecycle = 'ACTIVE'`), "2");
   assert.equal(await scalar(`SELECT count(*) FROM evidence_recompute_requests WHERE source_event_id = '${id}' AND request_type = 'MASTERY_RECOMPUTE_REQUIRED'`), "2");

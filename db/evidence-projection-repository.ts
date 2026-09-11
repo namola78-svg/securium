@@ -119,6 +119,7 @@ export class EvidenceProjectionRepository {
   async reconcileEventProjectionSet(
     source: CanonicalEvidenceSource,
     candidates: readonly EvidenceCandidate[],
+    claimFence?: Readonly<{ requestId: string; claimToken: string }>,
   ): Promise<ProjectionOutcome> {
     validateCandidateSet(source, candidates);
     const desired = [...candidates].sort((left, right) => left.id.localeCompare(right.id));
@@ -141,6 +142,7 @@ export class EvidenceProjectionRepository {
     const desiredByConcept = new Map(desired.map((candidate) => [candidate.conceptId, candidate]));
     const statements: DatabaseStatement[] = [];
     const semanticWriteIndexes: number[] = [];
+    if (claimFence) statements.push(claimFenceGuard(desired[0], claimFence));
     const initialGuard = completeSourceAndSnapshotGuard(source, desired[0], active.rows);
     statements.push(initialGuard);
 
@@ -201,6 +203,7 @@ export class EvidenceProjectionRepository {
       statements.push(recomputeInsert(request));
     }
     statements.push(finalActiveSetGuard(source, desired[0], desired));
+    if (claimFence) statements.push(claimFenceGuard(desired[0], claimFence));
 
     try {
       const results = await this.database.transaction(statements);
@@ -592,6 +595,19 @@ export class EvidenceProjectionRepository {
     });
     return Number(row?.ok ?? 0) === 1;
   }
+}
+
+function claimFenceGuard(
+  seed: EvidenceCandidate,
+  claimFence: Readonly<{ requestId: string; claimToken: string }>,
+): DatabaseStatement {
+  return evidenceGuardStatement(
+    seed,
+    `NOT EXISTS (SELECT 1 FROM evidence_recompute_requests
+      WHERE id = ? AND status = 'PROCESSING' AND claim_token = ?
+        AND lease_expires_at > ?)`,
+    [claimFence.requestId, claimFence.claimToken, new Date().toISOString()],
+  );
 }
 export async function createRecomputeRequest(
   input: Omit<RecomputeRequestInput, "id" | "inputSemanticHash">,

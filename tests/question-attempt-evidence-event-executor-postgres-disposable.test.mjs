@@ -142,6 +142,39 @@ test("PostgreSQL skips the SW identity path while claiming ordinary events", asy
   assert.equal(await scalar(`SELECT count(*) FROM evidence_projections WHERE source_event_id = '${swId}'`), "0");
 });
 
+test("PostgreSQL lease fencing blocks stale projection and handoff writes", async () => {
+  const id = "pg-attempt-executor-lease-fencing";
+  await client.unsafe(`INSERT INTO question_attempts
+    (id, user_id, question_id, foundation_question_binding_id, question_version_id, concept_mapping_set_hash, is_correct, score, attempted_at)
+    VALUES ('${id}', 'user-1', 'question-1', NULL, 'question-version-1', '${mappingHash}', true, 100, '2026-09-11T00:00:00.000Z')`);
+  const request = await createRecomputeRequest({
+    requestType: "EVIDENCE_RECOMPUTE_REQUIRED", scopeType: "EVENT", sourceType: "QUESTION_ATTEMPT",
+    sourceEventId: id, sourceRevisionIdentity: id, userId: "user-1",
+    projectionVersion: "EVIDENCE_V1", reasonCode: "QUESTION_ATTEMPT_CREATED",
+  });
+  assert.equal(await repository.enqueue(request), "NEW_SUCCESS");
+
+  const lifecycle = new EvidenceRecomputeLifecycleExecutor(repository);
+  const claimA = await lifecycle.claimQuestionAttemptEvent("postgres-worker-a");
+  assert.equal(claimA?.id, request.id);
+  await client.unsafe(`UPDATE evidence_recompute_requests
+    SET lease_expires_at = '2000-01-01T00:00:00.000Z' WHERE id = '${request.id}'`);
+  const claimB = await lifecycle.claimQuestionAttemptEvent("postgres-worker-b");
+  assert.equal(claimB?.id, request.id);
+  assert.notEqual(claimA?.claimToken, claimB?.claimToken);
+
+  const stale = await executor.processClaimed(claimA);
+  assert.equal(stale.outcome, "CLAIM_LOST");
+  assert.equal(await scalar(`SELECT count(*) FROM evidence_projections WHERE source_event_id = '${id}'`), "0");
+  assert.equal(await scalar(`SELECT count(*) FROM evidence_recompute_requests WHERE source_event_id = '${id}' AND request_type = 'MASTERY_RECOMPUTE_REQUIRED'`), "0");
+
+  const recovered = await executor.processClaimed(claimB);
+  assert.equal(recovered.outcome, "COMPLETED");
+  assert.equal(recovered.projectionOutcome, "NEW_SUCCESS");
+  assert.equal(await scalar(`SELECT count(*) FROM evidence_projections WHERE source_event_id = '${id}' AND lifecycle = 'ACTIVE'`), "1");
+  assert.equal(await scalar(`SELECT count(*) FROM evidence_recompute_requests WHERE source_event_id = '${id}' AND request_type = 'MASTERY_RECOMPUTE_REQUIRED'`), "1");
+});
+
 function makeProvider(databaseClient) {
   return new PostgresDatabaseProvider({
     query: async (query, parameters) => {

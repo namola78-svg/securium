@@ -77,6 +77,7 @@ export class QuestionAttemptEvidenceEventExecutor {
   async processClaimed(request: RecomputeRequestRecord): Promise<QuestionAttemptEventExecutionResult> {
     const invalid = validateQuestionAttemptRequest(request);
     if (invalid) return this.fail(request, "INVALID_REQUEST", 0);
+    if (!request.claimToken) return { outcome: "CLAIM_LOST", requestId: request.id, projectionCount: 0 };
 
     try {
       const recomputed = await this.recompute.recomputeEvent({
@@ -84,6 +85,8 @@ export class QuestionAttemptEvidenceEventExecutor {
         sourceEventId: request.sourceEventId!,
         sourceRevisionIdentity: request.sourceRevisionIdentity!,
         expectedUserId: request.userId,
+        enforceQuestionAttemptRevisionBinding: true,
+        claimFence: { requestId: request.id, claimToken: request.claimToken },
       });
       if (recomputed.outcome === "INVALID_SOURCE") {
         return this.fail(request, "SOURCE_INVALID", recomputed.projectionCount, recomputed.outcome);

@@ -98,7 +98,7 @@ jobs:
           test "${passed:-0}" = "9"
 
   postgres-executor:
-    name: PostgreSQL QUESTION_ATTEMPT executor (2 tests)
+    name: PostgreSQL QUESTION_ATTEMPT executor (3 tests)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -146,7 +146,7 @@ jobs:
           test "${skipped:-1}" = "0"
           test "${todo:-1}" = "0"
           test "${failed:-1}" = "0"
-          test "${passed:-0}" = "2"
+          test "${passed:-0}" = "3"
 
       - name: Cleanup owned disposable PostgreSQL container
         if: always()
