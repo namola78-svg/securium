@@ -17,7 +17,6 @@ import stat
 import subprocess
 import sys
 import tempfile
-import unittest
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -85,11 +84,14 @@ def _sha256_file(path: Path) -> tuple[int, str]:
     return size, digest.hexdigest()
 
 
-def _test_id(test: unittest.case.TestCase) -> str:
-    return test.id().rsplit(".", 1)[-1]
+def _test_environment(ci_root: Path) -> dict[str, str]:
+    environment = _clean_environment()
+    for key in ("TMPDIR", "TEMP", "TMP"):
+        environment[key] = str(ci_root)
+    return environment
 
 
-def _run_package_boundary_tests() -> dict[str, object]:
+def _run_package_boundary_tests(ci_root: Path) -> dict[str, object]:
     suite_code = (
         "import json, os, sys, unittest; "
         f"package_root={str(PACKAGE_ROOT)!r}; sys.path.insert(0, package_root); "
@@ -103,6 +105,7 @@ def _run_package_boundary_tests() -> dict[str, object]:
     result = _run(
         [sys.executable, "-B", "-c", suite_code],
         cwd=REPOSITORY_ROOT,
+        environment=_test_environment(ci_root),
     )
     summary = _json_output(result)
     summary["process_exit"] = result.returncode
@@ -450,6 +453,7 @@ def _remove_ci_root(path: Path) -> None:
 def _run_in_root(ci_root: Path, expected_source_sha: str) -> None:
     ci_root.mkdir(parents=True, exist_ok=False)
     try:
+        _run_package_boundary_tests(ci_root)
         _run_package_flow(ci_root, expected_source_sha)
     finally:
         _remove_ci_root(ci_root)
@@ -479,13 +483,14 @@ def main() -> int:
             sort_keys=True,
         )
     )
-    _run_package_boundary_tests()
     requested_root = os.environ.get(CI_ROOT_ENV)
     if requested_root:
         _run_in_root(Path(requested_root), expected_source_sha)
     else:
         with tempfile.TemporaryDirectory(prefix="securium-forensics-integrity-offline-ci-") as temporary:
-            _run_package_flow(Path(temporary), expected_source_sha)
+            root = Path(temporary)
+            _run_package_boundary_tests(root)
+            _run_package_flow(root, expected_source_sha)
     print("ci_temp_workspace_cleanup=PASS")
     return 0
 
