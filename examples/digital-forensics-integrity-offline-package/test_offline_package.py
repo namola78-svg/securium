@@ -135,11 +135,10 @@ class OfflinePackageBoundaryTests(unittest.TestCase):
             _validate_allowlist([("a.txt", "CON.txt")])
         fixture = self.temp_root / "fixture"
         fixture.mkdir()
-        real = fixture / "real.txt"
-        real.write_text("synthetic", encoding="utf-8")
         link = fixture / "linked.txt"
+        target = Path(__file__).resolve()
         try:
-            os.symlink(str(real.resolve()), str(link))
+            os.symlink(str(target), str(link))
         except (OSError, NotImplementedError) as error:
             self.fail(f"symlink boundary could not be exercised: {error}")
         with self.assertRaises(PackageError):
