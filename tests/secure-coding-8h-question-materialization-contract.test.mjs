@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { sha256Canonical } from "../lib/policy/stable-canonical-hash.ts";
 import {
   buildSecureCoding8HQuestionRuntimeMapping,
 } from "../lib/services/secure-coding-8h-question-runtime-mapping.ts";
@@ -223,17 +224,167 @@ test("rejects malformed direct-JS values before canonical serialization", async 
   );
 });
 
+test("rejects sparse, decorated, accessor, cyclic, and non-plain inputs at the entrypoint boundary", async () => {
+  const mapping = await buildSecureCoding8HQuestionRuntimeMapping();
+
+  const sparse = clone(mapping);
+  sparse.mappings = new Array(40);
+  await expectCode(
+    () => preflightSecureCoding8HQuestionMaterialization({ candidateMapping: sparse }),
+    "PREFLIGHT_INPUT_INVALID",
+  );
+
+  const arrayExtra = clone(mapping);
+  arrayExtra.mappings.extra = "unsupported";
+  await expectCode(
+    () => preflightSecureCoding8HQuestionMaterialization({ candidateMapping: arrayExtra }),
+    "PREFLIGHT_INPUT_INVALID",
+  );
+
+  const symbolKey = { candidateMapping: mapping };
+  Object.defineProperty(symbolKey, Symbol("unsupported"), {
+    enumerable: true,
+    value: true,
+  });
+  await expectCode(
+    () => preflightSecureCoding8HQuestionMaterialization(symbolKey),
+    "PREFLIGHT_INPUT_INVALID",
+  );
+
+  const nonEnumerableKey = { candidateMapping: mapping };
+  Object.defineProperty(nonEnumerableKey, "unsupported", {
+    enumerable: false,
+    value: true,
+  });
+  await expectCode(
+    () => preflightSecureCoding8HQuestionMaterialization(nonEnumerableKey),
+    "PREFLIGHT_INPUT_INVALID",
+  );
+
+  let topLevelGetterCalls = 0;
+  const accessorInput = {};
+  Object.defineProperty(accessorInput, "candidateMapping", {
+    enumerable: true,
+    get() {
+      topLevelGetterCalls += 1;
+      return mapping;
+    },
+  });
+  await expectCode(
+    () => preflightSecureCoding8HQuestionMaterialization(accessorInput),
+    "PREFLIGHT_INPUT_INVALID",
+  );
+  assert.equal(topLevelGetterCalls, 0);
+
+  const nestedAccessorMapping = clone(mapping);
+  let nestedGetterCalls = 0;
+  Object.defineProperty(nestedAccessorMapping.mappings[0].question, "content", {
+    configurable: true,
+    enumerable: true,
+    get() {
+      nestedGetterCalls += 1;
+      return mapping.mappings[0].question.content;
+    },
+  });
+  await expectCode(
+    () => preflightSecureCoding8HQuestionMaterialization({ candidateMapping: nestedAccessorMapping }),
+    "PREFLIGHT_INPUT_INVALID",
+  );
+  assert.equal(nestedGetterCalls, 0);
+
+  const cycle = { candidateMapping: mapping };
+  cycle.cycle = cycle;
+  await expectCode(
+    () => preflightSecureCoding8HQuestionMaterialization(cycle),
+    "PREFLIGHT_INPUT_INVALID",
+  );
+
+  await expectCode(
+    () => preflightSecureCoding8HQuestionMaterialization({ candidateMapping: new Date("2026-01-01T00:00:00Z") }),
+    "PREFLIGHT_INPUT_INVALID",
+  );
+
+  const missingFields = await preflightSecureCoding8HQuestionMaterialization({});
+  assert.equal(missingFields.preflightStatus, "BLOCKED");
+  assert.equal(missingFields.approvalStatus, "UNKNOWN");
+});
+
+test("rejects a self-consistent hash over a caller-mutated payload", async () => {
+  const trusted = await preflightSecureCoding8HQuestionMaterialization();
+  const mutated = clone(await buildSecureCoding8HQuestionRuntimeMapping());
+  mutated.mappings[0].question.content += " caller mutation";
+  const forgedHash = await sha256Canonical({
+    contractVersion: trusted.contractVersion,
+    requestedAction: trusted.requestedAction,
+    course: {
+      id: mutated.courseId,
+      slug: mutated.courseSlug,
+    },
+    foundation: {
+      candidateId: mutated.foundationCandidateId,
+      version: mutated.foundationVersion,
+    },
+    source: {
+      manifestHash: trusted.source.manifestHash,
+      revisionBindingHash: trusted.source.revisionBindingHash,
+    },
+    mappings: mutated.mappings.map((entry) => ({
+      foundationQuestionId: entry.foundationQuestionId,
+      foundationVersion: entry.foundationVersion,
+      moduleId: entry.moduleId,
+      objectiveIds: [...entry.objectiveIds].sort(),
+      semanticHash: entry.semanticHash,
+      runtimeQuestionId: entry.runtimeQuestionId,
+      runtimeQuestionVersionId: entry.runtimeQuestionVersionId,
+      question: entry.question,
+      choices: entry.choices,
+      courseBinding: entry.courseBinding,
+      version: entry.version,
+    })),
+  });
+
+  await expectCode(
+    () => preflightSecureCoding8HQuestionMaterialization({
+      candidateMapping: mutated,
+      submittedPayloadHash: forgedHash,
+    }),
+    "MAPPING_PROJECTION_MISMATCH",
+  );
+});
+
 test("snapshots caller input and does not expose a mutation path", async () => {
   const mapping = clone(await buildSecureCoding8HQuestionRuntimeMapping());
-  const result = await preflightSecureCoding8HQuestionMaterialization({
+  const preflightPromise = preflightSecureCoding8HQuestionMaterialization({
     candidateMapping: mapping,
   });
+  mapping.mappings[0].question.content = "mutated before await";
+  const result = await preflightPromise;
   const hash = result.payload.canonicalHash;
   mapping.mappings[0].question.content = "mutated after preflight";
 
   assert.equal(result.payload.canonicalHash, hash);
+  assert.notEqual(result.questionRows[0].content, "mutated before await");
   assert.notEqual(result.questionRows[0].content, "mutated after preflight");
+  assert.equal(result.payload.questionSemanticHashes[0].runtimeQuestionId, result.questionRows[0].id);
+  assert.equal(result.versionRows[0].questionId, result.questionRows[0].id);
+  assert.equal(result.courseBindingRows[0].questionId, result.questionRows[0].id);
   assert.equal(Object.isFrozen(result.questionRows[0]), true);
   assert.equal(Object.isFrozen(result.choiceRows), true);
   assert.equal(Object.isFrozen(result.versionRows), true);
+  let mutationThrew = false;
+  try {
+    result.questionRows[0].content = "attempted result mutation";
+  } catch {
+    mutationThrew = true;
+  }
+  assert.equal(mutationThrew, true);
+  assert.notEqual(result.questionRows[0].content, "attempted result mutation");
+  let choiceMutationThrew = false;
+  try {
+    result.choiceRows[0].content = "attempted choice mutation";
+  } catch {
+    choiceMutationThrew = true;
+  }
+  assert.equal(choiceMutationThrew, true);
+  assert.notEqual(result.choiceRows[0].content, "attempted choice mutation");
 });

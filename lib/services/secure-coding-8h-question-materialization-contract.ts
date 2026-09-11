@@ -624,20 +624,84 @@ function assertJsonSafe(value: unknown, label: string, ancestors = new Set<objec
   if (ancestors.has(value)) {
     throw new AppError(`${label} contains a cyclic value.`, 400, "PREFLIGHT_INPUT_INVALID");
   }
-  if (!Array.isArray(value)) {
-    const prototype = Object.getPrototypeOf(value);
-    if (prototype !== Object.prototype && prototype !== null) {
-      throw new AppError(`${label} contains a non-plain object.`, 400, "PREFLIGHT_INPUT_INVALID");
-    }
+  const isArray = Array.isArray(value);
+  if (isArray) {
+    assertJsonSafeArray(value, label, ancestors);
+    return;
+  }
+  const prototype = Object.getPrototypeOf(value);
+  if (prototype !== Object.prototype && prototype !== null) {
+    throw new AppError(`${label} contains a non-plain object.`, 400, "PREFLIGHT_INPUT_INVALID");
   }
   const nextAncestors = new Set(ancestors);
   nextAncestors.add(value);
-  if (Array.isArray(value)) {
-    value.forEach((child, index) => assertJsonSafe(child, `${label}[${index}]`, nextAncestors));
-    return;
+  for (const key of Reflect.ownKeys(value)) {
+    if (typeof key === "symbol") {
+      throw new AppError(`${label} contains a symbol key.`, 400, "PREFLIGHT_INPUT_INVALID");
+    }
+    const descriptor = Object.getOwnPropertyDescriptor(value, key);
+    if (
+      !descriptor ||
+      descriptor.enumerable !== true ||
+      "get" in descriptor ||
+      "set" in descriptor
+    ) {
+      throw new AppError(`${label}.${key} is not a plain JSON data property.`, 400, "PREFLIGHT_INPUT_INVALID");
+    }
+    assertJsonSafe(descriptor.value, `${label}.${key}`, nextAncestors);
   }
-  for (const [key, child] of Object.entries(value)) {
-    assertJsonSafe(child, `${label}.${key}`, nextAncestors);
+}
+
+function assertJsonSafeArray(
+  value: readonly unknown[],
+  label: string,
+  ancestors: Set<object>,
+): void {
+  const lengthDescriptor = Object.getOwnPropertyDescriptor(value, "length");
+  if (
+    !lengthDescriptor ||
+    typeof lengthDescriptor.value !== "number" ||
+    !Number.isSafeInteger(lengthDescriptor.value) ||
+    lengthDescriptor.value < 0 ||
+    lengthDescriptor.value > 10_000 ||
+    "get" in lengthDescriptor ||
+    "set" in lengthDescriptor
+  ) {
+    throw new AppError(`${label} has an invalid array length.`, 400, "PREFLIGHT_INPUT_INVALID");
+  }
+
+  const length = lengthDescriptor.value;
+  const ownKeys = Reflect.ownKeys(value);
+  const ownKeySet = new Set(ownKeys);
+  const nextAncestors = new Set(ancestors);
+  nextAncestors.add(value);
+  for (const key of ownKeys) {
+    if (typeof key === "symbol") {
+      throw new AppError(`${label} contains a symbol key.`, 400, "PREFLIGHT_INPUT_INVALID");
+    }
+    if (key === "length") continue;
+    if (!/^(0|[1-9][0-9]*)$/.test(key)) {
+      throw new AppError(`${label} contains an unsupported array property.`, 400, "PREFLIGHT_INPUT_INVALID");
+    }
+    const index = Number(key);
+    if (!Number.isSafeInteger(index) || index >= length) {
+      throw new AppError(`${label} contains an out-of-range array index.`, 400, "PREFLIGHT_INPUT_INVALID");
+    }
+    const descriptor = Object.getOwnPropertyDescriptor(value, key);
+    if (
+      !descriptor ||
+      descriptor.enumerable !== true ||
+      "get" in descriptor ||
+      "set" in descriptor
+    ) {
+      throw new AppError(`${label}[${key}] is not a plain JSON data property.`, 400, "PREFLIGHT_INPUT_INVALID");
+    }
+    assertJsonSafe(descriptor.value, `${label}[${key}]`, nextAncestors);
+  }
+  for (let index = 0; index < length; index += 1) {
+    if (!ownKeySet.has(String(index))) {
+      throw new AppError(`${label} is sparse.`, 400, "PREFLIGHT_INPUT_INVALID");
+    }
   }
 }
 
