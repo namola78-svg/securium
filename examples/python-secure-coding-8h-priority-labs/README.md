@@ -19,14 +19,29 @@ files are teaching fixtures, not application runtime code. They are not
 imported by `app/`, `lib/`, `db/`, or `worker/`, and they do not register or
 publish course content.
 
+## Instructor kit
+
+For lecture facilitation and learner evidence records, see the [Python 8H
+Instructor Kit](instructor-kit/README.md). Its status is
+`SECURIUM_PYTHON_8H_INSTRUCTOR_KIT_READY_FOR_REHEARSAL`; this does not claim
+that instructor/student rehearsal or complete delivery is ready.
+
 ## Verification status and delivery boundary
 
 - Verified locally: Windows PowerShell 5.1 with Python 3.14.5. Python 3.11,
-  other operating systems, and a real browser flow remain unverified.
+  other operating systems, and full browser coverage remain unverified.
 - M05's HTTP checks use a direct Python client against a loopback server. They
   do not prove browser cookie, SameSite, form, or Origin behavior.
-- Q36's canonical answer binding remains under separate review. Do not use an
-  unconfirmed answer as a grading or teaching authority.
+- The separate M05 browser-harness report is `BROWSER_VERIFICATION_PARTIAL`:
+  HTTP-compatible scenarios completed in an actual local Chrome process, while
+  HTTPS Secure-cookie and HTTPS cross-site scenarios remain `NOT_RUN`. No full
+  browser PASS is inferred from the partial run or from the focused Python
+  client tests.
+- User approval of the Q36 answer-binding correction is complete. At this PR
+  head, canonical answer application, immutable revision binding, and
+  verification are not confirmed. Until those states are separately
+  confirmed, exclude Q36 from confirmed-answer use and scoring. Do not change
+  the canonical answer or approval artifact in this lab bundle.
 - Canonical practical records P01-P08 remain `SPEC_ONLY`; this bundle does not
   perform runtime registration, provisioning, publication, or deployment.
 - The manifest's 480-minute total and 350-minute Python / 130-minute AI split
@@ -53,8 +68,8 @@ baseline was Windows PowerShell 5.1 / Python 3.14.5; that is distinct from the
 GitHub-hosted `pwsh` run. The latest completed matrix run for this PR reports
 the results above; the matrix is re-run when this workflow or the lab bundle
 changes.
-Results for Python 3.12, 3.13, macOS, real browsers, and learner rehearsal are
-not inferred from this matrix.
+Results for Python 3.12, 3.13, macOS, full browser coverage, and learner
+rehearsal are not inferred from this matrix.
 
 ## Safety and reproducibility
 
