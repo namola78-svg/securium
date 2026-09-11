@@ -61,6 +61,7 @@ import {
   shouldAutoSubmit,
   toPublicExamQuestion,
 } from "@/lib/services/mock-exam-service";
+import { resolveMockQuestionVersionSnapshot } from "@/lib/services/mock-exam-revision";
 import {
   gradeQuestion,
   requireSupportedGrade,
@@ -706,6 +707,7 @@ export async function startMockExam(userId: string, mockExamId: string) {
       questionVersionId: questionVersions.id,
       questionVersionSemanticHash: questionVersions.semanticHash,
       questionVersionHumanReviewHash: questionVersions.humanReviewHash,
+      questionVersionSnapshotJson: questionVersions.snapshotJson,
     })
     .from(mockExamQuestions)
     .innerJoin(questions, eq(mockExamQuestions.questionId, questions.id))
@@ -834,6 +836,7 @@ export async function getMockExamAttempt(userId: string, attemptId: string) {
       answerData: mockExamAnswers.answerData,
       questionVersionId: mockExamAnswers.questionVersionId,
       questionVersionSnapshotJson: questionVersions.snapshotJson,
+      questionVersionQuestionId: questionVersions.questionId,
       isCorrect: mockExamAnswers.isCorrect,
       earnedScore: mockExamAnswers.score,
       possibleScore: mockExamQuestions.score,
@@ -854,7 +857,10 @@ export async function getMockExamAttempt(userId: string, attemptId: string) {
     )
     .where(eq(mockExamAnswers.attemptId, attemptId))
     .orderBy(asc(mockExamQuestions.displayOrder));
-  const choiceRows = rows.length
+  const legacyQuestionIds = rows
+    .filter((row) => !row.questionVersionId)
+    .map((row) => row.id);
+  const choiceRows = legacyQuestionIds.length
     ? await getDb()
         .select({
           id: questionChoices.id,
@@ -865,7 +871,7 @@ export async function getMockExamAttempt(userId: string, attemptId: string) {
           explanation: questionChoices.explanation,
         })
         .from(questionChoices)
-        .where(inArray(questionChoices.questionId, rows.map((row) => row.id)))
+        .where(inArray(questionChoices.questionId, legacyQuestionIds))
         .orderBy(asc(questionChoices.displayOrder))
     : [];
   const submitted = attempt.status !== "IN_PROGRESS";
@@ -874,7 +880,27 @@ export async function getMockExamAttempt(userId: string, attemptId: string) {
     (!attempt.resultOpenAt ||
       new Date(attempt.resultOpenAt).getTime() <= Date.now());
   let publicRows = rows.map((row) => {
-    let choices = choiceRows.filter((choice) => choice.questionId === row.id);
+    const {
+      questionVersionSnapshotJson: snapshotJson,
+      questionVersionQuestionId: boundQuestionId,
+      ...baseRow
+    } = row;
+    const revision = row.questionVersionId
+      ? (() => {
+          if (boundQuestionId !== row.id) {
+            throw new AppError(
+              "Mock item QuestionVersion is bound to a different question.",
+              409,
+              "QUESTION_VERSION_MISMATCH",
+            );
+          }
+          return resolveMockQuestionVersionSnapshot(snapshotJson, row.id);
+        })()
+      : null;
+    const question = revision ? { ...baseRow, ...revision } : baseRow;
+    let choices = revision
+      ? [...revision.choices]
+      : choiceRows.filter((choice) => choice.questionId === row.id);
     if (attempt.randomizeChoices) {
       choices = [...choices].sort(
         (a, b) =>
@@ -884,19 +910,19 @@ export async function getMockExamAttempt(userId: string, attemptId: string) {
     }
     if (!resultsAvailable) {
       return {
-        ...toPublicExamQuestion(row),
+        ...toPublicExamQuestion(question),
         explanation: undefined,
         wrongAnswerExplanation: undefined,
         isCorrect: undefined,
         earnedScore: undefined,
         choices:
-          row.type === "SHORT_ANSWER"
+          question.type === "SHORT_ANSWER"
             ? []
             : choices.map((choice) => toPublicExamQuestion(choice)),
       };
     }
     return {
-      ...row,
+      ...question,
       choices,
       correctAnswer: choices
         .filter((choice) => choice.isCorrect)
@@ -1071,12 +1097,11 @@ export async function submitMockExam(
       questionId: questions.id,
       type: questions.type,
       answerConfigJson: questions.answerConfigJson,
-      currentQuestionVersion: questions.version,
       answerData: mockExamAnswers.answerData,
       answeredAt: mockExamAnswers.answeredAt,
       possibleScore: mockExamQuestions.score,
       questionVersionId: mockExamAnswers.questionVersionId,
-      boundQuestionVersion: questionVersions.version,
+      questionVersionSnapshotJson: questionVersions.snapshotJson,
       boundQuestionId: questionVersions.questionId,
     })
     .from(mockExamAnswers)
@@ -1093,14 +1118,20 @@ export async function submitMockExam(
       ),
     )
     .where(eq(mockExamAnswers.attemptId, attemptId));
-  const choices = answerRows.length
+  /*
+   * Governed rows are graded from their immutable QuestionVersion snapshot
+   * below. Current choices are needed only for legacy, unbound rows.
+   */
+  const legacyChoices = answerRows.length
     ? await getDb()
         .select()
         .from(questionChoices)
         .where(
           inArray(
             questionChoices.questionId,
-            answerRows.map((row) => row.questionId),
+            answerRows
+              .filter((row) => !row.questionVersionId)
+              .map((row) => row.questionId),
           ),
         )
     : [];
@@ -1116,28 +1147,39 @@ export async function submitMockExam(
         answerId: row.answerId,
       };
     }
-    if (
-      row.questionVersionId &&
-      (
-        row.boundQuestionId !== row.questionId ||
-        row.boundQuestionVersion !== row.currentQuestionVersion
-      )
-    ) {
-      throw new AppError(
-        "Mock item QuestionVersion no longer matches the governed question state.",
-        409,
-        "QUESTION_VERSION_MISMATCH",
-      );
-    }
+    const revision = row.questionVersionId
+      ? (() => {
+          if (row.boundQuestionId !== row.questionId) {
+            throw new AppError(
+              "Mock item QuestionVersion is bound to a different question.",
+              409,
+              "QUESTION_VERSION_MISMATCH",
+            );
+          }
+          return resolveMockQuestionVersionSnapshot(
+            row.questionVersionSnapshotJson,
+            row.questionId,
+          );
+        })()
+      : null;
+    const gradingQuestion = revision
+      ? {
+          type: revision.type,
+          choices: [...revision.choices],
+          answerConfigJson: revision.answerConfigJson,
+        }
+      : {
+          type: row.type as QuestionType,
+          choices: legacyChoices.filter((choice) => choice.questionId === row.questionId),
+          answerConfigJson: row.answerConfigJson,
+        };
     const grade = requireSupportedGrade(
       gradeQuestion(
         {
-          type: row.type as QuestionType,
-          choices: choices.filter(
-            (choice) => choice.questionId === row.questionId,
-          ),
+          type: gradingQuestion.type as QuestionType,
+          choices: gradingQuestion.choices,
           answerConfig: parseJson<ShortAnswerConfig>(
-            row.answerConfigJson,
+            gradingQuestion.answerConfigJson,
             {},
           ),
         },
@@ -1257,6 +1299,7 @@ type MockVersionSeed = Readonly<{
   questionVersionId: string | null;
   questionVersionSemanticHash: string | null;
   questionVersionHumanReviewHash: string | null;
+  questionVersionSnapshotJson: string | null;
 }>;
 
 async function resolveMockQuestionVersionBindings(
@@ -1299,6 +1342,10 @@ async function resolveMockQuestionVersionBindings(
       ),
     );
   for (const seed of governed) {
+    resolveMockQuestionVersionSnapshot(
+      seed.questionVersionSnapshotJson,
+      seed.questionId,
+    );
     const rows = mappings.filter(
       (mapping) => mapping.questionVersionId === seed.questionVersionId,
     );

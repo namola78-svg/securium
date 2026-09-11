@@ -23,6 +23,8 @@ type ResolveInput = Readonly<{
 
 type QuestionMappingRow = Readonly<{
   mapping_id: string;
+  question_id?: string;
+  question_version_id?: string;
   concept_id: string;
   concept_key: string;
   mapping_version: number | string;
@@ -74,7 +76,9 @@ implements CanonicalEvidenceSourceResolver {
     const row = await this.database.queryOne<Record<string, unknown>>({
       sql: mock
         ? `SELECT a.id, m.user_id, a.question_version_id, a.concept_mapping_set_hash,
-            a.is_correct, a.score, a.answered_at AS occurred_at, v.semantic_hash AS version_hash
+            a.is_correct, a.score, a.answered_at AS occurred_at,
+            m.status AS attempt_status, m.submitted_at AS attempt_submitted_at,
+            v.semantic_hash AS version_hash
           FROM mock_exam_answers a JOIN mock_exam_attempts m ON m.id = a.attempt_id
           LEFT JOIN question_versions v ON v.id = a.question_version_id WHERE a.id = ? LIMIT 1`
         : `SELECT a.id, a.user_id, a.question_version_id, a.concept_mapping_set_hash,
@@ -83,6 +87,14 @@ implements CanonicalEvidenceSourceResolver {
       parameters: [input.sourceEventId],
     });
     if (!row) return null;
+    if (
+      mock &&
+      (row.attempt_status !== "SUBMITTED" && row.attempt_status !== "EXPIRED" ||
+        !row.attempt_submitted_at ||
+        !row.occurred_at)
+    ) {
+      return null;
+    }
     if (!row.question_version_id || !row.concept_mapping_set_hash || !row.version_hash) {
       return legacy(input, row);
     }
@@ -95,13 +107,7 @@ implements CanonicalEvidenceSourceResolver {
       : null;
     const expectedMappingHash = correction?.conceptMappingSetHash ?? String(row.concept_mapping_set_hash);
     const mappings = await this.questionMappings(String(row.question_version_id));
-    const mappingHash = await computeConceptMappingSetHash(mappings.map((item) => ({
-      conceptIdentity: item.concept_key,
-      mappingVersion: Number(item.mapping_version),
-      qualification: parse(item.qualification_json),
-      provenance: parse(item.provenance_json),
-      status: "APPROVED" as const,
-    })));
+    const mappingHash = await questionMappingHash(mappings);
     if (mappingHash !== expectedMappingHash) invalid("EVIDENCE_MAPPING_SET_MISMATCH");
     const corrected = revision?.action === "CORRECT"
       ? objectPayload(revision.correction_payload_json)
@@ -149,7 +155,25 @@ implements CanonicalEvidenceSourceResolver {
     const correction = revision?.action === "CORRECT_CONCEPT_MAPPING"
       ? mappingCorrection(revision.correction_payload_json)
       : null;
+    const bindings = await this.mockAnswerBindings(input.sourceEventId);
+    if (
+      !bindings.length ||
+      bindings.some((item) => !item.question_version_id || !item.concept_mapping_set_hash)
+    ) {
+      invalid("EVIDENCE_VERSION_BINDING_MISSING");
+    }
     const mappings = await this.mockMappings(input.sourceEventId);
+    for (const binding of bindings) {
+      const itemMappings = mappings.filter(
+        (item) => item.question_id === binding.question_id &&
+          item.question_version_id === binding.question_version_id,
+      );
+      if (!itemMappings.length) invalid("EVIDENCE_MAPPING_SET_MISMATCH");
+      const itemHash = await questionMappingHash(itemMappings);
+      if (itemHash !== String(binding.concept_mapping_set_hash)) {
+        invalid("EVIDENCE_MAPPING_SET_MISMATCH");
+      }
+    }
     if (!mappings.length) invalid("EVIDENCE_CONCEPT_MAPPING_MISSING");
     const mappingHash = await sha256(stableJson(mappings.map((item) => ({
       conceptIdentity: item.concept_key,
@@ -307,13 +331,27 @@ implements CanonicalEvidenceSourceResolver {
 
   private async mockMappings(attemptId: string) {
     const result = await this.database.query<QuestionMappingRow>({
-      sql: `SELECT DISTINCT qc.id AS mapping_id, qc.concept_id, c.concept_key,
+      sql: `SELECT DISTINCT a.question_id, a.question_version_id,
+        qc.id AS mapping_id, qc.concept_id, c.concept_key,
         qc.mapping_version, qc.qualification_json, qc.provenance_json
         FROM mock_exam_answers a
         JOIN question_concepts qc ON qc.question_version_id = a.question_version_id
           AND qc.mapping_status = 'APPROVED'
         JOIN ontology_concepts c ON c.id = qc.concept_id AND c.status = 'ACTIVE'
         WHERE a.attempt_id = ? ORDER BY c.concept_key, qc.id`,
+      parameters: [attemptId],
+    });
+    return result.rows;
+  }
+
+  private async mockAnswerBindings(attemptId: string) {
+    const result = await this.database.query<{
+      question_id: string;
+      question_version_id: string | null;
+      concept_mapping_set_hash: string | null;
+    }>({
+      sql: `SELECT question_id, question_version_id, concept_mapping_set_hash
+        FROM mock_exam_answers WHERE attempt_id = ? ORDER BY question_id`,
       parameters: [attemptId],
     });
     return result.rows;
@@ -392,6 +430,16 @@ async function edgeMappingHash(mappings: readonly EdgeRow[]) {
     edgeKey: item.edge_key,
     conceptId: item.concept_id,
   }))));
+}
+
+async function questionMappingHash(mappings: readonly QuestionMappingRow[]) {
+  return computeConceptMappingSetHash(mappings.map((item) => ({
+    conceptIdentity: item.concept_key,
+    mappingVersion: Number(item.mapping_version),
+    qualification: parse(item.qualification_json),
+    provenance: parse(item.provenance_json),
+    status: "APPROVED" as const,
+  })));
 }
 
 function mappingCorrection(value: unknown) {
