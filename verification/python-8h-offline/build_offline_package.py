@@ -777,7 +777,7 @@ def verify(archive_path: Path, manifest_path: Path, extract_dir: Path, report_pa
         if internal_manifest != expected_internal:
             raise PackageError("internal source manifest differs from adjacent manifest")
 
-        support_path = package_dir / Path(*PurePosixPath(PREFLIGHT_ARCHIVE_PATH).parts)
+        support_path = extract_dir / Path(*PurePosixPath(PREFLIGHT_ARCHIVE_PATH).parts)
         for record in manifest["support_files"]:
             if record["archive_path"] != PREFLIGHT_ARCHIVE_PATH:
                 raise PackageError(f"unexpected support archive path: {record['archive_path']}")
