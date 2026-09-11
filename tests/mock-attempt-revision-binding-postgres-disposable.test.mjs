@@ -26,6 +26,9 @@ let container;
 let client;
 let phase3;
 let disconnectRuntimePostgresExecutor;
+let getRuntimePostgresExecutor;
+let DatabaseEvidenceSourceResolver;
+let PostgresDatabaseProvider;
 
 after(async () => {
   await disconnectRuntimePostgresExecutor?.().catch(() => {});
@@ -72,7 +75,9 @@ before(async () => {
   process.env.POSTGRES_QUERY_TIMEOUT_MS = "5000";
   register("./support/node-runtime-loader.mjs", import.meta.url);
   phase3 = await import("../db/phase3-repositories.ts");
-  ({ disconnectRuntimePostgresExecutor } = await import("../db/postgres/postgres-js-executor.ts"));
+  ({ disconnectRuntimePostgresExecutor, getRuntimePostgresExecutor } = await import("../db/postgres/postgres-js-executor.ts"));
+  ({ DatabaseEvidenceSourceResolver } = await import("../db/evidence-source-adapters.ts"));
+  ({ PostgresDatabaseProvider } = await import("../db/provider/postgres-database-provider.ts"));
 });
 
 test("the actual PostgreSQL provider preserves mock attempt revisions", async () => {
@@ -136,6 +141,42 @@ test("the actual PostgreSQL provider preserves mock attempt revisions", async ()
     [["SUBMITTED", 100]],
   );
 
+  const [firstAnswer] = await client.unsafe(
+    "SELECT id FROM mock_exam_answers WHERE attempt_id = $1",
+    [first.id],
+  );
+  const resolver = new DatabaseEvidenceSourceResolver(
+    new PostgresDatabaseProvider(
+      await getRuntimePostgresExecutor(process.env),
+    ),
+  );
+  const evidence = await resolver.resolveEvent({
+    sourceType: "MOCK_ITEM_RESULT",
+    sourceEventId: firstAnswer.id,
+    sourceRevisionIdentity: "1".repeat(64),
+  });
+  assert.equal(evidence?.contentVersionIdentity, questionVersionOneId);
+  assert.equal(evidence?.conceptMappingSetHash, bound[0].concept_mapping_set_hash);
+  await client.unsafe(
+    "UPDATE question_concepts SET mapping_version = 2 WHERE id = $1",
+    [mappingOneId],
+  );
+  try {
+    await assert.rejects(
+      resolver.resolveEvent({
+        sourceType: "MOCK_ITEM_RESULT",
+        sourceEventId: firstAnswer.id,
+        sourceRevisionIdentity: "1".repeat(64),
+      }),
+      (error) => error?.code === "EVIDENCE_MAPPING_SET_MISMATCH",
+    );
+  } finally {
+    await client.unsafe(
+      "UPDATE question_concepts SET mapping_version = 1 WHERE id = $1",
+      [mappingOneId],
+    );
+  }
+
   const replay = await assert.rejects(
     phase3.submitMockExam(userId, first.id),
     (error) => error?.code === "EXAM_ALREADY_SUBMITTED",
@@ -152,6 +193,30 @@ test("the actual PostgreSQL provider preserves mock attempt revisions", async ()
   );
   assert.equal(secondBound[0].question_version_id, questionVersionTwoId);
   await phase3.saveMockExamAnswer({ userId, attemptId: second.id, questionId, answer: choiceTwoId });
+  await client.unsafe(`
+    CREATE OR REPLACE FUNCTION mock_attempt_test_abort_submit() RETURNS trigger
+    LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'mock submit failure fixture'; END; $$;
+    CREATE TRIGGER mock_attempt_test_abort_submit
+      BEFORE UPDATE ON mock_exam_attempts
+      FOR EACH ROW EXECUTE FUNCTION mock_attempt_test_abort_submit();
+  `);
+  try {
+    await assert.rejects(phase3.submitMockExam(userId, second.id));
+    assert.deepEqual(
+      (await client.unsafe("SELECT status, score FROM mock_exam_attempts WHERE id = $1", [second.id])).map((row) => [row.status, row.score]),
+      [["IN_PROGRESS", 0]],
+    );
+    assert.deepEqual(
+      (await client.unsafe("SELECT is_correct, score FROM mock_exam_answers WHERE attempt_id = $1", [second.id])).map((row) => [row.is_correct, row.score]),
+      [[null, null]],
+    );
+    assert.equal(
+      Number((await client.unsafe("SELECT count(*) FROM learning_activities WHERE target_id = $1", [second.id]))[0].count),
+      0,
+    );
+  } finally {
+    await client.unsafe("DROP TRIGGER mock_attempt_test_abort_submit ON mock_exam_attempts; DROP FUNCTION mock_attempt_test_abort_submit();");
+  }
   assert.equal((await phase3.submitMockExam(userId, second.id)).score, 100);
 });
 
