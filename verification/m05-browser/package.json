@@ -1,0 +1,11 @@
+{
+  "name": "m05-browser-verification-harness",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "verify": "node run-browser-verification.mjs"
+  },
+  "dependencies": {
+    "playwright": "1.51.1"
+  }
+}
