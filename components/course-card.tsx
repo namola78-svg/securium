@@ -1,18 +1,25 @@
 import { ActionButton } from "@/components/design-system-primitives";
 import type { CourseListItem } from "@/db/repositories";
 import { courseAudienceLabel, courseDescription, courseTypeLabel, estimateWeeks, safeCount } from "@/lib/course-display";
-import { hasPublicLearningContent } from "@/lib/services/course-availability";
+import {
+  getPublicLearningAvailability,
+  hasPublicLearningContent,
+} from "@/lib/services/course-availability";
 
 export function CourseCard({ course }: { course: CourseListItem }) {
   const description = courseDescription(course.description);
   const recommendedFor = courseAudienceLabel(course);
   const subjectCount = safeCount(course.subjectCount);
   const topicCount = safeCount(course.topicCount);
-  const questionCount = safeCount(course.questionCount);
+  const questionCount = safeCount(course.publishedQuestionCount);
   const estimatedWeeks = estimateWeeks(course.totalLevels);
   const typeLabel = courseTypeLabel(course);
   const available = hasPublicLearningContent(course);
-  const status = available ? "학습 가능" : "개설 예정";
+  const status = getPublicLearningAvailability(course) === "PRACTICE"
+    ? "문제 풀이 가능"
+    : available
+      ? "학습 가능"
+      : "개설 예정";
   const courseName = course.name || course.shortName || "이름 없는 과정";
 
   return (

@@ -5,6 +5,7 @@ import {
   courseGroups,
   courseLessons,
   questionCourses,
+  questions,
   courses,
   learningUnits,
   lessons,
@@ -56,7 +57,7 @@ export type CourseListItem = {
   updatedAt?: string;
   subjectCount?: number;
   topicCount?: number;
-  questionCount?: number;
+  publishedQuestionCount?: number;
   publishedLessonCount?: number;
 };
 
@@ -131,10 +132,13 @@ export async function listPublishedCourses(): Promise<CourseListItem[]> {
           AND ${topics.active} = 1
           AND ${topics.deletedAt} IS NULL
       )`,
-      questionCount: sql<number>`(
+      publishedQuestionCount: sql<number>`(
         SELECT COUNT(*)
         FROM ${questionCourses}
+        INNER JOIN ${questions}
+          ON ${questionCourses.questionId} = ${questions.id}
         WHERE ${questionCourses.courseId} = ${courses.id}
+          AND ${questions.status} = 'PUBLISHED'
       )`,
       publishedLessonCount: sql<number>`(
         SELECT COUNT(*)
@@ -199,10 +203,13 @@ export async function getPublicCourseBySlug(slug: string) {
           AND ${topics.active} = 1
           AND ${topics.deletedAt} IS NULL
       )`,
-      questionCount: sql<number>`(
+      publishedQuestionCount: sql<number>`(
         SELECT COUNT(*)
         FROM ${questionCourses}
+        INNER JOIN ${questions}
+          ON ${questionCourses.questionId} = ${questions.id}
         WHERE ${questionCourses.courseId} = ${courses.id}
+          AND ${questions.status} = 'PUBLISHED'
       )`,
       publishedLessonCount: sql<number>`(
         SELECT COUNT(*)

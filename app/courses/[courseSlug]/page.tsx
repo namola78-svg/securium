@@ -27,7 +27,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
   const enrollment = identity ? await getEnrollmentForCourse(identity.id, course.id) : null;
   const description = courseDescription(course.description);
   const topicCount = safeCount(course.topicCount) || curriculum.reduce((sum, subject) => sum + subject.topics.length, 0);
-  const questionCount = safeCount(course.questionCount);
+  const questionCount = safeCount(course.publishedQuestionCount);
   const available = hasPublicLearningContent(course);
   const audience = courseAudienceLabel(course);
   const courseType = courseTypeLabel(course);
