@@ -48,6 +48,12 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v6
 
+      - name: Preserve committed source bytes
+        run: |
+          git config --local core.autocrlf false
+          git config --local core.eol lf
+          git checkout -- .github/workflows/python-8h-offline-package.yml examples/python-secure-coding-8h-priority-labs verification/python-8h-offline
+
       - name: Set up Python
         uses: actions/setup-python@v6
         with:

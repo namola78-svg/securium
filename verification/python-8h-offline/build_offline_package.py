@@ -35,6 +35,7 @@ REPOSITORY_ONLY_LINKS = {
     "verification/m05-browser/",
     "../../../content-drafts/secure-coding-8h-foundation/manifest.json",
 }
+PACKAGE_README_REL = Path("verification/python-8h-offline/package-readme.md")
 
 FOCUSED_COMMANDS: tuple[tuple[str, tuple[str, ...], int], ...] = (
     ("M01", ("m01_trust_boundary.test_m01",), 5),
@@ -280,6 +281,13 @@ def build(output_dir: Path) -> dict[str, Any]:
     commit, source_records, excluded_files = source_commit_and_files()
     builder_commit = run_git("rev-parse", "HEAD^{commit}")
     readme_data = package_readme(commit)
+    committed_readme = run_git_bytes("show", f"{builder_commit}:{PACKAGE_README_REL.as_posix()}")
+    committed_readme = committed_readme.decode("utf-8").replace("{{SOURCE_COMMIT}}", commit).encode("utf-8")
+    if readme_data != committed_readme:
+        raise PackageError(
+            "package README bytes differ from the recorded builder Git blob; "
+            "line-ending or checkout conversion detected"
+        )
     lab_root = (REPOSITORY_ROOT / LAB_ROOT_REL).resolve()
 
     source_manifest = {

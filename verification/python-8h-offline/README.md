@@ -49,6 +49,11 @@ counts, and removes the extraction directory even after a test failure. It
 does not run the separate browser harness and does not claim browser or
 classroom-delivery readiness.
 
+The CI workflow explicitly disables Git's automatic line-ending conversion
+before the build. Local builds use the same byte contract: a checkout whose
+working-tree bytes do not match the recorded Git blobs fails rather than
+silently producing a different package.
+
 ## CI contract
 
 `.github/workflows/python-8h-offline-package.yml` runs the same contract on
