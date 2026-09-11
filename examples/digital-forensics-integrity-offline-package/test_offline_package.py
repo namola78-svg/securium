@@ -35,7 +35,9 @@ class OfflinePackageBoundaryTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.repository_root = Path(__file__).resolve().parents[2]
         cls.source_commit = _source_commit(cls.repository_root, None, False)[0]
-        cls.trusted_parent = Path(tempfile.mkdtemp(prefix="securium-offline-package-trusted-"))
+        cls.trusted_parent = Path(
+            tempfile.mkdtemp(prefix="sec-pkg-trusted-", dir=cls.repository_root.parent)
+        )
         cls.trusted_root = cls.trusted_parent / "source"
         subprocess.run(
             ["git", "worktree", "add", "--detach", "--no-checkout", str(cls.trusted_root), cls.source_commit],
@@ -327,8 +329,9 @@ class OfflinePackageBoundaryTests(unittest.TestCase):
 
     def test_dirty_trusted_checkout_is_rejected(self) -> None:
         package, manifest, _ = self._build()
-        dirty_parent = self.temp_root / "dirty-trusted-parent"
-        dirty_parent.mkdir()
+        dirty_parent = Path(
+            tempfile.mkdtemp(prefix="sec-pkg-dirty-", dir=self.repository_root.parent)
+        )
         dirty_root = dirty_parent / "source"
         subprocess.run(
             ["git", "worktree", "add", "--detach", "--no-checkout", str(dirty_root), self.source_commit],
@@ -362,6 +365,7 @@ class OfflinePackageBoundaryTests(unittest.TestCase):
                 capture_output=True,
                 text=True,
             )
+            shutil.rmtree(dirty_parent, ignore_errors=True)
         self.assertEqual(result["status"], "REJECTED")
         self.assertIn("worktree must be clean", result["errors"][0])
 
