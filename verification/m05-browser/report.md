@@ -13,7 +13,7 @@ claimed from the HTTP run.
 
 The fixture integration gap was repaired in the source commit `18b6aa1`
 (`fix(m05): allow explicit trusted origin for browser fixture`) and carried
-onto this latest-main branch as `c2d16b5`.
+onto this latest-main branch as `37e3de2`.
 The default product behavior remains the exact `https://app.local` trusted
 Origin required by the existing secure tests. The repair adds only an
 explicit service configuration parameter so the isolated HTTP browser
@@ -26,10 +26,10 @@ fixture can use its actual server-owned `http://app.local` Origin.
 - Branch: `fix/python-8h-m05-browser-fixture`
 - Existing harness checkpoint: `1500f48`
 - Source M05 fixture repair commit: `18b6aa1`
-- Latest-main M05 repair commit: `c2d16b5`
-- Latest-main harness commit: `784cbc2` plus isolated dependency commits
-  `98b93be` and `84532bf`
-- Latest `origin/main` at publication: `326230dceb298f2248580dea28e594cbd0f1f86e`
+- Latest-main M05 repair commit: `37e3de2`
+- Latest-main harness commit: `69ec964` plus isolated dependency commits
+  `b0ec63f` and `a730ee5`
+- Latest `origin/main` at publication: `c3c1220c4e2e7bdce8e8d99e057536c3c0f1a9bc`
 - PR #143 merge / publish base: `8e7baf8a3e156f7dc3666313fb7c88d7e6e7d8df`
 
 The M05 source blobs from merged #143 are recorded in `source-metadata.md`.

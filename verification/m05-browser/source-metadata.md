@@ -2,10 +2,10 @@
 
 - Harness checkpoint: `1500f48`
 - M05 fixture repair commit: `18b6aa1`
-- Latest-main M05 repair commit: `c2d16b5`
-- Latest-main harness commit: `784cbc2`
-- Isolated harness dependency commits: `98b93be`, `84532bf`
-- Latest `origin/main` at publication: `326230dceb298f2248580dea28e594cbd0f1f86e`
+- Latest-main M05 repair commit: `37e3de2`
+- Latest-main harness commit: `69ec964`
+- Isolated harness dependency commits: `b0ec63f`, `a730ee5`
+- Latest `origin/main` at publication: `c3c1220c4e2e7bdce8e8d99e057536c3c0f1a9bc`
 - PR #143 merge / publish base: `8e7baf8a3e156f7dc3666313fb7c88d7e6e7d8df`
 - M05 path: `examples/python-secure-coding-8h-priority-labs/m05_web_context`
 - M05 blobs at start:
