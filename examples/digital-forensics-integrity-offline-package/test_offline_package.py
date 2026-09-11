@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import tempfile
 import unittest
@@ -138,7 +139,7 @@ class OfflinePackageBoundaryTests(unittest.TestCase):
         real.write_text("synthetic", encoding="utf-8")
         link = fixture / "linked.txt"
         try:
-            link.symlink_to("real.txt")
+            os.symlink(str(real.resolve()), str(link))
         except (OSError, NotImplementedError) as error:
             self.fail(f"symlink boundary could not be exercised: {error}")
         with self.assertRaises(PackageError):
