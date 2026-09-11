@@ -20,6 +20,8 @@ const REVISION_CONTEXT = {
   sourceRevisionVersion: "candidate-1",
   questionVersionOverrides: { Q36: 2 },
 };
+const OLD_V1_PAYLOAD_HASH =
+  "1918e3b1af43e1425fd515f718f87676d58a8c07b6575d9cf78eb58935bf27b7";
 
 function clone(value) {
   return structuredClone(value);
@@ -81,7 +83,19 @@ test("keeps the approved Q36 content change minimal and updates the exact expect
 });
 
 test("projects Q36 as an immutable candidate v2 while preserving the other 39", async () => {
-  const baseline = await buildSecureCoding8HQuestionRuntimeMapping();
+  const model = loadSecureCoding8HRuntimeModel({
+    runtimeCourse: {
+      id: COURSE_ID,
+      slug: "secure-coding-8h-python-vibe",
+      active: false,
+      published: false,
+      deletedAt: null,
+    },
+    exposure: "registration",
+  });
+  const oldSource = clone(model);
+  oldSource.foundation.questions.questions.find((question) => question.id === "Q36").answer = 0;
+  const baseline = await projectSecureCoding8HQuestionRuntimeMapping(oldSource);
   const candidate = await buildSecureCoding8HQuestionRuntimeMapping(REVISION_CONTEXT);
   const baselineById = new Map(
     baseline.mappings.map((entry) => [entry.foundationQuestionId, entry]),
@@ -115,23 +129,11 @@ test("projects Q36 as an immutable candidate v2 while preserving the other 39", 
     candidateQ36.choices.map((choice) => [choice.id, choice.displayOrder, choice.content]),
     baselineById.get("Q36").choices.map((choice) => [choice.id, choice.displayOrder, choice.content]),
   );
-  assert.equal(candidateQ36.semanticHash, baselineById.get("Q36").semanticHash);
+  assert.notEqual(candidateQ36.semanticHash, baselineById.get("Q36").semanticHash);
 
-  const model = loadSecureCoding8HRuntimeModel({
-    runtimeCourse: {
-      id: COURSE_ID,
-      slug: "secure-coding-8h-python-vibe",
-      active: false,
-      published: false,
-      deletedAt: null,
-    },
-    exposure: "registration",
-  });
-  const oldSource = clone(model);
-  oldSource.foundation.questions.questions.find((question) => question.id === "Q36").answer = 0;
-  const oldV1 = await projectSecureCoding8HQuestionRuntimeMapping(oldSource);
+  const oldV1 = baseline;
   await expectCode(
-    () => assertSecureCoding8HQuestionRuntimeMapping(oldV1, model),
+    () => assertSecureCoding8HQuestionRuntimeMapping(oldV1, model, REVISION_CONTEXT),
     "MAPPING_PROJECTION_MISMATCH",
   );
   await expectCode(
@@ -143,11 +145,27 @@ test("projects Q36 as an immutable candidate v2 while preserving the other 39", 
   );
 });
 
-test("preflight binds candidate hashes and versions without granting authority", async () => {
-  const baseline = await preflightSecureCoding8HQuestionMaterialization();
-  const candidateMapping = await buildSecureCoding8HQuestionRuntimeMapping(REVISION_CONTEXT);
+test("does not expose revised Q36 through the context-free v1 mapping", async () => {
   await expectCode(
-    () => preflightSecureCoding8HQuestionMaterialization({ candidateMapping }),
+    () => buildSecureCoding8HQuestionRuntimeMapping(),
+    "QUESTION_REVISION_CONTEXT_REQUIRED",
+  );
+  await expectCode(
+    () => preflightSecureCoding8HQuestionMaterialization(),
+    "QUESTION_REVISION_CONTEXT_REQUIRED",
+  );
+});
+
+test("preflight binds candidate hashes and versions without granting authority", async () => {
+  const candidateMapping = await buildSecureCoding8HQuestionRuntimeMapping(REVISION_CONTEXT);
+  const staleMapping = clone(candidateMapping);
+  staleMapping.mappings.find((entry) => entry.foundationQuestionId === "Q36").version.id =
+    "version-question-developer-secure-coding-8h-python-vibe-Q36-v1";
+  await expectCode(
+    () => preflightSecureCoding8HQuestionMaterialization({
+      candidateRevisionContext: REVISION_CONTEXT,
+      candidateMapping: staleMapping,
+    }),
     "MAPPING_PROJECTION_MISMATCH",
   );
 
@@ -166,6 +184,7 @@ test("preflight binds candidate hashes and versions without granting authority",
   assert.equal(candidate.versionRows.filter((row) => row.version === 2).length, 1);
   assert.equal(candidate.versionRows.filter((row) => row.version === 1).length, 39);
   assert.deepEqual(candidate.source.revisionContext, REVISION_CONTEXT);
+  assert.notEqual(candidate.payload.canonicalHash, OLD_V1_PAYLOAD_HASH);
 
   const verifiedComparisons = await preflightSecureCoding8HQuestionMaterialization({
     candidateRevisionContext: REVISION_CONTEXT,
@@ -185,7 +204,7 @@ test("preflight binds candidate hashes and versions without granting authority",
   await expectCode(
     () => preflightSecureCoding8HQuestionMaterialization({
       candidateRevisionContext: REVISION_CONTEXT,
-      submittedPayloadHash: baseline.payload.canonicalHash,
+      submittedPayloadHash: OLD_V1_PAYLOAD_HASH,
     }),
     "PAYLOAD_HASH_MISMATCH",
   );

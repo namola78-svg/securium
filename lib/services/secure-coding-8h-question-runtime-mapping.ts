@@ -12,6 +12,8 @@ const FOUNDATION_CANDIDATE_ID =
 const FOUNDATION_VERSION = "v1" as const;
 const MAPPING_CONTRACT_VERSION =
   "SECURIUM_SECURE_CODING_8H_QUESTION_MAPPING_V1" as const;
+const LEGACY_Q36_V1_SEMANTIC_HASH =
+  "dc89bfe1e0fd3f8ad8f7879fbe5f9a6d42e9718d98dacd80a6c274e7c819b025" as const;
 const QUESTION_COUNT = 40;
 const RUNTIME_QUESTION_TYPE = "SINGLE_CHOICE" as const;
 const RUNTIME_DIFFICULTY = "MEDIUM" as const;
@@ -169,6 +171,7 @@ export async function projectSecureCoding8HQuestionRuntimeMapping(
 ): Promise<SecureCoding8HRuntimeQuestionMappingManifest> {
   const normalizedRevisionContext = normalizeRevisionContext(revisionContext);
   const normalized = await normalizeFoundationQuestions(model);
+  assertDefaultRevisionBoundary(normalized, normalizedRevisionContext);
   const mappings = normalized.map((question) =>
     createMapping(question, normalizedRevisionContext),
   );
@@ -627,6 +630,21 @@ function normalizeRevisionContext(
     sourceRevisionVersion: input.sourceRevisionVersion,
     questionVersionOverrides: Object.freeze({ Q36: questionVersion }),
   });
+}
+
+function assertDefaultRevisionBoundary(
+  normalized: readonly NormalizedQuestion[],
+  revisionContext?: SecureCoding8HQuestionRevisionContext,
+): void {
+  if (revisionContext) return;
+  const q36 = normalized.find((question) => question.source.id === "Q36");
+  if (!q36 || q36.semanticHash !== LEGACY_Q36_V1_SEMANTIC_HASH) {
+    throw new AppError(
+      "Q36 has changed since immutable v1; an explicit candidate revision context is required.",
+      409,
+      "QUESTION_REVISION_CONTEXT_REQUIRED",
+    );
+  }
 }
 
 function assertRuntimeModelIdentity(model: SecureCoding8HRuntimeModel): void {
