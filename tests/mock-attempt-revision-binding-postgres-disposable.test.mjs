@@ -81,6 +81,41 @@ before(async () => {
   ({ PostgresDatabaseProvider } = await import("../db/provider/postgres-database-provider.ts"));
 });
 
+test("PostgreSQL rejects a prepared start after a committed mapping change", async () => {
+  const prepared = await phase3.prepareMockExamStart(userId, examId);
+  await client.unsafe(
+    "UPDATE question_concepts SET mapping_version = 2 WHERE id = $1",
+    [mappingOneId],
+  );
+  try {
+    await assert.rejects(
+      phase3.commitMockExamStart(
+        prepared,
+        new PostgresDatabaseProvider(
+          await getRuntimePostgresExecutor(process.env),
+        ),
+      ),
+      (error) => error?.code === "EXAM_INCOMPLETE",
+    );
+    const [counts] = await client.unsafe(
+      `SELECT
+         (SELECT count(*)::int FROM mock_exam_attempts WHERE id = $1) AS attempts,
+         (SELECT count(*)::int FROM mock_exam_answers WHERE attempt_id = $1) AS answers,
+         (SELECT mapping_version::int FROM question_concepts WHERE id = $2) AS mapping_version`,
+      [prepared.id, mappingOneId],
+    );
+    assert.deepEqual(
+      [Number(counts.attempts), Number(counts.answers), Number(counts.mapping_version)],
+      [0, 0, 2],
+    );
+  } finally {
+    await client.unsafe(
+      "UPDATE question_concepts SET mapping_version = 1 WHERE id = $1",
+      [mappingOneId],
+    );
+  }
+});
+
 test("the actual PostgreSQL provider preserves mock attempt revisions", async () => {
   const countRows = async () => {
     const [row] = await client.unsafe(

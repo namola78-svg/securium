@@ -12,7 +12,14 @@ import {
   sql,
 } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
-import { getDb } from ".";
+import { getDatabaseProvider, getDb } from ".";
+import {
+  commitMockExamStart,
+  type MockExamStartBinding,
+  type PreparedMockExamStart,
+} from "./mock-exam-start-atomic.ts";
+
+export { commitMockExamStart } from "./mock-exam-start-atomic.ts";
 import {
   courses,
   contents,
@@ -687,6 +694,14 @@ function examIsOpen(exam: {
 }
 
 export async function startMockExam(userId: string, mockExamId: string) {
+  const prepared = await prepareMockExamStart(userId, mockExamId);
+  return commitMockExamStart(prepared, await getDatabaseProvider());
+}
+
+export async function prepareMockExamStart(
+  userId: string,
+  mockExamId: string,
+): Promise<PreparedMockExamStart> {
   const [exam] = await getDb()
     .select()
     .from(mockExams)
@@ -790,30 +805,29 @@ export async function startMockExam(userId: string, mockExamId: string) {
   const expiresAt = new Date(
     Date.now() + exam.timeLimitMinutes * 60_000,
   ).toISOString();
-  const operations: BatchItem<"sqlite">[] = [
-    getDb().insert(mockExamAttempts).values({
-      id,
-      mockExamId,
-      userId,
-      expiresAt,
-      unansweredCount: questionRows.length,
-      compositionSemanticHash,
-      compositionSnapshotJson,
-    }),
-    ...questionRows.map((row) =>
-      getDb().insert(mockExamAnswers).values({
-        id: crypto.randomUUID(),
-        attemptId: id,
-        questionId: row.questionId,
-        questionVersionId:
-          versionBindings.get(row.questionId)?.questionVersionId ?? null,
-        conceptMappingSetHash:
-          versionBindings.get(row.questionId)?.conceptMappingSetHash ?? null,
-      }),
-    ),
-  ];
-  await getDb().batch(batchItems(operations));
-  return { id, expiresAt };
+  return {
+    id,
+    userId,
+    mockExamId,
+    expiresAt,
+    compositionSemanticHash,
+    compositionSnapshotJson,
+    exam: {
+      id: exam.id,
+      courseId: exam.courseId,
+      questionCount: exam.questionCount,
+      passingScore: exam.passingScore,
+      maxAttempts: exam.maxAttempts,
+      randomizeQuestions: exam.randomizeQuestions,
+      randomizeChoices: exam.randomizeChoices,
+      published: exam.published,
+      status: exam.status,
+      startAt: exam.startAt,
+      endAt: exam.endAt,
+    },
+    questionRows,
+    versionBindings,
+  };
 }
 
 function deterministicRank(seed: string, value: string) {
@@ -1387,11 +1401,7 @@ async function resolveMockAttemptRevisions(
 async function resolveMockQuestionVersionBindings(
   seeds: readonly MockVersionSeed[],
 ) {
-  const result = new Map<string, Readonly<{
-    questionVersionId: string;
-    questionVersionSemanticHash: string;
-    conceptMappingSetHash: string;
-  }>>();
+  const result = new Map<string, MockExamStartBinding>();
   if (!seeds.length) {
     throw new AppError("시험 문제 구성이 완료되지 않았습니다.", 409, "EXAM_INCOMPLETE");
   }
@@ -1476,6 +1486,12 @@ async function resolveMockQuestionVersionBindings(
       questionVersionId: seed.questionVersionId,
       questionVersionSemanticHash: seed.questionVersionSemanticHash,
       conceptMappingSetHash,
+      mappings: rows.map((row) => ({
+        conceptIdentity: row.conceptIdentity,
+        mappingVersion: Number(row.mappingVersion),
+        qualificationJson: row.qualificationJson,
+        provenanceJson: row.provenanceJson,
+      })),
     });
   }
   return result;
@@ -1484,8 +1500,10 @@ async function resolveMockQuestionVersionBindings(
 async function assertMockExamStartStillCurrent(input: {
   exam: {
     id: string;
+    courseId: string;
     questionCount: number;
     passingScore: number;
+    maxAttempts: number;
     randomizeQuestions: boolean;
     randomizeChoices: boolean;
     published: boolean;
@@ -1504,14 +1522,17 @@ async function assertMockExamStartStillCurrent(input: {
       questionVersionId: string;
       questionVersionSemanticHash: string;
       conceptMappingSetHash: string;
+      mappings: MockExamStartBinding["mappings"];
     }>
   >;
 }) {
   const [currentExam] = await getDb()
     .select({
       id: mockExams.id,
+      courseId: mockExams.courseId,
       questionCount: mockExams.questionCount,
       passingScore: mockExams.passingScore,
+      maxAttempts: mockExams.maxAttempts,
       randomizeQuestions: mockExams.randomizeQuestions,
       randomizeChoices: mockExams.randomizeChoices,
       published: mockExams.published,
@@ -1525,8 +1546,10 @@ async function assertMockExamStartStillCurrent(input: {
   if (
     !currentExam ||
     !examIsOpen(currentExam) ||
+    currentExam.courseId !== input.exam.courseId ||
     currentExam.questionCount !== input.exam.questionCount ||
     currentExam.passingScore !== input.exam.passingScore ||
+    currentExam.maxAttempts !== input.exam.maxAttempts ||
     currentExam.randomizeQuestions !== input.exam.randomizeQuestions ||
     currentExam.randomizeChoices !== input.exam.randomizeChoices
   ) {
