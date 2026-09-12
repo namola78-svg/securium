@@ -21,6 +21,12 @@ export type PublicCourseSearchPath =
   | "certification"
   | "professional";
 
+/**
+ * Positions use ascending safe integers for group/course order; NULL is not a
+ * valid position. The ID tie-breaker is JavaScript UTF-16 code-unit ordering,
+ * which a future provider must reproduce. This does not claim DB collation
+ * equivalence.
+ */
 export type PublicCourseSearchPosition = Readonly<{
   groupDisplayOrder: number;
   displayOrder: number;
@@ -30,8 +36,9 @@ export type PublicCourseSearchPosition = Readonly<{
 /**
  * Server-owned input to the repository boundary. The repository must apply
  * the public predicate and search condition before executing this bounded
- * read. The adapter repeats the public predicate defensively because this
- * boundary is also used with test repositories.
+ * read, then apply the order and `after` condition and return no more than
+ * `limit` candidates. The adapter validates that contract; it does not repair
+ * an over-broad, misordered, duplicated, or over-sized provider result.
  */
 export type PublicCourseSearchRepositoryInput = Readonly<{
   query: string;
@@ -145,6 +152,10 @@ function invalidInput(message: string): never {
   throw new PublicCourseSearchError("INVALID_INPUT", message);
 }
 
+function invalidSource(message: string): never {
+  throw new PublicCourseSearchError("INVALID_SOURCE", message);
+}
+
 function normalizeQuery(value: unknown) {
   if (value === undefined) return "";
   if (typeof value !== "string") {
@@ -231,16 +242,59 @@ function positionOf(record: PublicCourseSearchSourceRecord): PublicCourseSearchP
     typeof record.id !== "string" ||
     record.id.length === 0
   ) {
-    throw new PublicCourseSearchError(
-      "INVALID_SOURCE",
-      "Course search source has an invalid ordering identity.",
-    );
+    return invalidSource("Course search source has an invalid ordering identity.");
   }
   return {
     groupDisplayOrder: record.groupDisplayOrder,
     displayOrder: record.displayOrder,
     id: record.id,
   };
+}
+
+function isNullableString(value: unknown): value is string | null {
+  return value === null || typeof value === "string";
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+function isSafeInteger(value: unknown): value is number {
+  return typeof value === "number" && Number.isSafeInteger(value);
+}
+
+function assertSourceRecord(
+  value: unknown,
+): asserts value is PublicCourseSearchSourceRecord {
+  if (
+    !isRecord(value) ||
+    typeof value.id !== "string" ||
+    value.id.length === 0 ||
+    typeof value.groupName !== "string" ||
+    typeof value.groupActive !== "boolean" ||
+    !isNullableString(value.groupDeletedAt) ||
+    !Number.isSafeInteger(value.groupDisplayOrder) ||
+    typeof value.code !== "string" ||
+    typeof value.slug !== "string" ||
+    typeof value.name !== "string" ||
+    typeof value.shortName !== "string" ||
+    typeof value.description !== "string" ||
+    !isNullableString(value.thumbnailUrl) ||
+    !isFiniteNumber(value.totalLevels) ||
+    (value.passingScore !== undefined && !isFiniteNumber(value.passingScore)) ||
+    typeof value.difficulty !== "string" ||
+    typeof value.active !== "boolean" ||
+    typeof value.published !== "boolean" ||
+    !isNullableString(value.deletedAt) ||
+    !Number.isSafeInteger(value.displayOrder) ||
+    (value.isSample !== undefined && typeof value.isSample !== "boolean") ||
+    (value.updatedAt !== undefined && !isNullableString(value.updatedAt)) ||
+    (value.subjectCount !== undefined && value.subjectCount !== null && !isFiniteNumber(value.subjectCount)) ||
+    (value.topicCount !== undefined && value.topicCount !== null && !isFiniteNumber(value.topicCount)) ||
+    (value.questionCount !== undefined && value.questionCount !== null && !isFiniteNumber(value.questionCount))
+  ) {
+    return invalidSource("Course search repository returned an invalid source record.");
+  }
 }
 
 function isPublicCourseSource(record: PublicCourseSearchSourceRecord) {
@@ -278,6 +332,51 @@ function matchesPath(
   if (path === "all") return true;
   const isCertification = courseTypeLabel(record) === "자격시험";
   return path === "certification" ? isCertification : !isCertification;
+}
+
+function validateRepositoryRows(
+  sourceRows: unknown,
+  input: NormalizedInput,
+  after: PublicCourseSearchPosition | null,
+  repositoryLimit: number,
+): readonly PublicCourseSearchSourceRecord[] {
+  if (!Array.isArray(sourceRows)) {
+    return invalidSource("Course search repository returned an invalid result.");
+  }
+  if (sourceRows.length > repositoryLimit) {
+    return invalidSource("Course search repository exceeded its bounded result limit.");
+  }
+
+  const seenIds = new Set<string>();
+  let previousPosition: PublicCourseSearchPosition | null = null;
+  for (const row of sourceRows) {
+    assertSourceRecord(row);
+    const position = positionOf(row);
+
+    if (seenIds.has(row.id)) {
+      return invalidSource("Course search repository returned a duplicate course ID.");
+    }
+    if (
+      previousPosition &&
+      comparePublicCourseSearchPositions(previousPosition, position) >= 0
+    ) {
+      return invalidSource("Course search repository returned an invalid order.");
+    }
+    if (after && comparePublicCourseSearchPositions(position, after) <= 0) {
+      return invalidSource("Course search repository returned a row before the cursor.");
+    }
+    if (!isPublicCourseSource(row)) {
+      return invalidSource("Course search repository returned a non-public course.");
+    }
+    if (!matchesQuery(row, input.query) || !matchesPath(row, input.path)) {
+      return invalidSource("Course search repository returned a row outside the search condition.");
+    }
+
+    seenIds.add(row.id);
+    previousPosition = position;
+  }
+
+  return sourceRows;
 }
 
 function isNonNegativeInteger(value: unknown): value is number {
@@ -339,6 +438,11 @@ async function queryFingerprint(query: string, path: PublicCourseSearchPath) {
   );
 }
 
+/**
+ * This is an opaque lookup position, not a signature, authorization proof, or
+ * publication decision. The digest rejects malformed or mismatched payloads;
+ * it does not provide secret-backed tamper resistance.
+ */
 async function encodeCursor(
   fingerprint: string,
   limit: number,
@@ -384,17 +488,23 @@ async function decodeCursor(
   limit: number,
 ): Promise<PublicCourseSearchPosition> {
   try {
+    if (value.length > PUBLIC_COURSE_SEARCH_MAX_CURSOR_LENGTH) {
+      throw new Error("cursor encoding");
+    }
     const bytes = decodeBase64Url(value);
     if (bytes.length > PUBLIC_COURSE_SEARCH_MAX_CURSOR_LENGTH) throw new Error("cursor payload");
-    const decoded = JSON.parse(new TextDecoder().decode(bytes)) as Record<string, unknown>;
+    const decoded = JSON.parse(
+      new TextDecoder("utf-8", { fatal: true }).decode(bytes),
+    ) as unknown;
+    if (!isRecord(decoded)) throw new Error("cursor object");
     assertCursorFields(decoded);
     if (
       decoded.cursorType !== "public-course-search" ||
       decoded.cursorVersion !== PUBLIC_COURSE_SEARCH_CURSOR_VERSION ||
       decoded.fingerprint !== fingerprint ||
       decoded.limit !== limit ||
-      !isNonNegativeInteger(decoded.groupDisplayOrder) ||
-      !isNonNegativeInteger(decoded.displayOrder) ||
+      !isSafeInteger(decoded.groupDisplayOrder) ||
+      !isSafeInteger(decoded.displayOrder) ||
       typeof decoded.id !== "string" ||
       decoded.id.length === 0 ||
       typeof decoded.integrity !== "string"
@@ -441,39 +551,22 @@ export function createPublicCourseSearchAdapter(
       ? await decodeCursor(normalized.cursor, fingerprint, normalized.limit)
       : null;
 
+    const repositoryLimit = normalized.limit + 1;
     const sourceRows = await repository.searchPublicCourses({
       query: normalized.query,
       path: normalized.path,
       // One look-ahead row is enough to derive hasNext without an unbounded read.
-      limit: normalized.limit + 1,
+      limit: repositoryLimit,
       after,
     });
-    if (!Array.isArray(sourceRows)) {
-      throw new PublicCourseSearchError(
-        "INVALID_SOURCE",
-        "Course search repository returned an invalid result.",
-      );
-    }
-
-    const unique = new Map<string, PublicCourseSearchSourceRecord>();
-    for (const row of sourceRows) {
-      positionOf(row);
-      if (
-        isPublicCourseSource(row) &&
-        matchesQuery(row, normalized.query) &&
-        matchesPath(row, normalized.path) &&
-        (!after || comparePublicCourseSearchPositions(positionOf(row), after) > 0)
-      ) {
-        unique.set(row.id, row);
-      }
-    }
-
-    const ordered = [...unique.values()].sort((left, right) =>
-      comparePublicCourseSearchPositions(positionOf(left), positionOf(right)),
+    const candidates = validateRepositoryRows(
+      sourceRows,
+      normalized,
+      after,
+      repositoryLimit,
     );
-    const pageWithLookAhead = ordered.slice(0, normalized.limit + 1);
-    const hasNext = pageWithLookAhead.length > normalized.limit;
-    const page = pageWithLookAhead.slice(0, normalized.limit);
+    const hasNext = candidates.length > normalized.limit;
+    const page = candidates.slice(0, normalized.limit);
     const last = page.at(-1);
     const nextCursor = hasNext && last
       ? await encodeCursor(fingerprint, normalized.limit, positionOf(last))

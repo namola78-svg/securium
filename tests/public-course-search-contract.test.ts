@@ -40,14 +40,16 @@ function sourceCourse(
   };
 }
 
-function fixtureAdapter(rows: readonly PublicCourseSearchSourceRecord[]) {
+function fixtureAdapter(
+  rows: readonly PublicCourseSearchSourceRecord[],
+  responses: readonly (readonly PublicCourseSearchSourceRecord[])[] = [rows],
+) {
   const calls: PublicCourseSearchRepositoryInput[] = [];
+  let responseIndex = 0;
   const repository: PublicCourseSearchRepository = {
     searchPublicCourses: async (input) => {
       calls.push(input);
-      // The fixture intentionally returns the stable corpus so the adapter's
-      // public filtering and pagination order are exercised independently.
-      return rows;
+      return responses[Math.min(responseIndex++, responses.length - 1)] ?? [];
     },
   };
   return { adapter: createPublicCourseSearchAdapter(repository), calls };
@@ -57,20 +59,14 @@ function errorCode(error: unknown) {
   return error instanceof PublicCourseSearchError ? error.code : undefined;
 }
 
-test("public filtering happens before pagination and output uses an allowlist", async () => {
-  const rows = [
-    sourceCourse("draft", { published: false }),
-    sourceCourse("inactive", { active: false }),
-    sourceCourse("deleted", { deletedAt: "2026-09-01T00:00:00Z" }),
-    sourceCourse("private-group", { groupActive: false }),
-    sourceCourse("public", { displayOrder: 2 }),
-  ].map((row) => ({
-    ...row,
+test("bounded public candidates are projected with an allowlist", async () => {
+  const rows = [{
+    ...sourceCourse("public", { displayOrder: 2 }),
     lessonBody: "must not escape",
     practiceAnswer: "must not escape",
     internalNote: "must not escape",
-  }));
-  const input = { query: "PUBLIC", limit: 1 };
+  }];
+  const input = { query: "  PUBLIC ", limit: 1 };
   const before = structuredClone(rows);
   const { adapter } = fixtureAdapter(rows);
 
@@ -99,7 +95,49 @@ test("public filtering happens before pagination and output uses an allowlist", 
   assert.equal("source" in result.results[0]!, false);
   assert.equal("revision" in result.results[0]!, false);
   assert.equal("asOf" in result.results[0]!, false);
+  assert.equal(result.page.limit, 1);
+  assert.equal(result.page.hasNext, false);
+  assert.equal(result.page.nextCursor, null);
   assert.deepEqual(rows, before);
+});
+
+test("repository contract violations are rejected instead of filtered or repaired", async () => {
+  const cases: Array<{
+    rows: readonly PublicCourseSearchSourceRecord[];
+    input?: unknown;
+  }> = [
+    { rows: [sourceCourse("draft", { published: false })] },
+    { rows: [sourceCourse("inactive", { active: false })] },
+    { rows: [sourceCourse("deleted", { deletedAt: "2026-09-01T00:00:00Z" })] },
+    { rows: [sourceCourse("private-group", { groupActive: false })] },
+    {
+      rows: [sourceCourse("wrong-query", { description: "Internal description" })],
+      input: { query: "public" },
+    },
+    {
+      rows: [sourceCourse("professional", { name: "Secure coding practice" })],
+      input: { path: "certification" },
+    },
+    {
+      rows: [
+        sourceCourse("later", { displayOrder: 2 }),
+        sourceCourse("first", { displayOrder: 1 }),
+      ],
+    },
+    { rows: [sourceCourse("duplicate"), sourceCourse("duplicate", { displayOrder: 2 })] },
+    {
+      rows: [sourceCourse("one"), sourceCourse("two"), sourceCourse("three")],
+      input: { limit: 1 },
+    },
+  ];
+
+  for (const { rows, input = {} } of cases) {
+    const { adapter } = fixtureAdapter(rows);
+    await assert.rejects(
+      () => adapter.searchPublicCourses(input),
+      (error: unknown) => errorCode(error) === "INVALID_SOURCE",
+    );
+  }
 });
 
 test("caller trust fields are rejected and cannot influence public selection", async () => {
@@ -118,6 +156,7 @@ test("caller trust fields are rejected and cannot influence public selection", a
 test("query, path, and page-size validation is strict and bounded", async () => {
   const { adapter } = fixtureAdapter([sourceCourse("public")]);
   const invalidInputs: unknown[] = [
+    null,
     { query: 1 },
     { query: "가".repeat(20) },
     { limit: 0 },
@@ -127,6 +166,7 @@ test("query, path, and page-size validation is strict and bounded", async () => 
     { limit: "2" },
     { path: "planned" },
     { cursor: "" },
+    { cursor: "a".repeat(2049) },
   ];
 
   for (const input of invalidInputs) {
@@ -137,13 +177,28 @@ test("query, path, and page-size validation is strict and bounded", async () => 
   }
 });
 
+test("query normalization applies before the UTF-8 byte bound", async () => {
+  const { adapter, calls } = fixtureAdapter([sourceCourse("public")]);
+
+  await adapter.searchPublicCourses({ query: "  ＰＵＢＬＩＣ  " });
+
+  assert.equal(calls[0]!.query, "public");
+  assert.equal(
+    new TextEncoder().encode(String.fromCodePoint(0x00e9).repeat(24)).length,
+    48,
+  );
+});
+
 test("deterministic tie-breaking provides contiguous cursor pages without duplicates", async () => {
   const rows = [
     sourceCourse("c-3", { groupDisplayOrder: 2, displayOrder: 0 }),
     sourceCourse("c-b", { groupDisplayOrder: 1, displayOrder: 1 }),
     sourceCourse("c-a", { groupDisplayOrder: 1, displayOrder: 1 }),
   ];
-  const { adapter, calls } = fixtureAdapter(rows);
+  const { adapter, calls } = fixtureAdapter(rows, [
+    [rows[2]!, rows[1]!, rows[0]!],
+    [rows[0]!],
+  ]);
 
   const first = await adapter.searchPublicCourses({ limit: 2 });
   const second = await adapter.searchPublicCourses({ limit: 2, cursor: first.page.nextCursor! });
@@ -167,10 +222,7 @@ test("deterministic tie-breaking provides contiguous cursor pages without duplic
 });
 
 test("path filtering follows the existing display category and is not authorization", async () => {
-  const rows = [
-    sourceCourse("cert", { name: "정보보안기사 certification" }),
-    sourceCourse("professional", { name: "Secure coding practice" }),
-  ];
+  const rows = [sourceCourse("cert", { name: "정보보안기사 certification" })];
   const { adapter } = fixtureAdapter(rows);
 
   const result = await adapter.searchPublicCourses({ path: "certification" });
@@ -180,7 +232,10 @@ test("path filtering follows the existing display category and is not authorizat
 });
 
 test("empty and last pages expose exact page metadata", async () => {
-  const { adapter } = fixtureAdapter([sourceCourse("public")]);
+  const { adapter } = fixtureAdapter([sourceCourse("public")], [
+    [],
+    [sourceCourse("public")],
+  ]);
 
   const empty = await adapter.searchPublicCourses({ query: "no matching course" });
   assert.equal(empty.status, "EMPTY");
@@ -213,4 +268,59 @@ test("cursor is bound to its search conditions and page size", async () => {
       (error: unknown) => errorCode(error) === "INVALID_CURSOR",
     );
   }
+});
+
+test("cursor version, required fields, extra fields, and digest changes are rejected", async () => {
+  const { adapter } = fixtureAdapter([
+    sourceCourse("one"),
+    sourceCourse("two", { displayOrder: 2 }),
+  ]);
+  const first = await adapter.searchPublicCourses({ limit: 1 });
+  assert.ok(first.page.nextCursor);
+
+  const payload = JSON.parse(
+    Buffer.from(first.page.nextCursor!, "base64url").toString("utf8"),
+  ) as Record<string, unknown>;
+  const encode = (value: Record<string, unknown>) =>
+    Buffer.from(JSON.stringify(value)).toString("base64url");
+
+  const invalidCursors = [
+    "not-base64",
+    encode({ ...payload, cursorVersion: "public-course-search.cursor.v0" }),
+    encode({ ...payload, extra: true }),
+    encode(Object.fromEntries(Object.entries(payload).filter(([key]) => key !== "id"))),
+    encode({ ...payload, id: "tampered" }),
+  ];
+
+  for (const cursor of invalidCursors) {
+    await assert.rejects(
+      () => adapter.searchPublicCourses({ limit: 1, cursor }),
+      (error: unknown) => errorCode(error) === "INVALID_CURSOR",
+    );
+  }
+});
+
+test("provider order fields reject NULL while allowing signed integer positions", async () => {
+  const malformed = sourceCourse("null-order", {
+    groupDisplayOrder: null as unknown as number,
+  });
+  const { adapter: malformedAdapter } = fixtureAdapter([malformed]);
+  await assert.rejects(
+    () => malformedAdapter.searchPublicCourses(),
+    (error: unknown) => errorCode(error) === "INVALID_SOURCE",
+  );
+
+  const rows = [
+    sourceCourse("negative", { groupDisplayOrder: -1 }),
+    sourceCourse("zero", { groupDisplayOrder: 0 }),
+  ];
+  const { adapter } = fixtureAdapter(rows, [rows, [rows[1]!]]);
+  const first = await adapter.searchPublicCourses({ limit: 1 });
+  assert.equal(first.results[0]!.id, "negative");
+  assert.ok(first.page.nextCursor);
+  const next = await adapter.searchPublicCourses({
+    limit: 1,
+    cursor: first.page.nextCursor!,
+  });
+  assert.deepEqual(next.results.map((course) => course.id), ["zero"]);
 });
