@@ -5,6 +5,7 @@ import { join } from "node:path";
 import process from "node:process";
 
 const argumentsToNode = process.argv.slice(2);
+const SUBPROCESS_TIMEOUT_MS = 10 * 60 * 1_000;
 if (argumentsToNode[0] !== "--test") {
   console.error("This wrapper only runs Node test suites.");
   process.exit(1);
@@ -54,13 +55,32 @@ process.exit(exitCode);
 
 function run(executable, args, returnCode = false) {
   return new Promise((resolvePromise, rejectPromise) => {
+    let settled = false;
+    let forceKillTimer;
     const child = spawn(executable, args, {
       stdio: "inherit",
       windowsHide: true,
       env: environment,
     });
-    child.on("error", rejectPromise);
+    const timeout = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      child.kill("SIGTERM");
+      forceKillTimer = setTimeout(() => child.kill("SIGKILL"), 5_000);
+      forceKillTimer.unref?.();
+      rejectPromise(new Error(`D1 test subprocess timed out after ${SUBPROCESS_TIMEOUT_MS}ms: ${executable} ${args.join(" ")}`));
+    }, SUBPROCESS_TIMEOUT_MS);
+    child.on("error", (error) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      rejectPromise(error);
+    });
     child.on("exit", (code, signal) => {
+      clearTimeout(timeout);
+      clearTimeout(forceKillTimer);
+      if (settled) return;
+      settled = true;
       if (signal) {
         rejectPromise(new Error(`D1 test process stopped by ${signal}.`));
         return;

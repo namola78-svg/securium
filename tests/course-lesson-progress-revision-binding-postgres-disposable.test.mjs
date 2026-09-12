@@ -7,7 +7,12 @@ import { promisify } from "node:util";
 import { startVinextTestServer } from "./support/vinext-test-server.mjs";
 import { generateSecurityContentV3Sql } from "../lib/data/security-content-upgrade-v3.mjs";
 
-const execFile = promisify(execFileCallback);
+const execFileAsync = promisify(execFileCallback);
+const EXEC_FILE_TIMEOUT_MS = 5 * 60 * 1_000;
+const execFile = (file, args, options = {}) => execFileAsync(file, args, {
+  timeout: EXEC_FILE_TIMEOUT_MS,
+  ...options,
+});
 const runId = randomUUID();
 const userOne = "pg-revision-user-1";
 const userTwo = "pg-revision-user-2";
@@ -24,21 +29,28 @@ const contentConcurrent = "pg-revision-content-concurrent";
 const contentOther = "pg-revision-content-other";
 const raceContentId = "sec-upgrade-lesson-pg-seed-race";
 const raceLessonId = "pg-revision-seed-race-lesson";
+const ownerLabelKey = "com.securium.test-owner";
 
-let container;
+let containerName;
+let ownedContainerId;
+let ownerLabel;
 let client;
 let server;
 let postgresUrl;
 
 before(async () => {
-  container = `securium-course-lesson-revision-${runId}`;
+  containerName = `securium-course-lesson-revision-${runId}`;
+  ownerLabel = `${ownerLabelKey}=${runId}`;
   const password = "course-lesson-revision-test-password";
-  await execFile("docker", [
-    "run", "--detach", "--rm", "--name", container,
+  const { stdout: containerIdOutput } = await execFile("docker", [
+    "run", "--detach", "--rm", "--name", containerName,
+    "--label", ownerLabel,
     "--env", `POSTGRES_PASSWORD=${password}`,
     "--publish", "127.0.0.1::5432", "postgres:17.6",
   ]);
-  const { stdout } = await execFile("docker", ["port", container, "5432/tcp"]);
+  ownedContainerId = containerIdOutput.trim();
+  assert.match(ownedContainerId, /^[0-9a-f]+$/i, "Disposable PostgreSQL container ID was not returned.");
+  const { stdout } = await execFile("docker", ["port", ownedContainerId, "5432/tcp"]);
   const port = stdout.trim().match(/:(\d+)$/)?.[1];
   assert.ok(port, "Disposable PostgreSQL port was not published.");
   postgresUrl = `postgres://postgres:${password}@127.0.0.1:${port}/postgres`;
@@ -89,7 +101,7 @@ after(async () => {
   await client?.unsafe("DROP FUNCTION IF EXISTS test_course_lesson_progress_activity_failure() CASCADE").catch(() => {});
   await server?.stop().catch(() => {});
   await client?.end({ timeout: 5 }).catch(() => {});
-  if (container) await execFile("docker", ["rm", "--force", container]).catch(() => {});
+  await cleanupOwnedContainer();
 });
 
 test("PostgreSQL migration and app repository preserve CourseLesson revision identity", async () => {
@@ -619,4 +631,31 @@ async function waitForConnection() {
     }
   }
   throw new Error("Disposable PostgreSQL did not become ready.");
+}
+
+async function cleanupOwnedContainer() {
+  if (!ownedContainerId) return;
+  let inspectedOwner;
+  try {
+    const result = await execFile("docker", [
+      "inspect",
+      "--format",
+      "{{json .Config.Labels}}",
+      ownedContainerId,
+    ]);
+    const labels = JSON.parse(result.stdout.trim() || "{}");
+    inspectedOwner = labels?.[ownerLabelKey];
+  } catch (error) {
+    const diagnostic = `${error?.stderr ?? ""} ${error?.message ?? ""}`;
+    if (/No such object|No such container/i.test(diagnostic)) {
+      ownedContainerId = undefined;
+      return;
+    }
+    throw new Error(`Disposable PostgreSQL ownership inspection failed for ${ownedContainerId}: ${diagnostic.trim()}`);
+  }
+  if (inspectedOwner !== runId) {
+    throw new Error(`Refusing to remove PostgreSQL container ${ownedContainerId}: owner label mismatch.`);
+  }
+  await execFile("docker", ["rm", "--force", ownedContainerId]);
+  ownedContainerId = undefined;
 }
