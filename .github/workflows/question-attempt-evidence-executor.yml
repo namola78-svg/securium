@@ -162,10 +162,8 @@ jobs:
     env:
       SECURIUM_EVIDENCE_EXECUTOR_PG_CONTAINER: securium-qae-executor-${{ github.run_id }}-${{ github.run_attempt }}
       SECURIUM_EVIDENCE_EXECUTOR_PG_OWNER: securium-qae-executor-owner-${{ github.run_id }}-${{ github.run_attempt }}
-      SECURIUM_EVIDENCE_EXECUTOR_PG_RECEIPT: ${{ runner.temp }}/securium-qae-executor-${{ github.run_id }}-${{ github.run_attempt }}.json
       SECURIUM_EVIDENCE_ONCE_POSTGRES_CONTAINER: securium-qae-once-${{ github.run_id }}-${{ github.run_attempt }}
       SECURIUM_EVIDENCE_ONCE_POSTGRES_OWNER: securium-qae-once-owner-${{ github.run_id }}-${{ github.run_attempt }}
-      SECURIUM_EVIDENCE_ONCE_POSTGRES_RECEIPT: ${{ runner.temp }}/securium-qae-once-${{ github.run_id }}-${{ github.run_attempt }}.json
 
     steps:
       - name: Check out exact tested revision
@@ -188,6 +186,12 @@ jobs:
         run: |
           expected_sha="${{ github.event.pull_request.head.sha || github.sha }}"
           test "$(git rev-parse HEAD)" = "$expected_sha"
+
+      - name: Set disposable PostgreSQL receipt paths
+        shell: bash
+        run: |
+          echo "SECURIUM_EVIDENCE_EXECUTOR_PG_RECEIPT=$RUNNER_TEMP/securium-qae-executor-${{ github.run_id }}-${{ github.run_attempt }}.json" >> "$GITHUB_ENV"
+          echo "SECURIUM_EVIDENCE_ONCE_POSTGRES_RECEIPT=$RUNNER_TEMP/securium-qae-once-${{ github.run_id }}-${{ github.run_attempt }}.json" >> "$GITHUB_ENV"
 
       - name: Run disposable PostgreSQL executor tests
         shell: bash
