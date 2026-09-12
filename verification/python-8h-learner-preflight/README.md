@@ -67,6 +67,12 @@ matrix scope is `UNVERIFIED_ENVIRONMENT`.
 
 ## What to run separately
 
+For learner-facing explanations of actual preflight messages, exit statuses,
+path quoting, and safe next steps, see the repository-only
+[Python 8H offline learner troubleshooting guide](../../docs/content/python-8h-offline-troubleshooting.md).
+The guide is not included in the learner ZIP; the package's own README.md
+remains the package entry point.
+
 This tool does not run the 50 lab tests. From the lab directory, use the
 focused command in the relevant learner handout or run:
 
