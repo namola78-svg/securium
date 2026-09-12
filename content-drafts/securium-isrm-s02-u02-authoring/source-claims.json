@@ -4,12 +4,12 @@
   "claims": [
     {
       "id": "ISRM-S02-U02-C01",
-      "claim": "KCA identifies ISRM as registration 2024-004467 and lists 정보보호 위험 평가 및 준비 as the second subject.",
+      "claim": "KCA identifies ISRM as registration 2024-004467 and lists 정보보호 위험평가 as the second subject.",
       "sourceType": "OFFICIAL_PRIMARY_WEB_PAGE",
       "sourceUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
-      "sourceLocation": "official page qualification and exam-subject text reviewed on 2026-09-11",
+      "sourceLocation": "official page qualification and exam-subject text observed on 2026-09-12; prior 2026-09-11 wording not reconciled",
       "localSource": null,
-      "currentness": "VERIFIED_IDENTITY_AND_SUBJECT_PAGE_ON_2026-09-11",
+      "currentness": "CURRENT_PAGE_OBSERVED_ON_2026-09-12; HISTORICAL_2026-09-11_EQUIVALENCE_UNKNOWN",
       "rights": "FACTUAL_REFERENCE_ONLY; EXPRESSION_REUSE_UNKNOWN",
       "usedIn": ["manifest.json"]
     },
