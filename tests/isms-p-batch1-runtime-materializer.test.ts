@@ -277,11 +277,15 @@ test("isolated rollback refuses hard deletion after user progress exists", async
     assert.equal(rollback.archivePlan.length, 12);
     const verification = await verifyIsmsPBatch1Materialization(provider);
     if (!verification.verified) {
-      logMaterializerVerifyDiagnostics({
-        verification,
-        d1Scope: provider.getD1ScopeId(),
-        d1Runs: provider.getRecentD1Runs(DIAGNOSTIC_TRACE_LIMIT),
-      });
+      try {
+        logMaterializerVerifyDiagnostics({
+          verification,
+          d1Scope: provider.getD1ScopeId(),
+          d1Runs: provider.getRecentD1Runs(DIAGNOSTIC_TRACE_LIMIT),
+        });
+      } catch {
+        // Preserve the original verification assertion if diagnostics fail.
+      }
     }
     assert.equal(verification.verified, true);
   } finally {
@@ -405,8 +409,8 @@ class WranglerD1Provider {
     this.recordRunTrace({
       step,
       code: output.code,
-      stdoutBytes: output.stdout.length,
-      stderrBytes: output.stderr.length,
+      stdoutBytes: Buffer.byteLength(output.stdout, "utf8"),
+      stderrBytes: Buffer.byteLength(output.stderr, "utf8"),
       stderrTail: output.stderr,
     });
     if (output.code !== 0) {
@@ -545,6 +549,7 @@ function logMaterializerVerifyDiagnostics(params: {
     test: "isolated rollback refuses hard deletion after user progress exists",
     d1Scope,
     verifyMode: verification.mode,
+    verificationStatus: verification.verified ? "VERIFIED" : "NOT_VERIFIED",
     expected: {
       create: 0,
       noop: plan.expectedOperationSlots,
@@ -589,15 +594,38 @@ function summarizeDiagnosticText(
     /\b[0-9A-Za-z._%+-]+:[0-9A-Za-z._%+-]+@[^\s]+\b/g,
     "[redacted-credential]",
   );
-  const withMaskedPaths = withMaskedCredentials
+  const withMaskedUrls = withMaskedCredentials.replace(
+    /\b[a-z][a-z0-9+.-]{1,31}:\/\/[^\s"<>]+/gi,
+    "[redacted-url]",
+  );
+  const withMaskedPaths = withMaskedUrls
     .replace(/[A-Za-z]:[\\/][^ \n"]+/g, "[path]")
     .replace(/(?:\/[^ \t\n"]+)+/g, "[path]");
   return truncateDiagnosticText(withMaskedPaths, limit);
 }
 
 function truncateDiagnosticText(text: string, limit: number) {
-  return text.length > limit ? `${text.slice(0, limit)}...` : text;
+  const marker = "...";
+  if (text.length <= limit) return text;
+  if (limit <= marker.length) return text.slice(0, limit);
+  return `${text.slice(0, limit - marker.length)}${marker}`;
 }
+
+test("diagnostic text masks synthetic secrets, URLs, and personal paths within limits", () => {
+  const masked = summarizeDiagnosticText(
+    "SYNTHETIC_USER:SYNTHETIC_SECRET@synthetic.invalid " +
+      "https://synthetic.invalid/token " +
+      "C:\\Users\\synthetic\\private\\fixture.sql",
+  );
+  assert.doesNotMatch(masked, /SYNTHETIC_USER|SYNTHETIC_SECRET/);
+  assert.doesNotMatch(masked, /synthetic\.invalid/);
+  assert.doesNotMatch(masked, /C:\\Users\\synthetic/);
+  assert.ok(masked.length <= DIAGNOSTIC_TEXT_LIMIT);
+  assert.ok(
+    summarizeDiagnosticText("x".repeat(500), DIAGNOSTIC_OPERATION_REASON_LIMIT)
+      .length <= DIAGNOSTIC_OPERATION_REASON_LIMIT,
+  );
+});
 
 const ISOLATED_SCHEMA = `
 PRAGMA foreign_keys = ON;
