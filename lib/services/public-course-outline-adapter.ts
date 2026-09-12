@@ -155,14 +155,15 @@ function normalizeCourse(
   if (value == null) return { kind: "not-found" };
   if (!isRecord(value)) return { kind: "invalid" };
 
-  if (value.active !== undefined && value.active !== true) {
+  if (value.active === false || value.published === false || typeof value.deletedAt === "string") {
     return { kind: "not-found" };
   }
-  if (value.published !== undefined && value.published !== true) {
-    return { kind: "not-found" };
-  }
-  if (value.deletedAt !== undefined && value.deletedAt !== null) {
-    return { kind: "not-found" };
+  if (
+    value.active !== true ||
+    value.published !== true ||
+    (value.deletedAt !== undefined && value.deletedAt !== null)
+  ) {
+    return { kind: "invalid" };
   }
 
   const id = nonEmptyString(value.id);
@@ -221,7 +222,6 @@ function normalizeCurriculum(
     if (
       !subjectId ||
       !subjectCourseId ||
-      subjectCourseId !== courseId ||
       !subjectCode ||
       !subjectName ||
       subjectDescription === undefined ||
@@ -231,6 +231,7 @@ function normalizeCurriculum(
     ) {
       return { kind: "invalid" };
     }
+    if (subjectCourseId !== courseId) return { kind: "relation" };
     if (subjectIds.has(subjectId)) return { kind: "relation" };
 
     const topics: PublicCourseOutlineTopic[] = [];
@@ -254,15 +255,14 @@ function normalizeCurriculum(
       if (
         !topicId ||
         !topicSubjectId ||
-        topicSubjectId !== subjectId ||
         !topicCourseId ||
-        topicCourseId !== courseId ||
         !topicCode ||
         !topicName ||
         topicDescription === undefined ||
         topicDisplayOrder === undefined ||
         topicIsSample === undefined
-      ) {
+      ) return { kind: "invalid" };
+      if (topicSubjectId !== subjectId || topicCourseId !== courseId) {
         return { kind: "relation" };
       }
       if (topicIds.has(topicId)) return { kind: "relation" };
@@ -310,7 +310,9 @@ function visibility(value: RecordValue): "visible" | "hidden" | "invalid" {
     if (typeof value.published !== "boolean") return "invalid";
     if (!value.published) return "hidden";
   }
-  if (value.deletedAt !== undefined && value.deletedAt !== null) return "hidden";
+  if (value.deletedAt !== undefined && value.deletedAt !== null) {
+    return typeof value.deletedAt === "string" ? "hidden" : "invalid";
+  }
   return "visible";
 }
 

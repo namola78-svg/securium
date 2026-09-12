@@ -37,7 +37,7 @@ test("rejects a subject or topic relationship that does not belong to the public
 
   assert.deepEqual(await subjectAdapter({ courseSlug: "public-course" }), {
     status: "UNAVAILABLE",
-    reason: "INVALID_PUBLIC_PROJECTION",
+    reason: "PUBLIC_RELATION_MISMATCH",
   });
   assert.deepEqual(await topicAdapter({ courseSlug: "public-course" }), {
     status: "UNAVAILABLE",
@@ -116,6 +116,17 @@ test("projects an allowlist without body, answer, personal, operational, or sour
   assert.equal(JSON.stringify(result).includes("private-evidence"), false);
 });
 
+test("accepts the repository's filtered course projection without deletedAt", async () => {
+  const courseValue = { ...course() };
+  delete courseValue.deletedAt;
+  const { adapter } = createFixtureAdapter({ course: courseValue });
+
+  const result = await adapter({ courseSlug: "public-course" });
+
+  assert.equal(result.status, "OK");
+  assert.deepEqual(result.course, publicCourseProjection());
+});
+
 test("rejects invalid identifiers and maps missing or non-public courses to NOT_FOUND", async () => {
   const { adapter } = createFixtureAdapter({
     course: null,
@@ -131,6 +142,62 @@ test("rejects invalid identifiers and maps missing or non-public courses to NOT_
   assert.deepEqual(await privateAdapter({ courseSlug: "public-course" }), {
     status: "NOT_FOUND",
   });
+
+  const { adapter: draftAdapter } = createFixtureAdapter({
+    course: { ...course(), published: false },
+  });
+  assert.deepEqual(await draftAdapter({ courseSlug: "public-course" }), {
+    status: "NOT_FOUND",
+  });
+
+  const { adapter: deletedAdapter } = createFixtureAdapter({
+    course: { ...course(), deletedAt: "2026-09-12" },
+  });
+  assert.deepEqual(await deletedAdapter({ courseSlug: "public-course" }), {
+    status: "NOT_FOUND",
+  });
+});
+
+test("rejects malformed public projections and repository failures without exposing details", async () => {
+  const { adapter: malformedCourseAdapter } = createFixtureAdapter({
+    course: { ...course(), published: undefined },
+  });
+  assert.deepEqual(
+    await malformedCourseAdapter({ courseSlug: "public-course" }),
+    { status: "UNAVAILABLE", reason: "INVALID_PUBLIC_PROJECTION" },
+  );
+
+  const { adapter: malformedCurriculumAdapter } = createFixtureAdapter({
+    curriculum: [subject("subject-a", 1.5, [])],
+  });
+  assert.deepEqual(
+    await malformedCurriculumAdapter({ courseSlug: "public-course" }),
+    { status: "UNAVAILABLE", reason: "INVALID_PUBLIC_PROJECTION" },
+  );
+
+  const { adapter: nullSortAdapter } = createFixtureAdapter({
+    curriculum: [subject("subject-a", null, [])],
+  });
+  assert.deepEqual(await nullSortAdapter({ courseSlug: "public-course" }), {
+    status: "UNAVAILABLE",
+    reason: "INVALID_PUBLIC_PROJECTION",
+  });
+
+  const { adapter: courseErrorAdapter } = createFixtureAdapter({
+    courseError: new Error("private course lookup details"),
+  });
+  assert.deepEqual(await courseErrorAdapter({ courseSlug: "public-course" }), {
+    status: "UNAVAILABLE",
+    reason: "PUBLIC_REPOSITORY_ERROR",
+  });
+
+  const { adapter: curriculumErrorAdapter } = createFixtureAdapter({
+    curriculumError: new Error("private curriculum lookup details"),
+  });
+  assert.deepEqual(
+    await curriculumErrorAdapter({ courseSlug: "public-course" }),
+    { status: "UNAVAILABLE", reason: "PUBLIC_REPOSITORY_ERROR" },
+  );
 });
 
 test("returns an empty outline without inventing descendants", async () => {
@@ -152,16 +219,52 @@ test("does not silently truncate an outline over the response limit", async () =
     reason: "OUTLINE_LIMIT_EXCEEDED",
   });
 
-  const topics = Array.from({ length: MAX_PUBLIC_COURSE_OUTLINE_TOPICS + 1 }, (_, index) =>
-    topic(`topic-${index}`, "subject-a", index),
-  );
+  const topics = [
+    ...Array.from({ length: 100 }, (_, index) =>
+      topic(`topic-a-${index}`, "subject-a", index),
+    ),
+    ...Array.from({ length: 101 }, (_, index) =>
+      topic(`topic-b-${index}`, "subject-b", index),
+    ),
+  ];
   const { adapter: topicAdapter } = createFixtureAdapter({
-    curriculum: [subject("subject-a", 1, topics)],
+    curriculum: [
+      subject("subject-a", 1, topics.slice(0, 100)),
+      subject("subject-b", 2, topics.slice(100)),
+    ],
   });
   assert.deepEqual(await topicAdapter({ courseSlug: "public-course" }), {
     status: "UNAVAILABLE",
     reason: "OUTLINE_LIMIT_EXCEEDED",
   });
+});
+
+test("accepts the exact subject/topic limits and counts topics across the course", async () => {
+  const curriculum = Array.from(
+    { length: MAX_PUBLIC_COURSE_OUTLINE_SUBJECTS },
+    (_, subjectIndex) =>
+      subject(
+        `subject-${subjectIndex}`,
+        subjectIndex,
+        Array.from({ length: 4 }, (_, topicIndex) =>
+          topic(
+            `topic-${subjectIndex}-${topicIndex}`,
+            `subject-${subjectIndex}`,
+            topicIndex,
+          ),
+        ),
+      ),
+  );
+  const { adapter } = createFixtureAdapter({ curriculum });
+
+  const result = await adapter({ courseSlug: "public-course" });
+
+  assert.equal(result.status, "OK");
+  assert.equal(result.subjects.length, MAX_PUBLIC_COURSE_OUTLINE_SUBJECTS);
+  assert.equal(
+    result.subjects.reduce((count, item) => count + item.topics.length, 0),
+    MAX_PUBLIC_COURSE_OUTLINE_TOPICS,
+  );
 });
 
 test("does not mutate the injected fixture or use caller identity", async () => {
@@ -181,6 +284,8 @@ test("does not mutate the injected fixture or use caller identity", async () => 
 function createFixtureAdapter({
   course: courseValue = course(),
   curriculum = [],
+  courseError = null,
+  curriculumError = null,
 }) {
   const calls = [];
   return {
@@ -188,10 +293,12 @@ function createFixtureAdapter({
     adapter: createPublicCourseOutlineAdapter({
       getPublicCourseBySlug: async (slug) => {
         calls.push(`course:${slug}`);
+        if (courseError) throw courseError;
         return courseValue;
       },
       listCurriculum: async (courseId) => {
         calls.push(`curriculum:${courseId}`);
+        if (curriculumError) throw curriculumError;
         return curriculum;
       },
     }),
@@ -215,8 +322,16 @@ function course() {
 }
 
 function publicCourseProjection() {
-  const { active, published, deletedAt, ...projection } = course();
-  return projection;
+  return {
+    id: "course-1",
+    slug: "public-course",
+    code: "PUB-1",
+    name: "Public Course",
+    shortName: "Public",
+    groupName: "Public Group",
+    description: "Securium description",
+    difficulty: "FOUNDATION",
+  };
 }
 
 function subject(id, displayOrder, topics, overrides = {}) {
