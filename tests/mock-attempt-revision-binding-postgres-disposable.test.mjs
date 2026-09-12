@@ -1,14 +1,17 @@
 import assert from "node:assert/strict";
-import { execFile as execFileCallback } from "node:child_process";
 import { register } from "node:module";
 import { randomUUID } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import { after, before, test } from "node:test";
-import { promisify } from "node:util";
 import postgres from "postgres";
 import { computeMockQuestionVersionSemanticHash } from "../lib/services/mock-exam-revision.ts";
+import {
+  cleanupOwnedPostgresContainer,
+  createOwnedPostgresContainer,
+  getPublishedPostgresPort,
+  inspectOwnedPostgresContainer,
+} from "../scripts/owned-postgres-container.mjs";
 
-const execFile = promisify(execFileCallback);
 const userId = "a0000000-0000-4000-8000-000000000001";
 const otherUserId = "a0000000-0000-4000-8000-000000000002";
 const authorId = "a0000000-0000-4000-8000-000000000003";
@@ -23,7 +26,7 @@ const questionVersionOneId = "mock-pg-question-version-01";
 const questionVersionTwoId = "mock-pg-question-version-02";
 const mappingOneId = "mock-pg-question-mapping-01";
 const mappingTwoId = "mock-pg-question-mapping-02";
-let container;
+let createdContainer;
 let client;
 let phase3;
 let disconnectRuntimePostgresExecutor;
@@ -34,22 +37,36 @@ let PostgresDatabaseProvider;
 after(async () => {
   await disconnectRuntimePostgresExecutor?.().catch(() => {});
   await client?.end({ timeout: 5 }).catch(() => {});
-  if (container) {
-    await execFile("docker", ["rm", "--force", container]).catch(() => {});
+  if (createdContainer) {
+    try {
+      console.log(`OWNED_POSTGRES_TEST_CLEANUP ${await cleanupOwnedPostgresContainer(createdContainer)}`);
+    } catch (error) {
+      console.error(`OWNED_POSTGRES_TEST_CLEANUP_ERROR ${error?.message || "FAILED"}`);
+      process.exitCode ||= 1;
+    }
   }
 });
 
 before(async () => {
-  container = `securium-mock-attempt-pg-${randomUUID()}`;
+  const ownerToken = process.env.SECURIUM_MOCK_ATTEMPT_POSTGRES_OWNER?.trim()
+    || `mock-attempt-owner-${randomUUID()}`;
+  createdContainer = await createOwnedPostgresContainer({
+    name: process.env.SECURIUM_MOCK_ATTEMPT_POSTGRES_CONTAINER?.trim()
+      || `securium-mock-attempt-pg-${randomUUID()}`,
+    ownerToken,
+    password: "mock-attempt-postgres-test-password",
+    receiptPath: process.env.SECURIUM_MOCK_ATTEMPT_POSTGRES_RECEIPT,
+  });
+  const inspected = await inspectOwnedPostgresContainer(createdContainer);
+  assert.deepEqual(inspected, {
+    id: createdContainer.containerId,
+    name: `/${createdContainer.containerName}`,
+    running: true,
+    ownerToken: createdContainer.ownerToken,
+  });
+  console.log(`OWNED_POSTGRES_TEST_CONTAINER id=${createdContainer.containerId} owner=${createdContainer.ownerToken}`);
+  const port = await getPublishedPostgresPort(createdContainer);
   const password = "mock-attempt-postgres-test-password";
-  await execFile("docker", [
-    "run", "--detach", "--rm", "--name", container,
-    "--env", `POSTGRES_PASSWORD=${password}`,
-    "--publish", "127.0.0.1::5432", "postgres:17.6",
-  ]);
-  const { stdout } = await execFile("docker", ["port", container, "5432/tcp"]);
-  const port = stdout.trim().match(/:(\d+)$/)?.[1];
-  assert.ok(port);
   const connectionString = `postgres://postgres:${password}@127.0.0.1:${port}/postgres`;
   client = postgres(connectionString, {
     max: 1,

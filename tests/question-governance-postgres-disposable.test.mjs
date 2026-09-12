@@ -1,32 +1,53 @@
 import assert from "node:assert/strict";
-import { execFile as execFileCallback } from "node:child_process";
-import { promisify } from "node:util";
 import { readFile, readdir } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { after, test } from "node:test";
 import { PostgresDatabaseProvider } from "../db/provider/postgres-database-provider.ts";
 import { saveGovernedQuestionCandidate } from "../db/question-governance-repository.ts";
+import {
+  cleanupOwnedPostgresContainer,
+  createOwnedPostgresContainer,
+  getPublishedPostgresPort,
+  inspectOwnedPostgresContainer,
+} from "../scripts/owned-postgres-container.mjs";
 
-const execFile = promisify(execFileCallback);
 const actor = "b0000000-0000-4000-8000-000000000001";
 const group = "pg-group-sw";
 const course = "pg-course-sw";
 const concept = "pg-concept-sw";
-let container;
+let createdContainer;
 let client;
 
 after(async () => {
   await client?.end({ timeout: 5 }).catch(() => {});
-  if (container) await execFile("docker", ["rm", "--force", container]).catch(() => {});
+  if (createdContainer) {
+    try {
+      console.log(`OWNED_POSTGRES_TEST_CLEANUP ${await cleanupOwnedPostgresContainer(createdContainer)}`);
+    } catch (error) {
+      console.error(`OWNED_POSTGRES_TEST_CLEANUP_ERROR ${error?.message || "FAILED"}`);
+      process.exitCode ||= 1;
+    }
+  }
 });
 
 test("disposable PostgreSQL 17 proves governed NEW_SUCCESS and EXACT_REPLAY", async () => {
-  container = `securium-question-governance-${randomUUID()}`;
+  createdContainer = await createOwnedPostgresContainer({
+    name: process.env.SECURIUM_QUESTION_GOVERNANCE_POSTGRES_CONTAINER?.trim()
+      || `securium-question-governance-${randomUUID()}`,
+    ownerToken: process.env.SECURIUM_QUESTION_GOVERNANCE_POSTGRES_OWNER?.trim()
+      || `question-governance-owner-${randomUUID()}`,
+    password: "question-governance-test-password",
+    receiptPath: process.env.SECURIUM_QUESTION_GOVERNANCE_POSTGRES_RECEIPT,
+  });
+  assert.deepEqual(await inspectOwnedPostgresContainer(createdContainer), {
+    id: createdContainer.containerId,
+    name: `/${createdContainer.containerName}`,
+    running: true,
+    ownerToken: createdContainer.ownerToken,
+  });
+  console.log(`OWNED_POSTGRES_TEST_CONTAINER id=${createdContainer.containerId} owner=${createdContainer.ownerToken}`);
+  const port = await getPublishedPostgresPort(createdContainer);
   const password = "question-governance-test-password";
-  await execFile("docker", ["run", "--detach", "--rm", "--name", container, "--env", `POSTGRES_PASSWORD=${password}`, "--publish", "127.0.0.1::5432", "postgres:17.6"]);
-  const { stdout } = await execFile("docker", ["port", container, "5432/tcp"]);
-  const port = stdout.trim().match(/:(\d+)$/)?.[1];
-  assert.ok(port);
   const postgres = (await import("postgres")).default;
   client = postgres(`postgres://postgres:${password}@127.0.0.1:${port}/postgres`, { max: 1, prepare: false, ssl: false, onnotice: false });
   await waitForConnection();

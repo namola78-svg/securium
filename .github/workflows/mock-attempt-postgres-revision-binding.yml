@@ -70,6 +70,13 @@ jobs:
         run: |
           expected_sha="${{ github.event.pull_request.head.sha || github.sha }}"
           test "$(git rev-parse HEAD)" = "$expected_sha"
+          echo "SECURIUM_MOCK_ATTEMPT_POSTGRES_OWNER=mock-attempt-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_ENV"
+          echo "SECURIUM_MOCK_ATTEMPT_POSTGRES_CONTAINER=securium-mock-attempt-pg-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_ENV"
+          echo "SECURIUM_MOCK_ATTEMPT_POSTGRES_RECEIPT=$RUNNER_TEMP/securium-mock-attempt-pg-${{ github.run_id }}-${{ github.run_attempt }}.json" >> "$GITHUB_ENV"
+          echo "SECURIUM_QUESTION_GOVERNANCE_POSTGRES_OWNER=question-governance-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_ENV"
+          echo "SECURIUM_QUESTION_GOVERNANCE_POSTGRES_CONTAINER=securium-question-governance-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_ENV"
+          echo "SECURIUM_QUESTION_GOVERNANCE_POSTGRES_RECEIPT=$RUNNER_TEMP/securium-question-governance-${{ github.run_id }}-${{ github.run_attempt }}.json" >> "$GITHUB_ENV"
+          echo "MOCK_ATTEMPT_POSTGRES_TESTED_SHA=$expected_sha"
 
       - name: Run disposable PostgreSQL revision and governance tests
         shell: bash
@@ -95,10 +102,12 @@ jobs:
         if: always()
         shell: bash
         run: |
-          for prefix in securium-mock-attempt-pg- securium-question-governance-; do
-            mapfile -t containers < <(docker ps -aq --filter "name=^${prefix}")
-            if ((${#containers[@]} > 0)); then
-              docker rm --force "${containers[@]}"
+          cleanup_failed=0
+          for receipt_path in \
+            "$SECURIUM_MOCK_ATTEMPT_POSTGRES_RECEIPT" \
+            "$SECURIUM_QUESTION_GOVERNANCE_POSTGRES_RECEIPT"; do
+            if ! node scripts/cleanup-owned-postgres-container.mjs "--receipt=$receipt_path"; then
+              cleanup_failed=1
             fi
-            test -z "$(docker ps -aq --filter "name=^${prefix}")"
           done
+          exit "$cleanup_failed"
