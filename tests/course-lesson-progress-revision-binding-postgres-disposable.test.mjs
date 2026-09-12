@@ -22,6 +22,8 @@ const contentB = "pg-revision-content-b";
 const contentFailure = "pg-revision-content-failure";
 const contentConcurrent = "pg-revision-content-concurrent";
 const contentOther = "pg-revision-content-other";
+const raceContentId = "sec-upgrade-lesson-pg-seed-race";
+const raceLessonId = "pg-revision-seed-race-lesson";
 
 let container;
 let client;
@@ -337,17 +339,23 @@ test("PostgreSQL migration and app repository preserve CourseLesson revision ide
   assert.equal(sameVersionMutation.response.status, 409, JSON.stringify(sameVersionMutation.payload));
   assert.equal(sameVersionMutation.payload.code, "SHARED_CONTENT_REVISION_CONFLICT");
 
-  await client.unsafe(contentImportStatement({ overview: "Direct import original overview" }));
+  const directImportStatement = contentImportStatement({ overview: "Direct import original overview" });
+  await client.unsafe(directImportStatement);
+  await client.unsafe(directImportStatement);
   const directImportBefore = Array.from(await client.unsafe(`
     SELECT title, summary, body, version, status
     FROM contents WHERE id = 'sec-upgrade-lesson-pg-boundary'
   `));
   assert.equal(directImportBefore.length, 1);
-  await client.unsafe(contentImportStatement({
-    title: "Direct import tampered title",
-    overview: "Direct import tampered overview",
-    learningObjectives: ["Tampered learning objective"],
-  }));
+  await assert.rejects(
+    client.unsafe(contentImportStatement({
+      title: "Direct import tampered title",
+      overview: "Direct import tampered overview",
+      learningObjectives: ["Tampered learning objective"],
+    })),
+    /duplicate key|unique constraint/i,
+  );
+  await client.unsafe("ROLLBACK;");
   assert.deepEqual(Array.from(await client.unsafe(`
     SELECT title, summary, body, version, status
     FROM contents WHERE id = 'sec-upgrade-lesson-pg-boundary'
@@ -355,6 +363,39 @@ test("PostgreSQL migration and app repository preserve CourseLesson revision ide
   assert.equal(Number((await client.unsafe(`
     SELECT count(*)::int AS count FROM content_revisions
     WHERE content_type = 'LEARNING_UNIT' AND content_id = 'sec-upgrade-lesson-pg-boundary'
+  `))[0].count), 0);
+
+  // Deterministic preflight/write barrier: A has completed its empty-row
+  // preflight, B commits a same-id/version different payload, and A resumes
+  // with a downstream link in the same transaction.
+  assert.equal(Number((await client.unsafe(`
+    SELECT count(*)::int AS count FROM contents WHERE id = '${raceContentId}'
+  `))[0].count), 0);
+  await client.unsafe(`
+    INSERT INTO contents
+      (id, slug, canonical_key, title, summary, body, body_format,
+       learning_objectives_json, core_concepts_json, practical_examples_json,
+       diagrams_json, media_json, version, status, created_by)
+    VALUES ('${raceContentId}', 'pg-seed-race', 'pg.seed.race',
+      'B payload', '', 'B body', 'STRUCTURED_JSON', '["B objective"]',
+      '["DNS"]', '[]', '[]', '[]', '3.0.0', 'DRAFT', 'pg-revision-admin')
+  `);
+  const racePayloadBeforeA = Array.from(await client.unsafe(`
+    SELECT title, body, version, status FROM contents WHERE id = '${raceContentId}'
+  `));
+  await assert.rejects(
+    client.unsafe(contentImportStatement(
+      { id: raceContentId, title: "A payload", overview: "A overview" },
+      { downstreamLessonId: raceLessonId },
+    )),
+    /duplicate key|unique constraint/i,
+  );
+  await client.unsafe("ROLLBACK;");
+  assert.deepEqual(Array.from(await client.unsafe(`
+    SELECT title, body, version, status FROM contents WHERE id = '${raceContentId}'
+  `),), racePayloadBeforeA);
+  assert.equal(Number((await client.unsafe(`
+    SELECT count(*)::int AS count FROM course_lessons WHERE id = '${raceLessonId}'
   `))[0].count), 0);
 
   const newRevision = await saveContent(adminHeaders, contentInput({
@@ -535,7 +576,7 @@ function contentInput(row) {
   };
 }
 
-function contentImportStatement(overrides = {}) {
+function contentImportStatement(overrides = {}, { downstreamLessonId } = {}) {
   const sql = generateSecurityContentV3Sql({
     lessons: [
       {
@@ -557,9 +598,15 @@ function contentImportStatement(overrides = {}) {
     writtenQuestions: [],
     practicalQuestions: [],
   }, { dialect: "postgres", actorId: "pg-revision-admin" });
-  const statement = sql.match(/INSERT INTO "contents"[\s\S]*?;/)?.[0];
-  assert.ok(statement, "Expected generated contents import statement.");
-  return statement;
+  const marker = "-- SECURITY_CONTENT_V3_IMMUTABLE_CONTENT_GUARD";
+  const markerOffset = sql.indexOf(marker);
+  assert.ok(markerOffset >= 0, "Expected generated immutable contents guard.");
+  const guardEnd = sql.indexOf(";", markerOffset);
+  assert.ok(guardEnd >= markerOffset, "Expected generated guard statement terminator.");
+  const downstream = downstreamLessonId
+    ? `\nINSERT INTO "course_lessons" ("id","course_id","content_id","display_title","sort_order","estimated_minutes","is_required","completion_rule","status") VALUES ('${downstreamLessonId}','${courseA}', '${overrides.id ?? "sec-upgrade-lesson-pg-boundary"}','Seed race downstream link',99998,10,1,'MANUAL','DRAFT');`
+    : "";
+  return `${sql.slice(0, guardEnd + 1)}${downstream}\nCOMMIT;`;
 }
 
 async function waitForConnection() {

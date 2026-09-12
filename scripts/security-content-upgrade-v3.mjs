@@ -112,6 +112,7 @@ async function seedPostgres(sourceData, currentPlan) {
     assertProtectedSnapshot(before, after);
     await verifyPostgresWithConnection(sql, currentPlan);
   } catch (error) {
+    await sql.unsafe("ROLLBACK;").catch(() => undefined);
     fail("SECURITY_CONTENT_V3_POSTGRES_FAILED", safeError(error));
   } finally {
     await sql.end({ timeout: 5 });

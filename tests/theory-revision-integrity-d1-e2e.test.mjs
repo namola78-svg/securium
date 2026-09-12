@@ -11,6 +11,8 @@ const userId = "user-learner-1";
 const contentId = "repair-revision-integrity-content";
 const collisionContentId = "repair-revision-integrity-collision";
 const upgradeContentId = "sec-upgrade-lesson-repair-boundary";
+const raceContentId = "sec-upgrade-lesson-repair-race";
+const raceLessonId = "repair-revision-integrity-seed-race-lesson";
 const lessonId = "repair-revision-integrity-lesson";
 const legacyProgressId = "repair-revision-integrity-legacy";
 const port = await getFreeLoopbackPort();
@@ -51,6 +53,8 @@ before(async () => {
     DELETE FROM content_revisions WHERE content_type = 'LEARNING_UNIT'
       AND content_id IN ('${contentId}', '${collisionContentId}');
     DELETE FROM contents WHERE id = '${upgradeContentId}';
+    DELETE FROM course_lessons WHERE id = '${raceLessonId}';
+    DELETE FROM contents WHERE id = '${raceContentId}';
     DELETE FROM course_lessons WHERE id = '${lessonId}';
     DELETE FROM contents WHERE id IN ('${contentId}', '${collisionContentId}');
     INSERT INTO contents
@@ -96,6 +100,8 @@ after(async () => {
     DELETE FROM content_revisions WHERE content_type = 'LEARNING_UNIT'
       AND content_id IN ('${contentId}', '${collisionContentId}');
     DELETE FROM contents WHERE id = '${upgradeContentId}';
+    DELETE FROM course_lessons WHERE id = '${raceLessonId}';
+    DELETE FROM contents WHERE id = '${raceContentId}';
     DELETE FROM course_lessons WHERE id = '${lessonId}';
     DELETE FROM contents WHERE id IN ('${contentId}', '${collisionContentId}');
   `);
@@ -181,17 +187,22 @@ test("D1 authoring and learning records preserve immutable theory revisions", as
     WHERE content_type = 'LEARNING_UNIT' AND content_id = '${collisionContentId}'
   `))[0].count), 2);
 
-  await runLocalSql(contentImportStatement({ overview: "Direct import original overview" }));
+  const directImportStatement = contentImportStatement({ overview: "Direct import original overview" });
+  await runLocalSql(directImportStatement);
+  await runLocalSql(directImportStatement);
   const directImportBefore = await queryRows(`
     SELECT title, summary, body, version, status
     FROM contents WHERE id = '${upgradeContentId}';
   `);
   assert.equal(directImportBefore.length, 1);
-  await runLocalSql(contentImportStatement({
-    title: "Direct import tampered title",
-    overview: "Direct import tampered overview",
-    learningObjectives: ["Tampered learning objective"],
-  }));
+  await assert.rejects(
+    runLocalSql(contentImportStatement({
+      title: "Direct import tampered title",
+      overview: "Direct import tampered overview",
+      learningObjectives: ["Tampered learning objective"],
+    })),
+    /UNIQUE constraint failed|constraint failed/i,
+  );
   assert.deepEqual(await queryRows(`
     SELECT title, summary, body, version, status
     FROM contents WHERE id = '${upgradeContentId}';
@@ -199,6 +210,36 @@ test("D1 authoring and learning records preserve immutable theory revisions", as
   assert.equal(Number((await queryRows(`
     SELECT count(*) AS count FROM content_revisions
     WHERE content_type = 'LEARNING_UNIT' AND content_id = '${upgradeContentId}'
+  `))[0].count), 0);
+
+  // Deterministic preflight/write barrier: A reads an empty row, B commits a
+  // same-id/version different payload, then A resumes with a downstream link.
+  // The generator guard must abort before that link can be materialized.
+  assert.equal((await queryRows(`SELECT id FROM contents WHERE id = '${raceContentId}';`)).length, 0);
+  await runLocalSql(`
+    INSERT INTO contents
+      (id, slug, canonical_key, title, summary, body, body_format,
+       learning_objectives_json, core_concepts_json, practical_examples_json,
+       diagrams_json, media_json, version, status, created_by)
+    VALUES ('${raceContentId}', 'repair-seed-race', 'repair.seed.race',
+      'B payload', '', 'B body', 'STRUCTURED_JSON', '["B objective"]',
+      '["DNS"]', '[]', '[]', '[]', '3.0.0', 'DRAFT', 'user-admin');
+  `);
+  const racePayloadBeforeA = await queryRows(`
+    SELECT title, body, version, status FROM contents WHERE id = '${raceContentId}';
+  `);
+  await assert.rejects(
+    runLocalSql(contentImportStatement(
+      { id: raceContentId, title: "A payload", overview: "A overview" },
+      { downstreamLessonId: raceLessonId },
+    )),
+    /UNIQUE constraint failed|constraint failed/i,
+  );
+  assert.deepEqual(await queryRows(`
+    SELECT title, body, version, status FROM contents WHERE id = '${raceContentId}';
+  `), racePayloadBeforeA);
+  assert.equal(Number((await queryRows(`
+    SELECT count(*) AS count FROM course_lessons WHERE id = '${raceLessonId}';
   `))[0].count), 0);
 
   const sameRevisionMutation = await saveContent(contentInput({ body: "Changed A body" }));
@@ -421,7 +462,7 @@ function collisionContentInput(overrides = {}) {
   };
 }
 
-function contentImportStatement(overrides = {}) {
+function contentImportStatement(overrides = {}, { downstreamLessonId } = {}) {
   const sql = generateSecurityContentV3Sql({
     lessons: [
       {
@@ -443,9 +484,19 @@ function contentImportStatement(overrides = {}) {
     writtenQuestions: [],
     practicalQuestions: [],
   }, { dialect: "d1", actorId: "user-admin" });
-  const statement = sql.match(/INSERT INTO "contents"[\s\S]*?;/)?.[0];
-  assert.ok(statement, "Expected generated contents import statement.");
-  return statement;
+  const marker = "-- SECURITY_CONTENT_V3_IMMUTABLE_CONTENT_GUARD";
+  const markerOffset = sql.indexOf(marker);
+  assert.ok(markerOffset >= 0, "Expected generated immutable contents guard.");
+  const guardEnd = sql.indexOf(";", markerOffset);
+  assert.ok(guardEnd >= markerOffset, "Expected generated guard statement terminator.");
+  const downstream = downstreamLessonId
+    ? `\nINSERT INTO "course_lessons" ("id","course_id","content_id","display_title","sort_order","estimated_minutes","is_required","completion_rule","status") VALUES (${sqlString(downstreamLessonId)},'${courseId}',${sqlString(overrides.id ?? upgradeContentId)},'Seed race downstream link',99998,10,1,'MANUAL','DRAFT');`
+    : "";
+  return `${sql.slice(0, guardEnd + 1)}${downstream}\nCOMMIT;`;
+}
+
+function sqlString(value) {
+  return `'${String(value).replaceAll("'", "''")}'`;
 }
 
 async function saveContent(content) {

@@ -120,11 +120,17 @@ test("V3 content import cannot update an existing immutable contents row", () =>
   for (const dialect of ["d1", "postgres"] as const) {
     const sql = generateSecurityContentV3Sql(fixture(), { dialect });
     const contentStatements = sql.match(/INSERT INTO "contents"[\s\S]*?;/g) ?? [];
-    assert.ok(contentStatements.length > 0);
-    for (const statement of contentStatements) {
+    const materializationStatements = contentStatements.filter((statement) => statement.includes("VALUES"));
+    assert.ok(materializationStatements.length > 0);
+    for (const statement of materializationStatements) {
       assert.doesNotMatch(statement, /ON CONFLICT \("id"\) DO UPDATE SET/);
       assert.match(statement, /ON CONFLICT \("id"\) DO NOTHING/);
     }
+    assert.match(sql, /SECURITY_CONTENT_V3_IMMUTABLE_CONTENT_GUARD/);
+    assert.ok(
+      sql.indexOf("SECURITY_CONTENT_V3_IMMUTABLE_CONTENT_GUARD") < sql.indexOf('INSERT INTO "course_lessons"'),
+      `${dialect} immutable guard must run before lesson mappings`,
+    );
   }
 });
 
@@ -181,6 +187,11 @@ test("V3 intelligence SQL은 canonical Concept와 사용자 이력을 변경하�
     assert.doesNotMatch(sql, /INSERT INTO "ontology_concepts"/);
     assert.doesNotMatch(sql, /(INSERT INTO|UPDATE|DELETE FROM) "?(question_attempts|wrong_notes|bookmarks|user_progress|user_lesson_progress|user_course_lesson_progress|review_schedules)/);
     for (const forbidden of ["course-isms-p", "course-isrm", "course-sw-vuln", "course-cppg", "course-pia"]) assert.equal(sql.includes(forbidden), false);
+    assert.match(sql, /SECURITY_CONTENT_V3_IMMUTABLE_CONTENT_GUARD/);
+    assert.ok(
+      sql.indexOf("SECURITY_CONTENT_V3_IMMUTABLE_CONTENT_GUARD") < sql.indexOf('INSERT INTO "course_lessons"'),
+      `${dialect} intelligence immutable guard must run before lesson mappings`,
+    );
     const deletes = sql.match(/DELETE FROM[\s\S]*?;/g) ?? [];
     assert.ok(deletes.length > 0);
     assert.ok(deletes.every((statement) => statement.includes("question_id") && statement.includes(" IN (")));
