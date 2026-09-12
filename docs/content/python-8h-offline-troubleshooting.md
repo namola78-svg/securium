@@ -136,7 +136,7 @@ lab/. The expected layout is:
 Windows PowerShell:
 
 ~~~powershell
-$packageRoot = 'C:/path/to/python-secure-coding-8h-offline'
+$packageRoot = 'C:/temp/보안 교육/python-secure-coding-8h-offline'
 Test-Path -LiteralPath (Join-Path $packageRoot 'preflight/preflight.py')
 Set-Location -LiteralPath $packageRoot
 python preflight/preflight.py
@@ -145,7 +145,7 @@ python preflight/preflight.py
 Linux shell:
 
 ~~~bash
-package_root='/path/to/python-secure-coding-8h-offline'
+package_root='/tmp/보안 교육/python-secure-coding-8h-offline'
 test -f "$package_root/preflight/preflight.py"
 cd -- "$package_root"
 python3 preflight/preflight.py
@@ -322,7 +322,7 @@ Windows PowerShell (only this unique directory is created and removed):
 ~~~powershell
 $probe = Join-Path ([IO.Path]::GetTempPath()) ('securium-python-8h-check-' + [guid]::NewGuid())
 New-Item -ItemType Directory -LiteralPath $probe | Out-Null
-$file = Join-Path $probe 'space and non-ascii.txt'
+$file = Join-Path $probe 'space and 한글.txt'
 Set-Content -LiteralPath $file -Value 'check' -Encoding utf8
 Get-Content -LiteralPath $file
 Remove-Item -LiteralPath $probe -Recurse
@@ -332,9 +332,9 @@ Linux shell:
 
 ~~~bash
 probe="$(mktemp -d /tmp/securium-python-8h-check-XXXXXX)"
-printf '%s\n' check > "$probe/space and non-ascii.txt"
-cat -- "$probe/space and non-ascii.txt"
-rm "$probe/space and non-ascii.txt"
+printf '%s\n' check > "$probe/space and 한글.txt"
+cat -- "$probe/space and 한글.txt"
+rm "$probe/space and 한글.txt"
 rmdir -- "$probe"
 ~~~
 
@@ -440,7 +440,7 @@ be a directory.
 Windows PowerShell:
 
 ~~~powershell
-$report = 'C:/temp/securium/learner preflight.json'
+$report = 'C:/temp/세큐리움/learner preflight.json'
 Test-Path -LiteralPath $report
 Test-Path -LiteralPath (Split-Path -Parent $report) -PathType Container
 ~~~
@@ -448,7 +448,7 @@ Test-Path -LiteralPath (Split-Path -Parent $report) -PathType Container
 Linux shell:
 
 ~~~bash
-report='/tmp/securium/learner preflight.json'
+report='/tmp/세큐리움/learner preflight.json'
 test -e "$report"; echo "existing=$?"
 test -d "$(dirname -- "$report")"; echo "parent_directory=$?"
 ~~~
@@ -659,14 +659,14 @@ each extracted lab command.
 Windows PowerShell:
 
 ~~~powershell
-$extractDir = 'C:/temp/securium/new-package-extraction'
+$extractDir = 'C:/temp/세큐리움/new package extraction'
 Test-Path -LiteralPath $extractDir
 ~~~
 
 Linux shell:
 
 ~~~bash
-extract_dir='/tmp/securium/new-package-extraction'
+extract_dir='/tmp/세큐리움/new package extraction'
 test -e "$extract_dir"; echo "existing=$?"
 ~~~
 
