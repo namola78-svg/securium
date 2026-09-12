@@ -50,6 +50,7 @@ before(async () => {
   ]);
   ownedContainerId = containerIdOutput.trim();
   assert.match(ownedContainerId, /^[0-9a-f]+$/i, "Disposable PostgreSQL container ID was not returned.");
+  console.log(`SECURIUM_POSTGRES_FIXTURE_CREATED id=${ownedContainerId} owner=${runId}`);
   const { stdout } = await execFile("docker", ["port", ownedContainerId, "5432/tcp"]);
   const port = stdout.trim().match(/:(\d+)$/)?.[1];
   assert.ok(port, "Disposable PostgreSQL port was not published.");
@@ -634,7 +635,11 @@ async function waitForConnection() {
 }
 
 async function cleanupOwnedContainer() {
-  if (!ownedContainerId) return;
+  if (!ownedContainerId) {
+    console.log("SECURIUM_POSTGRES_FIXTURE_CLEANUP PASS owned_container=false");
+    return;
+  }
+  const cleanupId = ownedContainerId;
   let inspectedOwner;
   try {
     const result = await execFile("docker", [
@@ -649,13 +654,15 @@ async function cleanupOwnedContainer() {
     const diagnostic = `${error?.stderr ?? ""} ${error?.message ?? ""}`;
     if (/No such object|No such container/i.test(diagnostic)) {
       ownedContainerId = undefined;
+      console.log(`SECURIUM_POSTGRES_FIXTURE_CLEANUP PASS id=${cleanupId} already_absent=true`);
       return;
     }
-    throw new Error(`Disposable PostgreSQL ownership inspection failed for ${ownedContainerId}: ${diagnostic.trim()}`);
+    throw new Error(`Disposable PostgreSQL ownership inspection failed for ${cleanupId}: ${diagnostic.trim()}`);
   }
   if (inspectedOwner !== runId) {
-    throw new Error(`Refusing to remove PostgreSQL container ${ownedContainerId}: owner label mismatch.`);
+    throw new Error(`Refusing to remove PostgreSQL container ${cleanupId}: owner label mismatch.`);
   }
-  await execFile("docker", ["rm", "--force", ownedContainerId]);
+  await execFile("docker", ["rm", "--force", cleanupId]);
   ownedContainerId = undefined;
+  console.log(`SECURIUM_POSTGRES_FIXTURE_CLEANUP PASS id=${cleanupId} already_absent=false`);
 }

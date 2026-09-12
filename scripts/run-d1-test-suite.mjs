@@ -48,8 +48,17 @@ try {
     "db/seed.sql",
   ]);
   exitCode = await run(process.execPath, argumentsToNode, true);
+} catch (error) {
+  console.error(`D1 test runner failed: ${error?.stack ?? error}`);
+  exitCode = 1;
 } finally {
-  await rm(persistTo, { recursive: true, force: true });
+  try {
+    await rm(persistTo, { recursive: true, force: true });
+    console.log("SECURIUM_D1_FIXTURE_CLEANUP PASS");
+  } catch (error) {
+    console.error(`SECURIUM_D1_FIXTURE_CLEANUP FAIL: ${error?.stack ?? error}`);
+    exitCode = 1;
+  }
 }
 process.exit(exitCode);
 
