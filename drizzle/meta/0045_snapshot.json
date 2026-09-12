@@ -2,7 +2,7 @@
   "version": "6",
   "dialect": "sqlite",
   "id": "3693074b-6da6-4bb5-8cb7-e87b39a44c62",
-  "prevId": "6e65bc44-17a5-40bd-b42b-b88e52e12f3d",
+  "prevId": "be5d5cf3-b70c-495f-81f3-43d8759db8f8",
   "tables": {
     "admin_audit_logs": {
       "name": "admin_audit_logs",
@@ -17100,6 +17100,13 @@
           "notNull": true,
           "autoincrement": false
         },
+        "content_id": {
+          "name": "content_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "content_version": {
           "name": "content_version",
           "type": "text",
@@ -17170,12 +17177,14 @@
         }
       },
       "indexes": {
-        "user_course_lesson_progress_unique": {
-          "name": "user_course_lesson_progress_unique",
+        "user_course_lesson_progress_revision_unique": {
+          "name": "user_course_lesson_progress_revision_unique",
           "columns": [
             "user_id",
             "course_id",
-            "course_lesson_id"
+            "course_lesson_id",
+            "content_id",
+            "content_version"
           ],
           "isUnique": true
         },
@@ -17231,6 +17240,19 @@
           "tableTo": "course_lessons",
           "columnsFrom": [
             "course_lesson_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "user_course_lesson_progress_content_id_contents_id_fk": {
+          "name": "user_course_lesson_progress_content_id_contents_id_fk",
+          "tableFrom": "user_course_lesson_progress",
+          "tableTo": "contents",
+          "columnsFrom": [
+            "content_id"
           ],
           "columnsTo": [
             "id"
