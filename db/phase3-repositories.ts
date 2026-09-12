@@ -12,7 +12,14 @@ import {
   sql,
 } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
-import { getDb } from ".";
+import { getDatabaseProvider, getDb } from ".";
+import {
+  commitMockExamStart,
+  type MockExamStartBinding,
+  type PreparedMockExamStart,
+} from "./mock-exam-start-atomic.ts";
+
+export { commitMockExamStart } from "./mock-exam-start-atomic.ts";
 import {
   courses,
   contents,
@@ -27,7 +34,6 @@ import {
   mockExams,
   ontologyConcepts,
   questionAttempts,
-  questionChoices,
   questionConcepts,
   questionCourses,
   questionSubjects,
@@ -62,6 +68,16 @@ import {
   toPublicExamQuestion,
 } from "@/lib/services/mock-exam-service";
 import {
+  resolveMockQuestionVersionSnapshotVerified,
+  type MockQuestionRevision,
+} from "@/lib/services/mock-exam-revision";
+import {
+  createMockExamCompositionSnapshot,
+  resolveMockExamCompositionSnapshot,
+  type MockCompositionSnapshotItem,
+  type MockExamCompositionSnapshot,
+} from "@/lib/services/mock-exam-composition";
+import {
   gradeQuestion,
   requireSupportedGrade,
   type QuestionType,
@@ -80,6 +96,7 @@ import { getPublishedCurriculumPathForCourse } from "@/db/curriculum-repositorie
 import {
   computeConceptMappingSetHash,
   computeMockCompositionSemanticHash,
+  stableJson,
   type GovernedConceptMapping,
 } from "@/lib/services/learning-event-contracts";
 
@@ -91,6 +108,16 @@ function parseJson<T>(value: string, fallback: T): T {
   }
 }
 
+function withoutKeys<T extends object, K extends keyof T>(
+  value: T,
+  keys: readonly K[],
+): Omit<T, K> {
+  const excluded = new Set<PropertyKey>(keys);
+  return Object.fromEntries(
+    Object.entries(value).filter(([key]) => !excluded.has(key)),
+  ) as Omit<T, K>;
+}
+
 function batchItems(items: BatchItem<"sqlite">[]) {
   return items as unknown as Parameters<ReturnType<typeof getDb>["batch"]>[0];
 }
@@ -98,7 +125,10 @@ function batchItems(items: BatchItem<"sqlite">[]) {
 function isUniqueConstraintError(error: unknown) {
   return (
     error instanceof Error &&
-    /UNIQUE constraint failed|SQLITE_CONSTRAINT_UNIQUE/i.test(error.message)
+    (
+      /UNIQUE constraint failed|SQLITE_CONSTRAINT_UNIQUE/i.test(error.message) ||
+      ("code" in error && error.code === "DATABASE_UNIQUE_VIOLATION")
+    )
   );
 }
 
@@ -664,6 +694,14 @@ function examIsOpen(exam: {
 }
 
 export async function startMockExam(userId: string, mockExamId: string) {
+  const prepared = await prepareMockExamStart(userId, mockExamId);
+  return commitMockExamStart(prepared, await getDatabaseProvider());
+}
+
+export async function prepareMockExamStart(
+  userId: string,
+  mockExamId: string,
+): Promise<PreparedMockExamStart> {
   const [exam] = await getDb()
     .select()
     .from(mockExams)
@@ -703,9 +741,13 @@ export async function startMockExam(userId: string, mockExamId: string) {
       questionId: mockExamQuestions.questionId,
       displayOrder: mockExamQuestions.displayOrder,
       possibleScore: mockExamQuestions.score,
+      questionStatus: questions.status,
       questionVersionId: questionVersions.id,
+      questionVersionQuestionId: questionVersions.questionId,
+      questionVersionVersion: questionVersions.version,
       questionVersionSemanticHash: questionVersions.semanticHash,
       questionVersionHumanReviewHash: questionVersions.humanReviewHash,
+      questionVersionSnapshotJson: questionVersions.snapshotJson,
     })
     .from(mockExamQuestions)
     .innerJoin(questions, eq(mockExamQuestions.questionId, questions.id))
@@ -716,64 +758,76 @@ export async function startMockExam(userId: string, mockExamId: string) {
         eq(questionVersions.version, questions.version),
       ),
     )
-    .where(
-      and(
-        eq(mockExamQuestions.mockExamId, mockExamId),
-        eq(questions.status, "PUBLISHED"),
-      ),
-    )
-    .orderBy(asc(mockExamQuestions.displayOrder))
-    .limit(exam.questionCount);
-  if (questionRows.length !== exam.questionCount) {
+    .where(eq(mockExamQuestions.mockExamId, mockExamId))
+    .orderBy(asc(mockExamQuestions.displayOrder));
+  if (
+    questionRows.length !== exam.questionCount ||
+    questionRows.some((row) => row.questionStatus !== "PUBLISHED")
+  ) {
     throw new AppError("시험 문제 구성이 완료되지 않았습니다.", 409, "EXAM_INCOMPLETE");
   }
   const versionBindings = await resolveMockQuestionVersionBindings(questionRows);
-  const allVersionBound = questionRows.every((row) => versionBindings.has(row.questionId));
-  const compositionSemanticHash = allVersionBound
-    ? await computeMockCompositionSemanticHash({
-        items: questionRows.map((row) => {
-          const binding = versionBindings.get(row.questionId)!;
-          return {
-            displayOrder: row.displayOrder,
-            questionIdentity: row.questionId,
-            questionVersionSemanticHash: binding.questionVersionSemanticHash,
-            possibleScore: row.possibleScore,
-            conceptMappingSetHash: binding.conceptMappingSetHash,
-          };
-        }),
-        passingScore: exam.passingScore,
-        questionCount: exam.questionCount,
-        randomizeChoices: exam.randomizeChoices,
-        randomizeQuestions: exam.randomizeQuestions,
-      })
-    : null;
+  const compositionItems: MockCompositionSnapshotItem[] = questionRows.map((row) => {
+    const binding = versionBindings.get(row.questionId);
+    if (!binding) {
+      throw new AppError("시험 문제 구성이 완료되지 않았습니다.", 409, "EXAM_INCOMPLETE");
+    }
+    return {
+      displayOrder: row.displayOrder,
+      questionIdentity: row.questionId,
+      questionVersionId: binding.questionVersionId,
+      questionVersionSemanticHash: binding.questionVersionSemanticHash,
+      possibleScore: row.possibleScore,
+      conceptMappingSetHash: binding.conceptMappingSetHash,
+    };
+  });
+  await assertMockExamStartStillCurrent({ exam, questionRows, versionBindings });
+  const compositionInput = {
+    items: compositionItems.map((item) => {
+      const { questionVersionId: ignoredQuestionVersionId, ...hashItem } = item;
+      void ignoredQuestionVersionId;
+      return hashItem;
+    }),
+    passingScore: exam.passingScore,
+    questionCount: exam.questionCount,
+    randomizeChoices: exam.randomizeChoices,
+    randomizeQuestions: exam.randomizeQuestions,
+  };
+  const compositionSemanticHash = await computeMockCompositionSemanticHash(compositionInput);
+  const compositionSnapshotJson = createMockExamCompositionSnapshot({
+    items: compositionItems,
+    passingScore: exam.passingScore,
+    questionCount: exam.questionCount,
+    randomizeChoices: exam.randomizeChoices,
+    randomizeQuestions: exam.randomizeQuestions,
+  });
   const id = crypto.randomUUID();
   const expiresAt = new Date(
     Date.now() + exam.timeLimitMinutes * 60_000,
   ).toISOString();
-  const operations: BatchItem<"sqlite">[] = [
-    getDb().insert(mockExamAttempts).values({
-      id,
-      mockExamId,
-      userId,
-      expiresAt,
-      unansweredCount: questionRows.length,
-      compositionSemanticHash,
-    }),
-    ...questionRows.map((row) =>
-      getDb().insert(mockExamAnswers).values({
-        id: crypto.randomUUID(),
-        attemptId: id,
-        questionId: row.questionId,
-        questionVersionId:
-          versionBindings.get(row.questionId)?.questionVersionId ?? null,
-        conceptMappingSetHash:
-          versionBindings.get(row.questionId)?.conceptMappingSetHash ?? null,
-      }),
-    ),
-  ];
-  await getDb().batch(batchItems(operations));
-  return { id, expiresAt };
+  return {
+    id,
+    userId,
+    mockExamId,
+    expiresAt,
+    compositionSemanticHash,
+    compositionSnapshotJson,
+    exam: {
+      id: exam.id,
+      courseId: exam.courseId,
+      questionCount: exam.questionCount,
+      passingScore: exam.passingScore,
+      maxAttempts: exam.maxAttempts,
+      randomizeQuestions: exam.randomizeQuestions,
+      randomizeChoices: exam.randomizeChoices,
+      published: exam.published,
+      status: exam.status,
+      startAt: exam.startAt,
+      endAt: exam.endAt,
+    },
+    questionRows,
+    versionBindings,
+  };
 }
 
 function deterministicRank(seed: string, value: string) {
@@ -799,11 +853,11 @@ export async function getMockExamAttempt(userId: string, attemptId: string) {
       correctCount: mockExamAttempts.correctCount,
       wrongCount: mockExamAttempts.wrongCount,
       unansweredCount: mockExamAttempts.unansweredCount,
+      compositionSemanticHash: mockExamAttempts.compositionSemanticHash,
+      compositionSnapshotJson: mockExamAttempts.compositionSnapshotJson,
       title: mockExams.title,
       courseId: mockExams.courseId,
       resultOpenAt: mockExams.resultOpenAt,
-      randomizeQuestions: mockExams.randomizeQuestions,
-      randomizeChoices: mockExams.randomizeChoices,
     })
     .from(mockExamAttempts)
     .innerJoin(mockExams, eq(mockExamAttempts.mockExamId, mockExams.id))
@@ -822,9 +876,18 @@ export async function getMockExamAttempt(userId: string, attemptId: string) {
     await submitMockExam(userId, attemptId, true);
     return getMockExamAttempt(userId, attemptId);
   }
+  const composition = await resolveMockExamCompositionSnapshot(
+    attempt.compositionSnapshotJson,
+    attempt.compositionSemanticHash,
+  );
+  const publicAttempt = withoutKeys(attempt, [
+    "compositionSemanticHash",
+    "compositionSnapshotJson",
+  ]);
   const rows = await getDb()
     .select({
-      id: questions.id,
+      id: mockExamAnswers.questionId,
+      questionId: mockExamAnswers.questionId,
       title: questions.title,
       content: questions.content,
       type: questions.type,
@@ -834,10 +897,12 @@ export async function getMockExamAttempt(userId: string, attemptId: string) {
       answerData: mockExamAnswers.answerData,
       questionVersionId: mockExamAnswers.questionVersionId,
       questionVersionSnapshotJson: questionVersions.snapshotJson,
+      questionVersionQuestionId: questionVersions.questionId,
+      questionVersionVersion: questionVersions.version,
+      questionVersionSemanticHash: questionVersions.semanticHash,
+      conceptMappingSetHash: mockExamAnswers.conceptMappingSetHash,
       isCorrect: mockExamAnswers.isCorrect,
       earnedScore: mockExamAnswers.score,
-      possibleScore: mockExamQuestions.score,
-      displayOrder: mockExamQuestions.displayOrder,
     })
     .from(mockExamAnswers)
     .innerJoin(questions, eq(mockExamAnswers.questionId, questions.id))
@@ -845,37 +910,50 @@ export async function getMockExamAttempt(userId: string, attemptId: string) {
       questionVersions,
       eq(mockExamAnswers.questionVersionId, questionVersions.id),
     )
-    .innerJoin(
-      mockExamQuestions,
-      and(
-        eq(mockExamQuestions.mockExamId, attempt.mockExamId),
-        eq(mockExamQuestions.questionId, questions.id),
-      ),
-    )
-    .where(eq(mockExamAnswers.attemptId, attemptId))
-    .orderBy(asc(mockExamQuestions.displayOrder));
-  const choiceRows = rows.length
-    ? await getDb()
-        .select({
-          id: questionChoices.id,
-          questionId: questionChoices.questionId,
-          content: questionChoices.content,
-          displayOrder: questionChoices.displayOrder,
-          isCorrect: questionChoices.isCorrect,
-          explanation: questionChoices.explanation,
-        })
-        .from(questionChoices)
-        .where(inArray(questionChoices.questionId, rows.map((row) => row.id)))
-        .orderBy(asc(questionChoices.displayOrder))
-    : [];
+    .where(eq(mockExamAnswers.attemptId, attemptId));
+  const revisions = await resolveMockAttemptRevisions(composition, rows);
+  const orderedRows = composition.items.map((item) => {
+    const row = rows.find((candidate) => candidate.questionId === item.questionIdentity);
+    if (!row) {
+      throw new AppError(
+        "The immutable mock exam answer binding cannot be restored.",
+        409,
+        "MOCK_COMPOSITION_UNAVAILABLE",
+      );
+    }
+    return { item, row };
+  });
   const submitted = attempt.status !== "IN_PROGRESS";
   const resultsAvailable =
     submitted &&
     (!attempt.resultOpenAt ||
       new Date(attempt.resultOpenAt).getTime() <= Date.now());
-  let publicRows = rows.map((row) => {
-    let choices = choiceRows.filter((choice) => choice.questionId === row.id);
-    if (attempt.randomizeChoices) {
+  let publicRows = orderedRows.map(({ item, row }) => {
+    const boundQuestionId = row.questionVersionQuestionId;
+    const baseRow = withoutKeys(row, [
+      "questionId",
+      "questionVersionId",
+      "questionVersionSnapshotJson",
+      "questionVersionQuestionId",
+      "questionVersionVersion",
+      "questionVersionSemanticHash",
+      "conceptMappingSetHash",
+    ]);
+    if (boundQuestionId !== row.questionId) {
+      throw new AppError(
+        "Mock item QuestionVersion is bound to a different question.",
+        409,
+        "QUESTION_VERSION_MISMATCH",
+      );
+    }
+    const revision = revisions.get(row.questionId)!;
+    const question = {
+      ...baseRow,
+      possibleScore: item.possibleScore,
+      ...revision,
+    };
+    let choices = [...revision.choices];
+    if (composition.randomizeChoices) {
       choices = [...choices].sort(
         (a, b) =>
           deterministicRank(attempt.id, a.id) -
@@ -884,26 +962,26 @@ export async function getMockExamAttempt(userId: string, attemptId: string) {
     }
     if (!resultsAvailable) {
       return {
-        ...toPublicExamQuestion(row),
+        ...toPublicExamQuestion(question),
         explanation: undefined,
         wrongAnswerExplanation: undefined,
         isCorrect: undefined,
         earnedScore: undefined,
         choices:
-          row.type === "SHORT_ANSWER"
+          question.type === "SHORT_ANSWER"
             ? []
             : choices.map((choice) => toPublicExamQuestion(choice)),
       };
     }
     return {
-      ...row,
+      ...question,
       choices,
       correctAnswer: choices
         .filter((choice) => choice.isCorrect)
         .map((choice) => choice.content),
     };
   });
-  if (attempt.randomizeQuestions) {
+  if (composition.randomizeQuestions) {
     publicRows = [...publicRows].sort(
       (a, b) =>
         deterministicRank(attempt.id, a.id) -
@@ -994,7 +1072,9 @@ export async function getMockExamAttempt(userId: string, attemptId: string) {
     };
   }
   return {
-    ...attempt,
+    ...publicAttempt,
+    randomizeQuestions: composition.randomizeQuestions,
+    randomizeChoices: composition.randomizeChoices,
     resultsAvailable,
     analysis,
     questions: publicRows,
@@ -1015,10 +1095,14 @@ export async function saveMockExamAnswer(input: {
         eq(mockExamAttempts.id, input.attemptId),
         eq(mockExamAttempts.userId, input.userId),
       ),
-    )
+  )
     .limit(1);
   if (!attempt) throw new AppError("시험 기록을 찾을 수 없습니다.", 404, "EXAM_ATTEMPT_NOT_FOUND");
   assertExamInProgress(attempt);
+  await resolveMockExamCompositionSnapshot(
+    attempt.compositionSnapshotJson,
+    attempt.compositionSemanticHash,
+  );
   const [answerRow] = await getDb()
     .update(mockExamAnswers)
     .set({
@@ -1049,6 +1133,8 @@ export async function submitMockExam(
       userId: mockExamAttempts.userId,
       expiresAt: mockExamAttempts.expiresAt,
       status: mockExamAttempts.status,
+      compositionSemanticHash: mockExamAttempts.compositionSemanticHash,
+      compositionSnapshotJson: mockExamAttempts.compositionSnapshotJson,
       courseId: mockExams.courseId,
     })
     .from(mockExamAttempts)
@@ -1065,19 +1151,22 @@ export async function submitMockExam(
     throw new AppError("이미 제출된 시험입니다.", 409, "EXAM_ALREADY_SUBMITTED");
   }
   if (!autoExpired) assertExamInProgress(attempt);
+  const composition = await resolveMockExamCompositionSnapshot(
+    attempt.compositionSnapshotJson,
+    attempt.compositionSemanticHash,
+  );
   const answerRows = await getDb()
     .select({
       answerId: mockExamAnswers.id,
-      questionId: questions.id,
-      type: questions.type,
-      answerConfigJson: questions.answerConfigJson,
-      currentQuestionVersion: questions.version,
+      questionId: mockExamAnswers.questionId,
       answerData: mockExamAnswers.answerData,
       answeredAt: mockExamAnswers.answeredAt,
-      possibleScore: mockExamQuestions.score,
       questionVersionId: mockExamAnswers.questionVersionId,
-      boundQuestionVersion: questionVersions.version,
-      boundQuestionId: questionVersions.questionId,
+      questionVersionSnapshotJson: questionVersions.snapshotJson,
+      questionVersionQuestionId: questionVersions.questionId,
+      questionVersionVersion: questionVersions.version,
+      questionVersionSemanticHash: questionVersions.semanticHash,
+      conceptMappingSetHash: mockExamAnswers.conceptMappingSetHash,
     })
     .from(mockExamAnswers)
     .innerJoin(questions, eq(mockExamAnswers.questionId, questions.id))
@@ -1085,26 +1174,20 @@ export async function submitMockExam(
       questionVersions,
       eq(mockExamAnswers.questionVersionId, questionVersions.id),
     )
-    .innerJoin(
-      mockExamQuestions,
-      and(
-        eq(mockExamQuestions.mockExamId, attempt.mockExamId),
-        eq(mockExamQuestions.questionId, questions.id),
-      ),
-    )
     .where(eq(mockExamAnswers.attemptId, attemptId));
-  const choices = answerRows.length
-    ? await getDb()
-        .select()
-        .from(questionChoices)
-        .where(
-          inArray(
-            questionChoices.questionId,
-            answerRows.map((row) => row.questionId),
-          ),
-        )
-    : [];
+  const revisions = await resolveMockAttemptRevisions(composition, answerRows);
+  const compositionItemByQuestion = new Map(
+    composition.items.map((item) => [item.questionIdentity, item]),
+  );
   const grades = answerRows.map((row) => {
+    const item = compositionItemByQuestion.get(row.questionId);
+    if (!item) {
+      throw new AppError(
+        "The immutable mock exam answer binding cannot be restored.",
+        409,
+        "MOCK_COMPOSITION_UNAVAILABLE",
+      );
+    }
     const answered = Boolean(row.answeredAt);
     if (!answered) {
       return {
@@ -1112,32 +1195,23 @@ export async function submitMockExam(
         answered: false,
         isCorrect: false,
         earnedScore: 0,
-        possibleScore: row.possibleScore,
+        possibleScore: item.possibleScore,
         answerId: row.answerId,
       };
     }
-    if (
-      row.questionVersionId &&
-      (
-        row.boundQuestionId !== row.questionId ||
-        row.boundQuestionVersion !== row.currentQuestionVersion
-      )
-    ) {
-      throw new AppError(
-        "Mock item QuestionVersion no longer matches the governed question state.",
-        409,
-        "QUESTION_VERSION_MISMATCH",
-      );
-    }
+    const revision = revisions.get(row.questionId)!;
+    const gradingQuestion = {
+      type: revision.type,
+      choices: [...revision.choices],
+      answerConfigJson: revision.answerConfigJson,
+    };
     const grade = requireSupportedGrade(
       gradeQuestion(
         {
-          type: row.type as QuestionType,
-          choices: choices.filter(
-            (choice) => choice.questionId === row.questionId,
-          ),
+          type: gradingQuestion.type as QuestionType,
+          choices: gradingQuestion.choices,
           answerConfig: parseJson<ShortAnswerConfig>(
-            row.answerConfigJson,
+            gradingQuestion.answerConfigJson,
             {},
           ),
         },
@@ -1149,9 +1223,9 @@ export async function submitMockExam(
       answered: true,
       isCorrect: grade.isCorrect === true,
       earnedScore: Math.round(
-        row.possibleScore * ((grade.score ?? 0) / 100),
+        item.possibleScore * ((grade.score ?? 0) / 100),
       ),
-      possibleScore: row.possibleScore,
+      possibleScore: item.possibleScore,
       answerId: row.answerId,
     };
   });
@@ -1255,30 +1329,106 @@ export async function submitMockExam(
 type MockVersionSeed = Readonly<{
   questionId: string;
   questionVersionId: string | null;
+  questionVersionQuestionId: string | null;
+  questionVersionVersion: number | null;
   questionVersionSemanticHash: string | null;
   questionVersionHumanReviewHash: string | null;
+  questionVersionSnapshotJson: string | null;
 }>;
+
+type MockStoredAnswerBinding = Readonly<{
+  questionId: string;
+  questionVersionId: string | null;
+  questionVersionQuestionId: string | null;
+  questionVersionVersion: number | null;
+  questionVersionSemanticHash: string | null;
+  questionVersionSnapshotJson: string | null;
+  conceptMappingSetHash: string | null;
+}>;
+
+async function resolveMockAttemptRevisions(
+  composition: MockExamCompositionSnapshot,
+  rows: readonly MockStoredAnswerBinding[],
+) {
+  if (rows.length !== composition.items.length) {
+    throw new AppError(
+      "The immutable mock exam answer binding cannot be restored.",
+      409,
+      "MOCK_COMPOSITION_UNAVAILABLE",
+    );
+  }
+  const items = new Map(
+    composition.items.map((item) => [item.questionIdentity, item]),
+  );
+  const revisions = new Map<string, MockQuestionRevision>();
+  for (const row of rows) {
+    const item = items.get(row.questionId);
+    if (
+      !item ||
+      !row.questionVersionId ||
+      !row.questionVersionQuestionId ||
+      row.questionVersionQuestionId !== row.questionId ||
+      !Number.isInteger(row.questionVersionVersion) ||
+      !row.questionVersionSemanticHash ||
+      row.questionVersionSemanticHash !== item.questionVersionSemanticHash ||
+      row.questionVersionId !== item.questionVersionId ||
+      row.conceptMappingSetHash !== item.conceptMappingSetHash
+    ) {
+      throw new AppError(
+        "The stored mock exam composition does not match its answer binding.",
+        409,
+        "MOCK_COMPOSITION_MISMATCH",
+      );
+    }
+    const revision = await resolveMockQuestionVersionSnapshotVerified(
+      row.questionVersionSnapshotJson,
+      row.questionId,
+      row.questionVersionSemanticHash,
+      row.questionVersionVersion,
+    );
+    revisions.set(row.questionId, revision);
+  }
+  if (revisions.size !== composition.items.length) {
+    throw new AppError(
+      "The immutable mock exam answer binding cannot be restored.",
+      409,
+      "MOCK_COMPOSITION_UNAVAILABLE",
+    );
+  }
+  return revisions;
+}
 
 async function resolveMockQuestionVersionBindings(
   seeds: readonly MockVersionSeed[],
 ) {
-  const result = new Map<string, Readonly<{
-    questionVersionId: string;
-    questionVersionSemanticHash: string;
-    conceptMappingSetHash: string;
-  }>>();
+  const result = new Map<string, MockExamStartBinding>();
+  if (!seeds.length) {
+    throw new AppError("시험 문제 구성이 완료되지 않았습니다.", 409, "EXAM_INCOMPLETE");
+  }
   const governed = seeds.filter(
     (seed): seed is MockVersionSeed & {
       questionVersionId: string;
+      questionVersionQuestionId: string;
+      questionVersionVersion: number;
       questionVersionSemanticHash: string;
       questionVersionHumanReviewHash: string;
     } => Boolean(
       seed.questionVersionId &&
-      seed.questionVersionSemanticHash &&
-      seed.questionVersionHumanReviewHash,
+      seed.questionVersionQuestionId &&
+      Number.isInteger(seed.questionVersionVersion) &&
+      typeof seed.questionVersionSemanticHash === "string" &&
+      /^[0-9a-f]{64}$/.test(seed.questionVersionSemanticHash) &&
+      typeof seed.questionVersionHumanReviewHash === "string" &&
+      /^[0-9a-f]{64}$/.test(seed.questionVersionHumanReviewHash),
     ),
   );
-  if (!governed.length) return result;
+  if (governed.length !== seeds.length) {
+    throw new AppError(
+      "모의고사 문항의 immutable revision binding이 없습니다.",
+      409,
+      "EXAM_INCOMPLETE",
+    );
+  }
   const mappings = await getDb()
     .select({
       questionVersionId: questionConcepts.questionVersionId,
@@ -1296,9 +1446,23 @@ async function resolveMockQuestionVersionBindings(
           governed.map((seed) => seed.questionVersionId),
         ),
         eq(questionConcepts.mappingStatus, "APPROVED"),
+        eq(ontologyConcepts.status, "ACTIVE"),
       ),
     );
   for (const seed of governed) {
+    if (seed.questionVersionQuestionId !== seed.questionId) {
+      throw new AppError(
+        "Mock item QuestionVersion is bound to a different question.",
+        409,
+        "QUESTION_VERSION_MISMATCH",
+      );
+    }
+    await resolveMockQuestionVersionSnapshotVerified(
+      seed.questionVersionSnapshotJson,
+      seed.questionId,
+      seed.questionVersionSemanticHash,
+      seed.questionVersionVersion,
+    );
     const rows = mappings.filter(
       (mapping) => mapping.questionVersionId === seed.questionVersionId,
     );
@@ -1322,9 +1486,131 @@ async function resolveMockQuestionVersionBindings(
       questionVersionId: seed.questionVersionId,
       questionVersionSemanticHash: seed.questionVersionSemanticHash,
       conceptMappingSetHash,
+      mappings: rows.map((row) => ({
+        conceptIdentity: row.conceptIdentity,
+        mappingVersion: Number(row.mappingVersion),
+        qualificationJson: row.qualificationJson,
+        provenanceJson: row.provenanceJson,
+      })),
     });
   }
   return result;
+}
+
+async function assertMockExamStartStillCurrent(input: {
+  exam: {
+    id: string;
+    courseId: string;
+    questionCount: number;
+    passingScore: number;
+    maxAttempts: number;
+    randomizeQuestions: boolean;
+    randomizeChoices: boolean;
+    published: boolean;
+    status: string;
+    startAt: string | null;
+    endAt: string | null;
+  };
+  questionRows: readonly (MockVersionSeed & {
+    displayOrder: number;
+    possibleScore: number;
+    questionStatus: string;
+  })[];
+  versionBindings: ReadonlyMap<
+    string,
+    Readonly<{
+      questionVersionId: string;
+      questionVersionSemanticHash: string;
+      conceptMappingSetHash: string;
+      mappings: MockExamStartBinding["mappings"];
+    }>
+  >;
+}) {
+  const [currentExam] = await getDb()
+    .select({
+      id: mockExams.id,
+      courseId: mockExams.courseId,
+      questionCount: mockExams.questionCount,
+      passingScore: mockExams.passingScore,
+      maxAttempts: mockExams.maxAttempts,
+      randomizeQuestions: mockExams.randomizeQuestions,
+      randomizeChoices: mockExams.randomizeChoices,
+      published: mockExams.published,
+      status: mockExams.status,
+      startAt: mockExams.startAt,
+      endAt: mockExams.endAt,
+    })
+    .from(mockExams)
+    .where(eq(mockExams.id, input.exam.id))
+    .limit(1);
+  if (
+    !currentExam ||
+    !examIsOpen(currentExam) ||
+    currentExam.courseId !== input.exam.courseId ||
+    currentExam.questionCount !== input.exam.questionCount ||
+    currentExam.passingScore !== input.exam.passingScore ||
+    currentExam.maxAttempts !== input.exam.maxAttempts ||
+    currentExam.randomizeQuestions !== input.exam.randomizeQuestions ||
+    currentExam.randomizeChoices !== input.exam.randomizeChoices
+  ) {
+    throw new AppError(
+      "모의고사 구성이 응시 생성 중 변경되었습니다.",
+      409,
+      "EXAM_INCOMPLETE",
+    );
+  }
+  const currentRows = await getDb()
+    .select({
+      questionId: mockExamQuestions.questionId,
+      displayOrder: mockExamQuestions.displayOrder,
+      possibleScore: mockExamQuestions.score,
+      questionStatus: questions.status,
+      questionVersionId: questionVersions.id,
+      questionVersionQuestionId: questionVersions.questionId,
+      questionVersionVersion: questionVersions.version,
+      questionVersionSemanticHash: questionVersions.semanticHash,
+      questionVersionHumanReviewHash: questionVersions.humanReviewHash,
+      questionVersionSnapshotJson: questionVersions.snapshotJson,
+    })
+    .from(mockExamQuestions)
+    .innerJoin(questions, eq(mockExamQuestions.questionId, questions.id))
+    .leftJoin(
+      questionVersions,
+      and(
+        eq(questionVersions.questionId, questions.id),
+        eq(questionVersions.version, questions.version),
+      ),
+    )
+    .where(eq(mockExamQuestions.mockExamId, input.exam.id))
+    .orderBy(asc(mockExamQuestions.displayOrder));
+  if (
+    stableJson(currentRows) !== stableJson(input.questionRows) ||
+    currentRows.length !== input.questionRows.length
+  ) {
+    throw new AppError(
+      "모의고사 문항 구성이 응시 생성 중 변경되었습니다.",
+      409,
+      "EXAM_INCOMPLETE",
+    );
+  }
+  const currentBindings = await resolveMockQuestionVersionBindings(currentRows);
+  for (const row of input.questionRows) {
+    const expected = input.versionBindings.get(row.questionId);
+    const current = currentBindings.get(row.questionId);
+    if (
+      !expected ||
+      !current ||
+      expected.questionVersionId !== current.questionVersionId ||
+      expected.questionVersionSemanticHash !== current.questionVersionSemanticHash ||
+      expected.conceptMappingSetHash !== current.conceptMappingSetHash
+    ) {
+      throw new AppError(
+        "모의고사 revision 또는 mapping 구성이 응시 생성 중 변경되었습니다.",
+        409,
+        "EXAM_INCOMPLETE",
+      );
+    }
+  }
 }
 
 export async function getCourseStatistics(userId: string, courseId: string) {

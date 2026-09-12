@@ -1,0 +1,1 @@
+ALTER TABLE `mock_exam_attempts` ADD `composition_snapshot_json` text;
