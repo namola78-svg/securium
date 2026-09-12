@@ -137,7 +137,7 @@ jobs:
           from pathlib import Path
 
           root = Path(os.environ["SECURIUM_OFFLINE_CI_ROOT"])
-          if not root.exists():
+          if not root.exists() and not root.is_symlink():
               print("ci_owned_workspace=absent")
           else:
               if root.is_symlink() or not root.is_dir():
@@ -163,7 +163,7 @@ jobs:
           from pathlib import Path
 
           source_root = Path(os.environ["SECURIUM_OFFLINE_SOURCE_ROOT"])
-          if not source_root.exists():
+          if not source_root.exists() and not source_root.is_symlink():
               print("ci_owned_source_worktree=absent")
           else:
               if source_root.is_symlink() or not source_root.is_dir():

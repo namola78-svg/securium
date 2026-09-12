@@ -158,7 +158,7 @@ def _runner_summary(result: subprocess.CompletedProcess[str]) -> dict[str, objec
 
 
 def _remove_owned_child(path: Path, parent: Path) -> None:
-    if not path.exists():
+    if not path.exists() and not path.is_symlink():
         return
     resolved = path.resolve()
     if resolved.parent != parent.resolve():
