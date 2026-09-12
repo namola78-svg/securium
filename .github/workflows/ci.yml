@@ -63,5 +63,8 @@ jobs:
       - name: Integration smoke tests
         run: npm run test:integration
 
+      - name: Theory revision integrity tests
+        run: npm run test:theory-revision-integrity
+
       - name: Production build
         run: npm run build

@@ -5,6 +5,7 @@ import { join } from "node:path";
 import process from "node:process";
 
 const argumentsToNode = process.argv.slice(2);
+const SUBPROCESS_TIMEOUT_MS = 10 * 60 * 1_000;
 if (argumentsToNode[0] !== "--test") {
   console.error("This wrapper only runs Node test suites.");
   process.exit(1);
@@ -47,20 +48,48 @@ try {
     "db/seed.sql",
   ]);
   exitCode = await run(process.execPath, argumentsToNode, true);
+} catch (error) {
+  console.error(`D1 test runner failed: ${error?.stack ?? error}`);
+  exitCode = 1;
 } finally {
-  await rm(persistTo, { recursive: true, force: true });
+  try {
+    await rm(persistTo, { recursive: true, force: true });
+    console.log("SECURIUM_D1_FIXTURE_CLEANUP PASS");
+  } catch (error) {
+    console.error(`SECURIUM_D1_FIXTURE_CLEANUP FAIL: ${error?.stack ?? error}`);
+    exitCode = 1;
+  }
 }
 process.exit(exitCode);
 
 function run(executable, args, returnCode = false) {
   return new Promise((resolvePromise, rejectPromise) => {
+    let settled = false;
+    let forceKillTimer;
     const child = spawn(executable, args, {
       stdio: "inherit",
       windowsHide: true,
       env: environment,
     });
-    child.on("error", rejectPromise);
+    const timeout = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      child.kill("SIGTERM");
+      forceKillTimer = setTimeout(() => child.kill("SIGKILL"), 5_000);
+      forceKillTimer.unref?.();
+      rejectPromise(new Error(`D1 test subprocess timed out after ${SUBPROCESS_TIMEOUT_MS}ms: ${executable} ${args.join(" ")}`));
+    }, SUBPROCESS_TIMEOUT_MS);
+    child.on("error", (error) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      rejectPromise(error);
+    });
     child.on("exit", (code, signal) => {
+      clearTimeout(timeout);
+      clearTimeout(forceKillTimer);
+      if (settled) return;
+      settled = true;
       if (signal) {
         rejectPromise(new Error(`D1 test process stopped by ${signal}.`));
         return;

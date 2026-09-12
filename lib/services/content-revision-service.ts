@@ -103,6 +103,8 @@ export function isCurrentRevision(input: {
 
 export const THEORY_REVISION_CONTENT_TYPE = "LEARNING_UNIT" as const;
 export const THEORY_REVISION_STATUS = "review" as const;
+export const SHARED_CONTENT_REVISION_SNAPSHOT_KIND =
+  "SHARED_CONTENT_REVISION_V1" as const;
 
 export type TheoryConceptMappingInput = Readonly<{
   conceptId?: string | null;
@@ -212,4 +214,3 @@ function sortTheoryValue(value: unknown): unknown {
   }
   return value;
 }
-

@@ -105,6 +105,35 @@ test("V3 runner는 source package에 쓰지 않고 임시 SQL만 사용한다", 
   assert.match(runner, /mkdtemp\(join\(tmpdir\(\)/);
 });
 
+test("V3 seed callers preflight immutable content conflicts", async () => {
+  const [upgradeRunner, intelligenceRunner] = await Promise.all([
+    readFile("scripts/security-content-upgrade-v3.mjs", "utf8"),
+    readFile("scripts/security-content-intelligence-v3.mjs", "utf8"),
+  ]);
+  assert.match(upgradeRunner, /assertD1NoImmutableContentConflict/);
+  assert.match(upgradeRunner, /assertPostgresNoImmutableContentConflict/);
+  assert.match(intelligenceRunner, /assertD1NoImmutableContentConflict/);
+  assert.match(intelligenceRunner, /assertPostgresNoImmutableContentConflict/);
+});
+
+test("V3 content import cannot update an existing immutable contents row", () => {
+  for (const dialect of ["d1", "postgres"] as const) {
+    const sql = generateSecurityContentV3Sql(fixture(), { dialect });
+    const contentStatements = sql.match(/INSERT INTO "contents"[\s\S]*?;/g) ?? [];
+    const materializationStatements = contentStatements.filter((statement) => statement.includes("VALUES"));
+    assert.ok(materializationStatements.length > 0);
+    for (const statement of materializationStatements) {
+      assert.doesNotMatch(statement, /ON CONFLICT \("id"\) DO UPDATE SET/);
+      assert.match(statement, /ON CONFLICT \("id"\) DO NOTHING/);
+    }
+    assert.match(sql, /SECURITY_CONTENT_V3_IMMUTABLE_CONTENT_GUARD/);
+    assert.ok(
+      sql.indexOf("SECURITY_CONTENT_V3_IMMUTABLE_CONTENT_GUARD") < sql.indexOf('INSERT INTO "course_lessons"'),
+      `${dialect} immutable guard must run before lesson mappings`,
+    );
+  }
+});
+
 test("V3 intelligence plan은 gap 기반 기사/산업기사 이론과 문제를 분리한다", () => {
   const plan = buildSecurityContentIntelligenceV3Plan();
   assert.deepEqual(plan.sourceSummary, {
@@ -158,6 +187,11 @@ test("V3 intelligence SQL은 canonical Concept와 사용자 이력을 변경하�
     assert.doesNotMatch(sql, /INSERT INTO "ontology_concepts"/);
     assert.doesNotMatch(sql, /(INSERT INTO|UPDATE|DELETE FROM) "?(question_attempts|wrong_notes|bookmarks|user_progress|user_lesson_progress|user_course_lesson_progress|review_schedules)/);
     for (const forbidden of ["course-isms-p", "course-isrm", "course-sw-vuln", "course-cppg", "course-pia"]) assert.equal(sql.includes(forbidden), false);
+    assert.match(sql, /SECURITY_CONTENT_V3_IMMUTABLE_CONTENT_GUARD/);
+    assert.ok(
+      sql.indexOf("SECURITY_CONTENT_V3_IMMUTABLE_CONTENT_GUARD") < sql.indexOf('INSERT INTO "course_lessons"'),
+      `${dialect} intelligence immutable guard must run before lesson mappings`,
+    );
     const deletes = sql.match(/DELETE FROM[\s\S]*?;/g) ?? [];
     assert.ok(deletes.length > 0);
     assert.ok(deletes.every((statement) => statement.includes("question_id") && statement.includes(" IN (")));

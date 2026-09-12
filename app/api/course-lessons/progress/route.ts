@@ -24,9 +24,11 @@ export async function POST(request: Request) {
     const result = await updateCourseLessonProgress({
       userId: user.id,
       courseLessonId: input.courseLessonId,
+      contentId: input.contentId,
       action: input.action,
       progressPercent: input.progressPercent,
       timeSpentSeconds: input.timeSpentSeconds,
+      contentVersion: input.contentVersion,
     });
     return successResponse(request, { result });
   } catch (error) {
