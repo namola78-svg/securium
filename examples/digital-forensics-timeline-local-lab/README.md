@@ -21,6 +21,21 @@ Foundation의 practical/objective/question 상태를 변경하지 않는다. 기
 [무결성 lab](../digital-forensics-integrity-local-lab/)과도 독립적이다. 이 실습은
 실제 NTFS/MFT/USN 분석기, disk imaging, deleted-file recovery를 구현하지 않는다.
 
+## Rehearsal kit
+
+The [rehearsal kit](rehearsal-kit/) contains a future human-run preparation set:
+[instructor runbook](rehearsal-kit/instructor-runbook.md),
+[learner workbook](rehearsal-kit/learner-workbook.md),
+[assessment rubric](rehearsal-kit/assessment-rubric.md), and
+[rehearsal checklist](rehearsal-kit/rehearsal-checklist.md). Its status is
+`PREPARED_NOT_REHEARSED`: no human learner rehearsal has been completed, and the kit does
+not change canonical registration, runtime mapping, publication, or delivery readiness.
+
+The current Securium Foundation assigns `DF-H06` 60 minutes and the Foundation totals 480
+minutes (with breaks and administration excluded). The kit proposes a separate, unmeasured 75-minute
+facilitator rehearsal block for setup, repetition, feedback, and closeout. That proposal is
+not an official module allocation and does not change the 60- or 480-minute values.
+
 ## 학습 목표
 
 학습자는 다음을 수행한다.

@@ -1,0 +1,115 @@
+name: Legacy Concept PostgreSQL RLS
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/legacy-concept-rls.yml"
+      - "db/postgres/baselines/**"
+      - "db/postgres/migrations/0020_concept_persistence_cp_a.sql"
+      - "db/postgres/migrations/0041_legacy_concept_rls_hardening.sql"
+      - "tests/legacy-concept-rls-hardening-postgres-disposable.test.mjs"
+      - "package.json"
+      - "package-lock.json"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/legacy-concept-rls.yml"
+      - "db/postgres/baselines/**"
+      - "db/postgres/migrations/0020_concept_persistence_cp_a.sql"
+      - "db/postgres/migrations/0041_legacy_concept_rls_hardening.sql"
+      - "tests/legacy-concept-rls-hardening-postgres-disposable.test.mjs"
+      - "package.json"
+      - "package-lock.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: legacy-concept-rls-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: "true"
+  APP_ENV: test
+  NODE_OPTIONS: "--experimental-strip-types --test-reporter=tap"
+  SECURIUM_LEGACY_CONCEPT_RLS_PG_CONTAINER: securium-legacy-concept-rls-${{ github.run_id }}-${{ github.run_attempt }}
+
+jobs:
+  legacy-concept-rls:
+    name: Legacy Concept PostgreSQL RLS (1 test)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out exact tested revision
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22.13.0"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Bind exact tested revision
+        shell: bash
+        run: |
+          expected_sha="${{ github.event.pull_request.head.sha || github.sha }}"
+          test "$(git rev-parse HEAD)" = "$expected_sha"
+          echo "LEGACY_CONCEPT_RLS_TESTED_SHA=$expected_sha"
+
+      - name: Run disposable PostgreSQL RLS test
+        shell: bash
+        timeout-minutes: 15
+        run: |
+          set +e
+          result_path="$RUNNER_TEMP/legacy-concept-rls.tap"
+          npm run test:legacy-concept-rls | tee "$result_path"
+          pipeline_status=("${PIPESTATUS[@]}")
+          npm_status="${pipeline_status[0]:-255}"
+          tee_status="${pipeline_status[1]:-255}"
+          set -e
+
+          echo "LEGACY_CONCEPT_RLS_PIPELINE npm_exit=${npm_status} tee_exit=${tee_status}"
+          if test "$npm_status" != "0"; then
+            echo "npm run test:legacy-concept-rls failed" >&2
+            exit "$npm_status"
+          fi
+          if test "$tee_status" != "0"; then
+            echo "tee failed while recording the test output" >&2
+            exit "$tee_status"
+          fi
+
+          tests="$(awk '$0 ~ /tests [0-9]+$/ { value=$0; sub(/^.*tests /, "", value); print value }' "$result_path" | tail -n 1)"
+          passed="$(awk '$0 ~ /pass [0-9]+$/ { value=$0; sub(/^.*pass /, "", value); print value }' "$result_path" | tail -n 1)"
+          failed="$(awk '$0 ~ /fail [0-9]+$/ { value=$0; sub(/^.*fail /, "", value); print value }' "$result_path" | tail -n 1)"
+          skipped="$(awk '$0 ~ /skipped [0-9]+$/ { value=$0; sub(/^.*skipped /, "", value); print value }' "$result_path" | tail -n 1)"
+          todo="$(awk '$0 ~ /todo [0-9]+$/ { value=$0; sub(/^.*todo /, "", value); print value }' "$result_path" | tail -n 1)"
+          cancelled="$(awk '$0 ~ /cancelled [0-9]+$/ { value=$0; sub(/^.*cancelled /, "", value); print value }' "$result_path" | tail -n 1)"
+          echo "LEGACY_CONCEPT_RLS_RESULT tests=${tests:-0} passed=${passed:-0} failed=${failed:-0} skipped=${skipped:-0} todo=${todo:-0} cancelled=${cancelled:-0} npm_exit=${npm_status} tee_exit=${tee_status}"
+          test "${tests:-0}" = "1"
+          test "${passed:-0}" = "1"
+          test "${failed:-0}" = "0"
+          test "${skipped:-0}" = "0"
+          test "${todo:-0}" = "0"
+          test "${cancelled:-0}" = "0"
+
+      - name: Cleanup owned disposable PostgreSQL container
+        if: always()
+        shell: bash
+        run: |
+          if docker container inspect "$SECURIUM_LEGACY_CONCEPT_RLS_PG_CONTAINER" >/dev/null 2>&1; then
+            timeout 30s docker rm --force "$SECURIUM_LEGACY_CONCEPT_RLS_PG_CONTAINER"
+          fi
+          if docker container inspect "$SECURIUM_LEGACY_CONCEPT_RLS_PG_CONTAINER" >/dev/null 2>&1; then
+            echo "Owned PostgreSQL container was not removed" >&2
+            exit 1
+          fi
+          echo "LEGACY_CONCEPT_RLS_CONTAINER_CLEANUP container=$SECURIUM_LEGACY_CONCEPT_RLS_PG_CONTAINER result=removed-or-already-removed"
