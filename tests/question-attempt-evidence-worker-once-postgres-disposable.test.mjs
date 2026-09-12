@@ -8,31 +8,49 @@ import postgres from "postgres";
 import { computeConceptMappingSetHash } from "../lib/services/learning-event-contracts.ts";
 import { EvidenceProjectionRepository, createRecomputeRequest } from "../db/evidence-projection-repository.ts";
 import { PostgresDatabaseProvider } from "../db/provider/postgres-database-provider.ts";
+import {
+  cleanupOwnedPostgresContainer,
+  createOwnedPostgresContainer,
+  getPublishedPostgresPort,
+  inspectOwnedPostgresContainer,
+} from "../scripts/owned-postgres-container.mjs";
 
 const execFile = promisify(execFileCallback);
 const runnerScript = "scripts/run-question-attempt-evidence-once.mjs";
-let container;
+let createdContainer;
 let client;
 
 after(async () => {
   await client?.end({ timeout: 5 }).catch(() => {});
-  if (container) await execFile("docker", ["rm", "--force", container], { windowsHide: true }).catch(() => {});
+  if (createdContainer) {
+    try {
+      console.log(`OWNED_POSTGRES_TEST_CLEANUP ${await cleanupOwnedPostgresContainer(createdContainer)}`);
+    } catch (error) {
+      console.error(`OWNED_POSTGRES_TEST_CLEANUP_ERROR ${error?.message || "FAILED"}`);
+      process.exitCode ||= 1;
+    }
+  }
 });
 
 test("PostgreSQL subprocess uses the owned loopback container and processes exactly one request", async () => {
-  const owner = `once-owner-${randomUUID()}`;
+  const owner = process.env.SECURIUM_EVIDENCE_ONCE_POSTGRES_OWNER?.trim() || `once-owner-${randomUUID()}`;
   const password = "question-attempt-worker-once-disposable-password";
-  container = process.env.SECURIUM_EVIDENCE_ONCE_POSTGRES_CONTAINER?.trim()
-    || `securium-question-attempt-once-${randomUUID()}`;
-  await execFile("docker", [
-    "run", "--detach", "--rm", "--name", container,
-    "--label", `com.securium.evidence-once.owner=${owner}`,
-    "--env", `POSTGRES_PASSWORD=${password}`,
-    "--publish", "127.0.0.1::5432", "postgres:17.6",
-  ], { windowsHide: true });
-  const { stdout } = await execFile("docker", ["port", container, "5432/tcp"], { windowsHide: true });
-  const port = stdout.trim().match(/:(\d+)$/)?.[1];
-  assert.ok(port);
+  createdContainer = await createOwnedPostgresContainer({
+    name: process.env.SECURIUM_EVIDENCE_ONCE_POSTGRES_CONTAINER?.trim()
+      || `securium-question-attempt-once-${randomUUID()}`,
+    ownerToken: owner,
+    password,
+    receiptPath: process.env.SECURIUM_EVIDENCE_ONCE_POSTGRES_RECEIPT,
+  });
+  const inspected = await inspectOwnedPostgresContainer(createdContainer);
+  assert.deepEqual(inspected, {
+    id: createdContainer.containerId,
+    name: `/${createdContainer.containerName}`,
+    running: true,
+    ownerToken: createdContainer.ownerToken,
+  });
+  const port = await getPublishedPostgresPort(createdContainer);
+  console.log(`OWNED_POSTGRES_CREATED id=${createdContainer.containerId} name=${createdContainer.containerName} owner=${createdContainer.ownerToken} running=true published=127.0.0.1:${port}`);
   const connectionString = `postgres://postgres:${password}@127.0.0.1:${port}/postgres`;
   client = postgres(connectionString, { max: 1, prepare: false, ssl: false, onnotice: false });
   await waitForConnection();
@@ -91,10 +109,26 @@ test("PostgreSQL subprocess uses the owned loopback container and processes exac
   });
   assert.equal(await repository.enqueue(request), "NEW_SUCCESS");
 
+  const invalidPort = await runRunner(["--local-disposable", "--provider=postgres"], {
+    SECURIUM_EVIDENCE_ONCE_POSTGRES_URL: connectionString.replace(`:${port}/`, `:${Number(port) + 1}/`),
+    SECURIUM_EVIDENCE_ONCE_POSTGRES_CONTAINER: createdContainer.containerId,
+    SECURIUM_EVIDENCE_ONCE_POSTGRES_OWNER: createdContainer.ownerToken,
+  });
+  assert.equal(invalidPort.exitCode, 2);
+  assert.match(invalidPort.stderr, /DISPOSABLE_POSTGRES_LOOPBACK_PORT_INVALID/);
+
+  const invalidLoopback = await runRunner(["--local-disposable", "--provider=postgres"], {
+    SECURIUM_EVIDENCE_ONCE_POSTGRES_URL: connectionString.replace("127.0.0.1", "localhost"),
+    SECURIUM_EVIDENCE_ONCE_POSTGRES_CONTAINER: createdContainer.containerId,
+    SECURIUM_EVIDENCE_ONCE_POSTGRES_OWNER: createdContainer.ownerToken,
+  });
+  assert.equal(invalidLoopback.exitCode, 2);
+  assert.match(invalidLoopback.stderr, /POSTGRES_LOOPBACK_REQUIRED/);
+
   const first = await runRunner(["--local-disposable", "--provider=postgres"], {
     SECURIUM_EVIDENCE_ONCE_POSTGRES_URL: connectionString,
-    SECURIUM_EVIDENCE_ONCE_POSTGRES_CONTAINER: container,
-    SECURIUM_EVIDENCE_ONCE_POSTGRES_OWNER: owner,
+    SECURIUM_EVIDENCE_ONCE_POSTGRES_CONTAINER: createdContainer.containerId,
+    SECURIUM_EVIDENCE_ONCE_POSTGRES_OWNER: createdContainer.ownerToken,
   });
   assert.equal(first.exitCode, 0);
   assert.equal(first.result.status, "COMPLETED");
@@ -105,13 +139,55 @@ test("PostgreSQL subprocess uses the owned loopback container and processes exac
 
   const replay = await runRunner(["--local-disposable", "--provider=postgres"], {
     SECURIUM_EVIDENCE_ONCE_POSTGRES_URL: connectionString,
-    SECURIUM_EVIDENCE_ONCE_POSTGRES_CONTAINER: container,
-    SECURIUM_EVIDENCE_ONCE_POSTGRES_OWNER: owner,
+    SECURIUM_EVIDENCE_ONCE_POSTGRES_CONTAINER: createdContainer.containerId,
+    SECURIUM_EVIDENCE_ONCE_POSTGRES_OWNER: createdContainer.ownerToken,
   });
   assert.equal(replay.exitCode, 0);
   assert.equal(replay.result.status, "NO_REQUEST");
   assert.equal(await scalar(`SELECT count(*) FROM evidence_projections WHERE source_event_id = '${attemptId}' AND lifecycle = 'ACTIVE'`), "2");
   assert.equal(await scalar(`SELECT count(*) FROM evidence_recompute_requests WHERE source_event_id = '${attemptId}' AND request_type = 'MASTERY_RECOMPUTE_REQUIRED'`), "2");
+});
+
+test("owned PostgreSQL cleanup preserves pre-existing, mismatched, and replacement containers", async () => {
+  const containerName = `securium-question-attempt-cleanup-${randomUUID()}`;
+  const password = "question-attempt-worker-once-cleanup-password";
+  let original;
+  let replacement;
+  try {
+    original = await createOwnedPostgresContainer({
+      name: containerName,
+      ownerToken: `cleanup-owner-${randomUUID()}`,
+      password,
+    });
+
+    await assert.rejects(
+      () => createOwnedPostgresContainer({
+        name: containerName,
+        ownerToken: `different-owner-${randomUUID()}`,
+        password,
+      }),
+      /OWNED_POSTGRES_CONTAINER_NAME_IN_USE/,
+    );
+    assert.equal((await inspectOwnedPostgresContainer(original))?.id, original.containerId);
+
+    await assert.rejects(
+      () => cleanupOwnedPostgresContainer({ ...original, ownerToken: `wrong-owner-${randomUUID()}` }),
+      /OWNED_POSTGRES_CONTAINER_OWNERSHIP_MISMATCH/,
+    );
+    assert.equal((await inspectOwnedPostgresContainer(original))?.id, original.containerId);
+
+    assert.equal(await cleanupOwnedPostgresContainer(original), "REMOVED");
+    replacement = await createOwnedPostgresContainer({
+      name: containerName,
+      ownerToken: `replacement-owner-${randomUUID()}`,
+      password,
+    });
+    assert.equal(await cleanupOwnedPostgresContainer(original), "ALREADY_REMOVED");
+    assert.equal((await inspectOwnedPostgresContainer(replacement))?.id, replacement.containerId);
+  } finally {
+    await cleanupOwnedPostgresContainer(replacement).catch(() => {});
+    await cleanupOwnedPostgresContainer(original).catch(() => {});
+  }
 });
 
 function makeProvider(databaseClient) {

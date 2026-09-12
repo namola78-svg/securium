@@ -37,7 +37,11 @@ test("once result mapping preserves the existing exact-replay outcome", () => {
       errorClass: null,
     },
   );
+  assert.equal(resultExitCode({ outcome: "NO_REQUEST" }), 0);
   assert.equal(resultExitCode({ outcome: "COMPLETED" }), 0);
+  assert.equal(resultExitCode({ outcome: "RETRYABLE" }), 75);
+  assert.equal(resultExitCode({ outcome: "CLAIM_LOST" }), 75);
+  assert.equal(resultExitCode({ outcome: "FAILED" }), 1);
 });
 
 after(async () => {

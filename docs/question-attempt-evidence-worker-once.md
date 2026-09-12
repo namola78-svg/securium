@@ -25,6 +25,12 @@ also rejects a persistence root or Wrangler `v3/d1` path that resolves through
 a symlink or junction. The fixture owner, not the runner, removes the
 persistence directory after the subprocess exits.
 
+These path and marker checks are point-in-time admission checks. The runner
+does not hold a directory handle or lock between validation and Miniflare's
+open, so a concurrent replacement after validation is a remaining TOCTOU
+limitation. Use an isolated disposable fixture; this check is not a general
+filesystem authorization boundary.
+
 ```text
 node node_modules/tsx/dist/cli.mjs scripts/run-question-attempt-evidence-once.mjs --local-disposable --provider=d1 --d1-persist-to=<absolute-local-persist-dir> --d1-database=<local-d1-database-identity> --d1-fixture-owner=<fixture-owner-token>
 ```
@@ -41,6 +47,10 @@ published port and the label
 `com.securium.evidence-once.owner=<owner-token>`. The three environment
 variables are required; the runner verifies that the container is running, the
 owner label matches, and the URL port is the container's `127.0.0.1` mapping.
+The disposable tests record the successful creation and full container ID in a
+run-specific receipt. Cleanup re-inspects that ID, name, and owner label before
+using `docker rm --force`; a missing creation record, owner mismatch, or a
+container that was replaced under the same name is preserved.
 
 ```text
 SECURIUM_EVIDENCE_ONCE_POSTGRES_URL=<loopback-url>

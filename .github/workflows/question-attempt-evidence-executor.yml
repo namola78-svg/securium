@@ -15,6 +15,8 @@ on:
       - "tests/question-attempt-evidence-recompute-integration.test.mjs"
       - "tests/support/**"
       - "scripts/run-question-attempt-evidence-once.mjs"
+      - "scripts/owned-postgres-container.mjs"
+      - "scripts/cleanup-owned-postgres-container.mjs"
       - "scripts/run-d1-test-suite.mjs"
       - "docs/question-attempt-evidence-worker-once.md"
       - "package.json"
@@ -37,6 +39,8 @@ on:
       - "tests/question-attempt-evidence-recompute-integration.test.mjs"
       - "tests/support/**"
       - "scripts/run-question-attempt-evidence-once.mjs"
+      - "scripts/owned-postgres-container.mjs"
+      - "scripts/cleanup-owned-postgres-container.mjs"
       - "scripts/run-d1-test-suite.mjs"
       - "docs/question-attempt-evidence-worker-once.md"
       - "package.json"
@@ -59,7 +63,7 @@ env:
 
 jobs:
   d1-executor:
-    name: D1 QUESTION_ATTEMPT executor (16 tests)
+    name: D1 QUESTION_ATTEMPT executor (19 tests)
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -129,13 +133,39 @@ jobs:
           test "${failed:-1}" = "0"
           test "${passed:-0}" = "7"
 
+      - name: Run HTTP producer to CLI D1 integration tests
+        shell: bash
+        timeout-minutes: 15
+        run: |
+          set -o pipefail
+          result_path="$RUNNER_TEMP/question-attempt-evidence-recompute-integration-d1.tap"
+          node node_modules/tsx/dist/cli.mjs \
+            --test \
+            --test-concurrency=1 \
+            --test-reporter=tap \
+            tests/question-attempt-evidence-recompute-integration.test.mjs \
+            | tee "$result_path"
+
+          skipped="$(awk '/^# skipped / { print $3 }' "$result_path" | tail -n 1)"
+          todo="$(awk '/^# todo / { print $3 }' "$result_path" | tail -n 1)"
+          passed="$(awk '/^# pass / { print $3 }' "$result_path" | tail -n 1)"
+          failed="$(awk '/^# fail / { print $3 }' "$result_path" | tail -n 1)"
+          test "${skipped:-1}" = "0"
+          test "${todo:-1}" = "0"
+          test "${failed:-1}" = "0"
+          test "${passed:-0}" = "3"
+
   postgres-executor:
-    name: PostgreSQL QUESTION_ATTEMPT executor (4 tests)
+    name: PostgreSQL QUESTION_ATTEMPT executor (5 tests)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
       SECURIUM_EVIDENCE_EXECUTOR_PG_CONTAINER: securium-qae-executor-${{ github.run_id }}-${{ github.run_attempt }}
+      SECURIUM_EVIDENCE_EXECUTOR_PG_OWNER: securium-qae-executor-owner-${{ github.run_id }}-${{ github.run_attempt }}
+      SECURIUM_EVIDENCE_EXECUTOR_PG_RECEIPT: ${{ runner.temp }}/securium-qae-executor-${{ github.run_id }}-${{ github.run_attempt }}.json
       SECURIUM_EVIDENCE_ONCE_POSTGRES_CONTAINER: securium-qae-once-${{ github.run_id }}-${{ github.run_attempt }}
+      SECURIUM_EVIDENCE_ONCE_POSTGRES_OWNER: securium-qae-once-owner-${{ github.run_id }}-${{ github.run_attempt }}
+      SECURIUM_EVIDENCE_ONCE_POSTGRES_RECEIPT: ${{ runner.temp }}/securium-qae-once-${{ github.run_id }}-${{ github.run_attempt }}.json
 
     steps:
       - name: Check out exact tested revision
@@ -201,20 +231,18 @@ jobs:
           test "${skipped:-1}" = "0"
           test "${todo:-1}" = "0"
           test "${failed:-1}" = "0"
-          test "${passed:-0}" = "1"
+          test "${passed:-0}" = "2"
 
-      - name: Cleanup owned disposable PostgreSQL container
+      - name: Cleanup owned disposable PostgreSQL containers
         if: always()
         shell: bash
         run: |
-          for container_name in \
-            "$SECURIUM_EVIDENCE_EXECUTOR_PG_CONTAINER" \
-            "$SECURIUM_EVIDENCE_ONCE_POSTGRES_CONTAINER"; do
-            if docker container inspect "$container_name" >/dev/null 2>&1; then
-              docker rm --force "$container_name"
-            fi
-            if docker container inspect "$container_name" >/dev/null 2>&1; then
-              echo "Owned PostgreSQL container was not removed: $container_name" >&2
-              exit 1
+          cleanup_failed=0
+          for receipt_path in \
+            "$SECURIUM_EVIDENCE_EXECUTOR_PG_RECEIPT" \
+            "$SECURIUM_EVIDENCE_ONCE_POSTGRES_RECEIPT"; do
+            if ! node scripts/cleanup-owned-postgres-container.mjs "--receipt=$receipt_path"; then
+              cleanup_failed=1
             fi
           done
+          exit "$cleanup_failed"
