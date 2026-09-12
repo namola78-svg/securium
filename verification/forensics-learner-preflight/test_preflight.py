@@ -67,13 +67,13 @@ class ForensicsLearnerPreflightTests(unittest.TestCase):
 
     def test_import_failure_is_reported(self) -> None:
         def failing_importer(name: str) -> object:
-            if name == "zoneinfo":
+            if name == "typing":
                 raise ImportError("controlled import failure")
             return object()
 
         result = preflight.probe_lab_stdlib_imports(failing_importer)
         self.assertEqual(result.status, preflight.FAIL)
-        self.assertEqual(result.details["failures"][0]["module"], "zoneinfo")
+        self.assertEqual(result.details["failures"][0]["module"], "typing")
 
     def test_core_sha256_failure_is_reported(self) -> None:
         def failing_hasher(payload: bytes) -> object:

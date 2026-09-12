@@ -38,8 +38,9 @@ The run performs these checks:
 - Recorded OS/Python scope classification for CPython on Windows/Linux 3.11
   or 3.14.
 - The standard-library import union needed by the two lab implementations and
-  their command-line paths: `argparse`, `csv`, `datetime`, `hashlib`, `json`,
-  `os`, `pathlib`, `shutil`, `stat`, `tempfile`, and `zoneinfo`.
+  their command-line paths: `argparse`, `collections`, `csv`, `datetime`,
+  `hashlib`, `io`, `json`, `os`, `pathlib`, `secrets`, `shutil`, `stat`, `sys`,
+  `tempfile`, and `typing`.
 - SHA-256 of the synthetic bytes `abc`.
 - Synthetic JSON serialization/read-back and CSV parsing.
 - Conversion of `2026-09-12T09:00:00+09:00` to UTC while retaining timezone
@@ -68,9 +69,10 @@ The adopted options are:
 
 - `--json` prints the same structured result shape used by the report. JSON is
   emitted with ASCII escapes so a Windows non-UTF-8 console cannot corrupt it.
-- `--report PATH` writes a new JSON file using exclusive creation. The parent
-  directory must already exist. An existing file, including a race detected by
-  exclusive creation, is refused and never overwritten.
+- `--report PATH` writes a new JSON file using exclusive creation. The existing
+  parent path components and parent directory must be normal directories rather
+  than symbolic links or Windows reparse points. An existing file, including a
+  race detected by exclusive creation, is refused and never overwritten.
 - `--temp-root PATH` selects an existing directory as the parent only. The
   tool creates a fresh uniquely named child and never reuses or removes the
   parent. Without it, the operating system temporary directory is used.
@@ -94,12 +96,15 @@ variables, user-file contents, or unnecessary personal absolute paths.
 ## Filesystem safety
 
 The tool creates a new child directory with exclusive directory creation under
-the selected temporary parent. Existing files and directories are not reused
+the selected temporary parent after checking its existing path components.
+Existing files and directories are not reused
 or deleted. Cleanup enumerates only that owned root, refuses symbolic links,
 Windows reparse points, and non-regular entries, and removes no parent or
-outside target. If cleanup fails, the result is `FAIL` and the message limits
-manual inspection to that owned directory; broad deletion and privilege
-changes are not solutions.
+outside target. A report is created exclusively under an existing normal
+parent; a write failure removes only a regular partial report that this run
+created, and reports a cleanup failure instead of hiding it. If cleanup fails,
+the result is `FAIL` and the message limits manual inspection to that owned
+directory; broad deletion and privilege changes are not solutions.
 
 This is intentionally not a claim of protection against concurrent path
 replacement between validation and later filesystem operations. It does not

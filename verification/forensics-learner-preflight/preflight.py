@@ -37,16 +37,20 @@ CONFIGURED_MATRIX = {
 }
 LAB_STDLIB_MODULES = (
     "argparse",
+    "collections",
     "csv",
     "datetime",
     "hashlib",
+    "io",
     "json",
     "os",
     "pathlib",
+    "secrets",
     "shutil",
     "stat",
+    "sys",
     "tempfile",
-    "zoneinfo",
+    "typing",
 )
 REPARSE_POINT_ATTRIBUTE = 0x0400
 TOOL_NAME = "securium-forensics-learner-preflight"
@@ -273,8 +277,19 @@ def _is_link_or_reparse_stat(file_stat: os.stat_result) -> bool:
     )
 
 
+def _validate_existing_path_components(path: Path) -> None:
+    absolute = Path(os.path.abspath(path))
+    current = Path(absolute.anchor)
+    for component in absolute.parts[1:]:
+        current /= component
+        component_stat = os.lstat(current)
+        if _is_link_or_reparse_stat(component_stat):
+            raise OSError("path component is a symbolic link or reparse point")
+
+
 def _validate_temp_parent(parent: Path) -> None:
     try:
+        _validate_existing_path_components(parent)
         parent_stat = os.lstat(parent)
     except OSError as error:
         raise OSError("temporary parent could not be inspected") from error
@@ -289,14 +304,27 @@ def create_owned_directory(temp_root: Path | None = None) -> Path:
     _validate_temp_parent(parent)
     for _ in range(20):
         candidate = parent / f"securium-forensics-preflight-{uuid.uuid4().hex}"
+        created = False
         try:
             os.mkdir(candidate)
+            created = True
         except FileExistsError:
             continue
-        candidate_stat = os.lstat(candidate)
-        if _is_link_or_reparse_stat(candidate_stat) or not stat.S_ISDIR(candidate_stat.st_mode):
-            raise OSError("new temporary directory did not remain a normal directory")
-        return candidate
+        try:
+            candidate_stat = os.lstat(candidate)
+            if _is_link_or_reparse_stat(candidate_stat) or not stat.S_ISDIR(candidate_stat.st_mode):
+                raise OSError("new temporary directory did not remain a normal directory")
+            return candidate
+        except Exception as error:
+            if created:
+                try:
+                    _remove_owned_tree(candidate)
+                except Exception as cleanup_error:
+                    raise OSError(
+                        "new temporary directory validation failed and its partial cleanup failed "
+                        f"({safe_exception_name(error)}; {safe_exception_name(cleanup_error)})"
+                    ) from error
+            raise
     raise FileExistsError("could not allocate a unique temporary directory")
 
 
@@ -529,25 +557,57 @@ def run_preflight(
 
 
 def validate_report_target(path: Path) -> None:
-    if path.exists():
-        raise PreflightUsageError("the requested report already exists; choose a new output path")
-    if not path.parent.exists():
+    parent = path.parent
+    if not os.path.lexists(parent):
         raise PreflightUsageError("the report parent directory does not exist; create it and retry")
-    if not path.parent.is_dir():
+    try:
+        _validate_existing_path_components(parent)
+        parent_stat = os.lstat(parent)
+    except OSError as error:
+        raise PreflightUsageError(
+            "the report parent directory could not be inspected"
+        ) from error
+    if _is_link_or_reparse_stat(parent_stat):
+        raise PreflightUsageError(
+            "the report parent must not be a symbolic link or reparse point"
+        )
+    if not stat.S_ISDIR(parent_stat.st_mode):
         raise PreflightUsageError("the report parent is not a directory")
+    if os.path.lexists(path):
+        raise PreflightUsageError("the requested report already exists; choose a new output path")
 
 
 def write_report(path: Path, result: dict[str, Any]) -> None:
     validate_report_target(path)
     payload = json.dumps(result, ensure_ascii=True, indent=2, sort_keys=True) + "\n"
+    created = False
     try:
         with path.open("x", encoding="ascii", newline="\n") as stream:
+            created = True
             stream.write(payload)
     except FileExistsError as error:
         raise PreflightUsageError("the requested report already exists; choose a new output path") from error
     except OSError as error:
+        cleanup_error: BaseException | None = None
+        if created:
+            try:
+                partial_stat = os.lstat(path)
+                if _is_link_or_reparse_stat(partial_stat) or not stat.S_ISREG(partial_stat.st_mode):
+                    raise OSError("partial report is no longer a regular file")
+                os.unlink(path)
+            except FileNotFoundError:
+                pass
+            except OSError as partial_cleanup_error:
+                cleanup_error = partial_cleanup_error
+        cleanup_note = "partial output cleanup completed"
+        if cleanup_error is not None:
+            cleanup_note = (
+                "partial output cleanup failed "
+                f"({safe_exception_name(cleanup_error)})"
+            )
         raise PreflightUsageError(
-            f"the report could not be written ({safe_exception_name(error)}); no existing file was replaced"
+            "the report could not be written "
+            f"({safe_exception_name(error)}); no existing file was replaced; {cleanup_note}"
         ) from error
 
 
