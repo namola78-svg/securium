@@ -9,7 +9,7 @@ test("repository migration namespace is duplicate-free and journal-consistent", 
   const result = await inspectMigrationNamespace();
   assert.equal(result.postgres.length, 35);
   assert.equal(result.d1.length, 45);
-  assert.equal(result.journalEntries, 45);
+  assert.equal(result.journalEntries, 46);
 });
 
 test("D1 numeric ID collisions fail closed even with different tags", async () => {
