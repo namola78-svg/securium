@@ -8,7 +8,7 @@
   "titleAuthority": "SECURIUM_DRAFT_TITLE_NOT_OFFICIAL_UNIT_TITLE",
   "officialScopeAnchor": {
     "subjectNumber": "II",
-    "subjectName": "정보보호 위험 평가 및 준비",
+    "subjectName": "정보보호 위험평가",
     "majorItem": "위험관리 평가 방법론 선정",
     "subitems": [
       "위험평가 방법의 정의, 분류 및 선정",
@@ -45,7 +45,7 @@
     "status": "PARTIAL",
     "officialSemanticVersion": "UNKNOWN",
     "officialScopeDetail": "PARTIAL",
-    "identityPageReviewedOn": "2026-09-11",
+    "identityPageReviewedOn": "2026-09-12",
     "unitIdYearRangeNotUsedAsEvidence": true
   },
   "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
