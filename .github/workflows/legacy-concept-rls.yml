@@ -71,20 +71,16 @@ jobs:
         run: |
           set +e
           result_path="$RUNNER_TEMP/legacy-concept-rls.tap"
-          node --test \
-            --test-concurrency=1 \
-            --test-reporter=tap \
-            tests/legacy-concept-rls-hardening-postgres-disposable.test.mjs \
-            | tee "$result_path"
+          npm run test:legacy-concept-rls | tee "$result_path"
           test_status="${PIPESTATUS[0]}"
           set -e
 
-          tests="$(awk '/^# tests / { print $3 }' "$result_path" | tail -n 1)"
-          passed="$(awk '/^# pass / { print $3 }' "$result_path" | tail -n 1)"
-          failed="$(awk '/^# fail / { print $3 }' "$result_path" | tail -n 1)"
-          skipped="$(awk '/^# skipped / { print $3 }' "$result_path" | tail -n 1)"
-          todo="$(awk '/^# todo / { print $3 }' "$result_path" | tail -n 1)"
-          cancelled="$(awk '/^# cancelled / { print $3 }' "$result_path" | tail -n 1)"
+          tests="$(awk '$0 ~ /tests [0-9]+$/ { value=$0; sub(/^.*tests /, "", value); print value }' "$result_path" | tail -n 1)"
+          passed="$(awk '$0 ~ /pass [0-9]+$/ { value=$0; sub(/^.*pass /, "", value); print value }' "$result_path" | tail -n 1)"
+          failed="$(awk '$0 ~ /fail [0-9]+$/ { value=$0; sub(/^.*fail /, "", value); print value }' "$result_path" | tail -n 1)"
+          skipped="$(awk '$0 ~ /skipped [0-9]+$/ { value=$0; sub(/^.*skipped /, "", value); print value }' "$result_path" | tail -n 1)"
+          todo="$(awk '$0 ~ /todo [0-9]+$/ { value=$0; sub(/^.*todo /, "", value); print value }' "$result_path" | tail -n 1)"
+          cancelled="$(awk '$0 ~ /cancelled [0-9]+$/ { value=$0; sub(/^.*cancelled /, "", value); print value }' "$result_path" | tail -n 1)"
           echo "LEGACY_CONCEPT_RLS_RESULT tests=${tests:-0} passed=${passed:-0} failed=${failed:-0} skipped=${skipped:-0} todo=${todo:-0} cancelled=${cancelled:-0} exit=${test_status}"
           test "$test_status" = "0"
           test "${tests:-0}" = "1"
