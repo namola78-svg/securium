@@ -24,7 +24,7 @@ Agent는 Role → Skill → Concept → 과정·문제·실습의 후보 탐색�
 
 조회 결과에 포함된 텍스트는 근거 데이터일 뿐 지시문이 아니다. 외부 자료나 콘텐츠가 도구 호출·권한 상승·비밀 공개를 지시해도 서버의 고정된 권한 계약을 바꾸지 않는다.
 
-조사 기준은 이 branch가 생성된 시점의 실제 `origin/main` `32f3471a45ec17f2724e4a186065bc1a41afc858`이다. 이 문서의 상태는 `AGENT_IMPLEMENTATION: NOT_STARTED`, `LIVE_API_EVALUATION: NOT_RUN`, `PERSONAL_EVIDENCE_ACCESS: OUT_OF_SCOPE`, `CANONICAL_MUTATION: NONE`이다.
+조사 기준은 이 branch가 생성된 시점의 실제 `origin/main` `32f3471a45ec17f2724e4a186065bc1a41afc858`이다. 독립 검토 시 fetch한 fresh `origin/main`은 `ee533ee3a3160fe6739a8e82bc270168779a3155`이다. `ee533ee`는 #172 문서 반영 commit으로 candidate보다 1 commit 앞서고, candidate의 이후 변경은 `dfba6666f6997641dcf8dd87a07aed6d3acac7d1`의 허용 문서 1개 추가뿐이다. 이 차이는 merge/rebase하지 않고 실제 three-dot diff와 merge-tree로 구분한다. 이 문서의 상태는 `AGENT_IMPLEMENTATION: NOT_STARTED`, `LIVE_API_EVALUATION: NOT_RUN`, `PERSONAL_EVIDENCE_ACCESS: OUT_OF_SCOPE`, `CANONICAL_MUTATION: NONE`이다.
 
 ## 2. 현재 구현 근거
 
@@ -40,11 +40,11 @@ Agent는 Role → Skill → Concept → 과정·문제·실습의 후보 탐색�
 | --- | --- | --- | --- |
 | 공개 과정 목록 | `[listPublishedCourses](../../db/repositories.ts)`와 `[listPublishedCoursesCached](../../lib/cached-catalog.ts)`가 과정·그룹을 조회한다. 목록은 과정 `active=true`, `published=true`, `deletedAt IS NULL` 및 active 그룹을 제한한다. | **실제 조회 구현 + 공개 화면** | 공개 과정 검색의 안전한 기반이다. 다만 현재 `/courses`는 전체 목록을 읽어 서버에서 필터하며 cursor pagination은 없다. |
 | 공개 과정 상세 | `[getPublicCourseBySlug](../../db/repositories.ts)`와 `[과정 상세 route](<../../app/courses/[courseSlug]/page.tsx>)`가 공개 과정과 `[listCurriculum](../../db/repositories.ts)`의 subject/topic 개요를 사용한다. | **실제 조회 구현 + 공개 화면** | `slug` 기반 과정·subject·topic 개요는 첫 익명 도구에 사용할 수 있다. lesson 본문이나 사용자 progress는 이 경로에 없다. |
-| 과정·curriculum path | `[getPublishedCurriculumPathOverviewForCourse](../../db/curriculum-repositories.ts)`와 `[getPublishedCurriculumPathForCourse](../../db/curriculum-repositories.ts)`가 active tree/node와 published `course_lessons`/`contents`를 결합한다. | **실제 조회 구현, 그러나 learn 경로는 사용자 상태와 결합** | 더 깊은 outline은 존재하지만 현재 `/learn`은 로그인·enrollment이 필요하다. 익명 공개 도구로 재사용하려면 progress 없는 public projection이 별도로 필요하다. |
-| 공개 lesson/unit metadata | `[DatabaseRetrievalProvider](../../db/ai-repositories.ts)`가 active·published lesson/unit과 공개 과정 조건으로 검색하고 `[RetrievalContext](../../lib/ai/types.ts)`의 `id`, `kind`, `title`, `excerpt`, `courseId`, `topicId`, `version`, `reviewedAt`를 만든다. | **내부 AI retrieval 구현, 익명 공개 API 아님** | lesson/unit metadata의 후보 근거는 있다. 그러나 같은 provider가 question explanation을 context로 만들므로 그대로 노출하면 안 된다. |
-| lesson 본문·revision | `[getPublishedLessonForUser](../../db/lesson-repositories.ts)`와 `[lesson route](<../../app/learn/[courseSlug]/lessons/[lessonId]/page.tsx>)`는 로그인·과정 enrollment을 확인한다. `[getLatestPublishedRevision](../../db/content-revision-repositories.ts)`는 `revisionStatus=published`와 `isLatest=true`만 찾는다. | **실제 조회 구현, enrolled 사용자 범위** | 본문·revision은 첫 익명 계약에 포함하지 않는다. revision 값은 실제 resolver가 제공할 때만 반환한다. |
-| 문제 검색·필터 | `[listPublicQuestions](../../db/question-repositories.ts)`는 `questions.status=PUBLISHED`와 공개 과정 조건을 적용하고 최대 50개를 반환한다. `[practice route](<../../app/practice/[courseSlug]/page.tsx>)`는 로그인과 enrollment을 요구한다. | **인증된 practice 조회 구현** | 공개 과정에 연결된 published 문제라는 사실과 익명으로 문제 본문·선택지를 공개할 권한은 별개다. 답·해설은 Agent 도구에 포함하지 않는다. |
-| Canonical Concept | `[canonical-concept-authority](../../lib/services/canonical-concept-authority.ts)`는 `ontology_concepts`를 canonical store로 선언한다. `[canonical-concept-repositories](../../db/canonical-concept-repositories.ts)`는 exact identity/alias resolve와 active Concept 후보 검색을 구현한다. | **실제 resolve/search 구현, 공개 정책 미완성** | Concept을 찾는 내부 근거는 있다. 그러나 `loadCanonicalConceptState`가 publication/access/revision을 `UNKNOWN`으로 반환하므로 anonymous 공개 승인으로 해석할 수 없다. |
+| 과정·curriculum path | `[listCurriculum](../../db/repositories.ts)`가 공개 과정 상세에서 subject/topic 개요를 반환한다. `[curriculum repository](../../db/curriculum-repositories.ts)`에는 tree/node 조회 함수도 있으나 이 표의 공개 route 근거와 동일한 계약은 아니다. | **기존 공개 조회 구현을 재사용할 수 있음 (subject/topic 범위); 더 깊은 outline은 공개 정책·출력 계약 필요** | 더 깊은 outline을 공개 course의 하위 전체로 가정하지 않는다. 현재 `/learn`은 로그인·enrollment이 필요하므로 progress 없는 public projection과 publication 검사가 별도로 필요하다. |
+| 공개 lesson/unit metadata | `[DatabaseRetrievalProvider](../../db/ai-repositories.ts)`가 active·published lesson/unit과 공개 과정 조건으로 검색하고 `[RetrievalContext](../../lib/ai/types.ts)`의 `id`, `kind`, `title`, `excerpt`, `courseId`, `topicId`, `version`, `reviewedAt`를 만든다. | **기존 내부 구현은 있으나 공개 정책·출력 계약이 필요함** | lesson/unit metadata의 후보 근거는 있다. 그러나 같은 provider가 question explanation을 context로 만들므로 그대로 노출하면 안 된다. |
+| lesson 본문·revision | `[getPublishedLessonForUser](../../db/lesson-repositories.ts)`와 `[lesson route](<../../app/learn/[courseSlug]/lessons/[lessonId]/page.tsx>)`는 로그인·과정 enrollment을 확인한다. `[getLatestPublishedRevision](../../db/content-revision-repositories.ts)`는 `revisionStatus=published`와 `isLatest=true`만 찾는다. | **기존 내부 구현은 있으나 공개 정책·출력 계약이 필요함** | 본문·revision은 첫 익명 계약에 포함하지 않는다. revision 값은 실제 resolver가 제공할 때만 반환한다. |
+| 문제 검색·필터 | `[listPublicQuestions](../../db/question-repositories.ts)`는 `questions.status=PUBLISHED`와 공개 과정 조건을 적용하고 최대 50개를 반환한다. `[practice route](<../../app/practice/[courseSlug]/page.tsx>)`는 로그인과 enrollment을 요구한다. | **기존 내부 구현은 있으나 공개 정책·출력 계약이 필요함** | 공개 과정에 연결된 published 문제라는 사실과 익명으로 문제 본문·선택지를 공개할 권한은 별개다. 답·해설은 Agent 도구에 포함하지 않는다. |
+| Canonical Concept | `[canonical-concept-authority](../../lib/services/canonical-concept-authority.ts)`는 `ontology_concepts`를 canonical store로 선언한다. `[canonical-concept-repositories](../../db/canonical-concept-repositories.ts)`는 exact identity/alias resolve와 active Concept 후보 검색을 구현한다. | **기존 내부 구현은 있으나 공개 정책·출력 계약이 필요함** | Concept을 찾는 내부 근거는 있다. 그러나 `loadCanonicalConceptState`가 publication/access/revision을 `UNKNOWN`으로 반환하므로 anonymous 공개 승인으로 해석할 수 없다. |
 | Occupational Role / Skill | `[occupational-role-repositories](../../db/occupational-role-repositories.ts)`, `[skill-repositories](../../db/skill-repositories.ts)`, `[typed-relation-repositories](../../db/typed-relation-repositories.ts)`가 Role·Skill과 `ROLE_REQUIRES_SKILL`, `SKILL_REQUIRES_CONCEPT` 관계를 읽는다. | **실제 서버 query 구현 + 모델** | 공개 endpoint는 아니지만 Role→Skill→Concept의 canonical 조회 근거는 충분하다. `ACTIVE`는 관계 lifecycle이며 익명 publication grant와 동일하지 않다. |
 | 제한된 graph query | `[skill-graph-query](../../lib/services/skill-graph-query.ts)`와 `[skill-graph-query-repository](../../db/skill-graph-query-repository.ts)`가 exact identity/alias, 1–2 hop, cursor, fan-out 제한을 검증한다. 현재 app/API의 public call site는 확인되지 않았다. | **실제 service/repository, 공개 adapter 없음** | 후속 gated 도구의 기반으로만 기록한다. 현재 익명 도구가 바로 제공된다고 선언하지 않는다. |
 | Concept ↔ resource 연결 | `content_revision_concepts`, `question_concepts`, `ontology_edges` 스키마와 승인 mapping 사용처는 있다. | **데이터 모델·일부 내부 사용, 안전한 public join 없음** | `list_related_learning_resources`는 첫 공개 도구에 넣지 않는다. published resource와 승인된 mapping을 함께 검증하는 repository가 선행되어야 한다. |
@@ -52,6 +52,14 @@ Agent는 Role → Skill → Concept → 과정·문제·실습의 후보 탐색�
 현재 `/courses`의 `q` 검색은 과정명·short name·그룹명·표시용 description/audience를 문자열로 필터한다. `[course-display](../../lib/course-display.ts)`의 `courseAudienceLabel`과 `courseLearningGoals`는 화면 표시용 규칙/문구이지 canonical Role, Skill, learning outcome 관계가 아니다. 또한 과정의 `questionCount`는 `questionCourses` 연결 수를 세므로 공개 문제 수나 공개 답안의 증거로 사용하지 않는다. `status=planned` UI 선택지는 이미 `listPublishedCourses`가 published 과정만 반환하는 현재 경로와 동일하지 않으므로 Agent 공개 상태 필터로 재사용하지 않는다.
 
 설계 문서인 `[ontology-knowledge-graph.md](../../docs/architecture/ontology-knowledge-graph.md)`와 `[ontology-domain-foundation.md](../../docs/architecture/ontology-domain-foundation.md)`는 방향·후속 작업을 설명한다. 이 문서에서 실제 route/repository가 없는 내용은 “설계 문서에만 있음”으로 취급하며 runtime registry나 publication 완료로 승격하지 않는다.
+
+### 2.3 `public-source-transparency.md`와의 대조
+
+현재 fresh `origin/main`의 #172 문서와 대조하면, 공개 과정 projection과 화면에서 근거가 확인되는 값은 과정 식별자(`name`, `shortName`, `code`, `slug`), Securium이 작성한 설명·난이도·기대 수준·통과 기준, 집계값, 게시/활성 조건, `updatedAt` 및 과정 URL이다. 이 값들은 공개 조회의 현재 metadata일 뿐 공식 원문 source나 revision을 뜻하지 않는다.
+
+`curriculumTrees`와 `contentRevisions`는 source/revision 후보 모델 및 내부 조회 근거이지만 현재 공개 과정 projection에 연결되어 있지 않다. 따라서 제안 응답의 `source`, `revision`, `asOf`는 실제 public resolver가 제공할 때만 반환하고, 없으면 `NOT_AVAILABLE`로 둔다. `updatedAt`, 게시 상태, validator 성공을 최신성·검수 승인·사용 권한으로 확대하지 않는다. 공식 자료와 Securium의 독립 설명은 별도 provenance로 구분하고, link/hash 일치는 사용권이나 기관 보증을 의미하지 않는다.
+
+저장소에는 [MCP-A core](../../lib/mcp/mcpa-core.ts)와 [MCP-A adapter](../../lib/mcp/mcpa-adapter.ts)가 존재하지만, 현재 등록된 이름은 제안한 도구가 아닌 `search_learning_content`와 `get_question`이며 local stdio가 환경 변수로 제한된다. 이는 공개 HTTP route, 익명 배포, Agents API/MCP 계정 접근 또는 동작 검증의 근거가 아니다. 현재 MCP envelope의 `sourceAuthority`·revision 값도 이 public-source 계약으로 재사용하지 않는다.
 
 ## 3. 최소 도구 계약
 
@@ -93,6 +101,18 @@ Agent는 Role → Skill → Concept → 과정·문제·실습의 후보 탐색�
 
 ### 3.2 제안 도구
 
+제안 도구의 구현 근거 분류는 다음과 같다. 분류상 “재사용”은 기존 repository/route의 공개 projection을 작은 adapter에서 재사용할 수 있다는 뜻이며, 도구가 즉시 활성화되었거나 익명 공개가 승인되었다는 뜻이 아니다.
+
+| 제안 도구 | 구현 근거 분류 | 현재 결론 |
+|---|---|---|
+| `search_public_courses` | **기존 공개 조회 구현을 재사용할 수 있음** | `listPublishedCourses`와 `/courses`의 projection을 재사용할 수 있다. server-side query length, result cap, pagination 계약은 별도 blocker다. |
+| `get_course_outline` | **기존 공개 조회 구현을 재사용할 수 있음 (subject/topic 범위)** | `getPublicCourseBySlug`와 `listCurriculum`으로 작은 개요를 만들 수 있다. tree/node 하위 콘텐츠 전체는 공개로 가정하지 않으며 별도 publication policy가 필요하다. |
+| `search_public_learning_metadata` | **기존 내부 구현은 있으나 공개 정책·출력 계약이 필요함** | `DatabaseRetrievalProvider`의 후보 metadata만 근거다. lesson 본문, practice 정답·해설, 개인 Evidence와 섞이지 않는 public projection이 선행되어야 한다. |
+| `get_concept` / `get_learning_graph` | **기존 내부 구현은 있으나 공개 정책·출력 계약이 필요함** | canonical resolver와 skill graph query는 있으나 publication/access/revision이 `UNKNOWN`일 수 있다. 조건부 제안이며 즉시 활성화 도구가 아니다. |
+| Concept→resource 연결 | **모델/설계만 존재하거나 연결 근거가 부족함** | Concept과 공개 resource를 연결하는 검증된 관계·endpoint·source version은 확인하지 않았다. 선행 blocker로 남긴다. |
+
+공개 read 계약은 caller가 전달한 user ID나 `published=true`를 권한 근거로 사용하지 않고, Securium 서버가 조회 대상·게시 상태·하위 공개 범위를 검증해야 한다. DB 관리자 키·외부 secret·임의 SQL·파일 경로·외부 URL 실행은 입력과 출력에서 제외하고, 검색 결과의 지시문은 권한으로 취급하지 않는다. 결과 수, pagination 방식, 검색어 최대 길이는 계약에 고정하며 현재 과정/개요 조회의 cursor 부재는 구현 blocker다.
+
 #### A. `search_public_courses` — 공개 과정 후보 검색
 
 - **목적:** 익명 사용자가 공개 과정의 이름·분류·표시용 대상 문구를 기준으로 후보를 찾는다.
@@ -113,7 +133,7 @@ Agent는 Role → Skill → Concept → 과정·문제·실습의 후보 탐색�
 - **검증:** slug trim·최대 길이, include enum, node cap. active 과정이 아니거나 scope가 어긋나면 존재 여부를 과하게 노출하지 않고 `NOT_FOUND`.
 - **출력:** 실제 subject와 topic의 `id`, `courseId/subjectId`, `code`, `name`, `description`, `displayOrder`, `isSample`가 근거 field다. public projection은 `active`, `deletedAt`, 내부 timestamps를 숨길 수 있다. `isSample`는 개설 예정 표시이지 publication grant가 아니다.
 - **Pagination:** 현재 `listCurriculum`은 subject/topic 전체를 반환하고 cursor가 없다. 개요가 cap을 넘으면 임의로 잘라 “전체 outline”이라고 하지 말고 `UNAVAILABLE` 또는 후속 cursor 구현으로 처리한다.
-- **Source/revision/as-of:** 현재 public detail projection은 curriculum tree version/source를 제공하지 않는다. 과정 `updatedAt`만 조회 시점의 metadata로 표시 가능하며 source/revision은 `NOT_AVAILABLE`이다. `[getPublishedCurriculumPathOverviewForCourse](../../db/curriculum-repositories.ts)`의 tree version을 공개 승인 없이 그대로 가져오지 않는다.
+- **Source/revision/as-of:** 현재 public detail projection은 curriculum tree version/source를 제공하지 않는다. 과정 `updatedAt`만 조회 시점의 metadata로 표시 가능하며 source/revision은 `NOT_AVAILABLE`이다. `[listCurriculumTrees](../../db/curriculum-repositories.ts)`의 tree version도 공개 승인 없이 그대로 가져오지 않는다.
 - **공개 정책:** 공개 과정 검증 뒤 subject/topic의 active 및 deleted 조건을 서버에서 적용한다. lesson body, course lesson extension, user progress, practice question을 이 도구로 확장하지 않는다.
 - **처리:** 공개 과정은 있으나 개요가 비어 있으면 `OK` + 빈 outline과 “개요 없음”을 반환한다. 과정 자체를 찾지 못하면 `NOT_FOUND`; provider/정책 결합이 준비되지 않으면 `UNAVAILABLE`.
 
@@ -252,7 +272,7 @@ Agent 제안
 
 ### 7.1 첫 구현 PR의 최소 파일 후보
 
-정확한 MCP 등록 위치는 현재 저장소에서 확인되지 않았으므로 파일명을 미리 단정하지 않는다. 첫 PR은 기존 계층을 재사용하는 작은 server adapter와 테스트로 시작한다.
+현재 [MCP-A adapter](../../lib/mcp/mcpa-adapter.ts)는 별도 local stdio 구현으로 존재하지만 제안 도구를 등록한 것은 아니다. 첫 구현은 기존 공개 계층을 재사용하는 작은 server adapter와 public projection 테스트로 시작하며, HTTP route·transport·익명 배포·계정 접근은 이 문서 범위에서 검증 완료로 표현하지 않는다.
 
 1. 새 `lib/services/` 계약 모듈: input schema, 공통 envelope, status/error code, 공개 projection type.
 2. 새 `lib/services/` policy 모듈: anonymous public predicate, resource-kind allowlist, redaction, source/revision availability.
