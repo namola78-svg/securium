@@ -3,6 +3,7 @@ import type { BatchItem } from "drizzle-orm/batch";
 import { getDb } from ".";
 import {
   contents,
+  contentRevisions,
   courseLessonExtensions,
   courseLessons,
   courses,
@@ -23,6 +24,11 @@ import {
   normalizeCourseLessonTimeSpentSeconds,
   mergeCourseLessonPresentation,
 } from "@/lib/services/shared-content-service";
+import {
+  SHARED_CONTENT_REVISION_SNAPSHOT_KIND,
+  stableJson,
+  THEORY_REVISION_CONTENT_TYPE,
+} from "@/lib/services/content-revision-service";
 import type {
   courseLessonExtensionSchema,
   courseLessonSchema,
@@ -41,6 +47,192 @@ function batchItems(items: BatchItem<"sqlite">[]) {
 function optionalText(value: string | null | undefined) {
   const normalized = value?.trim();
   return normalized ? normalized : null;
+}
+
+type SharedContentRevisionPayload = Readonly<{
+  title: string;
+  summary: string;
+  body: string;
+  bodyFormat: string;
+  learningObjectivesJson: string;
+  coreConceptsJson: string;
+  practicalExamplesJson: string;
+  diagramsJson: string;
+  mediaJson: string;
+}>;
+
+type SharedContentRevisionSnapshot = Readonly<{
+  kind: typeof SHARED_CONTENT_REVISION_SNAPSHOT_KIND;
+  contentId: string;
+  version: string;
+  payload: SharedContentRevisionPayload;
+}>;
+
+function sharedContentRevisionPayload(
+  input: SharedContentRevisionPayload,
+): SharedContentRevisionPayload {
+  return {
+    title: input.title,
+    summary: input.summary,
+    body: input.body,
+    bodyFormat: input.bodyFormat,
+    learningObjectivesJson: input.learningObjectivesJson,
+    coreConceptsJson: input.coreConceptsJson,
+    practicalExamplesJson: input.practicalExamplesJson,
+    diagramsJson: input.diagramsJson,
+    mediaJson: input.mediaJson,
+  };
+}
+
+function sharedContentRevisionSnapshot(
+  contentId: string,
+  input: Pick<SharedContentInput, "version"> & SharedContentRevisionPayload,
+): SharedContentRevisionSnapshot {
+  return {
+    kind: SHARED_CONTENT_REVISION_SNAPSHOT_KIND,
+    contentId,
+    version: input.version,
+    payload: sharedContentRevisionPayload(input),
+  };
+}
+
+function sharedContentRevisionSnapshotFromRow(
+  row: typeof contents.$inferSelect,
+): SharedContentRevisionSnapshot {
+  return sharedContentRevisionSnapshot(row.id, {
+    ...sharedContentRevisionPayload(row),
+    version: row.version,
+  });
+}
+
+function parseSharedContentRevisionSnapshot(
+  value: string,
+): SharedContentRevisionSnapshot | null {
+  try {
+    const parsed = JSON.parse(value) as Partial<SharedContentRevisionSnapshot>;
+    if (
+      parsed.kind !== SHARED_CONTENT_REVISION_SNAPSHOT_KIND ||
+      typeof parsed.contentId !== "string" ||
+      typeof parsed.version !== "string" ||
+      !parsed.payload ||
+      typeof parsed.payload !== "object"
+    ) {
+      return null;
+    }
+    return parsed as SharedContentRevisionSnapshot;
+  } catch {
+    return null;
+  }
+}
+
+function snapshotJson(snapshot: SharedContentRevisionSnapshot) {
+  const value = stableJson(snapshot);
+  if (new TextEncoder().encode(value).byteLength > 100_000) {
+    throw new AppError(
+      "This published revision is too large for the existing immutable snapshot contract.",
+      409,
+      "SHARED_CONTENT_REVISION_SNAPSHOT_TOO_LARGE",
+    );
+  }
+  return value;
+}
+
+async function snapshotSemanticHash(value: string) {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(value),
+  );
+  return [...new Uint8Array(digest)]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+async function getSharedContentRevision(contentId: string, version: string) {
+  const [revision] = await getDb()
+    .select()
+    .from(contentRevisions)
+    .where(
+      and(
+        eq(contentRevisions.contentType, THEORY_REVISION_CONTENT_TYPE),
+        eq(contentRevisions.contentId, contentId),
+        eq(contentRevisions.version, version),
+      ),
+    )
+    .limit(1);
+  return revision ?? null;
+}
+
+async function getLatestSharedContentRevision(contentId: string) {
+  const [revision] = await getDb()
+    .select()
+    .from(contentRevisions)
+    .where(
+      and(
+        eq(contentRevisions.contentType, THEORY_REVISION_CONTENT_TYPE),
+        eq(contentRevisions.contentId, contentId),
+        eq(contentRevisions.isLatest, true),
+      ),
+    )
+    .limit(1);
+  return revision ?? null;
+}
+
+async function assertSharedContentRevisionMatches(
+  revision: typeof contentRevisions.$inferSelect,
+  snapshot: SharedContentRevisionSnapshot,
+) {
+  const json = snapshotJson(snapshot);
+  const stored = parseSharedContentRevisionSnapshot(revision.snapshotJson);
+  const semanticHash = await snapshotSemanticHash(json);
+  if (
+    !stored ||
+    stableJson(stored) !== json ||
+    revision.semanticHash !== semanticHash
+  ) {
+    throw new AppError(
+      "The existing shared-content revision is immutable and conflicts with the requested payload.",
+      409,
+      "SHARED_CONTENT_REVISION_CONFLICT",
+    );
+  }
+}
+
+function sharedContentRevisionInsert(
+  revisionId: string,
+  snapshot: SharedContentRevisionSnapshot,
+  actorUserId: string,
+  now: string,
+  semanticHash: string,
+  options: {
+    revisionStatus: "published" | "superseded";
+    isLatest: boolean;
+    previousVersionId: string | null;
+  },
+) {
+  const json = snapshotJson(snapshot);
+  return getDb().insert(contentRevisions).values({
+    id: revisionId,
+    contentType: THEORY_REVISION_CONTENT_TYPE,
+    contentId: snapshot.contentId,
+    courseId: null,
+    title: snapshot.payload.title,
+    contentDate: now.slice(0, 10),
+    version: snapshot.version,
+    revisionStatus: options.revisionStatus,
+    snapshotJson: json,
+    reviewedAt: null,
+    reviewedBy: null,
+    publishedAt: now,
+    supersededAt: options.revisionStatus === "superseded" ? now : null,
+    changeSummary: "Shared content immutable revision snapshot",
+    previousVersionId: options.previousVersionId,
+    isLatest: options.isLatest,
+    createdBy: actorUserId,
+    createdAt: now,
+    updatedAt: now,
+    semanticHash,
+    humanReviewHash: null,
+  });
 }
 
 export async function listSharedContents(status?: string) {
@@ -114,6 +306,151 @@ export async function saveSharedContent(
     );
   }
 
+  const now = new Date().toISOString();
+  const requestedSnapshot = sharedContentRevisionSnapshot(id, {
+    ...sharedContentRevisionPayload(input),
+    version: input.version,
+  });
+  const revisionStatements: BatchItem<"sqlite">[] = [];
+  if (!existing) {
+    if (input.status === "PUBLISHED") {
+      const snapshot = sharedContentRevisionSnapshot(id, {
+        ...sharedContentRevisionPayload(input),
+        version: input.version,
+      });
+      revisionStatements.push(
+        sharedContentRevisionInsert(
+          crypto.randomUUID(),
+          snapshot,
+          actorUserId,
+          now,
+          await snapshotSemanticHash(snapshotJson(snapshot)),
+          { revisionStatus: "published", isLatest: true, previousVersionId: null },
+        ),
+      );
+    }
+  } else {
+    const currentSnapshot = sharedContentRevisionSnapshotFromRow(existing);
+    const sameVersion = existing.version === input.version;
+    const payloadChanged =
+      stableJson(currentSnapshot.payload) !==
+      stableJson(requestedSnapshot.payload);
+    const currentRevision = await getSharedContentRevision(id, existing.version);
+
+    if (currentRevision) {
+      await assertSharedContentRevisionMatches(currentRevision, currentSnapshot);
+    }
+    if (
+      sameVersion &&
+      currentRevision &&
+      payloadChanged
+    ) {
+      throw new AppError(
+        "The existing shared-content revision is immutable and conflicts with the requested payload.",
+        409,
+        "SHARED_CONTENT_REVISION_CONFLICT",
+      );
+    }
+    if (
+      sameVersion &&
+      existing.status !== "DRAFT" &&
+      payloadChanged
+    ) {
+      throw new AppError(
+        "Published shared-content revisions cannot change their learning payload without a new version.",
+        409,
+        "SHARED_CONTENT_REVISION_CONFLICT",
+      );
+    }
+
+    if (sameVersion) {
+      if (!currentRevision && input.status !== "DRAFT") {
+        const latestRevision = await getLatestSharedContentRevision(id);
+        const previousVersionId = latestRevision?.id ?? null;
+        if (latestRevision) {
+          revisionStatements.push(
+            getDb()
+              .update(contentRevisions)
+              .set({
+                revisionStatus: "superseded",
+                isLatest: false,
+                supersededAt: now,
+                updatedAt: now,
+              })
+              .where(eq(contentRevisions.id, latestRevision.id)),
+          );
+        }
+        revisionStatements.push(
+          sharedContentRevisionInsert(
+            crypto.randomUUID(),
+            requestedSnapshot,
+            actorUserId,
+            now,
+            await snapshotSemanticHash(snapshotJson(requestedSnapshot)),
+            { revisionStatus: "published", isLatest: true, previousVersionId },
+          ),
+        );
+      }
+    } else {
+      const requestedRevision = await getSharedContentRevision(id, input.version);
+      if (requestedRevision) {
+        throw new AppError(
+          "The requested shared-content version already has an immutable revision.",
+          409,
+          "SHARED_CONTENT_REVISION_EXISTS",
+        );
+      }
+
+      let previousVersionId = currentRevision?.id ?? null;
+      if (!currentRevision && existing.status !== "DRAFT") {
+        previousVersionId = crypto.randomUUID();
+        revisionStatements.push(
+          sharedContentRevisionInsert(
+            previousVersionId,
+            currentSnapshot,
+            actorUserId,
+            now,
+            await snapshotSemanticHash(snapshotJson(currentSnapshot)),
+            {
+              revisionStatus: input.status === "DRAFT" ? "published" : "superseded",
+              isLatest: input.status === "DRAFT",
+              previousVersionId: null,
+            },
+          ),
+        );
+      } else if (currentRevision && input.status !== "DRAFT") {
+        revisionStatements.push(
+          getDb()
+            .update(contentRevisions)
+            .set({
+              revisionStatus: "superseded",
+              isLatest: false,
+              supersededAt: now,
+              updatedAt: now,
+            })
+            .where(eq(contentRevisions.id, currentRevision.id)),
+        );
+      }
+
+      if (input.status === "PUBLISHED") {
+        revisionStatements.push(
+          sharedContentRevisionInsert(
+            crypto.randomUUID(),
+            requestedSnapshot,
+            actorUserId,
+            now,
+            await snapshotSemanticHash(snapshotJson(requestedSnapshot)),
+            {
+              revisionStatus: "published",
+              isLatest: true,
+              previousVersionId,
+            },
+          ),
+        );
+      }
+    }
+  }
+
   const values = {
     slug: input.slug,
     canonicalKey: normalizeCanonicalKey(input.canonicalKey),
@@ -132,20 +469,63 @@ export async function saveSharedContent(
     updatedAt: sql`CURRENT_TIMESTAMP`,
   };
 
-  await getDb().batch(
-    batchItems([
+  try {
+    await getDb().batch(
+      batchItems([
+        ...revisionStatements,
+        existing
+          ? getDb().update(contents).set(values).where(eq(contents.id, id))
+          : getDb().insert(contents).values({ id, ...values }),
+        createAuditInsert({
+          actorUserId,
+          action: existing ? "SHARED_CONTENT_UPDATED" : "SHARED_CONTENT_CREATED",
+          resourceType: "CONTENT",
+          resourceId: id,
+        }),
+      ]),
+    );
+  } catch (error) {
+    if (
+      isSharedContentUniqueViolation(error) &&
+      input.status === "PUBLISHED" &&
       existing
-        ? getDb().update(contents).set(values).where(eq(contents.id, id))
-        : getDb().insert(contents).values({ id, ...values }),
-      createAuditInsert({
-        actorUserId,
-        action: existing ? "SHARED_CONTENT_UPDATED" : "SHARED_CONTENT_CREATED",
-        resourceType: "CONTENT",
-        resourceId: id,
-      }),
-    ]),
-  );
+    ) {
+      try {
+        const committed = await getSharedContentById(id);
+        const committedRevision = committed
+          ? await getSharedContentRevision(id, input.version)
+          : null;
+        if (
+          committed?.version === input.version &&
+          committed.status === "PUBLISHED" &&
+          committed.slug === input.slug &&
+          committed.canonicalKey === normalizeCanonicalKey(input.canonicalKey) &&
+          committedRevision?.revisionStatus === "published" &&
+          committedRevision.isLatest
+        ) {
+          await assertSharedContentRevisionMatches(committedRevision, requestedSnapshot);
+          return { id };
+        }
+      } catch (replayError) {
+        if (replayError instanceof AppError && replayError.code === "SHARED_CONTENT_REVISION_CONFLICT") {
+          throw replayError;
+        }
+      }
+    }
+    throw error;
+  }
   return { id };
+}
+
+function isSharedContentUniqueViolation(error: unknown) {
+  if (error instanceof AppError && error.code === "DATABASE_UNIQUE_VIOLATION") {
+    return true;
+  }
+  const message =
+    typeof error === "object" && error !== null && "message" in error
+      ? String(error.message)
+      : String(error);
+  return /23505|SQLITE_CONSTRAINT_UNIQUE|UNIQUE constraint failed|duplicate key/i.test(message);
 }
 
 export async function listCourseLessons(courseId: string) {
@@ -457,6 +837,8 @@ export async function listPublishedCourseLessonsForUser(
         eq(userCourseLessonProgress.userId, userId),
         eq(userCourseLessonProgress.courseId, courseLessons.courseId),
         eq(userCourseLessonProgress.courseLessonId, courseLessons.id),
+        eq(userCourseLessonProgress.contentId, courseLessons.contentId),
+        eq(userCourseLessonProgress.contentVersion, contents.version),
       ),
     )
     .where(
@@ -522,6 +904,8 @@ export async function getPublishedCourseLessonProgressSummary(
           eq(userCourseLessonProgress.userId, userId),
           eq(userCourseLessonProgress.courseId, courseLessons.courseId),
           eq(userCourseLessonProgress.courseLessonId, courseLessons.id),
+          eq(userCourseLessonProgress.contentId, courseLessons.contentId),
+          eq(userCourseLessonProgress.contentVersion, contents.version),
         ),
       )
       .where(
@@ -548,6 +932,8 @@ export async function getPublishedCourseLessonProgressSummary(
           eq(userCourseLessonProgress.userId, userId),
           eq(userCourseLessonProgress.courseId, courseLessons.courseId),
           eq(userCourseLessonProgress.courseLessonId, courseLessons.id),
+          eq(userCourseLessonProgress.contentId, courseLessons.contentId),
+          eq(userCourseLessonProgress.contentVersion, contents.version),
         ),
       )
       .where(
@@ -581,6 +967,8 @@ export async function getPublishedCourseLessonProgressSummary(
           eq(userCourseLessonProgress.userId, userId),
           eq(userCourseLessonProgress.courseId, courseId),
           eq(courseLessons.courseId, courseId),
+          eq(userCourseLessonProgress.contentId, courseLessons.contentId),
+          eq(userCourseLessonProgress.contentVersion, contents.version),
           eq(courseLessons.status, "PUBLISHED"),
           isNull(courseLessons.deletedAt),
           eq(contents.status, "PUBLISHED"),
@@ -668,6 +1056,8 @@ export async function getPublishedCourseLessonForUser(input: {
         eq(userCourseLessonProgress.userId, input.userId),
         eq(userCourseLessonProgress.courseId, courseLessons.courseId),
         eq(userCourseLessonProgress.courseLessonId, courseLessons.id),
+        eq(userCourseLessonProgress.contentId, courseLessons.contentId),
+        eq(userCourseLessonProgress.contentVersion, contents.version),
       ),
     )
     .where(
@@ -762,6 +1152,7 @@ async function requireAccessibleCourseLesson(input: {
     .select({
       id: courseLessons.id,
       courseId: courseLessons.courseId,
+      contentId: courseLessons.contentId,
       contentVersion: contents.version,
       completionRule: courseLessons.completionRule,
       enrollmentStatus: userCourseEnrollments.status,
@@ -812,8 +1203,21 @@ export async function updateCourseLessonProgress(input: {
   action: "START" | "UPDATE" | "COMPLETE";
   progressPercent: number;
   timeSpentSeconds?: number;
+  contentId?: string;
+  contentVersion?: string;
 }) {
   const lesson = await requireAccessibleCourseLesson(input);
+  if (
+    (input.contentId !== undefined && input.contentId !== lesson.contentId) ||
+    (input.contentVersion !== undefined &&
+      input.contentVersion !== lesson.contentVersion)
+  ) {
+    throw new AppError(
+      "The CourseLesson revision changed while it was open.",
+      409,
+      "COURSE_LESSON_REVISION_MISMATCH",
+    );
+  }
   const progressPercent = normalizeCourseLessonProgressPercent(
     input.progressPercent,
   );
@@ -829,6 +1233,8 @@ export async function updateCourseLessonProgress(input: {
         eq(userCourseLessonProgress.userId, input.userId),
         eq(userCourseLessonProgress.courseId, lesson.courseId),
         eq(userCourseLessonProgress.courseLessonId, lesson.id),
+        eq(userCourseLessonProgress.contentId, lesson.contentId),
+        eq(userCourseLessonProgress.contentVersion, lesson.contentVersion),
       ),
     )
     .limit(1);
@@ -848,6 +1254,8 @@ export async function updateCourseLessonProgress(input: {
       status: "COMPLETED",
       progressPercent: 100,
       completedAt: current.completedAt,
+      contentId: lesson.contentId,
+      contentVersion: lesson.contentVersion,
       idempotentReplay: true,
     };
   }
@@ -860,6 +1268,7 @@ export async function updateCourseLessonProgress(input: {
         userId: input.userId,
         courseId: lesson.courseId,
         courseLessonId: lesson.id,
+        contentId: lesson.contentId,
         contentVersion: lesson.contentVersion,
         status: "IN_PROGRESS",
         progressPercent: Math.max(current?.progressPercent ?? 0, progressPercent),
@@ -875,9 +1284,12 @@ export async function updateCourseLessonProgress(input: {
           userCourseLessonProgress.userId,
           userCourseLessonProgress.courseId,
           userCourseLessonProgress.courseLessonId,
+          userCourseLessonProgress.contentId,
+          userCourseLessonProgress.contentVersion,
         ],
         set: {
           status: "IN_PROGRESS",
+          contentId: lesson.contentId,
           contentVersion: lesson.contentVersion,
           progressPercent: sql`max(${userCourseLessonProgress.progressPercent}, ${progressPercent})`,
           lastViewedAt: nowIso,
@@ -890,6 +1302,8 @@ export async function updateCourseLessonProgress(input: {
       status: "IN_PROGRESS",
       progressPercent: Math.max(current?.progressPercent ?? 0, progressPercent),
       completedAt: null,
+      contentId: lesson.contentId,
+      contentVersion: lesson.contentVersion,
       idempotentReplay: Boolean(current),
     };
   }
@@ -900,7 +1314,8 @@ export async function updateCourseLessonProgress(input: {
     progressPercent,
   });
 
-  const activityId = `course-lesson-completed:${input.userId}:${lesson.id}`;
+  const activityId =
+    `course-lesson-completed:${input.userId}:${lesson.id}:${lesson.contentId}:${lesson.contentVersion}`;
   await getDb().batch(
     batchItems([
       getDb()
@@ -910,6 +1325,7 @@ export async function updateCourseLessonProgress(input: {
           userId: input.userId,
           courseId: lesson.courseId,
           courseLessonId: lesson.id,
+          contentId: lesson.contentId,
           contentVersion: lesson.contentVersion,
           status: "COMPLETED",
           progressPercent: 100,
@@ -926,9 +1342,12 @@ export async function updateCourseLessonProgress(input: {
             userCourseLessonProgress.userId,
             userCourseLessonProgress.courseId,
             userCourseLessonProgress.courseLessonId,
+            userCourseLessonProgress.contentId,
+            userCourseLessonProgress.contentVersion,
           ],
           set: {
             status: "COMPLETED",
+            contentId: lesson.contentId,
             contentVersion: lesson.contentVersion,
             progressPercent: 100,
             completedAt: sql`coalesce(${userCourseLessonProgress.completedAt}, ${nowIso})`,
@@ -946,7 +1365,12 @@ export async function updateCourseLessonProgress(input: {
           courseId: lesson.courseId,
           activityType: "COURSE_LESSON_COMPLETED",
           targetId: lesson.id,
-          metadataJson: JSON.stringify({ contentModel: "COURSE_LESSON" }),
+          metadataJson: JSON.stringify({
+            contentModel: "COURSE_LESSON",
+            contentId: lesson.contentId,
+            contentVersion: lesson.contentVersion,
+            revisionBinding: "SERVER_RESOLVED",
+          }),
         })
         .onConflictDoNothing(),
       getDb()
@@ -954,7 +1378,7 @@ export async function updateCourseLessonProgress(input: {
         .set({
           progressPercent: sql<number>`max(${userCourseEnrollments.progressPercent}, coalesce((
             SELECT round(
-              100.0 * count(uclp.course_lesson_id) /
+              100.0 * count(DISTINCT uclp.course_lesson_id) /
               nullif((SELECT count(*) FROM course_lessons cl
                 JOIN contents c ON c.id = cl.content_id
                 WHERE cl.course_id = ${lesson.courseId}
@@ -964,8 +1388,12 @@ export async function updateCourseLessonProgress(input: {
                   AND c.deleted_at IS NULL), 0)
             )
             FROM user_course_lesson_progress uclp
+            JOIN course_lessons cl ON cl.id = uclp.course_lesson_id
+            JOIN contents c ON c.id = cl.content_id
             WHERE uclp.user_id = ${input.userId}
               AND uclp.course_id = ${lesson.courseId}
+              AND uclp.content_id = c.id
+              AND uclp.content_version = c.version
               AND uclp.status = 'COMPLETED'
           ), 0))`,
           updatedAt: nowIso,
@@ -983,6 +1411,8 @@ export async function updateCourseLessonProgress(input: {
     status: "COMPLETED",
     progressPercent: 100,
     completedAt: nowIso,
+    contentId: lesson.contentId,
+    contentVersion: lesson.contentVersion,
     idempotentReplay: false,
   };
 }

@@ -1918,6 +1918,8 @@ export async function getIntegratedStatistics(userId: string) {
                 userCourseLessonProgress.courseLessonId,
                 courseLessons.id,
               ),
+              eq(userCourseLessonProgress.contentId, courseLessons.contentId),
+              eq(userCourseLessonProgress.contentVersion, contents.version),
             ),
           )
           .where(

@@ -4,11 +4,15 @@ import { useEffect, useRef, useState } from "react";
 
 export function CourseLessonActions({
   courseLessonId,
+  contentId,
+  contentVersion,
   initialStatus,
   initialProgressPercent,
   completionRule,
 }: {
   courseLessonId: string;
+  contentId: string;
+  contentVersion: string;
   initialStatus: string;
   initialProgressPercent: number;
   completionRule: string;
@@ -34,6 +38,8 @@ export function CourseLessonActions({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           courseLessonId,
+          contentId,
+          contentVersion,
           action: "COMPLETE",
           progressPercent: 100,
           timeSpentSeconds: getTimeSpentSeconds(),
