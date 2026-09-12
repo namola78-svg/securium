@@ -33,7 +33,7 @@ concurrency:
 env:
   CI: "true"
   APP_ENV: test
-  NODE_OPTIONS: "--experimental-strip-types"
+  NODE_OPTIONS: "--experimental-strip-types --test-reporter=tap"
   SECURIUM_LEGACY_CONCEPT_RLS_PG_CONTAINER: securium-legacy-concept-rls-${{ github.run_id }}-${{ github.run_attempt }}
 
 jobs:
@@ -72,8 +72,20 @@ jobs:
           set +e
           result_path="$RUNNER_TEMP/legacy-concept-rls.tap"
           npm run test:legacy-concept-rls | tee "$result_path"
-          test_status="${PIPESTATUS[0]}"
+          pipeline_status=("${PIPESTATUS[@]}")
+          npm_status="${pipeline_status[0]:-255}"
+          tee_status="${pipeline_status[1]:-255}"
           set -e
+
+          echo "LEGACY_CONCEPT_RLS_PIPELINE npm_exit=${npm_status} tee_exit=${tee_status}"
+          if test "$npm_status" != "0"; then
+            echo "npm run test:legacy-concept-rls failed" >&2
+            exit "$npm_status"
+          fi
+          if test "$tee_status" != "0"; then
+            echo "tee failed while recording the test output" >&2
+            exit "$tee_status"
+          fi
 
           tests="$(awk '$0 ~ /tests [0-9]+$/ { value=$0; sub(/^.*tests /, "", value); print value }' "$result_path" | tail -n 1)"
           passed="$(awk '$0 ~ /pass [0-9]+$/ { value=$0; sub(/^.*pass /, "", value); print value }' "$result_path" | tail -n 1)"
@@ -81,8 +93,7 @@ jobs:
           skipped="$(awk '$0 ~ /skipped [0-9]+$/ { value=$0; sub(/^.*skipped /, "", value); print value }' "$result_path" | tail -n 1)"
           todo="$(awk '$0 ~ /todo [0-9]+$/ { value=$0; sub(/^.*todo /, "", value); print value }' "$result_path" | tail -n 1)"
           cancelled="$(awk '$0 ~ /cancelled [0-9]+$/ { value=$0; sub(/^.*cancelled /, "", value); print value }' "$result_path" | tail -n 1)"
-          echo "LEGACY_CONCEPT_RLS_RESULT tests=${tests:-0} passed=${passed:-0} failed=${failed:-0} skipped=${skipped:-0} todo=${todo:-0} cancelled=${cancelled:-0} exit=${test_status}"
-          test "$test_status" = "0"
+          echo "LEGACY_CONCEPT_RLS_RESULT tests=${tests:-0} passed=${passed:-0} failed=${failed:-0} skipped=${skipped:-0} todo=${todo:-0} cancelled=${cancelled:-0} npm_exit=${npm_status} tee_exit=${tee_status}"
           test "${tests:-0}" = "1"
           test "${passed:-0}" = "1"
           test "${failed:-0}" = "0"
