@@ -231,6 +231,42 @@ test("path filtering follows the existing display category and is not authorizat
   assert.equal(result.page.hasNext, false);
 });
 
+test("certification path preserves the group-name fallback without reclassifying professional courses", async () => {
+  const typeOnly = sourceCourse("type-only", {
+    groupName: "Security learning",
+    name: "정보보안기사 certification",
+    displayOrder: 1,
+  });
+  const groupOnly = sourceCourse("group-only", {
+    groupName: "국가기술자격",
+    name: "General exam course",
+    shortName: "General exam",
+    displayOrder: 2,
+  });
+  const professional = sourceCourse("professional", {
+    groupName: "Security learning",
+    name: "Secure coding practice",
+    displayOrder: 3,
+  });
+  const rows = [typeOnly, groupOnly, professional];
+  const { adapter } = fixtureAdapter(rows, [
+    [typeOnly, groupOnly],
+    [professional],
+  ]);
+
+  const certification = await adapter.searchPublicCourses({ path: "certification" });
+  assert.deepEqual(certification.results.map((course) => course.id), ["type-only", "group-only"]);
+
+  const professionalResult = await adapter.searchPublicCourses({ path: "professional" });
+  assert.deepEqual(professionalResult.results.map((course) => course.id), ["professional"]);
+
+  const { adapter: invalidProviderAdapter } = fixtureAdapter([groupOnly]);
+  await assert.rejects(
+    () => invalidProviderAdapter.searchPublicCourses({ path: "professional" }),
+    (error: unknown) => errorCode(error) === "INVALID_SOURCE",
+  );
+});
+
 test("empty and last pages expose exact page metadata", async () => {
   const { adapter } = fixtureAdapter([sourceCourse("public")], [
     [],

@@ -36,9 +36,12 @@ export type PublicCourseSearchPosition = Readonly<{
 /**
  * Server-owned input to the repository boundary. The repository must apply
  * the public predicate and search condition before executing this bounded
- * read, then apply the order and `after` condition and return no more than
- * `limit` candidates. The adapter validates that contract; it does not repair
- * an over-broad, misordered, duplicated, or over-sized provider result.
+ * read, then apply the existing `/courses` display path rule, order, and
+ * `after` condition and return no more than `limit` candidates. The
+ * certification path is selected by `courseTypeLabel(...) === "자격시험"` or
+ * a `groupName` containing `국가기술자격`; this is a display category, not
+ * authorization. The adapter validates that contract; it does not repair an
+ * over-broad, misordered, duplicated, or over-sized provider result.
  */
 export type PublicCourseSearchRepositoryInput = Readonly<{
   query: string;
@@ -330,7 +333,9 @@ function matchesPath(
   path: PublicCourseSearchPath,
 ) {
   if (path === "all") return true;
-  const isCertification = courseTypeLabel(record) === "자격시험";
+  const isCertification =
+    courseTypeLabel(record) === "자격시험" ||
+    record.groupName.includes("국가기술자격");
   return path === "certification" ? isCertification : !isCertification;
 }
 
