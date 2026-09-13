@@ -658,6 +658,36 @@ class TimelineOfflinePackageBoundaryTests(unittest.TestCase):
         lines = [call.args[0] for call in output.call_args_list if call.args]
         self.assertTrue(any(line.startswith("preflight_verification=") for line in lines))
 
+    def test_primary_preflight_error_is_not_masked_by_cleanup_error(self) -> None:
+        extraction = self.temp_root / "cleanup-error-extraction"
+        preflight_path = extraction / "verification" / "forensics-learner-preflight"
+        preflight_path.mkdir(parents=True)
+        (preflight_path / "preflight.py").write_text("# fixture\n", encoding="utf-8")
+        ci_root = self.temp_root / "cleanup-error-ci-root"
+        ci_root.mkdir()
+        with patch.object(
+            package_ci,
+            "_run",
+            side_effect=RuntimeError("primary subprocess failure"),
+        ), patch.object(
+            package_ci,
+            "_remove_owned_child",
+            side_effect=RuntimeError("cleanup failure"),
+        ), patch("builtins.print") as output:
+            with self.assertRaisesRegex(
+                RuntimeError,
+                r"preflight_status=PROCESS_ERROR; lab_execution=NOT_RUN",
+            ):
+                package_ci._run_extracted_preflight(extraction, ci_root)
+        lines = [call.args[0] for call in output.call_args_list if call.args]
+        self.assertTrue(any("cleanup_error=RuntimeError: cleanup failure" in line for line in lines))
+        self.assertTrue(
+            any(
+                line == "preflight_owned_workspace_cleanup_primary_error_preserved=TRUE"
+                for line in lines
+            )
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

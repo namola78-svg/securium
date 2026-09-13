@@ -189,6 +189,7 @@ def _run_extracted_preflight(extraction: Path, ci_root: Path) -> dict[str, objec
     workspace.mkdir()
     report = workspace / "preflight report.json"
     completed: subprocess.CompletedProcess[str] | None = None
+    primary_error: Exception | None = None
     try:
         try:
             completed = _run(
@@ -310,9 +311,16 @@ def _run_extracted_preflight(extraction: Path, ci_root: Path) -> dict[str, objec
         )
         print("preflight_verification=" + json.dumps(summary, sort_keys=True))
         return summary
+    except Exception as error:
+        primary_error = error
+        raise
     finally:
-        _remove_owned_child(workspace, ci_root)
-        print("preflight_owned_workspace_cleanup=" + str(not workspace.exists()).upper())
+        _cleanup_owned_child_preserving_error(
+            workspace,
+            ci_root,
+            primary_error=primary_error,
+            label="preflight_owned_workspace_cleanup",
+        )
 
 
 def _remove_owned_child(path: Path, parent: Path) -> None:
@@ -330,6 +338,27 @@ def _remove_owned_child(path: Path, parent: Path) -> None:
     except AttributeError:
         pass
     shutil.rmtree(path)
+
+
+def _cleanup_owned_child_preserving_error(
+    path: Path,
+    parent: Path,
+    *,
+    primary_error: Exception | None,
+    label: str,
+) -> None:
+    try:
+        _remove_owned_child(path, parent)
+    except Exception as cleanup_error:
+        print(
+            f"{label}=FAIL cleanup_error={type(cleanup_error).__name__}: {cleanup_error}",
+            file=sys.stderr,
+        )
+        if primary_error is None:
+            raise
+        print(f"{label}_primary_error_preserved=TRUE", file=sys.stderr)
+        return
+    print(f"{label}=" + str(not path.exists()).upper())
 
 
 def _run_extracted_lab(extraction: Path, ci_root: Path) -> dict[str, object]:
@@ -373,6 +402,7 @@ def _run_extracted_lab(extraction: Path, ci_root: Path) -> dict[str, object]:
     report_two = workspace / "timeline report two.json"
     csv_fixture = workspace / "synthetic fixture.csv"
     csv_report = workspace / "CSV timeline report.json"
+    primary_error: Exception | None = None
 
     def cli(*arguments: str, expected_code: int | None = None) -> subprocess.CompletedProcess[str]:
         return _run(
@@ -526,9 +556,16 @@ def _run_extracted_lab(extraction: Path, ci_root: Path) -> dict[str, object]:
         }
         print("extracted_cli=" + json.dumps(scenarios, sort_keys=True))
         return {"runner": runner_summary, "cli": scenarios}
+    except Exception as error:
+        primary_error = error
+        raise
     finally:
-        _remove_owned_child(workspace, ci_root)
-        print("lab_owned_workspace_cleanup=" + str(not workspace.exists()).upper())
+        _cleanup_owned_child_preserving_error(
+            workspace,
+            ci_root,
+            primary_error=primary_error,
+            label="lab_owned_workspace_cleanup",
+        )
 
 
 def _run_extracted_flow(extraction: Path, ci_root: Path) -> dict[str, object]:
@@ -681,35 +718,29 @@ def _run_package_flow(ci_root: Path, expected_source_sha: str) -> None:
     _run_extracted_flow(extraction, ci_root)
 
 
-def _remove_ci_root(path: Path) -> None:
-    if not path.exists():
-        return
-    if path.is_symlink() or not path.is_dir():
-        raise RuntimeError("refusing cleanup of a replaced CI root")
-    reparse_flag = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
-    try:
-        if path.stat(follow_symlinks=False).st_file_attributes & reparse_flag:
-            raise RuntimeError("refusing cleanup of a reparse CI root")
-    except AttributeError:
-        pass
-    shutil.rmtree(path)
-
-
 def _run_in_root(ci_root: Path, expected_source_sha: str) -> None:
     if ci_root.exists() or ci_root.is_symlink():
         raise RuntimeError(f"CI root must be new and empty: {ci_root}")
     ci_root.mkdir(parents=True, exist_ok=False)
     sentinel = ci_root / "external sentinel preflight.txt"
     sentinel.write_text("must remain\n", encoding="utf-8", newline="")
+    primary_error: Exception | None = None
     try:
         _run_package_regressions(ci_root)
         _run_package_flow(ci_root, expected_source_sha)
         if sentinel.read_text(encoding="utf-8") != "must remain\n":
             raise RuntimeError("external sentinel changed during package/preflight/lab flow")
         print("external_sentinel_preserved=True")
+    except Exception as error:
+        primary_error = error
+        raise
     finally:
-        _remove_ci_root(ci_root)
-        print("ci_owned_workspace_cleanup=" + str(not ci_root.exists()).upper())
+        _cleanup_owned_child_preserving_error(
+            ci_root,
+            ci_root.parent,
+            primary_error=primary_error,
+            label="ci_owned_workspace_cleanup",
+        )
 
 
 def main() -> int:
