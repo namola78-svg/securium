@@ -1,0 +1,70 @@
+name: Public course availability provider regression
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/public-course-availability.yml"
+      - "app/courses/**"
+      - "components/course-card.tsx"
+      - "db/public-course-availability-repository.ts"
+      - "db/provider/**"
+      - "db/repository-adapter/**"
+      - "db/postgres/baselines/**"
+      - "lib/services/course-availability*.ts"
+      - "scripts/owned-postgres-container.mjs"
+      - "tests/public-course-availability-*.test.*"
+      - "package.json"
+      - "package-lock.json"
+  push:
+    branches:
+      - "fix/public-course-availability-query"
+    paths:
+      - ".github/workflows/public-course-availability.yml"
+      - "app/courses/**"
+      - "components/course-card.tsx"
+      - "db/public-course-availability-repository.ts"
+      - "db/provider/**"
+      - "db/repository-adapter/**"
+      - "db/postgres/baselines/**"
+      - "lib/services/course-availability*.ts"
+      - "scripts/owned-postgres-container.mjs"
+      - "tests/public-course-availability-*.test.*"
+      - "package.json"
+      - "package-lock.json"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: public-course-availability-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: "true"
+  NODE_OPTIONS: "--experimental-strip-types"
+
+jobs:
+  provider-regression:
+    name: Focused, D1, and PostgreSQL availability regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22.13.0"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Focused availability contract tests
+        run: node --test tests/public-course-availability-repository.test.ts
+
+      - name: D1 and PostgreSQL provider regression tests
+        run: node --test --test-concurrency=1 tests/public-course-availability-provider.test.mjs
