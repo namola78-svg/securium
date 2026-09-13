@@ -31,6 +31,24 @@ const isolatedContext = {
   confirmation: ISMS_P_BATCH1_WRITE_CONFIRMATION,
 };
 
+const DIAGNOSTIC_TRACE_LIMIT = 12;
+const DIAGNOSTIC_TEXT_LIMIT = 320;
+const DIAGNOSTIC_OPERATION_LIMIT = 8;
+const DIAGNOSTIC_OPERATION_REASON_LIMIT = 220;
+
+type D1RunTrace = {
+  index: number;
+  step: "command" | "file";
+  code: number;
+  stdoutBytes: number;
+  stderrBytes: number;
+  stderrTail: string;
+  truncated: {
+    stdout: boolean;
+    stderr: boolean;
+  };
+};
+
 test("Batch 1 runtime manifest preserves the exact approved 12 and 36-slot model", () => {
   const manifest = buildIsmsPBatch1MaterializationManifest();
   assert.equal(manifest.length, 12);
@@ -257,7 +275,19 @@ test("isolated rollback refuses hard deletion after user progress exists", async
     assert.equal(rollback.deleted, 0);
     assert.ok(rollback.archivePlan);
     assert.equal(rollback.archivePlan.length, 12);
-    assert.equal((await verifyIsmsPBatch1Materialization(provider)).verified, true);
+    const verification = await verifyIsmsPBatch1Materialization(provider);
+    if (!verification.verified) {
+      try {
+        logMaterializerVerifyDiagnostics({
+          verification,
+          d1Scope: provider.getD1ScopeId(),
+          d1Runs: provider.getRecentD1Runs(DIAGNOSTIC_TRACE_LIMIT),
+        });
+      } catch {
+        // Preserve the original verification assertion if diagnostics fail.
+      }
+    }
+    assert.equal(verification.verified, true);
   } finally {
     await dispose();
   }
@@ -298,6 +328,8 @@ class WranglerD1Provider {
   readonly kind = "d1" as const;
   readonly persistTo: string;
   private fileSequence = 0;
+  private runSequence = 0;
+  private readonly runTraces: D1RunTrace[] = [];
 
   constructor(persistTo: string) {
     this.persistTo = persistTo;
@@ -353,14 +385,14 @@ class WranglerD1Provider {
     this.fileSequence += 1;
     const path = join(this.persistTo, `batch-${this.fileSequence}.sql`);
     await writeFile(path, sql, "utf8");
-    return this.run(["--file", path]);
+    return this.run(["--file", path], "file");
   }
 
   private runSql(sql: string) {
-    return this.run(["--command", sql]);
+    return this.run(["--command", sql], "command");
   }
 
-  private async run(input: string[]) {
+  private async run(input: string[], step: D1RunTrace["step"]) {
     const output = await capture(process.execPath, [
       "scripts/run-wrangler.mjs",
       "d1",
@@ -374,15 +406,64 @@ class WranglerD1Provider {
       ...input,
       "--json",
     ]);
+    this.recordRunTrace({
+      step,
+      code: output.code,
+      stdoutBytes: Buffer.byteLength(output.stdout, "utf8"),
+      stderrBytes: Buffer.byteLength(output.stderr, "utf8"),
+      stderrTail: output.stderr,
+    });
     if (output.code !== 0) {
       throw new Error(
-        `ISOLATED_D1_COMMAND_FAILED:${`${output.stderr}\n${output.stdout}`.slice(-2400)}`,
+        `ISOLATED_D1_COMMAND_FAILED:${output.code}:${summarizeDiagnosticText(
+          output.stderr,
+        )}`,
       );
     }
     const parsed = JSON.parse(output.stdout);
     const first = parsed[0];
     if (!first?.success) throw new Error("ISOLATED_D1_RESULT_FAILED");
     return first;
+  }
+
+  getRecentD1Runs(limit: number) {
+    return this.runTraces.slice(-limit);
+  }
+
+  getD1ScopeId() {
+    return `d1:${this.persistTo.split(/[\\/]/).at(-1) ?? "unknown"}`;
+  }
+
+  private recordRunTrace({
+    step,
+    code,
+    stdoutBytes,
+    stderrBytes,
+    stderrTail,
+  }: {
+    step: D1RunTrace["step"];
+    code: number;
+    stdoutBytes: number;
+    stderrBytes: number;
+    stderrTail: string;
+  }) {
+    const truncatedStderr = stderrTail.length > DIAGNOSTIC_TEXT_LIMIT;
+    this.runSequence += 1;
+    this.runTraces.push({
+      index: this.runSequence,
+      step,
+      code,
+      stdoutBytes,
+      stderrBytes,
+      stderrTail: summarizeDiagnosticText(stderrTail),
+      truncated: {
+        stdout: false,
+        stderr: truncatedStderr,
+      },
+    });
+    if (this.runTraces.length > DIAGNOSTIC_TRACE_LIMIT * 3) {
+      this.runTraces.shift();
+    }
   }
 }
 
@@ -438,6 +519,113 @@ function capture(executable: string, args: string[]) {
     },
   );
 }
+
+function logMaterializerVerifyDiagnostics(params: {
+  verification: Awaited<ReturnType<typeof verifyIsmsPBatch1Materialization>>;
+  d1Scope: string;
+  d1Runs: D1RunTrace[];
+}) {
+  const { verification, d1Scope, d1Runs } = params;
+  const plan = verification.plan;
+  const mismatches = plan.operations.filter(
+    (operation) => operation.classification !== "NOOP",
+  );
+  const mismatchOperations = mismatches
+    .slice(0, DIAGNOSTIC_OPERATION_LIMIT)
+    .map((operation) => ({
+      entity: operation.entity,
+      code: operation.code,
+      classification: operation.classification,
+      reason: summarizeDiagnosticText(
+        operation.reason,
+        DIAGNOSTIC_OPERATION_REASON_LIMIT,
+      ),
+      plannedId: operation.plannedId,
+      existingId: operation.existingId,
+      operationId: operation.operationId,
+    }));
+
+  const mismatchSummary = {
+    test: "isolated rollback refuses hard deletion after user progress exists",
+    d1Scope,
+    verifyMode: verification.mode,
+    verificationStatus: verification.verified ? "VERIFIED" : "NOT_VERIFIED",
+    expected: {
+      create: 0,
+      noop: plan.expectedOperationSlots,
+      conflict: 0,
+    },
+    actual: {
+      create: plan.counts.CREATE,
+      noop: plan.counts.NOOP,
+      conflict: plan.counts.CONFLICT,
+      courseValid: plan.course.valid,
+      courseExists: plan.course.exists,
+      operationSlots: plan.operationSlots,
+      expectedOperationSlots: plan.expectedOperationSlots,
+      holdOperationCount: plan.holdOperationCount,
+      conflictGate: plan.conflictGate,
+    },
+    mismatchOperations,
+    truncatedMismatchOperations:
+      mismatches.length - mismatchOperations.length,
+    subprocessRuns: d1Runs.map((trace) => ({
+      index: trace.index,
+      step: trace.step,
+      exitCode: trace.code,
+      stdoutBytes: trace.stdoutBytes,
+      stderrBytes: trace.stderrBytes,
+      stderrTail: trace.stderrTail,
+      truncated: trace.truncated,
+    })),
+  };
+
+  console.error(
+    "[isms-p materializer verify diagnostics]",
+    JSON.stringify(mismatchSummary),
+  );
+}
+
+function summarizeDiagnosticText(
+  text: string,
+  limit = DIAGNOSTIC_TEXT_LIMIT,
+) {
+  const withMaskedCredentials = text.replace(
+    /\b[0-9A-Za-z._%+-]+:[0-9A-Za-z._%+-]+@[^\s]+\b/g,
+    "[redacted-credential]",
+  );
+  const withMaskedUrls = withMaskedCredentials.replace(
+    /\b[a-z][a-z0-9+.-]{1,31}:\/\/[^\s"<>]+/gi,
+    "[redacted-url]",
+  );
+  const withMaskedPaths = withMaskedUrls
+    .replace(/[A-Za-z]:[\\/][^ \n"]+/g, "[path]")
+    .replace(/(?:\/[^ \t\n"]+)+/g, "[path]");
+  return truncateDiagnosticText(withMaskedPaths, limit);
+}
+
+function truncateDiagnosticText(text: string, limit: number) {
+  const marker = "...";
+  if (text.length <= limit) return text;
+  if (limit <= marker.length) return text.slice(0, limit);
+  return `${text.slice(0, limit - marker.length)}${marker}`;
+}
+
+test("diagnostic text masks synthetic secrets, URLs, and personal paths within limits", () => {
+  const masked = summarizeDiagnosticText(
+    "SYNTHETIC_USER:SYNTHETIC_SECRET@synthetic.invalid " +
+      "https://synthetic.invalid/token " +
+      "C:\\Users\\synthetic\\private\\fixture.sql",
+  );
+  assert.doesNotMatch(masked, /SYNTHETIC_USER|SYNTHETIC_SECRET/);
+  assert.doesNotMatch(masked, /synthetic\.invalid/);
+  assert.doesNotMatch(masked, /C:\\Users\\synthetic/);
+  assert.ok(masked.length <= DIAGNOSTIC_TEXT_LIMIT);
+  assert.ok(
+    summarizeDiagnosticText("x".repeat(500), DIAGNOSTIC_OPERATION_REASON_LIMIT)
+      .length <= DIAGNOSTIC_OPERATION_REASON_LIMIT,
+  );
+});
 
 const ISOLATED_SCHEMA = `
 PRAGMA foreign_keys = ON;
