@@ -2,7 +2,9 @@
 
 작성 기준일: 2026-09-12
 
-검토 기준: 작성 시 검토한 `origin/main` `897b91b6936e1a3291ac631dc7c18a4a29da02b1`
+작성 시 검토 기준: `origin/main` `897b91b6936e1a3291ac631dc7c18a4a29da02b1`
+현재 확인한 `origin/main`: 2026-09-14 fetch 후 `27c400aa0803a399a8da68c11ca18f72192a8429`
+(`897b91b...` 이후 drift이며 이 branch에 merge/rebase하지 않음)
 문서 상태: 설계 제안. 제품 코드, 공개 권한, API/MCP 등록을 변경하거나 활성화하지 않는다.
 
 ## 1. 목적과 제외 범위
@@ -27,6 +29,7 @@
 - 개인 Evidence, mastery/confidence, `user_skill_state`, 학습 기록·진도·응시 결과, 개인 추천·프로필·자격 증명
 - 실제 DB, credential, learner 데이터, live API 또는 브라우저에 대한 접근·검증
 - Concept에서 lesson·question·practical resource로 가는 공개 도구. 현재 mapping과 resource publication을 한 번에 검증하는 public binding이 확인되지 않았다.
+- 현재 확인한 main의 별도 course/outline projection adapter가 존재하더라도, 이는 Concept·Role·Skill graph 공개 승인이나 Concept→resource binding을 뜻하지 않는다.
 
 기존 Agent 탐색 설계와 공개 source 표시 설계도 그대로 보존한다. 이 문서는 그중 Concept·Role·Skill graph 경계만 구체화한다.
 
@@ -34,6 +37,10 @@
 - [public-source-transparency.md](../product/public-source-transparency.md)
 
 ## 2. 현재 구현 근거
+
+이 절의 `현재`는 링크된 코드에서 확인한 동작이고, `제안`·`후속 구현`·`구현 전`은
+아직 구현·공개 승인되지 않은 설계 요구다. canonical·active·non-deleted는 그 자체로
+anonymous public grant가 아니다.
 
 ### 2.1 canonical 노드와 lifecycle
 
@@ -76,15 +83,20 @@ public visibility, anonymous access, 공개 source/revision 승인 상태를 이
 | Concept | `ontology_concepts`, `ontology_aliases`; `resolveCanonicalConceptFromDatabase`, `searchCanonicalConceptCandidatesFromDatabase` | `id`, `conceptKey`, `label`, exact alias; schema에는 `description`, `category`, `namespace`, `sourceType`, `sourceId`도 존재 | identity/alias resolve; 검색은 `status=ACTIVE`; detail state도 active row만 찾음 | canonical identity와 active lifecycle은 내부 조회 근거 | anonymous publication/access/revision은 `UNKNOWN`; description·category·alias별 공개 허용과 source mapping을 결정해야 함 |
 | Occupational Role | `occupational_roles`, `occupational_role_aliases`; `resolveOccupationalRoleFromDatabase`, `listActiveOccupationalRoles` | `id`, `roleKey`, `label`, `description`, alias; 내부 provenance 후보 | exact id/key/alias; 목록은 `status=ACTIVE` | canonical Role 모델과 exact resolver 존재 | active·review evidence를 공개 승인으로 해석할 수 없음. RBAC role, 개인 role, 공개 display policy가 없음 |
 | Skill | `skills`, `skill_aliases`; `resolveSkillFromDatabase`, `listActiveSkills` | `id`, `skillKey`, `label`, `description`, alias; `sourceType/sourceId/provenanceJson`는 내부 후보 | exact id/key/alias; graph resolver는 `ACTIVE`만 통과 | canonical Skill 모델과 exact resolver 존재 | anonymous publication/access 및 raw provenance의 공개 허용이 없음 |
-| Role → Skill | `role_skill_relations`; `skillsForRole`, `readRoleToSkills` | edge id/type/relationVersion/source·target; relation sourceType는 내부 후보 | relation `ACTIVE`, target Skill `ACTIVE`; canonical type은 `ROLE_REQUIRES_SKILL` | directed typed relation, endpoint FK, unique endpoint/type, positive version | relation 자체 public approval·usage policy가 없음. `ACTIVE`와 review evidence만으로 공개 허용하지 않음 |
-| Skill → Concept | `skill_concept_relations`; `conceptsForSkill`, `readSkillToConcepts` | edge id/type/relationVersion/source·target; relation sourceType는 내부 후보 | relation `ACTIVE`, target Concept `ACTIVE`; canonical type은 `SKILL_REQUIRES_CONCEPT` | directed typed relation, endpoint FK, unique endpoint/type, positive version | relation 자체 public approval·usage policy가 없음. private Concept를 건너뛰는 direct edge 생성 금지 |
-| 역방향 조회 | 동일 relation store; `rolesForSkill`, `skillsForConcept`, graph service의 reverse hop | canonical edge는 원래 방향으로 유지하고 view만 역방향 | source/target endpoint가 현재 active인지 확인 | 명시된 query 방향 구현 | 역방향 view가 새 relation을 만들지 않는다는 public contract 필요 |
+| Role → Skill | `role_skill_relations`; `skillsForRole`, `readRoleToSkills` | edge id/type/relationVersion/source·target; relation sourceType는 내부 후보 | 직접 typed-relation read의 기본 status는 relation `ACTIVE`(명시적 `ALL` 가능)이며 endpoint status는 필터하지 않음. graph repository는 relation `ACTIVE`와 joined target Skill `ACTIVE`를 확인하고 root는 resolver로 확인 | directed typed relation, endpoint FK, unique endpoint/type, positive version | relation 자체 public approval·usage policy가 없음. `ACTIVE`와 review evidence만으로 공개 허용하지 않음 |
+| Skill → Concept | `skill_concept_relations`; `conceptsForSkill`, `readSkillToConcepts` | edge id/type/relationVersion/source·target; relation sourceType는 내부 후보 | 직접 typed-relation read의 기본 status는 relation `ACTIVE`(명시적 `ALL` 가능)이며 endpoint status는 필터하지 않음. graph repository는 relation `ACTIVE`와 joined target Concept `ACTIVE`를 확인하고 root는 resolver로 확인 | directed typed relation, endpoint FK, unique endpoint/type, positive version | relation 자체 public approval·usage policy가 없음. private Concept를 건너뛰는 direct edge 생성 금지 |
+| 역방향 조회 | 동일 relation store; `rolesForSkill`, `skillsForConcept`, graph service의 reverse hop | canonical edge는 원래 방향으로 유지하고 view만 역방향 | 직접 reverse read의 기본 status는 relation `ACTIVE`(명시적 `ALL` 가능)이며 endpoint status는 필터하지 않음. graph repository reverse read는 joined target node `ACTIVE`를 확인 | 명시된 query 방향 구현 | 역방향 view가 새 relation을 만들지 않는다는 public contract 필요 |
 | Concept → learning resource | `content_revision_concepts`, `question_concepts`, `ontology_edges` 등의 schema와 내부 사용 | mapping/resource/revision 후보 | 이 표에서 하나의 public query로 묶인 resolver 없음 | 확인된 anonymous binding 없음 | 이번 도구 범위에서 제외. mapping status, resource publication, revision, source를 함께 검증하는 provider 선행 필요 |
 
 typed relation authority는 방향을 `ROLE -> SKILL -> CONCEPT`, inverse를 저장하지 않음,
 관계 provenance 필수, lifecycle `DRAFT | ACTIVE | RETIRED`, learner state 미구현으로
 명시한다. relation repository의 기본 read status는 `ACTIVE`지만, writer가 만드는 것은
 항상 unpublished `DRAFT`다.
+
+따라서 위 표의 endpoint `ACTIVE`는 graph repository query에서 확인되는 target join과
+resolver/source-set 조건을 뜻할 뿐, lower-level typed-relation read 전체가 endpoint
+lifecycle을 공통 보장한다는 뜻이 아니다. public provider는 이를 anonymous 공개 predicate로
+재사용할 수 없다.
 
 - [typed-relation-authority.ts:3-19](../../lib/services/typed-relation-authority.ts#L3-L19)
 - [typed-relation-repositories.ts:20-56](../../db/typed-relation-repositories.ts#L20-L56)
@@ -123,11 +135,21 @@ deployment, Agents API 접근의 근거가 아니다.
 - [mcpa-core.ts:259-327](../../lib/mcp/mcpa-core.ts#L259-L327)
 - [mcpa-adapter.ts:37-107](../../lib/mcp/mcpa-adapter.ts#L37-L107)
 
+현재 확인한 main `27c400a...`에는 별도의
+`lib/services/public-course-outline-adapter.ts` 구현도 추가되어 있다. 이 adapter는
+active·published·삭제되지 않은 course와 subject/topic projection을 별도 allowlist로
+정규화하고 subject 50개/topic 200개 상한을 둔다. 이는 course/outline projection
+adapter 수준의 구현 근거이지, Concept·Role·Skill node/edge의 public resolver,
+anonymous graph 권한, 외부 HTTP/MCP transport가 존재한다는 근거가 아니다.
+
 source taxonomy에는 authority·usage·currentness·source identity 같은 분류가 정의되어
 있지만, Concept/Role/Skill resolver가 이를 anonymous public snapshot으로 공급한다는 연결은
 확인되지 않았다. graph의 `sourceType` 또는 relation `relationVersion`은 raw provenance
 후보와 relation schema version일 뿐, 기관 보증·사용권·공식 최신성·공개 source citation이
 아니다.
+
+또한 현재 Concept public state/read model에는 `asOf`를 공급하는 field나 resolver가 없고,
+`source/revision/asOf`를 동일 public snapshot으로 묶는 resolver도 확인되지 않았다.
 
 - [source-taxonomy.ts:1-76](../../lib/provenance/source-taxonomy.ts#L1-L76)
 - [public-source-transparency.md:20-25](../product/public-source-transparency.md#L20-L25)
@@ -135,9 +157,14 @@ source taxonomy에는 authority·usage·currentness·source identity 같은 분�
 
 ## 3. 공통 anonymous public 원칙
 
+이 절의 anonymous predicate, 오류 envelope, allowlist는 후속 public adapter를 위한
+설계 제안이다. 현재 코드에 anonymous allowlist·private node/edge fail-closed 경로가
+구현되어 있다는 뜻이 아니다.
+
 ### 3.1 서버가 결정하는 공개 predicate
 
-caller scope는 요청이 anonymous인 경우 항상 서버가 `anonymous_public`으로 결정한다.
+후속 public adapter는 요청이 anonymous인 경우 caller scope를 항상 서버가
+`anonymous_public`으로 결정해야 한다.
 다음 입력은 받지 않거나 무시한다.
 
 - `userId`, caller role, organization, enrollment, `published`, `active`, `access`, source hash
@@ -328,10 +355,14 @@ direction을 유지한다. private 중간 Skill을 제거한 뒤 Role→Concept 
     "reference": { "roleKey": "role:<namespace>:<identity>" }
   },
   "depth": 2,
-  "limit": 200,
-  "cursor": "<direct-depth-1 cursor only>"
+  "limit": 200
 }
 ```
+
+위 예시는 `roleKey`를 사용하는 기존 graph service 입력 모양이며, depth-2라서
+`cursor`를 포함하지 않는다. public adapter의 외부 입력 후보는 별도 `publicId`이고,
+현재 graph service가 `publicId`를 직접 받는다는 뜻은 아니다. adapter가 publicId를
+정확히 검증·해석한 뒤 기존 service 입력으로 변환하는 것은 후속 구현이다.
 
 검증 규칙은 다음과 같다.
 
@@ -339,8 +370,8 @@ direction을 유지한다. private 중간 Skill을 제거한 뒤 Role→Concept 
 - exact `id`, `roleKey`, `skillKey`, Concept의 `key`/`stableKey`/`id`, 또는 exact alias 중 기존 resolver가 지원하는 identity만 받는다. public adapter가 alias를 열기 전에는 `publicId` root를 우선한다.
 - identity field는 non-empty string이어야 하며 NFKC/trim/정규화 후 provider가 query한다. fuzzy, substring, arbitrary predicate는 금지한다.
 - query type별 depth는 기존 validator처럼 고정한다. `ROLE_GRAPH`와 `CONCEPT_GRAPH`는 2, direct query는 1이며 `depth > 2`는 거부한다.
-- 기존 cursor는 direct depth-1 query에만 허용하며, query fingerprint·cursor version·order version·integrity를 검증한다. 길이 4096을 넘는 cursor, 다른 root/query/limit용 cursor는 `INVALID_INPUT`이다.
-- `limit`은 positive integer만 받고 기존 service의 per-hop default 200, hard max 500 관례를 우선한다. hard max 초과는 `LIMIT_EXCEEDED`로 거부한다.
+- 기존 cursor는 `ROLE_SKILLS`, `SKILL_ROLES`, `SKILL_CONCEPTS`, `CONCEPT_SKILLS` direct depth-1 query에만 허용하며, query fingerprint·cursor version·order version·integrity를 검증한다. `SKILL_GRAPH`도 depth-1이지만 cursor를 지원하지 않는다. 길이 4096을 넘는 cursor, 다른 root/query/limit용 cursor는 `INVALID_INPUT`이다.
+- `limit`은 positive integer만 받고 기존 service의 per-hop default 200, hard max 500 관례를 우선한다. 이 입력은 hop별 제한이지 전체 node/edge 응답 제한이 아니다. hard max 초과는 public 계약에서 `LIMIT_EXCEEDED`로 매핑해 거부한다.
 - caller가 `userId`, `includePrivate`, `published`, `source`, `relationTypes` 확장값을 보내도 public scope·allowlist를 변경하지 않는다.
 
 기존 validator 근거:
@@ -357,16 +388,28 @@ direction을 유지한다. private 중간 Skill을 제거한 뒤 Role→Concept 
 | depth | 최대 2 | 그대로 고정. 더 깊은 path는 별도 계약 없이는 거부 |
 | per-hop default | 200 | 기본값으로 재사용하되, anonymous 공개 정책에서 더 작은 값을 정하면 그 adapter 값이 우선 |
 | per-hop hard max | 500 | provider/query 전 단계에서 enforce; 자동 증액 금지 |
-| total node hard max | 1000 | compose 전에 enforce |
-| total edge hard max | 2000 | compose 전에 enforce |
+| total node hard max | 1000 | compose 결과 map을 만든 뒤 enforce |
+| total edge hard max | 2000 | compose 결과 map을 만든 뒤 enforce |
 | exact alias candidate hard max | 20 | 후보 ID/count를 public response에 노출하지 않고 overflow를 거부 |
 | cursor encoded length | 4096 | decode 전 reject |
 | D1 source-id chunk | 75 | provider 내부 query parameter 제한; public 응답 limit과 혼동하지 않음 |
 | response bytes | 기존 graph contract에서 확인되지 않음 | 별도 public adapter 상한을 정하고, 측정값이 아닌 정책값으로 문서화해야 함 |
 
+`limit`은 각 hop의 repository read에 적용되는 per-hop 값이고, total node/edge hard max는
+그 read가 끝난 뒤 compose 결과 map에서 별도로 검사된다. 따라서 이 수치만으로 전체
+query cost, 응답 bytes, latency 또는 처리량이 검증되었다고 말할 수 없다.
+
+현재 graph service의 오류는 public envelope가 아니다. validator/service는 예를 들어
+잘못된 입력·cursor에 `INVALID_QUERY`, depth 초과에 `DEPTH_LIMIT_EXCEEDED`, limit·fan-out
+초과에 `FAN_OUT_LIMIT_EXCEEDED`를 사용하고, 단순 root 미존재는 `NOT_FOUND`, relation orphan나
+무결성 문제는 `ORPHAN_RELATION` 또는 `INTERNAL_ERROR`로 종료한다. 후속 public adapter가
+이를 `INVALID_INPUT`·`LIMIT_EXCEEDED`·`NOT_FOUND`·`UNAVAILABLE` 등 공개 상태로 매핑할
+때에도 내부 code와 원인을 외부 존재 oracle로 노출하지 않아야 한다.
+
 기존 graph service는 per-hop `overflow` 또는 hard overflow를 감지하고, depth-2 결과를
-임의로 잘라 `partial`이라고 부르지 않는다. direct depth-1만 `hasMore`와 signed cursor를
-사용한다. public v1도 다음을 유지한다.
+임의로 잘라 `partial`이라고 부르지 않는다. `ROLE_SKILLS`, `SKILL_ROLES`,
+`SKILL_CONCEPTS`, `CONCEPT_SKILLS` direct depth-1만 `hasMore`와 signed cursor를 사용하며,
+depth-1 `SKILL_GRAPH`에는 page/cursor가 없다. public v1도 다음을 유지한다.
 
 - depth-1: public predicate를 적용한 stable order 기준으로 `hasMore`와 continuation을 반환할 수 있다.
 - depth-2: 두 hop 모두 제한 안에 완전히 들어온 경우만 `OK`를 반환한다. 어느 hop이든 hard limit이나 승인된 response cap을 넘으면 `LIMIT_EXCEEDED`로 종료한다. partial graph나 숨은 node를 포함한 cursor를 반환하지 않는다.
@@ -423,6 +466,9 @@ revision을 붙이려면 node와 edge 모두 실제 public resolver가 그 값�
 - [schema.ts:3598-3605](../../db/schema.ts#L3598-L3605)
 
 ### 5.5 비공개 경계
+
+아래 필터링 순서와 보장은 후속 public graph provider의 설계 요구다. 현재 repository가
+이를 anonymous 공개 경계로 구현했다는 뜻이 아니다.
 
 public graph provider는 다음 순서로 필터링·탐색한다.
 
@@ -486,7 +532,7 @@ MCP registry 등록, 공개 API 연결, Agents API 호출과 접근 검증은 �
 | 비공개 중간 node | edge와 후속 traversal을 함께 차단; private node를 제거한 direct Role→Concept edge를 만들지 않음 |
 | cycle·중복 edge | `(type,id)`/edge identity dedupe; endpoint conflict는 `UNAVAILABLE` 또는 내부 오류로 fail closed; cycle을 새 path로 확장하지 않음 |
 | 과도한 depth·fan-out·응답 | depth 2, 기존 per-hop/total hard max, public response cap을 query 단계에서 검사하고 `LIMIT_EXCEEDED`; 자동 재시도·무제한 read·사후 문자열 절단 금지 |
-| source/revision 부재 | field를 synthetic value로 채우지 않음. public policy상 필수면 대상은 `NOT_FOUND`/`UNAVAILABLE`, 선택이면 field를 생략하고 `updatedAt`으로 대체하지 않음 |
+| source/revision/asOf 부재 | field를 synthetic value로 채우지 않음. public policy상 필수면 대상은 `NOT_FOUND`/`UNAVAILABLE`, 선택이면 field를 생략하고 `updatedAt`으로 대체하지 않음 |
 | 개인 데이터 혼입 | personal table/join이 public projection과 분리되어야 하며, evidence/mastery/progress가 0개 field로 반환됨 |
 | instruction-like 텍스트 | 텍스트는 untrusted data로 보존·표시할 수 있지만 tool call, SQL, path, URL, 권한 상승으로 실행하지 않음 |
 
@@ -516,7 +562,7 @@ dependency를 도입하지 않는다.
 - `loadCanonicalConceptState`의 publication/access/provenance/revision이 `UNKNOWN`이라 Concept public eligibility를 증명할 수 없다.
 - Role·Skill·typed relation에 lifecycle/review/provenance는 있지만 anonymous public publication/access 상태와 공개 책임 규칙이 없다.
 - 현재 graph provider는 active endpoint/relation read model이지 public predicate와 public response-cost provider가 아니다.
-- source taxonomy와 schema의 source/revision 후보를 Concept·Role·Skill public snapshot으로 resolve하는 binding이 없다.
+- source taxonomy와 schema의 source/revision/asOf 후보를 Concept·Role·Skill public snapshot으로 resolve하는 binding이 없다.
 - Concept→resource mapping은 관계 schema가 일부 있어도 mapping approval, published resource, endpoint scope, revision을 한 번에 보장하는 public resolver가 없다.
 - `get_concept`/`get_learning_graph` public API 또는 MCP registry/call site가 없다. 등록은 설계 완료가 아니라 별도 구현·접근 검증의 결과여야 한다.
 
