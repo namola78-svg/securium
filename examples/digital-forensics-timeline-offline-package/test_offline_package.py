@@ -591,6 +591,73 @@ class TimelineOfflinePackageBoundaryTests(unittest.TestCase):
         preflight_run.assert_called_once_with(extraction, ci_root)
         lab_run.assert_not_called()
 
+    def test_ci_subprocesses_have_a_finite_timeout(self) -> None:
+        completed = subprocess.CompletedProcess(["python"], 0, "ok", "")
+        with patch.object(package_ci.subprocess, "run", return_value=completed) as run:
+            package_ci._run(["python", "-c", "pass"], cwd=self.temp_root, expected_code=0)
+        self.assertEqual(
+            run.call_args.kwargs["timeout"],
+            package_ci.SUBPROCESS_TIMEOUT_SECONDS,
+        )
+
+    def test_preflight_nonpass_is_explicit_and_does_not_run_lab(self) -> None:
+        for status, exit_code in (("FAIL", 1), ("UNVERIFIED_ENVIRONMENT", 3)):
+            with self.subTest(status=status):
+                extraction = self.temp_root / f"extraction-{status}"
+                preflight_path = extraction / "verification" / "forensics-learner-preflight"
+                preflight_path.mkdir(parents=True)
+                (preflight_path / "preflight.py").write_text("# fixture\n", encoding="utf-8")
+                ci_root = self.temp_root / f"ci-root-{status}"
+                ci_root.mkdir()
+                probes = [
+                    {"name": name, "status": "NOT_RUN", "required": False}
+                    for name in sorted(package_ci.EXPECTED_PREFLIGHT_NOT_RUN)
+                ]
+                probes.append(
+                    {
+                        "name": "probe_python_runtime",
+                        "status": status,
+                        "required": True,
+                    }
+                )
+                completed = subprocess.CompletedProcess(
+                    ["python"],
+                    exit_code,
+                    json.dumps({"overall_status": status, "probes": probes}),
+                    "",
+                )
+                with patch.object(package_ci, "_run", return_value=completed), patch(
+                    "builtins.print"
+                ) as output:
+                    with self.assertRaisesRegex(
+                        RuntimeError,
+                        rf"preflight_status={status}; preflight_exit={exit_code}; "
+                        r"lab_execution=NOT_RUN",
+                    ):
+                        package_ci._run_extracted_preflight(extraction, ci_root)
+                lines = [call.args[0] for call in output.call_args_list if call.args]
+                self.assertTrue(any(line.startswith("preflight_verification=") for line in lines))
+
+    def test_preflight_subprocess_error_is_explicit_and_blocks_lab(self) -> None:
+        extraction = self.temp_root / "subprocess-error-extraction"
+        preflight_path = extraction / "verification" / "forensics-learner-preflight"
+        preflight_path.mkdir(parents=True)
+        (preflight_path / "preflight.py").write_text("# fixture\n", encoding="utf-8")
+        ci_root = self.temp_root / "subprocess-error-ci-root"
+        ci_root.mkdir()
+        with patch.object(
+            package_ci,
+            "_run",
+            side_effect=RuntimeError("subprocess timeout after 120s: python"),
+        ), patch("builtins.print") as output:
+            with self.assertRaisesRegex(
+                RuntimeError,
+                r"preflight_status=PROCESS_ERROR; lab_execution=NOT_RUN",
+            ):
+                package_ci._run_extracted_preflight(extraction, ci_root)
+        lines = [call.args[0] for call in output.call_args_list if call.args]
+        self.assertTrue(any(line.startswith("preflight_verification=") for line in lines))
+
 
 if __name__ == "__main__":
     unittest.main()

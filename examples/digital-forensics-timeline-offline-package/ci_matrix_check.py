@@ -31,6 +31,7 @@ PREFLIGHT_ARCHIVE_PATH = "verification/forensics-learner-preflight/preflight.py"
 ZIP_NAME = "securium-forensics-timeline-offline-package.zip"
 MANIFEST_NAME = "securium-forensics-timeline-offline-package.manifest.json"
 CI_ROOT_ENV = "SECURIUM_OFFLINE_CI_ROOT"
+SUBPROCESS_TIMEOUT_SECONDS = 120
 EXPECTED_PREFLIGHT_NOT_RUN = {
     "ci_success_evidence",
     "full_lab_execution",
@@ -63,16 +64,24 @@ def _run(
     expected_code: int | None = None,
     environment: dict[str, str] | None = None,
 ) -> subprocess.CompletedProcess[str]:
-    result = subprocess.run(
-        command,
-        cwd=cwd,
-        env=environment or _clean_environment(),
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        check=False,
-    )
+    try:
+        result = subprocess.run(
+            command,
+            cwd=cwd,
+            env=environment or _clean_environment(),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+            timeout=SUBPROCESS_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired as error:
+        raise RuntimeError(
+            f"subprocess timeout after {SUBPROCESS_TIMEOUT_SECONDS}s: {command[0]}"
+        ) from error
+    except OSError as error:
+        raise RuntimeError(f"subprocess error: {type(error).__name__}") from error
     if expected_code is not None and result.returncode != expected_code:
         detail = result.stderr.strip() or result.stdout.strip() or "no command output"
         raise RuntimeError(
@@ -179,26 +188,60 @@ def _run_extracted_preflight(extraction: Path, ci_root: Path) -> dict[str, objec
     workspace = ci_root / "preflight workspace"
     workspace.mkdir()
     report = workspace / "preflight report.json"
+    completed: subprocess.CompletedProcess[str] | None = None
     try:
-        completed = _run(
-            [
-                sys.executable,
-                "-B",
-                str(preflight_path),
-                "--json",
-                "--temp-root",
-                str(workspace),
-                "--report",
-                str(report),
-            ],
-            cwd=extraction,
-            expected_code=0,
-            environment=environment,
-        )
-        result = _json_output(completed)
+        try:
+            completed = _run(
+                [
+                    sys.executable,
+                    "-B",
+                    str(preflight_path),
+                    "--json",
+                    "--temp-root",
+                    str(workspace),
+                    "--report",
+                    str(report),
+                ],
+                cwd=extraction,
+                environment=environment,
+            )
+        except RuntimeError as error:
+            summary = {
+                "overall_status": "PROCESS_ERROR",
+                "exit_code": None,
+                "lab_execution": "NOT_RUN",
+                "reason": str(error),
+            }
+            print("preflight_verification=" + json.dumps(summary, sort_keys=True))
+            raise RuntimeError(
+                "preflight_status=PROCESS_ERROR; lab_execution=NOT_RUN; " + str(error)
+            ) from error
+        try:
+            result = _json_output(completed)
+        except RuntimeError as error:
+            summary = {
+                "overall_status": "PROCESS_ERROR",
+                "exit_code": completed.returncode,
+                "lab_execution": "NOT_RUN",
+                "reason": str(error),
+            }
+            print("preflight_verification=" + json.dumps(summary, sort_keys=True))
+            raise RuntimeError(
+                "preflight_status=PROCESS_ERROR; lab_execution=NOT_RUN; " + str(error)
+            ) from error
         probes = result.get("probes")
         if not isinstance(probes, list):
-            raise RuntimeError("extracted preflight did not return a probe list")
+            summary = {
+                "overall_status": "PROCESS_ERROR",
+                "exit_code": completed.returncode,
+                "lab_execution": "NOT_RUN",
+                "reason": "extracted preflight did not return a probe list",
+            }
+            print("preflight_verification=" + json.dumps(summary, sort_keys=True))
+            raise RuntimeError(
+                "preflight_status=PROCESS_ERROR; lab_execution=NOT_RUN; "
+                "extracted preflight did not return a probe list"
+            )
         statuses = Counter(
             str(probe.get("status"))
             for probe in probes
@@ -209,31 +252,62 @@ def _run_extracted_preflight(extraction: Path, ci_root: Path) -> dict[str, objec
             for probe in probes
             if isinstance(probe, dict) and probe.get("status") == "NOT_RUN"
         }
+        summary = {
+            "overall_status": result.get("overall_status"),
+            "exit_code": completed.returncode,
+            "lab_execution": "NOT_RUN" if completed.returncode != 0 else "PENDING",
+            "probe_counts": dict(sorted(statuses.items())),
+            "not_run_scopes": sorted(not_run_names),
+        }
+        if completed.returncode != 0:
+            print("preflight_verification=" + json.dumps(summary, sort_keys=True))
+            raise RuntimeError(
+                f"preflight_status={result.get('overall_status', 'UNKNOWN')}; "
+                f"preflight_exit={completed.returncode}; lab_execution=NOT_RUN"
+            )
         if result.get("overall_status") != "PASS":
-            raise RuntimeError("extracted preflight reported a non-PASS result")
+            summary["lab_execution"] = "NOT_RUN"
+            print("preflight_verification=" + json.dumps(summary, sort_keys=True))
+            raise RuntimeError(
+                f"preflight_status={result.get('overall_status', 'UNKNOWN')}; "
+                "lab_execution=NOT_RUN"
+            )
         if any(
             isinstance(probe, dict)
             and probe.get("required")
             and probe.get("status") != "PASS"
             for probe in probes
         ):
-            raise RuntimeError("an extracted preflight required probe did not PASS")
+            summary["lab_execution"] = "NOT_RUN"
+            print("preflight_verification=" + json.dumps(summary, sort_keys=True))
+            raise RuntimeError(
+                "preflight_status=FAIL; required_probe=NOT_PASS; lab_execution=NOT_RUN"
+            )
         if not_run_names != EXPECTED_PREFLIGHT_NOT_RUN:
+            summary["lab_execution"] = "NOT_RUN"
+            print("preflight_verification=" + json.dumps(summary, sort_keys=True))
             raise RuntimeError(
                 "extracted preflight NOT_RUN scope changed: "
-                f"{sorted(not_run_names)}"
+                f"{sorted(not_run_names)}; preflight_status=PROCESS_ERROR; lab_execution=NOT_RUN"
             )
         if not report.is_file():
-            raise RuntimeError("extracted preflight report was not created")
+            summary["lab_execution"] = "NOT_RUN"
+            print("preflight_verification=" + json.dumps(summary, sort_keys=True))
+            raise RuntimeError(
+                "preflight_status=PROCESS_ERROR; report=NOT_CREATED; lab_execution=NOT_RUN"
+            )
         report_size, report_sha256 = _sha256_file(report)
-        summary = {
-            "overall_status": result["overall_status"],
-            "exit_code": completed.returncode,
-            "report_size": report_size,
-            "report_sha256": report_sha256,
-            "probe_counts": dict(sorted(statuses.items())),
-            "not_run_scopes": sorted(not_run_names),
-        }
+        summary.update(
+            {
+                "overall_status": result["overall_status"],
+                "exit_code": completed.returncode,
+                "lab_execution": "PENDING",
+                "report_size": report_size,
+                "report_sha256": report_sha256,
+                "probe_counts": dict(sorted(statuses.items())),
+                "not_run_scopes": sorted(not_run_names),
+            }
+        )
         print("preflight_verification=" + json.dumps(summary, sort_keys=True))
         return summary
     finally:
@@ -461,7 +535,12 @@ def _run_extracted_flow(extraction: Path, ci_root: Path) -> dict[str, object]:
     """Run preflight first; a preflight failure prevents any lab execution."""
 
     preflight = _run_extracted_preflight(extraction, ci_root)
-    lab = _run_extracted_lab(extraction, ci_root)
+    try:
+        lab = _run_extracted_lab(extraction, ci_root)
+    except Exception as error:
+        print(f"lab_execution=FAIL reason={type(error).__name__}")
+        raise
+    print("lab_execution=PASS")
     return {"preflight": preflight, "lab": lab}
 
 
