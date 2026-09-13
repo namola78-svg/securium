@@ -1,9 +1,10 @@
 # Securium Forensic Timeline Offline Package
 
 This package is a self-contained, offline copy of the synthetic digital-forensics
-timeline lab and its rehearsal documents. It is intended for local study and
-facilitator preparation. It is not the whole Digital Forensics Foundation and it
-does not declare classroom, publication, or delivery readiness.
+timeline lab, its learner preflight CLI, and its rehearsal documents. It is
+intended for local study and facilitator preparation. It is not the whole
+Digital Forensics Foundation and it does not declare classroom, publication, or
+delivery readiness.
 
 ## Scope and education status
 
@@ -32,12 +33,24 @@ Change directory to the extracted package root. No repository checkout,
 `PYTHONPATH`, `PYTHONHOME`, network, database, third-party dependency, or
 credential is required.
 
+The learner flow has separate results: package verification (when performed by
+someone with a trusted repository), the extracted preflight report, and the
+timeline lab/test results. The preflight's six `NOT_RUN` scopes describe checks
+outside the preflight's purpose; they do not mean that the timeline lab was not
+run.
+
 On Windows PowerShell:
 
 ```powershell
+$preflight = ".\verification\forensics-learner-preflight\preflight.py"
 $lab = ".\examples\digital-forensics-timeline-local-lab"
-$work = Join-Path ([System.IO.Path]::GetTempPath()) ("securium-forensics-timeline-" + [guid]::NewGuid().ToString("N"))
+$work = Join-Path ([System.IO.Path]::GetTempPath()) ("securium-forensics-timeline-learner-" + [guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Path $work | Out-Null
+
+$preflightReport = Join-Path $work "preflight-report.json"
+python "$preflight" --json --temp-root $work --report $preflightReport
+if ($LASTEXITCODE -ne 0) { throw "learner preflight did not PASS; inspect $preflightReport" }
+Get-Content $preflightReport
 
 python "$lab\cli.py" generate `
   --output "$work\fixture.json" `
@@ -50,6 +63,13 @@ python "$lab\cli.py" analyze `
 
 Get-Content "$work\report.json"
 ```
+
+Proceed to the timeline commands only when the preflight exit code is `0`.
+Exit code `1` is a required probe or cleanup failure, `2` is a usage/report
+output failure, and `3` is `UNVERIFIED_ENVIRONMENT` for an OS/Python pair
+outside the recorded matrix. The preflight keeps those meanings unchanged; do
+not turn an unverified environment into a pass by installing or changing the
+environment automatically.
 
 The same `generate` command supports `--format csv`; analyze the resulting CSV
 with the same `analyze` command. The CLI reports `input_sha256`,
@@ -67,8 +87,8 @@ Do not substitute a repository, evidence, or broad temporary-directory path.
 
 ## Extracted test execution
 
-From the extracted package root, run both the standard discovery and the lab's
-strict runner:
+After the preflight has passed, from the extracted package root run both the
+standard discovery and the lab's strict runner:
 
 ```text
 python -m unittest discover -s examples/digital-forensics-timeline-local-lab -p "test_*.py" -v
@@ -79,7 +99,12 @@ Use `python3` where that is the local interpreter name. The discovered and
 executed test counts are derived from the extracted source; no historical count
 is a pass criterion. The runner rejects zero, skipped, failed, or errored tests.
 
-## Rebuild and source-bound verification
+Record the preflight JSON separately from the timeline analysis report and the
+strict-runner summary. A successful preflight only establishes its documented
+local probes; it is not evidence that the full lab, a classroom rehearsal, real
+evidence handling, or the configured CI matrix has run.
+
+## Package integrity and source-bound verification
 
 The builder, verifier, and their package-boundary tests remain in the repository;
 they are not placed in this teaching ZIP. From a clean checkout at the recorded
@@ -114,9 +139,16 @@ agreement with the specified committed source; it does not establish official
 authenticity, signatures, lawful collection, licensing, legal admissibility, or
 truth of a synthetic observation.
 
+This source-bound check is distinct from the learner flow above. An extracted
+learner copy can run without a repository, but it cannot independently verify
+the package's Git provenance without the separately supplied trusted checkout.
+Do not select a trusted source from commit, path, or hash values supplied only
+by the package manifest.
+
 ## Included material and external references
 
-Start with the [lab README](examples/digital-forensics-timeline-local-lab/README.md),
+The included [preflight CLI](verification/forensics-learner-preflight/preflight.py)
+is the first executable step. Then start with the [lab README](examples/digital-forensics-timeline-local-lab/README.md),
 then use the [learner guide](examples/digital-forensics-timeline-local-lab/learner-guide.md),
 [instructor guide](examples/digital-forensics-timeline-local-lab/instructor-guide.md),
 and the four rehearsal documents below.

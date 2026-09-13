@@ -15,6 +15,7 @@ from typing import Callable
 from unittest.mock import patch
 
 import build_offline_package as package_builder
+import ci_matrix_check as package_ci
 from build_offline_package import (
     DEFAULT_EXTERNAL_MANIFEST_NAME,
     DEFAULT_ZIP_NAME,
@@ -22,6 +23,7 @@ from build_offline_package import (
     PackageError,
     _canonical_json,
     _commit_blob,
+    _commit_bytes,
     _git_blob_sha1,
     _collect_entries,
     _remove_owned_directory,
@@ -31,6 +33,9 @@ from build_offline_package import (
     build_package,
     verify_package,
 )
+
+
+PREFLIGHT_ARCHIVE_PATH = "verification/forensics-learner-preflight/preflight.py"
 
 
 class TimelineOfflinePackageBoundaryTests(unittest.TestCase):
@@ -134,12 +139,46 @@ class TimelineOfflinePackageBoundaryTests(unittest.TestCase):
         return output_package, output_manifest
 
     def test_same_source_build_is_byte_reproducible(self) -> None:
-        first_zip, _, first = self._build("first")
-        second_zip, _, second = self._build("second")
+        first_zip, first_manifest, first = self._build("first")
+        second_zip, second_manifest, second = self._build("second")
         self.assertEqual(first_zip.read_bytes(), second_zip.read_bytes())
         self.assertEqual(first["zip_sha256"], second["zip_sha256"])
+        self.assertEqual(first_manifest.read_bytes(), second_manifest.read_bytes())
         self.assertEqual(first["source_entry_count"], len(PACKAGE_ALLOWLIST))
         self.assertEqual(first["entry_count"], len(PACKAGE_ALLOWLIST) + 1)
+
+    def test_allowlist_contains_the_committed_preflight_cli_only(self) -> None:
+        source_names = {source_name for source_name, _ in PACKAGE_ALLOWLIST}
+        self.assertIn(PREFLIGHT_ARCHIVE_PATH, source_names)
+        self.assertNotIn("verification/forensics-learner-preflight/README.md", source_names)
+        self.assertNotIn("verification/forensics-learner-preflight/test_preflight.py", source_names)
+        self.assertNotIn("verification/forensics-learner-preflight/ci_matrix_check.py", source_names)
+
+    def test_preflight_source_is_committed_and_matches_zip_entry(self) -> None:
+        package, manifest, result = self._build()
+        external = json.loads(manifest.read_text(encoding="utf-8"))
+        self.assertEqual(result["source_entry_count"], 13)
+        self.assertEqual(result["entry_count"], 14)
+        extraction = self.temp_root / "preflight byte extraction"
+        verification = self._verify(package, manifest, extract_dir=extraction)
+        self.assertEqual(verification["status"], "PASS")
+        with zipfile.ZipFile(package, "r") as archive:
+            payload = archive.read(PREFLIGHT_ARCHIVE_PATH)
+            self.assertEqual(
+                payload,
+                _commit_bytes(self.trusted_root, self.source_commit, PREFLIGHT_ARCHIVE_PATH),
+            )
+            internal = json.loads(archive.read("package-manifest.json").decode("utf-8"))
+        entry = next(item for item in internal["entries"] if item["archive_path"] == PREFLIGHT_ARCHIVE_PATH)
+        self.assertEqual(entry["source_path"], PREFLIGHT_ARCHIVE_PATH)
+        self.assertEqual(entry["size"], len(payload))
+        self.assertEqual(entry["sha256"], _sha256_bytes(payload))
+        self.assertEqual(entry["git_blob_sha1"], _git_blob_sha1(payload))
+        self.assertEqual(
+            extraction.joinpath(*PREFLIGHT_ARCHIVE_PATH.split("/")).read_bytes(),
+            payload,
+        )
+        self.assertEqual(external["entry_count_including_internal_manifest"], 14)
 
     def test_verify_extracts_and_checks_package_relative_links(self) -> None:
         package, manifest, _ = self._build()
@@ -305,6 +344,85 @@ class TimelineOfflinePackageBoundaryTests(unittest.TestCase):
         self.assertEqual(result["status"], "REJECTED")
         self.assertIn("source_path", result["errors"][0])
 
+    def test_preflight_payload_and_manifest_hash_tampering_is_rejected(self) -> None:
+        package, manifest, _ = self._build()
+
+        def mutate(internal: dict[str, object], data: dict[str, bytes]) -> None:
+            payload = b"# tampered learner preflight\n"
+            data[PREFLIGHT_ARCHIVE_PATH] = payload
+            entry = next(
+                item for item in internal["entries"] if item["archive_path"] == PREFLIGHT_ARCHIVE_PATH
+            )
+            entry.update(
+                {
+                    "size": len(payload),
+                    "sha256": _sha256_bytes(payload),
+                    "git_blob_sha1": _git_blob_sha1(payload),
+                }
+            )
+
+        tampered, tampered_manifest = self._rewrite_package(
+            package,
+            manifest,
+            "preflight-self-consistent-tamper.zip",
+            mutate,
+        )
+        extraction = self.temp_root / "preflight-must-not-extract"
+        result = self._verify(tampered, tampered_manifest, extract_dir=extraction)
+        self.assertEqual(result["status"], "REJECTED")
+        self.assertIn("manifest size", result["errors"][0])
+        self.assertFalse(extraction.exists())
+
+    def test_preflight_source_record_replacement_is_rejected(self) -> None:
+        package, manifest, _ = self._build()
+
+        def mutate(internal: dict[str, object], data: dict[str, bytes]) -> None:
+            replacement_path = "examples/digital-forensics-timeline-local-lab/cli.py"
+            payload = _commit_bytes(self.trusted_root, self.source_commit, replacement_path)
+            data[PREFLIGHT_ARCHIVE_PATH] = payload
+            entry = next(
+                item for item in internal["entries"] if item["archive_path"] == PREFLIGHT_ARCHIVE_PATH
+            )
+            entry.update(
+                {
+                    "source_path": replacement_path,
+                    "size": len(payload),
+                    "sha256": _sha256_bytes(payload),
+                    "git_blob_sha1": _commit_blob(self.trusted_root, self.source_commit, replacement_path),
+                }
+            )
+
+        tampered, tampered_manifest = self._rewrite_package(
+            package,
+            manifest,
+            "preflight-source-record-replacement.zip",
+            mutate,
+        )
+        result = self._verify(tampered, tampered_manifest)
+        self.assertEqual(result["status"], "REJECTED")
+        self.assertIn("source_path", result["errors"][0])
+
+    def test_preflight_manifest_entry_omission_is_rejected(self) -> None:
+        package, manifest, _ = self._build()
+
+        def mutate(internal: dict[str, object], _data: dict[str, bytes]) -> None:
+            internal["entries"] = [
+                item
+                for item in internal["entries"]
+                if item["archive_path"] != PREFLIGHT_ARCHIVE_PATH
+            ]
+            internal["entry_count"] = len(internal["entries"])
+
+        tampered, tampered_manifest = self._rewrite_package(
+            package,
+            manifest,
+            "preflight-manifest-entry-omission.zip",
+            mutate,
+        )
+        result = self._verify(tampered, tampered_manifest)
+        self.assertEqual(result["status"], "REJECTED")
+        self.assertIn("entry count", result["errors"][0])
+
     def test_source_commit_record_is_rejected_by_trusted_checkout(self) -> None:
         package, manifest, _ = self._build()
 
@@ -457,6 +575,21 @@ class TimelineOfflinePackageBoundaryTests(unittest.TestCase):
         _remove_owned_directory(owned)
         self.assertFalse(owned.exists())
         self.assertTrue(sentinel.exists())
+
+    def test_preflight_failure_stops_before_extracted_lab_execution(self) -> None:
+        extraction = self.temp_root / "extraction"
+        extraction.mkdir()
+        ci_root = self.temp_root / "ci-root"
+        ci_root.mkdir()
+        with patch.object(
+            package_ci,
+            "_run_extracted_preflight",
+            side_effect=RuntimeError("controlled preflight failure"),
+        ) as preflight_run, patch.object(package_ci, "_run_extracted_lab") as lab_run:
+            with self.assertRaisesRegex(RuntimeError, "controlled preflight failure"):
+                package_ci._run_extracted_flow(extraction, ci_root)
+        preflight_run.assert_called_once_with(extraction, ci_root)
+        lab_run.assert_not_called()
 
 
 if __name__ == "__main__":
