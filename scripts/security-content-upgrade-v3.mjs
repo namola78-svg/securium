@@ -4,6 +4,7 @@ import { existsSync } from "node:fs";
 import { spawn } from "node:child_process";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
+import { fileURLToPath } from "node:url";
 import { loadLocalEnvIfPresent } from "./load-local-env.mjs";
 import {
   SECURITY_CONTENT_V3_CONFIRM_ENV_NAME,
@@ -13,8 +14,6 @@ import {
   generateSecurityContentV3Sql,
 } from "../lib/data/security-content-upgrade-v3.mjs";
 
-loadLocalEnvIfPresent();
-
 const VALID_ACTIONS = new Set([
   "plan",
   "seed:d1-local",
@@ -22,36 +21,42 @@ const VALID_ACTIONS = new Set([
   "verify:d1-local",
   "verify:postgres",
 ]);
-const action = process.argv[2] ?? "plan";
 const persistTo = argValue("--persist-to=");
-if (!VALID_ACTIONS.has(action)) fail("SECURITY_CONTENT_V3_ACTION_INVALID");
 
-const sourceRoot = resolveSourceRoot();
-const source = await readSource(sourceRoot);
-const plan = buildSecurityContentV3Plan(source);
+if (resolve(process.argv[1] ?? "") === fileURLToPath(import.meta.url)) await main();
 
-if (action === "plan") {
-  console.log(JSON.stringify(planSummary(plan, sourceRoot), null, 2));
-  process.exit(0);
+async function main() {
+  loadLocalEnvIfPresent();
+  const action = process.argv[2] ?? "plan";
+  if (!VALID_ACTIONS.has(action)) fail("SECURITY_CONTENT_V3_ACTION_INVALID");
+
+  const sourceRoot = resolveSourceRoot();
+  const source = await readSource(sourceRoot);
+  const plan = buildSecurityContentV3Plan(source);
+
+  if (action === "plan") {
+    console.log(JSON.stringify(planSummary(plan, sourceRoot), null, 2));
+    process.exit(0);
+  }
+
+  if (action === "seed:d1-local") {
+    await seedD1(source, plan);
+    process.exit(0);
+  }
+
+  if (action === "seed:postgres") {
+    assertProductionApproval();
+    await seedPostgres(source, plan);
+    process.exit(0);
+  }
+
+  if (action === "verify:d1-local") {
+    await verifyD1(plan);
+    process.exit(0);
+  }
+
+  await verifyPostgres(plan);
 }
-
-if (action === "seed:d1-local") {
-  await seedD1(source, plan);
-  process.exit(0);
-}
-
-if (action === "seed:postgres") {
-  assertProductionApproval();
-  await seedPostgres(source, plan);
-  process.exit(0);
-}
-
-if (action === "verify:d1-local") {
-  await verifyD1(plan);
-  process.exit(0);
-}
-
-await verifyPostgres(plan);
 
 async function readSource(root) {
   const requiredReadFiles = [
@@ -85,7 +90,7 @@ async function seedD1(sourceData, currentPlan) {
   const tempDir = await mkdtemp(join(tmpdir(), "securium-content-v3-"));
   const sqlPath = join(tempDir, "security-content-v3.d1.sql");
   try {
-    await writeFile(sqlPath, generateSecurityContentV3Sql(sourceData, { dialect: "d1" }), "utf8");
+    await writeFile(sqlPath, generateSecurityContentV3Sql(sourceData, { dialect: "d1", transactionBoundary: "generated" }), "utf8");
     const result = await runCapture(process.execPath, [
       "scripts/run-wrangler.mjs", "d1", "execute", "DB", "--local", "--config", configPath, ...persistArgs(), "--file", sqlPath,
     ]);
@@ -101,33 +106,78 @@ async function seedD1(sourceData, currentPlan) {
   console.log("SECURITY_CONTENT_V3_D1_LOCAL_APPLIED");
 }
 
-async function seedPostgres(sourceData, currentPlan) {
+export async function seedPostgres(sourceData, currentPlan) {
   const sql = connectPostgres("seed");
+  let verification;
   try {
-    await assertPostgresPrerequisites(sql, currentPlan);
-    await assertPostgresNoImmutableContentConflict(sql, currentPlan);
-    const before = await sql.unsafe(protectedCourseSnapshotSql());
-    await sql.unsafe(generateSecurityContentV3Sql(sourceData, { dialect: "postgres" }));
-    const after = await sql.unsafe(protectedCourseSnapshotSql());
-    assertProtectedSnapshot(before, after);
-    await verifyPostgresWithConnection(sql, currentPlan);
+    verification = await runPostgresSeedTransaction(sql, sourceData, currentPlan);
   } catch (error) {
-    await sql.unsafe("ROLLBACK;").catch(() => undefined);
     fail("SECURITY_CONTENT_V3_POSTGRES_FAILED", safeError(error));
   } finally {
-    await sql.end({ timeout: 5 });
+    await sql.end({ timeout: 5 }).catch(() => undefined);
   }
+  console.log(JSON.stringify({ target: "postgres", ...verification }, null, 2));
+  console.log("SECURITY_CONTENT_V3_POSTGRES_OK");
   console.log("SECURITY_CONTENT_V3_POSTGRES_APPLIED");
+}
+
+export async function runPostgresSeedTransaction(
+  sql,
+  sourceData,
+  currentPlan,
+  { verify = verifyPostgresWithConnection } = {},
+) {
+  await assertPostgresPrerequisites(sql, currentPlan, throwTransactionFailure);
+  await assertPostgresNoImmutableContentConflict(sql, currentPlan, throwTransactionFailure);
+
+  return withPostgresTransaction(sql, async (transaction) => {
+    const before = await transaction.unsafe(protectedCourseSnapshotSql());
+    await transaction.unsafe(generateSecurityContentV3Sql(sourceData, {
+      dialect: "postgres",
+      transactionBoundary: "caller",
+    }));
+    const after = await transaction.unsafe(protectedCourseSnapshotSql());
+    assertProtectedSnapshot(before, after, throwTransactionFailure);
+    const verification = await verify(transaction, currentPlan, {
+      emit: false,
+      onFailure: throwTransactionFailure,
+    });
+    if (verification === false) throwTransactionFailure("SECURITY_CONTENT_V3_VERIFICATION_FAILED");
+    return verification;
+  });
+}
+
+export async function withPostgresTransaction(sql, callback) {
+  const transaction = await sql.reserve();
+  let transactionOpen = false;
+  try {
+    await transaction.unsafe("BEGIN;");
+    transactionOpen = true;
+    const result = await callback(transaction);
+    await transaction.unsafe("COMMIT;");
+    transactionOpen = false;
+    return result;
+  } catch (error) {
+    if (transactionOpen) await transaction.unsafe("ROLLBACK;").catch(() => undefined);
+    throw error;
+  } finally {
+    try {
+      await transaction.release();
+    } catch {
+      // Preserve the original write, verification, or commit error.
+    }
+  }
 }
 
 async function assertD1Prerequisites(configPath, currentPlan) {
   const rows = await d1Query(configPath, prerequisiteSql());
-  assertPrerequisites(rows, currentPlan);
+  assertPrerequisites(rows);
   await assertD1NoProtectedProgressConflict(configPath, currentPlan);
 }
 
 async function assertD1NoProtectedProgressConflict(configPath, currentPlan) {
   const ids = currentPlan.questions.map((question) => sqlString(question.id)).join(",");
+  if (!ids) return;
   const rows = await d1Query(configPath, `
 SELECT COUNT(*) AS value FROM (
   SELECT question_id FROM question_attempts WHERE course_id='course-isie' AND question_id IN (${ids})
@@ -143,10 +193,11 @@ async function assertD1NoImmutableContentConflict(configPath, currentPlan) {
   assertNoImmutableContentConflict(rows, currentPlan);
 }
 
-async function assertPostgresPrerequisites(sql, currentPlan) {
+async function assertPostgresPrerequisites(sql, currentPlan, onFailure = fail) {
   const rows = await sql.unsafe(prerequisiteSql());
-  assertPrerequisites(rows, currentPlan);
+  assertPrerequisites(rows, onFailure);
   const ids = currentPlan.questions.map((question) => sqlString(question.id)).join(",");
+  if (!ids) return;
   const conflicts = await sql.unsafe(`
 SELECT COUNT(*)::int AS value FROM (
   SELECT question_id FROM question_attempts WHERE course_id='course-isie' AND question_id IN (${ids})
@@ -154,12 +205,12 @@ SELECT COUNT(*)::int AS value FROM (
   UNION ALL SELECT target_id FROM bookmarks WHERE course_id='course-isie' AND target_type='QUESTION' AND target_id IN (${ids})
   UNION ALL SELECT target_id FROM review_schedules WHERE course_id='course-isie' AND target_type='QUESTION' AND target_id IN (${ids})
 ) scoped;`);
-  if (Number(conflicts[0]?.value) !== 0) fail("SECURITY_CONTENT_V3_ISIE_PROGRESS_CONFLICT");
+  if (Number(conflicts[0]?.value) !== 0) onFailure("SECURITY_CONTENT_V3_ISIE_PROGRESS_CONFLICT");
 }
 
-async function assertPostgresNoImmutableContentConflict(sql, currentPlan) {
+async function assertPostgresNoImmutableContentConflict(sql, currentPlan, onFailure = fail) {
   const rows = await sql.unsafe(contentConflictSql(currentPlan.contents));
-  assertNoImmutableContentConflict(rows, currentPlan);
+  assertNoImmutableContentConflict(rows, currentPlan, onFailure);
 }
 
 function contentConflictSql(contents) {
@@ -168,7 +219,7 @@ function contentConflictSql(contents) {
   return `SELECT id, version, title, summary, body, body_format AS "bodyFormat", learning_objectives_json AS "learningObjectivesJson", core_concepts_json AS "coreConceptsJson", practical_examples_json AS "practicalExamplesJson", diagrams_json AS "diagramsJson", media_json AS "mediaJson" FROM contents WHERE id IN (${ids});`;
 }
 
-function assertNoImmutableContentConflict(rows, currentPlan) {
+function assertNoImmutableContentConflict(rows, currentPlan, onFailure = fail) {
   const expectedById = new Map(
     currentPlan.contents.map((content) => [content.id, securityContentV3ContentProjection(content)]),
   );
@@ -189,10 +240,10 @@ function assertNoImmutableContentConflict(rows, currentPlan) {
     if (!expected) continue;
     const actual = securityContentV3ContentProjection(row);
     if (actual.version !== expected.version) {
-      fail("SECURITY_CONTENT_V3_CONTENT_VERSION_CONFLICT", row.id);
+      onFailure("SECURITY_CONTENT_V3_CONTENT_VERSION_CONFLICT", row.id);
     }
     if (immutableFields.some((field) => actual[field] !== expected[field])) {
-      fail("SECURITY_CONTENT_V3_CONTENT_REVISION_CONFLICT", row.id);
+      onFailure("SECURITY_CONTENT_V3_CONTENT_REVISION_CONFLICT", row.id);
     }
   }
 }
@@ -206,14 +257,14 @@ UNION ALL SELECT 'curriculum',COUNT(*) FROM curriculum_nodes WHERE curriculum_tr
 UNION ALL SELECT 'actor',COUNT(*) FROM users WHERE id='user-content-editor';`;
 }
 
-function assertPrerequisites(rows) {
+function assertPrerequisites(rows, onFailure = fail) {
   const values = new Map(rows.map((row) => [row.kind, Number(row.value)]));
-  if (values.get("course") !== 2) fail("SECURITY_CONTENT_V3_COURSES_MISSING");
+  if (values.get("course") !== 2) onFailure("SECURITY_CONTENT_V3_COURSES_MISSING");
   if (values.get("subject") !== 5 || values.get("topic") !== 5) {
-    fail("SECURITY_CONTENT_V3_TAXONOMY_MISSING");
+    onFailure("SECURITY_CONTENT_V3_TAXONOMY_MISSING");
   }
-  if (!values.get("curriculum")) fail("SECURITY_CONTENT_V3_CURRICULUM_MISSING");
-  if (values.get("actor") !== 1) fail("SECURITY_CONTENT_V3_ACTOR_MISSING");
+  if (!values.get("curriculum")) onFailure("SECURITY_CONTENT_V3_CURRICULUM_MISSING");
+  if (values.get("actor") !== 1) onFailure("SECURITY_CONTENT_V3_ACTOR_MISSING");
 }
 
 async function verifyD1(currentPlan, configPath = argValue("--config=") ?? "wrangler.local.jsonc") {
@@ -230,15 +281,23 @@ async function verifyPostgres(currentPlan) {
   } catch (error) {
     fail("SECURITY_CONTENT_V3_POSTGRES_VERIFY_FAILED", safeError(error));
   } finally {
-    await sql.end({ timeout: 5 });
+    await sql.end({ timeout: 5 }).catch(() => undefined);
   }
 }
 
-async function verifyPostgresWithConnection(sql, currentPlan) {
-  const rows = await sql.unsafe(verificationSql("postgres"));
-  assertVerification(rows, currentPlan);
-  console.log(JSON.stringify({ target: "postgres", ...verificationSummary(rows) }, null, 2));
-  console.log("SECURITY_CONTENT_V3_POSTGRES_OK");
+export async function verifyPostgresWithConnection(
+  sql,
+  currentPlan,
+  { emit = true, onFailure = fail, verificationStatement = verificationSql("postgres") } = {},
+) {
+  const rows = await sql.unsafe(verificationStatement);
+  assertVerification(rows, currentPlan, onFailure);
+  const summary = verificationSummary(rows);
+  if (emit) {
+    console.log(JSON.stringify({ target: "postgres", ...summary }, null, 2));
+    console.log("SECURITY_CONTENT_V3_POSTGRES_OK");
+  }
+  return summary;
 }
 
 function verificationSql(dialect) {
@@ -260,7 +319,7 @@ SELECT
  (SELECT COUNT(*)${cast} FROM questions q LEFT JOIN question_courses qc ON qc.question_id=q.id LEFT JOIN question_subjects qs ON qs.question_id=q.id LEFT JOIN question_topics qt ON qt.question_id=q.id WHERE (q.id LIKE 'sec-upgrade-written-%' OR q.id LIKE 'sec-upgrade-practical-%') AND (qc.question_id IS NULL OR qs.question_id IS NULL OR qt.question_id IS NULL)) AS orphans;`;
 }
 
-function assertVerification(rows, currentPlan) {
+function assertVerification(rows, currentPlan, onFailure = fail) {
   const metrics = new Map(Object.entries(rows[0] ?? {}).map(([metric, value]) => [metric, Number(value)]));
   const expectedQuestions = currentPlan.questions.length;
   const exact = {
@@ -275,14 +334,14 @@ function assertVerification(rows, currentPlan) {
   };
   for (const [metric, expected] of Object.entries(exact)) {
     if (metrics.get(metric) !== expected) {
-      fail("SECURITY_CONTENT_V3_COUNT_MISMATCH", `${metric}:${metrics.get(metric)}!=${expected}`);
+      onFailure("SECURITY_CONTENT_V3_COUNT_MISMATCH", `${metric}:${metrics.get(metric)}!=${expected}`);
     }
   }
   for (const metric of ["wrong_course_links", "course_subject_mismatch", "subject_topic_mismatch", "orphans"]) {
-    if (metrics.get(metric) !== 0) fail("SECURITY_CONTENT_V3_INTEGRITY_MISMATCH", metric);
+    if (metrics.get(metric) !== 0) onFailure("SECURITY_CONTENT_V3_INTEGRITY_MISMATCH", metric);
   }
   if ((metrics.get("ontology_edges") ?? 0) < expectedQuestions * 2) {
-    fail("SECURITY_CONTENT_V3_ONTOLOGY_EDGES_MISSING");
+    onFailure("SECURITY_CONTENT_V3_ONTOLOGY_EDGES_MISSING");
   }
 }
 
@@ -299,9 +358,9 @@ WHERE c.id NOT IN ('course-ise','course-isie')
 ORDER BY c.id;`;
 }
 
-function assertProtectedSnapshot(before, after) {
+function assertProtectedSnapshot(before, after, onFailure = fail) {
   if (JSON.stringify(normalizeRows(before)) !== JSON.stringify(normalizeRows(after))) {
-    fail("SECURITY_CONTENT_V3_PROTECTED_COURSE_CHANGED");
+    onFailure("SECURITY_CONTENT_V3_PROTECTED_COURSE_CHANGED");
   }
 }
 
@@ -333,7 +392,7 @@ function connectPostgres(purpose) {
     ? process.env.POSTGRES_SEED_URL || process.env.POSTGRES_MIGRATION_URL || process.env.DIRECT_URL || process.env.DATABASE_URL
     : process.env.POSTGRES_VERIFY_URL || process.env.DATABASE_URL || process.env.POSTGRES_SEED_URL || process.env.POSTGRES_MIGRATION_URL || process.env.DIRECT_URL;
   if (!url?.trim()) fail("SECURITY_CONTENT_V3_POSTGRES_URL_REQUIRED");
-  return postgres(url.trim(), { max: 1, prepare: false, ssl: "require", connect_timeout: 10, idle_timeout: 5, onnotice: false });
+  return postgres(url.trim(), { max: 1, prepare: false, ssl: "require", connect_timeout: 10, idle_timeout: 5, onnotice: () => undefined });
 }
 
 function assertProductionApproval() {
@@ -379,7 +438,12 @@ function sqlString(value) {
   return `'${String(value).replaceAll("'", "''")}'`;
 }
 
+function throwTransactionFailure(code, detail) {
+  throw new Error(detail ? `${code}:${detail}` : code);
+}
+
 function safeError(error) {
+  if (error && typeof error === "object" && typeof error.code === "string") return `POSTGRES_ERROR:${error.code}`;
   return error instanceof Error ? error.message.replace(/[\r\n]+/g, " ").slice(0, 300) : "UNKNOWN";
 }
 
