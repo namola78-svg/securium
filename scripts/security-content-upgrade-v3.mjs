@@ -109,13 +109,15 @@ async function seedD1(sourceData, currentPlan) {
 export async function seedPostgres(sourceData, currentPlan) {
   const sql = connectPostgres("seed");
   let verification;
+  let failure;
   try {
     verification = await runPostgresSeedTransaction(sql, sourceData, currentPlan);
   } catch (error) {
-    fail("SECURITY_CONTENT_V3_POSTGRES_FAILED", safeError(error));
+    failure = error;
   } finally {
     await sql.end({ timeout: 5 }).catch(() => undefined);
   }
+  if (failure) fail("SECURITY_CONTENT_V3_POSTGRES_FAILED", safeError(failure));
   console.log(JSON.stringify({ target: "postgres", ...verification }, null, 2));
   console.log("SECURITY_CONTENT_V3_POSTGRES_OK");
   console.log("SECURITY_CONTENT_V3_POSTGRES_APPLIED");
@@ -150,6 +152,8 @@ export async function runPostgresSeedTransaction(
 export async function withPostgresTransaction(sql, callback) {
   const transaction = await sql.reserve();
   let transactionOpen = false;
+  let originalError;
+  let releaseAllowed = true;
   try {
     await transaction.unsafe("BEGIN;");
     transactionOpen = true;
@@ -158,13 +162,24 @@ export async function withPostgresTransaction(sql, callback) {
     transactionOpen = false;
     return result;
   } catch (error) {
-    if (transactionOpen) await transaction.unsafe("ROLLBACK;").catch(() => undefined);
+    originalError = error;
+    if (transactionOpen) {
+      try {
+        await transaction.unsafe("ROLLBACK;");
+      } catch {
+        releaseAllowed = false;
+        await sql.end({ timeout: 5 }).catch(() => undefined);
+      }
+    }
     throw error;
   } finally {
-    try {
-      await transaction.release();
-    } catch {
-      // Preserve the original write, verification, or commit error.
+    if (releaseAllowed) {
+      try {
+        await transaction.release();
+      } catch (releaseError) {
+        if (!originalError) throw releaseError;
+        // Preserve the original write, verification, or commit error.
+      }
     }
   }
 }

@@ -66,5 +66,8 @@ jobs:
       - name: Theory revision integrity tests
         run: npm run test:theory-revision-integrity
 
+      - name: Standalone PostgreSQL seed atomic regression
+        run: npm run test:security-content-upgrade-v3:postgres
+
       - name: Production build
         run: npm run build

@@ -9,6 +9,7 @@ import {
   generateSecurityContentIntelligenceV3Sql,
   generateSecurityContentV3Sql,
 } from "../lib/data/security-content-upgrade-v3.mjs";
+import { withPostgresTransaction } from "../scripts/security-content-upgrade-v3.mjs";
 
 const concepts = Object.keys(SECURITY_CONTENT_V3_CONCEPT_MAP);
 
@@ -251,4 +252,54 @@ test("V3 SQL transaction ownership is explicit and preserves the wrapped default
   });
   assert.doesNotMatch(intelligenceBody.trimStart(), /^BEGIN;/);
   assert.doesNotMatch(intelligenceBody.trimEnd(), /COMMIT;$/);
+});
+
+test("V3 transaction cleanup preserves the first error and does not release a failed rollback connection", async () => {
+  const calls: string[] = [];
+  const originalError = new Error("write failed");
+  const transaction = {
+    unsafe: async (statement: string) => {
+      calls.push(statement);
+      if (statement === "ROLLBACK;") throw new Error("rollback failed");
+      return [];
+    },
+    release: async () => {
+      calls.push("release");
+    },
+  };
+  const sql = {
+    reserve: async () => {
+      calls.push("reserve");
+      return transaction;
+    },
+    end: async () => {
+      calls.push("end");
+    },
+  };
+
+  await assert.rejects(
+    withPostgresTransaction(sql, async () => {
+      throw originalError;
+    }),
+    (error) => error === originalError,
+  );
+  assert.deepEqual(calls, ["reserve", "BEGIN;", "ROLLBACK;", "end"]);
+});
+
+test("V3 transaction cleanup does not replace the first error with a release error", async () => {
+  const originalError = new Error("verification failed");
+  const transaction = {
+    unsafe: async () => [],
+    release: async () => {
+      throw new Error("release failed");
+    },
+  };
+  const sql = { reserve: async () => transaction };
+
+  await assert.rejects(
+    withPostgresTransaction(sql, async () => {
+      throw originalError;
+    }),
+    (error) => error === originalError,
+  );
 });

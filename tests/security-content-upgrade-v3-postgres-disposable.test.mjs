@@ -1,57 +1,43 @@
 import assert from "node:assert/strict";
-import { execFile as execFileCallback } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import { after, before, test } from "node:test";
-import { promisify } from "node:util";
 import postgres from "postgres";
 import {
   buildSecurityContentV3Plan,
   securityContentV3ContentProjection,
 } from "../lib/data/security-content-upgrade-v3.mjs";
 import {
+  POSTGRES_OWNER_LABEL,
+  cleanupOwnedPostgresContainer,
+  createOwnedPostgresContainer,
+  getPublishedPostgresPort,
+} from "../scripts/owned-postgres-container.mjs";
+import {
   runPostgresSeedTransaction,
   verifyPostgresWithConnection,
 } from "../scripts/security-content-upgrade-v3.mjs";
 
-const execFileAsync = promisify(execFileCallback);
-const EXEC_FILE_TIMEOUT_MS = 5 * 60 * 1_000;
-const execFile = (file, args, options = {}) => execFileAsync(file, args, {
-  timeout: EXEC_FILE_TIMEOUT_MS,
-  ...options,
-});
 const runId = randomUUID();
-const ownerLabelKey = "com.securium.evidence-once.owner";
 const password = "standalone-postgres-atomic-test-password";
 const migrationExclusions = new Set([
   "0002_server_only_rls_lockdown.sql",
   "0009_security_certification_taxonomy_cleanup.sql",
 ]);
 
-let containerName;
-let ownedContainerId;
-let ownerLabel;
+let ownedContainer;
 let postgresUrl;
 let admin;
 
 before(async () => {
-  containerName = `securium-standalone-postgres-atomic-${runId}`;
-  ownerLabel = `${ownerLabelKey}=${runId}`;
-  const { stdout: containerIdOutput } = await execFile("docker", [
-    "run", "--detach", "--rm", "--name", containerName,
-    "--label", ownerLabel,
-    "--env", `POSTGRES_PASSWORD=${password}`,
-    "--publish", "127.0.0.1::5432", "postgres:17.6",
-  ]);
-  ownedContainerId = containerIdOutput.trim();
-  assert.match(ownedContainerId, /^[0-9a-f]+$/i, "Disposable PostgreSQL container ID was not returned.");
-  console.log(`SECURIUM_POSTGRES_FIXTURE_CREATED id=${ownedContainerId} owner=${runId}`);
-
-  const { stdout: portOutput } = await execFile("docker", ["port", ownedContainerId, "5432/tcp"]);
-  const portMatch = portOutput.trim().match(/^(127\.0\.0\.1|0\.0\.0\.0):([0-9]+)$/m);
-  assert.ok(portMatch, "Disposable PostgreSQL loopback port was not published.");
-  assert.equal(portMatch[1], "127.0.0.1", "Disposable PostgreSQL must be loopback-only.");
-  postgresUrl = `postgres://postgres:${password}@127.0.0.1:${portMatch[2]}/postgres`;
+  ownedContainer = await createOwnedPostgresContainer({
+    name: `securium-standalone-postgres-atomic-${runId}`,
+    ownerToken: runId,
+    password,
+  });
+  const port = await getPublishedPostgresPort(ownedContainer);
+  postgresUrl = `postgres://postgres:${password}@127.0.0.1:${port}/postgres`;
+  console.log(`SECURIUM_POSTGRES_FIXTURE_CREATED id=${ownedContainer.containerId} owner=${ownedContainer.ownerToken} label=${POSTGRES_OWNER_LABEL}`);
   admin = postgres(postgresUrl, postgresOptions("fixture-admin"));
   await waitForConnection(admin);
   await admin.unsafe("CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN; CREATE ROLE service_role NOLOGIN;");
@@ -291,31 +277,14 @@ async function waitForConnection(client) {
 }
 
 async function cleanupOwnedContainer() {
-  if (!ownedContainerId) {
+  if (!ownedContainer) {
     console.log("SECURIUM_POSTGRES_FIXTURE_CLEANUP PASS owned_container=false");
     return;
   }
-  const cleanupId = ownedContainerId;
-  let inspectedOwner;
-  try {
-    const result = await execFile("docker", [
-      "inspect", "--format", "{{json .Config.Labels}}", ownedContainerId,
-    ]);
-    const labels = JSON.parse(result.stdout.trim() || "{}");
-    inspectedOwner = labels?.[ownerLabelKey];
-  } catch (error) {
-    const diagnostic = `${error?.stderr ?? ""} ${error?.message ?? ""}`;
-    if (/No such object|No such container/i.test(diagnostic)) {
-      ownedContainerId = undefined;
-      console.log(`SECURIUM_POSTGRES_FIXTURE_CLEANUP PASS id=${cleanupId} already_absent=true`);
-      return;
-    }
-    throw new Error(`Disposable PostgreSQL ownership inspection failed for ${cleanupId}.`);
-  }
-  if (inspectedOwner !== runId) throw new Error(`Refusing to remove PostgreSQL container ${cleanupId}: owner label mismatch.`);
-  await execFile("docker", ["rm", "--force", cleanupId]);
-  ownedContainerId = undefined;
-  console.log(`SECURIUM_POSTGRES_FIXTURE_CLEANUP PASS id=${cleanupId} already_absent=false`);
+  const cleanupId = ownedContainer.containerId;
+  const result = await cleanupOwnedPostgresContainer(ownedContainer);
+  ownedContainer = undefined;
+  console.log(`SECURIUM_POSTGRES_FIXTURE_CLEANUP PASS id=${cleanupId} result=${result}`);
 }
 
 function slug(value) {
