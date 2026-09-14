@@ -1,94 +1,94 @@
 export const D1_SEED_OBSERVATION_ENVELOPE_SCHEMA_VERSION = 1 as const;
 
-export const D1_SEED_TARGET_SCOPES = [
+export const D1_SEED_TARGET_SCOPES = Object.freeze([
   "d1-local",
   "d1-remote",
   "d1-managed",
-] as const;
+] as const);
 
 export type D1SeedTargetScope = (typeof D1_SEED_TARGET_SCOPES)[number];
 
-export const D1_SEED_TARGET_IDENTITY_EVIDENCE = [
+export const D1_SEED_TARGET_IDENTITY_EVIDENCE = Object.freeze([
   "EXPLICIT_CONFIG",
   "LOCAL_PERSISTENCE_IDENTITY",
-] as const;
+] as const);
 
 export type D1SeedTargetIdentityEvidence =
   (typeof D1_SEED_TARGET_IDENTITY_EVIDENCE)[number];
 
-export const D1_SEED_EXECUTION_STAGES = [
+export const D1_SEED_EXECUTION_STAGES = Object.freeze([
   "PREFLIGHT",
   "WRITE",
   "POST_WRITE_RECHECK",
   "VERIFICATION",
   "REPORT",
   "DONE",
-] as const;
+] as const);
 
 export type D1SeedObservationExecutionStage =
   (typeof D1_SEED_EXECUTION_STAGES)[number];
 
-export const D1_SEED_WRITE_PROCESS_OUTCOMES = [
+export const D1_SEED_WRITE_PROCESS_OUTCOMES = Object.freeze([
   "NOT_STARTED",
   "EXIT_ZERO",
   "EXIT_NONZERO",
   "TIMEOUT",
   "PROCESS_LOSS",
   "OUTPUT_LOSS",
-] as const;
+] as const);
 
 export type D1SeedWriteProcessOutcome =
   (typeof D1_SEED_WRITE_PROCESS_OUTCOMES)[number];
 
-export const D1_SEED_COMMIT_EVIDENCE_KINDS = [
+export const D1_SEED_COMMIT_EVIDENCE_KINDS = Object.freeze([
   "NONE",
   "WRITER_ACKNOWLEDGEMENT",
   "TARGET_READ_BACK",
   "OPERATION_BOUND_READ_BACK",
-] as const;
+] as const);
 
 export type D1SeedCommitEvidenceKind =
   (typeof D1_SEED_COMMIT_EVIDENCE_KINDS)[number];
 
-export const D1_SEED_SNAPSHOT_OBSERVATIONS = [
+export const D1_SEED_SNAPSHOT_OBSERVATIONS = Object.freeze([
   "NOT_RUN",
   "PASSED",
   "MISMATCH",
   "QUERY_FAILED",
   "UNAVAILABLE",
-] as const;
+] as const);
 
 export type D1SeedSnapshotObservation =
   (typeof D1_SEED_SNAPSHOT_OBSERVATIONS)[number];
 
-export const D1_SEED_VERIFICATION_RESULTS = [
+export const D1_SEED_VERIFICATION_RESULTS = Object.freeze([
   "NOT_RUN",
   "PASSED",
   "MISMATCH",
   "QUERY_FAILED",
   "UNAVAILABLE",
-] as const;
+] as const);
 
 export type D1SeedVerificationResult =
   (typeof D1_SEED_VERIFICATION_RESULTS)[number];
 
-export const D1_SEED_ROLLBACK_RESULTS = [
+export const D1_SEED_ROLLBACK_RESULTS = Object.freeze([
   "NOT_APPLICABLE",
   "CONFIRMED",
   "NOT_CONFIRMED",
-] as const;
+] as const);
 
 export type D1SeedRollbackResult = (typeof D1_SEED_ROLLBACK_RESULTS)[number];
 
-export const D1_SEED_SECONDARY_FAILURES = [
+export const D1_SEED_SECONDARY_FAILURES = Object.freeze([
   "REPORT_WRITE_FAILED",
   "CLEANUP_FAILED",
-] as const;
+] as const);
 
 export type D1SeedSecondaryFailure =
   (typeof D1_SEED_SECONDARY_FAILURES)[number];
 
-export const D1_SEED_ERROR_CLASSES = [
+export const D1_SEED_ERROR_CLASSES = Object.freeze([
   "INPUT_VALIDATION",
   "PREFLIGHT_QUERY",
   "WRITE_PROCESS",
@@ -99,17 +99,17 @@ export const D1_SEED_ERROR_CLASSES = [
   "SNAPSHOT_MISMATCH",
   "VERIFICATION_QUERY",
   "VERIFICATION_MISMATCH",
-] as const;
+] as const);
 
 export type D1SeedObservationErrorClass =
   (typeof D1_SEED_ERROR_CLASSES)[number];
 
-export const D1_SEED_REPORT_STATUSES = [
+export const D1_SEED_REPORT_STATUSES = Object.freeze([
   "NOT_ATTEMPTED",
   "WRITTEN",
   "WRITE_FAILED",
   "UNKNOWN",
-] as const;
+] as const);
 
 export type D1SeedReportStatus = (typeof D1_SEED_REPORT_STATUSES)[number];
 
@@ -159,11 +159,11 @@ export type D1SeedObservationEnvelope = Readonly<{
   reportStatus?: D1SeedReportStatus;
 }>;
 
-export const D1_SEED_OBSERVATION_ENVELOPE_INPUT_ERRORS = [
+export const D1_SEED_OBSERVATION_ENVELOPE_INPUT_ERRORS = Object.freeze([
   "INVALID_INPUT_TYPE",
   "UNKNOWN_ENUM_VALUE",
   "CONTRADICTORY_OBSERVATION",
-] as const;
+] as const);
 
 export type D1SeedObservationEnvelopeInputError =
   (typeof D1_SEED_OBSERVATION_ENVELOPE_INPUT_ERRORS)[number];
@@ -183,16 +183,16 @@ type ParseResult<T> =
   | { ok: true; value: T }
   | { ok: false; code: D1SeedObservationEnvelopeInputError };
 
-const ROOT_REQUIRED_KEYS = [
+const ROOT_REQUIRED_KEYS = Object.freeze([
   "schemaVersion",
   "executionStage",
   "write",
   "snapshot",
   "verification",
   "rollback",
-] as const;
+] as const);
 
-const ROOT_OPTIONAL_KEYS = [
+const ROOT_OPTIONAL_KEYS = Object.freeze([
   "operationId",
   "targetScope",
   "targetIdentityEvidence",
@@ -200,18 +200,22 @@ const ROOT_OPTIONAL_KEYS = [
   "secondaryFailures",
   "errorClass",
   "reportStatus",
-] as const;
+] as const);
 
-const WRITE_KEYS = ["attempted", "processOutcome", "commitEvidence"] as const;
-const SNAPSHOT_KEYS = ["before", "after"] as const;
+const WRITE_KEYS = Object.freeze(["attempted", "processOutcome", "commitEvidence"] as const);
+const SNAPSHOT_KEYS = Object.freeze(["before", "after"] as const);
 const TOKEN_PATTERN = /^[A-Za-z0-9](?:[A-Za-z0-9._:-]{0,127})$/;
 
 function isRecord(value: unknown): value is RecordValue {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
 }
 
 function hasOnlyKeys(value: RecordValue, allowedKeys: readonly string[]): boolean {
-  return Object.keys(value).every((key) => allowedKeys.includes(key));
+  return Reflect.ownKeys(value).every(
+    (key) => typeof key === "string" && allowedKeys.includes(key),
+  );
 }
 
 function hasRequiredKeys(value: RecordValue, requiredKeys: readonly string[]): boolean {
@@ -248,8 +252,7 @@ function parseOptionalEnum<T extends string>(
   if (!Object.prototype.hasOwnProperty.call(record, key)) {
     return { ok: true, value: undefined };
   }
-  const parsed = parseEnum(record[key], values);
-  return parsed.ok ? parsed : parsed;
+  return parseEnum(record[key], values);
 }
 
 function parseUniqueEnumArray<T extends string>(

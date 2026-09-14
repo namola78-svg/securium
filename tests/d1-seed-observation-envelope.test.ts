@@ -2,6 +2,18 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   createD1SeedObservationEnvelope,
+  D1_SEED_COMMIT_EVIDENCE_KINDS,
+  D1_SEED_ERROR_CLASSES,
+  D1_SEED_EXECUTION_STAGES,
+  D1_SEED_OBSERVATION_ENVELOPE_INPUT_ERRORS,
+  D1_SEED_REPORT_STATUSES,
+  D1_SEED_ROLLBACK_RESULTS,
+  D1_SEED_SECONDARY_FAILURES,
+  D1_SEED_SNAPSHOT_OBSERVATIONS,
+  D1_SEED_TARGET_IDENTITY_EVIDENCE,
+  D1_SEED_TARGET_SCOPES,
+  D1_SEED_VERIFICATION_RESULTS,
+  D1_SEED_WRITE_PROCESS_OUTCOMES,
   validateD1SeedObservationEnvelope,
 } from "../lib/services/d1-seed-observation-envelope";
 
@@ -271,6 +283,35 @@ test("verification pass, mismatch, and query error remain distinguishable", () =
   }
 });
 
+test("preserves verification and snapshot facts alongside uncertain write outcomes", () => {
+  const cases = [
+    { processOutcome: "TIMEOUT", snapshotAfter: "QUERY_FAILED", verification: "PASSED" },
+    { processOutcome: "OUTPUT_LOSS", snapshotAfter: "UNAVAILABLE", verification: "MISMATCH" },
+  ] as const;
+
+  for (const observation of cases) {
+    const envelope = validEnvelope({
+      executionStage: "VERIFICATION",
+      write: {
+        attempted: true,
+        processOutcome: observation.processOutcome,
+        commitEvidence: "NONE",
+      },
+      snapshot: {
+        before: "PASSED",
+        after: observation.snapshotAfter,
+      },
+      verification: observation.verification,
+      rollback: "NOT_CONFIRMED",
+    });
+
+    assert.equal(envelope.write.processOutcome, observation.processOutcome);
+    assert.equal(envelope.snapshot.after, observation.snapshotAfter);
+    assert.equal(envelope.verification, observation.verification);
+    assert.equal(envelope.rollback, "NOT_CONFIRMED");
+  }
+});
+
 test("primary observation and secondary cleanup/report failures coexist", () => {
   const envelope = validEnvelope({
     executionStage: "REPORT",
@@ -331,6 +372,27 @@ test("malformed types, enums, unknown keys, and structural contradictions fail c
     { ...validInput(), extra: "rejected" },
   ];
 
+  const customRoot = validInput();
+  Object.setPrototypeOf(customRoot, { custom: "root-sentinel" });
+  invalidCases.push(customRoot);
+
+  const customNested = validInput();
+  Object.setPrototypeOf(customNested.write, { custom: "nested-sentinel" });
+  invalidCases.push(customNested);
+
+  const hiddenUnknown = validInput();
+  Object.defineProperty(hiddenUnknown, "hiddenUnknown", {
+    value: "hidden-sentinel",
+    enumerable: false,
+  });
+  invalidCases.push(hiddenUnknown);
+
+  const symbolUnknown = validInput();
+  Object.defineProperty(symbolUnknown, Symbol("unknown"), {
+    value: "symbol-sentinel",
+  });
+  invalidCases.push(symbolUnknown);
+
   for (const input of invalidCases) {
     const result = validateD1SeedObservationEnvelope(input);
     assert.equal(result.kind, "INPUT_ERROR");
@@ -386,6 +448,23 @@ test("input is not mutated and output is deterministic, canonical, and deeply fr
   assert.equal(Object.isFrozen(first.envelope.snapshot), true);
   assert.equal(Object.isFrozen(first.envelope.targetIdentityEvidence), true);
   assert.equal(Object.isFrozen(first.envelope.secondaryFailures), true);
+
+  for (const values of [
+    D1_SEED_COMMIT_EVIDENCE_KINDS,
+    D1_SEED_ERROR_CLASSES,
+    D1_SEED_EXECUTION_STAGES,
+    D1_SEED_OBSERVATION_ENVELOPE_INPUT_ERRORS,
+    D1_SEED_REPORT_STATUSES,
+    D1_SEED_ROLLBACK_RESULTS,
+    D1_SEED_SECONDARY_FAILURES,
+    D1_SEED_SNAPSHOT_OBSERVATIONS,
+    D1_SEED_TARGET_IDENTITY_EVIDENCE,
+    D1_SEED_TARGET_SCOPES,
+    D1_SEED_VERIFICATION_RESULTS,
+    D1_SEED_WRITE_PROCESS_OUTCOMES,
+  ]) {
+    assert.equal(Object.isFrozen(values), true);
+  }
 });
 
 test("unobserved correlation, target, plan, and report fields stay absent", () => {

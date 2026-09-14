@@ -5,8 +5,10 @@ envelope to the D1 seed caller or to `d1-seed-result-classifier`.
 
 ## Baseline and reference boundary
 
-- Fixed implementation base: `efc6a873e600b53031b3d728ed5353993ab0ac88`
-  (`origin/main` on 2026-09-14).
+- Fixed implementation base: `efc6a873e600b53031b3d728ed5353993ab0ac88`.
+- Reviewed `origin/main` after fetch: `dfdf31bb9d1a2b0a955997210b0a1f0d2087e3e1`.
+- The only post-base main drift is the unrelated forensic input-limit package;
+  it does not change the D1 caller, helper, classifier, contract, or unit runner.
 - The observation design document is not present on this base. Its reviewed,
   unmerged reference is commit
   `71d84723a4d2d5e42cdb99582c0a2b7ca8b8300c` on worktree branch
@@ -78,9 +80,10 @@ result or reject it merely because the classifier has an unsupported boundary.
 
 ## Runtime validation rules
 
-- The root and every nested object must be an object with exactly the
-  allowlisted keys. Unknown keys are rejected; sensitive fields are not
-  silently stripped and then accepted.
+- The root and every nested object must be a plain object with exactly the
+  allowlisted own keys, including non-enumerable string keys; symbol keys and
+  custom prototypes are rejected. Sensitive fields are not silently stripped
+  and then accepted.
 - Enum values and booleans are checked without coercion. Opaque identifiers and
   hashes are bounded and token-shaped; they are never generated or echoed in
   errors.
@@ -132,5 +135,7 @@ npx eslint lib/services/d1-seed-observation-envelope.ts tests/d1-seed-observatio
 git diff --check
 ```
 
-The existing unit, build, E2E, and migration suites are intentionally not
-registered or run for this local implementation.
+The existing `test:unit` loader and path order are preserved, with
+`tests/d1-seed-observation-envelope.test.ts` registered exactly once directly
+after the classifier test. This goal does not run the full local unit, build,
+E2E, migration, D1, Wrangler, or seed suites.
