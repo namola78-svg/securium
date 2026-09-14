@@ -83,15 +83,24 @@ def _run(
 
 
 def _git_output(root: Path, *arguments: str) -> str:
-    completed = subprocess.run(
-        ["git", "-C", str(root), *arguments],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        check=False,
-        shell=False,
-    )
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(root), *arguments],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+            shell=False,
+            timeout=SUBPROCESS_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired as error:
+        raise RunnerFailure(
+            "trusted_source_checkout",
+            f"git subprocess timeout after {SUBPROCESS_TIMEOUT_SECONDS}s",
+        ) from error
+    except OSError as error:
+        raise RunnerFailure("trusted_source_checkout", f"git subprocess error: {type(error).__name__}") from error
     if completed.returncode != 0:
         detail = completed.stderr.strip() or completed.stdout.strip() or "git command failed"
         raise RunnerFailure("trusted_source_checkout", detail[-1200:])
@@ -99,12 +108,21 @@ def _git_output(root: Path, *arguments: str) -> str:
 
 
 def _git_bytes(root: Path, *arguments: str) -> bytes:
-    completed = subprocess.run(
-        ["git", "-C", str(root), *arguments],
-        capture_output=True,
-        check=False,
-        shell=False,
-    )
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(root), *arguments],
+            capture_output=True,
+            check=False,
+            shell=False,
+            timeout=SUBPROCESS_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired as error:
+        raise RunnerFailure(
+            "trusted_source_checkout",
+            f"git subprocess timeout after {SUBPROCESS_TIMEOUT_SECONDS}s",
+        ) from error
+    except OSError as error:
+        raise RunnerFailure("trusted_source_checkout", f"git subprocess error: {type(error).__name__}") from error
     if completed.returncode != 0:
         detail = completed.stderr.decode("utf-8", errors="replace").strip()
         raise RunnerFailure("trusted_source_checkout", detail[-1200:] or "git command failed")
@@ -546,14 +564,19 @@ def run_validation(trusted_source_commit: str) -> dict[str, Any]:
             "blob",
             f"{trusted_source_commit}:{TIMELINE_SOURCE.as_posix()}",
         )
+        source_blob_sha1 = _git_output(
+            trusted_root,
+            "rev-parse",
+            f"{trusted_source_commit}:{TIMELINE_SOURCE.as_posix()}",
+        )
+        source_sha256 = _sha256(source_bytes)
         if extracted_bytes != source_bytes:
             raise RunnerFailure("extraction_provenance", "extracted timeline bytes differ from trusted Git bytes")
         if (
             entry.get("source_path") != TIMELINE_SOURCE.as_posix()
             or entry.get("size") != len(source_bytes)
-            or entry.get("sha256") != _sha256(source_bytes)
-            or entry.get("git_blob_sha1")
-            != _git_output(trusted_root, "rev-parse", f"{trusted_source_commit}:{TIMELINE_SOURCE.as_posix()}")
+            or entry.get("sha256") != source_sha256
+            or entry.get("git_blob_sha1") != source_blob_sha1
         ):
             raise RunnerFailure("extraction_provenance", "timeline manifest provenance did not match trusted source")
 
@@ -593,10 +616,35 @@ def run_validation(trusted_source_commit: str) -> dict[str, Any]:
             "manifest_source_entry": entry,
             "timeline_source_path": TIMELINE_SOURCE.as_posix(),
             "timeline_source_git_blob_sha1": entry["git_blob_sha1"],
-            "timeline_source_sha256": _sha256(source_bytes),
+            "timeline_source_sha256": source_sha256,
             "extracted_timeline_path": str(extracted_timeline.resolve()),
             "extracted_timeline_sha256": _sha256(extracted_bytes),
             "extraction_source_bytes_match": True,
+            "source_binding": {
+                "trusted_source_commit": trusted_source_commit,
+                "trusted_source_tree": verification.get("trusted_source_tree"),
+                "source_path": TIMELINE_SOURCE.as_posix(),
+                "trusted_git_blob_sha1": source_blob_sha1,
+                "trusted_source_sha256": source_sha256,
+                "zip_entry": {
+                    "archive_path": entry["archive_path"],
+                    "source_path": entry["source_path"],
+                    "size": entry["size"],
+                    "sha256": entry["sha256"],
+                    "git_blob_sha1": entry["git_blob_sha1"],
+                },
+                "extracted_path": str(extracted_timeline.resolve()),
+                "extracted_sha256": _sha256(extracted_bytes),
+                "extracted_bytes_match": True,
+            },
+            "stages": {
+                "source_verification": "PASS",
+                "extraction": "PASS",
+                "preflight": "PASS",
+                "extracted_input_limits": "PASS",
+                "strict_lab_execution": "NOT_RUN",
+                "cleanup": "PENDING",
+            },
             "preflight": preflight,
             "input_limit": cli_result,
             "read_budget_test_double": read_probe,
@@ -617,7 +665,7 @@ def run_validation(trusted_source_commit: str) -> dict[str, Any]:
         primary_error = error
         raise
     finally:
-        cleanup_error: BaseException | None = None
+        cleanup_errors: list[BaseException] = []
         if worktree_added:
             try:
                 _run(
@@ -627,12 +675,19 @@ def run_validation(trusted_source_commit: str) -> dict[str, Any]:
                     stage="owned_cleanup",
                 )
             except BaseException as error:
-                cleanup_error = error
-        task.cleanup()
-        if cleanup_error is not None:
+                cleanup_errors.append(error)
+        try:
+            task.cleanup()
+        except BaseException as error:
+            cleanup_errors.append(error)
+        if cleanup_errors:
             if primary_error is None:
-                raise RunnerFailure("owned_cleanup", str(cleanup_error))
-            print(f"owned_cleanup=SECONDARY_FAILURE reason={cleanup_error}", file=sys.stderr)
+                raise RunnerFailure(
+                    "owned_cleanup",
+                    "; ".join(str(error) for error in cleanup_errors),
+                )
+            for cleanup_error in cleanup_errors:
+                print(f"owned_cleanup=SECONDARY_FAILURE reason={cleanup_error}", file=sys.stderr)
         elif primary_error is None:
             print("owned_cleanup=PASS", file=sys.stderr)
 
@@ -670,6 +725,7 @@ def main() -> int:
         )
         return 1
     summary["owned_cleanup"] = "PASS"
+    summary["stages"]["cleanup"] = "PASS"
     print("extracted_input_limit_validation=" + json.dumps(summary, ensure_ascii=False, sort_keys=True))
     return 0
 

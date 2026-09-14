@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -11,7 +12,10 @@ import unittest
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 RUNNER = REPOSITORY_ROOT / "verification" / "forensics-extracted-input-limits" / "run.py"
-TRUSTED_SOURCE_COMMIT = "200e3db5a191eae2db82e8f4a426f0fcbf24f69e"
+HISTORICAL_TRUSTED_SOURCE_COMMIT = "200e3db5a191eae2db82e8f4a426f0fcbf24f69e"
+TRUSTED_SOURCE_COMMIT = os.environ.get(
+    "SECURIUM_TRUSTED_SOURCE_COMMIT", HISTORICAL_TRUSTED_SOURCE_COMMIT
+)
 
 
 class ExtractedTimelineInputLimitTests(unittest.TestCase):
@@ -46,6 +50,32 @@ class ExtractedTimelineInputLimitTests(unittest.TestCase):
         self.assertEqual(summary.get("package_source_entry_count"), 13)
         self.assertEqual(summary.get("package_zip_entry_count"), 14)
         self.assertTrue(summary.get("extraction_source_bytes_match"))
+        self.assertEqual(
+            summary.get("stages"),
+            {
+                "source_verification": "PASS",
+                "extraction": "PASS",
+                "preflight": "PASS",
+                "extracted_input_limits": "PASS",
+                "strict_lab_execution": "NOT_RUN",
+                "cleanup": "PASS",
+            },
+        )
+
+        binding = summary["source_binding"]
+        self.assertEqual(binding["trusted_source_commit"], TRUSTED_SOURCE_COMMIT)
+        self.assertEqual(
+            binding["source_path"],
+            "examples/digital-forensics-timeline-local-lab/timeline_lab.py",
+        )
+        self.assertEqual(
+            binding["trusted_git_blob_sha1"], binding["zip_entry"]["git_blob_sha1"]
+        )
+        self.assertEqual(
+            binding["trusted_source_sha256"], binding["zip_entry"]["sha256"]
+        )
+        self.assertEqual(binding["extracted_sha256"], binding["trusted_source_sha256"])
+        self.assertTrue(binding["extracted_bytes_match"])
 
         preflight = summary["preflight"]
         self.assertEqual(preflight["overall_status"], "PASS")
@@ -75,6 +105,10 @@ class ExtractedTimelineInputLimitTests(unittest.TestCase):
         self.assertEqual(probe["overflow"]["decode_calls"], 0)
         self.assertTrue(probe["overflow"]["closed"])
         self.assertTrue(probe["read_error"]["closed"])
+        print(
+            "extracted_input_limit_test_summary="
+            + json.dumps(summary, ensure_ascii=False, sort_keys=True)
+        )
 
 
 if __name__ == "__main__":

@@ -1,0 +1,106 @@
+name: Forensics Extracted Input Limits
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/forensics-extracted-input-limits.yml"
+      - "tests/forensics-extracted-input-limits.test.py"
+      - "verification/forensics-extracted-input-limits/**"
+      - "examples/digital-forensics-timeline-local-lab/**"
+      - "examples/digital-forensics-timeline-offline-package/**"
+      - "verification/forensics-learner-preflight/**"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/forensics-extracted-input-limits.yml"
+      - "tests/forensics-extracted-input-limits.test.py"
+      - "verification/forensics-extracted-input-limits/**"
+      - "examples/digital-forensics-timeline-local-lab/**"
+      - "examples/digital-forensics-timeline-offline-package/**"
+      - "verification/forensics-learner-preflight/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: forensics-extracted-input-limits-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: ${{ matrix.os_label }} / Python ${{ matrix.python_version }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os_label: Windows
+            runner: windows-latest
+            python_version: "3.11"
+          - os_label: Windows
+            runner: windows-latest
+            python_version: "3.14"
+          - os_label: Linux
+            runner: ubuntu-latest
+            python_version: "3.11"
+          - os_label: Linux
+            runner: ubuntu-latest
+            python_version: "3.14"
+
+    steps:
+      - name: Check out exact final source revision
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Record run head and bind trusted source to checkout
+        shell: python
+        env:
+          RUN_HEAD_SHA: ${{ github.sha }}
+          EXPECTED_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          import os
+          import subprocess
+
+          expected = os.environ["EXPECTED_SOURCE_SHA"]
+          actual = subprocess.check_output(
+              ["git", "rev-parse", "HEAD"],
+              text=True,
+              encoding="utf-8",
+              timeout=30,
+          ).strip()
+          print(f"workflow_run_head_sha={os.environ['RUN_HEAD_SHA']}")
+          print(f"expected_source_sha={expected}")
+          print(f"checked_out_source_sha={actual}")
+          if actual != expected:
+              raise SystemExit("checked out revision is not the explicit final source revision")
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8", newline="\n") as handle:
+              handle.write(f"SECURIUM_TRUSTED_SOURCE_COMMIT={actual}\n")
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python_version }}
+
+      - name: Record runtime
+        shell: python
+        env:
+          MATRIX_OS: ${{ matrix.os_label }}
+          MATRIX_PYTHON: ${{ matrix.python_version }}
+        run: |
+          import os
+          import platform
+          import sys
+
+          print(f"matrix_os={os.environ['MATRIX_OS']}")
+          print(f"matrix_python={os.environ['MATRIX_PYTHON']}")
+          print(f"python_patch={platform.python_version()}")
+          print(f"platform={platform.platform()}")
+          print(f"executable={sys.executable}")
+          print(f"trusted_source_commit={os.environ['SECURIUM_TRUSTED_SOURCE_COMMIT']}")
+
+      - name: Run extracted input-limit aggregate suite
+        run: python -B tests/forensics-extracted-input-limits.test.py

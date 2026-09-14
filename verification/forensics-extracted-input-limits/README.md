@@ -56,6 +56,13 @@ the trusted Git blob after the verifier reports `source_verification: PASS`.
 The final output records the absolute extracted CLI/module paths and the
 external working directory used for subprocesses.
 
+The focused test defaults to the historical PR #194 source above. CI sets
+`SECURIUM_TRUSTED_SOURCE_COMMIT` to the full SHA of the explicit final-head
+checkout; each matrix job then builds, verifies, extracts, and evaluates its
+own checked-out package rather than repeatedly testing the historical commit.
+The summary's `source_binding` connects the trusted commit/blob and source
+bytes to the ZIP manifest entry and the extracted bytes.
+
 Every subprocess uses an argument array with `shell=False`, a finite timeout,
 and an environment with `PYTHONPATH` and `PYTHONHOME` removed. The extracted
 module test double checks `module.__file__` and rejects a repository source
@@ -66,7 +73,11 @@ together.
 The existing extracted preflight is reported independently. Its required
 probes and six documented `NOT_RUN` scopes are not changed into PASS by the
 input-limit result; expected current output is 8 `PASS` and 6 `NOT_RUN` with
-`lab_execution: PENDING` before this focused evaluation.
+`lab_execution: PENDING` inside the preflight result. The top-level stage
+summary keeps that preflight state separate: source verification, extraction,
+preflight, and extracted input limits are `PASS`; strict lab execution is
+`NOT_RUN`; cleanup is `PASS` only after owned cleanup succeeds. The preflight
+`PENDING` value is not promoted by this evaluation.
 
 ## Input fixtures and oracles
 
@@ -89,7 +100,10 @@ separate standard-library test double loaded from that extracted absolute
 path checks that success, overflow, and read-error paths request no more than
 `MAX_INPUT_BYTES + 1`, close the handle, and do not decode or invoke JSON
 parsing after overflow. The test double is not used as a substitute for the
-three real CLI byte cases.
+three real CLI byte cases. The focused suite discovers one unittest method
+(`1/1`); that is one aggregate test process containing the three real CLI
+cases, source-bound assertions, and the separate read-budget test-double
+assertions. It is not a claim that only one boundary assertion ran.
 
 ## Cleanup and limits
 
