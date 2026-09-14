@@ -141,6 +141,14 @@ class TimelineLabTests(unittest.TestCase):
                     "timestamp_original": "2026-09-11T00:00:00.125+00:00",
                     "timestamp_meaning": "synthetic observation",
                 },
+                {
+                    "event_id": "evt-fractional-later",
+                    "source_id": "synthetic-source-fractional-later",
+                    "synthetic_file_id": "synthetic-file",
+                    "event_type": "observed",
+                    "timestamp_original": "2026-09-11T00:00:00.250+00:00",
+                    "timestamp_meaning": "synthetic observation",
+                },
             ],
         }
 
@@ -154,10 +162,14 @@ class TimelineLabTests(unittest.TestCase):
                 "evt-tie-plus",
                 "evt-tie-z",
                 "evt-fractional",
+                "evt-fractional-later",
             ],
         )
         self.assertEqual(report["records"][0]["timestamp_utc"], "2026-09-10T10:30:00Z")
-        self.assertEqual(report["records"][-1]["timestamp_utc"], "2026-09-11T00:00:00.125000Z")
+        self.assertEqual(report["records"][-2]["timestamp_utc"], "2026-09-11T00:00:00.125000Z")
+        self.assertEqual(report["records"][-1]["timestamp_utc"], "2026-09-11T00:00:00.250000Z")
+        self.assertTrue(all("_timestamp_sort_key" not in record for record in report["records"]))
+        json.dumps(report)
         self.assertEqual(
             report["ordering"]["tie_groups"],
             [
@@ -170,6 +182,18 @@ class TimelineLabTests(unittest.TestCase):
                     ),
                 }
             ],
+        )
+
+        json_path = self.root / "fractional-boundary.json"
+        csv_path = self.root / "fractional-boundary.csv"
+        write_fixture(json_path, fixture, "json")
+        write_fixture(csv_path, fixture, "csv")
+        json_report = analyze_file(json_path, "2026-09-11T09:30:00Z")
+        csv_report = analyze_file(csv_path, "2026-09-11T09:30:00Z")
+        self.assertEqual(json_report["records"], csv_report["records"])
+        self.assertEqual(
+            json_report["deterministic_result_sha256"],
+            csv_report["deterministic_result_sha256"],
         )
 
     def test_csv_quoted_fields_bom_and_crlf_are_preserved(self) -> None:
