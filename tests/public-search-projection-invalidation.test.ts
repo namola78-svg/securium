@@ -57,6 +57,7 @@ type MismatchKind =
   | "ID_ORDER_KEY"
   | "VERSION_METADATA"
   | "SOURCE_REVISION"
+  | "MISSING_RELATIONSHIP"
   | "NON_READY_STATE";
 
 type ProjectionMismatch = Readonly<{
@@ -137,7 +138,7 @@ function detectProjectionMismatches(
     if (!group) {
       mismatches.push({
         courseId: course.id,
-        kinds: ["SOURCE_REVISION", ...kinds],
+        kinds: ["MISSING_RELATIONSHIP", ...kinds],
       });
       continue;
     }
@@ -319,18 +320,23 @@ test("E: group relationship changes update groupName text while preserving cours
   assert.equal(after.idOrderKey, RELATIONSHIP_AFTER.expectedIdOrderKey);
   assert.equal(before.idOrderKey, after.idOrderKey);
 
-  const missingGroupResult = (() => {
-    const missingGroup = new Set(["group-alpha", "group-beta"]).has(
-      MISSING_RELATIONSHIP_COURSE.groupId,
-    )
-      ? ALPHA_GROUP
-      : undefined;
-    if (!missingGroup) {
-      return MISSING_RELATIONSHIP_EXPECTATION;
-    }
-    return { kind: "UNEXPECTED_FALLBACK" as const };
-  })();
-  assert.deepEqual(missingGroupResult, MISSING_RELATIONSHIP_EXPECTATION);
+  const missingRelationshipProjection = {
+    ...POLICY_PROJECTION,
+    courseId: MISSING_RELATIONSHIP_COURSE.id,
+  };
+  assert.deepEqual(
+    detectProjectionMismatches(
+      [MISSING_RELATIONSHIP_COURSE],
+      [],
+      [missingRelationshipProjection],
+    ),
+    [
+      {
+        courseId: MISSING_RELATIONSHIP_COURSE.id,
+        kinds: [MISSING_RELATIONSHIP_EXPECTATION.kind],
+      },
+    ],
+  );
 });
 
 test("F: version metadata mismatches are observed without version-prefixed keys", () => {

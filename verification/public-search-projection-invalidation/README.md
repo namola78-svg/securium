@@ -23,6 +23,21 @@ node --import tsx --test tests/public-search-projection-invalidation.test.ts
 code-unit key encoding을 평가 코드에 복제하지 않는다. query byte limit은 저장
 projection 계산에 적용하지 않는다는 계약도 유지한다.
 
+fixture의 다섯 projection 입력은 실제 helper 입력과 다음처럼 대응한다.
+
+| fixture/helper 입력 | 실제 adapter source | 평가에서의 의미 |
+| --- | --- | --- |
+| `name` | `course.name` | 과정명 |
+| `shortName` | `course.shortName` | 짧은 과정명 |
+| `groupName` | `group.name` | 관계로 연결된 현재 group 이름 |
+| `publicDescription` | `courseDescription(course.description)` | public copy/fallback이 적용된 표시 설명 |
+| `audienceLabel` | `courseAudienceLabel(course)` | 현재 표시 audience 규칙의 결과 |
+
+따라서 synthetic course의 `publicDescription`과 `audienceLabel`은 raw
+`description`/`difficulty`를 뜻하는 축약 필드가 아니라, 실제 adapter가 pure
+comparison helper에 넘겨야 하는 표시 결과를 고정한 값이다. 이 harness는 표시
+helper를 다시 계산하거나 writer/provider를 실행하지 않는다.
+
 fixture의 `expectedSearchText`와 `expectedIdOrderKey`는 사람이 읽고 고정한
 independent oracle이다. 예상 projection이나 fan-out 영향 대상은 실제 함수의
 반환값, mismatch 계산 결과, 또는 테스트 중 생성하지 않는다. 테스트는 실제 함수의
@@ -49,7 +64,7 @@ revision marker는 digest serialization을 구현한 것이 아니라 오프라�
   사용한다. projection이 READY이고 text가 같아도 public eligibility는 별도 결과다.
 - E: course가 다른 group으로 이동하면 groupName projection은 바뀌고 course ID key는
   유지되는지 확인한다. group 관계가 없으면 빈 groupName으로 보정하지 않고
-  `UNRESOLVED_RELATIONSHIP` 관찰로 남긴다.
+  `MISSING_RELATIONSHIP` harness 관찰로 남긴다.
 - F: 정상, 누락, 다른 comparison/normalizer/order-key version metadata를 구분한다.
   ID key에는 version prefix가 없으며, metadata 불일치 탐지는 harness에만 있다.
 - G: projection 부재, 오래된 search text, partial fan-out, version/state/source marker
@@ -71,6 +86,11 @@ revision marker는 digest serialization을 구현한 것이 아니라 오프라�
 - 실제 공개 predicate는 canonical course/group 상태를 별도로 확인해야 한다. 이
   harness의 `publicEligibilityObservation`은 현재 코드와 문서에 확인된 조건을 fixture에
   적용하는 관찰 규칙이지 새 제품 정책이나 public endpoint가 아니다.
+- mismatch 종류는 오프라인 관찰 분류다. projection 부재는 row가 없으므로 단독
+  `MISSING_PROJECTION`으로 기록하고, 관계 부재는 `MISSING_RELATIONSHIP`으로
+  기록한다. row가 존재하면 `SEARCH_TEXT`, `ID_ORDER_KEY`, `SOURCE_REVISION`,
+  `VERSION_METADATA`, `NON_READY_STATE`가 같은 관찰에 중첩될 수 있다. 어느 분류도
+  writer 실패, 경쟁 writer, DB corruption, backfill 실패의 원인을 확정하지 않는다.
 - 이 평가는 시간·난수·환경변수·네트워크·DB·전역 mutable state를 사용하지 않는다.
   전체 unit/build/E2E, 서버·브라우저·API/MCP/LLM은 실행하지 않는다.
 
