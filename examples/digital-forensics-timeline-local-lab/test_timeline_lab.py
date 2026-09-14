@@ -1,14 +1,20 @@
 from __future__ import annotations
 
+import csv
 import hashlib
+import io
 import json
 from pathlib import Path
 import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
+
+import timeline_lab
 
 from timeline_lab import (
+    CSV_FIELDS,
     LAB_FORMAT,
     LabError,
     MAX_INPUT_BYTES,
@@ -87,6 +93,214 @@ class TimelineLabTests(unittest.TestCase):
             csv_report["deterministic_result_sha256"],
             json_report["deterministic_result_sha256"],
         )
+
+    def test_timestamp_equivalent_offsets_fractional_seconds_and_date_boundary(self) -> None:
+        fixture = {
+            "format": LAB_FORMAT,
+            "scope": "synthetic-local-only",
+            "fixture_id": "synthetic-timestamp-boundaries",
+            "fixture_created_at": "2026-09-11T09:15:00+09:00",
+            "records": [
+                {
+                    "event_id": "evt-boundary",
+                    "source_id": "synthetic-source",
+                    "synthetic_file_id": "synthetic-file",
+                    "event_type": "observed",
+                    "timestamp_original": "2026-09-11T00:30:00+14:00",
+                    "timestamp_meaning": "synthetic observation",
+                },
+                {
+                    "event_id": "evt-tie-z",
+                    "source_id": "synthetic-source-z",
+                    "synthetic_file_id": "synthetic-file",
+                    "event_type": "observed",
+                    "timestamp_original": "2026-09-11T00:00:00Z",
+                    "timestamp_meaning": "synthetic observation",
+                },
+                {
+                    "event_id": "evt-tie-offset",
+                    "source_id": "synthetic-source-offset",
+                    "synthetic_file_id": "synthetic-file",
+                    "event_type": "observed",
+                    "timestamp_original": "2026-09-11T09:00:00+09:00",
+                    "timestamp_meaning": "synthetic observation",
+                },
+                {
+                    "event_id": "evt-tie-plus",
+                    "source_id": "synthetic-source-plus",
+                    "synthetic_file_id": "synthetic-file",
+                    "event_type": "observed",
+                    "timestamp_original": "2026-09-11T01:00:00+01:00",
+                    "timestamp_meaning": "synthetic observation",
+                },
+                {
+                    "event_id": "evt-fractional",
+                    "source_id": "synthetic-source-fractional",
+                    "synthetic_file_id": "synthetic-file",
+                    "event_type": "observed",
+                    "timestamp_original": "2026-09-11T00:00:00.125+00:00",
+                    "timestamp_meaning": "synthetic observation",
+                },
+            ],
+        }
+
+        report = analyze_fixture(fixture, "1" * 64, "2026-09-11T09:30:00Z")
+
+        self.assertEqual(
+            [record["event_id"] for record in report["records"]],
+            [
+                "evt-boundary",
+                "evt-tie-offset",
+                "evt-tie-plus",
+                "evt-tie-z",
+                "evt-fractional",
+            ],
+        )
+        self.assertEqual(report["records"][0]["timestamp_utc"], "2026-09-10T10:30:00Z")
+        self.assertEqual(report["records"][-1]["timestamp_utc"], "2026-09-11T00:00:00.125000Z")
+        self.assertEqual(
+            report["ordering"]["tie_groups"],
+            [
+                {
+                    "timestamp_utc": "2026-09-11T00:00:00Z",
+                    "event_ids": ["evt-tie-offset", "evt-tie-plus", "evt-tie-z"],
+                    "interpretation": (
+                        "Lexical event_id order is display-only; equal UTC timestamps do not "
+                        "establish event precedence or causality."
+                    ),
+                }
+            ],
+        )
+
+    def test_csv_quoted_fields_bom_and_crlf_are_preserved(self) -> None:
+        output = io.StringIO(newline="")
+        writer = csv.DictWriter(output, fieldnames=CSV_FIELDS, lineterminator="\r\n")
+        writer.writeheader()
+        writer.writerow(
+            {
+                "fixture_id": "synthetic-csv-boundary",
+                "scope": "synthetic-local-only",
+                "fixture_created_at": "2026-09-11T09:15:00+09:00",
+                "event_id": "evt-quoted",
+                "source_id": "synthetic source with spaces",
+                "synthetic_file_id": "synthetic-file",
+                "event_type": "quoted event",
+                "timestamp_original": "2026-09-11T09:00:00+09:00",
+                "timestamp_meaning": "synthetic, 한글 observation",
+                "notes": 'comma, "escaped quote"\r\nquoted newline',
+            }
+        )
+        raw = output.getvalue().encode("utf-8-sig")
+        csv_path = self.root / "quoted-bom-crlf.csv"
+        csv_path.write_bytes(raw)
+
+        report = analyze_file(csv_path, "2026-09-11T09:30:00Z")
+
+        self.assertEqual(len(report["records"]), 1)
+        self.assertEqual(report["records"][0]["source_id"], "synthetic source with spaces")
+        self.assertEqual(report["records"][0]["timestamp_meaning"], "synthetic, 한글 observation")
+        self.assertEqual(
+            report["records"][0]["notes"],
+            'comma, "escaped quote"\r\nquoted newline',
+        )
+        self.assertEqual(report["input_sha256"], hashlib.sha256(raw).hexdigest())
+
+    def test_csv_missing_or_duplicate_headers_are_rejected(self) -> None:
+        missing_header = self.root / "missing-header.csv"
+        missing_header.write_text(",".join(CSV_FIELDS[:-1]) + "\n", encoding="utf-8")
+        with self.assertRaisesRegex(LabError, "CSV header"):
+            analyze_file(missing_header, "2026-09-11T09:30:00Z")
+
+        duplicate_header = self.root / "duplicate-header.csv"
+        duplicate_fields = list(CSV_FIELDS)
+        duplicate_fields[-1] = duplicate_fields[0]
+        duplicate_header.write_text(",".join(duplicate_fields) + "\n", encoding="utf-8")
+        with self.assertRaisesRegex(LabError, "CSV header"):
+            analyze_file(duplicate_header, "2026-09-11T09:30:00Z")
+
+    def test_json_structure_and_field_types_are_rejected(self) -> None:
+        fixture = build_synthetic_fixture("2026-09-11T09:15:00Z")
+        cases = (
+            ("records-not-array.json", dict(fixture, records={}), "records must be a JSON array"),
+            ("fixture-id-not-string.json", dict(fixture, fixture_id=42), "fixture_id must be a non-empty string"),
+            (
+                "event-id-not-string.json",
+                dict(
+                    fixture,
+                    records=[dict(fixture["records"][0], event_id=42), *fixture["records"][1:]],
+                ),
+                "record 1.event_id must be a non-empty string",
+            ),
+            (
+                "invalid-calendar-date.json",
+                dict(
+                    fixture,
+                    records=[
+                        dict(fixture["records"][0], timestamp_original="2026-02-30T00:00:00Z"),
+                        *fixture["records"][1:],
+                    ],
+                ),
+                "valid ISO-8601",
+            ),
+        )
+        for name, value, message in cases:
+            with self.subTest(name=name):
+                path = self._write_json(name, value)
+                with self.assertRaisesRegex(LabError, message):
+                    analyze_file(path, "2026-09-11T09:30:00Z")
+
+    def test_cli_malformed_input_does_not_create_partial_report(self) -> None:
+        lab_dir = Path(__file__).resolve().parent
+        cli = lab_dir / "cli.py"
+        input_path = self.root / "malformed-boundary.json"
+        report_dir = self.root / "reports"
+        report_dir.mkdir()
+        report_path = report_dir / "timeline-report.json"
+        sentinel = self.root / "outside-sentinel.txt"
+        input_bytes = b'{"format":'
+        sentinel_bytes = b"keep this synthetic sentinel"
+        input_path.write_bytes(input_bytes)
+        sentinel.write_bytes(sentinel_bytes)
+
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(cli),
+                "analyze",
+                "--input",
+                str(input_path),
+                "--output",
+                str(report_path),
+                "--analysis-run-at",
+                "2026-09-11T09:30:00Z",
+            ],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=20,
+            check=False,
+        )
+
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("malformed JSON", result.stderr)
+        self.assertFalse(report_path.exists())
+        self.assertEqual(input_path.read_bytes(), input_bytes)
+        self.assertEqual(sentinel.read_bytes(), sentinel_bytes)
+
+    def test_report_write_failure_removes_partial_output(self) -> None:
+        report_path = self.root / "partial-report.json"
+        real_open = timeline_lab.os.open
+
+        def create_then_fail(path: str, flags: int, mode: int) -> int:
+            descriptor = real_open(path, flags, mode)
+            timeline_lab.os.close(descriptor)
+            raise OSError("injected output creation failure")
+
+        with patch.object(timeline_lab.os, "open", side_effect=create_then_fail):
+            with self.assertRaisesRegex(LabError, "could not create output"):
+                write_report(report_path, {"format": f"{LAB_FORMAT}-analysis"})
+
+        self.assertFalse(report_path.exists())
 
     def test_missing_or_invalid_timezone_is_rejected(self) -> None:
         fixture = build_synthetic_fixture("2026-09-11T09:15:00Z")
