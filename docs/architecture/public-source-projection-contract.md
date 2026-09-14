@@ -8,9 +8,11 @@ database, or connect a page/API to the formatter.
 ## 1. Purpose and review basis
 
 The reviewed formatter is [`formatPublicSourceDisclosure`](../../lib/services/public-source-disclosure.ts#L86-L116), merged by PR #187 at
-`5a5f26a4d6dab40a6ae3f205821f491a1ec092a6`. The fixed design-review base is
-`origin/main` at `6bc0066c7833fd483811f0b277c5e2843d7bad47`; PR #187 is an
-ancestor of that commit. The existing product-level source transparency
+`5a5f26a4d6dab40a6ae3f205821f491a1ec092a6`. The generation base for this
+review is `6bc0066c7833fd483811f0b277c5e2843d7bad47`, the candidate's parent;
+it is not the current `origin/main`. The fetched review target was
+`origin/main` at `c850db8e8cb18542993b3005c42200525cfcb6e2`; no main drift was
+merged into this document. The existing product-level source transparency
 design is [`public-source-transparency.md`](../product/public-source-transparency.md).
 
 The review used static source inspection only. No database, seed runtime,
@@ -67,7 +69,9 @@ still validates values as `unknown`:
 - `reviewStatus` contributes a review object only when it is an object with a
   valid `displayLabel`; the formatter does not interpret a raw review enum.
 - `officialSource` and `securiumExplanation` are independently optional. A
-  malformed nested object is not coerced into a different shape.
+  missing or null section contributes no section. A missing/null explanation
+  scope is allowed as a label-only explanation; an invalid non-null scope
+  omits that explanation rather than coercing it.
 
 The output is an explicit allowlist, not a spread of the input. The output
 contains only `officialReference`, `independentExplanation`, and `notice`, as
@@ -82,6 +86,8 @@ explanation never makes an official reference complete.
 The formatter is pure and display-only. It performs no I/O, database lookup,
 authorization, publication decision, rights review, currentness review, URL
 fetch, redirect check, DNS check, HTML generation, or free-text PII removal.
+It builds fresh frozen output values without mutating the input; caught property
+or formatting errors produce only the generic notice and never raw error text.
 Renderer escaping remains a separate responsibility.
 
 ## 3. Canonical field mapping
@@ -246,9 +252,10 @@ promoted to “latest,” “approved,” “official,” or “licensed.”
 ## 6. Missing and error contract
 
 The resolver and the formatter need different error responsibilities. The
-formatter intentionally collapses absent, malformed, and unsupported display
-input into a safe generic notice. A repository or authorization layer must
-not use that behavior to silently classify an operational failure as “no
+formatter returns the generic notice for absent or malformed root/section input;
+invalid individual fields are omitted, and the notice remains when the
+complete official tuple is not present. A repository or authorization layer
+must not use that behavior to silently classify an operational failure as “no
 source.”
 
 | Situation | Internal resolver meaning | User-visible handling | Disclosure constraint |
@@ -258,12 +265,14 @@ source.”
 | Public authority evidence is absent | Source may exist, but public authorization/rights/currentness evidence is not ready | No official reference; generic notice or separately approved neutral copy | Do not label it approved, current, official, or licensed. |
 | Only some display fields are absent | A valid partial projection is available | Formatter preserves valid fields and keeps the notice when the complete official tuple is missing | Never fill with dates, names, titles, or approval text. |
 | Repository/resolver failure | Operational error, not source absence | Keep the endpoint's safe error behavior and record an internal diagnostic; do not convert it to a successful no-source result | Error details and raw payloads stay out of the disclosure. |
-| Malformed projection | Projection contract violation | Formatter returns the generic notice | No coercion, raw object spread, or error payload. |
+| Malformed root or nested projection | Projection contract violation | Formatter returns the generic notice | No coercion, raw object spread, or error payload. |
 | Unsupported status/type | No approved public display mapping | Omit the status or entire affected section | Do not display raw enum names or infer their meaning. |
 | Private or draft source | Not eligible for this public projection | Same generic absence presentation | No existence, count, ID, URL, internal note, or private error detail. |
 
 The formatter's generic handling is evidenced by [`formatPublicSourceDisclosure`](../../lib/services/public-source-disclosure.ts#L86-L98)
 and the malformed/unsupported cases in [`public-source-disclosure.test.ts`](../../tests/public-source-disclosure.test.ts#L37-L202).
+The no-mutation and throwing-read cases are covered by the same test file at
+[`#L239-L266`](../../tests/public-source-disclosure.test.ts#L239-L266).
 The resolver should retain the internal distinction between `ABSENT` and
 `ERROR` even though neither private details nor raw errors may reach the
 public display.
