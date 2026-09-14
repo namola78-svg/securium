@@ -1,19 +1,18 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { createServer } from "node:net";
 import { after, before, test } from "node:test";
 
 const host = "127.0.0.1";
-const port = await getFreeLoopbackPort();
-const baseUrl = `http://${host}:${port}`;
+const requestedPort = 0;
+let baseUrl = "";
 const user1 = {
   "content-type": "application/json",
-  origin: baseUrl,
+  origin: "",
   "oai-authenticated-user-email": "dev-user-1@example.invalid",
 };
 const user2 = {
   "content-type": "application/json",
-  origin: baseUrl,
+  origin: "",
   "oai-authenticated-user-email": "dev-user-2@example.invalid",
 };
 const piaAudioId =
@@ -32,7 +31,7 @@ before(async () => {
       "--hostname",
       host,
       "--port",
-      String(port),
+      String(requestedPort),
     ],
     {
       cwd: process.cwd(),
@@ -46,25 +45,28 @@ before(async () => {
   );
   server.stdout.on("data", (chunk) => {
     output += chunk.toString();
+    captureBaseUrl();
   });
   server.stderr.on("data", (chunk) => {
     output += chunk.toString();
+    captureBaseUrl();
   });
   try {
     for (let attempt = 0; attempt < 480; attempt += 1) {
       if (server.exitCode !== null) {
         throw new Error(`Audio E2E server stopped.\n${output}`);
       }
-      if (output.includes(`Port ${port} is in use, trying another one`)) {
-        throw new Error(
-          `Audio E2E server did not bind the allocated port ${port}.\n${output}`,
-        );
-      }
       try {
-        const response = await fetch(baseUrl, {
-          signal: AbortSignal.timeout(1_000),
-        });
-        if (response.status > 0) return;
+        if (baseUrl) {
+          const response = await fetch(baseUrl, {
+            signal: AbortSignal.timeout(1_000),
+          });
+          if (response.status > 0) {
+            user1.origin = baseUrl;
+            user2.origin = baseUrl;
+            return;
+          }
+        }
       } catch {
         // Server is still starting.
       }
@@ -77,28 +79,17 @@ before(async () => {
   }
 });
 
+function captureBaseUrl() {
+  const cleanOutput = output.replace(/\u001b\[[0-?]*[ -/]*[@-~]/g, "");
+  const match = cleanOutput.match(
+    /Local:\s+(https?:\/\/(?:localhost|127\.0\.0\.1):\d+)(?:\/|\s|$)/i,
+  );
+  if (match) baseUrl = match[1];
+}
+
 after(async () => {
   await stopServer();
 });
-
-function getFreeLoopbackPort() {
-  return new Promise((resolve, reject) => {
-    const probe = createServer();
-    probe.once("error", reject);
-    probe.listen(0, host, () => {
-      const address = probe.address();
-      if (!address || typeof address === "string") {
-        probe.close();
-        reject(new Error("Could not allocate an Audio E2E loopback port."));
-        return;
-      }
-      probe.close((error) => {
-        if (error) reject(error);
-        else resolve(address.port);
-      });
-    });
-  });
-}
 
 async function stopServer() {
   if (!server || server.exitCode !== null) return;
