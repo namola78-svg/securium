@@ -1,4 +1,5 @@
 import {
+  PUBLIC_COURSE_SEARCH_MAX_LIMIT,
   PUBLIC_COURSE_SEARCH_CONTRACT_VERSION,
   PublicCourseSearchError,
 } from "./public-course-search-adapter.ts";
@@ -173,14 +174,25 @@ function isSearchResult(value: unknown): value is PublicCourseSearchResult {
     !hasExactKeys(value.page, ["limit", "hasNext", "nextCursor"]) ||
     !safeInteger(value.page.limit) ||
     value.page.limit < 1 ||
+    value.page.limit > PUBLIC_COURSE_SEARCH_MAX_LIMIT ||
     typeof value.page.hasNext !== "boolean" ||
     (value.page.nextCursor !== null && !nonEmptyString(value.page.nextCursor))
   ) return false;
 
-  if (value.status === "EMPTY") return value.results.length === 0;
+  if (value.status === "EMPTY") {
+    return (
+      value.results.length === 0 &&
+      value.page.hasNext === false &&
+      value.page.nextCursor === null
+    );
+  }
   return (
     value.status === "OK" &&
     value.results.length > 0 &&
+    value.results.length <= value.page.limit &&
+    (value.page.hasNext
+      ? value.results.length === value.page.limit && value.page.nextCursor !== null
+      : value.page.nextCursor === null) &&
     value.results.every(isSearchSummary)
   );
 }
@@ -247,10 +259,10 @@ function isOutlineResult(value: unknown): value is PublicCourseOutlineResult {
     );
   }
   if (value.status !== "OK") return false;
-  return (
-    hasExactKeys(value, ["status", "course", "subjects"]) &&
-    isRecord(value.course) &&
-    hasExactKeys(value.course, [
+  if (
+    !hasExactKeys(value, ["status", "course", "subjects"]) ||
+    !isRecord(value.course) ||
+    !hasExactKeys(value.course, [
       "id",
       "slug",
       "code",
@@ -259,17 +271,24 @@ function isOutlineResult(value: unknown): value is PublicCourseOutlineResult {
       "groupName",
       "description",
       "difficulty",
-    ]) &&
-    nonEmptyString(value.course.id) &&
-    nonEmptyString(value.course.slug) &&
-    typeof value.course.code === "string" &&
-    typeof value.course.name === "string" &&
-    nullableString(value.course.shortName) &&
-    nullableString(value.course.groupName) &&
-    nullableString(value.course.description) &&
-    nullableString(value.course.difficulty) &&
-    Array.isArray(value.subjects) &&
-    value.subjects.every(isOutlineSubject)
+    ]) ||
+    !nonEmptyString(value.course.id) ||
+    !nonEmptyString(value.course.slug) ||
+    typeof value.course.code !== "string" ||
+    typeof value.course.name !== "string" ||
+    !nullableString(value.course.shortName) ||
+    !nullableString(value.course.groupName) ||
+    !nullableString(value.course.description) ||
+    !nullableString(value.course.difficulty) ||
+    !Array.isArray(value.subjects)
+  ) return false;
+
+  const courseId = value.course.id;
+  return value.subjects.every(
+    (subject) =>
+      isOutlineSubject(subject) &&
+      subject.courseId === courseId &&
+      subject.topics.every((topic) => topic.subjectId === subject.id),
   );
 }
 

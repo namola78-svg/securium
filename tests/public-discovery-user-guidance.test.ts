@@ -224,6 +224,47 @@ test("malformed, null, primitive, array, and unknown results never become succes
   assert.equal(formatPublicDiscoveryUserGuidance("unknown").category, "UNKNOWN_RESULT");
 });
 
+test("contradictory success payloads never become success guidance", () => {
+  const contradictorySearchResults: unknown[] = [
+    { ...searchResult, status: "OK", results: [] },
+    {
+      ...searchResult,
+      page: { limit: 1, hasNext: false, nextCursor: null },
+      results: [searchSummary, { ...searchSummary, id: "course-2" }],
+    },
+    {
+      ...searchResult,
+      page: { limit: 8, hasNext: false, nextCursor: "cursor" },
+    },
+    {
+      ...searchResult,
+      page: { limit: 8, hasNext: true, nextCursor: null },
+    },
+    {
+      ...searchResult,
+      page: { limit: 13, hasNext: false, nextCursor: null },
+    },
+  ];
+  for (const result of contradictorySearchResults) {
+    assert.equal(
+      formatPublicDiscoveryUserGuidance({ source: "SEARCH_RESULT", result }).category,
+      "UNKNOWN_RESULT",
+    );
+  }
+
+  const mismatchedOutline = {
+    ...successfulOutline,
+    subjects: [{ ...outlineSubject, courseId: "other-course" }],
+  };
+  assert.equal(
+    formatPublicDiscoveryUserGuidance({
+      source: "SELECTION_RESULT",
+      result: mismatchedOutline,
+    }).category,
+    "UNKNOWN_RESULT",
+  );
+});
+
 test("output is allowlisted and does not reflect query, title, ID, slug, URL, or errors", () => {
   const sentinel = "SECRET_QUERY_TITLE_ID_SLUG_URL_ERROR";
   const input = {

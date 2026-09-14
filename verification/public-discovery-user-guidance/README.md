@@ -27,6 +27,13 @@ otherwise unavailable. The formatter does not infer that cause.
 Actions are inert descriptors for a future UI. The formatter does not execute
 search, retry, refresh, navigation, or a replacement-course selection, and it
 does not claim that corresponding buttons already exist.
+`BACK_TO_RESULTS` and `REFRESH_RESULTS` require the future UI to provide the
+relevant result/history context; this formatter assumes neither context exists.
+
+The formatter validates the result envelope and the structural relationships it
+uses before emitting success guidance. Contradictory pagination fields or
+outline identity relationships are treated as `UNKNOWN_RESULT`; this is not a
+replacement for adapter validation or provenance/authenticity verification.
 
 The identity mismatch message exposes no other course ID, slug, title, URL, or
 internal error. The formatter does not authenticate search-result provenance,
