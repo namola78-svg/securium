@@ -4,6 +4,13 @@ Status: design and repository review only
 Fixed review base: `efc6a873e600b53031b3d728ed5353993ab0ac88`
 Related graph validator merge: `3ad6cbcf4cd6bd998b41cc507ca5bfcdaa757268`
 
+The labels used below are evidence states, not product API or database enums:
+
+- `CURRENT_IMPLEMENTATION`: observed in the current schema, repository, or caller, with the stated scope only.
+- `PROPOSED_CONTRACT`: a future acceptance or projection rule; it is not enabled by this document.
+- `UNRESOLVED_POLICY`: a product/authority decision is still required.
+- `UNVERIFIED_DATA`: this review did not establish production row fulfillment.
+
 ## 1. Purpose and boundary
 
 This document defines the boundary for a future connection from a canonical
@@ -13,11 +20,15 @@ is not implemented.
 
 This is not an implementation of a Concept-to-resource resolver. It does not
 create mappings, query the database, change publication policy, add a route,
-connect the public graph provider, or activate an API/MCP tool. No row count or
+connect a Concept-resource provider to a public graph/MCP surface, or activate
+an API/MCP tool. No row count or
 operational completeness claim is made: database state is **UNKNOWN** because
 this review did not execute a database query.
 
-The response validator from PR #197 validates a response's runtime shape,
+Role/skill/concept graph query and response-validation components already exist,
+but they do not traverse Concept-to-learning-resource mappings.
+
+The response validator from PR #197 ([implementation](../../lib/services/public-graph-response-validation.ts#L1)) validates a response's runtime shape,
 allowlist, identity, endpoints, relation direction, topology, and confirmed
 limits. Its merge does not create Concept-to-resource mappings, decide
 publication, or prove that a resource is suitable for learning.
@@ -25,12 +36,12 @@ publication, or prove that a resource is suitable for learning.
 The existing public course, outline, selection, source-projection, and graph
 contracts remain the references for their own scopes:
 
-- [public learning graph contract](./public-learning-graph-contract.md)
-- [public course/group policy contract](./public-course-group-policy-contract.md)
-- [public course search storage contract](./public-course-search-storage-contract.md)
-- [public discovery UX contract](./public-discovery-ux-contract.md)
-- [public source projection contract](./public-source-projection-contract.md)
-- [canonical concept authority](../../lib/services/canonical-concept-authority.ts)
+- [public learning graph contract](./public-learning-graph-contract.md#L79)
+- [public course/group policy contract](./public-course-group-policy-contract.md#L35)
+- [public course search storage contract](./public-course-search-storage-contract.md#L49)
+- [public discovery UX contract](./public-discovery-ux-contract.md#L44)
+- [public source projection contract](./public-source-projection-contract.md#L127)
+- [canonical concept authority](../../lib/services/canonical-concept-authority.ts#L9)
 
 ## 2. Current model inventory
 
@@ -51,9 +62,10 @@ as an anonymous public Concept resolver without a separate authority decision.
 
 Relevant sources:
 
-- [`ontology_concepts`, aliases, and ontology edges](../../db/schema.ts)
-- [`canonical-concept-authority.ts`](../../lib/services/canonical-concept-authority.ts)
-- [`canonical-concept-repositories.ts`](../../db/canonical-concept-repositories.ts)
+- [`ontology_concepts` and aliases](../../db/schema.ts#L3518); [`ontology_edges`](../../db/schema.ts#L3614)
+- [`canonical-concept-authority.ts`](../../lib/services/canonical-concept-authority.ts#L9)
+- [`canonical-concept-repositories.ts`](../../db/canonical-concept-repositories.ts#L20)
+- [`skill-graph-query.ts` (separate graph scope)](../../lib/services/skill-graph-query.ts#L324)
 
 ### 2.2 Resource identities
 
@@ -67,9 +79,11 @@ access semantics:
 | Course lesson | `course_lessons.id`; `courseId`, `curriculumNodeId`, `contentId`, status, deletion | Placement of content in a course/curriculum | That the content explains a particular Concept |
 | Question | `questions.id` and `question_versions.id`; question and version status/review fields | A question and its versioned assessment artifact | A public answer policy or a Concept navigation mapping |
 | Practical governance | `canonical_practicals`, practical versions, and `practical_version_concept_bindings` | A governed practical version and a Concept key/id candidate | An executable public lab or a public Concept resolver |
+| Lab / specialized practical | No generic `labs` table; `practical_definition_versions`, `secure_code_samples`, and `privacy_assessment_scenarios` are separate families with separate routes | A governed definition or specialized practical record | A generic lab identity, Concept mapping, anonymous access, or execution readiness |
+| Certification/standard-related resource | `isms_standards`, course specializations, course links, and certification curriculum identities | A standard or course-linked specialized record | A Concept mapping or certification-coverage claim |
 | Course/subject/topic | Course, curriculum, subject, and topic identities with their own lifecycle fields | Placement and discovery structure | Sufficient Concept teaching coverage or assessment/practice capability |
 
-The precise schema is in [`db/schema.ts`](../../db/schema.ts). A schema table is
+The precise schema is in [`db/schema.ts`](../../db/schema.ts#L926). A schema table is
 not evidence that rows exist or that a mapping is complete.
 
 ## 3. Mapping inventory and authority
@@ -80,21 +94,25 @@ only be derived by joining existing resources. Every row-count cell is
 
 | Source identity | Destination identity/type | Actual relation or query path | Direction and cardinality | Classification | Revision binding | Public predicate owner | Current caller | Row fulfillment |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `content_revisions.id` / `revisionId` | `ontology_concepts.id` / `conceptId` | `content_revision_concepts`; `relationType` includes `MAPS_TO`; mapping status and qualification/provenance are stored | Content revision → Concept; many mappings per revision and many revisions per Concept are possible | **Direct canonical mapping schema** | `revisionId`, `mappingVersion`, and revision metadata exist; no public snapshot resolver | None. `contentRevisionConcepts` is named as relation authority, but no public repository/caller was found | No runtime repository/caller was found by repository search | UNKNOWN |
-| `question_versions.id` / `questionVersionId` | `ontology_concepts.id` / `conceptId` | `question_concepts`; approved mappings are selected by `resolveQuestionVersionBindings` | Question version → Concept; many-to-many | **Direct canonical mapping with internal consumer** | Question version, semantic hash, mapping version, reviewer fields | Question repository owns public question publication; mapping approval is internal governance, not anonymous Concept publication | `db/question-repositories.ts` and phase-3 validation consume approved mappings to build a binding hash; neither exposes a Concept resource projection | UNKNOWN |
-| Practical version identity | `conceptKey` and optional `conceptId` | `practical_version_concept_bindings`; mapping hash and mapping status are part of practical governance | Practical version → Concept candidate; one row per practical version/key, but `conceptId` has no FK | **Direct candidate mapping; not a public resolver** | `mappingSemanticHash` and practical version exist; no public `asOf` or resource snapshot | None found | Registration/governance code uses practical mapping hashes; no public Concept caller found | UNKNOWN |
-| Generic entity identity | Typed entity identity | `ontology_edges` with `fromType`, `fromId`, `toType`, `toId`, relation, optional course scope, confidence/evidence, and status | Directed typed edge; generic many-to-many | **Generic graph relation; not a dedicated Concept-resource mapping** | No required resource revision binding | Internal ontology/AI repository scope; no public Concept publication owner | `db/ontology-repositories.ts`, AI retrieval/explainability, and seed/generation code | UNKNOWN |
-| `contents.id` | Labels in `coreConceptsJson` | Content authoring and seed data use `coreConceptsJson`; canonical authority calls it an authoring hint | Content → label/key hint; no normalized identity or reverse relation | **Authoring hint, not mapping** | None | None | Content/ontology seed generation and authoring code | UNKNOWN |
-| `curriculumNodes.id` / `courseLessons.id` | `contents.id`, plus course/subject/topic identities | `course_lessons.curriculumNodeId` and `contentId`; published curriculum repositories join published course lessons to published content | Curriculum node → course lesson → content; one-to-many at each placement boundary | **Derived resource placement, not Concept mapping** | Content version participates in progress lookup; no Concept revision binding | Course/lesson repositories and route-level access checks | Curriculum overview/path repositories and learn/lecture routes | UNKNOWN |
+| `content_revisions.id` / `revisionId` | `ontology_concepts.id` / nullable `conceptId` | `content_revision_concepts`; `relationType` is constrained to `MAPS_TO`; mapping status and qualification/provenance are stored; governed writer reads/writes rows | Content revision → Concept candidate; many mappings per revision and many revisions per Concept are possible | **Direct mapping family; canonical authority declaration; not a public resolver** | `revisionId`, `mappingVersion`, and revision metadata exist; no public snapshot resolver | No anonymous Concept projection owner. The governed theory repository persists mapping rows; the content-revision public read has its own route/access rules | [`saveGovernedTheoryRevision`](../../db/content-revision-governance-repositories.ts#L24), called by the admin route [`SAVE_GOVERNED_THEORY`](../../app/api/admin/content-revisions/route.ts#L45); no Concept-resource projection caller | UNKNOWN |
+| `question_versions.id` / `questionVersionId` | `ontology_concepts.id` / `conceptId` | `question_concepts`; approved mappings are selected by [`resolveQuestionVersionBindings`](../../db/question-repositories.ts#L696) | Question version → Concept; many-to-many | **Direct mapping family with internal consumer; not a Concept projection** | Question version, semantic hash, mapping version, reviewer fields | Question repository owns public question publication; mapping approval is internal governance, not anonymous Concept publication | Governed question writes use the mapping table; `listPublicQuestions` uses the approved set to retain a governed `questionVersionId` but does not emit Concept mappings; phase-3 validation also builds a binding hash | UNKNOWN |
+| Practical version identity | `conceptKey` and optional `conceptId` | `practical_version_concept_bindings`; mapping hash and mapping status are part of practical governance | Practical version → Concept candidate; one row per practical version/key, but `conceptId` has no FK | **Direct candidate mapping; governed writer; not a public resolver** | `mappingSemanticHash` and practical version exist; no public `asOf` or resource snapshot | None found | [`registerGovernedPracticalVersion`](../../lib/practical/practical-registration.ts#L265) resolves canonical candidates before [`PracticalGovernanceRepository.createGovernedPractical`](../../db/practical-governance-repositories.ts#L17) writes; no public Concept caller found | UNKNOWN |
+| Generic entity identity | Typed entity identity | `ontology_edges` with `fromType`, `fromId`, `toType`, `toId`, relation, optional course scope, confidence/evidence, and status | Directed typed edge; generic many-to-many | **Generic graph relation; not a dedicated Concept-resource mapping** | No required resource revision binding | Internal ontology/AI/admin scope; no Concept-resource publication owner | [`db/ontology-repositories.ts`](../../db/ontology-repositories.ts#L146), AI retrieval/explainability, admin ontology, and seed/generation code; no Concept-resource public caller | UNKNOWN |
+| `contents.id` | Labels in `coreConceptsJson` | Content authoring and seed data store `coreConceptsJson`; the authority contract calls it an authoring hint | Content → label/key hint; no normalized identity or reverse relation | **Authoring hint, not mapping** | None | None | Content/ontology seed generation and authoring code; no Concept-resource projection | UNKNOWN |
+| `curriculumNodes.id` / `courseLessons.id` | `contents.id`, plus course/subject/topic identities | `course_lessons.curriculumNodeId` and `contentId`; published curriculum repositories join published course lessons to published content | Curriculum node → course lesson → content; one-to-many at each placement boundary | **Derived resource placement, not Concept mapping** | Content version participates in progress lookup; no Concept revision binding | Course/lesson repositories and route-level access checks | Curriculum overview/path repositories and learn/lecture routes; ontology builder can also emit coverage edges | UNKNOWN |
 | `courseId`, `subjectId`, `topicId` | `questionId` | `question_courses`, `question_subjects`, `question_topics`; public question repository adds published question/course predicates | Course/subject/topic → question; many-to-many | **Derived assessment placement, not Concept mapping** | Question version is resolved internally; no Concept-resource snapshot | `listPublicQuestions` owns this public question read path | Practice, level, and question callers | UNKNOWN |
+| `contentType`/`contentId` | `courseId` or `questionId` | `content_course_links` and `content_question_links` provide typed specialized-content/course/question links | Content → course and content → question; link tables do not target Concept | **Derived specialized placement, not Concept mapping** | No Concept or resource-revision binding | Specialized repositories apply their own active/public/enrollment checks | `specialized-repositories.ts` and `practical-specialization-repositories.ts`; no Concept-resource public caller | UNKNOWN |
 
 ### 3.1 Direct, derived, inferred, and proposed links
 
-The only direct Concept links found in the model are the specialized mapping
-families above. They are not interchangeable:
+Within the learning-resource mappings in scope, the direct Concept links are
+the specialized mapping families above. Other direct Concept relations such as
+fact/evidence or Skill → Concept are different authorities and are not
+resource mappings. The families above are not interchangeable:
 
 - `content_revision_concepts` is the direct content-revision mapping family,
-  but no runtime public repository was found.
+  and its governed repository has a writer and completeness read, but no
+  runtime public Concept-resource repository was found.
 - `question_concepts` is consumed to bind approved question-version mappings
   into an internal immutable binding hash. That use does not mean the public
   question result is a Concept navigation result.
@@ -110,6 +128,9 @@ families above. They are not interchangeable:
   resource associated with a course or curriculum node. They cannot be
   reversed into “this Concept is taught by this resource” without an
   authoritative Concept mapping.
+- `content_course_links` and `content_question_links` connect specialized
+  content to a course or question, but do not establish Concept identity or
+  publication for a Concept projection.
 
 Name, title, slug, canonical key, label, or keyword similarity is an inferred
 link only. It must never be promoted to a canonical mapping, prerequisite,
@@ -148,11 +169,11 @@ Concept identity and resource access are independent decisions.
    enrollment, or user-specific progress checks. A public Concept must not
    imply those rights.
 
-The relevant implementations are [`db/repositories.ts`](../../db/repositories.ts),
-[`db/public-course-outline-provider.ts`](../../db/public-course-outline-provider.ts),
-[`db/public-course-availability-repository.ts`](../../db/public-course-availability-repository.ts),
-[`db/shared-content-repositories.ts`](../../db/shared-content-repositories.ts),
-and [`db/question-repositories.ts`](../../db/question-repositories.ts).
+The relevant implementations are [`db/repositories.ts`](../../db/repositories.ts#L97),
+[`db/public-course-outline-provider.ts`](../../db/public-course-outline-provider.ts#L37),
+[`db/public-course-availability-repository.ts`](../../db/public-course-availability-repository.ts#L32),
+[`db/shared-content-repositories.ts`](../../db/shared-content-repositories.ts#L806),
+and [`db/question-repositories.ts`](../../db/question-repositories.ts#L99).
 
 ### 4.2 Metadata versus learning access
 
@@ -168,6 +189,8 @@ The minimum safe distinction is:
   is not proof that the learner can run it.
 - A subject/topic or curriculum outline is not proof that lessons, questions,
   practice, or sufficient learning content exist.
+- A login session on a public metadata route does not bypass the authenticated
+  learner route's enrollment or user-specific predicates.
 
 Direct lookup and discovery can currently apply different course/group
 predicates. A future Concept resolver must name which public predicate it
@@ -175,18 +198,27 @@ uses, rather than inheriting whichever route happened to be called.
 
 ### 4.3 Private intermediate nodes
 
-A private resource, private course/group, or private intermediate node cannot
+A private resource, private course/group, or private intermediate node must not
 be bypassed by emitting a new public Concept→resource edge. If a derived path
 contains a non-public endpoint, the path is not a public relation. The public
 projection must omit it or return a safe unavailable/empty result without
-revealing its private ID, title, count, or existence.
+revealing its private ID, title, count, or existence. This paragraph is a
+`PROPOSED_CONTRACT` for the future resolver, not a claim that a resolver is
+already enforcing it.
+
+| Boundary rule | Current review classification |
+| --- | --- |
+| Exclude private resources | `CURRENT_IMPLEMENTATION` only inside resource-specific reads such as published course/content/question and enrolled practical paths; no resolver-wide control exists |
+| Do not create a public edge across a private intermediate node | `PROPOSED_CONTRACT`; the response validator can partially check returned topology/dangling references, but cannot discover an omitted private source node; no independent source-backed Concept-resource oracle was found |
+| Do not use an automatic fallback that bypasses a private relation | `PROPOSED_CONTRACT`; no Concept-resource fallback implementation or oracle exists |
+| Do not infer a replacement resource from title/name | `CURRENT_IMPLEMENTATION` for canonical Concept exact-identity resolution, and `PROPOSED_CONTRACT` for Concept-resource mapping; lexical search is not an authority |
 
 `ACTIVE`, canonical registration, validator success, a reviewed mapping, or a
 synthetic oracle success must not be described as publication approval.
 
 ## 5. Revision and change contract
 
-There is no current generic Concept-to-resource revision resolver.
+There is no current generic Concept-to-resource revision or `asOf` resolver.
 
 - A canonical Concept has a stable `ontology_concepts.id` and `conceptKey`.
   CP-A `concept_versions` are not a runtime public revision authority.
@@ -199,6 +231,10 @@ There is no current generic Concept-to-resource revision resolver.
   practical family.
 - `updatedAt`, a source hash, or a slug is not a substitute for a resolver's
   revision binding.
+- Resource IDs identify rows within their family; slugs and similar keys are
+  route/search identifiers and are not cross-family identity. MCPA's current
+  `asOf` value is response-time traceability metadata, not a Concept mapping
+  snapshot or an atomic database read.
 
 A future resolver must define the behavior for these transitions:
 
@@ -211,8 +247,8 @@ A future resolver must define the behavior for these transitions:
 | Slug reuse | Resolve by stable identity, not a historical slug |
 | Read during concurrent changes | Use a defined repository snapshot/transaction if one projection must be coherent; independent reads are not one snapshot |
 
-No `asOf`, source/revision resolver, or snapshot contract is claimed to exist
-today. Implementing one is a later repository/policy task.
+No Concept-resource `asOf`, source/revision resolver, or snapshot contract is
+claimed to exist today. Implementing one is a later repository/policy task.
 
 ## 6. Proposed public metadata projection
 
@@ -230,18 +266,22 @@ This is a conservative design target, not an implemented DTO or route.
 
 The default projection excludes raw database IDs, internal enum values, source
 bindings, mapping payloads, answers, reviewer fields, personal Evidence, and
-private operational notes. It also does not validate free-text safety, rights,
-or freshness merely because an allowlist passed.
+private operational notes. IDs or hashes alone do not guarantee anonymity.
+An allowlist is not a free-text PII scrubber or prompt-injection defense, and it
+does not validate rights or freshness merely because it passed.
 
 No new route is proposed in this document. A later implementation must reuse
 an existing course/learn/question/lecture/practice/specialized route only when
-that route's own access contract is satisfied. The current MCPA read service
-exposes Course/Lesson/Question resources and has no Concept resource type;
+that route's own access contract is satisfied. The current [MCPA read service](../../lib/mcp/mcpa-read-service.ts#L77)
+exposes Course/Lesson/Question entities; its [resource/tool declarations](../../lib/mcp/mcpa-core.ts#L5)
+list Course/Lesson resource URIs and search/get-question tools, with no Concept
+resource type;
 this document does not expand it.
 
 ## 7. Missing, private, malformed, and error states
 
-Internal diagnostics should distinguish at least:
+The following are `PROPOSED_CONTRACT` internal diagnostic names for a future
+resolver, not current public API enum members:
 
 - `VALID_PUBLIC_MAPPING`
 - `MAPPING_NOT_FOUND`
@@ -254,6 +294,9 @@ Internal diagnostics should distinguish at least:
 
 The external contract should expose only a safe projection or a generic
 `EMPTY`/`NOT_FOUND`/`UNAVAILABLE` result according to the eventual policy.
+Those names are illustrative here; the existing MCPA error enum and public
+graph status enum belong to their own surfaces and must not be reused as a
+Concept-resource API without a separate decision.
 It must not expose a private ID, title, count, payload, or arbitrary database
 error. `REPOSITORY_ERROR` must remain distinguishable in internal telemetry;
 it must not be silently rewritten as “no resource” internally.
@@ -290,7 +333,8 @@ deduplication key across resource families, deterministic ordering across
 content/question/practical types, a Concept cursor, or a response-cap contract.
 N+1 behavior and query plans are therefore unresolved. A document or response
 limit must not be presented as a database/query-cost or per-hop enforcement
-limit.
+limit. No Concept-resource response byte cap was found; the graph validator's
+public-ID/cursor byte checks are not a full response-size contract.
 
 Any future resolver must define, before implementation:
 
@@ -308,7 +352,7 @@ production rows, or publication decisions.
 
 | Scenario | Internal lookup result | Public projection | Do not show/claim | Unresolved follow-up |
 | --- | --- | --- | --- | --- |
-| Direct Concept → public theory resource | An approved content-revision mapping is found; the revision is attached to a published, non-deleted course lesson | Concept label, resource type/title, approved relationship meaning, and an existing allowed navigation target if the future resolver confirms all predicates | Raw IDs, source payload, reviewer, and “mastery” or competency claim | Define mapping-publication authority and revision snapshot; verify with repository data |
+| Direct Concept → public theory resource | An approved content-revision mapping is found; the revision's content identity has a published, non-deleted course-lesson placement | Concept label, resource type/title, approved relationship meaning, and an existing allowed navigation target if the future resolver confirms all predicates | Raw IDs, source payload, reviewer, and “mastery” or competency claim | Define mapping-publication authority and revision snapshot; verify with repository data |
 | Concept → course → resource | Concept has no direct mapping; a course contains a published lesson through curriculum placement | At most a separately labeled course association through an existing course/outline contract | “This resource teaches the Concept” or a canonical Concept edge | Obtain an authoritative Concept mapping or keep the relation absent |
 | Public Concept + private resource | Concept is active/public under a future policy; endpoint is private/inactive | No private resource in the public projection; safe empty/unavailable state | Private title, ID, count, or existence | Define external state wording and internal telemetry |
 | Private intermediate node | A path passes through a private curriculum/course/resource node | No bypass edge and no derived public resource | Any replacement edge that hides the private endpoint | Verify provider endpoint checks and oracle bypass case |
@@ -358,8 +402,9 @@ learning-resource contract. The safe current conclusion is:
 - data presence, mapping completeness, publication intent, and a coherent
   Concept/resource snapshot: **UNKNOWN or NOT IMPLEMENTED**;
 - Concept-resource mapping implementation: **NOT CHANGED**;
-- graph provider, publication policy, public UI/API wiring, and public tool
-  activation: **NOT STARTED / NOT ENABLED**.
+- Concept-resource provider, publication policy, public UI/API wiring, and
+  Concept-resource tool activation: **NOT STARTED / NOT ENABLED**. Existing
+  generic graph/query and MCPA surfaces remain outside this resolver scope.
 
 The next implementation must not infer a mapping from a similar name, a course
 membership edge, an ACTIVE/canonical row, a validator pass, or an internal
