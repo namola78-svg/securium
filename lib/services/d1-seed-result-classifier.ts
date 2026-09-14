@@ -134,8 +134,17 @@ function hasRequiredKeys(value: RecordValue, requiredKeys: readonly string[]): b
   return requiredKeys.every((key) => Object.prototype.hasOwnProperty.call(value, key));
 }
 
-function isEnumValue<T extends string>(value: unknown, values: readonly T[]): value is T {
-  return typeof value === "string" && values.includes(value as T);
+function validateEnumValue<T extends string>(
+  value: unknown,
+  values: readonly T[],
+): { ok: true; value: T } | { ok: false; code: InputErrorCode } {
+  if (typeof value !== "string") {
+    return { ok: false, code: "INVALID_INPUT_TYPE" };
+  }
+  if (!values.includes(value as T)) {
+    return { ok: false, code: "UNKNOWN_ENUM_VALUE" };
+  }
+  return { ok: true, value: value as T };
 }
 
 function inputError(code: InputErrorCode): D1SeedClassifierFailure {
@@ -154,23 +163,32 @@ function validateObservation(input: unknown):
     return inputError("INVALID_INPUT_TYPE");
   }
 
-  if (!isEnumValue(input.executionStage, EXECUTION_STAGES)) {
-    return inputError("UNKNOWN_ENUM_VALUE");
+  const executionStage = validateEnumValue(input.executionStage, EXECUTION_STAGES);
+  if (!executionStage.ok) {
+    return inputError(executionStage.code);
   }
-  if (!isEnumValue(input.verification, VERIFICATION_RESULTS)) {
-    return inputError("UNKNOWN_ENUM_VALUE");
+  const verification = validateEnumValue(input.verification, VERIFICATION_RESULTS);
+  if (!verification.ok) {
+    return inputError(verification.code);
   }
-  if (!isEnumValue(input.rollback, ROLLBACK_RESULTS)) {
-    return inputError("UNKNOWN_ENUM_VALUE");
+  const rollback = validateEnumValue(input.rollback, ROLLBACK_RESULTS);
+  if (!rollback.ok) {
+    return inputError(rollback.code);
   }
+
+  const secondaryFailures: SecondaryFailure[] = [];
   if (input.secondaryFailures !== undefined) {
     if (!Array.isArray(input.secondaryFailures)) {
       return inputError("INVALID_INPUT_TYPE");
     }
-    if (!input.secondaryFailures.every((failure) => isEnumValue(failure, SECONDARY_FAILURES))) {
-      return inputError("UNKNOWN_ENUM_VALUE");
+    for (const failure of input.secondaryFailures) {
+      const validatedFailure = validateEnumValue(failure, SECONDARY_FAILURES);
+      if (!validatedFailure.ok) {
+        return inputError(validatedFailure.code);
+      }
+      secondaryFailures.push(validatedFailure.value);
     }
-    if (new Set(input.secondaryFailures).size !== input.secondaryFailures.length) {
+    if (new Set(secondaryFailures).size !== secondaryFailures.length) {
       return inputError("CONTRADICTORY_OBSERVATION");
     }
   }
@@ -185,24 +203,24 @@ function validateObservation(input: unknown):
   if (typeof input.write.attempted !== "boolean") {
     return inputError("INVALID_INPUT_TYPE");
   }
-  if (!isEnumValue(input.write.processOutcome, WRITE_PROCESS_OUTCOMES)) {
-    return inputError("UNKNOWN_ENUM_VALUE");
+  const processOutcome = validateEnumValue(input.write.processOutcome, WRITE_PROCESS_OUTCOMES);
+  if (!processOutcome.ok) {
+    return inputError(processOutcome.code);
   }
-  if (!isEnumValue(input.write.commitEvidence, COMMIT_EVIDENCE_KINDS)) {
-    return inputError("UNKNOWN_ENUM_VALUE");
+  const commitEvidence = validateEnumValue(input.write.commitEvidence, COMMIT_EVIDENCE_KINDS);
+  if (!commitEvidence.ok) {
+    return inputError(commitEvidence.code);
   }
 
-  const secondaryFailures =
-    input.secondaryFailures === undefined ? [] : [...input.secondaryFailures];
   const observation: D1SeedResultObservation = {
-    executionStage: input.executionStage,
+    executionStage: executionStage.value,
     write: {
       attempted: input.write.attempted,
-      processOutcome: input.write.processOutcome,
-      commitEvidence: input.write.commitEvidence,
+      processOutcome: processOutcome.value,
+      commitEvidence: commitEvidence.value,
     },
-    verification: input.verification,
-    rollback: input.rollback,
+    verification: verification.value,
+    rollback: rollback.value,
     secondaryFailures,
   };
 

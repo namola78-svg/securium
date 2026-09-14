@@ -194,6 +194,11 @@ test("rejects invalid types, unknown enums, and contradictory observations", () 
   );
 
   assert.deepEqual(
+    classifyD1SeedResult({ ...observation(), verification: 42 }),
+    { kind: "INPUT_ERROR", code: "INVALID_INPUT_TYPE" },
+  );
+
+  assert.deepEqual(
     classifyD1SeedResult({
       ...observation(),
       write: { attempted: true, processOutcome: "NOT_STARTED", commitEvidence: "NONE" },

@@ -50,8 +50,10 @@ returned as `UNSUPPORTED_COMBINATION`: the source contract describes a proposed
 implemented here. No new result state is invented for that gap.
 
 Input types, enum values, required fields, duplicate secondary failures, and
-contradictory field relationships are rejected as `INPUT_ERROR`. Error output
-contains only a stable code and never reflects the input payload or error text.
+contradictory field relationships are rejected as `INPUT_ERROR`. A wrong value
+type is `INVALID_INPUT_TYPE`, while an unknown string enum is
+`UNKNOWN_ENUM_VALUE`. Error output contains only a stable code and never
+reflects the input payload or error text.
 
 ## Exit, report, and recovery boundary
 
