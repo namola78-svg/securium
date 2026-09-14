@@ -212,15 +212,26 @@ test("successful selection composes the public outline with the existing formatt
 });
 
 test("an empty outline remains successful and keeps the disclosure contract", () => {
+  let projectionReads = 0;
+  const projection = {};
+  Object.defineProperty(projection, "projectionKind", {
+    get() {
+      projectionReads += 1;
+      return PUBLIC_SOURCE_DISCLOSURE_PROJECTION_KIND;
+    },
+  });
+
   const presentation = composePublicDiscoveryPresentation({
     source: "SELECTION_RESULT",
     result: { ...successfulOutline, subjects: [] },
+    sourceProjection: projection,
   });
 
   assert.equal(presentation.kind, "SELECTION_RESULT");
   assert.equal(presentation.outline?.status, "OK");
   assert.deepEqual(presentation.outline?.subjects, []);
   assert.equal(presentation.guidance.category, "OUTLINE_EMPTY");
+  assert.equal(projectionReads, 1);
   assertEmptyDisclosure(presentation);
 });
 
@@ -228,8 +239,11 @@ test("NOT_FOUND, IDENTITY_MISMATCH, provider, projection, and limit failures rem
   const cases = [
     [{ status: "NOT_FOUND" }, "COURSE_UNAVAILABLE"],
     [{ status: "SELECTION_ERROR", code: "IDENTITY_MISMATCH" }, "IDENTITY_MISMATCH"],
+    [{ status: "SELECTION_ERROR", code: "INVALID_INPUT" }, "INPUT_ERROR"],
+    [{ status: "INVALID_INPUT" }, "INPUT_ERROR"],
     [{ status: "UNAVAILABLE", reason: "PUBLIC_REPOSITORY_ERROR" }, "PROVIDER_ERROR"],
     [{ status: "UNAVAILABLE", reason: "INVALID_PUBLIC_PROJECTION" }, "PROJECTION_ERROR"],
+    [{ status: "UNAVAILABLE", reason: "PUBLIC_RELATION_MISMATCH" }, "PROJECTION_ERROR"],
     [{ status: "UNAVAILABLE", reason: "OUTLINE_LIMIT_EXCEEDED" }, "OUTLINE_LIMIT_EXCEEDED"],
   ] as const;
 

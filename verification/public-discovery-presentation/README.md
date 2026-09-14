@@ -2,8 +2,10 @@
 
 ## Scope
 
-`composePublicDiscoveryPresentation()` is a pure internal composer for already-produced public discovery results. The fixed base is `origin/main` at
-`b652f90b37f4c508fde9bc8160b2cf0b35088cdd`.
+`composePublicDiscoveryPresentation()` is a pure internal composer for already-produced public discovery results. The generation base was
+`b652f90b37f4c508fde9bc8160b2cf0b35088cdd`; this review fetched and fixed
+reviewed `origin/main` at `c1799c69700d3216fe115d71db5d50286420835c` and
+merged it once into the candidate branch.
 
 The composer reuses the existing `PublicCourseSearchResult`,
 `PublicDiscoverySelectionResult`, `formatPublicDiscoveryUserGuidance()`, and
@@ -33,7 +35,11 @@ The output is an explicit allowlist:
 }
 ```
 
-Search and outline values are rebuilt from their existing public fields. Raw
+Search and outline values are rebuilt from their existing public fields. The
+guidance category is a display classification; source trust, authorization,
+rights, and currentness are not inferred from it. The existing guidance
+formatter's runtime result checks gate the display branch, and the composer
+still reads only the fields needed for its explicit output projection. Raw
 provider errors, internal metadata, private fields, and arbitrary input fields
 are not spread into the output. Normal public IDs, slugs, titles, descriptions,
 and outline fields remain available.
@@ -91,6 +97,7 @@ Focused test:
 
 ```text
 node --import tsx --test tests/public-discovery-presentation.test.ts
+npm run test:unit
 ```
 
 Additional checks:
@@ -101,6 +108,11 @@ npx eslint lib/services/public-discovery-presentation.ts tests/public-discovery-
 git diff --check
 git diff --cached --check
 ```
+
+The `test:unit` registration check preserves the existing loader/options and
+test order; `tests/public-discovery-presentation.test.ts` occurs exactly once,
+after the existing offline evaluation test. The presentation evaluation test
+is not present on reviewed `main` and was not imported from another branch.
 
 The tests cover normal/empty/error search, successful and empty outlines,
 selection failures, identity mismatch redaction, provider/projection/limit
