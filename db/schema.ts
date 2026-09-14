@@ -2438,6 +2438,7 @@ export const mockExamAttempts = sqliteTable(
     wrongCount: integer("wrong_count").notNull().default(0),
     unansweredCount: integer("unanswered_count").notNull().default(0),
     compositionSemanticHash: text("composition_semantic_hash"),
+    compositionSnapshotJson: text("composition_snapshot_json"),
     ...timestamps,
   },
   (table) => [

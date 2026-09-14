@@ -1,0 +1,113 @@
+name: Mock attempt PostgreSQL revision binding
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/mock-attempt-postgres-revision-binding.yml"
+      - "app/api/mock-exams/**"
+      - "db/**"
+      - "lib/services/mock-exam-revision.ts"
+      - "lib/services/mock-exam-composition.ts"
+      - "tests/mock-attempt-revision-binding-postgres-disposable.test.mjs"
+      - "tests/question-governance-postgres-disposable.test.mjs"
+      - "tests/support/**"
+      - "worker/**"
+      - "package.json"
+      - "package-lock.json"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/mock-attempt-postgres-revision-binding.yml"
+      - "app/api/mock-exams/**"
+      - "db/**"
+      - "lib/services/mock-exam-revision.ts"
+      - "lib/services/mock-exam-composition.ts"
+      - "tests/mock-attempt-revision-binding-postgres-disposable.test.mjs"
+      - "tests/question-governance-postgres-disposable.test.mjs"
+      - "tests/support/**"
+      - "worker/**"
+      - "package.json"
+      - "package-lock.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mock-attempt-postgres-revision-binding-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: "true"
+  APP_ENV: test
+  NODE_OPTIONS: "--experimental-strip-types"
+
+jobs:
+  mock-attempt:
+    name: Mock attempt PostgreSQL revision binding
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out exact tested revision
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22.13.0"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Bind exact tested revision
+        shell: bash
+        run: |
+          expected_sha="${{ github.event.pull_request.head.sha || github.sha }}"
+          test "$(git rev-parse HEAD)" = "$expected_sha"
+          echo "SECURIUM_MOCK_ATTEMPT_POSTGRES_OWNER=mock-attempt-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_ENV"
+          echo "SECURIUM_MOCK_ATTEMPT_POSTGRES_CONTAINER=securium-mock-attempt-pg-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_ENV"
+          echo "SECURIUM_MOCK_ATTEMPT_POSTGRES_RECEIPT=$RUNNER_TEMP/securium-mock-attempt-pg-${{ github.run_id }}-${{ github.run_attempt }}.json" >> "$GITHUB_ENV"
+          echo "SECURIUM_QUESTION_GOVERNANCE_POSTGRES_OWNER=question-governance-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_ENV"
+          echo "SECURIUM_QUESTION_GOVERNANCE_POSTGRES_CONTAINER=securium-question-governance-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_ENV"
+          echo "SECURIUM_QUESTION_GOVERNANCE_POSTGRES_RECEIPT=$RUNNER_TEMP/securium-question-governance-${{ github.run_id }}-${{ github.run_attempt }}.json" >> "$GITHUB_ENV"
+          echo "MOCK_ATTEMPT_POSTGRES_TESTED_SHA=$expected_sha"
+
+      - name: Run disposable PostgreSQL revision and governance tests
+        shell: bash
+        timeout-minutes: 15
+        run: |
+          set -o pipefail
+          result_path="$RUNNER_TEMP/mock-attempt-postgres-revision-binding.tap"
+          node --test \
+            --test-concurrency=1 \
+            --test-reporter=tap \
+            tests/mock-attempt-revision-binding-postgres-disposable.test.mjs \
+            tests/question-governance-postgres-disposable.test.mjs \
+            | tee "$result_path"
+
+          skipped="$(awk '/^# skipped / { print $3 }' "$result_path" | tail -n 1)"
+          todo="$(awk '/^# todo / { print $3 }' "$result_path" | tail -n 1)"
+          passed="$(awk '/^# pass / { print $3 }' "$result_path" | tail -n 1)"
+          test "${skipped:-1}" = "0"
+          test "${todo:-1}" = "0"
+          test "${passed:-0}" = "3"
+
+      - name: Cleanup owned disposable PostgreSQL containers
+        if: always()
+        shell: bash
+        run: |
+          cleanup_failed=0
+          for receipt_path in \
+            "$SECURIUM_MOCK_ATTEMPT_POSTGRES_RECEIPT" \
+            "$SECURIUM_QUESTION_GOVERNANCE_POSTGRES_RECEIPT"; do
+            if ! node scripts/cleanup-owned-postgres-container.mjs "--receipt=$receipt_path"; then
+              cleanup_failed=1
+            fi
+          done
+          exit "$cleanup_failed"
