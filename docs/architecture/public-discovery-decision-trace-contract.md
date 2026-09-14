@@ -240,7 +240,7 @@ guidance category는 관찰된 product contract지만, trace envelope 자체는
 
 | 제안 field | 제안 값 | 의미 |
 | --- | --- | --- |
-| `executionState` | `NOT_STARTED`, `STARTED`, `COMPLETED`, `ABORTED_EXTERNAL_CONDITION`, `HARNESS_SYNTHETIC` | stage가 호출되었는지에 대한 기록 계층의 실행 관찰. `HARNESS_SYNTHETIC`은 제품 실행과 분리한다. |
+| `executionState` | `NOT_STARTED`, `STARTED`, `COMPLETED`, `UNKNOWN`, `ABORTED_EXTERNAL_CONDITION`, `HARNESS_SYNTHETIC` | stage가 호출되었는지에 대한 기록 계층의 실행 관찰. `UNKNOWN`은 실행 여부를 확인할 관찰이 없는 상태이며, 기록 부재를 `NOT_STARTED`로 축소하지 않는다. `HARNESS_SYNTHETIC`은 제품 실행과 분리한다. |
 | `resultState` | `NOT_AVAILABLE`, `RECEIVED`, `UNKNOWN` | 결과를 받았는지. timeout·connection loss로 실행 시도 후 결과가 없으면 `UNKNOWN`이지 `NOT_STARTED`가 아니다. |
 | `recordingState` | `NOT_ATTEMPTED`, `RECORDED`, `FAILED`, `UNKNOWN` | 결과와 별도로 trace write가 성공했는지. `FAILED`가 primary result를 바꾸지 않는다. |
 
@@ -330,11 +330,13 @@ orchestrator, operation ID, stage timestamp가 없다. offline test가 기록한
 | --- | --- | --- |
 | 함수가 호출되지 않음 | `executionState=NOT_STARTED`, 결과 없음 | trace record가 없다는 이유로 제품 동작이 실행되지 않았다고 과거 전체에 단정하지 않음 |
 | 호출 시작 후 응답 소실 | `executionState=STARTED`, `resultState=UNKNOWN` | `NOT_FOUND`, `EMPTY`, provider error 중 하나로 추정하지 않음 |
+| 실행 여부 미확인 | `executionState=UNKNOWN`, `resultState=UNKNOWN` | 기록이 없다는 이유로 호출되지 않았거나 특정 결과를 반환했다고 추정하지 않음 |
 | 결과를 받음 | `resultState=RECEIVED`, 실제 product status/code 보존 | timestamp만으로 선행 stage의 원인이라고 단정하지 않음 |
 | 결과는 받았지만 trace write 실패 | primary result는 보존하고 `recordingState=FAILED` | 성공을 실패로, 실패를 성공으로 바꾸지 않음 |
 | 외부 조건으로 중단 | `executionState=ABORTED_EXTERNAL_CONDITION` | 사용자가 취소했는지 provider 장애인지 추정하지 않음 |
 | 평가 harness가 만든 연결 | `executionState=HARNESS_SYNTHETIC` | 합성 repository·call list를 production orchestration으로 승격하지 않음 |
 | stage trace 자체가 없음 | 기록 부재 | 함수가 실행되지 않았다는 증명으로 취급하지 않음 |
+| 일부 stage만 기록된 부분 기록 | 확인된 stage의 상태만 보존하고 누락 stage는 미관찰로 남김 | 누락 stage를 `NOT_STARTED`로 채우거나 전체 trace가 완전하다고 주장하지 않음 |
 
 `NOT_FOUND`, `EMPTY`, `UNAVAILABLE`, `UNKNOWN`은 제품 결과의 의미이고,
 `UNKNOWN` execution/result state는 기록 계층이 결과를 알 수 없다는 의미다.
@@ -348,6 +350,13 @@ orchestrator, operation ID, stage timestamp가 없다. offline test가 기록한
 - stage별 idempotency와 trace write의 중복 허용 범위
 - 늦은 결과가 최신 결과를 덮어쓸 수 있는지 여부
 - 원래 primary result와 재시도 result를 어떻게 함께 보존할지
+
+`attemptKey`는 한 stage 실행 시도에 귀속되고 재시도마다 새 값이어야 한다.
+`dedupeKey`는 명시된 producer·attempt·scope 안에서 동일 write 전달을 식별하는
+수단으로만 사용한다. key 충돌이 서로 다른 시도나 결과를 합치게 해서는 안 되며,
+namespace·scope·보존 기간은 후속 정책으로 정한다. trace writer의 idempotency는
+중복 write의 처리 방식만 정의할 뿐 실제 실행, 인과성, exactly-once 수집을
+증명하지 않는다.
 
 trace 설계만으로 retry를 도입하지 않으며, `REFRESH_RESULTS` action도 현재
 formatter가 실행하는 retry가 아니라 inert UI descriptor다.
@@ -537,6 +546,9 @@ source reference, 추천 판단을 canonical course/source/revision 사실로 �
 과거 trace를 다시 읽는 것만으로 현재 source officiality, currentness,
 publication, learner permission을 복원하지 않는다. 현재 권한을 다시 확인하고,
 필요하면 reference를 제거하거나 접근 불가 상태로 표시해야 한다.
+과거 trace는 당시 관찰·적용 근거·결과의 기록일 뿐, 현재 사실이나 접근 권한,
+source 유효성, 당시 판단의 정확성, 같은 결정을 다시 실행해도 된다는 승인을
+확정하지 않는다.
 
 ### 9.3 모델과 Context Graph
 
