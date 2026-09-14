@@ -1,15 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {
-  createPublicCourseOutlineAdapter,
-  type PublicCourseOutlineResult,
-} from "../lib/services/public-course-outline-adapter.ts";
+import { createPublicCourseOutlineAdapter } from "../lib/services/public-course-outline-adapter.ts";
 import {
   createPublicCourseSearchAdapter,
   PublicCourseSearchError,
 } from "../lib/services/public-course-search-adapter.ts";
 import {
   createPublicDiscoverySelectionService,
+  type PublicDiscoverySelectionResult,
 } from "../lib/services/public-discovery-selection.ts";
 import {
   createSyntheticOutlineCourse,
@@ -65,8 +63,8 @@ function callKinds(calls: readonly SyntheticCall[]) {
 }
 
 function assertUnavailable(
-  result: PublicCourseOutlineResult,
-  reason: Extract<PublicCourseOutlineResult, { status: "UNAVAILABLE" }>["reason"],
+  result: PublicDiscoverySelectionResult,
+  reason: Extract<PublicDiscoverySelectionResult, { status: "UNAVAILABLE" }>["reason"],
 ) {
   assert.deepEqual(result, { status: "UNAVAILABLE", reason });
 }
@@ -163,11 +161,15 @@ test("C: deterministic post-search visibility changes are handled as unavailable
       const repository = new SyntheticPublicDiscoveryRepository();
       const searchAdapter = createPublicCourseSearchAdapter(repository);
       const outlineAdapter = createPublicCourseOutlineAdapter(repository);
+      const selectionService = createPublicDiscoverySelectionService(outlineAdapter);
       const search = await searchAdapter.searchPublicCourses({ query: "synthetic" });
       const selected = selectCourseFromSearch(search, SYNTHETIC_COURSE_ID);
 
       repository.replaceCourse(stateChange.course);
-      const outline = await outlineAdapter({ courseSlug: selected.slug });
+      const outline = await selectionService.getSelectedCourseOutline({
+        courseId: selected.id,
+        courseSlug: selected.slug,
+      });
 
       assert.deepEqual(outline, { status: "NOT_FOUND" });
       assert.deepEqual(callKinds(repository.calls), ["search", "course"]);

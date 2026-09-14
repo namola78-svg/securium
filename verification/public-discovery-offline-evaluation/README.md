@@ -25,6 +25,12 @@ returned public course ID differs. It does not establish authorization,
 search-result authenticity, snapshot consistency, or revision identity. The
 outline adapter's `NOT_FOUND` and `UNAVAILABLE` results pass through unchanged.
 
+The repository fake is limited to the injected search/outline repository
+dependency. The evaluation invokes the real search adapter, real outline
+adapter, and selection service. It does not provide a public endpoint, route,
+API, MCP registry, or proof that a caller's selection came from a server-issued
+search response.
+
 Scenarios:
 
 - A: search-to-outline slug/ID binding, call order, sorting, fixture immutability
@@ -51,3 +57,14 @@ claimed.
 
 The current public search/outline provider and query-cost blockers remain
 outside this offline evaluation. Public tool activation is not enabled.
+
+Before public activation, a server-owned endpoint must separately define the
+caller authorization boundary and search-result authenticity/trust boundary,
+and provider/database validation must establish the public predicate. A real
+database test would also be needed for any snapshot, revision, or slug
+lifecycle guarantee. None of those are implemented or exercised here.
+
+The evaluation is registered once in the existing `test:unit` script and is
+therefore executed by `.github/workflows/ci.yml` through the existing Unit
+tests step. Run it directly with the command above when focused local
+verification is needed.
