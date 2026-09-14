@@ -167,9 +167,12 @@ formatter가 제공하는 `EDIT_SEARCH`, `BACK_TO_RESULTS`, `REFRESH_RESULTS`는
 않는다.
 
 현재 있는 `formatPublicSourceDisclosure()`는 I/O나 authorization을 수행하지
-않는 display-only formatter다. projection marker가 없거나 값이 불완전하면
-`officialReference: null`, `independentExplanation: null`,
-`notice: "출처 정보 확인 필요"`로 일반화한다
+않는 display-only formatter다. projection marker가 없거나 input shape가
+무효이면 `officialReference: null`, `independentExplanation: null`,
+`notice: "출처 정보 확인 필요"`로 일반화한다. marker가 유효하지만 공식
+reference가 불완전한 경우에는 official reference가 null 또는 부분 projection일
+수 있고, 유효한 independent explanation은 별도로 남을 수 있으며 같은 notice를
+표시한다
 ([source disclosure](../../lib/services/public-source-disclosure.ts#L1-L113)).
 이 출력은 공개 정책을 승인하거나 최신성·권리·기관 보증을 증명하지 않는다.
 
@@ -215,9 +218,9 @@ formatter의 존재만으로 추가하지 않는다.
 | 정상 조회됐지만 subject/topic이 없는 개요 (`OK`, 빈 `subjects`) | 공개 course는 확인됐으나 visible curriculum이 0개. adapter의 empty semantics | `현재 공개된 과목과 주제 개요가 없습니다.` `과정 설명은 확인할 수 있으며, 학습 콘텐츠 제공 여부와는 별도입니다.` | `결과로 돌아가기`; 필요하면 `과정 상세 보기`; 자동으로 오류/콘텐츠 부재를 선언하지 않음 | 상세 또는 결과 | empty section을 한 번만 announce; CTA와 empty notice의 관계를 heading으로 명확히 함 | adapter 계약만. 현재 상세의 `커리큘럼을 준비하고 있습니다` copy는 별도 현재 UI |
 | `NOT_FOUND` | slug 조회가 null이거나 course가 inactive/unpublished/deleted, 또는 strict public lookup 밖 | `이 과정의 공개 정보를 지금 확인할 수 없습니다.` 삭제·비공개·권한 부족 중 하나로 단정하지 않음 | `결과로 돌아가기`, `다시 검색`; 다른 과정 자동 선택 금지 | 초기 검색 화면 또는 검색 결과 | error/notice는 input과 기존 결과 옆에 배치; 원래 선택 control로 복귀 가능 | adapter 내부 code; 현재 상세는 framework `notFound()` |
 | `IDENTITY_MISMATCH` | selection service의 선택 `courseId`와 outline 응답 `course.id` 불일치 | `선택한 과정 정보가 현재 결과와 일치하지 않습니다. 결과로 돌아가 다시 선택해 주세요.` 다른 과정 outline은 표시하지 않음 | `결과로 돌아가기`, `다시 검색`; selection service/UI caller가 책임짐 | 검색 결과 또는 초기 검색 | `role=alert`; 선택 control 또는 결과 heading으로 명시적 복귀 | selection service 내부만 |
-| outline provider/projection 오류 (`UNAVAILABLE`) | `PUBLIC_REPOSITORY_ERROR`, `PUBLIC_RELATION_MISMATCH`, `INVALID_PUBLIC_PROJECTION` 중 하나 | `과정 개요를 불러오지 못했습니다. 결과로 돌아가 다시 선택해 주세요.` raw reason·내부 오류는 숨김 | `결과로 돌아가기`, 사용자가 명시한 `다시 시도`; adapter/caller가 실행 | 개요 조회 중 또는 검색 결과 | blocking alert와 retry action을 한 번만 announce; query/results는 보존 | adapter 내부만 |
+| 검색 projection / outline provider·projection 오류 | search `INVALID_SOURCE` 또는 outline `UNAVAILABLE`의 `PUBLIC_REPOSITORY_ERROR`, `PUBLIC_RELATION_MISMATCH`, `INVALID_PUBLIC_PROJECTION` 중 하나 | `과정 정보를 확인할 수 없습니다. 결과로 돌아가 다시 선택해 주세요.` raw reason·내부 오류는 숨김 | `결과로 돌아가기`, 사용자가 명시한 `다시 시도`; adapter/caller가 실행 | 개요 조회 중 또는 검색 결과 | blocking alert와 retry action을 한 번만 announce; query/results는 보존 | adapter 내부만 |
 | outline 응답 상한 초과 (`UNAVAILABLE/OUTLINE_LIMIT_EXCEEDED`) | subjects 50개 또는 topics 200개를 넘는 bounded contract 결과 | `과정 개요가 현재 표시 한도를 넘습니다. 결과로 돌아가 다른 과정을 선택해 주세요.` 전체 개요인 것처럼 부분 표시하지 않음 | 결과로 돌아가기; limit 자동 증가 금지 | 검색 결과 | alert가 상태를 설명하되 숫자를 정책 확정처럼 강조하지 않음; focus 임의 이동 없음 | adapter/provider 내부만 |
-| malformed/unknown 결과 | search `INVALID_SOURCE`, outline `INVALID_PUBLIC_PROJECTION` 또는 미래의 미지원 shape. unknown을 새 public status로 만들지 않음 | `과정 정보를 표시할 수 없습니다. 결과로 돌아가 다시 선택해 주세요.` 원인·raw payload·다른 과정 정보는 표시하지 않음 | 결과로 돌아가기; 관찰·기록은 server owner, 사용자 retry는 명시적일 때만 | 검색 결과 또는 초기 화면 | alert와 결과 복귀 action; 입력과 안전한 기존 결과는 지움 없이 보존 | 내부 fail-closed 계약만 |
+| malformed/unknown 결과 | expected result envelope를 벗어난 malformed/모순 payload 또는 미래의 미지원 shape. known error code와 unknown result를 새 public status로 만들지 않음 | `과정 정보를 표시할 수 없습니다. 결과로 돌아가 다시 선택해 주세요.` 원인·raw payload·다른 과정 정보는 표시하지 않음 | 결과로 돌아가기; 관찰·기록은 server owner, 사용자 retry는 명시적일 때만 | 검색 결과 또는 초기 화면 | alert와 결과 복귀 action; 입력과 안전한 기존 결과는 지움 없이 보존 | 내부 fail-closed 계약만 |
 
 ## 5. 정보 표현과 한국어 안내 문구
 
