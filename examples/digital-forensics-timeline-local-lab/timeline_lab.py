@@ -232,6 +232,7 @@ def _normalize_records(raw_records: Any) -> list[dict[str, Any]]:
                 "event_type": event_type,
                 "timestamp_original": timestamp_original,
                 "timestamp_utc": _timestamp_utc(parsed),
+                "_timestamp_sort_key": parsed.astimezone(timezone.utc),
                 "utc_offset_seconds": int(parsed.utcoffset().total_seconds()),
                 "timestamp_meaning": timestamp_meaning,
                 "notes": notes,
@@ -488,13 +489,17 @@ def analyze_fixture(root: dict[str, Any], input_sha256: str, analysis_run_at: st
     ordered = sorted(
         records,
         key=lambda record: (
-            record["timestamp_utc"],
+            record["_timestamp_sort_key"],
             record["event_id"],
             record["source_id"],
             record["synthetic_file_id"],
             record["event_type"],
         ),
     )
+    ordered = [
+        {field: value for field, value in record.items() if field != "_timestamp_sort_key"}
+        for record in ordered
+    ]
     ties = _tie_groups(records)
     conflicts = _potential_conflicts(records)
     facts = [
