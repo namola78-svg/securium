@@ -189,7 +189,9 @@ test("public catalog renders the supported empty result response", async () => {
   const response = await fetchHtml(
     "/courses?q=HTTP%20contract%20fixture%20does%20not%20exist",
   );
-  assert.match(response.html, new RegExp(escapeRegExp(EMPTY_STATE_LABEL)));
+  const emptyStateMarkup = emptyState(response.html);
+  assert.ok(emptyStateMarkup, "empty result must contain the scoped empty state");
+  assert.match(emptyStateMarkup, new RegExp(escapeRegExp(EMPTY_STATE_LABEL)));
   for (const course of PUBLIC_COURSES) {
     assert.equal(courseCard(response.html, course), null);
   }
@@ -228,6 +230,13 @@ function detailCta(html) {
   );
   assert.ok(match, "detail response must contain the scoped course CTA panel");
   return match[1];
+}
+
+function emptyState(html) {
+  const match = html.match(
+    /<div(?=[^>]*class="state-card empty-state")(?=[^>]*role="status")[^>]*>([\s\S]*?)<\/div>/,
+  );
+  return match?.[1] ?? null;
 }
 
 function assertAvailableCard(html, course) {
