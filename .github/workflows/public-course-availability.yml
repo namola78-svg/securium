@@ -18,6 +18,7 @@ on:
   push:
     branches:
       - "fix/public-course-availability-query"
+      - "main"
     paths:
       - ".github/workflows/public-course-availability.yml"
       - "app/courses/**"
