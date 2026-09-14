@@ -196,6 +196,11 @@ test("a late search error cannot overwrite a newer successful result", () => {
     startSearch("search-a-error"),
     startSearch("search-b-success"),
     {
+      type: "SEARCH_REQUEST_FAILED",
+      requestId: "search-a-error",
+      failure: { kind: "PROVIDER_ERROR" },
+    },
+    {
       type: "SEARCH_RESULT_RECEIVED",
       requestId: "search-b-success",
       result: searchResult("OK", "Current result"),
@@ -210,6 +215,27 @@ test("a late search error cannot overwrite a newer successful result", () => {
   assert.equal(state.search.status, "SUCCESS");
   assert.equal(state.search.result?.results[0]?.name, "Current result");
   assert.equal(state.search.error, null);
+});
+
+test("a successful older search cannot replace the newer request", () => {
+  const state = transition([
+    startSearch("search-a-success"),
+    startSearch("search-b-success"),
+    {
+      type: "SEARCH_RESULT_RECEIVED",
+      requestId: "search-a-success",
+      result: searchResult("OK", "Older result"),
+    },
+    {
+      type: "SEARCH_RESULT_RECEIVED",
+      requestId: "search-b-success",
+      result: searchResult("OK", "Newer result"),
+    },
+  ]);
+
+  assert.equal(state.search.status, "SUCCESS");
+  assert.equal(state.search.result?.results[0]?.name, "Newer result");
+  assert.equal(state.search.activeRequestId, null);
 });
 
 test("changing conditions invalidates the active request and clears old results", () => {
@@ -252,6 +278,42 @@ test("explicit refresh retains a stale result until its response completes", () 
   assert.equal(refreshed.search.stale, true);
   assert.equal(refreshed.search.result?.results[0]?.name, "Previous result");
   assert.equal(refreshed.selection, null);
+
+  const staleSelection = reducePublicDiscoveryViewState(refreshed, {
+    type: "COURSE_SELECTED",
+    selection: selectionA,
+  });
+  assert.deepEqual(staleSelection.selection, selectionA);
+  assert.equal(staleSelection.search.stale, true);
+  assert.equal(staleSelection.outline.status, "IDLE");
+
+  const refreshedSuccessfully = reducePublicDiscoveryViewState(refreshed, {
+    type: "SEARCH_RESULT_RECEIVED",
+    requestId: "refresh-1",
+    result: searchResult("OK", "Refreshed result"),
+  });
+  assert.equal(refreshedSuccessfully.search.status, "SUCCESS");
+  assert.equal(refreshedSuccessfully.search.stale, false);
+  assert.equal(refreshedSuccessfully.search.result?.results[0]?.name, "Refreshed result");
+
+  const refreshFailure = transition([
+    startSearch("initial-for-failure"),
+    {
+      type: "SEARCH_RESULT_RECEIVED",
+      requestId: "initial-for-failure",
+      result: searchResult("OK", "Retained after failure"),
+    },
+    { type: "SEARCH_REFRESH_REQUESTED", requestId: "refresh-failure" },
+    {
+      type: "SEARCH_REQUEST_FAILED",
+      requestId: "refresh-failure",
+      failure: { kind: "PROVIDER_ERROR" },
+    },
+  ]);
+  assert.equal(refreshFailure.search.status, "ERROR");
+  assert.equal(refreshFailure.search.stale, true);
+  assert.equal(refreshFailure.search.result?.results[0]?.name, "Retained after failure");
+  assert.deepEqual(refreshFailure.search.error, { kind: "PROVIDER_ERROR" });
 });
 
 test("selection B invalidates A outline responses", () => {
@@ -299,11 +361,18 @@ test("deselecting or changing search conditions invalidates outline responses", 
     type: "OUTLINE_RESULT_RECEIVED",
     requestId: "outline-a",
     selection: selectionA,
-    result: outlineResult(selectionA),
+    result: outlineResult(selectionB),
+  });
+  const lateAfterDeselectError = reducePublicDiscoveryViewState(deselected, {
+    type: "OUTLINE_REQUEST_FAILED",
+    requestId: "outline-a",
+    selection: selectionA,
+    failure: { kind: "PROVIDER_ERROR" },
   });
   assert.equal(deselected.selection, null);
   assert.equal(deselected.outline.status, "IDLE");
   assert.strictEqual(lateAfterDeselect, deselected);
+  assert.strictEqual(lateAfterDeselectError, deselected);
 
   const changed = transition([
     { type: "COURSE_SELECTED", selection: selectionA },
@@ -317,7 +386,7 @@ test("deselecting or changing search conditions invalidates outline responses", 
     type: "OUTLINE_RESULT_RECEIVED",
     requestId: "outline-after-search-change",
     selection: selectionA,
-    result: outlineResult(selectionA),
+    result: outlineResult(selectionB),
   });
   assert.equal(changed.selection, null);
   assert.strictEqual(lateAfterSearchChange, changed);
@@ -382,6 +451,45 @@ test("outline errors and an empty outline preserve their product meanings", () =
   });
 });
 
+test("outline identity binding includes course ID and slug", () => {
+  const sameIdDifferentSlugA: PublicDiscoverySelectionInput = {
+    courseId: "course-shared",
+    courseSlug: "course-a",
+  };
+  const sameIdDifferentSlugB: PublicDiscoverySelectionInput = {
+    courseId: "course-shared",
+    courseSlug: "course-b",
+  };
+  const selectedB = transition([
+    { type: "COURSE_SELECTED", selection: sameIdDifferentSlugA },
+    startOutline("outline-shared-a"),
+    { type: "COURSE_SELECTED", selection: sameIdDifferentSlugB },
+    startOutline("outline-shared-b"),
+  ]);
+
+  const lateA = reducePublicDiscoveryViewState(selectedB, {
+    type: "OUTLINE_RESULT_RECEIVED",
+    requestId: "outline-shared-b",
+    selection: sameIdDifferentSlugA,
+    result: outlineResult(sameIdDifferentSlugA),
+  });
+  assert.strictEqual(lateA, selectedB);
+
+  const slugMismatch = reducePublicDiscoveryViewState(selectedB, {
+    type: "OUTLINE_RESULT_RECEIVED",
+    requestId: "outline-shared-b",
+    selection: sameIdDifferentSlugB,
+    result: outlineResult(sameIdDifferentSlugA),
+  });
+  assert.deepEqual(slugMismatch.outline.error, {
+    status: "SELECTION_ERROR",
+    code: "IDENTITY_MISMATCH",
+  });
+  assert.equal(slugMismatch.outline.result, null);
+  assert.equal(JSON.stringify(slugMismatch).includes("course-a"), false);
+  assert.equal(JSON.stringify(slugMismatch).includes("course-shared-subject"), false);
+});
+
 test("outline provider/projection failures are caller classifications, not retries", () => {
   const provider = transition([
     { type: "COURSE_SELECTED", selection: selectionA },
@@ -422,6 +530,36 @@ test("outline provider/projection failures are caller classifications, not retri
     },
   ]);
   assert.deepEqual(unknownResult.outline.error, { kind: "UNKNOWN_RESULT" });
+});
+
+test("duplicate outline completions are ignored after a request completes", () => {
+  const completed = transition([
+    { type: "COURSE_SELECTED", selection: selectionA },
+    startOutline("outline-once"),
+    {
+      type: "OUTLINE_RESULT_RECEIVED",
+      requestId: "outline-once",
+      selection: selectionA,
+      result: outlineResult(selectionA),
+    },
+  ]);
+  const duplicateSuccess = reducePublicDiscoveryViewState(completed, {
+    type: "OUTLINE_RESULT_RECEIVED",
+    requestId: "outline-once",
+    selection: selectionA,
+    result: outlineResult(selectionA, []),
+  });
+  const duplicateFailure = reducePublicDiscoveryViewState(completed, {
+    type: "OUTLINE_REQUEST_FAILED",
+    requestId: "outline-once",
+    selection: selectionA,
+    failure: { kind: "PROVIDER_ERROR" },
+  });
+
+  assert.strictEqual(duplicateSuccess, completed);
+  assert.strictEqual(duplicateFailure, completed);
+  assert.equal(completed.outline.result?.course.id, "course-a");
+  assert.equal(completed.outline.result?.subjects.length, 1);
 });
 
 test("duplicate completion events are ignored after a request completes", () => {

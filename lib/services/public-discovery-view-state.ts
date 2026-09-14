@@ -232,7 +232,10 @@ export function reducePublicDiscoveryViewState(
       }
 
       if (event.result.status === "OK") {
-        if (event.result.course.id !== state.selection.courseId) {
+        if (
+          event.result.course.id !== state.selection.courseId ||
+          event.result.course.slug !== state.selection.courseSlug
+        ) {
           return completeOutlineWithError(state, {
             status: "SELECTION_ERROR",
             code: "IDENTITY_MISMATCH",
@@ -484,6 +487,7 @@ function isSelectionResultEnvelope(
       return (
         isRecord(value.course) &&
         typeof value.course.id === "string" &&
+        typeof value.course.slug === "string" &&
         Array.isArray(value.subjects)
       );
     case "INVALID_INPUT":

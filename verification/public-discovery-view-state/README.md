@@ -3,6 +3,9 @@
 This verification slice implements the state transition boundary described by
 [`public-discovery-ux-contract.md`](../../docs/architecture/public-discovery-ux-contract.md).
 The fixed implementation base for this work is `dfdf31bb9d1a2b0a955997210b0a1f0d2087e3e1`.
+The reviewed `origin/main` at review start was
+`9198b56360b389243eeca6750779668f85d43b48`; later main drift is recorded in the
+review report and is not repeatedly integrated.
 PR #198 (`b4f8789a4e342988fd54690456a3054bffc325be`) is an ancestor of that
 base, so the referenced UX contract is present in the base. The reducer uses
 the existing search adapter result and selection-service result types; it does
@@ -36,10 +39,12 @@ The reducer accepts these events:
 ## Stale, duplicate, and identity handling
 
 The caller issues a fresh, non-empty request ID for every search or outline
-request and includes that ID in its start and completion events. The reducer
-does not generate IDs, perform cancellation, retain unbounded request history,
-or make a reused ID safe. A matching ID only means that the event corresponds
-to the currently active request; it does not prove authorization, payload
+request and includes that ID in its start and completion events. Search and
+outline have separate active-request fields and comparisons; a
+textually equal ID cannot complete the other request kind. The reducer does
+not generate IDs, perform cancellation, retain unbounded request history, or
+make a reused ID safe. A matching ID only means that the event corresponds to
+the currently active request; it does not prove authorization, payload
 authenticity, or database snapshot consistency.
 
 When search request B supersedes A, B can complete and a later A completion is
@@ -55,20 +60,33 @@ request's result. A successful response replaces it. Changing conditions clears
 the old result because it belongs to different search conditions. Pagination,
 cache, and append-result policy are intentionally outside this reducer.
 
-The reducer compares outline response identity with the current selection. A
-successful outline whose course ID does not match is converted to the existing
-redacted `SELECTION_ERROR/IDENTITY_MISMATCH` result. It never displays the
-other course's outline. `NOT_FOUND`, `UNAVAILABLE` reasons, `INVALID_INPUT`,
-and `IDENTITY_MISMATCH` remain distinct product result meanings. A normal empty
-outline is a successful `OK` result with an empty `subjects` array.
+The reducer compares both `courseId` and `courseSlug` in an outline response
+with the current selection. A successful outline whose returned identity does
+not match is converted to the existing redacted
+`SELECTION_ERROR/IDENTITY_MISMATCH` result. It never displays the other
+course's ID, slug, title, or outline. `NOT_FOUND`, `UNAVAILABLE` reasons,
+`INVALID_INPUT`, and `IDENTITY_MISMATCH` remain distinct product result
+meanings. A normal empty outline is a successful `OK` result with an empty
+`subjects` array.
+
+Refresh deliberately separates retention from selection policy. Starting a
+refresh clears the prior selection and outline, retains the previous search
+result, and marks it `stale`; a failed refresh leaves that result stale. The
+reducer currently accepts a valid `COURSE_SELECTED` event even while a retained
+result is stale because it does not own result-card presentation or freshness
+policy. The UX contract allows stale results to remain visible but does not
+settle whether they may be selected, so the UI/caller must resolve that policy
+and must not present stale data as the new search result. This reducer does not
+silently choose allow or deny semantics.
 
 ## Trust boundary and caller responsibilities
 
 This is an internal typed reducer, not a public endpoint and not a raw-payload
 validator. TypeScript types do not validate runtime data. The reducer performs
 small runtime checks for event envelopes, discriminants, request IDs, and the
-selection identity needed for stale protection. It deliberately does not copy
-the full search/outline projection validators.
+selection identity needed for stale protection, including the `course.id` and
+`course.slug` fields it compares for an `OK` outline. It deliberately does not
+copy the full search/outline projection validators.
 
 The external caller remains responsible for:
 
