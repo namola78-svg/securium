@@ -1,12 +1,14 @@
+import {
+  PUBLIC_COURSE_SEARCH_ID_ORDER_KEY_VERSION,
+  PUBLIC_COURSE_SEARCH_NORMALIZER_VERSION,
+} from "../../lib/services/public-course-search-comparison.ts";
 import type {
   PublicSearchNormalizedProjectionDigestInput,
   PublicSearchSourceDigestInput,
 } from "./serialization.ts";
 
-export const NORMALIZER_VERSION =
-  "public-course-search.normalizer.nfkc-trim-ko-lower.v1" as const;
-export const ORDER_KEY_VERSION =
-  "public-course-search.id-order.utf16-code-unit-hex.v1" as const;
+export const NORMALIZER_VERSION = PUBLIC_COURSE_SEARCH_NORMALIZER_VERSION;
+export const ORDER_KEY_VERSION = PUBLIC_COURSE_SEARCH_ID_ORDER_KEY_VERSION;
 export const PROJECTION_VERSION =
   "public-course-search.projection.five-fields.v1" as const;
 export const SERIALIZATION_VERSION =
@@ -89,11 +91,31 @@ const SOURCE_EMPTY_WIRE = wire(
   "13\truntime.unicode\tstring\tomitted\t0\t",
 );
 
+const SOURCE_WHITESPACE_WIRE = wire(
+  "format=public-course-search.digest-serialization.v1",
+  "purpose=source-input",
+  "field-count=14",
+  "0\tcourse.id\tstring\tpresent\t8\t636f757273652d31",
+  "1\tcourse.groupId\tstring\tpresent\t7\t67726f75702d31",
+  "2\tcourse.name\tstring\tpresent\t1\t20",
+  "3\tcourse.shortName\tstring\tpresent\t3\t4e6574",
+  "4\tgroup.name\tstring\tpresent\t8\t5365637572697479",
+  "5\tcourse.description\tstring\tpresent\t12\t4c6561726e20736166656c79",
+  "6\tcourse.difficulty\tstring\tpresent\t8\t424547494e4e4552",
+  "7\tdisplay.publicDescriptionRuleVersion\tstring\tpresent\t14\t7075626c69632d636f70792e7631",
+  "8\tdisplay.audienceLabelRuleVersion\tstring\tpresent\t17\t61756469656e63652d6c6162656c2e7631",
+  "9\tsearch.normalizerVersion\tstring\tpresent\t53\t7075626c69632d636f757273652d7365617263682e6e6f726d616c697a65722e6e666b632d7472696d2d6b6f2d6c6f7765722e7631",
+  "10\tsearch.projectionVersion\tstring\tpresent\t46\t7075626c69632d636f757273652d7365617263682e70726f6a656374696f6e2e666976652d6669656c64732e7631",
+  "11\truntime.node\tstring\tomitted\t0\t",
+  "12\truntime.icu\tstring\tomitted\t0\t",
+  "13\truntime.unicode\tstring\tomitted\t0\t",
+);
+
 const SOURCE_DELIMITER_WIRE = wire(
   "format=public-course-search.digest-serialization.v1",
   "purpose=source-input",
   "field-count=14",
-  "0\tcourse.id\tstring\tpresent\t7\t69647c0a225c00",
+  "0\tcourse.id\tstring\tpresent\t8\t69647c0a09225c00",
   "1\tcourse.groupId\tstring\tpresent\t6\teab7b8eba3b9",
   "2\tcourse.name\tstring\tpresent\t6\t417c420a225c",
   "3\tcourse.shortName\tstring\tpresent\t0\t",
@@ -210,10 +232,15 @@ export const SOURCE_FIXED_VECTORS: readonly SourceFixedVector[] = [
     expectedWire: SOURCE_EMPTY_WIRE,
   },
   {
+    name: "source-whitespace-string-is-present",
+    input: { ...BASE_SOURCE_INPUT, name: " " },
+    expectedWire: SOURCE_WHITESPACE_WIRE,
+  },
+  {
     name: "source-delimiters-newline-quote-backslash-nul",
     input: {
       ...BASE_SOURCE_INPUT,
-      courseId: "id|\u000A\u0022\u005C\u0000",
+      courseId: "id|\u000A\u0009\u0022\u005C\u0000",
       courseGroupId: "\uADF8\uB8F9",
       name: "A|B\u000A\u0022\u005C",
       shortName: "",
@@ -242,6 +269,24 @@ export const PROJECTION_FIXED_VECTORS: readonly ProjectionFixedVector[] = [
   {
     name: "projection-minimum",
     input: BASE_PROJECTION_INPUT,
+    expectedWire: PROJECTION_MINIMUM_WIRE,
+  },
+  {
+    name: "projection-key-insertion-order-independent",
+    input: {
+      projectionVersion: PROJECTION_VERSION,
+      orderKeyVersion: ORDER_KEY_VERSION,
+      normalizerVersion: NORMALIZER_VERSION,
+      projectionParts: {
+        audienceLabel: "Beginner",
+        publicDescription: "Learn safely",
+        groupName: "Security",
+        shortName: "Net",
+        name: "Network Basics",
+      },
+      courseGroupId: "group-1",
+      courseId: "course-1",
+    },
     expectedWire: PROJECTION_MINIMUM_WIRE,
   },
   {
@@ -411,6 +456,26 @@ export const INVALID_INPUT_VECTORS = [
     expectedError: "TypeError",
   },
   {
+    name: "projection-missing-required-field",
+    purpose: "projection",
+    input: Object.fromEntries(
+      Object.entries(BASE_PROJECTION_INPUT).filter(([key]) => key !== "projectionParts"),
+    ),
+    expectedError: "TypeError",
+  },
+  {
+    name: "projection-undefined-required-field",
+    purpose: "projection",
+    input: { ...BASE_PROJECTION_INPUT, projectionParts: undefined },
+    expectedError: "TypeError",
+  },
+  {
+    name: "projection-null-required-field",
+    purpose: "projection",
+    input: { ...BASE_PROJECTION_INPUT, projectionParts: null },
+    expectedError: "TypeError",
+  },
+  {
     name: "projection-parts-additional-field",
     purpose: "projection",
     input: {
@@ -435,6 +500,9 @@ export const SERIALIZATION_VERSION_CHANGE_VECTOR = {
   serializationVersion: "public-course-search.digest-serialization.v2",
   expectedWire: SERIALIZATION_V2_WIRE,
 } as const;
+
+export const INVALID_SERIALIZATION_VERSION =
+  "public-course-search.digest-serialization.v2\ninjected" as const;
 
 export const NAIVE_DELIMITER_COLLISION_VECTOR = {
   left: ["a|b", "c"],

@@ -2,7 +2,7 @@
 
 상태: verification 전용 시제품과 독립 고정 벡터. 제품 digest 규격 승인, schema/writer 연결, provider/cursor 연결, backfill, 공개 tool 활성화는 이 작업에서 수행하지 않는다.
 
-기준 commit은 `b652f90b37f4c508fde9bc8160b2cf0b35088cdd`이다. 적용 가능한 `AGENTS.md`는 없었다. 이 worktree는 해당 기준에서 생성되었고, 기준 이후 `origin/main` drift는 자동 merge/rebase하지 않는다.
+생성 기준 commit은 `b652f90b37f4c508fde9bc8160b2cf0b35088cdd`이다. 적용 가능한 `AGENTS.md`는 없었다. reviewed main은 별도 검토 후 `c1799c69700d3216fe115d71db5d50286420835c`로 고정했으며, candidate ancestry를 보존하는 정상 merge만 반영했다.
 
 ## 현재 계약과 중복 검토
 
@@ -102,6 +102,8 @@ format=public-course-search.digest-serialization.v1
 field-index<TAB>field-name<TAB>type-tag<TAB>state-tag<TAB>utf8-byte-length<TAB>utf8-lowercase-hex<LF>
 ```
 
+처리 순서는 고정한다. (1) `format`, `purpose`, `field-count` header를 쓴다. (2) 후보별 고정 field order대로 각 값을 선택한다. (3) present 문자열은 먼저 well-formed Unicode인지 확인하고 원본 문자열을 UTF-8로 변환한다. (4) `utf8-byte-length`에는 그 원본 문자열의 UTF-8 byte 수를 쓰고, `utf8-lowercase-hex`에는 같은 bytes를 2자리 lowercase hex로 쓴다. 따라서 hex 표현의 문자 수는 byte 수의 두 배이며 길이 값은 hex 문자 수가 아니다. (5) 각 field line과 최종 newline까지 만든 ASCII wire text 전체를 UTF-8 bytes로 인코딩한다. omitted field는 runtime metadata를 호출자가 생략한 경우에만 `0`과 빈 hex를 사용한다. `format` version은 `[A-Za-z0-9][A-Za-z0-9._-]*` ASCII token이어야 하며 개행 등 header 주입 문자는 거부한다.
+
 header 다음 순서도 고정한다.
 
 - purpose
@@ -140,7 +142,7 @@ normalized-projection field 순서:
 
 `string/present`는 실제 문자열이며, empty string도 `utf8-byte-length=0`인 present 값이다. `string/omitted`는 runtime metadata를 호출자가 생략한 경우에만 사용한다. required field의 missing, explicit `undefined`, `null`, wrong type, malformed surrogate는 동일 값으로 정규화하지 않고 거부한다. 추가 root field와 추가 projectionParts field도 거부한다.
 
-serialization version은 candidate data field가 아니라 header binding이다. verification 함수는 version 변경 실험을 위해 explicit option으로 다른 version header를 만들 수 있지만, 제품 writer가 서로 다른 serialization version을 섞어 저장해도 된다는 뜻은 아니다.
+serialization version은 candidate data field가 아니라 header binding이다. verification 함수는 safe ASCII token인 version 변경 실험을 위해 explicit option으로 다른 version header를 만들 수 있지만, 제품 writer가 서로 다른 serialization version을 섞어 저장해도 된다는 뜻은 아니다. `public-course-search.digest-serialization.v1`이라는 이름은 이 verification 후보의 식별자이며 승인된 제품 규격이나 기존 `public-course-search.cursor.v1`을 의미하지 않는다.
 
 ## 정확한 입력 domain
 
@@ -156,11 +158,11 @@ serialization version은 candidate data field가 아니라 header binding이다.
 
 ## Unicode와 UTF-8 경계
 
-검증 벡터는 ASCII, 한글, 유효한 non-BMP pair, composed/decomposed 문자열, 줄바꿈, 탭을 대신하는 control boundary, 따옴표, 역슬래시, NUL 및 `%`, `_`를 포함한다.
+검증 벡터는 ASCII, 한글, 유효한 non-BMP pair, composed/decomposed 문자열, 줄바꿈, 실제 탭, 따옴표, 역슬래시, NUL 및 `%`, `_`를 포함한다.
 
 먼저 기존 Unicode well-formed predicate로 scalar string인지 검사한 다음 `TextEncoder`로 UTF-8 bytes를 만든다. unpaired high/low surrogate는 `RangeError`로 거부하므로 JavaScript UTF-8 변환이 U+FFFD replacement로 두 입력을 합치는 경계를 허용하지 않는다. 유효한 NUL과 Unicode를 pure function이 표현할 수 있다는 사실은 D1/PostgreSQL/driver의 실제 저장 가능성을 보장하지 않는다.
 
-runtime metadata를 포함한 벡터는 실행 환경에서 자동으로 수집한 값이 아니다. caller가 explicit fixture를 전달했을 때만 bytes에 들어간다. runtime 문자열이 같아도 전체 Unicode/ICU parity를 증명하지 않는다.
+runtime metadata는 caller가 전달한 선언값일 뿐 runner가 관찰한 실제 실행 환경이나 helper가 암묵적으로 수집한 값이 아니다. serializer는 `process`, `env`, time, random을 읽지 않는다. Node version, ICU version, Unicode version, normalizer version은 서로 대체 가능한 값이 아니다. 명시적 runtime 문자열이 같아도 전체 Unicode/ICU parity를 증명하지 않는다.
 
 ## 고정 벡터와 실행
 

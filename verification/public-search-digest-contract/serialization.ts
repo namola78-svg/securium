@@ -173,6 +173,14 @@ function assertNonEmptyString(value: unknown, field: string): string {
   return stringValue;
 }
 
+function assertSerializationVersion(value: unknown, field: string): string {
+  const version = assertNonEmptyString(value, field);
+  if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/u.test(version)) {
+    throw new RangeError(`${field} must be an ASCII version token`);
+  }
+  return version;
+}
+
 function readRuntime(value: PlainRecord): PublicSearchRuntimeMetadata | undefined {
   if (!Object.prototype.hasOwnProperty.call(value, "runtime")) return undefined;
   if (value.runtime === undefined || value.runtime === null) {
@@ -245,7 +253,7 @@ function serializationVersion(
   if (!Object.prototype.hasOwnProperty.call(options, "serializationVersion")) {
     return PUBLIC_SEARCH_DIGEST_SERIALIZATION_VERSION;
   }
-  return assertNonEmptyString(
+  return assertSerializationVersion(
     options.serializationVersion,
     "options.serializationVersion",
   );

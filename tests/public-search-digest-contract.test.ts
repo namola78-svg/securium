@@ -10,6 +10,7 @@ import {
 import {
   BASE_PROJECTION_INPUT,
   BASE_SOURCE_INPUT,
+  INVALID_SERIALIZATION_VERSION,
   INVALID_INPUT_VECTORS,
   NAIVE_DELIMITER_COLLISION_VECTOR,
   PROJECTION_FIELD_CHANGE_CASES,
@@ -53,10 +54,38 @@ test("independent normalized-projection vectors match exact fixed wire strings",
 });
 
 test("object key insertion order does not affect the selected fixed order", () => {
-  const [minimum, reordered] = SOURCE_FIXED_VECTORS;
+  const minimum = SOURCE_FIXED_VECTORS.find(
+    (vector) => vector.name === "source-minimum",
+  );
+  const reordered = SOURCE_FIXED_VECTORS.find(
+    (vector) => vector.name === "source-key-insertion-order-independent",
+  );
+  assert.ok(minimum);
+  assert.ok(reordered);
   assert.equal(
     text(serializePublicSearchSourceDigestInput(minimum.input)),
     text(serializePublicSearchSourceDigestInput(reordered.input)),
+  );
+
+  const projectionMinimum = PROJECTION_FIXED_VECTORS.find(
+    (vector) => vector.name === "projection-minimum",
+  );
+  const projectionReordered = PROJECTION_FIXED_VECTORS.find(
+    (vector) => vector.name === "projection-key-insertion-order-independent",
+  );
+  assert.ok(projectionMinimum);
+  assert.ok(projectionReordered);
+  assert.equal(
+    text(
+      serializePublicSearchNormalizedProjectionDigestInput(
+        projectionMinimum.input,
+      ),
+    ),
+    text(
+      serializePublicSearchNormalizedProjectionDigestInput(
+        projectionReordered.input,
+      ),
+    ),
   );
 });
 
@@ -84,12 +113,18 @@ test("each selected projection field or binding change changes projection bytes"
   }
 });
 
-test("empty string is present and distinct from omission, undefined, or null", () => {
+test("empty and whitespace strings are present and distinct from omission, undefined, or null", () => {
   const empty = SOURCE_FIXED_VECTORS.find(
     (vector) => vector.name === "source-empty-string-is-present",
   );
+  const whitespace = SOURCE_FIXED_VECTORS.find(
+    (vector) => vector.name === "source-whitespace-string-is-present",
+  );
   assert.ok(empty);
+  assert.ok(whitespace);
   assert.match(empty.expectedWire, /course\.name\tstring\tpresent\t0\t/u);
+  assert.match(whitespace.expectedWire, /course\.name\tstring\tpresent\t1\t20/u);
+  assert.notEqual(empty.expectedWire, whitespace.expectedWire);
 
   for (const vector of INVALID_INPUT_VECTORS.filter(
     (candidate) =>
@@ -219,6 +254,13 @@ test("serialization version is a header binding and changes the bytes", () => {
       "^format=" + PUBLIC_SEARCH_DIGEST_SERIALIZATION_VERSION.replace(".", "\\."),
       "u",
     ),
+  );
+  assert.throws(
+    () =>
+      serializePublicSearchSourceDigestInput(BASE_SOURCE_INPUT, {
+        serializationVersion: INVALID_SERIALIZATION_VERSION,
+      }),
+    RangeError,
   );
 });
 
