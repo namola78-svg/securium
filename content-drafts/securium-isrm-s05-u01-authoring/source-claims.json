@@ -59,7 +59,7 @@
       "sourceSupport": "Independent teaching content; not an official unit title, objective, question wording, legal instruction, universal audit checklist, or exam-prediction claim.",
       "currentness": "NOT_AN_OFFICIAL_CLAIM",
       "rights": "INDEPENDENT_EXPRESSION; REVIEW_REQUIRED",
-      "usedIn": ["manifest.json", "objectives.json", "theory.json", "questions.json"]
+      "usedIn": ["objectives.json", "theory.json", "questions.json"]
     }
   ],
   "gate": {
