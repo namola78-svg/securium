@@ -3,6 +3,10 @@ import {
   courseDescription,
   courseTypeLabel,
 } from "../course-display.ts";
+import {
+  isSupportedPublicCourseSearchId,
+  isWellFormedPublicCourseSearchUnicodeString,
+} from "./public-course-search-comparison.ts";
 import { isPublicCourse } from "./catalog-service.ts";
 
 export const PUBLIC_COURSE_SEARCH_CONTRACT_VERSION =
@@ -164,6 +168,9 @@ function normalizeQuery(value: unknown) {
   if (typeof value !== "string") {
     return invalidInput("Course search query must be a string.");
   }
+  if (!isWellFormedPublicCourseSearchUnicodeString(value)) {
+    return invalidInput("Course search query must contain well-formed Unicode.");
+  }
 
   const normalized = value.normalize("NFKC").trim().toLocaleLowerCase("ko-KR");
   if (new TextEncoder().encode(normalized).length > PUBLIC_COURSE_SEARCH_MAX_QUERY_BYTES) {
@@ -242,8 +249,7 @@ function positionOf(record: PublicCourseSearchSourceRecord): PublicCourseSearchP
   if (
     !Number.isSafeInteger(record.groupDisplayOrder) ||
     !Number.isSafeInteger(record.displayOrder) ||
-    typeof record.id !== "string" ||
-    record.id.length === 0
+    !isSupportedPublicCourseSearchId(record.id)
   ) {
     return invalidSource("Course search source has an invalid ordering identity.");
   }
@@ -271,8 +277,7 @@ function assertSourceRecord(
 ): asserts value is PublicCourseSearchSourceRecord {
   if (
     !isRecord(value) ||
-    typeof value.id !== "string" ||
-    value.id.length === 0 ||
+    !isSupportedPublicCourseSearchId(value.id) ||
     typeof value.groupName !== "string" ||
     typeof value.groupActive !== "boolean" ||
     !isNullableString(value.groupDeletedAt) ||
@@ -510,8 +515,7 @@ async function decodeCursor(
       decoded.limit !== limit ||
       !isSafeInteger(decoded.groupDisplayOrder) ||
       !isSafeInteger(decoded.displayOrder) ||
-      typeof decoded.id !== "string" ||
-      decoded.id.length === 0 ||
+      !isSupportedPublicCourseSearchId(decoded.id) ||
       typeof decoded.integrity !== "string"
     ) {
       throw new Error("cursor mismatch");
