@@ -376,7 +376,8 @@ def _read_input(path: Path) -> tuple[dict[str, Any], bytes]:
     path = Path(path)
     _validate_input_path(path)
     try:
-        raw = path.read_bytes()
+        with path.open("rb") as handle:
+            raw = handle.read(MAX_INPUT_BYTES + 1)
     except OSError as error:
         raise LabError(f"could not read input: {path}") from error
     if len(raw) > MAX_INPUT_BYTES:
