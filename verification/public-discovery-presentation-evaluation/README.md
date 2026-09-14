@@ -1,8 +1,10 @@
 # Public discovery presentation offline evaluation
 
-This is a DB-less, network-free composition harness. Its fixed base is
-`c850db8e8cb18542993b3005c42200525cfcb6e2` on `origin/main`, and the harness
-calls the implementations present at that base:
+This is a DB-less, network-free composition harness. Its generation base is
+`c850db8e8cb18542993b3005c42200525cfcb6e2`. That is not the reviewed
+`origin/main` ref for this review; the reviewed main SHA and final branch HEAD
+are recorded in the review report. The harness calls the actual implementations
+present in the checkout, not copies of these functions:
 
 - `createPublicCourseSearchAdapter` from
   `lib/services/public-course-search-adapter.ts`
@@ -22,6 +24,8 @@ partial source projections, provider failures, and internal/personal/error
 sentinels. It records calls and supports explicit course/curriculum state
 changes for the post-search `NOT_FOUND` and sequential-evaluation cases.
 It has no database, network, file, clock, or shared mutable product state.
+Course/source relationships in this fixture are test-supplied assumptions, not
+canonical bindings or public approval evidence.
 
 ## What is new versus existing coverage
 
@@ -36,9 +40,33 @@ The presentation object is deliberately local to the test. It is a proposed
 harness composition rule, not a production presentation service. Search output
 forms the selection input; a selection presentation contains only a current
 successful outline and a source projection explicitly supplied for that same
-success. A `SELECTION_ERROR`, `NOT_FOUND`, provider error, or formatter
-rejection produces no outline or source disclosure. This harness-side removal
+success. The helper does not resolve the source or verify a course/source
+binding. A `SELECTION_ERROR`, `NOT_FOUND`, provider error, or formatter
+rejection produces no outline and no selection disclosure; the disclosure
+formatter is not called for those failure results. This harness-side removal
 does not claim that the product already performs that wiring.
+
+## Ownership of the assertions
+
+- Actual search, outline, and selection functions guarantee their observed
+  result contracts: `EMPTY` versus thrown search-provider error, successful
+  empty outline, `NOT_FOUND`/provider states, and `IDENTITY_MISMATCH` when the
+  current outline ID differs from the selected ID.
+- The actual guidance formatter guarantees the bounded category/action mapping
+  and does not reflect raw errors or mismatch payloads. The actual disclosure
+  formatter guarantees its output allowlist, generic missing notice, and
+  syntactic HTTPS URL filtering; it does not validate rights or currentness.
+- Harness-only rules are the sequential composition, discarding outline/source
+  on non-displayable selection results, removing prior presentation data after a
+  failure, and passing a manually selected source projection only for the
+  current successful outline. These are proposed executable acceptance criteria,
+  not product presentation guarantees.
+- Synthetic-only checks cover fixture immutability, call order, synthetic
+  sentinels, and explicit A/B state changes. They do not establish database
+  predicates, resolver binding, authorization, or source approval.
+- The current scope does not verify UI/resolver wiring, asynchronous request
+  cancellation or reordering, snapshot consistency, slug reuse, user/browser
+  state, free-text PII detection, source rights, or source currentness.
 
 ## Scenarios and manual oracle
 
@@ -49,7 +77,7 @@ does not claim that the product already performs that wiring.
   no outline call and no newly presented outline or source.
 - C: the same slug resolves to another ID; the actual selection service returns
   `SELECTION_ERROR / IDENTITY_MISMATCH`, and the proposed final presentation
-  contains no other-course title, ID, subject, topic, or source.
+  contains no other-course title, ID, subject, topic, or source disclosure.
 - D: after a successful A result, an explicit repository mutation produces
   actual `NOT_FOUND`; the guidance does not guess deleted, unpublished, or
   authorization causes and the old A outline/source is not reused.
@@ -78,7 +106,8 @@ public authorization decision, source-rights/currentness check, availability
 proof, snapshot/revision check, or UI/CTA/browser validation. A formatted
 official reference is not evidence that the course is authorized, enrolled,
 learnable, or current. Free-text PII detection is not assumed; assertions
-cover only allowlist behavior using synthetic sentinels.
+cover only allowlist behavior using synthetic sentinels. HTTPS checks are URL
+shape checks, not URL fetches or rights/currentness checks.
 
 ## Run
 
@@ -96,10 +125,10 @@ npx eslint tests/public-discovery-presentation-evaluation.test.ts verification/p
 git diff --check
 ```
 
-The test is intentionally not registered in `package.json`; these are
-explicitly focused local checks. Product presentation wiring, source-resolver
-integration, public tool activation, database execution, live API evaluation,
-browser UX validation, snapshot consistency, and operational recovery remain
+The test is registered exactly once in the existing `package.json`
+`test:unit` command. Product presentation wiring, source-resolver integration,
+public tool activation, database execution, live API evaluation, browser UX
+validation, snapshot consistency, and operational recovery remain
 unimplemented or out of scope.
 
 Observed follow-up scope is limited to a future product composition contract

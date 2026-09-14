@@ -57,7 +57,8 @@ function selectReturnedCourse(
  * This is the evaluation's proposed presentation rule, not a product
  * service. Search output is used to form the selection input; a selection
  * presentation contains only a successful current outline and a disclosure
- * explicitly supplied for that same success.
+ * explicitly supplied for that same success. The caller chooses the synthetic
+ * source projection; this helper does not resolve it or verify its identity.
  */
 function composeSearchPresentation(result: PublicCourseSearchResult) {
   return {
@@ -98,9 +99,9 @@ function composeSelectionPresentation(
     stage: "SELECTION" as const,
     outline: displayableOutline ? result : null,
     guidance,
-    disclosure: formatPublicSourceDisclosure(
-      displayableOutline ? sourceProjection : undefined,
-    ),
+    disclosure: displayableOutline
+      ? formatPublicSourceDisclosure(sourceProjection)
+      : null,
   };
 }
 
@@ -152,10 +153,10 @@ test("A: composes actual search, same-course selection, guidance, and disclosure
   assert.equal(presentation.outline?.course.id, selected.id);
   assert.equal(presentation.outline?.course.slug, selected.slug);
   assert.equal(
-    presentation.disclosure.officialReference?.institutionName,
+    presentation.disclosure?.officialReference?.institutionName,
     COURSE_A_SOURCE_INSTITUTION,
   );
-  assert.equal(presentation.disclosure.notice, null);
+  assert.equal(presentation.disclosure?.notice, null);
   assert.equal("availability" in presentation, false);
   assert.equal("authorized" in presentation, false);
   assert.equal("enrollment" in presentation, false);
@@ -218,8 +219,7 @@ test("C: same-slug different-ID selection is an identity mismatch with no other-
   assert.deepEqual(presentation.guidance.actions, ["BACK_TO_RESULTS"]);
   assertActionDescriptor(presentation.guidance.actions);
   assert.equal(presentation.outline, null);
-  assert.equal(presentation.disclosure.officialReference, null);
-  assert.equal(presentation.disclosure.notice, PUBLIC_SOURCE_DISCLOSURE_MISSING_NOTICE);
+  assert.equal(presentation.disclosure, null);
   assertAbsent(presentation, [
     COURSE_B_ID,
     COURSE_B_NAME,
@@ -253,7 +253,7 @@ test("D: a post-search NOT_FOUND does not reuse successful outline or source dat
   );
   assert.equal(successfulPresentation.outline?.course.name, COURSE_A_NAME);
   assert.equal(
-    successfulPresentation.disclosure.officialReference?.institutionName,
+    successfulPresentation.disclosure?.officialReference?.institutionName,
     COURSE_A_SOURCE_INSTITUTION,
   );
 
@@ -273,8 +273,7 @@ test("D: a post-search NOT_FOUND does not reuse successful outline or source dat
   ]);
   assertActionDescriptor(presentation.guidance.actions);
   assert.equal(presentation.outline, null);
-  assert.equal(presentation.disclosure.officialReference, null);
-  assert.equal(presentation.disclosure.notice, PUBLIC_SOURCE_DISCLOSURE_MISSING_NOTICE);
+  assert.equal(presentation.disclosure, null);
   assertAbsent(presentation, [
     COURSE_A_ID,
     COURSE_A_NAME,
@@ -334,7 +333,7 @@ test("E: search and outline provider failures remain errors and do not retry or 
     assert.equal(presentation.guidance.category, "PROVIDER_ERROR");
     assert.notEqual(presentation.guidance.category, "SEARCH_EMPTY");
     assert.equal(presentation.outline, null);
-    assert.equal(presentation.disclosure.officialReference, null);
+    assert.equal(presentation.disclosure, null);
     assertAbsent(presentation, [ERROR_SENTINEL, COURSE_B_NAME, INTERNAL_SENTINEL]);
     assert.deepEqual(
       repository.calls.map((call) => call.kind),
@@ -366,7 +365,7 @@ test("F: an empty curriculum is successful content state, independent of source 
   assert.deepEqual(presentation.guidance.actions, ["BACK_TO_RESULTS"]);
   assertActionDescriptor(presentation.guidance.actions);
   assert.equal(presentation.outline?.subjects.length, 0);
-  assert.equal(presentation.disclosure.notice, null);
+  assert.equal(presentation.disclosure?.notice, null);
   assert.equal("availability" in presentation, false);
   assert.equal("learnable" in presentation, false);
   assertAbsent(presentation, ["PROVIDER_ERROR", "UNAVAILABLE", INTERNAL_SENTINEL]);
@@ -399,12 +398,12 @@ test("G: missing or partial source projection does not change successful outline
     notice: PUBLIC_SOURCE_DISCLOSURE_MISSING_NOTICE,
   });
   assert.equal(
-    partial.disclosure.officialReference?.institutionName,
+    partial.disclosure?.officialReference?.institutionName,
     "Synthetic partial institution",
   );
-  assert.equal(partial.disclosure.officialReference?.documentTitle, "Synthetic partial document");
-  assert.equal(partial.disclosure.officialReference?.sourceCheckedAt, undefined);
-  assert.equal(partial.disclosure.notice, PUBLIC_SOURCE_DISCLOSURE_MISSING_NOTICE);
+  assert.equal(partial.disclosure?.officialReference?.documentTitle, "Synthetic partial document");
+  assert.equal(partial.disclosure?.officialReference?.sourceCheckedAt, undefined);
+  assert.equal(partial.disclosure?.notice, PUBLIC_SOURCE_DISCLOSURE_MISSING_NOTICE);
   assertAbsent(partial, ["approved", "verified", "current", INTERNAL_SENTINEL]);
 });
 
@@ -426,7 +425,7 @@ test("H: sequential evaluations have independent presentation outputs and immuta
   );
   assert.equal(presentationA.outline?.course.name, COURSE_A_NAME);
   assert.equal(
-    presentationA.disclosure.officialReference?.institutionName,
+    presentationA.disclosure?.officialReference?.institutionName,
     COURSE_A_SOURCE_INSTITUTION,
   );
   assert.deepEqual(repository.snapshotData(), initial);
@@ -440,7 +439,7 @@ test("H: sequential evaluations have independent presentation outputs and immuta
   const failurePresentation = composeSelectionPresentation(outlineAfterA);
   assert.deepEqual(outlineAfterA, { status: "NOT_FOUND" });
   assert.equal(failurePresentation.outline, null);
-  assert.equal(failurePresentation.disclosure.officialReference, null);
+   assert.equal(failurePresentation.disclosure, null);
   assertAbsent(failurePresentation, [COURSE_A_NAME, COURSE_A_SOURCE_INSTITUTION]);
   assert.deepEqual(repository.snapshotData(), notFoundState);
 
@@ -457,7 +456,7 @@ test("H: sequential evaluations have independent presentation outputs and immuta
   );
   assert.equal(presentationB.outline?.course.name, COURSE_B_NAME);
   assert.equal(
-    presentationB.disclosure.officialReference?.institutionName,
+    presentationB.disclosure?.officialReference?.institutionName,
     COURSE_B_SOURCE_INSTITUTION,
   );
   assertAbsent(presentationB, [COURSE_A_NAME, COURSE_A_SOURCE_INSTITUTION]);
@@ -485,5 +484,5 @@ test("malformed presentation inputs stay in the formatter's unknown boundary", (
 
   assert.equal(presentation.guidance.category, "UNKNOWN_RESULT");
   assert.equal(presentation.outline, null);
-  assert.equal(presentation.disclosure.notice, PUBLIC_SOURCE_DISCLOSURE_MISSING_NOTICE);
+  assert.equal(presentation.disclosure, null);
 });
