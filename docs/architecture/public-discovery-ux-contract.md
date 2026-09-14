@@ -31,7 +31,10 @@ service가 존재한다는 사실만으로 공개 UI/API가 연결되었다고 �
 | --- | --- |
 | worktree | `securium-public-discovery-ux-contract` |
 | branch | `docs/public-discovery-ux-contract` |
-| pinned base / HEAD | `200e3db5a191eae2db82e8f4a426f0fcbf24f69e` |
+| generation base | `200e3db5a191eae2db82e8f4a426f0fcbf24f69e` |
+| candidate | `30c3949c947a148308d4660a5d7e75c2405b6b6f` |
+| reviewed `origin/main` | `c850db8e8cb18542993b3005c42200525cfcb6e2` |
+| PR #192 | `MERGED`; head `367adf8e1449b102c3bdc19dd049ebe0f2281d86`, reviewed main squash commit `c850db8e8cb18542993b3005c42200525cfcb6e2` |
 | 적용 `AGENTS.md` | 저장소·상위·2단계 상위 경로에서 확인되지 않음 |
 | 검토 방식 | 고정 base의 관련 source·현재 문서·상대 링크 정적 대조 |
 | 실행하지 않은 항목 | test, build, install, DB, Docker, Wrangler, server, browser, API, LLM |
@@ -122,6 +125,47 @@ slug로 outline을 조회한 뒤 반환된 `outline.course.id`와 선택 ID를 �
 ### 2.3 Guidance/disclosure
 
 고정 base에서 discovery 전용 guidance formatter는 확인되지 않았다.
+검토 기준 `origin/main`에는 이후 병합된 PR #192의
+`formatPublicDiscoveryUserGuidance()`가 추가되어 있다. 이 formatter는
+현재 main의 내부 pure formatter이며 `/courses` route, public API/MCP, UI
+handler에 연결되었다는 근거는 없다([PR #192 formatter](https://github.com/namola78-svg/securium/blob/c850db8e8cb18542993b3005c42200525cfcb6e2/lib/services/public-discovery-user-guidance.ts#L20-L43), [entry point](https://github.com/namola78-svg/securium/blob/c850db8e8cb18542993b3005c42200525cfcb6e2/lib/services/public-discovery-user-guidance.ts#L431-L452)).
+
+실제 main formatter의 출력 계약은 { category, title, message, actions }이며,
+formatter가 소유하는 category/title/message/actions는 다음과 같다. 아래는
+화면 문구를 byte 단위로 강제하는 표가 아니라, 현재 main 구현과의 의미·오류
+구분·허용 action 대조표다.
+
+| category | title | message | actions |
+| --- | --- | --- | --- |
+| `SEARCH_EMPTY` | `검색 결과가 없어요` | `조건에 맞는 과정을 찾지 못했어요.` | `EDIT_SEARCH` |
+| `SEARCH_RESULTS` | `검색 결과를 확인해 주세요` | `검색 결과를 확인하고 원하는 과정을 선택해 주세요.` | 없음 |
+| `OUTLINE_READY` | `과정 개요를 확인했어요` | `선택한 과정의 개요를 확인해 주세요.` | 없음 |
+| `OUTLINE_EMPTY` | `과정 개요가 비어 있어요` | `선택한 과정의 개요가 비어 있어요.` | `BACK_TO_RESULTS` |
+| `COURSE_UNAVAILABLE` | `과정을 현재 확인할 수 없어요` | `선택한 과정을 현재 확인할 수 없어요.` | `BACK_TO_RESULTS`, `REFRESH_RESULTS` |
+| `IDENTITY_MISMATCH` | `선택한 과정 정보를 다시 확인해 주세요` | `선택한 과정 정보를 다시 확인해 주세요.` | `BACK_TO_RESULTS` |
+| `INPUT_ERROR` (검색) | `요청을 확인할 수 없어요` | `검색 요청을 확인할 수 없어요.` | `EDIT_SEARCH` |
+| `INPUT_ERROR` (선택/개요) | `요청을 확인할 수 없어요` | `선택한 과정 정보를 확인할 수 없어요.` | `BACK_TO_RESULTS` |
+| `PROVIDER_ERROR` | `과정 정보를 불러오지 못했어요` | `과정 정보를 불러오지 못했어요.` | `BACK_TO_RESULTS`, `REFRESH_RESULTS` |
+| `PROJECTION_ERROR` | `과정 정보를 확인할 수 없어요` | `과정 정보를 확인할 수 없어요.` | `BACK_TO_RESULTS`, `REFRESH_RESULTS` |
+| `OUTLINE_LIMIT_EXCEEDED` | `과정 개요를 표시할 수 없어요` | `과정 개요를 표시할 수 없어요.` | `BACK_TO_RESULTS` |
+| `UNKNOWN_RESULT` | `결과를 확인할 수 없어요` | `과정 정보를 확인할 수 없어요.` | `BACK_TO_RESULTS` |
+
+`SEARCH_RESULT`의 유효한 `EMPTY`와 `OK`를 구분하고, `SEARCH_ERROR`에서는
+`INVALID_INPUT`/`INVALID_CURSOR`를 `INPUT_ERROR`, `INVALID_SOURCE`를
+`PROJECTION_ERROR`, 그 밖의 throw/알 수 없는 오류를 `PROVIDER_ERROR`로
+구분한다. outline의 `OK`와 빈 `subjects`, `NOT_FOUND`,
+`IDENTITY_MISMATCH`, `UNAVAILABLE`의 provider/projection/limit reason도
+각기 위 category로 보존한다. malformed 또는 모순된 성공 payload와 unknown
+shape는 성공으로 승격하지 않고 `UNKNOWN_RESULT`로 fail closed한다. 이
+formatter는 authorization, authenticity, publication, currentness를
+검증하지 않는다([mapping and validation](https://github.com/namola78-svg/securium/blob/c850db8e8cb18542993b3005c42200525cfcb6e2/lib/services/public-discovery-user-guidance.ts#L308-L429)).
+
+formatter가 제공하는 `EDIT_SEARCH`, `BACK_TO_RESULTS`, `REFRESH_RESULTS`는
+복구·재조회에 대한 action descriptor일 뿐이다. 결과 선택, outline 열기,
+기존 상세 link, 실제 retry/navigation의 event handler는 여전히 UI/caller의
+책임이며, formatter의 `actions`가 그 handler의 존재나 연결을 보장하지
+않는다.
+
 현재 있는 `formatPublicSourceDisclosure()`는 I/O나 authorization을 수행하지
 않는 display-only formatter다. projection marker가 없거나 값이 불완전하면
 `officialReference: null`, `independentExplanation: null`,
@@ -145,7 +189,7 @@ formatter의 존재만으로 추가하지 않는다.
 | 과정 상세·개요 | 상세 route가 cached detail + `listCurriculum`을 읽고 curriculum을 inline 표시한다 | 선택된 결과의 outline을 별도 상태로 보여준 뒤 기존 detail href로 넘긴다 | 현재 상세 / 연결 제안 |
 | Outline adapter | `OK`·빈 개요·`NOT_FOUND`·`UNAVAILABLE/reason`·50/200 cap이 내부 계약에 있다 | UI가 exact status/reason을 generic copy로 매핑하되 raw reason은 노출하지 않는다 | 내부 계약만 |
 | Selection binding | slug 조회 후 course ID를 비교하는 service가 있다 | 선택 결과의 ID와 현재 outline ID가 다르면 다른 과정 outline을 절대 표시하지 않는다 | 내부 계약만 |
-| Guidance | discovery status guidance formatter 없음 | UI caller가 상태별 한국어 문구를 소유한다. 새 formatter/code를 이번 문서에서 확정하지 않는다 | 제안 |
+| Guidance | 고정 base에는 formatter가 없었으나, reviewed main에는 PR #192의 `formatPublicDiscoveryUserGuidance()`가 있다. route/UI/MCP 호출자는 없음 | UI caller는 formatter의 bounded guidance를 사용할 수 있지만, 실제 selection/detail/retry handler와 공개 route 연결은 별도 구현·승인 사항이다 | 내부 formatter / 연결 제안 |
 | Disclosure | source projection display formatter만 있음. `/courses`와 연결되지 않음 | 승인된 projection이 있을 때만 disclosure를 연결하고, 없으면 generic notice를 유지한다 | 내부 formatter / 연결 미정 |
 | 학습 진입 | 상세의 `CourseEnrollAction`이 login, enrollment POST, `/learn`·review CTA를 소유한다 | discovery가 `/learn`으로 직접 우회하지 않고 기존 상세 CTA owner에게 넘긴다 | 현재 구현 보존 |
 
@@ -197,6 +241,12 @@ question 또는 published lesson/content 존재 flag를 별도로 계산한다
 | `questionCount` | 현재 list/detail projection의 `question_courses` 연결 수 | 현재 repository가 계산한 연결 수 | published 문제 수, 학습 가능 |
 | availability | published question 또는 published lesson/content flag | 현재 공개 콘텐츠 flag 기준의 `학습 가능`/`개설 예정` 표시 | 로그인·enrollment·권한, 공식 최신성 |
 
+availability query의 실제 caller는 현재 `/courses` page의
+`listPublicCourseAvailability(courses.map(...))`와 상세 page의
+`getPublicCourseAvailability(course.id)`다. `CourseCard`와 상세 CTA는 그
+결과를 `isPublicCourseAvailable()`로 표시용 상태에만 사용한다
+([목록 caller](../../app/courses/page.tsx#L27-L43), [상세 caller](../../app/courses/%5BcourseSlug%5D/page.tsx#L22-L31), [display helper](../../lib/services/course-availability-display.ts#L3-L9)).
+
 `CourseCard`의 현재 `학습 가능`/`개설 예정` 문구와 detail의 수치 표시는
 기존 UI 계약으로 기록하되, 새 search summary에 availability나 `questionCount`가
 없다는 이유로 값을 합성하지 않는다. availability filter를 discovery에 추가하는
@@ -222,10 +272,12 @@ question 또는 published lesson/content 존재 flag를 별도로 계산한다
 ### 5.3 Action descriptor와 실제 handler
 
 상태표의 `검색어 수정`, `결과로 돌아가기`, `다시 시도`, `과정 선택`,
-`과정 상세 보기`는 **설계상의 action descriptor**다. 현재 discovery 전용
-descriptor export나 handler는 없다. generic `StateAction`의 `href`/`onClick`
-shape([state UI action type](../../components/state-ui.tsx#L4-L15))를 discovery
-계약으로 재명명하거나 확장하지 않는다.
+`과정 상세 보기`는 **설계상의 action descriptor**다. reviewed main의
+guidance formatter가 export하는 실제 descriptor는
+`EDIT_SEARCH`, `BACK_TO_RESULTS`, `REFRESH_RESULTS` 세 가지뿐이며,
+formatter에는 selection/detail handler가 없다. generic `StateAction`의
+`href`/`onClick` shape([state UI action type](../../components/state-ui.tsx#L4-L15))를
+discovery 계약으로 재명명하거나 확장하지 않는다.
 
 실제 구현에서는 다음 책임을 분리한다.
 
@@ -253,7 +305,8 @@ shape([state UI action type](../../components/state-ui.tsx#L4-L15))를 discovery
 
 현재 상세 CTA의 구체적 흐름은 anonymous이면
 `authRedirectHref("/login", `/courses/${courseSlug}`)`, authenticated·미등록이면
-`POST /api/enrollments`, 등록 상태면 `/learn/${courseSlug}` link다
+`POST /api/enrollments`, ACTIVE/PAUSED 등록 상태면 `/learn/${courseSlug}`
+link, COMPLETED 상태면 `/practice/${courseSlug}?mode=review` link다
 ([enrollment action](../../components/course-enroll-action.tsx#L127-L187),
 [safe auth redirect](../../lib/auth-routing.ts#L74-L79),
 [enrollment API](../../app/api/enrollments/route.ts#L13-L30)).
@@ -411,9 +464,11 @@ CSS나 component를 변경하지 않는다.
 1. public predicate와 provider owner를 결정하고, search adapter·strict outline
    provider·selection service를 server-owned caller에 연결한다. route/API
    등록과 익명 공개 여부는 별도 승인 후 진행한다.
-2. discovery UI는 search/outline 상태를 exact internal result와 매핑하고,
-   `EMPTY`, `NOT_FOUND`, `IDENTITY_MISMATCH`, `UNAVAILABLE`/reason을 generic
-   Korean copy로 렌더링한다. 새 public status나 raw reason을 만들지 않는다.
+2. discovery UI/caller는 search/outline 상태를 exact internal result와 매핑하고,
+   필요하면 reviewed main의 `formatPublicDiscoveryUserGuidance()`를 bounded
+   Korean copy source로 사용한다. `EMPTY`, `NOT_FOUND`, `IDENTITY_MISMATCH`,
+   `UNAVAILABLE`/reason을 구분하되 새 public status나 raw reason을 만들지
+   않는다. formatter 사용 여부와 무관하게 UI event handler는 별도로 연결한다.
 3. search request sequence, query/path cursor binding, selection invalidation,
    append failure preservation을 구현한다. 자동 retry·자동 navigation·자동
    대체 과정 선택은 넣지 않는다.
