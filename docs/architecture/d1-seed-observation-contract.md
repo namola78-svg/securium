@@ -11,7 +11,8 @@
 정의되어 있다. 이 문서는 그 계약을 재정의하거나 caller를 연결하지 않는다.
 
 - classifier merge / generation base: `00a58e083648b3d10ac27f969af5c0866c43e5aa`
-- 확인한 `origin/main`: `5a5f26a4d6dab40a6ae3f205821f491a1ec092a6`
+- 문서 검토 시작 시 확인한 `origin/main`: `5a5f26a4d6dab40a6ae3f205821f491a1ec092a6`
+- 최신 호환성 확인 시 `origin/main`: `6bc0066c7833fd483811f0b277c5e2843d7bad47`
 - 작업 branch: `docs/d1-seed-observation-contract`
 - 확인 시점: 2026-09-14
 - 검토 범위: 현재 D1 local seed 경로, 직접 호출되는 subprocess/query/검증 경계
