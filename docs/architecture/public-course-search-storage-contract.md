@@ -7,7 +7,7 @@
 - Repository: `namola78-svg/securium`
 - 고정 base: `c850db8e8cb18542993b3005c42200525cfcb6e2` (`origin/main`, 2026-09-14 14:50:17 +09:00)
 - 이 문서의 local branch: `docs/public-search-storage-contract`
-- 비교 계약 PR: [#193](https://github.com/namola78-svg/securium/pull/193), reviewed head `651fc17ba8d39b17237a51e1f72a9f1c0b3e5be0`. fixed base에는 미병합이었고, 작업 중 관찰한 later `origin/main`의 merge commit은 `00a467321b42e5cf86f7d83747e2f55949130fe0`이다.
+- 비교 계약 PR: [#193](https://github.com/namola78-svg/securium/pull/193), reviewed head `651fc17ba8d39b17237a51e1f72a9f1c0b3e5be0`. fixed base에는 미병합이었고, 작업 중 관찰한 later `origin/main` head commit은 `00a467321b42e5cf86f7d83747e2f55949130fe0`이다. 이 SHA는 단일 부모의 일반 commit이며 merge commit으로 취급하지 않는다.
 - 원본 provider 참고 head: `cc03e6b8757df683e31b7348dd67ff4d5f5f339b` (main 기능으로 간주하지 않음)
 
 ## 1. 목적과 범위
@@ -236,6 +236,22 @@ projection row를 최대 1개 두고, `course_id`를 PK 겸 FK로 사용한다. 
 row를 자동 삭제하는 근거가 아니며, reader가 canonical `deleted_at` predicate를
 재검사해야 한다.
 
+이 B안은 `course_id` 단일 PK이므로 한 course에 현재 projection row를 한 개만
+보존하는 **single-current-row 모델**이다. 따라서 구 projection과 신 projection을
+동시에 보존해 provider를 겹쳐 운영하거나 rollback 때 구 row를 복구하는 기능은 이
+identity만으로 제공되지 않는다. 그런 겹침이 필요하면 `(course_id, projection_version)`
+또는 generation identity, 별도 version table, 혹은 구 reader가 projection이 아닌
+기존 canonical/raw 경로를 계속 읽는 compatibility 전략 중 무엇을 택할지 먼저
+결정해야 한다. 이 문서는 그 선택을 확정하지 않으며, 단일 row 덮어쓰기와 version
+병행 보존을 같은 보장으로 표현하지 않는다.
+
+현재 schema와 검토한 application writer에는 course/group hard delete 경로가
+확인되지 않았고, `deleted_at`과 `active`를 통한 soft/inactive 상태가 별도 경계로
+존재한다. 실제 DB에서 course를 hard delete할 때만 제안 projection FK cascade가
+적용되며, group 비활성화·soft delete나 현재 `courses.course_group_id`의
+`ON DELETE RESTRICT`를 projection cascade로 해석해서는 안 된다. 향후 SQL/운영
+삭제 경로의 inventory와 허용 여부는 별도 선행 결정이다.
+
 ### 4.3 선택 권고
 
 **logical storage approach는 대안 B, 별도 `public_course_search_projections` table을
@@ -308,6 +324,7 @@ courses.description
 courses.difficulty
 course_groups.name
 display-helper rule versions
+search_normalizer_version
 search_projection_version
 ```
 
@@ -317,8 +334,14 @@ order는 canonical order tuple의 일부이므로 필요하지 않은 rebuild를
 digest에서 분리한다. path classifier를 저장하면 그 classifier가 실제 읽는 모든 source와
 path version을 digest에 추가한다.
 
-현재 repository에는 이 digest serializer가 없다. JSON property order, escaping, digest
-hex case, empty/null representation을 정하지 않은 채 writer를 구현해서는 안 된다.
+현재 repository에는 이 digest serializer가 없다. delimiter 충돌이 없는 typed
+serialization 방식, 고정 필드 순서, NULL과 빈 문자열의 구분, Unicode를 UTF-8로
+인코딩하는 규칙, serialization version, JSON property order/escaping, digest hex
+case를 정하지 않은 채 writer를 구현해서는 안 된다. `source_digest` equality는
+source tuple equality를 확인하는 보조 수단일 뿐, source와 projection의 원자적
+commit, durable write, runtime 동시성, 또는 public eligibility/공개 승인을 증명하지
+않는다. normalizer/runtime이 바뀌면 digest가 같아도 exact version gate와 output
+재계산 검증을 통과하기 전에는 READY로 취급하지 않는다.
 
 ## 6. normalization projection 저장 규칙
 
@@ -662,6 +685,15 @@ group fan-out과 backfill이 경쟁하면 마지막 writer가 old value를 되�
 version compare-and-set 또는 transaction lock 중 하나를 구현 전에 선택해야 한다. 지금은
 이 선택이 미결이다. 실제 backfill, 운영 복구, DB 실행은 이 문서에서 수행하지 않는다.
 
+위의 transaction 권고는 D1과 PostgreSQL이 동일한 transaction-scoped readback이나
+격리 보장을 이미 제공한다는 뜻이 아니다. 현재 D1 provider는 statement batch를
+노출하지만 transaction-scoped readback을 거부하고
+([D1 provider](../../db/provider/d1-database-provider.ts#L49)), PostgreSQL provider는
+callback transaction 경로를 별도로 가진다
+([PostgreSQL provider](../../db/provider/postgres-database-provider.ts#L87)). 따라서
+source update, child fan-out, projection readback의 원자성을 target별로 입증하기
+전에는 “D1/PostgreSQL 공통 transaction 보장”으로 표현하지 않는다.
+
 ### 11.4 cutover와 rollback
 
 cutover 전 필수 gate:
@@ -679,6 +711,12 @@ rollback은 canonical source rollback이 아니라 reader/writer compatibility r
 v1 reader가 해석할 수 없으면 cursor를 첫 페이지로 재시작하지 않고 incompatibility로
 응답한다. projection table을 즉시 삭제하는 rollback은 orphan/복구 가능성을 훼손하므로
 별도 승인 없이는 하지 않는다.
+
+rollback 전환표에는 최소한 구/new writer의 동시 허용 범위, single-row projection의
+구/new version compatibility, provider/adapter comparator, 이미 발행된 v1/v2 cursor를
+각각 적어야 한다. 단일 current row를 덮어쓴 뒤 구 projection을 되살릴 수 있다고
+가정하지 않으며, 구 cursor를 거부하는 동작과 cursor 없이 첫 페이지를 새로 시작하는
+동작을 같은 복구로 취급하지 않는다.
 
 ## 12. 후속 검증 수용 기준
 
