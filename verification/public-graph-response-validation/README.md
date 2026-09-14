@@ -26,9 +26,12 @@ The validator checks the documented canonical relation directions:
 
 It also checks query/root compatibility, public ID syntax and size, malformed
 entries, duplicate node identity, duplicate logical edge identity, dangling
-references, total node/edge hard limits, and the documented depth/page shape.
-Cycles and self-loops are not rejected as a blanket graph rule; a self-loop
-fails only when it violates a relation's documented endpoint types.
+references, root-reachable topology within the query depth, total node/edge
+hard limits, and the documented depth/page shape. The graph payload always
+contains `page`: non-paged queries use `null`, while paged queries use the
+bounded page object. Cycles and self-loops are not rejected as a blanket graph
+rule; a self-loop fails only when it violates a relation's documented endpoint
+types.
 
 ## What this does not prove
 

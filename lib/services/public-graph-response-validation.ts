@@ -59,6 +59,7 @@ const ERROR_CODE_ORDER = [
   "DUPLICATE_EDGE",
   "DANGLING_EDGE",
   "INVALID_RELATION_DIRECTION",
+  "INVALID_GRAPH_TOPOLOGY",
   "NODE_LIMIT_EXCEEDED",
   "EDGE_LIMIT_EXCEEDED",
 ] as const;
@@ -192,23 +193,36 @@ function readNodeIdentity(value: unknown, addIssue: (code: PublicGraphValidation
     return null;
   }
 
-  hasOnlyAllowedFields(value, NODE_FIELDS, () => addIssue("UNKNOWN_FIELD"));
-  hasAllFields(value, NODE_FIELDS, () => addIssue("INVALID_NODE"));
+  let valid = true;
+  const addNodeIssue = () => {
+    valid = false;
+    addIssue("INVALID_NODE");
+  };
+  const addNodeUnknownField = () => {
+    valid = false;
+    addIssue("UNKNOWN_FIELD");
+  };
+
+  hasOnlyAllowedFields(value, NODE_FIELDS, addNodeUnknownField);
+  hasAllFields(value, NODE_FIELDS, addNodeIssue);
 
   const nodeType = isNodeType(value.type) ? value.type : null;
-  if (nodeType === null) addIssue("INVALID_NODE");
+  if (nodeType === null) addNodeIssue();
   if (nodeType === null) return null;
-  if (!hasValidPublicId(value.publicId, nodeType, () => addIssue("INVALID_NODE_ID"))) {
-    addIssue("INVALID_NODE");
+  if (!hasValidPublicId(value.publicId, nodeType, () => {
+    valid = false;
+    addIssue("INVALID_NODE_ID");
+  })) {
+    addNodeIssue();
     return null;
   }
-  if (!isNonEmptyString(value.key) || !isNonEmptyString(value.label)) addIssue("INVALID_NODE");
+  if (!isNonEmptyString(value.key) || !isNonEmptyString(value.label)) addNodeIssue();
 
   if (!Array.isArray(value.aliases) || value.aliases.some((alias) => !isNonEmptyString(alias))) {
-    addIssue("INVALID_NODE");
+    addNodeIssue();
   }
 
-  return { type: nodeType, publicId: value.publicId } as const;
+  return { type: nodeType, publicId: value.publicId, valid } as const;
 }
 
 function referenceKey(reference: PublicGraphReference): string {
@@ -220,7 +234,11 @@ function edgeKey(type: PublicGraphEdgeType, source: PublicGraphReference, target
 }
 
 function validatePage(value: unknown, contract: QueryContract, addIssue: (code: PublicGraphValidationCode) => void) {
-  if (value === undefined || value === null) return;
+  if (value === undefined) return;
+  if (value === null) {
+    if (contract.paged) addIssue("INVALID_PAGE");
+    return;
+  }
   if (!isRecord(value)) {
     addIssue("INVALID_PAGE");
     return;
@@ -233,13 +251,14 @@ function validatePage(value: unknown, contract: QueryContract, addIssue: (code: 
     && value.limit <= PUBLIC_GRAPH_LIMITS.perHopHardMax;
   if (!validLimit || typeof value.hasMore !== "boolean") addIssue("INVALID_PAGE");
   if (typeof value.nextCursor !== "string" && value.nextCursor !== null) addIssue("INVALID_PAGE");
-  if (typeof value.nextCursor === "string" && utf8ByteLength(value.nextCursor) > PUBLIC_GRAPH_LIMITS.maxCursorBytes) {
+  if (typeof value.nextCursor === "string" && (!isNonEmptyString(value.nextCursor) || utf8ByteLength(value.nextCursor) > PUBLIC_GRAPH_LIMITS.maxCursorBytes)) {
     addIssue("INVALID_PAGE");
   }
   if (value.hasMore === true && typeof value.nextCursor !== "string") addIssue("INVALID_PAGE");
   if (value.hasMore === false && value.nextCursor !== null) addIssue("INVALID_PAGE");
 
   if (!contract.paged && value !== null) addIssue("INVALID_PAGE");
+  if (contract.paged && value === null) addIssue("INVALID_PAGE");
 }
 
 function validateGraphPayload(value: unknown, addIssue: (code: PublicGraphValidationCode) => void) {
@@ -249,7 +268,7 @@ function validateGraphPayload(value: unknown, addIssue: (code: PublicGraphValida
   }
 
   hasOnlyAllowedFields(value, GRAPH_FIELDS, () => addIssue("UNKNOWN_FIELD"));
-  hasAllFields(value, ["schemaVersion", "queryType", "depth", "root", "nodes", "edges"], () => addIssue("INVALID_DATA"));
+  hasAllFields(value, GRAPH_FIELDS, () => addIssue("INVALID_DATA"));
 
   if (value.schemaVersion !== PUBLIC_GRAPH_SCHEMA_VERSION) addIssue("INVALID_SCHEMA_VERSION");
   if (!isQueryType(value.queryType)) {
@@ -263,16 +282,25 @@ function validateGraphPayload(value: unknown, addIssue: (code: PublicGraphValida
   const root = readReference(value.root, () => addIssue("INVALID_ROOT"), () => addIssue("UNKNOWN_FIELD"));
   if (!root || root.type !== contract.rootType) addIssue("INVALID_ROOT");
 
+  let validNodeList = true;
+  const nodeKeys = new Set<string>();
   if (!Array.isArray(value.nodes)) {
     addIssue("INVALID_NODE");
+    validNodeList = false;
   } else {
     if (value.nodes.length > PUBLIC_GRAPH_LIMITS.totalNodeHardMax) addIssue("NODE_LIMIT_EXCEEDED");
-    const nodeKeys = new Set<string>();
     for (const node of value.nodes) {
       const identity = readNodeIdentity(node, addIssue);
-      if (!identity) continue;
+      if (!identity) {
+        validNodeList = false;
+        continue;
+      }
       const key = referenceKey(identity);
-      if (nodeKeys.has(key)) addIssue("DUPLICATE_NODE");
+      if (!identity.valid) validNodeList = false;
+      if (nodeKeys.has(key)) {
+        validNodeList = false;
+        addIssue("DUPLICATE_NODE");
+      }
       nodeKeys.add(key);
     }
 
@@ -284,41 +312,153 @@ function validateGraphPayload(value: unknown, addIssue: (code: PublicGraphValida
     }
 
     if (value.edges.length > PUBLIC_GRAPH_LIMITS.totalEdgeHardMax) addIssue("EDGE_LIMIT_EXCEEDED");
+    let validEdgeList = true;
+    const validatedEdges: Array<{ type: PublicGraphEdgeType; source: PublicGraphReference; target: PublicGraphReference }> = [];
     const edgeKeys = new Set<string>();
     for (const edge of value.edges) {
       if (!isRecord(edge)) {
+        validEdgeList = false;
         addIssue("INVALID_EDGE");
         continue;
       }
 
-      hasOnlyAllowedFields(edge, EDGE_FIELDS, () => addIssue("UNKNOWN_FIELD"));
-      hasAllFields(edge, EDGE_FIELDS, () => addIssue("INVALID_EDGE"));
+      let validEdge = true;
+      const addEdgeIssue = () => {
+        validEdge = false;
+        addIssue("INVALID_EDGE");
+      };
+      const addEdgeUnknownField = () => {
+        validEdge = false;
+        addIssue("UNKNOWN_FIELD");
+      };
+
+      hasOnlyAllowedFields(edge, EDGE_FIELDS, addEdgeUnknownField);
+      hasAllFields(edge, EDGE_FIELDS, addEdgeIssue);
       if (!isEdgeType(edge.type)) {
-        addIssue("INVALID_EDGE");
+        addEdgeIssue();
+        validEdgeList = false;
         continue;
       }
-      if (!isEdgeAllowedForQuery(value.queryType, edge.type)) addIssue("INVALID_RELATION_DIRECTION");
+      if (!isEdgeAllowedForQuery(value.queryType, edge.type)) {
+        validEdge = false;
+        addIssue("INVALID_RELATION_DIRECTION");
+      }
 
-      const source = readReference(edge.source, () => addIssue("INVALID_EDGE"), () => addIssue("UNKNOWN_FIELD"));
-      const target = readReference(edge.target, () => addIssue("INVALID_EDGE"), () => addIssue("UNKNOWN_FIELD"));
-      if (!source || !target) continue;
+      const source = readReference(edge.source, addEdgeIssue, addEdgeUnknownField);
+      const target = readReference(edge.target, addEdgeIssue, addEdgeUnknownField);
+      if (!source || !target) {
+        validEdgeList = false;
+        continue;
+      }
 
       const validDirection = edge.type === "ROLE_REQUIRES_SKILL"
         ? source.type === "ROLE" && target.type === "SKILL"
         : source.type === "SKILL" && target.type === "CONCEPT";
-      if (!validDirection) addIssue("INVALID_RELATION_DIRECTION");
+      if (!validDirection) {
+        validEdge = false;
+        addIssue("INVALID_RELATION_DIRECTION");
+      }
 
       const key = edgeKey(edge.type, source, target);
-      if (edgeKeys.has(key)) addIssue("DUPLICATE_EDGE");
+      if (edgeKeys.has(key)) {
+        validEdge = false;
+        addIssue("DUPLICATE_EDGE");
+      }
       edgeKeys.add(key);
 
       if (!nodeKeys.has(referenceKey(source)) || !nodeKeys.has(referenceKey(target))) {
+        validEdge = false;
         addIssue("DANGLING_EDGE");
       }
+
+      if (!validEdge) validEdgeList = false;
+      if (validEdge) validatedEdges.push({ type: edge.type, source, target });
+    }
+
+    if (
+      validNodeList && validEdgeList &&
+      value.nodes.length <= PUBLIC_GRAPH_LIMITS.totalNodeHardMax &&
+      value.edges.length <= PUBLIC_GRAPH_LIMITS.totalEdgeHardMax &&
+      root && nodeKeys.has(referenceKey(root))
+    ) {
+      validateGraphTopology(value.queryType, contract.depth, root, nodeKeys, validatedEdges, addIssue);
     }
   }
 
   validatePage(value.page, contract, addIssue);
+}
+
+function validateGraphTopology(
+  queryType: PublicGraphQueryType,
+  depth: 1 | 2,
+  root: PublicGraphReference,
+  nodeKeys: ReadonlySet<string>,
+  edges: ReadonlyArray<{ type: PublicGraphEdgeType; source: PublicGraphReference; target: PublicGraphReference }>,
+  addIssue: (code: PublicGraphValidationCode) => void,
+) {
+  const adjacency = new Map<string, Array<{ edge: (typeof edges)[number]; next: PublicGraphReference }>>();
+  for (const edge of edges) {
+    const traversal = traversalFor(queryType, edge);
+    if (!traversal) continue;
+    const entries = adjacency.get(referenceKey(traversal.from)) ?? [];
+    entries.push({ edge, next: traversal.to });
+    adjacency.set(referenceKey(traversal.from), entries);
+  }
+
+  const reachableNodes = new Set<string>([referenceKey(root)]);
+  const reachableEdges = new Set<string>();
+  let frontier = [root];
+  for (let hop = 0; hop < depth && frontier.length > 0; hop += 1) {
+    const nextFrontier: PublicGraphReference[] = [];
+    for (const current of frontier) {
+      for (const entry of adjacency.get(referenceKey(current)) ?? []) {
+        const edgeIdentity = edgeKey(entry.edge.type, entry.edge.source, entry.edge.target);
+        reachableEdges.add(edgeIdentity);
+        const nextKey = referenceKey(entry.next);
+        if (!reachableNodes.has(nextKey)) {
+          reachableNodes.add(nextKey);
+          nextFrontier.push(entry.next);
+        }
+      }
+    }
+    frontier = nextFrontier;
+  }
+
+  if (reachableNodes.size !== nodeKeys.size || reachableEdges.size !== edges.length) {
+    addIssue("INVALID_GRAPH_TOPOLOGY");
+  }
+}
+
+function traversalFor(
+  queryType: PublicGraphQueryType,
+  edge: { type: PublicGraphEdgeType; source: PublicGraphReference; target: PublicGraphReference },
+) {
+  if (queryType === "ROLE_SKILLS" || queryType === "ROLE_GRAPH") {
+    return edge.type === "ROLE_REQUIRES_SKILL"
+      ? { from: edge.source, to: edge.target }
+      : queryType === "ROLE_GRAPH" ? { from: edge.source, to: edge.target } : null;
+  }
+  if (queryType === "SKILL_ROLES") {
+    return edge.type === "ROLE_REQUIRES_SKILL"
+      ? { from: edge.target, to: edge.source }
+      : null;
+  }
+  if (queryType === "SKILL_CONCEPTS") {
+    return edge.type === "SKILL_REQUIRES_CONCEPT"
+      ? { from: edge.source, to: edge.target }
+      : null;
+  }
+  if (queryType === "CONCEPT_SKILLS") {
+    return edge.type === "SKILL_REQUIRES_CONCEPT"
+      ? { from: edge.target, to: edge.source }
+      : null;
+  }
+  if (queryType === "SKILL_GRAPH") {
+    return edge.type === "ROLE_REQUIRES_SKILL"
+      ? { from: edge.target, to: edge.source }
+      : { from: edge.source, to: edge.target };
+  }
+  return { from: edge.target, to: edge.source };
 }
 
 export function validatePublicGraphResponse(input: unknown): PublicGraphValidationResult {

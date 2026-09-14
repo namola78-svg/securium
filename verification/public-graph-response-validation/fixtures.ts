@@ -117,6 +117,7 @@ export const EXPECTED_PUBLIC_GRAPH_RESPONSE = {
         target: { type: "CONCEPT", publicId: "concept:concept-1" },
       },
     ],
+    page: null,
   },
   page: null,
 } as const;
@@ -175,6 +176,7 @@ export function createNodeLimitBoundaryResponse() {
       root: generatedReference("ROLE", 0),
       nodes,
       edges,
+      page: null,
     },
     page: null,
   };
