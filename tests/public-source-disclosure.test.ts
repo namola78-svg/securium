@@ -42,6 +42,16 @@ test("absent public projection returns only the generic missing-information noti
   });
 });
 
+test("null, arrays, and primitive inputs are rejected without coercion", () => {
+  for (const input of [null, [], "projection", 42, false]) {
+    assert.deepEqual(formatPublicSourceDisclosure(input), {
+      officialReference: null,
+      independentExplanation: null,
+      notice: PUBLIC_SOURCE_DISCLOSURE_MISSING_NOTICE,
+    });
+  }
+});
+
 test("valid official projection returns the allowlisted fields and distinct explanation", () => {
   const result = formatPublicSourceDisclosure(projection());
 
@@ -140,7 +150,7 @@ test("raw private or draft-shaped source data is not accepted without the public
   assert.doesNotMatch(JSON.stringify(result), /private-source-id|PRIVATE_SENTINEL|private\.example/);
 });
 
-test("extra fields, internal notes, private URLs, and personal identifiers are never copied", () => {
+test("extra fields and identifiers in non-allowlisted fields are never copied", () => {
   const result = formatPublicSourceDisclosure(
     projection({
       institutionName: "Public Institution",
@@ -193,11 +203,14 @@ test("malformed field types and unsupported raw review states are omitted", () =
 test("only HTTPS URLs without credentials are returned as display links", () => {
   const rejectedUrls = [
     "http://example.com/source",
+    "relative/source",
+    "https://",
     "javascript:alert(1)",
     "data:text/plain,source",
     "file:///private/source",
     "ftp://example.com/source",
     "https://user:password@example.com/source",
+    `https://example.com/${"a".repeat(2_048)}`,
   ];
 
   for (const sourceUrl of rejectedUrls) {
