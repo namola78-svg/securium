@@ -93,6 +93,10 @@ PACKAGE_ALLOWLIST: tuple[tuple[str, str], ...] = (
         "examples/digital-forensics-timeline-local-lab/rehearsal-kit/rehearsal-checklist.md",
     ),
     (
+        "verification/forensics-learner-preflight/preflight.py",
+        "verification/forensics-learner-preflight/preflight.py",
+    ),
+    (
         "examples/digital-forensics-timeline-offline-package/README.md",
         "README.md",
     ),

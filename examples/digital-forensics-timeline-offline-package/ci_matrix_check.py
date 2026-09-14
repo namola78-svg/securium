@@ -1,9 +1,10 @@
 """Run the timeline offline-package contract in a disposable CI workspace.
 
-The harness is deliberately outside the package allowlist.  It binds source
+The harness is deliberately outside the package allowlist. It binds source
 verification to the exact checkout selected by the workflow, runs the package
-boundary tests, and then exercises the extracted timeline lab from its own
-working directory without repository import paths.
+boundary tests, extracts only after source verification passes, and then runs
+the extracted learner preflight before the timeline lab from its own working
+directory without repository import paths.
 """
 
 from __future__ import annotations
@@ -11,6 +12,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+from collections import Counter
 from pathlib import Path
 import platform
 import shutil
@@ -25,9 +27,19 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 PACKAGE_ROOT = Path(__file__).resolve().parent
 BUILDER = PACKAGE_ROOT / "build_offline_package.py"
 LAB_ARCHIVE_ROOT = "examples/digital-forensics-timeline-local-lab"
+PREFLIGHT_ARCHIVE_PATH = "verification/forensics-learner-preflight/preflight.py"
 ZIP_NAME = "securium-forensics-timeline-offline-package.zip"
 MANIFEST_NAME = "securium-forensics-timeline-offline-package.manifest.json"
 CI_ROOT_ENV = "SECURIUM_OFFLINE_CI_ROOT"
+SUBPROCESS_TIMEOUT_SECONDS = 120
+EXPECTED_PREFLIGHT_NOT_RUN = {
+    "ci_success_evidence",
+    "full_lab_execution",
+    "filesystem_policy_matrix",
+    "actual_evidence_handling",
+    "learner_or_instructor_rehearsal",
+    "publication_or_delivery_readiness",
+}
 
 
 def _clean_environment() -> dict[str, str]:
@@ -52,16 +64,24 @@ def _run(
     expected_code: int | None = None,
     environment: dict[str, str] | None = None,
 ) -> subprocess.CompletedProcess[str]:
-    result = subprocess.run(
-        command,
-        cwd=cwd,
-        env=environment or _clean_environment(),
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        check=False,
-    )
+    try:
+        result = subprocess.run(
+            command,
+            cwd=cwd,
+            env=environment or _clean_environment(),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+            timeout=SUBPROCESS_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired as error:
+        raise RuntimeError(
+            f"subprocess timeout after {SUBPROCESS_TIMEOUT_SECONDS}s: {command[0]}"
+        ) from error
+    except OSError as error:
+        raise RuntimeError(f"subprocess error: {type(error).__name__}") from error
     if expected_code is not None and result.returncode != expected_code:
         detail = result.stderr.strip() or result.stdout.strip() or "no command output"
         raise RuntimeError(
@@ -157,6 +177,152 @@ def _runner_summary(result: subprocess.CompletedProcess[str]) -> dict[str, objec
     raise RuntimeError("extracted strict runner did not emit a summary")
 
 
+def _run_extracted_preflight(extraction: Path, ci_root: Path) -> dict[str, object]:
+    """Run the packaged preflight and keep its result separate from lab results."""
+
+    environment = _test_environment(ci_root)
+    preflight_path = extraction.joinpath(*PREFLIGHT_ARCHIVE_PATH.split("/"))
+    if not preflight_path.is_file():
+        raise RuntimeError("extracted learner preflight is missing")
+
+    workspace = ci_root / "preflight workspace"
+    workspace.mkdir()
+    report = workspace / "preflight report.json"
+    completed: subprocess.CompletedProcess[str] | None = None
+    primary_error: Exception | None = None
+    try:
+        try:
+            completed = _run(
+                [
+                    sys.executable,
+                    "-B",
+                    str(preflight_path),
+                    "--json",
+                    "--temp-root",
+                    str(workspace),
+                    "--report",
+                    str(report),
+                ],
+                cwd=extraction,
+                environment=environment,
+            )
+        except RuntimeError as error:
+            summary = {
+                "overall_status": "PROCESS_ERROR",
+                "exit_code": None,
+                "lab_execution": "NOT_RUN",
+                "reason": str(error),
+            }
+            print("preflight_verification=" + json.dumps(summary, sort_keys=True))
+            raise RuntimeError(
+                "preflight_status=PROCESS_ERROR; lab_execution=NOT_RUN; " + str(error)
+            ) from error
+        try:
+            result = _json_output(completed)
+        except RuntimeError as error:
+            summary = {
+                "overall_status": "PROCESS_ERROR",
+                "exit_code": completed.returncode,
+                "lab_execution": "NOT_RUN",
+                "reason": str(error),
+            }
+            print("preflight_verification=" + json.dumps(summary, sort_keys=True))
+            raise RuntimeError(
+                "preflight_status=PROCESS_ERROR; lab_execution=NOT_RUN; " + str(error)
+            ) from error
+        probes = result.get("probes")
+        if not isinstance(probes, list):
+            summary = {
+                "overall_status": "PROCESS_ERROR",
+                "exit_code": completed.returncode,
+                "lab_execution": "NOT_RUN",
+                "reason": "extracted preflight did not return a probe list",
+            }
+            print("preflight_verification=" + json.dumps(summary, sort_keys=True))
+            raise RuntimeError(
+                "preflight_status=PROCESS_ERROR; lab_execution=NOT_RUN; "
+                "extracted preflight did not return a probe list"
+            )
+        statuses = Counter(
+            str(probe.get("status"))
+            for probe in probes
+            if isinstance(probe, dict)
+        )
+        not_run_names = {
+            str(probe.get("name"))
+            for probe in probes
+            if isinstance(probe, dict) and probe.get("status") == "NOT_RUN"
+        }
+        summary = {
+            "overall_status": result.get("overall_status"),
+            "exit_code": completed.returncode,
+            "lab_execution": "NOT_RUN" if completed.returncode != 0 else "PENDING",
+            "probe_counts": dict(sorted(statuses.items())),
+            "not_run_scopes": sorted(not_run_names),
+        }
+        if completed.returncode != 0:
+            print("preflight_verification=" + json.dumps(summary, sort_keys=True))
+            raise RuntimeError(
+                f"preflight_status={result.get('overall_status', 'UNKNOWN')}; "
+                f"preflight_exit={completed.returncode}; lab_execution=NOT_RUN"
+            )
+        if result.get("overall_status") != "PASS":
+            summary["lab_execution"] = "NOT_RUN"
+            print("preflight_verification=" + json.dumps(summary, sort_keys=True))
+            raise RuntimeError(
+                f"preflight_status={result.get('overall_status', 'UNKNOWN')}; "
+                "lab_execution=NOT_RUN"
+            )
+        if any(
+            isinstance(probe, dict)
+            and probe.get("required")
+            and probe.get("status") != "PASS"
+            for probe in probes
+        ):
+            summary["lab_execution"] = "NOT_RUN"
+            print("preflight_verification=" + json.dumps(summary, sort_keys=True))
+            raise RuntimeError(
+                "preflight_status=FAIL; required_probe=NOT_PASS; lab_execution=NOT_RUN"
+            )
+        if not_run_names != EXPECTED_PREFLIGHT_NOT_RUN:
+            summary["lab_execution"] = "NOT_RUN"
+            print("preflight_verification=" + json.dumps(summary, sort_keys=True))
+            raise RuntimeError(
+                "extracted preflight NOT_RUN scope changed: "
+                f"{sorted(not_run_names)}; preflight_status=PROCESS_ERROR; lab_execution=NOT_RUN"
+            )
+        if not report.is_file():
+            summary["lab_execution"] = "NOT_RUN"
+            print("preflight_verification=" + json.dumps(summary, sort_keys=True))
+            raise RuntimeError(
+                "preflight_status=PROCESS_ERROR; report=NOT_CREATED; lab_execution=NOT_RUN"
+            )
+        report_size, report_sha256 = _sha256_file(report)
+        summary.update(
+            {
+                "overall_status": result["overall_status"],
+                "exit_code": completed.returncode,
+                "lab_execution": "PENDING",
+                "report_size": report_size,
+                "report_sha256": report_sha256,
+                "probe_counts": dict(sorted(statuses.items())),
+                "not_run_scopes": sorted(not_run_names),
+            }
+        )
+        print("preflight_verification=" + json.dumps(summary, sort_keys=True))
+        return summary
+    except Exception as error:
+        primary_error = error
+        raise
+    finally:
+        _cleanup_owned_child_preserving_error(
+            workspace,
+            ci_root,
+            primary_error=primary_error,
+            label="preflight_owned_workspace_cleanup",
+        )
+
+
 def _remove_owned_child(path: Path, parent: Path) -> None:
     if not path.exists() and not path.is_symlink():
         return
@@ -172,6 +338,27 @@ def _remove_owned_child(path: Path, parent: Path) -> None:
     except AttributeError:
         pass
     shutil.rmtree(path)
+
+
+def _cleanup_owned_child_preserving_error(
+    path: Path,
+    parent: Path,
+    *,
+    primary_error: Exception | None,
+    label: str,
+) -> None:
+    try:
+        _remove_owned_child(path, parent)
+    except Exception as cleanup_error:
+        print(
+            f"{label}=FAIL cleanup_error={type(cleanup_error).__name__}: {cleanup_error}",
+            file=sys.stderr,
+        )
+        if primary_error is None:
+            raise
+        print(f"{label}_primary_error_preserved=TRUE", file=sys.stderr)
+        return
+    print(f"{label}=" + str(not path.exists()).upper())
 
 
 def _run_extracted_lab(extraction: Path, ci_root: Path) -> dict[str, object]:
@@ -215,6 +402,7 @@ def _run_extracted_lab(extraction: Path, ci_root: Path) -> dict[str, object]:
     report_two = workspace / "timeline report two.json"
     csv_fixture = workspace / "synthetic fixture.csv"
     csv_report = workspace / "CSV timeline report.json"
+    primary_error: Exception | None = None
 
     def cli(*arguments: str, expected_code: int | None = None) -> subprocess.CompletedProcess[str]:
         return _run(
@@ -368,9 +556,29 @@ def _run_extracted_lab(extraction: Path, ci_root: Path) -> dict[str, object]:
         }
         print("extracted_cli=" + json.dumps(scenarios, sort_keys=True))
         return {"runner": runner_summary, "cli": scenarios}
+    except Exception as error:
+        primary_error = error
+        raise
     finally:
-        _remove_owned_child(workspace, ci_root)
-        print("lab_owned_workspace_cleanup=" + str(not workspace.exists()).upper())
+        _cleanup_owned_child_preserving_error(
+            workspace,
+            ci_root,
+            primary_error=primary_error,
+            label="lab_owned_workspace_cleanup",
+        )
+
+
+def _run_extracted_flow(extraction: Path, ci_root: Path) -> dict[str, object]:
+    """Run preflight first; a preflight failure prevents any lab execution."""
+
+    preflight = _run_extracted_preflight(extraction, ci_root)
+    try:
+        lab = _run_extracted_lab(extraction, ci_root)
+    except Exception as error:
+        print(f"lab_execution=FAIL reason={type(error).__name__}")
+        raise
+    print("lab_execution=PASS")
+    return {"preflight": preflight, "lab": lab}
 
 
 def _run_package_flow(ci_root: Path, expected_source_sha: str) -> None:
@@ -407,6 +615,8 @@ def _run_package_flow(ci_root: Path, expected_source_sha: str) -> None:
             raise RuntimeError("package build did not bind to the checked-out source commit")
     first_zip = first_dir / ZIP_NAME
     second_zip = second_dir / ZIP_NAME
+    first_manifest_path = first_dir / MANIFEST_NAME
+    second_manifest_path = second_dir / MANIFEST_NAME
     first_size, first_hash = _sha256_file(first_zip)
     second_size, second_hash = _sha256_file(second_zip)
     if first_zip.read_bytes() != second_zip.read_bytes() or (first_size, first_hash) != (
@@ -414,10 +624,20 @@ def _run_package_flow(ci_root: Path, expected_source_sha: str) -> None:
         second_hash,
     ):
         raise RuntimeError("same-job package builds produced different ZIP bytes or hashes")
-    first_manifest = json.loads((first_dir / MANIFEST_NAME).read_text(encoding="utf-8"))
+    first_manifest_bytes = first_manifest_path.read_bytes()
+    second_manifest_bytes = second_manifest_path.read_bytes()
+    manifest_size, manifest_hash = _sha256_file(first_manifest_path)
+    if first_manifest_bytes != second_manifest_bytes:
+        raise RuntimeError("same-job package builds produced different external manifest bytes")
+    first_manifest = json.loads(first_manifest_bytes.decode("utf-8"))
     source_entry_count = first_manifest.get("entry_count_including_internal_manifest", 0) - 1
     zip_entry_count = first_manifest.get("entry_count_including_internal_manifest", 0)
-    if not isinstance(source_entry_count, int) or source_entry_count <= 0 or zip_entry_count != source_entry_count + 1:
+    if (
+        not isinstance(source_entry_count, int)
+        or source_entry_count != 13
+        or zip_entry_count != 14
+        or zip_entry_count != source_entry_count + 1
+    ):
         raise RuntimeError("package entry accounting is invalid")
     print(
         "package_reproducibility="
@@ -430,6 +650,9 @@ def _run_package_flow(ci_root: Path, expected_source_sha: str) -> None:
                 "same_hash": True,
                 "zip_size": first_size,
                 "zip_sha256": first_hash,
+                "manifest_bytes_equal": True,
+                "manifest_size": manifest_size,
+                "manifest_sha256": manifest_hash,
             },
             sort_keys=True,
         )
@@ -447,7 +670,7 @@ def _run_package_flow(ci_root: Path, expected_source_sha: str) -> None:
                 "--zip",
                 str(first_zip),
                 "--manifest",
-                str(first_dir / MANIFEST_NAME),
+                str(first_manifest_path),
                 "--repository-root",
                 str(REPOSITORY_ROOT),
                 "--source-commit",
@@ -488,36 +711,36 @@ def _run_package_flow(ci_root: Path, expected_source_sha: str) -> None:
         )
     )
 
-    # No extracted code is run before the source-bound verification above.  The
-    # package regression suite already exercises self-consistent payload/manifest
+    # No extracted code is run before the source-bound verification above. The
+    # package regression suite exercises self-consistent payload/manifest
     # tampering, source-record replacement, unsafe entries, and owned cleanup.
-    _run_extracted_lab(extraction, ci_root)
-
-
-def _remove_ci_root(path: Path) -> None:
-    if not path.exists():
-        return
-    if path.is_symlink() or not path.is_dir():
-        raise RuntimeError("refusing cleanup of a replaced CI root")
-    reparse_flag = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
-    try:
-        if path.stat(follow_symlinks=False).st_file_attributes & reparse_flag:
-            raise RuntimeError("refusing cleanup of a reparse CI root")
-    except AttributeError:
-        pass
-    shutil.rmtree(path)
+    # The extracted learner preflight must pass before the lab is run.
+    _run_extracted_flow(extraction, ci_root)
 
 
 def _run_in_root(ci_root: Path, expected_source_sha: str) -> None:
     if ci_root.exists() or ci_root.is_symlink():
         raise RuntimeError(f"CI root must be new and empty: {ci_root}")
     ci_root.mkdir(parents=True, exist_ok=False)
+    sentinel = ci_root / "external sentinel preflight.txt"
+    sentinel.write_text("must remain\n", encoding="utf-8", newline="")
+    primary_error: Exception | None = None
     try:
         _run_package_regressions(ci_root)
         _run_package_flow(ci_root, expected_source_sha)
+        if sentinel.read_text(encoding="utf-8") != "must remain\n":
+            raise RuntimeError("external sentinel changed during package/preflight/lab flow")
+        print("external_sentinel_preserved=True")
+    except Exception as error:
+        primary_error = error
+        raise
     finally:
-        _remove_ci_root(ci_root)
-        print("ci_owned_workspace_cleanup=" + str(not ci_root.exists()).upper())
+        _cleanup_owned_child_preserving_error(
+            ci_root,
+            ci_root.parent,
+            primary_error=primary_error,
+            label="ci_owned_workspace_cleanup",
+        )
 
 
 def main() -> int:
