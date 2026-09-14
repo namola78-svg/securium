@@ -721,7 +721,7 @@ def main() -> int:
             "extracted_input_limit_validation="
             + json.dumps(
                 {"status": "FAIL", "failed_stage": error.stage, "message": str(error)},
-                ensure_ascii=False,
+                ensure_ascii=True,
                 sort_keys=True,
             )
         )
@@ -731,14 +731,14 @@ def main() -> int:
             "extracted_input_limit_validation="
             + json.dumps(
                 {"status": "FAIL", "failed_stage": "unexpected", "message": str(error)},
-                ensure_ascii=False,
+                ensure_ascii=True,
                 sort_keys=True,
             )
         )
         return 1
     summary["owned_cleanup"] = "PASS"
     summary["stages"]["cleanup"] = "PASS"
-    print("extracted_input_limit_validation=" + json.dumps(summary, ensure_ascii=False, sort_keys=True))
+    print("extracted_input_limit_validation=" + json.dumps(summary, ensure_ascii=True, sort_keys=True))
     return 0
 
 
