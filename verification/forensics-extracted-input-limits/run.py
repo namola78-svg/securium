@@ -378,9 +378,14 @@ def _evaluate_extracted_cli(
     if normal_result.returncode != 0:
         raise RunnerFailure("extracted_cli_evaluation", "normal extracted CLI input failed")
     normal_payload = _json_output(normal_result, "extracted_cli_evaluation")
-    if normal_payload.get("status") != "ANALYZED" or normal_payload.get("record_count") != 1:
+    normal_hash = _sha256(normal_bytes)
+    if (
+        normal_payload.get("status") != "ANALYZED"
+        or normal_payload.get("record_count") != 1
+        or normal_payload.get("input_sha256") != normal_hash
+    ):
         raise RunnerFailure("extracted_cli_evaluation", "normal extracted CLI result was unexpected")
-    if not normal_report.is_file() or _sha256_file(normal_input) != (len(normal_bytes), _sha256(normal_bytes)):
+    if not normal_report.is_file() or _sha256_file(normal_input) != (len(normal_bytes), normal_hash):
         raise RunnerFailure("extracted_cli_evaluation", "normal input/report preservation failed")
 
     exact_result = cli(exact_input, exact_report)
@@ -417,7 +422,7 @@ def _evaluate_extracted_cli(
         "normal": {
             "exit_code": normal_result.returncode,
             "input_bytes": len(normal_bytes),
-            "input_sha256": _sha256(normal_bytes),
+            "input_sha256": normal_hash,
             "report_created": normal_report.is_file(),
             "record_count": normal_payload["record_count"],
             "tie_group_count": normal_payload["tie_group_count"],
