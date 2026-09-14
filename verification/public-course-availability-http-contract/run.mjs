@@ -15,14 +15,17 @@ for (const key of [
   delete environment[key];
 }
 environment.APP_BUILD_TARGET = "cloudflare";
+environment.APP_ENV = "test";
 environment.AUTH_PROVIDER = "sites";
 environment.DB_PROVIDER = "d1";
 environment.D1_TEST_MODE = "1";
+environment.STORAGE_PROVIDER = "local";
 environment.CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV = "false";
 environment.MINIFLARE_REGISTRY_PATH = join(ownedRoot, "registry");
 environment.WRANGLER_LOG_PATH = join(ownedRoot, "wrangler.log");
 
 let exitCode = 1;
+let runnerError;
 try {
   exitCode = await run(
     process.execPath,
@@ -34,10 +37,21 @@ try {
     ],
     environment,
   );
+} catch (error) {
+  runnerError = error;
+  console.error(`SECURIUM_HTTP_CONTRACT_RUNNER FAIL ${error?.stack ?? error}`);
 } finally {
-  await rm(ownedRoot, { recursive: true, force: true });
-  console.log("SECURIUM_HTTP_CONTRACT_HARNESS_CLEANUP PASS");
+  try {
+    await rm(ownedRoot, { recursive: true, force: true });
+    console.log("SECURIUM_HTTP_CONTRACT_HARNESS_CLEANUP PASS");
+  } catch (cleanupError) {
+    console.error(
+      `SECURIUM_HTTP_CONTRACT_HARNESS_CLEANUP FAIL ${cleanupError?.stack ?? cleanupError}`,
+    );
+    if (exitCode === 0) exitCode = 1;
+  }
 }
+if (runnerError && exitCode === 0) exitCode = 1;
 process.exit(exitCode);
 
 function run(executable, args, env) {

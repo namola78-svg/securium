@@ -2,7 +2,8 @@
 
 This verification uses the existing D1 test runner and Vinext local server. It
 does not use a browser, a production URL, a managed database, or learner/auth
-session fixtures.
+session fixtures. The runtime is Vinext's Cloudflare local development path;
+this is not Native Next.js validation.
 
 ## Direct command
 
@@ -18,10 +19,19 @@ migration, and verify URLs before invoking the existing
 seed to its own temporary D1 persistence. The test then adds only synthetic
 course, group, question, lesson, content, subject, and topic rows.
 
+The launcher forces `APP_ENV=test`, `AUTH_PROVIDER=sites`, `DB_PROVIDER=d1`,
+and `D1_TEST_MODE=1`; it disables Cloudflare's dotenv loading. The app receives
+the same `D1_TEST_PERSIST_PATH` through the existing Wrangler wrapper and
+Vinext `persistState` configuration. No managed/shared database URL or
+credential is selected automatically.
+
 The app is started by the existing
 `tests/support/vinext-test-server.mjs` on an OS-selected loopback port with
-strict port binding. This is Vinext local verification, not Native Next.js or
-production-runtime verification.
+strict port binding. Readiness has a finite timeout, HTTP requests have a
+finite timeout, and owned server shutdown verifies process exit and port
+release. The D1 runner also bounds each migration, seed, and test subprocess;
+the launcher removes its owned Wrangler/log registry root on success or
+failure without changing an existing failure into success.
 
 ## Contract coverage
 

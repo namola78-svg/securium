@@ -6,6 +6,8 @@ import { startVinextTestServer } from "./support/vinext-test-server.mjs";
 const AVAILABLE_LABEL = "\uD559\uC2B5 \uAC00\uB2A5";
 const PLANNED_LABEL = "\uAC1C\uC124 \uC608\uC815";
 const EMPTY_STATE_LABEL = "\uC870\uAC74\uC5D0 \uB9DE\uB294 \uACFC\uC815\uC774 \uC5C6\uC2B5\uB2C8\uB2E4";
+const HTTP_REQUEST_TIMEOUT_MS = 15_000;
+const FIXTURE_EXECUTION_TIMEOUT_MS = 60_000;
 
 const FIXTURE = Object.freeze({
   groupId: "http-contract-fixture-group",
@@ -68,31 +70,42 @@ let server;
 let baseUrl = "";
 
 before(async () => {
-  assert.equal(process.env.DB_PROVIDER, "d1");
-  assert.equal(process.env.D1_TEST_MODE, "1");
-  assert.ok(
-    process.env.D1_TEST_PERSIST_PATH,
-    "the existing D1 runner must provide owned persistence",
-  );
-  assert.equal(process.env.DATABASE_URL, undefined);
-  assert.equal(process.env.DIRECT_URL, undefined);
-  assert.equal(process.env.POSTGRES_SEED_URL, undefined);
-  assert.equal(process.env.POSTGRES_MIGRATION_URL, undefined);
-  assert.equal(process.env.POSTGRES_VERIFY_URL, undefined);
+  try {
+    assert.equal(process.env.DB_PROVIDER, "d1");
+    assert.equal(process.env.D1_TEST_MODE, "1");
+    assert.ok(
+      process.env.D1_TEST_PERSIST_PATH,
+      "the existing D1 runner must provide owned persistence",
+    );
+    assert.equal(process.env.DATABASE_URL, undefined);
+    assert.equal(process.env.DIRECT_URL, undefined);
+    assert.equal(process.env.POSTGRES_SEED_URL, undefined);
+    assert.equal(process.env.POSTGRES_MIGRATION_URL, undefined);
+    assert.equal(process.env.POSTGRES_VERIFY_URL, undefined);
 
-  await executeOwnedD1(buildFixtureSql());
-  server = await startVinextTestServer({
-    label: "Public course availability HTTP contract",
-  });
-  baseUrl = server.baseUrl;
-  assert.match(baseUrl, /^https?:\/\/(?:localhost|127\.0\.0\.1):\d+$/);
-  console.log(
-    `PUBLIC_AVAILABILITY_HTTP_SERVER_READY pid=${server.childPid} origin=${baseUrl} port=${server.port} persistence=${process.env.D1_TEST_PERSIST_PATH}`,
-  );
+    await executeOwnedD1(buildFixtureSql());
+    server = await startVinextTestServer({
+      label: "Public course availability HTTP contract",
+    });
+    baseUrl = server.baseUrl;
+    assert.match(baseUrl, /^https?:\/\/(?:localhost|127\.0\.0\.1):\d+$/);
+    console.log(
+      `PUBLIC_AVAILABILITY_HTTP_SERVER_READY pid=${server.childPid} origin=${baseUrl} port=${server.port} persistence=owned`,
+    );
+  } catch (error) {
+    try {
+      await stopServer();
+    } catch (cleanupError) {
+      console.error(
+        `PUBLIC_AVAILABILITY_HTTP_SERVER_CLEANUP FAIL ${cleanupError?.message ?? cleanupError}`,
+      );
+    }
+    throw error;
+  }
 });
 
 after(async () => {
-  await server?.stop();
+  await stopServer();
 });
 
 test("public catalog renders availability from published question/lesson relations", async () => {
@@ -163,6 +176,7 @@ test("public selection excludes unpublished and inactive detail routes", async (
   for (const course of [FIXTURE.courses.unpublished, FIXTURE.courses.inactive]) {
     const response = await fetch(`${baseUrl}/courses/${course.slug}`, {
       redirect: "manual",
+      signal: AbortSignal.timeout(HTTP_REQUEST_TIMEOUT_MS),
     });
     const body = await response.text();
     assert.equal(response.status, 404, `${course.slug}: ${body.slice(0, 600)}`);
@@ -182,7 +196,10 @@ test("public catalog renders the supported empty result response", async () => {
 });
 
 async function fetchHtml(path) {
-  const response = await fetch(`${baseUrl}${path}`, { redirect: "manual" });
+  const response = await fetch(`${baseUrl}${path}`, {
+    redirect: "manual",
+    signal: AbortSignal.timeout(HTTP_REQUEST_TIMEOUT_MS),
+  });
   const html = await response.text();
   assert.equal(response.status, 200, `${path}: ${html.slice(0, 900)}`);
   assert.match(
@@ -272,6 +289,8 @@ function sql(value) {
 
 function executeOwnedD1(statement) {
   return new Promise((resolve, reject) => {
+    let settled = false;
+    let forceKillTimer;
     const child = spawn(
       process.execPath,
       [
@@ -292,6 +311,17 @@ function executeOwnedD1(statement) {
         windowsHide: true,
       },
     );
+    const timeout = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      child.kill("SIGTERM");
+      forceKillTimer = setTimeout(() => child.kill("SIGKILL"), 5_000);
+      reject(
+        new Error(
+          `Owned D1 fixture timed out after ${FIXTURE_EXECUTION_TIMEOUT_MS}ms.`,
+        ),
+      );
+    }, FIXTURE_EXECUTION_TIMEOUT_MS);
     let output = "";
     child.stdout.on("data", (chunk) => {
       output += chunk.toString();
@@ -299,12 +329,28 @@ function executeOwnedD1(statement) {
     child.stderr.on("data", (chunk) => {
       output += chunk.toString();
     });
-    child.once("error", reject);
+    child.once("error", (error) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      clearTimeout(forceKillTimer);
+      reject(error);
+    });
     child.once("close", (code) => {
+      clearTimeout(timeout);
+      clearTimeout(forceKillTimer);
+      if (settled) return;
+      settled = true;
       if (code === 0) resolve(output);
       else reject(new Error(`Owned D1 fixture failed (${code}).\n${output}`));
     });
   });
+}
+
+async function stopServer() {
+  const runningServer = server;
+  server = undefined;
+  await runningServer?.stop();
 }
 
 function escapeRegExp(value) {
