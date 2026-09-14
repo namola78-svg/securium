@@ -3,7 +3,10 @@
 상태: 설계 제안만 포함한다. 이 문서의 상태명, exit code, report field는
 현재 제품에 구현되어 있지 않다.
 
-검토 기준은 `origin/main`의 `83f89fb57a85365c12258727ca8caeff3550fd10`이다.
+생성 base는 `83f89fb57a85365c12258727ca8caeff3550fd10`이며, 이번 검토에서
+fetch로 확인한 최신 `origin/main`은 `ed3c443cbf2c875c4f0f5b995a0932ce9adb8033`이다.
+base 이후 main drift는 public-course-availability workflow의 한 줄 변경뿐이며,
+이 문서의 D1 의미를 바꾸지 않는다.
 현재 구현은 `scripts/security-content-upgrade-v3.mjs`,
 `lib/data/security-content-upgrade-v3.mjs`,
 `tests/security-content-upgrade-v3.test.ts`, `package.json`을 직접 대조했다.
@@ -74,6 +77,8 @@ source read / plan 생성
 - D1 caller의 `runCapture`는 현재 child stdout/stderr를 한 문자열로 합치고,
   유한 timeout을 두지 않으며, write subprocess가 nonzero면 `fail`과
   `process.exit(1)`로 끝난다.
+- 임시 SQL 디렉터리의 `finally` cleanup 오류는 현재 구조화 report의 별도 원인으로
+  분리되지 않고 호출 실패로 전파될 수 있다.
 - 성공 marker `SECURITY_CONTENT_V3_D1_LOCAL_APPLIED`는 after snapshot과
   `verifyD1`까지 끝난 뒤에만 출력된다. 그러나 그 앞의 generated SQL은 이미
   terminal `COMMIT`을 실행한다.
@@ -85,6 +90,10 @@ PostgreSQL standalone seed에 추가된 caller-owned transaction 개선은 이 D
 client, verification-before-commit 계약을 D1의 여러 Wrangler CLI 호출에
 그대로 가정하지 않는다.
 
+현재 관련 테스트는 generator SQL, immutable preflight/guard, 범위와 관계 무결성
+같은 정적 계약을 확인한다. D1 subprocess 결과 분류, report schema, exit 호환성,
+operation-bound commit evidence를 실제로 구현하거나 검증하는 테스트는 아직 없다.
+
 ## 관찰 가능한 근거와 관찰 불가능한 상태
 
 현재 caller와 CLI에서 관찰할 수 있는 사실은 제한적이다.
@@ -94,7 +103,7 @@ client, verification-before-commit 계약을 D1의 여러 Wrangler CLI 호출에
 | preflight가 write 호출 전에 실패함 | 이 실행의 write subprocess는 시작되지 않음 | target에 기존 row가 없거나 다른 이전 실행이 없다는 것 |
 | write subprocess exit `0` | CLI가 generated SQL 실행을 성공으로 반환함 | 별도 read-back 없이 모든 기대 row가 durable하게 존재한다는 것 |
 | write subprocess nonzero | 실행이 성공 응답을 반환하지 않음 | transaction rollback 완료 또는 commit 미발생 |
-| after snapshot/read-back 성공 | 특정 query의 결과와 target에서 읽힌 row를 확인함 | verification 전체 조건이 통과했다는 것 |
+| after snapshot/read-back 성공 | 특정 query의 결과와 target에서 읽힌 row를 확인함 | verification 전체 조건, 이번 invocation이 그 row를 commit했다는 인과관계, 기존 row 또는 concurrent writer의 가능성 |
 | verification false | 읽은 상태가 기대 조건과 맞지 않음 | 원인, 소유 writer, 안전한 보상 삭제 방법 |
 | verification query/process/JSON 오류 | verification 결과를 얻지 못함 | seed가 rollback되었거나 저장되지 않았다는 것 |
 | process timeout/connection/output loss | caller가 성공 응답을 받지 못함 | server-side commit 여부 |
@@ -124,6 +133,22 @@ read-back은 있으나 외부 verification 결과를 얻지 못한 제안 결과
 `COMMIT_OUTCOME_UNKNOWN`은 성공 응답을 받지 못해 commit 여부를 결정할 수
 없는 제안 결과다. 두 이름은 서로 대체하지 않는다.
 
+### `COMMITTED_*`의 근거 경계
+
+`COMMITTED_VERIFIED`와 `COMMITTED_VERIFICATION_FAILED`를 포함한
+`COMMITTED_*`는 CLI/process exit `0`, 성공 marker, 또는 기존 row의 존재만으로
+확정하지 않는다. 최소한 같은 target identity에서 immutable payload/version과
+필요한 mapping을 read-back하고, 그 read-back이 이번 invocation의 write와
+인과적으로 결합되어 있어야 `write_commit=CONFIRMED`로 분류한다. operation
+token이나 이에 준하는 causal binding이 없는 단순 존재 확인은 기존 row 또는
+concurrent writer일 수 있으므로 충분하지 않다. 현재 D1 caller에는 이 결합이
+구현되어 있지 않으므로, 현재 관찰만으로는 `ACKNOWLEDGED` 또는 `UNKNOWN`까지
+말할 수 있으며 `CONFIRMED`는 후속 계약의 증거가 있을 때만 사용한다.
+
+따라서 `COMMITTED_BUT_UNVERIFIED`는 writer의 성공 acknowledgement와 외부
+verification 미완료를 함께 기록하는 제안 상태이지, 그 acknowledgement를
+독립적인 durable commit 증명으로 취급한다는 뜻이 아니다.
+
 operation ID, timestamp, source hash, target hash만으로 commit을 증명하지
 않는다. hash는 동일성 비교와 replay 결합에 사용되는 입력이지 저장소 상태의
 commit 증거가 아니다.
@@ -138,10 +163,15 @@ commit 증거가 아니다.
 | --- | --- | --- | --- | --- | --- | --- |
 | A. 쓰기 전 입력·설정·preflight 실패 | write subprocess가 시작되지 않았다는 caller 사실 | 이번 operation의 write는 시도되지 않음. 기존 target 상태는 미확인 | `FAILED_BEFORE_WRITE`; `write_commit=NOT_ATTEMPTED`, `verification=NOT_RUN`; 기존 호환 nonzero | 명시적으로 write 미시도 사실이 보존될 때만 수정 후 controlled retry 가능. 불확실하면 금지 | 입력, source root, config, target binding을 수정하고 preflight 재확인 | “DB가 완전히 변하지 않았다” 또는 “동일 operation이 저장되지 않았다” |
 | B. transaction 내부 write/guard 오류 | write CLI가 nonzero 또는 provider 오류를 반환 | rollback은 provider/target 근거가 있을 때만 확정. D1 caller의 현재 exit만으로는 부족 | rollback 근거가 있으면 `WRITE_FAILED_ROLLBACK_CONFIRMED`; 아니면 `write_commit=UNKNOWN`, `rollback=NOT_CONFIRMED`; 모두 nonzero | rollback confirmed이고 immutable identity가 동일한 경우에만 controlled retry 검토. 그 외 자동 재실행 금지 | read-only 대상 재확인, 오류 분류, immutable row와 downstream mapping 확인 | nonzero를 rollback 완료 또는 commit 미발생으로 번역 |
-| C1. commit 후 verification false/mismatch | write 성공 응답과 verification query의 실제 부정 결과 | read-back이 대상 row를 확인하면 commit은 `CONFIRMED`; 검증 조건은 실패 | `COMMITTED_VERIFICATION_FAILED`; `write_commit=CONFIRMED`, `verification=MISMATCH`; nonzero | 금지 | 대상 DB identity, payload/version, mapping 및 mismatch 원인을 read-only로 대조 | rollback, 자동 DELETE, 새 snapshot 생성, 운영 데이터 손상 확정 |
-| C2. commit 후 verification query/process/JSON 오류 | write 응답은 성공했으나 외부 verification 결과를 얻지 못함 | 저장 상태는 verification 미완료. write response만으로 durable 전체 상태를 확정하지 않음 | `COMMITTED_BUT_UNVERIFIED`; `write_commit=ACKNOWLEDGED` 또는 제한된 `CONFIRMED`, `verification=QUERY_FAILED`/`UNAVAILABLE`; nonzero | 금지. 먼저 read-only verification | 동일 target과 동일 source plan에 결합한 read-only recheck | verification 실패를 data mismatch 또는 rollback으로 단정 |
-| D. commit 여부 미확정 | write timeout, process 종료, connection/output loss, 성공 응답 손실 | commit 여부 미확정 | `COMMIT_OUTCOME_UNKNOWN`; `write_commit=UNKNOWN`, `verification=NOT_RUN` 또는 `UNAVAILABLE`; nonzero | 금지 | exact target identity로 read-only recheck, immutable payload/version과 mapping 확인 | 실패 응답만으로 rollback 추정, 즉시 seed 재실행, DELETE 후 재생성 |
-| E. commit과 verification 모두 성공 | write 성공, target read-back, 모든 verification 조건 성공, success marker 생성 | 기대 seed 상태가 확인됨 | `COMMITTED_VERIFIED`; `write_commit=CONFIRMED`, `verification=PASSED`; seed exit `0` | 불필요. exact replay 요청은 별도 idempotency 계약에 따름 | report 보존과 후속 모니터링 | 성공 marker만으로 다른 target 또는 운영 DB까지 검증됐다고 주장 |
+| C1. commit 후 verification false/mismatch (protected snapshot/follow-up mismatch 포함) | operation-bound read-back과 verification query 또는 후속 검사의 실제 부정 결과 | 인과적으로 결합된 read-back이 있을 때만 commit은 `CONFIRMED`; 검증 조건은 실패 | `COMMITTED_VERIFICATION_FAILED`; `write_commit=CONFIRMED`, `verification=MISMATCH`; nonzero | 금지 | 대상 DB identity, payload/version, mapping 및 mismatch 원인을 read-only로 대조 | 단순 row 존재만으로 commit 확정, rollback, 자동 DELETE, 새 snapshot 생성, 운영 데이터 손상 확정 |
+| C2. commit 후 verification/snapshot/follow-up query/process/JSON 오류 | write acknowledgement 뒤 protected snapshot 또는 외부 verification 결과를 얻지 못함 | 저장 상태는 verification 미완료. write response와 plain read-back만으로 durable 전체 상태 또는 이번 실행의 commit을 확정하지 않음 | `COMMITTED_BUT_UNVERIFIED`; `write_commit=ACKNOWLEDGED` 또는 operation-bound read-back이 있을 때만 `CONFIRMED`, `verification=QUERY_FAILED`/`UNAVAILABLE`; nonzero | 금지. 먼저 read-only verification | 동일 target과 동일 source plan에 결합한 read-only recheck | verification·snapshot 실패를 data mismatch 또는 rollback으로 단정 |
+| D. write 호출이 시작됐으나 commit 여부 미확정 | write timeout, process 종료, connection/output loss, 성공 응답 손실 | commit 여부 미확정 | `COMMIT_OUTCOME_UNKNOWN`; `write_commit=UNKNOWN`, `verification=NOT_RUN` 또는 `UNAVAILABLE`; nonzero | 금지 | exact target identity로 read-only recheck, immutable payload/version과 mapping 확인 | 실패 응답만으로 rollback 추정, 즉시 seed 재실행, DELETE 후 재생성 |
+| E. commit과 verification 모두 성공 | write acknowledgement, operation-bound target read-back, 모든 verification 조건 성공, success marker 생성 | 기대 seed 상태와 이번 invocation의 commit이 확인됨 | `COMMITTED_VERIFIED`; `write_commit=CONFIRMED`, `verification=PASSED`; seed exit `0` | 불필요. exact replay 요청은 별도 idempotency 계약에 따름 | report 보존과 후속 모니터링 | 성공 marker만으로 다른 target 또는 운영 DB까지 검증됐다고 주장 |
+| F. report 저장 또는 cleanup 오류 동반 | seed 결과와 별도로 report write 또는 임시 산출물 cleanup에서 오류 | 이미 계산·관찰한 write/verification 상태는 변경되지 않음 | 기존 `result_state`와 `report_write_failed`/`cleanup_error`를 분리 기록. report를 저장하지 못해도 원래 결과를 성공으로 덮지 않고 기존 nonzero 호환을 유지 | 오류 원인 확인 전 자동 재실행 금지 | 원래 seed 결과와 report/cleanup 오류를 각각 read-only로 확인 | report/cleanup 오류를 transaction rollback, commit 미발생, 또는 원래 결과의 재분류로 번역 |
+
+F는 A-E를 대체하는 새 write 상태가 아니라, 어느 결과에도 동반될 수 있는
+secondary error 축이다. `target_scope`도 표시용 범위일 뿐 identity 증명이 아니며,
+`target_identity_evidence`가 없거나 부족하면 미해결 항목으로 남긴다.
 
 `exit 0`은 E의 조건, 즉 write/commit evidence와 verification이 모두 성공한
 경우에만 허용한다. report 파일 생성 실패가 발생해도 이미 계산한 seed 결과를
@@ -169,8 +199,9 @@ nonzero를 유지하되, 복구에 필요한 최소한의 sanitized stderr를 �
 복구는 “다시 실행해도 안전하다”는 일반 문장이 아니라, 동일 target과 동일
 immutable identity를 재확인한 경우로 제한한다.
 
-1. target binding을 확인한다. 최소한 D1 local/remote 구분, 명시적 config,
-   persistence/database identity, operation 대상 scope가 일치해야 한다.
+1. target binding을 확인한다. 최소한 D1 local/remote/managed 구분, 명시적 config,
+   persistence/database identity, operation 대상 scope가 일치해야 한다. target
+   이름, `APP_ENV`, `target_scope` 같은 표시값만으로 target을 식별하지 않는다.
 2. source plan identity와 content/question IDs, version, immutable payload
    projection을 비교한다. 전체 SQL이나 content 본문은 report에 넣지 않는다.
 3. 기존 row가 있으면 exact existing replay와 divergent payload를 구분한다.
@@ -203,6 +234,7 @@ immutable identity를 재확인한 경우로 제한한다.
   "schema_version": 1,
   "operation_id": "opaque-operation-id",
   "target_scope": "d1-local",
+  "target_identity_evidence": ["EXPLICIT_CONFIG", "LOCAL_PERSISTENCE_IDENTITY"],
   "source_plan_hash": "hash-for-comparison-only",
   "execution_stage": "VERIFICATION",
   "write_commit": "ACKNOWLEDGED",
