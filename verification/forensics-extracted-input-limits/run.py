@@ -497,7 +497,19 @@ def run_validation(trusted_source_commit: str) -> dict[str, Any]:
         )
         worktree_added = True
         _run(
-            ["git", "-C", str(trusted_root), "checkout", "--detach", trusted_source_commit],
+            ["git", "-C", str(trusted_root), "config", "core.autocrlf", "false"],
+            cwd=REPOSITORY_ROOT,
+            environment=_clean_environment(task_root),
+            stage="trusted_source_checkout",
+        )
+        _run(
+            ["git", "-C", str(trusted_root), "config", "core.eol", "lf"],
+            cwd=REPOSITORY_ROOT,
+            environment=_clean_environment(task_root),
+            stage="trusted_source_checkout",
+        )
+        _run(
+            ["git", "-C", str(trusted_root), "checkout", "--force", "--detach", trusted_source_commit],
             cwd=REPOSITORY_ROOT,
             environment=_clean_environment(task_root),
             stage="trusted_source_checkout",
