@@ -9,6 +9,9 @@ import {
   PublicCourseSearchError,
 } from "../lib/services/public-course-search-adapter.ts";
 import {
+  createPublicDiscoverySelectionService,
+} from "../lib/services/public-discovery-selection.ts";
+import {
   createSyntheticOutlineCourse,
   createSyntheticSearchRecord,
   createSyntheticSubject,
@@ -44,13 +47,17 @@ async function searchAndSelect(
 ) {
   const searchAdapter = createPublicCourseSearchAdapter(repository);
   const outlineAdapter = createPublicCourseOutlineAdapter(repository);
+  const selectionService = createPublicDiscoverySelectionService(outlineAdapter);
   const search = await searchAdapter.searchPublicCourses({
     query: "synthetic",
     limit: 8,
   });
   const selected = selectCourseFromSearch(search, courseId);
-  const outline = await outlineAdapter({ courseSlug: selected.slug });
-  return { outline, search, selected, searchAdapter, outlineAdapter };
+  const outline = await selectionService.getSelectedCourseOutline({
+    courseId: selected.id,
+    courseSlug: selected.slug,
+  });
+  return { outline, search, selected, searchAdapter, outlineAdapter, selectionService };
 }
 
 function callKinds(calls: readonly SyntheticCall[]) {
@@ -64,7 +71,7 @@ function assertUnavailable(
   assert.deepEqual(result, { status: "UNAVAILABLE", reason });
 }
 
-test("A: binds a real search result to outline lookup and preserves fixture state", async () => {
+test("A: binds a real search result through the selection service and preserves fixture state", async () => {
   const repository = new SyntheticPublicDiscoveryRepository();
   const before = repository.snapshotData();
 
@@ -128,6 +135,20 @@ test("B: empty or invalid selections do not invoke the outline adapter", async (
     (error: unknown) => error instanceof SelectionError && error.code === "SELECTION_NOT_IN_SEARCH_RESULTS",
   );
   assert.deepEqual(callKinds(invalidSelectionRepository.calls), ["search"]);
+
+  const invalidInputRepository = new SyntheticPublicDiscoveryRepository();
+  const invalidInputOutlineAdapter = createPublicCourseOutlineAdapter(invalidInputRepository);
+  const invalidInputSelectionService = createPublicDiscoverySelectionService(
+    invalidInputOutlineAdapter,
+  );
+  assert.deepEqual(
+    await invalidInputSelectionService.getSelectedCourseOutline({
+      courseId: "",
+      courseSlug: SYNTHETIC_COURSE_SLUG,
+    }),
+    { status: "SELECTION_ERROR", code: "INVALID_INPUT" },
+  );
+  assert.deepEqual(callKinds(invalidInputRepository.calls), []);
 });
 
 test("C: deterministic post-search visibility changes are handled as unavailable lookup", async () => {
@@ -154,7 +175,7 @@ test("C: deterministic post-search visibility changes are handled as unavailable
   }
 });
 
-test("D: distinguishes adapter slug rejection from a harness-detected ID mismatch", async () => {
+test("D: rejects slug projection errors and same-slug ID mismatches at the connection boundary", async () => {
   const slugMismatchRepository = new SyntheticPublicDiscoveryRepository();
   const slugMismatch = await searchAndSelectWithRepositoryMutation(
     slugMismatchRepository,
@@ -167,25 +188,54 @@ test("D: distinguishes adapter slug rejection from a harness-detected ID mismatc
   const mismatchedCourseId = "different-course-id";
   const idMismatch = await searchAndSelectWithRepositoryMutation(
     idMismatchRepository,
-    createSyntheticOutlineCourse({ id: mismatchedCourseId }),
+    createSyntheticOutlineCourse({
+      id: mismatchedCourseId,
+      code: "MISMATCHED-COURSE",
+      name: "Mismatched course title",
+      groupName: "Mismatched course group",
+    }),
     [
       createSyntheticSubject(
-        "subject-a",
+        "mismatched-subject",
         1,
-        [createSyntheticTopic("topic-a", "subject-a", 1, { courseId: mismatchedCourseId })],
+        [
+          createSyntheticTopic("mismatched-topic", "mismatched-subject", 1, {
+            courseId: mismatchedCourseId,
+            name: "Mismatched topic title",
+          }),
+        ],
         { courseId: mismatchedCourseId },
       ),
     ],
   );
-  assert.equal(idMismatch.outline.status, "OK");
-  if (idMismatch.outline.status !== "OK") return;
-  assert.notEqual(idMismatch.outline.course.id, idMismatch.selected.id);
-  assert.equal(
-    idMismatch.outline.course.id !== idMismatch.selected.id,
-    true,
-    "evaluation harness detects an ID mismatch not rejected by the product adapter",
-  );
+  assert.deepEqual(idMismatch.outline, {
+    status: "SELECTION_ERROR",
+    code: "IDENTITY_MISMATCH",
+  });
+  const mismatchPayload = JSON.stringify(idMismatch.outline);
+  for (const hiddenValue of [
+    mismatchedCourseId,
+    "MISMATCHED-COURSE",
+    "Mismatched course title",
+    "Mismatched course group",
+    "mismatched-subject",
+    "Mismatched topic title",
+    "mismatched-topic",
+    "SYNTHETIC_INTERNAL_LESSON_BODY",
+    "SYNTHETIC_PERSONAL_EVIDENCE_SENTINEL",
+  ]) {
+    assert.equal(
+      mismatchPayload.includes(hiddenValue),
+      false,
+      `mismatch payload must not disclose ${hiddenValue}`,
+    );
+  }
   assert.deepEqual(callKinds(idMismatchRepository.calls), ["search", "course", "curriculum"]);
+  assert.notDeepEqual(
+    idMismatch.outline,
+    { status: "OK" },
+    "identity mismatch must not be returned as a successful outline",
+  );
 });
 
 test("E: keeps an empty outline successful and rejects subject/topic over-limit results", async () => {
@@ -298,13 +348,17 @@ async function searchAndSelectWithRepositoryMutation(
 ) {
   const searchAdapter = createPublicCourseSearchAdapter(repository);
   const outlineAdapter = createPublicCourseOutlineAdapter(repository);
+  const selectionService = createPublicDiscoverySelectionService(outlineAdapter);
   const search = await searchAdapter.searchPublicCourses({ query: "synthetic" });
   const selected = selectCourseFromSearch(search, SYNTHETIC_COURSE_ID);
   repository.replaceCourse(replacementCourse);
   if (replacementCurriculum !== undefined) {
     repository.replaceCurriculum(replacementCurriculum);
   }
-  const outline = await outlineAdapter({ courseSlug: selected.slug });
+  const outline = await selectionService.getSelectedCourseOutline({
+    courseId: selected.id,
+    courseSlug: selected.slug,
+  });
   return { outline, selected };
 }
 

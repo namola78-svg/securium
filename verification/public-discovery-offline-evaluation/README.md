@@ -12,17 +12,25 @@ node --import tsx --test tests/public-discovery-offline-evaluation.test.ts
 ```
 
 The fake repository is only a deterministic fixture. The test calls
-`createPublicCourseSearchAdapter` and `createPublicCourseOutlineAdapter`; it
-does not manufacture adapter responses. The evaluation-only selection helper
-rejects an empty result or a course ID absent from the returned search page.
-That is a harness check, not a product authorization feature.
+`createPublicCourseSearchAdapter`, `createPublicCourseOutlineAdapter`, and the
+internal `createPublicDiscoverySelectionService`; it does not manufacture
+adapter responses. The evaluation-only selection helper rejects an empty
+result or a course ID absent from the returned search page. That is a harness
+check, not a product authorization feature.
+
+The selection service is the connection boundary for the flow. It carries the
+selected course ID and slug together, asks the outline adapter for the current
+public result, and returns `SELECTION_ERROR / IDENTITY_MISMATCH` when the
+returned public course ID differs. It does not establish authorization,
+search-result authenticity, snapshot consistency, or revision identity. The
+outline adapter's `NOT_FOUND` and `UNAVAILABLE` results pass through unchanged.
 
 Scenarios:
 
 - A: search-to-outline slug/ID binding, call order, sorting, fixture immutability
 - B: empty search and invalid selection without an outline call
 - C: deterministic unpublished, deleted, and missing state after search
-- D: adapter slug rejection versus a harness-detected ID mismatch
+- D: adapter slug rejection versus connection-layer ID mismatch rejection
 - E: successful empty outline and the 50-subject / 200-topic response limits
 - F: search provider error, outline provider error, and malformed projections
 - G: search/outline output allowlists and internal/personal sentinel exclusion
