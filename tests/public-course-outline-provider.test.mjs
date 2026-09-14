@@ -66,6 +66,14 @@ after(async () => {
     }
   }
 
+  if (postgresReceiptDirectory && !postgresRecord) {
+    await rm(postgresReceiptDirectory, { recursive: true, force: true }).catch(
+      (error) => {
+        console.error(`POSTGRES_RECEIPT_CLEANUP_FAIL ${error?.message ?? error}`);
+      },
+    );
+  }
+
   await miniflare?.dispose().catch((error) => {
     console.error(`D1_FIXTURE_CLEANUP_FAIL ${error?.message ?? error}`);
   });
@@ -106,6 +114,28 @@ test("provider query failures remain repository errors and do not become empty o
   });
 });
 
+test("provider course query failures stop before curriculum queries", async () => {
+  const provider = createPublicCourseOutlineProvider(
+    new RepositoryContext({
+      kind: "d1",
+      async query() {
+        throw new Error("fixture database failure");
+      },
+    }),
+  );
+
+  const adapter = createPublicCourseOutlineAdapter(provider);
+  assert.deepEqual(await adapter({ courseSlug: "public-course" }), {
+    status: "UNAVAILABLE",
+    reason: "PUBLIC_REPOSITORY_ERROR",
+  });
+  assert.deepEqual(provider.getMetrics(), {
+    queryCount: 1,
+    queryCountByKind: { course: 1, subjects: 0, topics: 0 },
+    returnedRowsByKind: { course: 0, subjects: 0, topics: 0 },
+  });
+});
+
 async function assertProviderContract(createRuntime) {
   const normal = await invoke(createRuntime, "public-course");
   assert.equal(normal.result.status, "OK");
@@ -120,22 +150,36 @@ async function assertProviderContract(createRuntime) {
     difficulty: "BEGINNER",
   });
   assert.deepEqual(normal.result.subjects.map((subject) => subject.id), [
+    "subject-A",
     "subject-a",
     "subject-z",
-    "subject-가",
+    "subject-\u4E2D",
+    "subject-\uAC00",
+    "subject-\u{1F600}",
   ]);
-  assert.deepEqual(normal.result.subjects[0].topics.map((topic) => topic.id), [
+  const publicSubject = normal.result.subjects.find(
+    (subject) => subject.id === "subject-a",
+  );
+  assert.ok(publicSubject);
+  assert.deepEqual(publicSubject.topics.map((topic) => topic.id), [
+    "topic-A",
     "topic-a",
     "topic-z",
-    "topic-가",
+    "topic-\u4E2D",
+    "topic-\uAC00",
+    "topic-\u{1F600}",
   ]);
-  assert.deepEqual(normal.result.subjects[1].topics.map((topic) => topic.id), [
+  const publicGroupSubject = normal.result.subjects.find(
+    (subject) => subject.id === "subject-z",
+  );
+  assert.ok(publicGroupSubject);
+  assert.deepEqual(publicGroupSubject.topics.map((topic) => topic.id), [
     "topic-public-z",
   ]);
   assert.deepEqual(normal.metrics, {
     queryCount: 3,
     queryCountByKind: { course: 1, subjects: 1, topics: 1 },
-    returnedRowsByKind: { course: 1, subjects: 3, topics: 4 },
+    returnedRowsByKind: { course: 1, subjects: 6, topics: 7 },
   });
   assert.equal(JSON.stringify(normal.result).includes("private-thumbnail"), false);
   assert.equal(JSON.stringify(normal.result).includes("PRIVATE_GROUP_METADATA"), false);
@@ -151,7 +195,7 @@ async function assertProviderContract(createRuntime) {
     "name",
     "topics",
   ]);
-  assert.deepEqual(Object.keys(normal.result.subjects[0].topics[0]).sort(), [
+  assert.deepEqual(Object.keys(publicSubject.topics[0]).sort(), [
     "code",
     "description",
     "displayOrder",
@@ -367,12 +411,17 @@ async function setupPostgres() {
     join(tmpdir(), `securium-public-course-outline-pg-${runId}-`),
   );
   const receiptPath = join(postgresReceiptDirectory, "container-receipt.json");
-  postgresRecord = await createLocalOwnedPostgresContainer({
-    name: `securium-public-course-outline-${runId}`,
-    ownerToken: `public-course-outline-${runId}`,
-    password: `public-course-outline-test-${runId}`,
-    receiptPath,
-  });
+  try {
+    postgresRecord = await createLocalOwnedPostgresContainer({
+      name: `securium-public-course-outline-${runId}`,
+      ownerToken: `public-course-outline-${runId}`,
+      password: `public-course-outline-test-${runId}`,
+      receiptPath,
+    });
+  } catch (error) {
+    if (error?.containerRecord) postgresRecord = error.containerRecord;
+    throw error;
+  }
   const port = await getPublishedPostgresPort(postgresRecord);
   console.log(
     `POSTGRES_FIXTURE_CREATED id=${postgresRecord.containerId} owner=${postgresRecord.ownerToken} endpoint=127.0.0.1:${port}`,
@@ -458,9 +507,26 @@ async function createLocalOwnedPostgresContainer({
       throw new Error("OWNED_POSTGRES_CONTAINER_NOT_RUNNING");
     }
     return record;
-  } catch {
-    if (record.containerId) await cleanupLocalOwnedPostgresContainer(record).catch(() => {});
-    throw new Error("OWNED_POSTGRES_CONTAINER_CREATE_FAILED");
+  } catch (error) {
+    const createError = new Error("OWNED_POSTGRES_CONTAINER_CREATE_FAILED", {
+      cause: error,
+    });
+    if (record.containerId) {
+      try {
+        await cleanupLocalOwnedPostgresContainer(record);
+      } catch (cleanupError) {
+        const combinedError = new AggregateError(
+          [createError, cleanupError],
+          "OWNED_POSTGRES_CONTAINER_CREATE_AND_CLEANUP_FAILED",
+        );
+        Object.defineProperty(combinedError, "containerRecord", {
+          value: record,
+          enumerable: false,
+        });
+        throw combinedError;
+      }
+    }
+    throw createError;
   }
 }
 
@@ -634,7 +700,10 @@ function buildFixtureStatements() {
   const subjects = [
     ["subject-z", "course-public", "SUBJECT-Z", "Subject Z", "Subject Z description", 1, 1, 0, null],
     ["subject-a", "course-public", "SUBJECT-A", "Subject A", "Subject A description", 1, 1, 0, null],
-    ["subject-가", "course-public", "SUBJECT-GA", "Subject 가", "Unicode subject description", 1, 1, 0, null],
+    ["subject-A", "course-public", "SUBJECT-A-UPPER", "Subject A upper", "ASCII case subject description", 1, 1, 0, null],
+    ["subject-\u4E2D", "course-public", "SUBJECT-BMP", "Subject BMP", "BMP subject description", 1, 1, 0, null],
+    ["subject-\uAC00", "course-public", "SUBJECT-HANGUL", "Subject Hangul", "Hangul subject description", 1, 1, 0, null],
+    ["subject-\u{1F600}", "course-public", "SUBJECT-NON-BMP", "Subject non-BMP", "Non-BMP subject description", 1, 1, 0, null],
     ["subject-hidden", "course-public", "SUBJECT-HIDDEN", "Hidden Subject", "", 2, 0, 0, null],
     ["subject-deleted", "course-public", "SUBJECT-DELETED", "Deleted Subject", "", 3, 1, 0, "2026-09-03"],
     ["other-course-subject", "course-other", "OTHER-SUBJECT", "Other Subject", "", 1, 1, 0, null],
@@ -683,7 +752,10 @@ function buildFixtureStatements() {
     ["topic-public-z", "subject-z", "TOPIC-PUBLIC-Z", "Public Z", "Public Z description", 1, 1, 0, null],
     ["topic-z", "subject-a", "TOPIC-Z", "Topic Z", "Topic Z description", 1, 1, 0, null],
     ["topic-a", "subject-a", "TOPIC-A", "Topic A", "Topic A description", 1, 1, 0, null],
-    ["topic-가", "subject-a", "TOPIC-GA", "Topic 가", "Unicode topic description", 1, 1, 0, null],
+    ["topic-A", "subject-a", "TOPIC-A-UPPER", "Topic A upper", "ASCII case topic description", 1, 1, 0, null],
+    ["topic-\u4E2D", "subject-a", "TOPIC-BMP", "Topic BMP", "BMP topic description", 1, 1, 0, null],
+    ["topic-\uAC00", "subject-a", "TOPIC-HANGUL", "Topic Hangul", "Hangul topic description", 1, 1, 0, null],
+    ["topic-\u{1F600}", "subject-a", "TOPIC-NON-BMP", "Topic non-BMP", "Non-BMP topic description", 1, 1, 0, null],
     ["topic-hidden", "subject-a", "TOPIC-HIDDEN", "Hidden Topic", "", 2, 0, 0, null],
     ["topic-deleted", "subject-a", "TOPIC-DELETED", "Deleted Topic", "", 3, 1, 0, "2026-09-04"],
     ["other-course-topic", "other-course-subject", "OTHER-TOPIC", "Other Topic", "", 1, 1, 0, null],
