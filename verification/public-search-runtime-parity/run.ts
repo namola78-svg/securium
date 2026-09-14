@@ -174,28 +174,67 @@ function runtimeMetadata() {
 function sourceMetadata() {
   const comparisonPath = "lib/services/public-course-search-comparison.ts";
   const vectorPath = "verification/public-search-runtime-parity/vectors.ts";
+  const lockfilePath = "package-lock.json";
   const comparisonBlob = gitValue(["hash-object", comparisonPath]);
   const vectorBlob = gitValue(["hash-object", vectorPath]);
-  const vectorSha256 = createHash("sha256")
-    .update(readFileSync(resolve(process.cwd(), vectorPath)))
-    .digest("hex");
+  const comparisonSha256 = sha256File(comparisonPath);
+  const vectorSha256 = sha256File(vectorPath);
+  const lockfileBlob = gitValue(["hash-object", lockfilePath]);
+  const lockfileSha256 = sha256File(lockfilePath);
   return {
     commit: gitValue(["rev-parse", "HEAD"]),
     comparisonPath,
     comparisonBlob,
+    comparisonSha256,
     vectorPath,
     vectorBlob,
     vectorSha256,
+    lockfilePath,
+    lockfileBlob,
+    lockfileSha256,
   };
 }
 
+function sha256File(path: string) {
+  return createHash("sha256")
+    .update(readFileSync(resolve(process.cwd(), path)))
+    .digest("hex");
+}
+
+function resultList(report: Record<string, unknown>) {
+  return Array.isArray(report.results)
+    ? (report.results as Array<Record<string, unknown>>)
+    : [];
+}
+
+function reportIsGoldenValid(report: Record<string, unknown>) {
+  const contract = report.contract as Record<string, unknown> | undefined;
+  const summary = report.summary as Record<string, unknown> | undefined;
+  const results = resultList(report);
+  return (
+    contract?.oracleMatch === true &&
+    summary?.total === results.length &&
+    summary?.executed === results.length &&
+    summary?.pass === results.length &&
+    summary?.fail === 0 &&
+    summary?.skip === 0 &&
+    results.every((result) => result.oracleMatch === true)
+  );
+}
+
 function comparableReport(report: Record<string, unknown>) {
-  return JSON.stringify({
+  const results = resultList(report);
+  return {
     vectorSetVersion: report.vectorSetVersion,
     source: report.source,
     contract: report.contract,
-    results: report.results,
-  });
+    vectorIds: results.map((result) => ({ id: result.id, operation: result.operation })),
+    actuals: results.map((result) => ({
+      id: result.id,
+      operation: result.operation,
+      actual: result.actual,
+    })),
+  };
 }
 
 const args = process.argv.slice(2);
@@ -243,8 +282,10 @@ const report: Record<string, unknown> = {
   results,
   summary: {
     total: results.length,
+    executed: results.length,
     pass: passCount,
     fail: failCount,
+    skip: 0,
   },
   crossRuntimeParity: { status: "NOT_CHECKED" },
 };
@@ -254,10 +295,44 @@ if (comparePath) {
     string,
     unknown
   >;
-  const same = comparableReport(previous) === comparableReport(report);
+  const previousComparable = comparableReport(previous);
+  const currentComparable = comparableReport(report);
+  const bindingMatch =
+    JSON.stringify({
+      vectorSetVersion: previousComparable.vectorSetVersion,
+      source: previousComparable.source,
+      contract: previousComparable.contract,
+    }) ===
+    JSON.stringify({
+      vectorSetVersion: currentComparable.vectorSetVersion,
+      source: currentComparable.source,
+      contract: currentComparable.contract,
+    });
+  const vectorIdsMatch =
+    JSON.stringify(previousComparable.vectorIds) ===
+    JSON.stringify(currentComparable.vectorIds);
+  const actualOutputsMatch =
+    JSON.stringify(previousComparable.actuals) ===
+    JSON.stringify(currentComparable.actuals);
+  const currentGoldenValid = reportIsGoldenValid(report);
+  const previousGoldenValid = reportIsGoldenValid(previous);
   report.crossRuntimeParity = {
-    status: same ? "PASS" : "FAIL",
-    comparedReport: comparePath,
+    status:
+      bindingMatch &&
+      vectorIdsMatch &&
+      actualOutputsMatch &&
+      currentGoldenValid &&
+      previousGoldenValid
+        ? "PASS"
+        : "FAIL",
+    comparedReport: "provided-report",
+    sourceVectorDependencyBinding: bindingMatch ? "PASS" : "FAIL",
+    vectorIdsMatch,
+    actualOutputsMatch,
+    goldenValidation: {
+      current: currentGoldenValid ? "PASS" : "FAIL",
+      compared: previousGoldenValid ? "PASS" : "FAIL",
+    },
   };
 }
 
@@ -287,6 +362,17 @@ console.error(
     " golden vectors passed",
 );
 
-if (!contractOracleMatch || failCount > 0) {
+const crossRuntimeStatus =
+  typeof report.crossRuntimeParity === "object" &&
+  report.crossRuntimeParity !== null &&
+  "status" in report.crossRuntimeParity
+    ? report.crossRuntimeParity.status
+    : undefined;
+
+if (
+  !contractOracleMatch ||
+  failCount > 0 ||
+  (comparePath && crossRuntimeStatus !== "PASS")
+) {
   process.exitCode = 1;
 }
