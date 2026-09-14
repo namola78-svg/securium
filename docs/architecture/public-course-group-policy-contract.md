@@ -14,8 +14,10 @@ metadata 선택 정책의 blocker다. 실제 권한 우회나 실제 데이터 �
 
 - 기준 worktree/branch: `securium-public-course-group-policy-contract` /
   `docs/public-course-group-policy-contract`
-- 문서 base: `origin/main` `4891e9652cec5fffe10dadc32fda49c412c2b39e`
-  (2026-09-14 fetch 확인)
+- generation base: `4891e9652cec5fffe10dadc32fda49c412c2b39e`
+- 최신 fetch 기준 `origin/main`: `00a58e083648b3d10ac27f969af5c0866c43e5aa`.
+  관련 공개 course/group 선택 query, outline/search 경계, 직접 상세·caller·schema에는
+  drift가 없고, D1 classifier 변경은 무관한 변경으로 기록만 한다.
 - PR #189 squash merge: `b1d767edb6cd017842059493f990406a133c422c`
   는 위 main의 조상이다.
 - provider candidate: `cff813b06f6d7b03c1d263e53e4aa72032e19552`
@@ -26,7 +28,7 @@ metadata 선택 정책의 blocker다. 실제 권한 우회나 실제 데이터 �
 보수적인 public predicate를 제안하지만, 그것만으로 publication 정책이
 확정되지는 않는다. [agent-learning-discovery-contract.md](./agent-learning-discovery-contract.md#L115-L139)의
 검색·outline 제안과 [public-learning-graph-contract.md](./public-learning-graph-contract.md#L158-L217)의
-anonymous public 원칙은 이 문서의 제안 근거로만 참조한다.
+공개 조회 원칙은 이 문서의 제안 근거로만 참조한다.
 
 ## 2. 현재 구현별 선택 조건
 
@@ -47,19 +49,19 @@ anonymous public 원칙은 이 문서의 제안 근거로만 참조한다.
 | 목록 `listPublishedCourses` → `/courses` | course `active=true`, `published=true`, `deletedAt IS NULL`; inner join한 group `active=true`, `deletedAt IS NULL` | count subquery는 active·비삭제 subject/topic만 센다. 목록 순서는 group `displayOrder`, course `displayOrder` | `groupName`은 반환하지만 group 상태와 course `deletedAt`은 DTO에 없다. `/courses`의 q/path/status 필터는 이미 선택된 목록에 적용된다. [repository](../../db/repositories.ts#L97-L150), [route](../../app/courses/page.tsx#L25-L45) |
 | 직접 공개 상세 `getPublicCourseBySlug` → `/courses/[courseSlug]` | course active/published/non-deleted만 검사한다. inner join은 group row 존재만 요구하며 group active/deleted 조건은 없다. `LIMIT 1` | projection의 counts는 active·비삭제 subject/topic 기준. 상세 curriculum은 별도 `listCurriculum` | cached wrapper는 조건을 바꾸지 않는다. group 상태와 course `deletedAt`은 projection에 없다. [repository](../../db/repositories.ts#L153-L208), [cache](../../lib/cached-catalog.ts#L1-L46), [route](<../../app/courses/[courseSlug]/page.tsx#L16-L31>) |
 | 인증 과정 lookup `getLearnCourseAccessBySlug` → `/learn/[courseSlug]` | course active/published/non-deleted와 group row join; group active/deleted 조건 없음. enrollment를 left join | overview는 `listCurriculumForLearnOverview`를 별도 두 query로 호출하고 subject/topic active·비삭제만 선택 | course 조회와 enrollment/access는 별도 계약이다. [repository](../../db/repositories.ts#L210-L276), [route](<../../app/learn/[courseSlug]/page.tsx#L24-L38>) |
-| 일반 curriculum `listCurriculum` | course ID만 받는다. subject는 해당 course·active·비삭제; topic은 해당 course의 subject와 join하고 active·비삭제 | subject/topic 각각 `displayOrder`만 DB 정렬. 두 SELECT는 `Promise.all`이며 snapshot 보장은 없다 | 호출자가 course identity와 접근 정책을 이미 결정했다고 가정한다. [repository](../../db/repositories.ts#L278-L319) |
+| 일반 curriculum `listCurriculum` | course ID만 받는다. subject SELECT는 해당 course·active·비삭제; topic SELECT는 해당 course의 subject와 join하고 topic active·비삭제를 고르며, 반환 시 선택된 subject에만 topic을 붙인다 | subject/topic 각각 `displayOrder`만 DB 정렬. 두 SELECT는 `Promise.all`이며 snapshot 보장은 없다 | 호출자가 course identity와 접근 정책을 이미 결정했다고 가정한다. [repository](../../db/repositories.ts#L278-L319) |
 | outline provider `createPublicCourseOutlineProvider` | course active/published/non-deleted + inner join group active/non-deleted | subject `LIMIT 51`, topic은 과정 전체 `LIMIT 201`; 둘 다 `displayOrder, id` 정렬. 정상 course 1회 + curriculum 2회, course 미존재는 1회 조기 종료 | SQL이 group 상태를 검사하지만 반환 course row에는 group 상태가 없다. provider는 현재 app route에 연결되지 않았다. [provider](../../db/public-course-outline-provider.ts#L30-L101), [course SQL](../../db/public-course-outline-provider.ts#L111-L140), [bounded curriculum SQL](../../db/public-course-outline-provider.ts#L142-L198) |
-| outline adapter `createPublicCourseOutlineAdapter` | 자체 DB query는 하지 않는다. course의 active/published/deletedAt와 slug를 projection에서 검증한다 | inactive/deleted subject/topic은 숨기고, course scope·중복·형식을 검사한다. 50 subjects/200 topics 초과는 `UNAVAILABLE/OUTLINE_LIMIT_EXCEEDED`; `displayOrder` 후 JavaScript ID 비교 | group active/deleted를 검사할 field가 없다. 현재 export된 `getPublicCourseOutline` helper는 strict provider가 아니라 기존 `getPublicCourseBySlug` + `listCurriculum`을 사용한다. [adapter](../../lib/services/public-course-outline-adapter.ts#L1-L138), [normalization](../../lib/services/public-course-outline-adapter.ts#L151-L329) |
+| outline adapter `createPublicCourseOutlineAdapter` | 자체 DB query는 하지 않는다. course의 active/published/slug와 projection에 제공된 `deletedAt`의 null성을 검증하지만, 현재 strict provider와 generic detail projection에는 `deletedAt`이 없어 그 field로 독립 판정하지 못한다 | inactive/deleted subject/topic은 숨기고, course scope·중복·형식을 검사한다. 50 subjects/200 topics 초과는 `UNAVAILABLE/OUTLINE_LIMIT_EXCEEDED`; `displayOrder` 후 JavaScript ID 비교 | group active/deleted를 검사할 field가 없다. 현재 export된 `getPublicCourseOutline` helper는 strict provider가 아니라 기존 `getPublicCourseBySlug` + `listCurriculum`을 사용한다. [adapter](../../lib/services/public-course-outline-adapter.ts#L1-L138), [normalization](../../lib/services/public-course-outline-adapter.ts#L151-L329) |
 | search adapter | server-owned repository가 public predicate를 먼저 적용해야 한다. adapter도 course public 상태와 `groupActive=true`, `groupDeletedAt=null`을 검증한다 | provider 결과는 bounded, query/path 일치, 중복 없음, group/course/id 순서를 만족해야 한다 | source record에는 group 상태와 group display order가 있지만 output DTO에는 숨긴다. reviewed main에는 이 interface를 구현하는 DB search provider가 없다: `NOT_IMPLEMENTED_ON_REVIEWED_MAIN`. [source contract](../../lib/services/public-course-search-adapter.ts#L58-L87), [predicate/order](../../lib/services/public-course-search-adapter.ts#L230-L374), [call boundary](../../lib/services/public-course-search-adapter.ts#L543-L577) |
 | discovery selection | slug으로 outline을 조회한 뒤 반환 course ID와 선택 ID만 비교한다 | outline adapter/provider의 정책 결과를 재사용한다 | ID binding은 authorization이나 snapshot/revision 증명이 아니다. route·registry 호출자는 확인되지 않았다. [selection](../../lib/services/public-discovery-selection.ts#L21-L50) |
-| availability | course active/published/non-deleted + group active/non-deleted를 검사한다 | published question 또는 published lesson/content 존재 flag를 별도 계산 | 학습 콘텐츠 존재 여부를 publication 선택 조건으로 대체하지 않는다. [availability query](../../db/public-course-availability-repository.ts#L80-L107), [display decision](../../lib/services/course-availability-display.ts#L1-L9) |
+| availability | 전달받은 `courseIds`에 한해 availability query 자체의 outer `WHERE`가 course active/published/non-deleted + inner-joined group active/non-deleted를 검사한다. `/courses` caller는 먼저 `listPublishedCourses` 결과 ID를 넘기고, 상세 caller는 `getPublicCourseBySlug` 결과 ID를 넘긴다 | published question 또는 published lesson/content 존재 flag를 별도 계산 | 상위 caller의 ID 선택 전제와 query predicate를 혼동하지 않는다. 학습 콘텐츠 존재 여부를 publication 선택 조건으로 대체하지 않는다. [availability query](../../db/public-course-availability-repository.ts#L80-L107), [display decision](../../lib/services/course-availability-display.ts#L1-L9) |
 
 현재 공개 route에서 search/outline/discovery adapter/provider는 사용되지 않는다.
 `/courses`는 목록 query의 결과를 화면에서 필터링하고, 상세 page는 기존
 cached detail query를 사용한다. outline provider는 전용 회귀 테스트와 내부
 provider 경계에만 존재한다. local MCPA read service도 list에는 목록 query를,
-단건 key lookup에는 기존 detail query를 사용한다. 다만 MCPA는 현재 익명
-public route나 활성화된 public tool의 근거가 아니다. [MCPA read service](../../lib/mcp/mcpa-read-service.ts#L17-L84)
+단건 key lookup에는 기존 detail query를 사용한다. 다만 MCPA는 현재 공개 route의
+caller가 아니며, public tool 활성화의 근거도 아니다. [MCPA read service](../../lib/mcp/mcpa-read-service.ts#L17-L84)
 
 ### Projection과 관계의 한계
 
@@ -107,7 +109,8 @@ subject별 query 반복이나 전체 목록 fallback을 사용하지 않는다.
 
 다음 계약을 분리해야 한다.
 
-1. **검색·목록 노출:** anonymous 사용자가 발견 가능한 course metadata 집합이다.
+1. **검색·목록 노출:** 로그인 여부와 무관하게 공개 metadata 조회 역할에서 발견 가능한
+   course 집합이다. 로그인 사용자도 같은 공개 route를 방문할 수 있다.
    현재 목록은 course와 group의 active/non-deleted 및 course published를
    함께 요구한다.
 2. **직접 URL metadata:** `/courses/[courseSlug]`는 slug로 metadata와
@@ -123,6 +126,10 @@ subject별 query 반복이나 전체 목록 fallback을 사용하지 않는다.
    specialized 경로의 인증·enrollment·content access 계약이다. course lookup의
    group gap이 실제 접근 허용을 증명하지 않는다.
 
+여기서 “공개”는 세션이 없는 사용자를 뜻하는 route 분기명이 아니라 metadata 조회
+역할을 뜻한다. 로그인 여부만으로 같은 공개 URL의 lookup 정책을 다르게 선택하지
+않으며, 인증 학습 route의 접근 판정은 별도 계약으로 유지한다.
+
 `getPublicCourseBySlug` 변경은 직접 사용하는 학습 호출자에 영향을 준다.
 subject/lesson/level/course-lesson 학습 page, lecture 목록/상세, practice,
 practical, specialized page는 course lookup 뒤에 enrollment 또는 content
@@ -135,7 +142,9 @@ enrollment redirect의 순서·호환성이 별도 평가 대상이다.
 - [학습 lesson caller](<../../app/learn/[courseSlug]/lessons/[lessonId]/page.tsx#L27-L38>)
 - [lecture caller](<../../app/lectures/[courseSlug]/page.tsx#L15-L23>)
 - [practice caller](<../../app/practice/[courseSlug]/page.tsx#L32-L52>)
-- [practical/specialized callers](<../../app/practical/[courseSlug]/page.tsx#L14-L28>)
+- [practical caller](<../../app/practical/[courseSlug]/page.tsx#L14-L28>)
+- [specialized caller](<../../app/specialized/[courseSlug]/page.tsx#L14-L24>) 및
+  [specialized content caller](<../../app/specialized/[courseSlug]/[contentType]/[contentId]/page.tsx#L21-L28>)
 
 ## 5. 정책 후보와 영향
 
@@ -144,13 +153,13 @@ enrollment redirect의 순서·호환성이 별도 평가 대상이다.
 
 | 후보 | 내용 | 장점 | 비용·위험 |
 | --- | --- | --- | --- |
-| A. anonymous public metadata 동일 조건 | 목록, search, 직접 public detail, outline course 선택에 course active/published/non-deleted와 group active/non-deleted를 모두 적용 | search → detail → outline 연결이 같은 공개 집합을 사용한다. 비활성/삭제 group이 직접 URL만으로 다시 노출되지 않는다. 기존 schema/inner join으로 구현 가능 | 기존 `getPublicCourseBySlug`를 그대로 바꾸면 인증 학습·강의·practice·specialized 호출자까지 `null/NOT_FOUND` 시점이 바뀐다. shared repository를 바꾸는 것만으로 authorization 정책이 확정되는 것은 아니다 |
+| A. public metadata 동일 조건 | 목록, search, 직접 public detail, outline course 선택에 course active/published/non-deleted와 group active/non-deleted를 모두 적용 | search → detail → outline 연결이 같은 공개 집합을 사용한다. 비활성/삭제 group이 직접 URL만으로 다시 노출되지 않는다. 기존 schema/inner join으로 구현 가능 | 기존 `getPublicCourseBySlug`를 그대로 바꾸면 인증 학습·강의·practice·specialized 호출자까지 `null/NOT_FOUND` 시점이 바뀐다. shared repository를 바꾸는 것만으로 authorization 정책이 확정되는 것은 아니다 |
 | B. discovery와 direct lookup 명시적 분리 | 목록/search/outline은 group 상태를 검사하되 직접 상세 metadata는 기존 course-only lookup을 유지 | 기존 bookmark/share URL과 공용 호출자 동작을 보존하기 쉽다 | search에서 고른 course가 detail/outline과 다른 결과를 보일 수 있다. 이는 의도된 “direct metadata legacy” 정책을 문서·테스트·rollout으로 확정해야 하며 현재 근거가 없다 |
 
 ### 권고안
 
 정책 선택으로는 **A**를 권고한다. 다만 구현은 공용 repository 함수를
-무조건 수정하는 방식보다, anonymous public metadata를 위한 명시적 query/seam을
+무조건 수정하는 방식보다, public metadata 조회를 위한 명시적 query/seam을
 두고 `/courses` 상세·향후 search·outline provider가 이를 재사용하는 방식이
 안전하다. 인증 학습의 course/enrollment lookup은 별도 계약으로 유지한다.
 
@@ -170,7 +179,7 @@ detail/outline 불일치, availability 표시, direct URL 회귀를 제품 계�
 
 | 영역 | 최소안 | 재사용/새 결정 |
 | --- | --- | --- |
-| query 조건 | 기존 필드로 public course predicate를 고정: course active/published/non-deleted + inner-joined group active/non-deleted. outline의 subject/topic은 active/non-deleted와 course/subject scope를 유지 | schema/migration 불필요. group `published`는 추가하지 않음. “anonymous public metadata에 A를 적용할지”는 정책 결정 필요 |
+| query 조건 | 기존 필드로 public course predicate를 고정: course active/published/non-deleted + inner-joined group active/non-deleted. outline의 subject/topic은 active/non-deleted와 course/subject scope를 유지 | schema/migration 불필요. group `published`는 추가하지 않음. “public metadata에 A를 적용할지”는 정책 결정 필요 |
 | projection | 내부 source record가 독립 검증해야 할 때만 group active/deleted/display order와 course deletedAt을 내부 allowlist로 공급. public DTO에는 노출하지 않음 | 목록/detail의 현재 DTO는 재사용 가능하지만 상태 독립 검증은 부족. search source contract는 이미 group 상태 field를 요구 |
 | adapter/provider | outline provider의 strict group SQL과 3-query/조기 종료/51·201 계약을 유지. search provider가 생기면 같은 public predicate, query 전 filtering, bounded result, JS comparator를 구현 | outline adapter는 provider SQL의 group 판정을 신뢰하거나 내부 projection을 확장하는 선택이 필요. adapter가 누락된 group 상태를 추론해서는 안 됨 |
 | 오류 호환성 | hidden group의 public direct lookup은 `NOT_FOUND`/기존 null 경계로 처리하고, provider/DB 오류는 `UNAVAILABLE` 계열로 유지. 유효 course의 빈 outline은 `OK` + 빈 결과 | 기존 page의 generic exception 처리와 adapter envelope를 섞지 않음 |
