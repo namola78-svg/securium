@@ -232,7 +232,13 @@ function readCursor(
   addIssue: (code: PublicGraphQueryValidationCode) => void,
 ): string | undefined {
   if (value === undefined) return undefined;
-  if (typeof value !== "string" || !value.trim() || value.length > PUBLIC_GRAPH_QUERY_LIMITS.maxCursorLength || !CURSOR_PATTERN.test(value)) {
+  if (
+    typeof value !== "string"
+    || !value.trim()
+    || value.length > PUBLIC_GRAPH_QUERY_LIMITS.maxCursorLength
+    || value.length % 4 === 1
+    || !CURSOR_PATTERN.test(value)
+  ) {
     addIssue("INVALID_CURSOR");
     return undefined;
   }

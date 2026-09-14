@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {
-  PUBLIC_GRAPH_QUERY_LIMITS,
-  validatePublicGraphQuery,
-} from "../lib/services/public-graph-query-validation.ts";
+import { validatePublicGraphQuery } from "../lib/services/public-graph-query-validation.ts";
 
 type MutableQuery = Record<string, unknown>;
 
 const syntheticCursorSyntax = "ZXhhbXBsZQ";
+const expectedDefaultLimit = 200;
+const expectedMaxLimit = 500;
+const expectedMaxCursorLength = 4096;
 
 function validQuery(overrides: MutableQuery = {}): MutableQuery {
   return {
@@ -72,7 +72,7 @@ test("each supported query has a minimal valid input and documented defaults", (
         queryType: item.queryType,
         root: item.root,
         depth: item.depth,
-        limit: PUBLIC_GRAPH_QUERY_LIMITS.defaultLimit,
+        limit: expectedDefaultLimit,
       },
     }, item.queryType);
   }
@@ -106,6 +106,7 @@ test("query type, root family, and identity allowlists are checked independently
   assertInvalid(validQuery({ root: { type: "ROLE", reference: { id: "role-1", skillKey: "skill-1" } } }), ["UNKNOWN_FIELD"]);
   assertInvalid(validQuery({ root: { type: "ROLE", reference: { id: "role-1", publicId: "role:role-1" } } }), ["UNKNOWN_FIELD"]);
   assertInvalid(validQuery({ root: { type: "ROLE", reference: { id: "   " } } }), ["INVALID_IDENTITY"]);
+  assertInvalid(validQuery({ root: { type: "ROLE", reference: { id: 42 } } }), ["INVALID_IDENTITY"]);
   assertInvalid(validQuery({ root: { type: "ROLE", reference: {} } }), ["INVALID_IDENTITY"]);
 });
 
@@ -134,23 +135,27 @@ test("depth and limit boundaries reject fractional, non-finite, and over-limit v
   assert.equal(validatePublicGraphQuery(validQuery({ depth: 1 })).ok, true);
   assert.equal(validatePublicGraphQuery({ queryType: "ROLE_GRAPH", root: { type: "ROLE", reference: { id: "role-1" } }, depth: 2 }).ok, true);
   assertInvalid(validQuery({ depth: 0 }), ["INVALID_DEPTH"]);
+  assertInvalid(validQuery({ depth: null }), ["INVALID_DEPTH"]);
   assertInvalid(validQuery({ depth: 1.5 }), ["INVALID_DEPTH"]);
   assertInvalid(validQuery({ depth: Number.NaN }), ["INVALID_DEPTH"]);
   assertInvalid(validQuery({ depth: Number.POSITIVE_INFINITY }), ["INVALID_DEPTH"]);
   assertInvalid(validQuery({ depth: 3 }), ["DEPTH_LIMIT_EXCEEDED"]);
   assertInvalid(validQuery({ limit: 0 }), ["INVALID_LIMIT"]);
+  assertInvalid(validQuery({ limit: null }), ["INVALID_LIMIT"]);
   assertInvalid(validQuery({ limit: 1.5 }), ["INVALID_LIMIT"]);
   assertInvalid(validQuery({ limit: Number.NaN }), ["INVALID_LIMIT"]);
   assertInvalid(validQuery({ limit: Number.POSITIVE_INFINITY }), ["INVALID_LIMIT"]);
   assert.equal(validatePublicGraphQuery(validQuery({ limit: 1 })).ok, true);
-  assert.equal(validatePublicGraphQuery(validQuery({ limit: PUBLIC_GRAPH_QUERY_LIMITS.maxLimit })).ok, true);
-  assertInvalid(validQuery({ limit: PUBLIC_GRAPH_QUERY_LIMITS.maxLimit + 1 }), ["LIMIT_EXCEEDED"]);
+  assert.equal(validatePublicGraphQuery(validQuery({ limit: expectedMaxLimit })).ok, true);
+  assertInvalid(validQuery({ limit: expectedMaxLimit + 1 }), ["LIMIT_EXCEEDED"]);
 });
 
 test("cursor encoded length is bounded for paged queries, while integrity stays with the service", () => {
-  const atLimit = "a".repeat(PUBLIC_GRAPH_QUERY_LIMITS.maxCursorLength);
+  const atLimit = "a".repeat(expectedMaxCursorLength);
   assert.equal(validatePublicGraphQuery(validQuery({ cursor: atLimit })).ok, true);
   assertInvalid(validQuery({ cursor: `${atLimit}a` }), ["INVALID_CURSOR"]);
+  assertInvalid(validQuery({ cursor: "a" }), ["INVALID_CURSOR"]);
+  assertInvalid(validQuery({ cursor: `${syntheticCursorSyntax}="` }), ["INVALID_CURSOR"]);
 
   const syntacticallyValidButUnsigned = validatePublicGraphQuery(validQuery({ cursor: syntheticCursorSyntax }));
   assert.equal(syntacticallyValidButUnsigned.ok, true);

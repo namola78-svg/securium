@@ -6,9 +6,13 @@ public caller, or decide anonymous publication policy.
 
 ## Fixed basis and duplicate-implementation check
 
-The worktree was created from the fetched `origin/main` commit
-`9198b56360b389243eeca6750779668f85d43b48`. No applicable `AGENTS.md` was
-present in the repository or its parent directories.
+The generation base for the candidate is
+`9198b56360b389243eeca6750779668f85d43b48`. After the candidate was created,
+the fetched reviewed `origin/main` was fixed at
+`c1799c69700d3216fe115d71db5d50286420835c`. The branch was not rebased; the
+reviewed main change is recorded and will be integrated only through the
+non-destructive package-registration merge described in the review report. No
+applicable `AGENTS.md` was present in the repository or its parent directories.
 
 The repository search found:
 
@@ -45,6 +49,32 @@ silently applied to graph queries.
 | Defaults and omission | Service materializes default depth and limit; cursor is omitted when absent | Same default/omission meaning is proposed | **Confirmed**; `undefined` is treated as omitted for runtime compatibility, while JSON `null` is not a default |
 | Error result | Existing service throws internal `SkillGraphError` (`INVALID_QUERY`, `DEPTH_LIMIT_EXCEEDED`, `FAN_OUT_LIMIT_EXCEEDED`, etc.) | Public envelope and public status mapping are proposed, not wired | **Not a public error protocol**; the pure validator returns stable diagnostic code arrays and no raw input or partial query |
 
+## Query-by-query contract matrix
+
+The following is the structural boundary implemented here. “Identity fields”
+means the allowed fields for the root reference; the reference must contain at
+least one non-blank string, but this validator does not decide whether multiple
+identity candidates are allowed by a future public adapter.
+
+| Query type | Root family and identity fields | Required / optional fields | Allowed depth and omission default | Limit default / upper bound | Cursor | Additional fields |
+| --- | --- | --- | --- | --- | --- | --- |
+| `ROLE_SKILLS` | `ROLE`; `id`, `roleKey`, `alias` | Required: `queryType`, `root.type`, `root.reference`; optional: `depth`, `limit`, `cursor` | `1`; omitted → `1` | `200` / `500` | Allowed | Rejected at query, root, and reference levels |
+| `ROLE_GRAPH` | `ROLE`; `id`, `roleKey`, `alias` | Required: `queryType`, `root.type`, `root.reference`; optional: `depth`, `limit` | `2`; omitted → `2` | `200` / `500` | Not allowed | Rejected at query, root, and reference levels |
+| `SKILL_ROLES` | `SKILL`; `id`, `skillKey`, `alias` | Required: `queryType`, `root.type`, `root.reference`; optional: `depth`, `limit`, `cursor` | `1`; omitted → `1` | `200` / `500` | Allowed | Rejected at query, root, and reference levels |
+| `SKILL_CONCEPTS` | `SKILL`; `id`, `skillKey`, `alias` | Required: `queryType`, `root.type`, `root.reference`; optional: `depth`, `limit`, `cursor` | `1`; omitted → `1` | `200` / `500` | Allowed | Rejected at query, root, and reference levels |
+| `SKILL_GRAPH` | `SKILL`; `id`, `skillKey`, `alias` | Required: `queryType`, `root.type`, `root.reference`; optional: `depth`, `limit` | `1`; omitted → `1` | `200` / `500` | Not allowed | Rejected at query, root, and reference levels |
+| `CONCEPT_SKILLS` | `CONCEPT`; `id`, `key`, `stableKey`, `alias` | Required: `queryType`, `root.type`, `root.reference`; optional: `depth`, `limit`, `cursor` | `1`; omitted → `1` | `200` / `500` | Allowed | Rejected at query, root, and reference levels |
+| `CONCEPT_GRAPH` | `CONCEPT`; `id`, `key`, `stableKey`, `alias` | Required: `queryType`, `root.type`, `root.reference`; optional: `depth`, `limit` | `2`; omitted → `2` | `200` / `500` | Not allowed | Rejected at query, root, and reference levels |
+
+`undefined` is treated as omission by this runtime validator. Explicit `null`
+is not omission: `depth: null`, `limit: null`, and `cursor: null` are rejected.
+The current internal service uses `depth ?? expectedDepth`, so `depth: null`
+is an intentional difference between the existing internal runtime behavior and
+this stricter input boundary. The internal service also ignores unknown
+top-level fields while its reference assertion rejects unknown identity fields;
+this validator rejects unknown fields consistently at all three levels. Root
+object extension fields are therefore not accepted.
+
 The response validator's total node/edge limits, response `depth` metadata, and
 response `page`/cursor shape are response rules. They are not copied into this
 request validator. Search/outline adapter limits are also unrelated and are not
@@ -60,8 +90,8 @@ function. It has:
 - all seven existing query kinds and query/root compatibility;
 - the existing target-specific identity field sets;
 - fixed depth and per-hop limit defaults/bounds;
-- direct-query-only cursor eligibility, existing base64url character syntax,
-  and the documented encoded-length bound;
+- direct-query-only cursor eligibility, existing unpadded base64url
+  character/length syntax, and the documented encoded-length bound;
 - fresh output objects with materialized defaults, no input mutation, stable
   error ordering, and no raw value in errors.
 
@@ -161,9 +191,13 @@ node --import tsx --test tests/public-graph-query-validation.test.ts
 The focused suite is an independent unit suite with manually authored expected
 results. It covers minimal inputs for all seven queries, optional fields,
 missing and wrong types, primitives/null/arrays, unknown fields, target-family
-identity boundaries, fixed depth, limit boundaries, cursor size and query
-eligibility, defaults, immutability, determinism, redaction, and absence of a
-partial query on failure.
+identity boundaries, fixed depth including explicit `null`, limit boundaries
+including fractional and non-finite values, cursor eligibility, unpadded
+base64url syntax, padding/length rejection, and the 4096 boundary, omission
+defaults, input immutability, deterministic repeated calls, redaction, and
+absence of a partial query on failure. The numeric boundary expectations are
+literal contract values (200, 500, and 4096), not values read from the
+implementation under test.
 
 The validator is not connected to an API route, MCP registry, public tool, or
 provider caller. The repository unit runner was not expanded; the focused
