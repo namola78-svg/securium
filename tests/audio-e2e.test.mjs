@@ -3,7 +3,13 @@ import { spawn } from "node:child_process";
 import { after, before, test } from "node:test";
 
 const host = "127.0.0.1";
-const requestedPort = 0;
+// Vinext 0.0.50 forwards port 0 to Vite, whose dev-server port selection
+// treats it as falsy and falls back to 5173. Request a per-process candidate
+// instead, then follow the actual Local URL if Vite moves to another port.
+const requestedPort = 40_000 + Math.floor(Math.random() * 20_000);
+const serverOutputLimit = 64 * 1024;
+const serverStartupAttempts = 480;
+const serverStartupIntervalMs = 250;
 let baseUrl = "";
 const user1 = {
   "content-type": "application/json",
@@ -21,6 +27,12 @@ const ismsAudioId =
   "course-isms-p-subject-foundation-topic-core-lesson-01-audio-01";
 let server;
 let output = "";
+let outputLineBuffer = "";
+let spawnError;
+let serverExitCode;
+let serverExitSignal;
+let serverExited = false;
+let invalidLocalUrlError;
 
 before(async () => {
   server = spawn(
@@ -43,48 +55,130 @@ before(async () => {
       windowsHide: true,
     },
   );
-  server.stdout.on("data", (chunk) => {
-    output += chunk.toString();
-    captureBaseUrl();
+  server.once("error", (error) => {
+    spawnError = error;
   });
-  server.stderr.on("data", (chunk) => {
-    output += chunk.toString();
-    captureBaseUrl();
+  server.once("exit", (code, signal) => {
+    serverExited = true;
+    serverExitCode = code;
+    serverExitSignal = signal;
   });
+  server.stdout.on("data", appendServerOutput);
+  server.stderr.on("data", appendServerOutput);
   try {
-    for (let attempt = 0; attempt < 480; attempt += 1) {
-      if (server.exitCode !== null) {
-        throw new Error(`Audio E2E server stopped.\n${output}`);
+    for (let attempt = 0; attempt < serverStartupAttempts; attempt += 1) {
+      captureBaseUrl(outputLineBuffer);
+      if (spawnError) {
+        throw startupFailure("Audio E2E server failed to spawn.");
+      }
+      if (serverExited || server.exitCode !== null) {
+        throw startupFailure("Audio E2E server stopped before readiness.");
+      }
+      if (invalidLocalUrlError) {
+        throw startupFailure(invalidLocalUrlError.message);
       }
       try {
         if (baseUrl) {
-          const response = await fetch(baseUrl, {
+          const readinessUrl = new URL(
+            `/api/audio/progress?audioContentId=${encodeURIComponent(piaAudioId)}`,
+            baseUrl,
+          );
+          const response = await fetch(readinessUrl, {
+            headers: {
+              "oai-authenticated-user-email": user1["oai-authenticated-user-email"],
+            },
             signal: AbortSignal.timeout(1_000),
           });
-          if (response.status > 0) {
+          if (response.ok) {
             user1.origin = baseUrl;
             user2.origin = baseUrl;
+            console.log(`AUDIO_E2E_SERVER_READY origin=${baseUrl}`);
             return;
           }
         }
       } catch {
         // Server is still starting.
       }
-      await new Promise((resolve) => setTimeout(resolve, 250));
+      await new Promise((resolve) =>
+        setTimeout(resolve, serverStartupIntervalMs),
+      );
     }
-    throw new Error(`Audio E2E server did not start.\n${output}`);
+    throw startupFailure(
+      baseUrl
+        ? `Audio E2E server did not become ready at ${baseUrl}.`
+        : "Audio E2E server did not report a valid Local URL.",
+    );
   } catch (error) {
-    await stopServer();
+    try {
+      await stopServer();
+    } catch (cleanupError) {
+      throw new AggregateError(
+        [error, cleanupError],
+        "Audio E2E server startup and cleanup both failed.",
+      );
+    }
     throw error;
   }
 });
 
-function captureBaseUrl() {
-  const cleanOutput = output.replace(/\u001b\[[0-?]*[ -/]*[@-~]/g, "");
-  const match = cleanOutput.match(
-    /Local:\s+(https?:\/\/(?:localhost|127\.0\.0\.1):\d+)(?:\/|\s|$)/i,
-  );
-  if (match) baseUrl = match[1];
+function appendServerOutput(chunk) {
+  const text = chunk.toString();
+  output = `${output}${text}`.slice(-serverOutputLimit);
+  outputLineBuffer = `${outputLineBuffer}${text}`.slice(-serverOutputLimit);
+  const lines = outputLineBuffer.split(/\r?\n/);
+  outputLineBuffer = lines.pop() ?? "";
+  for (const line of lines) captureBaseUrl(line);
+}
+
+function captureBaseUrl(line) {
+  if (baseUrl || invalidLocalUrlError) return;
+  const cleanLine = line.replace(/\u001b\[[0-?]*[ -/]*[@-~]/g, "");
+  const match = cleanLine.match(/\bLocal:\s*(\S+)/i);
+  if (!match) return;
+
+  const rawUrl = match[1];
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(rawUrl);
+  } catch {
+    invalidLocalUrlError = new Error(
+      "Audio E2E server reported an invalid Local URL.",
+    );
+    return;
+  }
+
+  const parsedPort = Number(parsedUrl.port);
+  if (
+    parsedUrl.protocol !== "http:" ||
+    parsedUrl.hostname !== host ||
+    parsedUrl.username ||
+    parsedUrl.password ||
+    parsedUrl.pathname !== "/" ||
+    parsedUrl.search ||
+    parsedUrl.hash ||
+    !Number.isInteger(parsedPort) ||
+    parsedPort < 1 ||
+    parsedPort > 65_535
+  ) {
+    invalidLocalUrlError = new Error(
+      "Audio E2E server reported a non-loopback or invalid Local URL.",
+    );
+    return;
+  }
+
+  baseUrl = parsedUrl.origin;
+}
+
+function startupFailure(message) {
+  const details = [message];
+  if (spawnError) details.push(`Spawn error: ${spawnError.message}`);
+  if (serverExited || server?.exitCode !== null) {
+    details.push(
+      `Server exit: code=${serverExitCode ?? "unknown"} signal=${serverExitSignal ?? "none"}`,
+    );
+  }
+  if (output) details.push(output);
+  return new Error(details.join("\n"));
 }
 
 after(async () => {
@@ -92,17 +186,31 @@ after(async () => {
 });
 
 async function stopServer() {
-  if (!server || server.exitCode !== null) return;
+  if (!server) return;
+  if (serverExited || server.exitCode !== null || spawnError) {
+    if (serverExited || server.exitCode !== null) {
+      console.log("AUDIO_E2E_SERVER_CLEANUP PASS (server already exited)");
+    }
+    return;
+  }
   const gracefulExit = waitForServerExit(5_000);
   server.kill();
-  if (await gracefulExit) return;
+  if (await gracefulExit) {
+    console.log("AUDIO_E2E_SERVER_CLEANUP PASS");
+    return;
+  }
   const forcedExit = waitForServerExit(5_000);
   server.kill("SIGKILL");
-  await forcedExit;
+  if (!(await forcedExit)) {
+    throw new Error("Audio E2E server did not exit during cleanup.");
+  }
+  console.log("AUDIO_E2E_SERVER_CLEANUP PASS");
 }
 
 function waitForServerExit(timeoutMs) {
-  if (!server || server.exitCode !== null) return Promise.resolve(true);
+  if (!server || serverExited || server.exitCode !== null) {
+    return Promise.resolve(true);
+  }
   return new Promise((resolve) => {
     const timeout = setTimeout(() => {
       server?.off("exit", handleExit);
