@@ -1,0 +1,84 @@
+name: Public course outline provider regression
+
+on:
+  pull_request:
+    branches:
+      - "main"
+    paths:
+      - ".github/workflows/public-course-outline-provider.yml"
+      - "db/public-course-outline-provider.ts"
+      - "db/provider/**"
+      - "db/repository-adapter/**"
+      - "db/schema.ts"
+      - "db/postgres/baselines/**"
+      - "db/postgres/migrations/**"
+      - "drizzle/**"
+      - "lib/services/public-course-outline-adapter.ts"
+      - "scripts/owned-postgres-container.mjs"
+      - "tests/public-course-outline-adapter.test.mjs"
+      - "tests/public-course-outline-provider.test.mjs"
+      - "package.json"
+      - "package-lock.json"
+  push:
+    branches:
+      - "feat/public-course-outline-provider"
+      - "main"
+    paths:
+      - ".github/workflows/public-course-outline-provider.yml"
+      - "db/public-course-outline-provider.ts"
+      - "db/provider/**"
+      - "db/repository-adapter/**"
+      - "db/schema.ts"
+      - "db/postgres/baselines/**"
+      - "db/postgres/migrations/**"
+      - "drizzle/**"
+      - "lib/services/public-course-outline-adapter.ts"
+      - "scripts/owned-postgres-container.mjs"
+      - "tests/public-course-outline-adapter.test.mjs"
+      - "tests/public-course-outline-provider.test.mjs"
+      - "package.json"
+      - "package-lock.json"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: public-course-outline-provider-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: "true"
+  NODE_OPTIONS: "--experimental-strip-types"
+
+jobs:
+  provider-regression:
+    name: Focused, D1, and PostgreSQL outline regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Record workflow and checkout revisions
+        run: |
+          echo "event=${GITHUB_EVENT_NAME} run_head=${GITHUB_SHA} ref=${GITHUB_REF}"
+          echo "checkout_sha=$(git rev-parse HEAD)"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22.13.0"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Focused outline adapter contract tests
+        run: node --test tests/public-course-outline-adapter.test.mjs
+
+      - name: D1 and PostgreSQL provider regression tests
+        run: node --test --test-concurrency=1 tests/public-course-outline-provider.test.mjs

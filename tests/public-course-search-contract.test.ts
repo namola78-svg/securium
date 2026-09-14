@@ -110,6 +110,10 @@ test("repository contract violations are rejected instead of filtered or repaire
     { rows: [sourceCourse("inactive", { active: false })] },
     { rows: [sourceCourse("deleted", { deletedAt: "2026-09-01T00:00:00Z" })] },
     { rows: [sourceCourse("private-group", { groupActive: false })] },
+    { rows: [sourceCourse("\ud800")] },
+    { rows: [sourceCourse("\udc00")] },
+    { rows: [sourceCourse("valid\ud800id")] },
+    { rows: [sourceCourse("\udc00\ud800")] },
     {
       rows: [sourceCourse("wrong-query", { description: "Internal description" })],
       input: { query: "public" },
@@ -286,13 +290,20 @@ test("empty and last pages expose exact page metadata", async () => {
 });
 
 test("cursor is bound to its search conditions and page size", async () => {
-  const { adapter } = fixtureAdapter([
+  const { adapter, calls } = fixtureAdapter([
     sourceCourse("one"),
     sourceCourse("two", { displayOrder: 2 }),
   ]);
   const first = await adapter.searchPublicCourses({ query: "course", limit: 1 });
   const cursor = first.page.nextCursor;
   assert.ok(cursor);
+  const callsBeforeMalformedQuery = calls.length;
+
+  await assert.rejects(
+    () => adapter.searchPublicCourses({ query: "valid\ud800query", limit: 1, cursor }),
+    (error: unknown) => errorCode(error) === "INVALID_INPUT",
+  );
+  assert.equal(calls.length, callsBeforeMalformedQuery);
 
   for (const input of [
     { query: "other", limit: 1, cursor },
@@ -319,6 +330,31 @@ test("cursor version, required fields, extra fields, and digest changes are reje
   ) as Record<string, unknown>;
   const encode = (value: Record<string, unknown>) =>
     Buffer.from(JSON.stringify(value)).toString("base64url");
+  const encodeWithIntegrity = async (value: Record<string, unknown>) => {
+    const body = JSON.stringify({
+      cursorType: value.cursorType,
+      cursorVersion: value.cursorVersion,
+      displayOrder: value.displayOrder,
+      fingerprint: value.fingerprint,
+      groupDisplayOrder: value.groupDisplayOrder,
+      id: value.id,
+      limit: value.limit,
+    });
+    const digest = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(body),
+    );
+    const integrity = `sha256:${Array.from(
+      new Uint8Array(digest),
+      (byte) => byte.toString(16).padStart(2, "0"),
+    ).join("")}`;
+    return encode({ ...value, integrity });
+  };
+
+  const malformedIdCursor = await encodeWithIntegrity({
+    ...payload,
+    id: "valid\ud800id",
+  });
 
   const invalidCursors = [
     "not-base64",
@@ -326,6 +362,7 @@ test("cursor version, required fields, extra fields, and digest changes are reje
     encode({ ...payload, extra: true }),
     encode(Object.fromEntries(Object.entries(payload).filter(([key]) => key !== "id"))),
     encode({ ...payload, id: "tampered" }),
+    malformedIdCursor,
   ];
 
   for (const cursor of invalidCursors) {
