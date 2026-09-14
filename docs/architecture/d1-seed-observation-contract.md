@@ -10,7 +10,8 @@
 [`d1-seed-result-classifier.ts`](../../lib/services/d1-seed-result-classifier.ts)에
 정의되어 있다. 이 문서는 그 계약을 재정의하거나 caller를 연결하지 않는다.
 
-- 기준 main / classifier merge: `00a58e083648b3d10ac27f969af5c0866c43e5aa`
+- classifier merge / generation base: `00a58e083648b3d10ac27f969af5c0866c43e5aa`
+- 확인한 `origin/main`: `5a5f26a4d6dab40a6ae3f205821f491a1ec092a6`
 - 작업 branch: `docs/d1-seed-observation-contract`
 - 확인 시점: 2026-09-14
 - 검토 범위: 현재 D1 local seed 경로, 직접 호출되는 subprocess/query/검증 경계
@@ -22,6 +23,15 @@
 - **현재 구현 사실**: checkout의 코드와 package script에서 확인한 동작
 - **현재 관찰 한계**: 코드가 보존하거나 구분하지 않는 값
 - **설계 제안**: 후속 변경에서 선택할 수 있는 최소 구조. 이 문서에서는 구현하지 않음
+
+후속 단계의 의미도 분리한다. `observation envelope`는 현재 실행에서 이미
+얻는 제어 흐름·process·query 결과를 제한된 필드로 내부 구조화하는 제안이다.
+이 문서에서 **제한적 연결**은 그 envelope 또는 그 일부를 선택적 진단 정보로
+전달하는 것만을 뜻하며, classifier 호출이나 classifier 결과에 따른 caller의
+exit/report 동작 변경을 포함하지 않는다. operation-bound evidence 계약은
+target·payload·causality를 증명할 trusted 경계를 별도로 정하는 단계이고,
+classifier 연결은 그 계약과 unsupported 처리 정책을 확정한 뒤의 별도 단계다.
+현재 이 네 단계 어느 것도 구현되어 있지 않다.
 
 ## 2. 현재 활성 실행 경로
 
@@ -90,12 +100,16 @@ plan을 결과에 결합하지 않으므로 이전 seed의 verification receipt�
 - write nonzero는 `SECURITY_CONTENT_V3_PROCESS_FAILED`와 합쳐진 출력의 tail을
   출력하고 `process.exit(1)`을 호출한다.
 - query nonzero는 `SECURITY_CONTENT_V3_D1_QUERY_FAILED`로 실패한다.
-- query output은 ANSI를 제거한 뒤 첫 `[`부터 마지막 `]`까지 JSON parse한다.
+- query output은 ANSI를 제거한 뒤 첫 `[` + 줄바꿈(`\n`)부터 마지막 `]`까지 JSON parse한다.
   구간이 없으면 `SECURITY_CONTENT_V3_D1_JSON_MISSING`; JSON parse 예외는 별도
   구조화 code 없이 전파될 수 있다.
+- write subprocess의 merged output은 현재 JSON 또는 shape로 parse하지 않고,
+  close code만으로 다음 단계에 진입할지 판단한다. 따라서 write output의
+  empty/malformed 상태는 현재 별도 관찰값이 아니다.
 - `payload[0]?.results`가 없으면 빈 배열로 취급한다. 출력 부재, 잘못된 shape,
-  정상적인 빈 결과를 바깥 observation envelope가 구분할 수 있도록 현재 반환값만
-  사용해서는 안 된다.
+  정상적인 빈 결과는 `d1Query`의 현재 반환값만으로 구분할 수 없다. 출력 부재는
+  `SECURITY_CONTENT_V3_D1_JSON_MISSING` 경로로 실패하므로, envelope는 반환 배열
+  이외의 process/error 경로도 함께 보존해야 한다.
 
 `run-wrangler.mjs`는
 [`run-wrangler.mjs`](../../scripts/run-wrangler.mjs#L10-L38)에서 local 명령에
@@ -117,7 +131,7 @@ config와 선택적 persistence 설정을 함께 확인해야 한다.
 | protected snapshot(before) — `protectedCourseSnapshotSql`, `d1Query` ([script](../../scripts/security-content-upgrade-v3.mjs#L84-L85), [snapshot](../../scripts/security-content-upgrade-v3.mjs#L289-L305)) | 보호 대상 course별 subject/topic/unit/lesson/question count query의 parse 결과 | write 전. query/process/JSON/shape 오류 가능 | `before`가 local 변수에만 있음 | 실패 시 write 미시도이면 `FAILED_BEFORE_WRITE`; 성공 자체는 classifier result state가 아님 | snapshot row가 seed target의 operation identity를 포함하지 않음 |
 | SQL 생성 및 temp file — `mkdtemp`, `writeFile`, `generateSecurityContentV3Sql` ([script](../../scripts/security-content-upgrade-v3.mjs#L85-L89)) | temp directory/file 생성 도달, SQL generation/write promise 성공 여부 | write subprocess 전. filesystem/generator error 가능 | 성공 marker나 structured stage 없음. `finally`에서 temp dir 제거 시도 | write가 시작되지 않았음을 보존하면 `FAILED_BEFORE_WRITE` | temp path, generated SQL, payload는 evidence로 보존하지 않음. file 존재는 DB commit 근거가 아님 |
 | write subprocess — `runCapture`와 `run-wrangler` ([script](../../scripts/security-content-upgrade-v3.mjs#L89-L96), [wrapper](../../scripts/run-wrangler.mjs#L20-L38)) | child spawn 시도, merged stdout/stderr 수신, close code 또는 child error에 따른 code | generated SQL 실행 중. code `0`, nonzero, child error 가능 | attempted 여부는 control flow로 추론 가능하나 별도 envelope 없음. signal, timeout, stdout/stderr 분리 없음 | code `0`이고 아직 verification을 input에 넣지 않는다면 `attempted=true`, `EXIT_ZERO`, evidence `NONE`으로 `COMMITTED_BUT_UNVERIFIED`; write 후 nonzero이면 `EXIT_NONZERO` + `verification=NOT_RUN`으로 `COMMIT_OUTCOME_UNKNOWN` | exit `0`은 commit proof가 아님. nonzero는 rollback 또는 no-commit을 말하지 않음. timeout/output loss는 현재 구분 불가 |
-| temp cleanup — `finally rm` ([script](../../scripts/security-content-upgrade-v3.mjs#L87-L97)) | cleanup promise 호출/성공 또는 throw 가능 | write result 직후, after snapshot 전. `rm` 실패가 원래 error를 가릴 수 있음 | `CLEANUP_FAILED` secondary로 분리 보존하지 않음 | future envelope가 원래 primary와 별도로 보존할 때만 `secondaryFailures: ["CLEANUP_FAILED"]` | cleanup 성공은 DB 상태가 아님. cleanup 실패를 commit/rollback 결과로 바꾸지 않음 |
+| temp cleanup — `finally rm` ([script](../../scripts/security-content-upgrade-v3.mjs#L87-L97)) | cleanup promise 호출/성공 또는 throw 가능 | 정상적인 async unwind에서는 write result 직후, after snapshot 전. 그러나 write nonzero 경로의 `fail()`은 `process.exit(1)`을 호출하므로 `finally` cleanup이 보장되지 않음. `writeFile` 등 throw로 unwind되는 경우에는 `rm` 실패가 원래 exception을 가릴 수 있음 | `CLEANUP_FAILED` secondary로 분리 보존하지 않음 | future envelope가 원래 primary와 별도로 보존할 때만 `secondaryFailures: ["CLEANUP_FAILED"]` | cleanup 성공은 DB 상태가 아님. cleanup 실패를 commit/rollback 결과로 바꾸지 않음 |
 | snapshot(after) — `d1Query`, `assertProtectedSnapshot` ([script](../../scripts/security-content-upgrade-v3.mjs#L98-L99), [snapshot](../../scripts/security-content-upgrade-v3.mjs#L302-L305)) | after query 결과, before/after 보호 snapshot equality 또는 mismatch | write subprocess 종료 후. query/process/JSON 오류 또는 snapshot mismatch | mismatch는 fail code, row/provenance/operation link는 보존하지 않음 | exit `0` + query failure는 verification `QUERY_FAILED`로 제한적으로 표현 가능. snapshot mismatch를 `MISMATCH`로 넣으려면 operation-bound evidence가 필요하며 현재는 unsupported | before/after equality는 보호 범위 보존 관찰이지 이번 write의 commit 증명이 아님 |
 | verification — `verifyD1`, `verificationSql`, `assertVerification` ([script](../../scripts/security-content-upgrade-v3.mjs#L219-L224), [assert](../../scripts/security-content-upgrade-v3.mjs#L263-L287)) | aggregate counts, link/version/orphan/integrity predicate 결과, verification query/process/JSON 성공 여부 | after snapshot 뒤. 각 metric mismatch, missing ontology edges, query/parse error 가능 | 성공은 JSON summary와 marker, 실패는 fail code로 terminal 출력; operation ID/target/source binding 없음 | `QUERY_FAILED`/`UNAVAILABLE`은 write outcome에 따라 제한적으로 직접 대응. `PASSED`/`MISMATCH`는 operation-bound evidence 없이는 classifier `UNSUPPORTED_COMBINATION` | verification 조건과 write invocation의 causality를 결합할 trusted evidence가 필요 |
 | success marker / exit — top-level dispatch ([script](../../scripts/security-content-upgrade-v3.mjs#L38-L52)) | `SECURITY_CONTENT_V3_D1_LOCAL_APPLIED` 출력 도달, success `process.exit(0)` | after snapshot과 `verifyD1` 성공 뒤 | marker와 exit code만 terminal 관찰값 | marker와 exit `0`은 `COMMITTED_VERIFIED` 입력으로 직접 승격 불가. verification을 사실대로 `PASSED`로 유지하면 operation-bound evidence 부족으로 unsupported | marker가 어느 target/source plan/operation에 결합됐는지 필요 |
@@ -130,7 +144,7 @@ operation-bound commit evidence로 만들지는 않는다.
 ## 4. Classifier input 대응표
 
 현재 classifier의 input object는
-[`D1SeedResultObservation`](../../lib/services/d1-seed-result-classifier.ts#L61-L71)의
+[`D1SeedResultObservation`](../../lib/services/d1-seed-result-classifier.ts#L74-L84)의
 다음 축만 받는다.
 
 ```text
@@ -144,7 +158,7 @@ secondaryFailures: REPORT_WRITE_FAILED | CLEANUP_FAILED
 ```
 
 검증과 결과 도출은
-[`classifyD1SeedResult`](../../lib/services/d1-seed-result-classifier.ts#L241-L309)의
+[`classifyD1SeedResult`](../../lib/services/d1-seed-result-classifier.ts#L303-L345)의
 실제 규칙을 따른다. 따라서 다음처럼 매핑한다.
 
 | 현재 관찰 사실 | classifier input으로 보존할 수 있는 표현 | 직접 결과 / 상태 | 주의점 |
@@ -152,9 +166,9 @@ secondaryFailures: REPORT_WRITE_FAILED | CLEANUP_FAILED
 | write 전 preflight 실패, write subprocess 미호출 | `PREFLIGHT`, `attempted=false`, `NOT_STARTED`, `NONE`, `NOT_RUN`, `NOT_APPLICABLE` | `FAILED_BEFORE_WRITE` | 기존 target에 row가 없다는 뜻이 아님 |
 | write child가 시작되고 nonzero 종료, commit evidence 없음 | `WRITE`, `attempted=true`, `EXIT_NONZERO`, `NONE`, `NOT_RUN`, `NOT_APPLICABLE` | `COMMIT_OUTCOME_UNKNOWN` | rollback/no-commit으로 번역하지 않음 |
 | write child가 code 0, 후속 verification을 아직 실행하지 않음 | `WRITE` 또는 `POST_WRITE_RECHECK`, `EXIT_ZERO`, `NONE`, `NOT_RUN`, `NOT_APPLICABLE` | `COMMITTED_BUT_UNVERIFIED` / `ACKNOWLEDGED` | acknowledgement는 durable commit proof가 아님 |
-| write child code 0 후 plain target/read-back만 확인 | `EXIT_ZERO`, `TARGET_READ_BACK`, verification 사실에 맞는 값 | 보통 `COMMITTED_BUT_UNVERIFIED` / `ACKNOWLEDGED` | `TARGET_READ_BACK`은 operation-bound proof가 아님 |
+| write child code 0 후 plain target/read-back만 확인 | `EXIT_ZERO`, `TARGET_READ_BACK`, verification `NOT_RUN`/`QUERY_FAILED`/`UNAVAILABLE` | `COMMITTED_BUT_UNVERIFIED` / `ACKNOWLEDGED` | `TARGET_READ_BACK`은 operation-bound proof가 아님. verification `PASSED`/`MISMATCH`를 함께 넣으면 unsupported |
 | write timeout 또는 output loss를 신뢰할 수 있게 관찰 | `TIMEOUT` 또는 `OUTPUT_LOSS`, `NONE`, verification `NOT_RUN` 또는 `UNAVAILABLE` | `COMMIT_OUTCOME_UNKNOWN` | 현재 `runCapture`는 timeout/signal/output loss를 구분하지 않으므로 직접 생성 불가 |
-| verification query/process/JSON 오류, write code 0 | `EXIT_ZERO`, `NONE` 또는 plain `TARGET_READ_BACK`, `QUERY_FAILED`/`UNAVAILABLE` | `COMMITTED_BUT_UNVERIFIED` / `ACKNOWLEDGED` | 실패 사실을 `NOT_RUN`으로 지우지 않음 |
+| verification query/process/JSON 오류, write code 0 | `POST_WRITE_RECHECK`/`VERIFICATION`/`REPORT`/`DONE`, `EXIT_ZERO`, `NONE` 또는 plain `TARGET_READ_BACK`, `QUERY_FAILED`/`UNAVAILABLE` | `COMMITTED_BUT_UNVERIFIED` / `ACKNOWLEDGED` | `WRITE` stage에서는 verification이 `NOT_RUN`이어야 하므로, 실패 사실을 `NOT_RUN`으로 지우지 않음 |
 | operation-bound evidence와 verification `PASSED` | `OPERATION_BOUND_READ_BACK`, `PASSED` | `COMMITTED_VERIFIED` | 현재 caller에는 이 evidence 생성 경계가 없음 |
 | operation-bound evidence와 verification `MISMATCH` | `OPERATION_BOUND_READ_BACK`, `MISMATCH` | `COMMITTED_VERIFICATION_FAILED` | mismatch 원인을 classifier가 증명하는 것은 아님 |
 | verification `PASSED` 또는 `MISMATCH`, operation-bound evidence 부족 | verification 사실을 그대로 유지하고 별도 observation envelope에 기록 | classifier `UNSUPPORTED_COMBINATION` | `PASSED`를 `NOT_RUN`으로 바꾸지 않음 |
@@ -214,6 +228,10 @@ persistence argument, temp SQL path가 있을 뿐 operation ID나 durable marker
 새 durable operation marker가 필요할 수 있으나, 그 marker의 의미·소유자·transaction
 경계는 별도 선행 결정이며 이번 문서에서 구현하지 않는다.
 
+`OPERATION_BOUND_READ_BACK`은 classifier input에 붙이는 태그이지 증거를
+생성하는 동작이 아니다. 이 값을 사용하려면 위의 target·payload/version·replay·
+causality 근거를 먼저 확보하고, 그 근거와 input 태깅을 별도로 기록해야 한다.
+
 ## 6. Unsupported 조합과 연결 전 처리
 
 | 경우 | 현재 확인 가능한 사실 | classifier 수용 여부 | 가능한 판정 또는 unsupported | 현재 caller 동작 | 연결 전 필요한 결정 |
@@ -221,11 +239,11 @@ persistence argument, temp SQL path가 있을 뿐 operation ID나 durable marker
 | write 전 실패 | preflight/query/source 준비 실패, write child 미호출 | 수용 가능 | `FAILED_BEFORE_WRITE` | fail code와 nonzero | write 미시도 사실을 structured observation으로 보존 |
 | write process nonzero | child가 실패 code로 닫힘. transaction rollback 여부는 모름 | 수용 가능 | `COMMIT_OUTCOME_UNKNOWN` | `SECURITY_CONTENT_V3_PROCESS_FAILED`, nonzero | signal/exit/error와 output availability 분리 |
 | write timeout/process loss | 현재 timeout 없음, signal을 별도 보존하지 않음 | future input은 수용 가능 | `TIMEOUT`/`PROCESS_LOSS`이면 `COMMIT_OUTCOME_UNKNOWN` | 현재는 대개 nonzero 또는 process-level failure | finite timeout과 signal/close 관찰 계약 |
-| write exit 0, output parse 실패 | write CLI code 0인지 query/write output shape인지 구분 필요 | write 사실만 넣으면 제한 수용 | verification parse 실패는 `QUERY_FAILED`/`UNAVAILABLE`; 성공으로 확정하지 않음 | write는 merged output, query는 JSON boundary error | write response parse와 verification parse를 별도 축으로 보존 |
+| write exit 0, write output availability/shape를 후속 경계에서 확인하지 못함 | 현재 write path는 output을 parse하지 않으므로 이 상태를 직접 노출하지 않음. future envelope는 exit와 output/parse 상태를 별도 보존해야 함 | 현재 classifier 입력으로의 안전한 직접 대응은 미결. verification parse 실패는 `QUERY_FAILED`/`UNAVAILABLE`로 별도 표현 가능 | write는 merged output을 소비하지 않고 code만 확인하며, query는 JSON boundary를 확인함 | write output 상태와 verification parse 상태를 별도 축으로 보존 |
 | write response 후 snapshot 실패 | write acknowledgement 뒤 after query/process/JSON 오류 | 수용 가능 | `COMMITTED_BUT_UNVERIFIED`, verification `QUERY_FAILED` 또는 `UNAVAILABLE` | fail code nonzero | write acknowledgement와 query failure를 같은 사건으로 합치지 않음 |
 | verification `true`/pass, commit evidence 부족 | aggregate verification query가 기대 metric을 통과하고 marker 출력 | **unsupported** | `VERIFICATION_REQUIRES_OPERATION_BOUND_COMMIT_EVIDENCE` | 현재 marker와 exit 0 출력 | operation-bound evidence 없이는 classifier 호출 결과를 success로 사용하지 않음 |
 | verification `false`/mismatch, commit evidence 부족 | snapshot equality 또는 verification metric mismatch | **unsupported** | 동일 unsupported code; mismatch 사실은 별도 보존 | fail code와 nonzero | mismatch를 query error/not-run으로 바꾸지 않고 원인·scope read-only 확인 |
-| verification query 오류 | query nonzero, JSON missing, parse exception 가능 | 수용 가능 | write code 0이면 `COMMITTED_BUT_UNVERIFIED` + `QUERY_FAILED`/`UNAVAILABLE` | `SECURITY_CONTENT_V3_D1_QUERY_FAILED` 또는 parse failure | JSON shape/empty output/transport loss 분리 |
+| verification query 오류 | query nonzero, JSON missing, parse exception 가능 | 수용 가능 | post-write stage에서 write code 0이면 `COMMITTED_BUT_UNVERIFIED` + `QUERY_FAILED`/`UNAVAILABLE` | `SECURITY_CONTENT_V3_D1_QUERY_FAILED` 또는 parse failure | JSON shape/empty output/transport loss 분리 |
 | confirmed rollback | 현재 D1 caller는 rollback 관찰 API가 없음 | **unsupported** | `ROLLBACK_CONFIRMED_NOT_IN_RESULT_SET` | rollback을 보고하지 않음 | rollback proof와 별도 결과 state 계약 선행 |
 | cleanup/report 오류 동반 | temp `rm` 실패 가능, report persistence 자체는 없음 | secondary만 수용 | primary state를 유지하고 `CLEANUP_FAILED`/`REPORT_WRITE_FAILED` 별도 | cleanup error가 원래 오류를 가릴 수 있음 | finally 오류를 secondary로 캡처하고 report 저장 경계 별도 결정 |
 | 원래 primary 오류가 이미 있음 | preflight/write/verification failure가 먼저 발생할 수 있음 | primary + secondary 수용 | secondary가 primary를 덮지 않음 | 현재는 단일 fail/exit path | primary observation을 먼저 고정하고 cleanup/report 오류를 추가 |
@@ -238,9 +256,18 @@ classifier에 맞추기 위해 관찰 사실을 삭제하거나 다른 값으로
 
 ## 7. 연결 전략 비교와 권고
 
+이 문서에서 각 단계의 입력·출력·부작용은 다음처럼 고정한다.
+
+| 단계 | 입력 | 출력 | 부작용 |
+| --- | --- | --- | --- |
+| observation envelope 제안 | caller가 이미 얻는 stage, child/process, query/parse, verification, cleanup 사실 | 제한된 내부 observation object | 현재 exit, report, DB, classifier 호출을 변경하지 않음 |
+| 제한적 연결 제안 | 위 envelope 또는 allowlist된 일부 필드 | 선택적 진단 전달 또는 내부 소비자용 metadata | caller 성공·실패 판정과 exit/report 동작을 변경하지 않음. commit evidence를 생성하지 않음 |
+| operation-bound evidence 계약 | target identity, immutable plan/payload/version, replay·경쟁 writer·write/read-back 관계 | 별도 evidence와 그 신뢰 경계 | durable marker/schema/provider 변경이 필요할 수 있으나 이번 문서에서는 결정·구현·실행하지 않음 |
+| classifier 연결 제안 | 검증된 observation과 evidence, 명시된 unsupported 정책 | classifier의 classified/input-error/unsupported 결과 | pure classifier 호출 자체는 DB·recovery·exit를 수행하지 않음. 결과로 caller/report를 바꾸는 정책은 별도 결정 |
+
 | 전략 | 장점 | 위험 / 선행 조건 | 평가 |
 | --- | --- | --- | --- |
-| 관찰 가능한 부분만 제한적으로 연결 | 기존 exit 0/nonzero를 유지하며 preflight failure와 unknown outcome부터 구조화 가능 | 정상 verification pass/mismatch가 operation-bound 부족으로 unsupported가 될 수 있음 | 작은 첫 단계로 적합. unsupported를 명시적으로 노출해야 함 |
+| observation envelope와 선택적 진단 전달만 연결 | 기존 exit 0/nonzero를 유지하며 preflight failure와 unknown outcome의 관찰값을 구조화 가능 | 정상 verification pass/mismatch를 classifier에 전달하는 단계가 아니므로, 최종 classifier 연결은 후속 evidence 정책에 의존 | 작은 첫 단계로 적합 |
 | classifier 계약을 먼저 보완 | caller의 aggregate verification을 더 쉽게 표현할 수 있음 | commit 증거가 없는 성공을 committed state로 오해할 위험. 기존 negative boundary 재결정 필요 | 현재 근거로 권고하지 않음 |
 | 별도 evidence 수집 계약을 먼저 확정 | target/payload/version/replay/causality를 먼저 정의하여 `COMMITTED_*`를 안전하게 사용 가능 | durable marker/transaction/provider 경계 및 schema 결정이 필요 | `COMMITTED_VERIFIED` 연결의 선행 조건 |
 
@@ -248,20 +275,21 @@ classifier에 맞추기 위해 관찰 사실을 삭제하거나 다른 값으로
 
 1. **관찰 envelope만 설계·구현한다.** `executionStage`, write child 시작 여부,
    process outcome, stdout/stderr 수신 상태, parse 상태, snapshot/verification
-   결과, cleanup secondary를 각각 보존한다. existing exit 0/nonzero는 바꾸지 않는다.
-2. **현재 caller의 제한 결과를 먼저 연결한다.** write 전 실패는
-   `FAILED_BEFORE_WRITE`, 시작 후 nonzero는 `COMMIT_OUTCOME_UNKNOWN`, write code 0
-   후 verification 미완료/query 오류는 `COMMITTED_BUT_UNVERIFIED`로 제한한다.
-3. **verification pass/mismatch는 사실대로 유지하되, evidence 부족이면
-   classifier unsupported로 명시한다.** 성공을 숨기거나 `NOT_RUN`으로 정규화하지
-   않는다. 이 상태에서 자동 recovery나 재실행을 하지 않는다.
-4. **별도 operation-bound evidence 계약을 확정한다.** target identity, immutable
+   결과, cleanup secondary를 각각 보존한다. 기존 exit 0/nonzero는 바꾸지 않는다.
+2. **제한적 연결은 선택적 진단 전달로 한정한다.** allowlist된 envelope를
+   내부 소비자에 전달할 수 있지만 classifier를 호출하지 않고, caller의 성공·실패
+   판정과 exit/report 동작을 바꾸지 않는다.
+3. **별도 operation-bound evidence 계약을 확정한다.** target identity, immutable
    plan identity, replay/competing writer 구분, write-to-read-back causality를
    어떤 trusted layer가 어떻게 증명할지 결정한 뒤에만 `OPERATION_BOUND_READ_BACK`
    을 사용할 수 있다.
-5. **그 후 classifier 호출 위치와 report/secondary 저장 경계를 결정한다.**
-   report 실패는 primary state를 변경하지 않으며, numeric exit code 변경은 별도
-   caller/CI 계약 확인 뒤에 결정한다.
+4. **그 후 classifier 연결을 결정한다.** verification pass/mismatch는 사실대로
+   유지하고 evidence 부족이면 `UNSUPPORTED_COMBINATION`으로 보존한다. 성공을
+   숨기거나 `NOT_RUN`으로 정규화하지 않으며, unsupported 처리와 caller/report
+   영향은 별도 정책으로 확정한다.
+5. **report/secondary 저장과 exit 정책을 별도로 결정한다.** report 실패는
+   primary state를 변경하지 않으며, numeric exit code 변경은 별도 caller/CI
+   계약 확인 뒤에 결정한다. 이 문서에서는 자동 recovery나 재실행을 하지 않는다.
 
 현재 정상 성공 경로가 unsupported가 될 수 있다는 사실은 연결 blocker다. 이를
 숨기지 않는 것이 classifier의 보수적 경계를 유지하는 최소 안전 단계다.
@@ -298,14 +326,19 @@ write.commit_evidence
 verification
 rollback
 secondary_failures[]
-error_class
-report_status                       # persistence를 선택한 경우
+error_class                         # 제한된 code; free-form 오류 문자열 아님
+report_status                       # 제한된 상태; persistence를 선택한 경우
 ```
 
 무조건 보존하지 않는 값: raw stdout/stderr, 전체 generated SQL, row payload,
 content body, learner/Evidence data, credential, 전체 environment, 개인 절대 경로,
 소유권 검증에 불필요한 fixture/container 정보. sanitized error tail이 필요해도
 allowlist와 길이 제한을 별도로 확정한다.
+
+값이 관찰되지 않았거나 단계가 실행되지 않은 경우를 실패로 치환하지 않는다.
+`NOT_STARTED`/`NOT_RUN`은 미실행을, process/query/parse 실패와 output 부재는
+각각 제한된 상태·code로 표현해야 하며, 이 세부 enum과 report 저장 위치·ownership·
+보존 기간은 별도 결정 전까지 미구현이다.
 
 ### 8.3 실행하지 않는 합성 시나리오
 
@@ -336,7 +369,7 @@ allowlist와 길이 제한을 별도로 확정한다.
 - caller에 classifier 연결, process exit 변경, report persistence, recovery/replay
 - operation-bound commit evidence 수집 또는 durable marker/migration 구현
 - PostgreSQL seed/apply 경로의 전체 재검토
-- 종료된 PR #190의 review 재개, push, PR, merge/rebase, branch 삭제
+- 종료된 PR #190의 review 재개, merge/rebase, branch 삭제
 
 유지하는 상태:
 
