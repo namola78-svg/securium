@@ -107,7 +107,7 @@ class ExtractedTimelineInputLimitTests(unittest.TestCase):
         self.assertTrue(probe["read_error"]["closed"])
         print(
             "extracted_input_limit_test_summary="
-            + json.dumps(summary, ensure_ascii=False, sort_keys=True)
+            + json.dumps(summary, ensure_ascii=True, sort_keys=True)
         )
 
 
