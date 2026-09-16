@@ -23,7 +23,7 @@
       "applicabilityShownInArtifact": "2025-01-01 to 2027-12-31",
       "currentness": "PARTIAL; ARTIFACT_SEMANTIC_VERSION_UNKNOWN",
       "rights": "REFERENCE_ONLY; DO_NOT_REPUBLISH_OR_COPY_EXPRESSION",
-      "usedIn": ["manifest.json", "objectives.json", "theory.json", "questions.json"]
+      "usedIn": ["manifest.json", "objectives.json", "theory.json"]
     },
     {
       "id": "ISRM-S01-U01-C03",
@@ -55,7 +55,7 @@
       "sourceLocation": "theory.json sections planning-sequence and fictional-case",
       "currentness": "NOT_APPLICABLE",
       "rights": "INDEPENDENT_EXPRESSION",
-      "usedIn": ["objectives.json", "theory.json"]
+      "usedIn": ["theory.json"]
     }
   ],
   "gate": {
