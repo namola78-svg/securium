@@ -10,8 +10,15 @@ on:
       - "lib/errors.ts"
       - "tests/question-attempt-evidence-event-executor.test.mjs"
       - "tests/question-attempt-evidence-event-executor-postgres-disposable.test.mjs"
+      - "tests/question-attempt-evidence-worker-once.test.mjs"
+      - "tests/question-attempt-evidence-worker-once-postgres-disposable.test.mjs"
+      - "tests/question-attempt-evidence-recompute-integration.test.mjs"
       - "tests/support/**"
+      - "scripts/run-question-attempt-evidence-once.mjs"
+      - "scripts/owned-postgres-container.mjs"
+      - "scripts/cleanup-owned-postgres-container.mjs"
       - "scripts/run-d1-test-suite.mjs"
+      - "docs/question-attempt-evidence-worker-once.md"
       - "package.json"
       - "package-lock.json"
       - "tsconfig.json"
@@ -27,8 +34,15 @@ on:
       - "lib/errors.ts"
       - "tests/question-attempt-evidence-event-executor.test.mjs"
       - "tests/question-attempt-evidence-event-executor-postgres-disposable.test.mjs"
+      - "tests/question-attempt-evidence-worker-once.test.mjs"
+      - "tests/question-attempt-evidence-worker-once-postgres-disposable.test.mjs"
+      - "tests/question-attempt-evidence-recompute-integration.test.mjs"
       - "tests/support/**"
+      - "scripts/run-question-attempt-evidence-once.mjs"
+      - "scripts/owned-postgres-container.mjs"
+      - "scripts/cleanup-owned-postgres-container.mjs"
       - "scripts/run-d1-test-suite.mjs"
+      - "docs/question-attempt-evidence-worker-once.md"
       - "package.json"
       - "package-lock.json"
       - "tsconfig.json"
@@ -49,7 +63,7 @@ env:
 
 jobs:
   d1-executor:
-    name: D1 QUESTION_ATTEMPT executor (9 tests)
+    name: D1 QUESTION_ATTEMPT executor (19 tests)
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -97,12 +111,59 @@ jobs:
           test "${failed:-1}" = "0"
           test "${passed:-0}" = "9"
 
+      - name: Run disposable D1 worker-once tests
+        shell: bash
+        timeout-minutes: 15
+        run: |
+          set -o pipefail
+          result_path="$RUNNER_TEMP/question-attempt-evidence-worker-once-d1.tap"
+          node node_modules/tsx/dist/cli.mjs \
+            --test \
+            --test-concurrency=1 \
+            --test-reporter=tap \
+            tests/question-attempt-evidence-worker-once.test.mjs \
+            | tee "$result_path"
+
+          skipped="$(awk '/^# skipped / { print $3 }' "$result_path" | tail -n 1)"
+          todo="$(awk '/^# todo / { print $3 }' "$result_path" | tail -n 1)"
+          passed="$(awk '/^# pass / { print $3 }' "$result_path" | tail -n 1)"
+          failed="$(awk '/^# fail / { print $3 }' "$result_path" | tail -n 1)"
+          test "${skipped:-1}" = "0"
+          test "${todo:-1}" = "0"
+          test "${failed:-1}" = "0"
+          test "${passed:-0}" = "7"
+
+      - name: Run HTTP producer to CLI D1 integration tests
+        shell: bash
+        timeout-minutes: 15
+        run: |
+          set -o pipefail
+          result_path="$RUNNER_TEMP/question-attempt-evidence-recompute-integration-d1.tap"
+          node node_modules/tsx/dist/cli.mjs \
+            --test \
+            --test-concurrency=1 \
+            --test-reporter=tap \
+            tests/question-attempt-evidence-recompute-integration.test.mjs \
+            | tee "$result_path"
+
+          skipped="$(awk '/^# skipped / { print $3 }' "$result_path" | tail -n 1)"
+          todo="$(awk '/^# todo / { print $3 }' "$result_path" | tail -n 1)"
+          passed="$(awk '/^# pass / { print $3 }' "$result_path" | tail -n 1)"
+          failed="$(awk '/^# fail / { print $3 }' "$result_path" | tail -n 1)"
+          test "${skipped:-1}" = "0"
+          test "${todo:-1}" = "0"
+          test "${failed:-1}" = "0"
+          test "${passed:-0}" = "3"
+
   postgres-executor:
-    name: PostgreSQL QUESTION_ATTEMPT executor (3 tests)
+    name: PostgreSQL QUESTION_ATTEMPT executor (5 tests)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
       SECURIUM_EVIDENCE_EXECUTOR_PG_CONTAINER: securium-qae-executor-${{ github.run_id }}-${{ github.run_attempt }}
+      SECURIUM_EVIDENCE_EXECUTOR_PG_OWNER: securium-qae-executor-owner-${{ github.run_id }}-${{ github.run_attempt }}
+      SECURIUM_EVIDENCE_ONCE_POSTGRES_CONTAINER: securium-qae-once-${{ github.run_id }}-${{ github.run_attempt }}
+      SECURIUM_EVIDENCE_ONCE_POSTGRES_OWNER: securium-qae-once-owner-${{ github.run_id }}-${{ github.run_attempt }}
 
     steps:
       - name: Check out exact tested revision
@@ -126,6 +187,12 @@ jobs:
           expected_sha="${{ github.event.pull_request.head.sha || github.sha }}"
           test "$(git rev-parse HEAD)" = "$expected_sha"
 
+      - name: Set disposable PostgreSQL receipt paths
+        shell: bash
+        run: |
+          echo "SECURIUM_EVIDENCE_EXECUTOR_PG_RECEIPT=$RUNNER_TEMP/securium-qae-executor-${{ github.run_id }}-${{ github.run_attempt }}.json" >> "$GITHUB_ENV"
+          echo "SECURIUM_EVIDENCE_ONCE_POSTGRES_RECEIPT=$RUNNER_TEMP/securium-qae-once-${{ github.run_id }}-${{ github.run_attempt }}.json" >> "$GITHUB_ENV"
+
       - name: Run disposable PostgreSQL executor tests
         shell: bash
         timeout-minutes: 15
@@ -148,14 +215,38 @@ jobs:
           test "${failed:-1}" = "0"
           test "${passed:-0}" = "3"
 
-      - name: Cleanup owned disposable PostgreSQL container
+      - name: Run disposable PostgreSQL worker-once test
+        shell: bash
+        timeout-minutes: 15
+        run: |
+          set -o pipefail
+          result_path="$RUNNER_TEMP/question-attempt-evidence-worker-once-postgres.tap"
+          node node_modules/tsx/dist/cli.mjs \
+            --test \
+            --test-concurrency=1 \
+            --test-reporter=tap \
+            tests/question-attempt-evidence-worker-once-postgres-disposable.test.mjs \
+            | tee "$result_path"
+
+          skipped="$(awk '/^# skipped / { print $3 }' "$result_path" | tail -n 1)"
+          todo="$(awk '/^# todo / { print $3 }' "$result_path" | tail -n 1)"
+          passed="$(awk '/^# pass / { print $3 }' "$result_path" | tail -n 1)"
+          failed="$(awk '/^# fail / { print $3 }' "$result_path" | tail -n 1)"
+          test "${skipped:-1}" = "0"
+          test "${todo:-1}" = "0"
+          test "${failed:-1}" = "0"
+          test "${passed:-0}" = "2"
+
+      - name: Cleanup owned disposable PostgreSQL containers
         if: always()
         shell: bash
         run: |
-          if docker container inspect "$SECURIUM_EVIDENCE_EXECUTOR_PG_CONTAINER" >/dev/null 2>&1; then
-            docker rm --force "$SECURIUM_EVIDENCE_EXECUTOR_PG_CONTAINER"
-          fi
-          if docker container inspect "$SECURIUM_EVIDENCE_EXECUTOR_PG_CONTAINER" >/dev/null 2>&1; then
-            echo "Owned PostgreSQL container was not removed" >&2
-            exit 1
-          fi
+          cleanup_failed=0
+          for receipt_path in \
+            "$SECURIUM_EVIDENCE_EXECUTOR_PG_RECEIPT" \
+            "$SECURIUM_EVIDENCE_ONCE_POSTGRES_RECEIPT"; do
+            if ! node scripts/cleanup-owned-postgres-container.mjs "--receipt=$receipt_path"; then
+              cleanup_failed=1
+            fi
+          done
+          exit "$cleanup_failed"

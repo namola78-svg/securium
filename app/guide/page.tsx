@@ -43,9 +43,9 @@ export default function GuidePage() {
             <h2>학습 기록을 다음 행동으로 연결하세요</h2>
             <ul className="feature-list">
               <li>과정 상세에서 목표와 콘텐츠 구성을 먼저 확인합니다.</li>
-              <li>학습 화면에서 공식 커리큘럼 순서대로 이론을 익힙니다.</li>
+              <li>학습 화면에서 과정 커리큘럼 순서대로 이론을 익힙니다.</li>
               <li>문제풀이 결과를 오답노트와 복습 일정으로 연결합니다.</li>
-              <li>AI 튜터 설명은 공식 콘텐츠와 채점 결과를 보완하는 참고 자료로 사용합니다.</li>
+              <li>AI 튜터 설명은 과정 콘텐츠와 채점 결과를 보완하는 참고 자료로 사용합니다.</li>
             </ul>
           </div>
           <div className="course-detail-section course-detail-bottom-cta">

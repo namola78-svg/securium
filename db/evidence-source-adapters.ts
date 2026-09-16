@@ -5,10 +5,17 @@ import {
   stableJson,
   type LearningEventSourceType,
 } from "../lib/services/learning-event-contracts.ts";
+import { resolveMockQuestionVersionSnapshotVerified } from "../lib/services/mock-exam-revision.ts";
+import { resolveMockExamCompositionSnapshot } from "../lib/services/mock-exam-composition.ts";
 import type {
   CanonicalEvidenceSource,
+  EvidenceContentRevisionBinding,
   EvidenceMappingGuard,
 } from "../lib/services/evidence-projection.ts";
+import {
+  SHARED_CONTENT_REVISION_SNAPSHOT_KIND,
+  THEORY_REVISION_CONTENT_TYPE,
+} from "../lib/services/content-revision-service.ts";
 import type {
   CanonicalEvidenceSourceResolver,
   EvidenceLineageInvalidation,
@@ -27,6 +34,8 @@ type ResolveInput = Readonly<{
 
 type QuestionMappingRow = Readonly<{
   mapping_id: string;
+  question_id?: string;
+  question_version_id?: string;
   concept_id: string;
   concept_key: string;
   mapping_version: number | string;
@@ -86,8 +95,12 @@ implements CanonicalEvidenceSourceResolver {
     const mock = input.sourceType === "MOCK_ITEM_RESULT";
     const row = await this.database.queryOne<Record<string, unknown>>({
       sql: mock
-        ? `SELECT a.id, m.user_id, a.question_version_id, a.concept_mapping_set_hash,
-            a.is_correct, a.score, a.answered_at AS occurred_at, v.semantic_hash AS version_hash
+        ? `SELECT a.id, a.question_id, m.user_id, m.composition_snapshot_json,
+            a.question_version_id, a.concept_mapping_set_hash,
+            a.is_correct, a.score, a.answered_at AS occurred_at,
+            m.status AS attempt_status, m.submitted_at AS attempt_submitted_at,
+            v.question_id AS version_question_id, v.version AS version_number,
+            v.semantic_hash AS version_hash, v.snapshot_json AS version_snapshot_json
           FROM mock_exam_answers a JOIN mock_exam_attempts m ON m.id = a.attempt_id
           LEFT JOIN question_versions v ON v.id = a.question_version_id WHERE a.id = ? LIMIT 1`
         : `SELECT a.id, a.user_id, a.question_version_id, a.concept_mapping_set_hash,
@@ -113,8 +126,27 @@ implements CanonicalEvidenceSourceResolver {
       );
       if (sw) return sw.source;
     }
+    if (
+      mock &&
+      (row.attempt_status !== "SUBMITTED" && row.attempt_status !== "EXPIRED" ||
+        !row.attempt_submitted_at ||
+        !row.occurred_at)
+    ) {
+      return null;
+    }
+    if (mock && !row.question_version_id && row.composition_snapshot_json) {
+      invalid("EVIDENCE_VERSION_BINDING_MISSING");
+    }
     if (!row.question_version_id || !row.concept_mapping_set_hash || !row.version_hash) {
       return legacy(input, row);
+    }
+    if (mock) {
+      await resolveMockQuestionVersionSnapshotVerified(
+        String(row.version_snapshot_json ?? ""),
+        String(row.question_id),
+        String(row.version_hash),
+        Number(row.version_number),
+      );
     }
     const revision = await this.latestRevision(input);
     if (revision?.action === "INVALIDATE") {
@@ -136,13 +168,7 @@ implements CanonicalEvidenceSourceResolver {
       : (revision?.semantic_hash ?? input.sourceRevisionIdentity);
     const expectedMappingHash = correction?.conceptMappingSetHash ?? String(row.concept_mapping_set_hash);
     const mappings = await this.questionMappings(String(row.question_version_id));
-    const mappingHash = await computeConceptMappingSetHash(mappings.map((item) => ({
-      conceptIdentity: item.concept_key,
-      mappingVersion: Number(item.mapping_version),
-      qualification: parse(item.qualification_json),
-      provenance: parse(item.provenance_json),
-      status: "APPROVED" as const,
-    })));
+    const mappingHash = await questionMappingHash(mappings);
     if (mappingHash !== expectedMappingHash) invalid("EVIDENCE_MAPPING_SET_MISMATCH");
     const corrected = revision?.action === "CORRECT"
       ? objectPayload(revision.correction_payload_json)
@@ -176,13 +202,18 @@ implements CanonicalEvidenceSourceResolver {
 
   private async resolveMock(input: ResolveInput): Promise<CanonicalEvidenceSource | null> {
     const row = await this.database.queryOne<Record<string, unknown>>({
-      sql: `SELECT id, user_id, composition_semantic_hash, score, correct_count,
-        wrong_count, unanswered_count, submitted_at
+      sql: `SELECT id, user_id, composition_semantic_hash,
+        composition_snapshot_json, score, correct_count, wrong_count,
+        unanswered_count, submitted_at
         FROM mock_exam_attempts WHERE id = ? LIMIT 1`,
       parameters: [input.sourceEventId],
     });
     if (!row) return null;
     if (!row.composition_semantic_hash || !row.submitted_at) return legacy(input, row);
+    const composition = await resolveMockExamCompositionSnapshot(
+      String(row.composition_snapshot_json ?? ""),
+      String(row.composition_semantic_hash),
+    );
     const revision = await this.latestRevision(input);
     if (revision?.action === "INVALIDATE") {
       return invalidatedSource(input, row, revision.semantic_hash, String(row.composition_semantic_hash), String(row.composition_semantic_hash));
@@ -190,7 +221,53 @@ implements CanonicalEvidenceSourceResolver {
     const correction = revision?.action === "CORRECT_CONCEPT_MAPPING"
       ? mappingCorrection(revision.correction_payload_json)
       : null;
+    const bindings = await this.mockAnswerBindings(input.sourceEventId);
+    if (
+      bindings.length !== composition.items.length ||
+      bindings.some((item) =>
+        !item.question_version_id ||
+        !item.concept_mapping_set_hash ||
+        !item.version_hash ||
+        !item.version_snapshot_json ||
+        !item.version_question_id ||
+        !item.version_number
+      )
+    ) {
+      invalid("EVIDENCE_VERSION_BINDING_MISSING");
+    }
+    const compositionItems = new Map(
+      composition.items.map((item) => [item.questionIdentity, item]),
+    );
+    for (const binding of bindings) {
+      const item = compositionItems.get(binding.question_id);
+      if (
+        !item ||
+        item.questionVersionId !== binding.question_version_id ||
+        item.questionVersionSemanticHash !== binding.version_hash ||
+        item.conceptMappingSetHash !== binding.concept_mapping_set_hash ||
+        binding.version_question_id !== binding.question_id
+      ) {
+        invalid("EVIDENCE_COMPOSITION_MISMATCH");
+      }
+      await resolveMockQuestionVersionSnapshotVerified(
+        binding.version_snapshot_json,
+        binding.question_id,
+        binding.version_hash,
+        Number(binding.version_number),
+      );
+    }
     const mappings = await this.mockMappings(input.sourceEventId);
+    for (const binding of bindings) {
+      const itemMappings = mappings.filter(
+        (item) => item.question_id === binding.question_id &&
+          item.question_version_id === binding.question_version_id,
+      );
+      if (!itemMappings.length) invalid("EVIDENCE_MAPPING_SET_MISMATCH");
+      const itemHash = await questionMappingHash(itemMappings);
+      if (itemHash !== String(binding.concept_mapping_set_hash)) {
+        invalid("EVIDENCE_MAPPING_SET_MISMATCH");
+      }
+    }
     if (!mappings.length) invalid("EVIDENCE_CONCEPT_MAPPING_MISSING");
     const mappingHash = await sha256(stableJson(mappings.map((item) => ({
       conceptIdentity: item.concept_key,
@@ -291,20 +368,42 @@ implements CanonicalEvidenceSourceResolver {
     if (!config) return null;
     const row = await this.database.queryOne<Record<string, unknown>>({
       sql: `SELECT id, user_id, ${config.parentColumn} AS parent_id,
-        ${config.versionColumn} AS version_id, ${config.completedColumn} AS completed,
+        ${config.versionColumn} AS version_id, ${config.completedColumn} AS completed${
+          config.contentIdColumn ? `, ${config.contentIdColumn} AS content_identity_id` : ""
+        },
         ${config.occurredColumn} AS occurred_at FROM ${config.table} WHERE id = ? LIMIT 1`,
       parameters: [input.sourceEventId],
     });
     if (!row) return null;
     if (!row.version_id) return legacy(input, row);
+    const contentRevisionBinding = config.contentRevisionType
+      ? await this.resolveCourseLessonRevisionBinding(row)
+      : null;
+    if (config.contentRevisionType && !contentRevisionBinding) {
+      return unresolvedProgress(input, row, "COURSE_LESSON_REVISION_SNAPSHOT_MISSING");
+    }
     const revision = await this.latestRevision(input);
+    const sourceSemanticHash = await sha256(stableJson(
+      contentRevisionBinding
+        ? {
+          contentRevisionBinding,
+          contentVersionIdentity: row.version_id,
+          completed: Boolean(row.completed),
+        }
+        : {
+          contentVersionIdentity: row.version_id,
+          completed: Boolean(row.completed),
+        },
+    ));
     if (revision?.action === "INVALIDATE") {
       return invalidatedSource(
         input,
         row,
         revision.semantic_hash,
         String(row.version_id),
-        await sha256(stableJson({ contentVersionIdentity: row.version_id, completed: Boolean(row.completed) })),
+        sourceSemanticHash,
+        input.sourceEventId,
+        contentRevisionBinding ?? undefined,
       );
     }
     const concepts = await this.edgeConcepts(config.ontologyType, String(row.parent_id));
@@ -314,9 +413,13 @@ implements CanonicalEvidenceSourceResolver {
       sourceType: input.sourceType as CanonicalEvidenceSource["sourceType"],
       sourceEventId: input.sourceEventId,
       sourceLineageIdentity: input.sourceEventId,
-      sourceRevisionIdentity: revision?.semantic_hash ?? input.sourceRevisionIdentity,
+      sourceRevisionIdentity:
+        revision?.semantic_hash ??
+        contentRevisionBinding?.revisionId ??
+        input.sourceRevisionIdentity,
       userId: String(row.user_id),
       contentVersionIdentity: String(row.version_id),
+      ...(contentRevisionBinding ? { contentRevisionBinding } : {}),
       conceptMappingSetHash: mappingHash,
       conceptIds: concepts.map((item) => item.concept_id).sort(),
       occurredAt: String(row.occurred_at),
@@ -324,13 +427,55 @@ implements CanonicalEvidenceSourceResolver {
       evidenceType: "LEARNING_ACTIVITY",
       quality: "SUPPORTING_ACTIVITY",
       resultSummary: { completed: Boolean(row.completed) },
-      sourceSemanticHash: await sha256(stableJson({
-        contentVersionIdentity: row.version_id,
-        completed: Boolean(row.completed),
-      })),
+      sourceSemanticHash,
       mappingTransition: "PRESERVE_EVENT_TIME",
       mappingGuard: edgeMappingGuard(config.ontologyType, String(row.parent_id), concepts),
     };
+  }
+
+  private async resolveCourseLessonRevisionBinding(
+    row: Record<string, unknown>,
+  ): Promise<EvidenceContentRevisionBinding | null> {
+    const contentId = String(row.content_identity_id ?? "");
+    const version = String(row.version_id ?? "");
+    if (!contentId || !version) return null;
+    const revision = await this.database.queryOne<{
+      id: string;
+      version: string;
+      semantic_hash: string | null;
+      snapshot_json: string;
+      revision_status: string;
+    }>({
+      sql: `SELECT id, version, semantic_hash, snapshot_json, revision_status
+        FROM content_revisions
+        WHERE content_type = ? AND content_id = ? AND version = ? LIMIT 1`,
+      parameters: [THEORY_REVISION_CONTENT_TYPE, contentId, version],
+    });
+    if (
+      !revision ||
+      !["published", "superseded", "archived"].includes(revision.revision_status) ||
+      revision.version !== version ||
+      !revision.semantic_hash ||
+      !/^[0-9a-f]{64}$/.test(revision.semantic_hash)
+    ) return null;
+    try {
+      const snapshot = JSON.parse(revision.snapshot_json) as Record<string, unknown>;
+      if (
+        snapshot.kind !== SHARED_CONTENT_REVISION_SNAPSHOT_KIND ||
+        snapshot.contentId !== contentId ||
+        snapshot.version !== version ||
+        await sha256(stableJson(snapshot)) !== revision.semantic_hash
+      ) return null;
+    } catch {
+      return null;
+    }
+    return Object.freeze({
+      contentId,
+      version,
+      revisionId: revision.id,
+      semanticHash: revision.semantic_hash,
+      binding: "CONTENT_REVISION_SNAPSHOT" as const,
+    });
   }
 
   private async questionMappings(questionVersionId: string) {
@@ -348,13 +493,35 @@ implements CanonicalEvidenceSourceResolver {
 
   private async mockMappings(attemptId: string) {
     const result = await this.database.query<QuestionMappingRow>({
-      sql: `SELECT DISTINCT qc.id AS mapping_id, qc.concept_id, c.concept_key,
+      sql: `SELECT DISTINCT a.question_id, a.question_version_id,
+        qc.id AS mapping_id, qc.concept_id, c.concept_key,
         qc.mapping_version, qc.qualification_json, qc.provenance_json
         FROM mock_exam_answers a
         JOIN question_concepts qc ON qc.question_version_id = a.question_version_id
           AND qc.mapping_status = 'APPROVED'
         JOIN ontology_concepts c ON c.id = qc.concept_id AND c.status = 'ACTIVE'
         WHERE a.attempt_id = ? ORDER BY c.concept_key, qc.id`,
+      parameters: [attemptId],
+    });
+    return result.rows;
+  }
+
+  private async mockAnswerBindings(attemptId: string) {
+    const result = await this.database.query<{
+      question_id: string;
+      question_version_id: string | null;
+      concept_mapping_set_hash: string | null;
+      version_question_id: string | null;
+      version_number: number | string | null;
+      version_hash: string | null;
+      version_snapshot_json: string | null;
+    }>({
+      sql: `SELECT a.question_id, a.question_version_id, a.concept_mapping_set_hash,
+        v.question_id AS version_question_id, v.version AS version_number,
+        v.semantic_hash AS version_hash, v.snapshot_json AS version_snapshot_json
+        FROM mock_exam_answers a
+        LEFT JOIN question_versions v ON v.id = a.question_version_id
+        WHERE a.attempt_id = ? ORDER BY a.question_id`,
       parameters: [attemptId],
     });
     return result.rows;
@@ -386,9 +553,26 @@ implements CanonicalEvidenceSourceResolver {
   }
 }
 
-const progressConfig = {
+type ProgressSourceType =
+  | "LESSON_PROGRESS"
+  | "COURSE_LESSON_PROGRESS"
+  | "LECTURE_PROGRESS"
+  | "AUDIO_PROGRESS";
+
+type ProgressConfig = Readonly<{
+  table: string;
+  parentColumn: string;
+  contentIdColumn?: string;
+  contentRevisionType?: "LEARNING_UNIT";
+  versionColumn: string;
+  completedColumn: string;
+  occurredColumn: string;
+  ontologyType: string;
+}>;
+
+const progressConfig: Record<ProgressSourceType, ProgressConfig> = {
   LESSON_PROGRESS: { table: "user_lesson_progress", parentColumn: "lesson_id", versionColumn: "content_version", completedColumn: "status = 'COMPLETED'", occurredColumn: "last_studied_at", ontologyType: "LESSON" },
-  COURSE_LESSON_PROGRESS: { table: "user_course_lesson_progress", parentColumn: "course_lesson_id", versionColumn: "content_version", completedColumn: "status = 'COMPLETED'", occurredColumn: "last_studied_at", ontologyType: "COURSE_LESSON" },
+  COURSE_LESSON_PROGRESS: { table: "user_course_lesson_progress", parentColumn: "course_lesson_id", contentIdColumn: "content_id", contentRevisionType: "LEARNING_UNIT", versionColumn: "content_version", completedColumn: "status = 'COMPLETED'", occurredColumn: "last_studied_at", ontologyType: "COURSE_LESSON" },
   LECTURE_PROGRESS: { table: "lecture_progress", parentColumn: "lecture_id", versionColumn: "content_revision_id", completedColumn: "completed", occurredColumn: "last_played_at", ontologyType: "LECTURE" },
   AUDIO_PROGRESS: { table: "audio_progress", parentColumn: "audio_content_id", versionColumn: "content_revision_id", completedColumn: "completed", occurredColumn: "last_played_at", ontologyType: "AUDIO_CONTENT" },
 } as const;
@@ -435,6 +619,16 @@ async function edgeMappingHash(mappings: readonly EdgeRow[]) {
   }))));
 }
 
+async function questionMappingHash(mappings: readonly QuestionMappingRow[]) {
+  return computeConceptMappingSetHash(mappings.map((item) => ({
+    conceptIdentity: item.concept_key,
+    mappingVersion: Number(item.mapping_version),
+    qualification: parse(item.qualification_json),
+    provenance: parse(item.provenance_json),
+    status: "APPROVED" as const,
+  })));
+}
+
 function mappingCorrection(value: unknown) {
   const payload = objectPayload(value);
   if (payload.kind !== "CONCEPT_MAPPING" ||
@@ -460,6 +654,7 @@ function invalidatedSource(
   contentVersionIdentity: string,
   sourceSemanticHash: string,
   sourceLineageIdentity = input.sourceEventId,
+  contentRevisionBinding?: EvidenceContentRevisionBinding,
 ): CanonicalEvidenceSource {
   return {
     sourceType: input.sourceType as CanonicalEvidenceSource["sourceType"],
@@ -468,6 +663,7 @@ function invalidatedSource(
     sourceRevisionIdentity,
     userId: String(row.user_id),
     contentVersionIdentity,
+    ...(contentRevisionBinding ? { contentRevisionBinding } : {}),
     conceptMappingSetHash: "0".repeat(64),
     conceptIds: [],
     occurredAt: String(row.occurred_at ?? row.evaluated_at ?? ""),
@@ -487,6 +683,38 @@ function invalidatedSource(
       parentType: "INVALIDATION_CONTROL",
       members: Object.freeze([]),
     }),
+  };
+}
+
+function unresolvedProgress(
+  input: ResolveInput,
+  row: Record<string, unknown>,
+  reason: string,
+): CanonicalEvidenceSource {
+  return {
+    sourceType: input.sourceType as CanonicalEvidenceSource["sourceType"],
+    sourceEventId: input.sourceEventId,
+    sourceLineageIdentity: input.sourceEventId,
+    sourceRevisionIdentity: "UNRESOLVED",
+    userId: String(row.user_id),
+    contentVersionIdentity: "UNKNOWN",
+    conceptMappingSetHash: "0".repeat(64),
+    conceptIds: ["UNKNOWN"],
+    occurredAt: String(row.occurred_at ?? ""),
+    validity: "LEGACY_INELIGIBLE",
+    evidenceType: "LEARNING_ACTIVITY",
+    quality: "SUPPORTING_ACTIVITY",
+    resultSummary: {},
+    sourceSemanticHash: "0".repeat(64),
+    mappingTransition: "PRESERVE_EVENT_TIME",
+    mappingGuard: Object.freeze({
+      kind: "ONTOLOGY_EDGES",
+      parentIdentity: input.sourceEventId,
+      parentType: "UNRESOLVED",
+      members: Object.freeze([]),
+    }),
+    resolutionStatus: "UNRESOLVED",
+    unresolvedReason: reason,
   };
 }
 

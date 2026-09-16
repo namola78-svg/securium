@@ -12,6 +12,14 @@ export type EvidenceQuality = "DIRECT_PERFORMANCE" | "HUMAN_EVALUATED" | "SUPPOR
 export type EvidenceLifecycle = "ACTIVE" | "SUPERSEDED" | "INVALIDATED";
 export type ProjectionOutcome = "NEW_SUCCESS" | "EXACT_REPLAY" | "CONFLICT" | "INVALID_SOURCE";
 
+export type EvidenceContentRevisionBinding = Readonly<{
+  contentId: string;
+  version: string;
+  revisionId: string;
+  semanticHash: string;
+  binding: "CONTENT_REVISION_SNAPSHOT";
+}>;
+
 export type EvidenceMappingGuard =
   | Readonly<{
     kind: "QUESTION_VERSION" | "MOCK_COMPOSITION";
@@ -39,6 +47,7 @@ export type CanonicalEvidenceSource = Readonly<{
   sourceRevisionIdentity: string;
   userId: string;
   contentVersionIdentity: string;
+  contentRevisionBinding?: EvidenceContentRevisionBinding;
   conceptMappingSetHash: string;
   conceptIds: readonly string[];
   occurredAt: string;
@@ -127,6 +136,9 @@ async function buildCandidate(source: CanonicalEvidenceSource, conceptId: string
     sourceRevisionIdentity: source.sourceRevisionIdentity,
     sourceType: source.sourceType,
     userId: source.userId,
+    ...(source.contentRevisionBinding
+      ? { contentRevisionBinding: source.contentRevisionBinding }
+      : {}),
   };
   const id = await sha256(stableJson(identitySemantics));
   const resultSummaryJson = stableJson(source.resultSummary);
@@ -161,6 +173,20 @@ function validateSource(source: CanonicalEvidenceSource, expected: EvidenceSourc
     if (!/^[0-9a-f]{64}$/.test(hash)) invalid("EVIDENCE_SOURCE_HASH_INVALID");
   }
   if (!source.conceptIds.length || new Set(source.conceptIds).size !== source.conceptIds.length) invalid("EVIDENCE_CONCEPT_MAPPING_INVALID");
+  if (source.contentRevisionBinding) {
+    const binding = source.contentRevisionBinding;
+    if (
+      !binding.contentId ||
+      !binding.version ||
+      !binding.revisionId ||
+      binding.version !== source.contentVersionIdentity ||
+      binding.binding !== "CONTENT_REVISION_SNAPSHOT" ||
+      !/^[0-9a-f]{64}$/.test(binding.semanticHash)
+    ) invalid("EVIDENCE_CONTENT_REVISION_BINDING_INVALID");
+  }
+  if (source.sourceType === "COURSE_LESSON_PROGRESS" && source.validity === "ELIGIBLE" && !source.contentRevisionBinding) {
+    invalid("EVIDENCE_CONTENT_REVISION_BINDING_MISSING");
+  }
   if (source.sourceType === "PRACTICAL_EVALUATION" && source.quality !== "HUMAN_EVALUATED" && source.quality !== "DIRECT_PERFORMANCE") invalid("PRACTICAL_EVALUATION_NOT_QUALIFIED");
   if (source.sourceType.endsWith("PROGRESS") && (source.evidenceType !== "LEARNING_ACTIVITY" || source.quality !== "SUPPORTING_ACTIVITY")) invalid("PROGRESS_EVIDENCE_QUALITY_INVALID");
   const allowedResultKeys: Record<EvidenceSourceType, readonly string[]> = {

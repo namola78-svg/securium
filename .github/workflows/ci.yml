@@ -1,6 +1,7 @@
 name: Pull request CI
 
 on:
+  workflow_dispatch:
   pull_request:
   push:
     branches:
@@ -62,6 +63,9 @@ jobs:
 
       - name: Integration smoke tests
         run: npm run test:integration
+
+      - name: Theory revision integrity tests
+        run: npm run test:theory-revision-integrity
 
       - name: Production build
         run: npm run build

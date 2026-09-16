@@ -7,8 +7,10 @@ import postgres from "postgres";
 import { loadLocalEnvIfPresent } from "./load-local-env.mjs";
 import {
   buildSecurityContentIntelligenceV3Plan,
+  buildSecurityContentV3Plan,
   generateSecurityContentV3Sql,
   generateSecurityContentIntelligenceV3Sql,
+  securityContentV3ContentProjection,
 } from "../lib/data/security-content-upgrade-v3.mjs";
 
 loadLocalEnvIfPresent();
@@ -47,6 +49,7 @@ if (action === "plan") {
 async function seedD1() {
   await runQualityGate();
   await assertPrerequisites();
+  await assertD1NoImmutableContentConflict();
   const beforeProtected = await d1Query(protectedSnapshotSql());
   const beforeUser = await d1Query(userSnapshotSql());
   const tempDir = await mkdtemp(join(tmpdir(), "securium-intelligence-v3-"));
@@ -73,6 +76,11 @@ async function runQualityGate() {
 
 async function assertPrerequisites() {
   assertPrerequisiteRows(await d1Query(prerequisiteSql()));
+}
+
+async function assertD1NoImmutableContentConflict() {
+  const rows = await d1Query(contentConflictSql(plan.contents));
+  assertNoImmutableContentConflict(rows, plan.contents);
 }
 
 async function verifyD1() {
@@ -150,6 +158,10 @@ async function postgresConnectedDryRun() {
     actorIdHash = sha256(actorId);
     bundle = await postgresTransactionBundle(actorId);
     sqlSha256 = bundle.sqlSha256;
+    await assertPostgresNoImmutableContentConflict(client, [
+      ...bundle.bootstrapPlan.contents,
+      ...plan.contents,
+    ]);
     const versionRows = await client.unsafe("SELECT current_setting('server_version_num')::integer AS server_version_num;");
     const beforeProtected = normalizeRows(await client.unsafe(protectedSnapshotSql()));
     const beforeUser = normalizeRows(await client.unsafe(userSnapshotSql()));
@@ -253,6 +265,10 @@ async function postgresProductionApply() {
   let failure;
   try {
     await assertContentActor(client, actorId);
+    await assertPostgresNoImmutableContentConflict(client, [
+      ...bundle.bootstrapPlan.contents,
+      ...plan.contents,
+    ]);
     await client.unsafe("BEGIN;");
     let transactionOpen = true;
     try {
@@ -341,9 +357,11 @@ async function verifyPostgresProduction() {
 async function postgresTransactionBundle(actorId) {
   const sourceRoot = resolve(process.env.SECURIUM_CONTENT_V2_SOURCE_ROOT?.trim() || "securium-content-upgrade-v2");
   const source = JSON.parse(await readFile(join(sourceRoot, "data", "normalized-knowledge-base.json"), "utf8"));
+  const bootstrapPlan = buildSecurityContentV3Plan(source);
   const bootstrapSql = generateSecurityContentV3Sql(source, { dialect: "postgres", actorId });
   const intelligenceSql = generateSecurityContentIntelligenceV3Sql({ dialect: "postgres", actorId });
   return {
+    bootstrapPlan,
     bootstrapSql,
     intelligenceSql,
     bootstrapSqlSha256: sha256(bootstrapSql),
@@ -419,6 +437,46 @@ function assertPrerequisiteRows(rows) {
   const row = normalizeMetricRow(rows[0]);
   for (const [key, value] of Object.entries(prerequisiteExpected())) {
     if (row[key] !== value) throw new Error(`PREREQUISITE_MISSING:${key}:${row[key]}!=${value}`);
+  }
+}
+
+async function assertPostgresNoImmutableContentConflict(sql, contents) {
+  const rows = await sql.unsafe(contentConflictSql(contents));
+  assertNoImmutableContentConflict(rows, contents);
+}
+
+function contentConflictSql(contents) {
+  const ids = contents.map((content) => q(content.id)).join(",");
+  if (!ids) return `SELECT id, version, title, summary, body, body_format AS "bodyFormat", learning_objectives_json AS "learningObjectivesJson", core_concepts_json AS "coreConceptsJson", practical_examples_json AS "practicalExamplesJson", diagrams_json AS "diagramsJson", media_json AS "mediaJson" FROM contents WHERE 1=0;`;
+  return `SELECT id, version, title, summary, body, body_format AS "bodyFormat", learning_objectives_json AS "learningObjectivesJson", core_concepts_json AS "coreConceptsJson", practical_examples_json AS "practicalExamplesJson", diagrams_json AS "diagramsJson", media_json AS "mediaJson" FROM contents WHERE id IN (${ids});`;
+}
+
+function assertNoImmutableContentConflict(rows, contents) {
+  const expectedById = new Map(
+    contents.map((content) => [content.id, securityContentV3ContentProjection(content)]),
+  );
+  const immutableFields = [
+    "version",
+    "title",
+    "summary",
+    "body",
+    "bodyFormat",
+    "learningObjectivesJson",
+    "coreConceptsJson",
+    "practicalExamplesJson",
+    "diagramsJson",
+    "mediaJson",
+  ];
+  for (const row of rows) {
+    const expected = expectedById.get(row.id);
+    if (!expected) continue;
+    const actual = securityContentV3ContentProjection(row);
+    if (actual.version !== expected.version) {
+      fail("SECURITY_CONTENT_INTELLIGENCE_V3_CONTENT_VERSION_CONFLICT", row.id);
+    }
+    if (immutableFields.some((field) => actual[field] !== expected[field])) {
+      fail("SECURITY_CONTENT_INTELLIGENCE_V3_CONTENT_REVISION_CONFLICT", row.id);
+    }
   }
 }
 

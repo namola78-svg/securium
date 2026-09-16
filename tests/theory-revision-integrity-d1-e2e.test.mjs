@@ -1,0 +1,567 @@
+import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
+import { createServer } from "node:net";
+import { after, before, test } from "node:test";
+import { startVinextTestServer } from "./support/vinext-test-server.mjs";
+import { generateSecurityContentV3Sql } from "../lib/data/security-content-upgrade-v3.mjs";
+
+const host = "127.0.0.1";
+const courseId = "course-isms-p";
+const userId = "user-learner-1";
+const contentId = "repair-revision-integrity-content";
+const collisionContentId = "repair-revision-integrity-collision";
+const upgradeContentId = "sec-upgrade-lesson-repair-boundary";
+const raceContentId = "sec-upgrade-lesson-repair-race";
+const raceLessonId = "repair-revision-integrity-seed-race-lesson";
+const lessonId = "repair-revision-integrity-lesson";
+const legacyProgressId = "repair-revision-integrity-legacy";
+const port = await getFreeLoopbackPort();
+let server;
+let baseUrl;
+
+const userHeaders = {
+  "content-type": "application/json",
+  origin: `http://${host}:${port}`,
+  "oai-authenticated-user-email": "dev-user-1@example.invalid",
+};
+const adminHeaders = {
+  "content-type": "application/json",
+  origin: `http://${host}:${port}`,
+  "oai-authenticated-user-email": "dev-admin@example.invalid",
+};
+
+before(async () => {
+  server = await startVinextTestServer({
+    label: "Theory revision integrity D1 integration",
+    env: { WRANGLER_LOG_PATH: ".wrangler/wrangler.log" },
+  });
+  baseUrl = server.baseUrl;
+  userHeaders.origin = baseUrl;
+  adminHeaders.origin = baseUrl;
+  await runLocalSql(`
+    DELETE FROM learning_activities WHERE target_id = '${lessonId}';
+    DELETE FROM user_course_lesson_progress WHERE course_lesson_id = '${lessonId}';
+    DELETE FROM content_revisions WHERE content_type = 'LEARNING_UNIT'
+      AND content_id IN ('${contentId}', '${collisionContentId}')
+      AND version = 'v4';
+    DELETE FROM content_revisions WHERE content_type = 'LEARNING_UNIT'
+      AND content_id IN ('${contentId}', '${collisionContentId}')
+      AND version = 'v3';
+    DELETE FROM content_revisions WHERE content_type = 'LEARNING_UNIT'
+      AND content_id IN ('${contentId}', '${collisionContentId}')
+      AND version = 'v2';
+    DELETE FROM content_revisions WHERE content_type = 'LEARNING_UNIT'
+      AND content_id IN ('${contentId}', '${collisionContentId}');
+    DELETE FROM contents WHERE id = '${upgradeContentId}';
+    DELETE FROM course_lessons WHERE id = '${raceLessonId}';
+    DELETE FROM contents WHERE id = '${raceContentId}';
+    DELETE FROM course_lessons WHERE id = '${lessonId}';
+    DELETE FROM contents WHERE id IN ('${contentId}', '${collisionContentId}');
+    INSERT INTO contents
+      (id, slug, canonical_key, title, summary, body, body_format,
+       learning_objectives_json, core_concepts_json, practical_examples_json,
+       diagrams_json, media_json, version, status, created_by)
+    VALUES
+      ('${contentId}', 'repair-revision-integrity-a', 'repair.revision.integrity.a',
+       'Repair revision A', 'Summary A', 'Revision A body', 'MARKDOWN',
+       '[]', '[]', '[]', '[]', '[]', 'v1', 'PUBLISHED', 'user-admin'),
+      ('${collisionContentId}', 'repair-revision-integrity-collision',
+       'repair.revision.integrity.collision', 'Collision content', '',
+       'Collision body', 'MARKDOWN', '[]', '[]', '[]', '[]', '[]',
+       'v1', 'PUBLISHED', 'user-admin');
+    INSERT INTO course_lessons
+      (id, course_id, content_id, display_title, sort_order,
+       estimated_minutes, is_required, completion_rule, status)
+    VALUES ('${lessonId}', '${courseId}', '${contentId}', 'Repair revision lesson',
+      99999, 10, 1, 'MANUAL', 'PUBLISHED');
+    INSERT INTO user_course_lesson_progress
+      (id, user_id, course_id, course_lesson_id, content_id, content_version,
+       status, progress_percent, completed_at, last_viewed_at,
+       time_spent_seconds, last_studied_at)
+    VALUES ('${legacyProgressId}', '${userId}', '${courseId}', '${lessonId}',
+      NULL, NULL, 'COMPLETED', 100, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1,
+      CURRENT_TIMESTAMP);
+  `);
+});
+
+after(async () => {
+  await runLocalSql(`
+    DELETE FROM learning_activities WHERE target_id = '${lessonId}';
+    DELETE FROM user_course_lesson_progress WHERE course_lesson_id = '${lessonId}';
+    DELETE FROM content_revisions WHERE content_type = 'LEARNING_UNIT'
+      AND content_id IN ('${contentId}', '${collisionContentId}')
+      AND version = 'v4';
+    DELETE FROM content_revisions WHERE content_type = 'LEARNING_UNIT'
+      AND content_id IN ('${contentId}', '${collisionContentId}')
+      AND version = 'v3';
+    DELETE FROM content_revisions WHERE content_type = 'LEARNING_UNIT'
+      AND content_id IN ('${contentId}', '${collisionContentId}')
+      AND version = 'v2';
+    DELETE FROM content_revisions WHERE content_type = 'LEARNING_UNIT'
+      AND content_id IN ('${contentId}', '${collisionContentId}');
+    DELETE FROM contents WHERE id = '${upgradeContentId}';
+    DELETE FROM course_lessons WHERE id = '${raceLessonId}';
+    DELETE FROM contents WHERE id = '${raceContentId}';
+    DELETE FROM course_lessons WHERE id = '${lessonId}';
+    DELETE FROM contents WHERE id IN ('${contentId}', '${collisionContentId}');
+  `);
+  await server?.stop();
+});
+
+test("D1 authoring and learning records preserve immutable theory revisions", async () => {
+  const first = await saveProgress({
+    courseLessonId: lessonId,
+    contentId,
+    contentVersion: "v1",
+    action: "COMPLETE",
+    progressPercent: 100,
+    timeSpentSeconds: 10,
+  });
+  assert.equal(first.response.status, 200, JSON.stringify(first.payload));
+
+  const createdSnapshot = await saveContent(contentInput({}));
+  assert.equal(createdSnapshot.response.status, 200, JSON.stringify(createdSnapshot.payload));
+  const initialRevision = await queryRows(`
+    SELECT version, revision_status AS revisionStatus, is_latest AS isLatest,
+      semantic_hash AS semanticHash, snapshot_json AS snapshotJson
+    FROM content_revisions
+    WHERE content_type = 'LEARNING_UNIT' AND content_id = '${contentId}'
+    ORDER BY version;
+  `);
+  assert.equal(initialRevision.length, 1);
+  assert.equal(initialRevision[0].version, "v1");
+  assert.equal(initialRevision[0].revisionStatus, "published");
+  assert.equal(Number(initialRevision[0].isLatest), 1);
+  assert.match(initialRevision[0].semanticHash, /^[0-9a-f]{64}$/);
+  assert.equal(JSON.parse(initialRevision[0].snapshotJson).payload.body, "Revision A body");
+
+  const draftRevisionStart = await saveContent(collisionContentInput({}));
+  assert.equal(draftRevisionStart.response.status, 200, JSON.stringify(draftRevisionStart.payload));
+  const draftRevisionSave = await saveContent(collisionContentInput({
+    version: "v2",
+    body: "Collision revision v2 body",
+    status: "DRAFT",
+  }));
+  assert.equal(draftRevisionSave.response.status, 200, JSON.stringify(draftRevisionSave.payload));
+  const draftRevisionPublish = await saveContent(collisionContentInput({
+    version: "v2",
+    body: "Collision revision v2 body",
+    status: "PUBLISHED",
+  }));
+  assert.equal(draftRevisionPublish.response.status, 200, JSON.stringify(draftRevisionPublish.payload));
+  assert.deepEqual(
+    (await queryRows(`
+      SELECT version, revision_status AS revisionStatus, is_latest AS isLatest,
+        previous_version_id AS previousVersionId, snapshot_json AS snapshotJson
+      FROM content_revisions
+      WHERE content_type = 'LEARNING_UNIT' AND content_id = '${collisionContentId}'
+      ORDER BY version;
+    `)).map((row) => ({
+      version: row.version,
+      revisionStatus: row.revisionStatus,
+      isLatest: Number(row.isLatest),
+      hasPrevious: Boolean(row.previousVersionId),
+      body: JSON.parse(row.snapshotJson).payload.body,
+    })),
+    [
+      { version: "v1", revisionStatus: "superseded", isLatest: 0, hasPrevious: false, body: "Collision body" },
+      { version: "v2", revisionStatus: "published", isLatest: 1, hasPrevious: true, body: "Collision revision v2 body" },
+    ],
+  );
+  const collisionRevisionRows = await queryRows(`
+    SELECT id, version, previous_version_id AS previousVersionId
+    FROM content_revisions
+    WHERE content_type = 'LEARNING_UNIT' AND content_id = '${collisionContentId}'
+    ORDER BY version;
+  `);
+  assert.equal(collisionRevisionRows.length, 2);
+  assert.equal(collisionRevisionRows[1].previousVersionId, collisionRevisionRows[0].id);
+  const collisionReplay = await saveContent(collisionContentInput({
+    version: "v2",
+    body: "Collision revision v2 body",
+    status: "PUBLISHED",
+  }));
+  assert.equal(collisionReplay.response.status, 200, JSON.stringify(collisionReplay.payload));
+  assert.equal(Number((await queryRows(`
+    SELECT count(*) AS count FROM content_revisions
+    WHERE content_type = 'LEARNING_UNIT' AND content_id = '${collisionContentId}'
+  `))[0].count), 2);
+
+  const directImportStatement = contentImportStatement({ overview: "Direct import original overview" });
+  await runLocalSql(directImportStatement);
+  await runLocalSql(directImportStatement);
+  const directImportBefore = await queryRows(`
+    SELECT title, summary, body, version, status
+    FROM contents WHERE id = '${upgradeContentId}';
+  `);
+  assert.equal(directImportBefore.length, 1);
+  await assert.rejects(
+    runLocalSql(contentImportStatement({
+      title: "Direct import tampered title",
+      overview: "Direct import tampered overview",
+      learningObjectives: ["Tampered learning objective"],
+    })),
+    /UNIQUE constraint failed|constraint failed/i,
+  );
+  assert.deepEqual(await queryRows(`
+    SELECT title, summary, body, version, status
+    FROM contents WHERE id = '${upgradeContentId}';
+  `), directImportBefore);
+  assert.equal(Number((await queryRows(`
+    SELECT count(*) AS count FROM content_revisions
+    WHERE content_type = 'LEARNING_UNIT' AND content_id = '${upgradeContentId}'
+  `))[0].count), 0);
+
+  // Deterministic preflight/write barrier: A reads an empty row, B commits a
+  // same-id/version different payload, then A resumes with a downstream link.
+  // The generator guard must abort before that link can be materialized.
+  assert.equal((await queryRows(`SELECT id FROM contents WHERE id = '${raceContentId}';`)).length, 0);
+  await runLocalSql(`
+    INSERT INTO contents
+      (id, slug, canonical_key, title, summary, body, body_format,
+       learning_objectives_json, core_concepts_json, practical_examples_json,
+       diagrams_json, media_json, version, status, created_by)
+    VALUES ('${raceContentId}', 'repair-seed-race', 'repair.seed.race',
+      'B payload', '', 'B body', 'STRUCTURED_JSON', '["B objective"]',
+      '["DNS"]', '[]', '[]', '[]', '3.0.0', 'DRAFT', 'user-admin');
+  `);
+  const racePayloadBeforeA = await queryRows(`
+    SELECT title, body, version, status FROM contents WHERE id = '${raceContentId}';
+  `);
+  await assert.rejects(
+    runLocalSql(contentImportStatement(
+      { id: raceContentId, title: "A payload", overview: "A overview" },
+      { downstreamLessonId: raceLessonId },
+    )),
+    /UNIQUE constraint failed|constraint failed/i,
+  );
+  assert.deepEqual(await queryRows(`
+    SELECT title, body, version, status FROM contents WHERE id = '${raceContentId}';
+  `), racePayloadBeforeA);
+  assert.equal(Number((await queryRows(`
+    SELECT count(*) AS count FROM course_lessons WHERE id = '${raceLessonId}';
+  `))[0].count), 0);
+
+  const sameRevisionMutation = await saveContent(contentInput({ body: "Changed A body" }));
+  assert.equal(sameRevisionMutation.response.status, 409, JSON.stringify(sameRevisionMutation.payload));
+  assert.equal(sameRevisionMutation.payload.code, "SHARED_CONTENT_REVISION_CONFLICT");
+  assert.deepEqual(await queryRows(`
+    SELECT body, version FROM contents WHERE id = '${contentId}';
+  `), [{ body: "Revision A body", version: "v1" }]);
+
+  const metadataOnly = await saveContent(contentInput({
+    slug: "repair-revision-integrity-a-renamed",
+    canonicalKey: "repair.revision.integrity.a.renamed",
+  }));
+  assert.equal(metadataOnly.response.status, 200, JSON.stringify(metadataOnly.payload));
+  assert.deepEqual(await queryRows(`
+    SELECT slug, canonical_key AS canonicalKey, body
+    FROM contents WHERE id = '${contentId}';
+  `), [{
+    slug: "repair-revision-integrity-a-renamed",
+    canonicalKey: "repair.revision.integrity.a.renamed",
+    body: "Revision A body",
+  }]);
+
+  const newRevision = await saveContent(contentInput({
+    version: "v2",
+    body: "Revision B body",
+  }));
+  assert.equal(newRevision.response.status, 200, JSON.stringify(newRevision.payload));
+  assert.deepEqual(
+    (await queryRows(`
+      SELECT version, revision_status AS revisionStatus, is_latest AS isLatest,
+        previous_version_id AS previousVersionId, snapshot_json AS snapshotJson
+      FROM content_revisions
+      WHERE content_type = 'LEARNING_UNIT' AND content_id = '${contentId}'
+      ORDER BY version;
+    `)).map((row) => ({
+      version: row.version,
+      revisionStatus: row.revisionStatus,
+      isLatest: Number(row.isLatest),
+      hasPrevious: Boolean(row.previousVersionId),
+      body: JSON.parse(row.snapshotJson).payload.body,
+    })),
+    [
+      { version: "v1", revisionStatus: "superseded", isLatest: 0, hasPrevious: false, body: "Revision A body" },
+      { version: "v2", revisionStatus: "published", isLatest: 1, hasPrevious: true, body: "Revision B body" },
+    ],
+  );
+
+  const second = await saveProgress({
+    courseLessonId: lessonId,
+    contentId,
+    contentVersion: "v2",
+    action: "COMPLETE",
+    progressPercent: 100,
+    timeSpentSeconds: 11,
+  });
+  assert.equal(second.response.status, 200, JSON.stringify(second.payload));
+  const replay = await saveProgress({
+    courseLessonId: lessonId,
+    contentId,
+    contentVersion: "v2",
+    action: "COMPLETE",
+    progressPercent: 100,
+    timeSpentSeconds: 11,
+  });
+  assert.equal(replay.response.status, 200, JSON.stringify(replay.payload));
+  assert.equal(replay.payload.result.idempotentReplay, true);
+
+  const staleScreen = await saveProgress({
+    courseLessonId: lessonId,
+    contentId,
+    contentVersion: "v1",
+    action: "COMPLETE",
+    progressPercent: 100,
+  });
+  assert.equal(staleScreen.response.status, 409);
+  assert.equal(staleScreen.payload.code, "COURSE_LESSON_REVISION_MISMATCH");
+
+  const currentMutation = await saveContent(contentInput({
+    version: "v2",
+    body: "Changed B body",
+  }));
+  assert.equal(currentMutation.response.status, 409);
+  assert.equal(currentMutation.payload.code, "SHARED_CONTENT_REVISION_CONFLICT");
+  assert.deepEqual(await queryRows(`
+    SELECT content_version AS contentVersion, status
+    FROM user_course_lesson_progress
+    WHERE course_lesson_id = '${lessonId}'
+      AND content_id IS NOT NULL
+    ORDER BY content_version;
+  `), [
+    { contentVersion: "v1", status: "COMPLETED" },
+    { contentVersion: "v2", status: "COMPLETED" },
+  ]);
+  assert.equal(Number((await queryRows(`
+    SELECT count(*) AS count FROM learning_activities
+    WHERE target_id = '${lessonId}' AND activity_type = 'COURSE_LESSON_COMPLETED';
+  `))[0].count), 2);
+  assert.equal(Number((await queryRows(`
+    SELECT count(*) AS count FROM user_course_lesson_progress
+    WHERE course_lesson_id = '${lessonId}' AND content_id IS NULL AND content_version IS NULL;
+  `))[0].count), 1);
+
+  const concurrentRevisionSaves = await Promise.all([
+    saveContent(contentInput({ version: "v3", body: "Concurrent C body" })),
+    saveContent(contentInput({ version: "v3", body: "Concurrent D body" })),
+  ]);
+  assert.equal(concurrentRevisionSaves.filter((result) => result.response.status === 200).length, 1);
+  assert.equal(concurrentRevisionSaves.filter((result) => result.response.status >= 400).length, 1);
+  assert.equal(Number((await queryRows(`
+    SELECT count(*) AS count FROM content_revisions
+    WHERE content_type = 'LEARNING_UNIT' AND content_id = '${contentId}' AND version = 'v3';
+  `))[0].count), 1);
+
+  const concurrentPublishDraft = await saveContent(contentInput({
+    version: "v4",
+    body: "Concurrent publish draft body",
+    status: "DRAFT",
+  }));
+  assert.equal(concurrentPublishDraft.response.status, 200, JSON.stringify(concurrentPublishDraft.payload));
+  const concurrentPublish = await Promise.all([
+    saveContent(contentInput({ version: "v4", body: "Concurrent publish draft body", status: "PUBLISHED" })),
+    saveContent(contentInput({ version: "v4", body: "Concurrent publish draft body", status: "PUBLISHED" })),
+  ]);
+  assert.ok(concurrentPublish.every((result) => result.response.status === 200 || result.response.status === 409), JSON.stringify(concurrentPublish.map((result) => result.payload)));
+  assert.ok(concurrentPublish.some((result) => result.response.status === 200), JSON.stringify(concurrentPublish.map((result) => result.payload)));
+  const concurrentPublishRows = await queryRows(`
+    SELECT id, version, revision_status AS revisionStatus, is_latest AS isLatest,
+      previous_version_id AS previousVersionId
+    FROM content_revisions
+    WHERE content_type = 'LEARNING_UNIT' AND content_id = '${contentId}'
+    ORDER BY version;
+  `);
+  assert.equal(concurrentPublishRows.filter((row) => Number(row.isLatest) === 1).length, 1);
+  const latestConcurrentPublish = concurrentPublishRows.find((row) => Number(row.isLatest) === 1);
+  assert.equal(latestConcurrentPublish.version, "v4");
+  assert.equal(latestConcurrentPublish.revisionStatus, "published");
+  assert.equal(latestConcurrentPublish.previousVersionId, concurrentPublishRows.find((row) => row.version === "v3").id);
+
+  await runLocalSql(`
+    UPDATE contents SET slug = 'repair-revision-integrity-collision' WHERE id = '${collisionContentId}';
+  `);
+  const failedBatch = await saveContent(contentInput({
+    version: "v5",
+    body: "Revision D body",
+    slug: "repair-revision-integrity-collision",
+    canonicalKey: "repair.revision.integrity.c",
+  }));
+  assert.ok(failedBatch.response.status >= 400, JSON.stringify(failedBatch.payload));
+  const currentAfterConcurrent = await queryRows(`
+    SELECT body, version, status FROM contents WHERE id = '${contentId}';
+  `);
+  assert.equal(currentAfterConcurrent.length, 1);
+  assert.equal(currentAfterConcurrent[0].body, "Concurrent publish draft body");
+  assert.equal(currentAfterConcurrent[0].version, "v4");
+  assert.equal(currentAfterConcurrent[0].status, "PUBLISHED");
+  assert.deepEqual(await queryRows(`
+    SELECT version, revision_status AS revisionStatus, is_latest AS isLatest
+    FROM content_revisions
+    WHERE content_type = 'LEARNING_UNIT' AND content_id = '${contentId}'
+    ORDER BY version;
+  `), [
+    { version: "v1", revisionStatus: "superseded", isLatest: 0 },
+    { version: "v2", revisionStatus: "superseded", isLatest: 0 },
+    { version: "v3", revisionStatus: "superseded", isLatest: 0 },
+    { version: "v4", revisionStatus: "published", isLatest: 1 },
+  ]);
+
+  await assert.rejects(
+    runLocalSql(`DELETE FROM contents WHERE id = '${contentId}';`),
+    /FOREIGN KEY constraint failed/,
+  );
+  await runLocalSql(`
+    UPDATE contents SET deleted_at = CURRENT_TIMESTAMP WHERE id = '${contentId}';
+  `);
+  assert.equal(Number((await queryRows(`
+    SELECT count(*) AS count FROM content_revisions
+    WHERE content_type = 'LEARNING_UNIT' AND content_id = '${contentId}';
+  `))[0].count), 4);
+  await runLocalSql(`UPDATE contents SET deleted_at = NULL WHERE id = '${contentId}';`);
+});
+
+function contentInput(overrides = {}) {
+  return {
+    id: contentId,
+    slug: "repair-revision-integrity-a-renamed",
+    canonicalKey: "repair.revision.integrity.a.renamed",
+    title: "Repair revision A",
+    summary: "Summary A",
+    body: "Revision A body",
+    bodyFormat: "MARKDOWN",
+    learningObjectivesJson: "[]",
+    coreConceptsJson: "[]",
+    practicalExamplesJson: "[]",
+    diagramsJson: "[]",
+    mediaJson: "[]",
+    version: "v1",
+    status: "PUBLISHED",
+    ...overrides,
+  };
+}
+
+function collisionContentInput(overrides = {}) {
+  return {
+    id: collisionContentId,
+    slug: "repair-revision-integrity-collision",
+    canonicalKey: "repair.revision.integrity.collision",
+    title: "Collision content",
+    summary: "",
+    body: "Collision body",
+    bodyFormat: "MARKDOWN",
+    learningObjectivesJson: "[]",
+    coreConceptsJson: "[]",
+    practicalExamplesJson: "[]",
+    diagramsJson: "[]",
+    mediaJson: "[]",
+    version: "v1",
+    status: "PUBLISHED",
+    ...overrides,
+  };
+}
+
+function contentImportStatement(overrides = {}, { downstreamLessonId } = {}) {
+  const sql = generateSecurityContentV3Sql({
+    lessons: [
+      {
+        id: upgradeContentId,
+        title: "Direct import original title",
+        concepts: ["DNS security"],
+        source_refs: ["disposable-boundary-fixture"],
+        difficulty: 3,
+        learningObjectives: ["Original learning objective"],
+        overview: "Direct import original overview",
+        keyPoints: ["Original key point"],
+        practiceTip: "Original practice tip",
+        fieldExample: "Original field example",
+        relatedConcepts: [],
+        provenance: { canonicalConcept: "DNS security" },
+        ...overrides,
+      },
+    ],
+    writtenQuestions: [],
+    practicalQuestions: [],
+  }, { dialect: "d1", actorId: "user-admin" });
+  const marker = "-- SECURITY_CONTENT_V3_IMMUTABLE_CONTENT_GUARD";
+  const markerOffset = sql.indexOf(marker);
+  assert.ok(markerOffset >= 0, "Expected generated immutable contents guard.");
+  const guardEnd = sql.indexOf(";", markerOffset);
+  assert.ok(guardEnd >= markerOffset, "Expected generated guard statement terminator.");
+  const downstream = downstreamLessonId
+    ? `\nINSERT INTO "course_lessons" ("id","course_id","content_id","display_title","sort_order","estimated_minutes","is_required","completion_rule","status") VALUES (${sqlString(downstreamLessonId)},'${courseId}',${sqlString(overrides.id ?? upgradeContentId)},'Seed race downstream link',99998,10,1,'MANUAL','DRAFT');`
+    : "";
+  return `${sql.slice(0, guardEnd + 1)}${downstream}\nCOMMIT;`;
+}
+
+function sqlString(value) {
+  return `'${String(value).replaceAll("'", "''")}'`;
+}
+
+async function saveContent(content) {
+  const response = await fetch(`${baseUrl}/api/admin/shared-content`, {
+    method: "POST",
+    headers: adminHeaders,
+    body: JSON.stringify({ operation: "saveContent", content }),
+  });
+  return { response, payload: await response.json() };
+}
+
+async function saveProgress(body) {
+  const response = await fetch(`${baseUrl}/api/course-lessons/progress`, {
+    method: "POST",
+    headers: userHeaders,
+    body: JSON.stringify(body),
+  });
+  return { response, payload: await response.json() };
+}
+
+async function queryRows(command) {
+  const output = await runLocalSql(command, { json: true });
+  return output?.[0]?.results ?? [];
+}
+
+async function runLocalSql(command, { json = false } = {}) {
+  const args = [
+    "scripts/run-wrangler.mjs", "d1", "execute", "DB", "--local",
+    "--config", "wrangler.local.jsonc", "--command", command,
+  ];
+  if (json) args.push("--json");
+  const child = spawn(process.execPath, args, {
+    env: process.env,
+    stdio: ["ignore", "pipe", "pipe"],
+    windowsHide: true,
+  });
+  let stdout = "";
+  let stderr = "";
+  child.stdout.on("data", (chunk) => { stdout += chunk.toString(); });
+  child.stderr.on("data", (chunk) => { stderr += chunk.toString(); });
+  return new Promise((resolve, reject) => {
+    child.on("error", reject);
+    child.on("exit", (code, signal) => {
+      if (signal) reject(new Error(`Local SQL stopped by ${signal}.`));
+      else if (code !== 0) reject(new Error(`Local SQL failed with ${code}. ${stderr}\n${stdout}`));
+      else if (json) {
+        try { resolve(JSON.parse(stdout)); }
+        catch (error) { reject(new Error(`Local SQL returned invalid JSON: ${error.message}\n${stdout}`)); }
+      } else resolve();
+    });
+  });
+}
+
+function getFreeLoopbackPort() {
+  return new Promise((resolve, reject) => {
+    const probe = createServer();
+    probe.once("error", reject);
+    probe.listen(0, host, () => {
+      const address = probe.address();
+      if (!address || typeof address === "string") {
+        probe.close();
+        reject(new Error("Could not allocate a loopback port."));
+        return;
+      }
+      probe.close((error) => error ? reject(error) : resolve(address.port));
+    });
+  });
+}

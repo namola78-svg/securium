@@ -1,9 +1,7 @@
 import assert from "node:assert/strict";
-import { execFile as execFileCallback } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { after, before, test } from "node:test";
-import { promisify } from "node:util";
 import postgres from "postgres";
 import { DatabaseEvidenceSourceResolver } from "../db/evidence-source-adapters.ts";
 import { EvidenceProjectionRepository, createRecomputeRequest } from "../db/evidence-projection-repository.ts";
@@ -11,11 +9,19 @@ import { PostgresDatabaseProvider } from "../db/provider/postgres-database-provi
 import { EvidenceRecomputeService } from "../lib/services/evidence-recompute.ts";
 import { EvidenceRecomputeLifecycleExecutor, QuestionAttemptEvidenceEventExecutor } from "../lib/services/evidence-recompute-executor.ts";
 import { computeConceptMappingSetHash } from "../lib/services/learning-event-contracts.ts";
+import {
+  cleanupOwnedPostgresContainer,
+  createOwnedPostgresContainer,
+  getPublishedPostgresPort,
+  inspectOwnedPostgresContainer,
+} from "../scripts/owned-postgres-container.mjs";
 
-const execFile = promisify(execFileCallback);
-const container = process.env.SECURIUM_EVIDENCE_EXECUTOR_PG_CONTAINER?.trim()
+const containerName = process.env.SECURIUM_EVIDENCE_EXECUTOR_PG_CONTAINER?.trim()
   || `securium-question-attempt-evidence-executor-${randomUUID()}`;
+const ownerToken = process.env.SECURIUM_EVIDENCE_EXECUTOR_PG_OWNER?.trim()
+  || `executor-owner-${randomUUID()}`;
 const password = "question-attempt-evidence-executor-disposable-password";
+let createdContainer;
 let client;
 let repository;
 let resolver;
@@ -24,13 +30,21 @@ let executor;
 let mappingHash;
 
 before(async () => {
-  await execFile("docker", [
-    "run", "--detach", "--rm", "--name", container,
-    "--env", `POSTGRES_PASSWORD=${password}`, "--publish", "127.0.0.1::5432", "postgres:17.6",
-  ]);
-  const { stdout } = await execFile("docker", ["port", container, "5432/tcp"]);
-  const port = stdout.trim().match(/:(\d+)$/)?.[1];
-  assert.ok(port);
+  createdContainer = await createOwnedPostgresContainer({
+    name: containerName,
+    ownerToken,
+    password,
+    receiptPath: process.env.SECURIUM_EVIDENCE_EXECUTOR_PG_RECEIPT,
+  });
+  const inspected = await inspectOwnedPostgresContainer(createdContainer);
+  assert.deepEqual(inspected, {
+    id: createdContainer.containerId,
+    name: `/${createdContainer.containerName}`,
+    running: true,
+    ownerToken: createdContainer.ownerToken,
+  });
+  const port = await getPublishedPostgresPort(createdContainer);
+  console.log(`OWNED_POSTGRES_CREATED id=${createdContainer.containerId} name=${createdContainer.containerName} owner=${createdContainer.ownerToken} running=true published=127.0.0.1:${port}`);
   client = postgres(`postgres://postgres:${password}@127.0.0.1:${port}/postgres`, {
     max: 1, prepare: false, ssl: false, onnotice: false,
   });
@@ -79,7 +93,14 @@ before(async () => {
 
 after(async () => {
   await client?.end({ timeout: 5 }).catch(() => {});
-  await execFile("docker", ["rm", "--force", container]).catch(() => {});
+  if (createdContainer) {
+    try {
+      console.log(`OWNED_POSTGRES_TEST_CLEANUP ${await cleanupOwnedPostgresContainer(createdContainer)}`);
+    } catch (error) {
+      console.error(`OWNED_POSTGRES_TEST_CLEANUP_ERROR ${error?.message || "FAILED"}`);
+      process.exitCode ||= 1;
+    }
+  }
 });
 
 test("PostgreSQL claim, canonical resolution, projection transaction, and completion are bounded to QuestionAttempt events", async () => {

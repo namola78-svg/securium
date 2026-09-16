@@ -4,6 +4,7 @@ import { CourseCard } from "@/components/course-card";
 import { EmptyState } from "@/components/state-ui";
 import { listPublishedCoursesCached } from "@/lib/cached-catalog";
 import { courseAudienceLabel, courseDescription, courseTypeLabel } from "@/lib/course-display";
+import { isPublicCourseAvailable, listPublicCourseAvailability } from "@/lib/services/course-availability";
 
 export const metadata: Metadata = {
   title: "과정 둘러보기",
@@ -25,6 +26,7 @@ function isCertificationCourse(course: Awaited<ReturnType<typeof listPublishedCo
 
 export default async function CoursesPage({ searchParams }: CoursesPageProps) {
   const courses = await listPublishedCoursesCached();
+  const availabilityByCourseId = await listPublicCourseAvailability(courses.map((course) => course.id));
   const params = await searchParams;
   const query = firstParam(params.q).trim();
   const path = firstParam(params.path) || "all";
@@ -36,7 +38,7 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
       .toLocaleLowerCase("ko-KR");
     const matchesQuery = !normalizedQuery || searchable.includes(normalizedQuery);
     const matchesPath = path === "all" || (path === "certification" ? isCertificationCourse(course) : !isCertificationCourse(course));
-    const available = course.active && course.published;
+    const available = isPublicCourseAvailable(availabilityByCourseId.get(course.id));
     const matchesStatus = status === "all" || (status === "available" ? available : !available);
     return matchesQuery && matchesPath && matchesStatus;
   });
@@ -79,7 +81,7 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
                 <span className="count-label">{groupCourses.length}개 과정</span>
               </div>
               <div className="course-grid">
-                {groupCourses.map((course) => <CourseCard key={course.id} course={course} />)}
+                {groupCourses.map((course) => <CourseCard key={course.id} course={course} availability={availabilityByCourseId.get(course.id)} />)}
               </div>
             </section>
           ))

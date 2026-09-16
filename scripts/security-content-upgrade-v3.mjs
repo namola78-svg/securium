@@ -8,6 +8,7 @@ import { loadLocalEnvIfPresent } from "./load-local-env.mjs";
 import {
   SECURITY_CONTENT_V3_CONFIRM_ENV_NAME,
   SECURITY_CONTENT_V3_CONFIRM_ENV_VALUE,
+  securityContentV3ContentProjection,
   buildSecurityContentV3Plan,
   generateSecurityContentV3Sql,
 } from "../lib/data/security-content-upgrade-v3.mjs";
@@ -79,6 +80,7 @@ function resolveSourceRoot() {
 async function seedD1(sourceData, currentPlan) {
   const configPath = argValue("--config=") ?? "wrangler.local.jsonc";
   await assertD1Prerequisites(configPath, currentPlan);
+  await assertD1NoImmutableContentConflict(configPath, currentPlan);
   const before = await d1Query(configPath, protectedCourseSnapshotSql());
   const tempDir = await mkdtemp(join(tmpdir(), "securium-content-v3-"));
   const sqlPath = join(tempDir, "security-content-v3.d1.sql");
@@ -103,12 +105,14 @@ async function seedPostgres(sourceData, currentPlan) {
   const sql = connectPostgres("seed");
   try {
     await assertPostgresPrerequisites(sql, currentPlan);
+    await assertPostgresNoImmutableContentConflict(sql, currentPlan);
     const before = await sql.unsafe(protectedCourseSnapshotSql());
     await sql.unsafe(generateSecurityContentV3Sql(sourceData, { dialect: "postgres" }));
     const after = await sql.unsafe(protectedCourseSnapshotSql());
     assertProtectedSnapshot(before, after);
     await verifyPostgresWithConnection(sql, currentPlan);
   } catch (error) {
+    await sql.unsafe("ROLLBACK;").catch(() => undefined);
     fail("SECURITY_CONTENT_V3_POSTGRES_FAILED", safeError(error));
   } finally {
     await sql.end({ timeout: 5 });
@@ -134,6 +138,11 @@ SELECT COUNT(*) AS value FROM (
   if (Number(rows[0]?.value) !== 0) fail("SECURITY_CONTENT_V3_ISIE_PROGRESS_CONFLICT");
 }
 
+async function assertD1NoImmutableContentConflict(configPath, currentPlan) {
+  const rows = await d1Query(configPath, contentConflictSql(currentPlan.contents));
+  assertNoImmutableContentConflict(rows, currentPlan);
+}
+
 async function assertPostgresPrerequisites(sql, currentPlan) {
   const rows = await sql.unsafe(prerequisiteSql());
   assertPrerequisites(rows, currentPlan);
@@ -146,6 +155,46 @@ SELECT COUNT(*)::int AS value FROM (
   UNION ALL SELECT target_id FROM review_schedules WHERE course_id='course-isie' AND target_type='QUESTION' AND target_id IN (${ids})
 ) scoped;`);
   if (Number(conflicts[0]?.value) !== 0) fail("SECURITY_CONTENT_V3_ISIE_PROGRESS_CONFLICT");
+}
+
+async function assertPostgresNoImmutableContentConflict(sql, currentPlan) {
+  const rows = await sql.unsafe(contentConflictSql(currentPlan.contents));
+  assertNoImmutableContentConflict(rows, currentPlan);
+}
+
+function contentConflictSql(contents) {
+  const ids = contents.map((content) => sqlString(content.id)).join(",");
+  if (!ids) return `SELECT id, version, title, summary, body, body_format AS "bodyFormat", learning_objectives_json AS "learningObjectivesJson", core_concepts_json AS "coreConceptsJson", practical_examples_json AS "practicalExamplesJson", diagrams_json AS "diagramsJson", media_json AS "mediaJson" FROM contents WHERE 1=0;`;
+  return `SELECT id, version, title, summary, body, body_format AS "bodyFormat", learning_objectives_json AS "learningObjectivesJson", core_concepts_json AS "coreConceptsJson", practical_examples_json AS "practicalExamplesJson", diagrams_json AS "diagramsJson", media_json AS "mediaJson" FROM contents WHERE id IN (${ids});`;
+}
+
+function assertNoImmutableContentConflict(rows, currentPlan) {
+  const expectedById = new Map(
+    currentPlan.contents.map((content) => [content.id, securityContentV3ContentProjection(content)]),
+  );
+  const immutableFields = [
+    "version",
+    "title",
+    "summary",
+    "body",
+    "bodyFormat",
+    "learningObjectivesJson",
+    "coreConceptsJson",
+    "practicalExamplesJson",
+    "diagramsJson",
+    "mediaJson",
+  ];
+  for (const row of rows) {
+    const expected = expectedById.get(row.id);
+    if (!expected) continue;
+    const actual = securityContentV3ContentProjection(row);
+    if (actual.version !== expected.version) {
+      fail("SECURITY_CONTENT_V3_CONTENT_VERSION_CONFLICT", row.id);
+    }
+    if (immutableFields.some((field) => actual[field] !== expected[field])) {
+      fail("SECURITY_CONTENT_V3_CONTENT_REVISION_CONFLICT", row.id);
+    }
+  }
 }
 
 function prerequisiteSql() {

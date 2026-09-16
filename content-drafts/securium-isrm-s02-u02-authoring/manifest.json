@@ -8,7 +8,7 @@
   "titleAuthority": "SECURIUM_DRAFT_TITLE_NOT_OFFICIAL_UNIT_TITLE",
   "officialScopeAnchor": {
     "subjectNumber": "II",
-    "subjectName": "정보보호 위험 평가 및 준비",
+    "subjectName": "정보보호 위험평가",
     "majorItem": "정보보호 위험 평가",
     "subitems": [
       "정보자산 식별 및 중요도 평가",
@@ -48,7 +48,7 @@
     "status": "PARTIAL",
     "officialSemanticVersion": "UNKNOWN",
     "officialScopeDetail": "PARTIAL",
-    "identityPageReviewedOn": "2026-09-11",
+    "identityPageReviewedOn": "2026-09-12",
     "unitIdYearRangeNotUsedAsEvidence": true
   },
   "provenance": "SECURIUM_INDEPENDENTLY_AUTHORED_DRAFT",
