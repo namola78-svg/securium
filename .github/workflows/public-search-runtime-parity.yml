@@ -1,0 +1,139 @@
+name: Public search runtime parity
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/public-search-runtime-parity.yml"
+      - "verification/public-search-runtime-parity/**"
+      - "lib/services/public-course-search-comparison.ts"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig.json"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/public-search-runtime-parity.yml"
+      - "verification/public-search-runtime-parity/**"
+      - "lib/services/public-course-search-comparison.ts"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig.json"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: public-search-runtime-parity-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: "true"
+  NODE_OPTIONS: "--experimental-strip-types"
+
+jobs:
+  runtime-parity:
+    name: Golden vectors (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        node:
+          - "22.13.0"
+          - "24.19.0"
+
+    env:
+      RESULT_PATH: public-search-runtime-parity-result.json
+
+    steps:
+      - name: Check out final PR head or pushed commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Verify checkout binding
+        env:
+          EXPECTED_CHECKOUT_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$EXPECTED_CHECKOUT_SHA"
+          echo "checkout_sha=$(git rev-parse HEAD)"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "${{ matrix.node }}"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Print actual runtime profile
+        run: |
+          node -e 'console.log(JSON.stringify({node:process.version,icu:process.versions.icu,unicode:process.versions.unicode,v8:process.versions.v8,platform:process.platform,arch:process.arch,koKR:Intl.Collator.supportedLocalesOf(["ko-KR"]).length === 1}))'
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Run golden vectors against imported comparison helper
+        run: |
+          set +e
+          node --import tsx verification/public-search-runtime-parity/run.ts --output "$RESULT_PATH"
+          status=$?
+          echo "golden_vector_runner_exit=$status"
+          exit "$status"
+
+      - name: Upload runtime parity result
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: public-search-runtime-parity-node-${{ matrix.node }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.RESULT_PATH }}
+          if-no-files-found: warn
+          retention-days: 7
+
+  compare-runtime-results:
+    name: Compare runtime results
+    if: always()
+    needs: runtime-parity
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out final PR head or pushed commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Set up comparison Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22.13.0"
+
+      - name: Prepare result directories
+        run: mkdir -p comparison/node22 comparison/node24
+
+      - name: Download Node 22.13.0 result
+        uses: actions/download-artifact@v6
+        continue-on-error: true
+        with:
+          name: public-search-runtime-parity-node-22.13.0-${{ github.run_id }}-${{ github.run_attempt }}
+          path: comparison/node22
+
+      - name: Download Node 24.19.0 result
+        uses: actions/download-artifact@v6
+        continue-on-error: true
+        with:
+          name: public-search-runtime-parity-node-24.19.0-${{ github.run_id }}-${{ github.run_attempt }}
+          path: comparison/node24
+
+      - name: Compare actual vector outputs and provenance
+        run: |
+          set +e
+          node --experimental-strip-types verification/public-search-runtime-parity/compare.ts \
+            --node22 comparison/node22/public-search-runtime-parity-result.json \
+            --node24 comparison/node24/public-search-runtime-parity-result.json \
+            --output comparison/public-search-runtime-parity-comparison.json \
+            --matrix-job-result "${{ needs.runtime-parity.result }}" | tee -a "$GITHUB_STEP_SUMMARY"
+          status=${PIPESTATUS[0]}
+          exit "$status"
