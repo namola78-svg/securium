@@ -1,0 +1,126 @@
+{
+  "schema": "securium.isrm.s01_u01.frozen_evidence_binding.v1",
+  "status": "EVIDENCE_BINDING_ONLY_REVIEW_REQUIRED",
+  "courseId": "course-isrm",
+  "subjectId": "isrm-2025-2027-s01",
+  "learningUnitId": "isrm-2025-2027-s01-u01",
+  "sourceClaimsPath": "content-drafts/securium-isrm-s01-u01-authoring/source-claims.json",
+  "snapshotManifestPath": "source-evidence-snapshots/isrm-kca-identity-subject/2026-09-21/manifest.json",
+  "scope": {
+    "claimIds": ["ISRM-S01-U01-C01", "ISRM-S01-U01-C02"],
+    "unsupportedClaimsMustRemainUnbound": ["ISRM-S01-U01-C03", "ISRM-S01-U01-C04"]
+  },
+  "contract": {
+    "requiredFields": [
+      "claimId",
+      "claimTextSha256",
+      "sourceId",
+      "issuer",
+      "canonicalUrl",
+      "retrievedAt",
+      "artifactIdentity",
+      "artifactSha256",
+      "contentType",
+      "documentApplicabilityOrIdentity",
+      "locator",
+      "evidenceClassification"
+    ],
+    "metadataOnlyValidation": true,
+    "localArtifactHashValidation": "OPTIONAL",
+    "artifactIdentityMeaning": "SOURCE_RETRIEVAL_HASH_AND_REPOSITORY_RELATIVE_ARTIFACT_IDENTITY",
+    "semanticContentIdentityMeaning": "DOCUMENT_OR_PAGE_SEMANTIC_IDENTITY_IS_SEPARATE_FROM_BYTE_HASH"
+  },
+  "boundaries": {
+    "evidenceOnly": true,
+    "rights": "UNKNOWN_BLOCKED_REFERENCE_ONLY",
+    "currentness": "PARTIAL",
+    "sourceExpressionReuse": 0,
+    "publication": "NOT_AUTHORIZED",
+    "binaryPublicLanding": "NONE",
+    "runtimeRegistration": 0
+  },
+  "bindings": [
+    {
+      "claimId": "ISRM-S01-U01-C01",
+      "claimTextSha256": "0BF2CEEAE46EA20E871F95B411F8AF6BE019C98D0C878BCBBC1D203DA9B661A4",
+      "sourceId": "KCA-ISRM-IDENTITY-SUBJECT-PAGE",
+      "issuer": "한국방송통신전파진흥원",
+      "canonicalUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
+      "retrievedAt": "2026-09-21T17:37:11.1705236+09:00",
+      "artifactIdentity": {
+        "artifactPath": "source-evidence-snapshots/isrm-kca-identity-subject/2026-09-21/kca-isrm-identity-subject-page.html",
+        "artifactFileName": "kca-isrm-identity-subject-page.html",
+        "artifactSha256": "B5E1FAE56D9F5DE7B1BA48BDDA56DFF5C45E4FAC11F1010D32A237C969891E5E",
+        "byteSize": 322505,
+        "contentType": "text/html; charset=utf-8",
+        "artifactSourceUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
+        "semanticSourceIdentity": "KCA-ISRM-IDENTITY-SUBJECT-PAGE",
+        "documentIdentity": "KCA 민간자격검정 자격검정안내: 정보보호위험관리사(ISRM)"
+      },
+      "documentApplicabilityOrIdentity": {
+        "type": "PAGE_SEMANTIC_IDENTITY",
+        "qualificationName": "정보보호위험관리사",
+        "qualificationAcronym": "ISRM",
+        "registration": "2024-004467"
+      },
+      "locator": {
+        "type": "HTML_SEMANTIC_SECTIONS",
+        "sections": [
+          {
+            "heading": "자격개요",
+            "fields": ["자격명", "등록번호", "자격발급기관"]
+          },
+          {
+            "heading": "시험과목 및 시험방법",
+            "fields": ["필기", "과목", "문제수"],
+            "subjectOrder": 1,
+            "subjectName": "정보보호 위험관리 계획"
+          }
+        ]
+      },
+      "evidenceClassification": "SUPPORTED"
+    },
+    {
+      "claimId": "ISRM-S01-U01-C02",
+      "claimTextSha256": "F45B2BC499DCEEA5BB50B1D9041CC514C4F93C20CC5310FC2A487183DBB4A7E2",
+      "sourceId": "KCA-ISRM-EXAM-CRITERIA-2025-2027",
+      "issuer": "한국방송통신전파진흥원",
+      "canonicalUrl": "https://www.cq.or.kr/qh_quagm02_011.do",
+      "retrievedAt": "2026-09-21T17:37:12.3471641+09:00",
+      "artifactIdentity": {
+        "artifactPath": "source-evidence-snapshots/isrm-kca-identity-subject/2026-09-21/kca-isrm-exam-criteria.pdf",
+        "artifactFileName": "kca-isrm-exam-criteria.pdf",
+        "artifactSha256": "1FF4981397462274BFDE7BBA35753EC613D834AFB7FBDB309687AB4BD83F6DA3",
+        "byteSize": 112595,
+        "contentType": "application/x-msdownload;charset=ISO-8859-1",
+        "artifactSourceUrl": "https://www.cq.or.kr/ac_flecm02_001.do?atchFileId=239198e350f44ce69ac1b5c3bbe0be62&fileSn=5",
+        "semanticSourceIdentity": "KCA ISRM written-exam criteria, applicability 2025-01-01 through 2027-12-31",
+        "documentIdentity": "KCA 정보보호위험관리사 출제기준"
+      },
+      "documentApplicabilityOrIdentity": {
+        "type": "APPLICABILITY_ONLY_NOT_SEMANTIC_VERSION",
+        "from": "2025-01-01",
+        "to": "2027-12-31",
+        "semanticVersion": "UNKNOWN"
+      },
+      "locator": {
+        "type": "PDF_PAGE_SEMANTIC_TABLE",
+        "page": 1,
+        "subject": {
+          "number": "I",
+          "name": "정보보호 위험관리 계획"
+        },
+        "majorItem": {
+          "number": 1,
+          "name": "정보보호 관리의 이해"
+        },
+        "subitems": [
+          { "number": 1, "name": "정보보호의 정의 및 이해" },
+          { "number": 2, "name": "조직의 법적 준수해야 할 보호대상 선정" },
+          { "number": 3, "name": "보호대상의 정보보호 요구사항 파악" }
+        ]
+      },
+      "evidenceClassification": "SUPPORTED"
+    }
+  ]
+}
