@@ -2,12 +2,8 @@
 
 This verification slice implements the state transition boundary described by
 [`public-discovery-ux-contract.md`](../../docs/architecture/public-discovery-ux-contract.md).
-The fixed implementation base for this work is `dfdf31bb9d1a2b0a955997210b0a1f0d2087e3e1`.
-The reviewed `origin/main` at review start was
-`9198b56360b389243eeca6750779668f85d43b48`; later main drift is recorded in the
-review report and is not repeatedly integrated.
-PR #198 (`b4f8789a4e342988fd54690456a3054bffc325be`) is an ancestor of that
-base, so the referenced UX contract is present in the base. The reducer uses
+Validation was refreshed against current `origin/main`
+(`0720fc7abe295f79b514948a4603ba11aa5ea733`) after merged PR #205. The reducer uses
 the existing search adapter result and selection-service result types; it does
 not change those services.
 
@@ -74,10 +70,13 @@ refresh clears the prior selection and outline, retains the previous search
 result, and marks it `stale`; a failed refresh leaves that result stale. The
 reducer currently accepts a valid `COURSE_SELECTED` event even while a retained
 result is stale because it does not own result-card presentation or freshness
-policy. The UX contract allows stale results to remain visible but does not
-settle whether they may be selected, so the UI/caller must resolve that policy
-and must not present stale data as the new search result. This reducer does not
-silently choose allow or deny semantics.
+policy. A stale result card may remain visible and selectable, but selection
+alone never authorizes detail. The caller must issue a fresh outline request for
+the selected identity. While that request is pending or failed, any old outline
+is not current detail authority and cannot be resurrected by failure. Detail may
+be displayed only after the latest matching request succeeds and its returned
+course identity matches the current selected ID and slug. Card clickability,
+fresh request invocation, and retry remain caller/orchestration responsibilities.
 
 ## Trust boundary and caller responsibilities
 
@@ -96,12 +95,15 @@ The external caller remains responsible for:
   reflecting raw messages, IDs, slugs, or queries;
 - mapping malformed or unrecognized successful payloads to
   `{ kind: "UNKNOWN_RESULT" }`;
-- issuing unique request IDs and ordering start/completion events;
+- issuing fresh request IDs and ordering start/completion events. These IDs are
+  reducer ordering primitives, not decision-trace IDs, correlation authority,
+  or persistent IDs;
 - deciding when a request is actually started, cancelled, or retried;
 - wiring inert guidance descriptors such as `EDIT_SEARCH`, `BACK_TO_RESULTS`,
   and `REFRESH_RESULTS` to UI event handlers.
 
-No availability, login, enrollment, learning-access, source/disclosure, or
+No product orchestration or UI implementation is included. No availability,
+login, enrollment, learning-access, source/disclosure, or
 authorization policy is implemented here. Search exposure, outline metadata,
 and learning access remain separate decisions.
 
@@ -132,5 +134,5 @@ git diff --check
 ```
 
 These commands are intentionally scoped. Full unit/build/E2E, database,
-Docker, Wrangler, server, browser, live API, MCP, and LLM execution are not
+Docker, Wrangler, server, browser, live API, MCP, trace persistence, and LLM execution are not
 part of this local implementation goal.
