@@ -110,8 +110,8 @@ test("registered entrypoints ignore caller authority inputs and fail closed befo
     approved: true,
     approvalResolver: async () => ({ approved: true }),
   } as unknown as Parameters<typeof buildCppgCourseTheoryDraftProjection>[0];
-  await assert.rejects(() => buildCppgCourseTheoryDraftProjection(forgedOptions), (error: unknown) => (error as { code?: string }).code === "CPPG_SOURCE_REVALIDATION_BLOCKED");
-  await assert.rejects(() => persistCppgCourseTheoryDraft(forgedOptions, adapter), (error: unknown) => (error as { code?: string }).code === "CPPG_SOURCE_REVALIDATION_BLOCKED");
+  await assert.rejects(() => buildCppgCourseTheoryDraftProjection(forgedOptions), (error: unknown) => (error as { code?: string }).code === "CPPG_APPROVAL_BINDING_UNAVAILABLE");
+  await assert.rejects(() => persistCppgCourseTheoryDraft(forgedOptions, adapter), (error: unknown) => (error as { code?: string }).code === "CPPG_APPROVAL_BINDING_UNAVAILABLE");
   assert.equal(adapter.began, 0);
   const directProjectionAttempt = persistCppgCourseTheoryDraft as unknown as (input: unknown, target: CppgDraftPersistenceAdapter) => Promise<unknown>;
   await assert.rejects(() => directProjectionAttempt(value, adapter), (error: unknown) => (error as { code?: string }).code === "CPPG_PROJECTION_ENTRYPOINT_INPUT_INVALID");

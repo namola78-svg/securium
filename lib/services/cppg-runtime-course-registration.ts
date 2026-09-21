@@ -1,4 +1,6 @@
 import { sha256Canonical, stableCanonicalJson } from "../policy/stable-canonical-hash.ts";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import type { contentRevisions, contents, courseLessons, courses, curriculumNodes, curriculumTrees, learningUnits, lessons, subjects, topics } from "../../db/schema.ts";
 import { CONTENT_REVISION_REGISTRATION_V1, OWNER_ATTESTATION_REQUIRED, REVIEW_REQUIRED, buildRegistrationIdentities, type RegistrationSubjectInput, type RegistrationIdentitySet } from "./content-revision-registration.ts";
 
@@ -39,8 +41,10 @@ type CanonicalCppgFoundationBundle = CppgFoundationBundle & Readonly<{
 type CppgFoundationValidatorModule = Readonly<{
   loadBundle(repoRoot: string): Promise<unknown>;
   validateFoundation(bundle: unknown): Readonly<{ status: string }>;
-  revalidateSourceManifest(sourceManifest: unknown): Promise<unknown>;
+  revalidateSourceManifest(sourceManifest: unknown, repoRoot: string): Promise<unknown>;
 }>;
+
+const CPPG_REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
 const CPPG_CANONICAL_FOUNDATION = Object.freeze({
   revision: "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
@@ -141,7 +145,7 @@ async function loadCanonicalCppgFoundationBundle(): Promise<CanonicalCppgFoundat
   }
   let bundle: unknown;
   try {
-    bundle = freezeJsonSnapshot(await validator.loadBundle(process.cwd()));
+    bundle = freezeJsonSnapshot(await validator.loadBundle(CPPG_REPOSITORY_ROOT));
     const validation = validator.validateFoundation(bundle);
     if (validation.status !== "PASS") throw new Error("canonical Foundation validator did not return PASS");
     assertCanonicalCppgFoundationBinding(bundle);
@@ -150,7 +154,7 @@ async function loadCanonicalCppgFoundationBundle(): Promise<CanonicalCppgFoundat
     throw new CppgAuthorityBindingError("CPPG_CANONICAL_IDENTITY_MISMATCH", "canonical CPPG Foundation structural validation failed", { cause: error });
   }
   try {
-    await validator.revalidateSourceManifest((bundle as CanonicalCppgFoundationBundle).sourceManifest);
+    await validator.revalidateSourceManifest((bundle as CanonicalCppgFoundationBundle).sourceManifest, CPPG_REPOSITORY_ROOT);
   } catch (error) {
     throw new CppgAuthorityBindingError("CPPG_SOURCE_REVALIDATION_BLOCKED", "canonical CPPG source manifest could not be revalidated; registration remains blocked", { cause: error });
   }
