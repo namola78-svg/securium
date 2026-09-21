@@ -4,11 +4,21 @@
 결정 근거 trace가 기록할 최소 구조를 구분한다. 실제 로그 수집·저장·LLM·
 Neo4j·GraphRAG·공개 route/API 연결은 구현하지 않는다.
 
-기준 base는 `b4f8789a4e342988fd54690456a3054bffc325be`이다. 이 문서에서
-`[관찰]`은 기준 main의 코드·문서·테스트 harness에서 확인한 사실,
-`[제안]`은 후속 기록 계층이 채택할 수 있는 설계, `[합성]`은 테스트가 만든
+`HISTORICAL_REVIEW_BASELINE`은 `b4f8789a4e342988fd54690456a3054bffc325be`이고,
+현재 검증 기준인 `CURRENT_VALIDATION_BASELINE`은
+`6ac365fdb0a1b0352a9402f55a96938e2387cfb6`이다. 이 문서에서
+`[관찰]`은 current validation baseline의 코드·문서·테스트 harness에서 확인한
+사실, `[제안]`은 후속 기록 계층이 채택할 수 있는 설계, `[합성]`은 테스트가 만든
 fixture 연결 또는 문서 예시를 뜻한다. `[제안]`의 필드와 값은 현재 실행에서
 수집된 값이 아니다.
+
+PR #204는 current validation baseline에 병합된 runtime-parity verification이다.
+이 verification은 deterministic public-search comparison behavior, Node 22/24
+parity, independent golden-vector agreement, runtime/source/vector/lockfile
+provenance를 제공한다. 이는 decision trace가 아니며 public-discovery route 실행,
+trace capture/persistence, request correlation ID, stage execution ID,
+retry/dedupe, provider 실행, source authority 또는 publication authority를
+증명하지 않는다.
 
 ## 1. 목적과 비목적
 
@@ -49,7 +59,7 @@ fixture 연결 또는 문서 예시를 뜻한다. `[제안]`의 필드와 값은
 
 근거: [`public-course-search-adapter.ts`](../../lib/services/public-course-search-adapter.ts#L12-L21),
 [`검색 입력과 오류`](../../lib/services/public-course-search-adapter.ts#L110-L141),
-[`호출 경계`](../../lib/services/public-course-search-adapter.ts#L546-L596).
+[`호출 경계`](../../lib/services/public-course-search-adapter.ts#L551-L596).
 
 | 항목 | [관찰] 기준 main에서 확인되는 사실 | [관찰] trace로 이미 수집되는가? | 해석 경계 |
 | --- | --- | --- | --- |
@@ -99,7 +109,7 @@ search DB provider나 discovery route call site가 없다.
 ### 2.4 user guidance formatter
 
 근거: [`guidance 타입`](../../lib/services/public-discovery-user-guidance.ts#L20-L57),
-[`guidance entry point`](../../lib/services/public-discovery-user-guidance.ts#L426-L452),
+[`guidance entry point`](../../lib/services/public-discovery-user-guidance.ts#L431-L452),
 기존 [`user-guidance 평가 설명`](../../verification/public-discovery-user-guidance/README.md).
 
 `formatPublicDiscoveryUserGuidance()`는 이미 만들어진 search 또는 selection
@@ -132,9 +142,15 @@ policy version, source/revision/asOf가 없다.
 근거: [`public-source-projection-contract.md`](./public-source-projection-contract.md),
 [`public-source-disclosure.ts`](../../lib/services/public-source-disclosure.ts#L1-L113).
 
-`formatPublicSourceDisclosure()`는 별도의 pure display formatter다. discovery
-search·selection·outline·guidance에 연결된 call site는 기준 main에서 확인되지
-않는다. marker가 없거나 projection input이 malformed이면
+`formatPublicSourceDisclosure()`는 별도의 pure display formatter다. current main에는
+이미 만들어진 결과를 조합하는 `composePublicDiscoveryPresentation()` pure
+composer가 있고, successful selection result branch에서 이 formatter를 호출한다.
+이는 pure presentation composition과 disclosure formatting이 구현되어 있다는
+뜻이지 실제 public discovery orchestration은 아니다. composer는 discovery
+service를 실행하거나 repository를 읽거나 request ID/state를 관리하지 않는다.
+실제 public route/API/MCP orchestration, provider/database presentation execution,
+runtime execution trace, durable trace persistence는 여전히 확립되지 않았다.
+marker가 없거나 projection input이 malformed이면
 `officialReference: null`, `independentExplanation: null`,
 `notice: PUBLIC_SOURCE_DISCLOSURE_MISSING_NOTICE`를 반환한다. 이 함수에는
 discovery status/code가 없다.
@@ -145,8 +161,9 @@ discovery status/code가 없다.
 
 ### 2.6 제품 orchestration과 평가 harness의 구분
 
-현재 main의 app/components/db에서 네 primitive를 함께 호출하는 public discovery
-route·UI handler·API·MCP registry call site는 확인되지 않았다. 현재 `/courses`
+현재 main의 app/components/db에서 네 primitive를 실행하는 public discovery
+route·UI handler·API·MCP registry call site는 확인되지 않았다. pure presentation
+composer는 이미 만들어진 결과를 조합할 뿐 이 실행 경계를 만들지 않는다. 현재 `/courses`
 목록과 상세는 별도의 repository/page 경로를 사용하며, 이를 search adapter와
 selection service의 실행 기록으로 대체하지 않는다. 관련 UX 경계는
 [`public-discovery-ux-contract.md`](./public-discovery-ux-contract.md), 공개
@@ -188,7 +205,10 @@ SEARCH
   -> OUTLINE
   -> GUIDANCE
 
-DISCLOSURE는 현재 흐름에 연결되지 않은 별도 선택적 branch다.
+DISCLOSURE는 현재 product orchestration에 연결되지 않은 별도 선택적 branch다.
+current main의 pure presentation composer는 이미 만들어진 successful selection
+result를 이 formatter로 조합할 수 있지만, search·selection·outline 실행이나
+route/API/MCP 흐름을 만들지 않는다.
 SOURCE/REVISION 참조는 canonical read와 public policy가 실제로 반환할 때만 연결한다.
 ```
 
@@ -281,7 +301,7 @@ causality, canonical authority의 독립 증명이 아니다.
 | `identityBinding` | 선택 ID와 현재 outline course ID 비교 결과 연결 | selection service | 비교와 `IDENTITY_MISMATCH` code는 현재 존재, trace field는 미수집 | `MATCH`는 두 값이 비교상 같다는 뜻만, authorization·snapshot·revision은 아님. `UNKNOWN`은 비교 불가 | selection에 선택 후보; 미수집 | 내부 전용; 외부는 mismatch category만 | raw IDs의 보존·삭제·교차 trace 연결을 별도 결정한다. |
 | `finalResult` / `reasonCode` | 최종 관찰 상태와 내부 분류 연결 | stage/caller trace owner | product status/code와 guidance category는 존재, 공통 trace reasonCode는 미수집 | reason code가 authoritative 상태이고 사용자 문구는 설명 projection이다. 없는 code를 구현된 것처럼 추가하지 않음 | 결과 stage에 필수 후보; 미수집 | reason은 내부, 안전한 category만 외부 후보 | policy/version 변경 시 과거 reason의 해석을 보존할지 정한다. |
 | `safeExplanationSummary` | 어떤 제한된 안내 category/action이 사용됐는지 조사 | guidance formatter 또는 caller | `{category,title,message,actions}` 출력은 현재 존재; trace summary는 미수집 | raw message를 parse해 상태를 복원하지 않는다. category와 실제 result를 함께 보존해야 함 | 선택 후보; 미수집 | 외부 projection은 별도 생성; trace는 내부 | 사용자 copy의 보존·삭제와 trace 보존을 분리한다. |
-| `sourceRef`, `revisionRef`, `asOf` | source/revision 근거를 연결 | [제안] canonical source/revision/policy layer | 현재 search/outline/selection/guidance에 없음. source disclosure도 discovery에 연결되지 않음 | canonical read가 정확한 target relation과 policy를 반환할 때만 기록. `updatedAt`, hash, validator success로 대체하지 않음 | 모두 선택 후보; 현재 미수집 | 내부 전용; 외부 disclosure는 별도 승인 | 철회·삭제·접근 제한된 근거를 과거 trace에서 재노출하지 않도록 삭제 전파가 필요하다. |
+| `sourceRef`, `revisionRef`, `asOf` | source/revision 근거를 연결 | [제안] canonical source/revision/policy layer | 현재 search/outline/selection/guidance에는 없음. source disclosure는 pure presentation composer에만 연결되고 discovery orchestration에는 연결되지 않음 | canonical read가 정확한 target relation과 policy를 반환할 때만 기록. `updatedAt`, hash, validator success로 대체하지 않음 | 모두 선택 후보; 현재 미수집 | 내부 전용; 외부 disclosure는 별도 승인 | 철회·삭제·접근 제한된 근거를 과거 trace에서 재노출하지 않도록 삭제 전파가 필요하다. |
 | `occurredAt` / `recordedAt` | 관찰 시각과 trace 저장 시각 구분 | [제안] trusted clock/trace writer | 미수집 | 시각은 ordering hint이며 인과·동일 snapshot을 보장하지 않음 | 선택 후보; 미수집 | 내부 전용 | clock skew, timezone, 보존 기간을 정책으로 정한다. 숫자 기간은 이 문서에서 정하지 않는다. |
 | `entityRefs` | course 등 stage 대상 연결 | [제안] server-owned allowlisted reference | search/outline 결과에는 course ID/slug가 있으나 trace field는 미수집 | raw internal ID는 필요할 때만 좁은 내부 접근으로 저장. hash도 연결 가능한 식별자일 수 있음 | 선택 후보; 기본 미수집 | 내부 전용 | 개인·source ID와 cross-context linkability, 삭제 전파를 검토한다. |
 | `errorSummary` | 장애 조사의 최소 분류 | [제안] adapter/trace boundary | outline reason은 현재 존재; raw exception/stack은 trace에 없음 | exception·SQL·row·credential·운영 메모 전체를 저장하지 않음. 불명은 `UNKNOWN`으로 보존 | 선택 후보; 미수집 | 내부 전용 | 민감 payload fallback 로그를 금지하고 접근/보존 정책을 정한다. |
@@ -315,7 +335,7 @@ outline·selection·guidance에는 기준 main에서 대응하는 runtime versio
 2. caller가 결과에서 course ID/slug를 선택하고 `SELECTION`에 전달한다. 현재 selection service 자체는 search page membership를 검사하지 않으며, test-only helper의 membership 검사는 제품 계약이 아니다.
 3. `SELECTION`은 slug로 `OUTLINE`을 조회하고 outline course ID와 선택 ID를 비교한다.
 4. `OUTLINE` 결과를 받은 뒤 `GUIDANCE`가 실제 status/code를 bounded category/action으로 변환한다.
-5. source disclosure가 명시적으로 호출되는 경우에만 별도 stage로 기록한다. 현재 discovery 흐름에는 연결하지 않는다.
+5. source disclosure가 명시적으로 호출되는 경우에만 별도 stage로 기록한다. 현재 pure presentation composer의 formatter 호출은 display composition이며, server-owned discovery orchestration이나 trace stage 연결은 아니다.
 
 이 순서는 제안된 data dependency다. 기준 main에는 이를 수행하는 하나의
 orchestrator, operation ID, stage timestamp가 없다. offline test가 기록한
@@ -376,7 +396,7 @@ trace field는 `<synthetic>` 또는 `NOT_OBSERVED`로 표시한다.
 | 선택 뒤 현재 outline NOT_FOUND | outline/selection result `NOT_FOUND`가 selection에서 pass-through | SELECTION `RECEIVED/NOT_FOUND` → OUTLINE terminal | `COURSE_UNAVAILABLE`, `BACK_TO_RESULTS`, `REFRESH_RESULTS` | 삭제·비공개·권한 부족 중 하나라는 원인 |
 | ID 불일치 | `SELECTION_ERROR/IDENTITY_MISMATCH` | binding `MISMATCH`; 두 raw ID는 기본 외부 projection에 넣지 않음 | `IDENTITY_MISMATCH`, `BACK_TO_RESULTS` | 다른 course의 ID·slug·title·outline |
 | 빈 outline | outline `OK`와 `subjects: []` | OUTLINE `RECEIVED/OK`, `outlineEmpty=true` | `OUTLINE_EMPTY`, `BACK_TO_RESULTS` | 학습 불가, provider failure, curriculum 전체 부재 |
-| source projection 부재 | discovery에는 source stage call site가 없음. 별도로 formatter에 input 부재가 전달되면 `officialReference=null`, `independentExplanation=null`, `notice=PUBLIC_SOURCE_DISCLOSURE_MISSING_NOTICE` | discovery trace에는 source stage를 만들지 않음. 명시적 future call이 없으면 `NOT_STARTED`; formatter 결과에는 현재 status/code가 없음 | 안내는 source formatter의 generic notice일 뿐 discovery result가 아님 | source가 private/삭제/미승인/최신 아님이라는 원인 |
+| source projection 부재 | 현재 product orchestration에는 source stage call site가 없다. pure presentation composer가 formatter에 input 부재를 전달하면 `officialReference=null`, `independentExplanation=null`, `notice=PUBLIC_SOURCE_DISCLOSURE_MISSING_NOTICE` | discovery trace에는 source stage를 만들지 않음. 명시적 future orchestration call이 없으면 `NOT_STARTED`; formatter 결과에는 현재 status/code가 없음 | 안내는 source formatter의 generic notice일 뿐 discovery result가 아님 | source가 private/삭제/미승인/최신 아님이라는 원인 |
 | malformed/unknown 결과 | search source row 위반은 `INVALID_SOURCE`; outline malformed projection은 `UNAVAILABLE/INVALID_PUBLIC_PROJECTION`; guidance unknown shape는 `UNKNOWN_RESULT` | 실제 stage code를 보존하고 `resultState=RECEIVED`; invalid shape를 성공으로 보정하지 않음 | search `PROJECTION_ERROR`, outline `PROJECTION_ERROR`, 또는 guidance `UNKNOWN_RESULT` | raw payload, unknown을 `NOT_FOUND`로 재분류, 다른 과정 정보 |
 | selection 입력 오류 | selection `SELECTION_ERROR/INVALID_INPUT` 또는 outline `INVALID_INPUT` | SELECTION/OUTLINE의 실제 code를 분리 기록 | `INPUT_ERROR`, selection context의 `BACK_TO_RESULTS` | caller identity·권한 부족이라는 추정 |
 
