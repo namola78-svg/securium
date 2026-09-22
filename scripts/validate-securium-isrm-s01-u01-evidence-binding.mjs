@@ -60,7 +60,8 @@ function sha256(value) {
 function portableRelativePath(value) {
   return typeof value === "string"
     && value.length > 0
-    && !path.isAbsolute(value)
+    && !path.posix.isAbsolute(value)
+    && !path.win32.isAbsolute(value)
     && !/^[A-Za-z]:[\\/]/.test(value)
     && !value.split(/[\\/]/).includes("..");
 }
