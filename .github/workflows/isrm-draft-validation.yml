@@ -8,8 +8,10 @@ on:
       - "content-drafts/securium-isrm-full-draft-package/**"
       - "content-drafts/securium-isrm-s*-u*-authoring/**"
       - "scripts/validate-securium-isrm-foundation-product-authority.mjs"
+      - "scripts/validate-securium-isrm-source-claim-references.mjs"
       - "scripts/validate-securium-isrm-s*-u*-draft.mjs"
       - "tests/securium-isrm-foundation-product-authority.test.mjs"
+      - "tests/securium-isrm-source-claim-references.test.mjs"
       - "tests/securium-isrm-s*-u*-draft.test.mjs"
       - "package.json"
       - "package-lock.json"
@@ -22,8 +24,10 @@ on:
       - "content-drafts/securium-isrm-full-draft-package/**"
       - "content-drafts/securium-isrm-s*-u*-authoring/**"
       - "scripts/validate-securium-isrm-foundation-product-authority.mjs"
+      - "scripts/validate-securium-isrm-source-claim-references.mjs"
       - "scripts/validate-securium-isrm-s*-u*-draft.mjs"
       - "tests/securium-isrm-foundation-product-authority.test.mjs"
+      - "tests/securium-isrm-source-claim-references.test.mjs"
       - "tests/securium-isrm-s*-u*-draft.test.mjs"
       - "package.json"
       - "package-lock.json"
@@ -129,6 +133,12 @@ jobs:
           node scripts/validate-securium-isrm-foundation-product-authority.mjs
           echo "foundation-validator: PASS (exit 0; existing CLI is intentionally silent)"
 
+      - name: Run source-reference validator
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/validate-securium-isrm-source-claim-references.mjs
+
       - name: Run ISRM draft and Foundation tests
         shell: bash
         run: |
@@ -157,6 +167,12 @@ jobs:
           grep -Eq 'cancelled 0$' "$test_output"
           grep -Eq 'skipped 0$' "$test_output"
           grep -Eq 'todo 0$' "$test_output"
+
+      - name: Run source-reference validator tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test tests/securium-isrm-source-claim-references.test.mjs
 
       - name: Verify the checkout stayed read-only
         shell: bash
