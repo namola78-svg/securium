@@ -151,6 +151,7 @@ test("append-only lifecycle supports approval, supersession, revocation, and no 
   assert.equal(resolveRuntimeAuthorityLifecycle(revoked, "authority-2")?.state, "REVOKED");
   expectCode(() => reduceRuntimeAuthorityLifecycle([...revoked, approval("authority-2", nextSubject, "2026-09-21T00:04:00.000Z")]), "AUTHORITY_REVOKED");
   expectCode(() => reduceRuntimeAuthorityLifecycle([...events, approval("authority-1", base, "2026-09-21T00:04:00.000Z")]), "AUTHORITY_SUPERSEDED");
+  expectCode(() => reduceRuntimeAuthorityLifecycle([...events, revocation("authority-1")]), "AUTHORITY_SUPERSEDED");
 });
 
 test("superseded or revoked same-subject authority never falls back to an older authority", () => {
@@ -162,8 +163,38 @@ test("superseded or revoked same-subject authority never falls back to an older 
   assert.equal(resolver(base, "authority-b"), "SUPERSEDED");
   assert.equal(resolver(base, "authority-a"), "APPROVED_ACTIVE");
   const revoked = [...superseded, revocation("authority-b", "2026-09-21T00:04:00.000Z")];
-  assert.equal(buildRuntimeAuthorityLifecycleResolver(revoked)(base, "authority-b"), "REVOKED");
-  assert.equal(buildRuntimeAuthorityLifecycleResolver(revoked)(base, "authority-a"), "APPROVED_ACTIVE");
+  expectCode(() => reduceRuntimeAuthorityLifecycle(revoked), "AUTHORITY_SUPERSEDED");
+  assert.equal(buildRuntimeAuthorityLifecycleResolver(superseded)(base, "authority-a"), "APPROVED_ACTIVE");
+});
+
+test("both terminal states reject new lifecycle changes while preserving exact replay no-ops", () => {
+  const successorSubject = { ...base, runtimeRevisionId: "cppg-runtime-revision-2", semanticHash: hash("d") } as RuntimeAuthoritySubject;
+  const predecessor = approval("authority-terminal-a");
+  const successor = approval("authority-terminal-b", successorSubject, "2026-09-21T00:01:00.000Z");
+  const supersessionEvent = supersession("authority-terminal-a", "authority-terminal-b", successorSubject);
+
+  const superseded = [predecessor, successor, supersessionEvent];
+  assert.equal(resolveRuntimeAuthorityLifecycle(superseded, "authority-terminal-a")?.state, "SUPERSEDED");
+  assert.equal(resolveRuntimeAuthorityLifecycle([...superseded, supersessionEvent], "authority-terminal-a")?.state, "SUPERSEDED");
+  expectCode(() => reduceRuntimeAuthorityLifecycle([...superseded, revocation("authority-terminal-a")]), "AUTHORITY_SUPERSEDED");
+  expectCode(() => reduceRuntimeAuthorityLifecycle([...superseded, approval("authority-terminal-a", base, "2026-09-21T00:04:00.000Z")]), "AUTHORITY_SUPERSEDED");
+
+  const revoked = [approval("authority-terminal-revoked"), revocation("authority-terminal-revoked")];
+  assert.equal(resolveRuntimeAuthorityLifecycle([...revoked, revocation("authority-terminal-revoked")], "authority-terminal-revoked")?.state, "REVOKED");
+  expectCode(() => reduceRuntimeAuthorityLifecycle([...revoked, supersession("authority-terminal-revoked", "authority-terminal-b", successorSubject)]), "AUTHORITY_REVOKED");
+  expectCode(() => reduceRuntimeAuthorityLifecycle([...revoked, approval("authority-terminal-revoked", base, "2026-09-21T00:04:00.000Z")]), "AUTHORITY_REVOKED");
+});
+
+test("revoking a successor does not reactivate its superseded predecessor", () => {
+  const successorSubject = { ...base, runtimeRevisionId: "cppg-runtime-revision-2", semanticHash: hash("d") } as RuntimeAuthoritySubject;
+  const events: RuntimeAuthorityLifecycleEvent[] = [
+    approval("authority-predecessor"),
+    approval("authority-successor", successorSubject, "2026-09-21T00:01:00.000Z"),
+    supersession("authority-predecessor", "authority-successor", successorSubject),
+    revocation("authority-successor", "2026-09-21T00:04:00.000Z"),
+  ];
+  assert.equal(resolveRuntimeAuthorityLifecycle(events, "authority-predecessor")?.state, "SUPERSEDED");
+  assert.equal(resolveRuntimeAuthorityLifecycle(events, "authority-successor")?.state, "REVOKED");
 });
 
 test("lifecycle rejects malformed, out-of-order, duplicate-target, and unknown events deterministically", () => {
@@ -179,7 +210,7 @@ test("lifecycle rejects malformed, out-of-order, duplicate-target, and unknown e
   const firstSupersession = supersession("authority-dup", "successor", base);
   const secondSupersession = supersession("authority-dup", "other", base, "2026-09-21T00:05:00.000Z");
   expectCode(() => reduceRuntimeAuthorityLifecycle([approved, successor, other, firstSupersession, secondSupersession]), "AUTHORITY_SUPERSEDED");
-  assert.equal(reduceRuntimeAuthorityLifecycle([approved, successor, firstSupersession, revocation("authority-dup")]).records.get("authority-dup")?.state, "REVOKED");
+  expectCode(() => reduceRuntimeAuthorityLifecycle([approved, successor, firstSupersession, revocation("authority-dup")]), "AUTHORITY_SUPERSEDED");
   expectCode(() => reduceRuntimeAuthorityLifecycle([approved, revocation("authority-dup"), supersession("authority-dup", "successor", base)]), "AUTHORITY_REVOKED");
   expectCode(() => reduceRuntimeAuthorityLifecycle([approved, firstSupersession]), "AUTHORITY_LIFECYCLE_UNAVAILABLE");
 });

@@ -198,6 +198,7 @@ export function reduceRuntimeAuthorityLifecycle(
     const existing = records.get(event.authorityId);
     if (!existing) lifecycleFailure("AUTHORITY_LIFECYCLE_UNAVAILABLE", "Cannot revoke an unknown authority.", 503);
     if (existing.revoked) continue;
+    if (existing.state === "SUPERSEDED") lifecycleFailure("AUTHORITY_SUPERSEDED", "A superseded authority cannot be revoked.");
     records.set(event.authorityId, { ...existing, state: "REVOKED", revoked: true });
   }
 
