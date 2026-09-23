@@ -116,7 +116,8 @@
     "db:postgres:security:validate": "node scripts/generate-postgres-rls.mjs --check",
     "migration:d1:export": "node scripts/d1-postgres-migration.mjs export-d1",
     "migration:postgres:import": "node scripts/d1-postgres-migration.mjs import-postgres",
-    "migration:verify": "node scripts/d1-postgres-migration.mjs verify-migration"
+    "migration:verify": "node scripts/d1-postgres-migration.mjs verify-migration",
+    "test:public-discovery-view-state": "node --import tsx --test tests/public-discovery-view-state.test.ts"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.4",
