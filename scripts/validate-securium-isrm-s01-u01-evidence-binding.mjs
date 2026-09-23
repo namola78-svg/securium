@@ -7,6 +7,10 @@ export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 export const BINDING_PATH = "content-drafts/securium-isrm-s01-u01-authoring/evidence-binding.json";
 export const SOURCE_CLAIMS_PATH = "content-drafts/securium-isrm-s01-u01-authoring/source-claims.json";
 export const SNAPSHOT_MANIFEST_PATH = "source-evidence-snapshots/isrm-kca-identity-subject/2026-09-21/manifest.json";
+export const VALIDATION_MODES = Object.freeze({
+  BINDING_CONTRACT_VALIDATION: "BINDING_CONTRACT_VALIDATION",
+  LOCAL_EVIDENCE_VALIDATION: "LOCAL_EVIDENCE_VALIDATION",
+});
 
 const HTML_SOURCE_ID = "KCA-ISRM-IDENTITY-SUBJECT-PAGE";
 const PDF_SOURCE_ID = "KCA-ISRM-EXAM-CRITERIA-2025-2027";
@@ -29,6 +33,7 @@ const EXPECTED = Object.freeze({
     contentType: "text/html; charset=utf-8",
     artifactSourceUrl: LANDING_URL,
     canonicalUrl: LANDING_URL,
+    retrievedAt: "2026-09-21T17:37:11.1705236+09:00",
     semanticSourceIdentity: "KCA-ISRM-IDENTITY-SUBJECT-PAGE",
     documentIdentity: "KCA 민간자격검정 자격검정안내: 정보보호위험관리사(ISRM)",
   }),
@@ -41,6 +46,7 @@ const EXPECTED = Object.freeze({
     contentType: "application/x-msdownload;charset=ISO-8859-1",
     artifactSourceUrl: "https://www.cq.or.kr/ac_flecm02_001.do?atchFileId=239198e350f44ce69ac1b5c3bbe0be62&fileSn=5",
     canonicalUrl: LANDING_URL,
+    retrievedAt: "2026-09-21T17:37:12.3471641+09:00",
     semanticSourceIdentity: "KCA ISRM written-exam criteria, applicability 2025-01-01 through 2027-12-31",
     documentIdentity: "KCA 정보보호위험관리사 출제기준",
     applicability: Object.freeze({ type: "APPLICABILITY_ONLY_NOT_SEMANTIC_VERSION", from: "2025-01-01", to: "2027-12-31", semanticVersion: "UNKNOWN" }),
@@ -54,7 +60,8 @@ function sha256(value) {
 function portableRelativePath(value) {
   return typeof value === "string"
     && value.length > 0
-    && !path.isAbsolute(value)
+    && !path.posix.isAbsolute(value)
+    && !path.win32.isAbsolute(value)
     && !/^[A-Za-z]:[\\/]/.test(value)
     && !value.split(/[\\/]/).includes("..");
 }
@@ -65,6 +72,34 @@ function isSha256(value) {
 
 function addError(errors, code, detail) {
   errors.push(`${code}${detail ? `: ${detail}` : ""}`);
+}
+
+function hasOwn(value, key) {
+  return value !== null && typeof value === "object" && Object.prototype.hasOwnProperty.call(value, key);
+}
+
+function normalizeValidationMode(options = {}) {
+  const modeSpecified = hasOwn(options, "mode");
+  const legacySpecified = hasOwn(options, "readLocalArtifacts");
+  if (modeSpecified && !Object.values(VALIDATION_MODES).includes(options.mode)) {
+    return { error: `VALIDATION_MODE_INVALID: ${String(options.mode)}` };
+  }
+  if (legacySpecified && typeof options.readLocalArtifacts !== "boolean") {
+    return { error: "LEGACY_MODE_OPTION_INVALID: readLocalArtifacts must be boolean" };
+  }
+  const legacyMode = options.readLocalArtifacts
+    ? VALIDATION_MODES.LOCAL_EVIDENCE_VALIDATION
+    : VALIDATION_MODES.BINDING_CONTRACT_VALIDATION;
+  if (modeSpecified && legacySpecified && options.mode !== legacyMode) {
+    return { error: "VALIDATION_MODE_CONFLICT: mode and readLocalArtifacts disagree" };
+  }
+  return {
+    mode: modeSpecified
+      ? options.mode
+      : legacySpecified
+        ? legacyMode
+        : VALIDATION_MODES.BINDING_CONTRACT_VALIDATION,
+  };
 }
 
 function requiredString(value, code, errors) {
@@ -99,8 +134,6 @@ function compareArtifactIdentity(binding, snapshotArtifact, expected, errors) {
     compare(identity.artifactSha256, snapshotArtifact.sha256, "SNAPSHOT_ARTIFACT_HASH_MISMATCH", errors);
     compare(identity.byteSize, snapshotArtifact.byteSize, "SNAPSHOT_ARTIFACT_BYTE_SIZE_MISMATCH", errors);
     compare(identity.contentType, snapshotArtifact.contentType, "SNAPSHOT_ARTIFACT_CONTENT_TYPE_MISMATCH", errors);
-  } else {
-    addError(errors, "SNAPSHOT_SOURCE_ID_MISSING", binding.sourceId);
   }
 }
 
@@ -147,8 +180,13 @@ function validateC02Locator(locator, errors) {
   }
 }
 
-export function validateEvidenceBinding({ binding, sourceClaims, snapshotManifest, root = ROOT, readLocalArtifacts = false } = {}) {
+export function validateEvidenceBinding(options = {}) {
+  const { binding, sourceClaims, snapshotManifest, root = ROOT } = options;
+  const normalized = normalizeValidationMode(options);
+  if (normalized.error) return { valid: false, errors: [normalized.error] };
+  const { mode } = normalized;
   const errors = [];
+  const readLocalArtifacts = mode === VALIDATION_MODES.LOCAL_EVIDENCE_VALIDATION;
   if (!binding || typeof binding !== "object") return { valid: false, errors: ["BINDING_MANIFEST_MISSING"] };
   compare(binding.schema, "securium.isrm.s01_u01.frozen_evidence_binding.v1", "BINDING_SCHEMA_MISMATCH", errors);
   compare(binding.status, "EVIDENCE_BINDING_ONLY_REVIEW_REQUIRED", "BINDING_STATUS_MISMATCH", errors);
@@ -166,7 +204,7 @@ export function validateEvidenceBinding({ binding, sourceClaims, snapshotManifes
     if (Object.prototype.hasOwnProperty.call(binding, key)) addError(errors, "FORBIDDEN_APPROVAL_OR_AUTHORIZATION_FIELD", key);
   }
   if (!sourceClaims || !Array.isArray(sourceClaims.claims)) addError(errors, "SOURCE_CLAIMS_MISSING");
-  if (!snapshotManifest || !Array.isArray(snapshotManifest.artifacts)) addError(errors, "SNAPSHOT_MANIFEST_MISSING");
+  if (readLocalArtifacts && (!snapshotManifest || !Array.isArray(snapshotManifest.artifacts))) addError(errors, "SNAPSHOT_MANIFEST_MISSING");
   const claimsById = new Map((sourceClaims?.claims ?? []).map((claim) => [claim.id, claim]));
   const artifactsById = new Map((snapshotManifest?.artifacts ?? []).map((artifact) => [artifact.sourceId, artifact]));
   const expectedClaimIds = [C01, C02];
@@ -196,9 +234,10 @@ export function validateEvidenceBinding({ binding, sourceClaims, snapshotManifes
     compare(item.sourceId, expected.sourceId, "SOURCE_ID_MISMATCH", errors);
     compare(item.issuer, ISSUER, "ISSUER_MISMATCH", errors);
     compare(item.canonicalUrl, expected.canonicalUrl, "CANONICAL_URL_MISMATCH", errors);
-    const snapshotArtifact = artifactsById.get(item.sourceId);
-    if (!snapshotArtifact) addError(errors, "SOURCE_ID_NOT_IN_SNAPSHOT_MANIFEST", item.sourceId);
-    compare(item.retrievedAt, snapshotArtifact?.retrievedAt, "RETRIEVED_AT_MISMATCH", errors);
+    const snapshotArtifact = readLocalArtifacts ? artifactsById.get(item.sourceId) : undefined;
+    if (readLocalArtifacts && !snapshotArtifact) addError(errors, "SOURCE_ID_NOT_IN_SNAPSHOT_MANIFEST", item.sourceId);
+    compare(item.retrievedAt, expected.retrievedAt, "RETRIEVED_AT_MISMATCH", errors);
+    if (readLocalArtifacts) compare(item.retrievedAt, snapshotArtifact?.retrievedAt, "SNAPSHOT_RETRIEVED_AT_MISMATCH", errors);
     compare(item.evidenceClassification, "SUPPORTED", "EVIDENCE_CLASSIFICATION_NOT_SUPPORTED", errors);
     if (!isSha256(item.artifactIdentity?.artifactSha256)) addError(errors, "ARTIFACT_HASH_MALFORMED", item.claimId);
     compareArtifactIdentity(item, snapshotArtifact, expected, errors);
@@ -229,28 +268,54 @@ export function validateEvidenceBinding({ binding, sourceClaims, snapshotManifes
   return {
     valid: errors.length === 0,
     errors,
-    mode: readLocalArtifacts ? "LOCAL_EVIDENCE_VALIDATION" : "BINDING_CONTRACT_VALIDATION",
+    mode,
     boundClaimIds: [...seenClaims],
   };
 }
 
-export function loadBindingInputs(root = ROOT) {
+export function loadBindingInputs(root = ROOT, options = {}) {
+  const normalized = normalizeValidationMode(typeof options === "string" ? { mode: options } : options);
+  if (normalized.error) {
+    const error = new Error(normalized.error);
+    error.code = normalized.error.split(":", 1)[0];
+    throw error;
+  }
+  const { mode } = normalized;
   const read = (relativePath) => JSON.parse(fs.readFileSync(path.resolve(root, relativePath), "utf8"));
-  return {
+  const inputs = {
     binding: read(BINDING_PATH),
     sourceClaims: read(SOURCE_CLAIMS_PATH),
-    snapshotManifest: read(SNAPSHOT_MANIFEST_PATH),
   };
+  if (mode === VALIDATION_MODES.LOCAL_EVIDENCE_VALIDATION) inputs.snapshotManifest = read(SNAPSHOT_MANIFEST_PATH);
+  return inputs;
 }
 
-export function validateBindingFiles({ root = ROOT, readLocalArtifacts = false } = {}) {
-  const inputs = loadBindingInputs(root);
-  return validateEvidenceBinding({ ...inputs, root, readLocalArtifacts });
+export function validateBindingFiles(options = {}) {
+  const { root = ROOT } = options;
+  const normalized = normalizeValidationMode(options);
+  if (normalized.error) return { valid: false, errors: [normalized.error] };
+  try {
+    const inputs = loadBindingInputs(root, normalized);
+    return validateEvidenceBinding({ ...inputs, root, mode: normalized.mode });
+  } catch (error) {
+    if (error?.code === "ENOENT") {
+      return {
+        valid: false,
+        errors: [normalized.mode === VALIDATION_MODES.LOCAL_EVIDENCE_VALIDATION
+          ? "LOCAL_EVIDENCE_INPUT_MISSING"
+          : "TRACKED_BINDING_INPUT_MISSING"],
+        mode: normalized.mode,
+      };
+    }
+    throw error;
+  }
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const readLocalArtifacts = process.argv.includes("--with-local-artifacts");
-  const result = validateBindingFiles({ readLocalArtifacts });
+  const mode = process.argv.includes("--with-local-artifacts")
+    ? VALIDATION_MODES.LOCAL_EVIDENCE_VALIDATION
+    : VALIDATION_MODES.BINDING_CONTRACT_VALIDATION;
+  const result = validateBindingFiles({ mode });
   console.log(JSON.stringify(result, null, 2));
   if (!result.valid) process.exitCode = 1;
 }

@@ -9,9 +9,11 @@ on:
       - "content-drafts/securium-isrm-s*-u*-authoring/**"
       - "scripts/validate-securium-isrm-foundation-product-authority.mjs"
       - "scripts/validate-securium-isrm-source-claim-references.mjs"
+      - "scripts/validate-securium-isrm-s01-u01-evidence-binding.mjs"
       - "scripts/validate-securium-isrm-s*-u*-draft.mjs"
       - "tests/securium-isrm-foundation-product-authority.test.mjs"
       - "tests/securium-isrm-source-claim-references.test.mjs"
+      - "tests/securium-isrm-s01-u01-evidence-binding.test.mjs"
       - "tests/securium-isrm-s*-u*-draft.test.mjs"
       - "package.json"
       - "package-lock.json"
@@ -25,9 +27,11 @@ on:
       - "content-drafts/securium-isrm-s*-u*-authoring/**"
       - "scripts/validate-securium-isrm-foundation-product-authority.mjs"
       - "scripts/validate-securium-isrm-source-claim-references.mjs"
+      - "scripts/validate-securium-isrm-s01-u01-evidence-binding.mjs"
       - "scripts/validate-securium-isrm-s*-u*-draft.mjs"
       - "tests/securium-isrm-foundation-product-authority.test.mjs"
       - "tests/securium-isrm-source-claim-references.test.mjs"
+      - "tests/securium-isrm-s01-u01-evidence-binding.test.mjs"
       - "tests/securium-isrm-s*-u*-draft.test.mjs"
       - "package.json"
       - "package-lock.json"
@@ -125,6 +129,18 @@ jobs:
             ! grep -Eiq 'skip|skipped|zero' <<< "$output"
             echo "::endgroup::"
           done < <(find scripts -maxdepth 1 -type f -name 'validate-securium-isrm-s*-u*-draft.mjs' -print | sort)
+
+      - name: Run ISRM S01 U01 evidence-binding metadata validator
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/validate-securium-isrm-s01-u01-evidence-binding.mjs
+
+      - name: Run ISRM S01 U01 evidence-binding focused tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test tests/securium-isrm-s01-u01-evidence-binding.test.mjs
 
       - name: Run Foundation validator
         shell: bash
