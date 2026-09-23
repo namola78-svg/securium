@@ -65,7 +65,8 @@ jobs:
         run: |
           test -f tests/runtime-authority-event-ledger-foundation.test.ts
           test -f tests/runtime-authority-foundation.test.ts
-          node --import tsx --test tests/runtime-authority-event-ledger-foundation.test.ts tests/runtime-authority-foundation.test.ts
+          test -f tests/runtime-authority-persistence-contract-foundation.test.ts
+          node --import tsx --test tests/runtime-authority-event-ledger-foundation.test.ts tests/runtime-authority-foundation.test.ts tests/runtime-authority-persistence-contract-foundation.test.ts
 
       - name: Public discovery view-state tests
         run: npm run test:public-discovery-view-state
