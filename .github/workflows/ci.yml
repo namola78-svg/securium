@@ -61,6 +61,15 @@ jobs:
       - name: Unit tests
         run: npm run test:unit
 
+      - name: Runtime Authority foundation tests
+        run: |
+          test -f tests/runtime-authority-event-ledger-foundation.test.ts
+          test -f tests/runtime-authority-foundation.test.ts
+          node --import tsx --test tests/runtime-authority-event-ledger-foundation.test.ts tests/runtime-authority-foundation.test.ts
+
+      - name: Public discovery view-state tests
+        run: npm run test:public-discovery-view-state
+
       - name: Integration smoke tests
         run: npm run test:integration
 
