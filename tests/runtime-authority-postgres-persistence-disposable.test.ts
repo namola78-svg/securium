@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import { after, before, test } from "node:test";
 import postgres from "postgres";
 
-import { PostgresJsExecutor } from "../db/postgres/postgres-js-executor.ts";
+import { PostgresJsExecutor, type PostgresJsClient } from "../db/postgres/postgres-js-executor.ts";
 import { PostgresRuntimeAuthorityPersistence } from "../db/runtime-authority-postgres-persistence.ts";
 import { approvalSubjectHash, type RuntimeAuthoritySubject } from "../lib/policy/runtime-authority-binding.ts";
 import { executeRuntimeAuthorityCommand } from "../lib/services/runtime-authority-command-service.ts";
@@ -16,8 +16,8 @@ import {
 
 const password = "runtime-authority-foundation-test-password";
 const ownerToken = randomUUID();
-let ownedContainer: any;
-let sql: any;
+let ownedContainer: Awaited<ReturnType<typeof createOwnedPostgresContainer>> | undefined;
+let sql: ReturnType<typeof postgres> | undefined;
 let executor: PostgresJsExecutor | undefined;
 let owner: PostgresRuntimeAuthorityPersistence;
 
@@ -71,7 +71,7 @@ before(async () => {
       "utf8",
     ),
   );
-  executor = new PostgresJsExecutor(sql as any, 30_000);
+  executor = new PostgresJsExecutor(sql as unknown as PostgresJsClient, 30_000);
   owner = new PostgresRuntimeAuthorityPersistence(executor);
 });
 
