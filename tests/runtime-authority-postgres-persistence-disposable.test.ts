@@ -4,7 +4,8 @@ import { readFile } from "node:fs/promises";
 import { after, before, test } from "node:test";
 import postgres from "postgres";
 
-import { PostgresJsExecutor, type PostgresJsClient } from "../db/postgres/postgres-js-executor.ts";
+import type { PostgresExecutor, PostgresTransactionExecutor } from "../db/provider/postgres-database-provider.ts";
+import type { DatabaseValue } from "../db/provider/database-provider.ts";
 import { PostgresRuntimeAuthorityPersistence } from "../db/runtime-authority-postgres-persistence.ts";
 import { approvalSubjectHash, type RuntimeAuthoritySubject } from "../lib/policy/runtime-authority-binding.ts";
 import { executeRuntimeAuthorityCommand } from "../lib/services/runtime-authority-command-service.ts";
@@ -18,7 +19,7 @@ const password = "runtime-authority-foundation-test-password";
 const ownerToken = randomUUID();
 let ownedContainer: Awaited<ReturnType<typeof createOwnedPostgresContainer>> | undefined;
 let sql: ReturnType<typeof postgres> | undefined;
-let executor: PostgresJsExecutor | undefined;
+let executor: PostgresExecutor | undefined;
 let owner: PostgresRuntimeAuthorityPersistence;
 
 const subject: RuntimeAuthoritySubject = Object.freeze({
@@ -71,12 +72,12 @@ before(async () => {
       "utf8",
     ),
   );
-  executor = new PostgresJsExecutor(sql as unknown as PostgresJsClient, 30_000);
+  executor = createDisposableExecutor(requireSql());
   owner = new PostgresRuntimeAuthorityPersistence(executor);
 });
 
 after(async () => {
-  await executor?.close().catch(() => {});
+  await executor?.close?.().catch(() => {});
   if (ownedContainer) {
     await cleanupOwnedPostgresContainer(ownedContainer);
   }
@@ -215,4 +216,35 @@ function errorCode(error: unknown): string | undefined {
   return typeof error === "object" && error !== null && "code" in error
     ? String((error as { code?: unknown }).code)
     : undefined;
+}
+
+
+function createDisposableExecutor(client: NonNullable<typeof sql>): PostgresExecutor {
+  const queryWith = async <Row extends Record<string, unknown>>(
+    connection: { unsafe: (text: string, parameters?: readonly unknown[]) => PromiseLike<Row[] & { count?: number | null }> },
+    text: string,
+    parameters: readonly DatabaseValue[],
+  ) => {
+    const rows = await connection.unsafe(text, parameters);
+    return {
+      rows: Array.from(rows),
+      rowCount: typeof rows.count === "number" ? rows.count : rows.length,
+    };
+  };
+
+  return {
+    query: <Row extends Record<string, unknown>>(text: string, parameters: readonly DatabaseValue[]) =>
+      queryWith<Row>(client as never, text, parameters),
+    async transaction<T>(callback: (executor: PostgresTransactionExecutor) => Promise<T>): Promise<T> {
+      return client.begin(async (transaction) =>
+        callback({
+          query: <Row extends Record<string, unknown>>(text: string, parameters: readonly DatabaseValue[]) =>
+            queryWith<Row>(transaction as never, text, parameters),
+        }),
+      );
+    },
+    async close() {
+      await client.end({ timeout: 5 });
+    },
+  };
 }
