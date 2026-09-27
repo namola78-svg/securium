@@ -1,0 +1,75 @@
+name: Audio E2E Regression
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/audio-e2e-regression.yml"
+      - "tests/audio-e2e.test.mjs"
+      - "tests/support/**"
+      - "scripts/run-d1-test-suite.mjs"
+      - "package.json"
+      - "package-lock.json"
+      - "app/api/audio/**"
+      - "db/**"
+      - "wrangler.local.jsonc"
+      - "vite.config.ts"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/audio-e2e-regression.yml"
+      - "tests/audio-e2e.test.mjs"
+      - "tests/support/**"
+      - "scripts/run-d1-test-suite.mjs"
+      - "package.json"
+      - "package-lock.json"
+      - "app/api/audio/**"
+      - "db/**"
+      - "wrangler.local.jsonc"
+      - "vite.config.ts"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: audio-e2e-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audio:
+    name: Linux / Node 22 audio E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out exact event revision
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22.13.0"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Record checkout and runtime
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          actual_sha=$(git rev-parse HEAD)
+          echo "expected_sha=$EXPECTED_SHA"
+          echo "actual_sha=$actual_sha"
+          test "$actual_sha" = "$EXPECTED_SHA"
+          node --version
+          npm --version
+
+      - name: Validate Drizzle schema and migrations
+        run: npm run db:check
+
+      - name: Run focused audio E2E
+        run: node scripts/run-d1-test-suite.mjs --test --test-concurrency=1 tests/audio-e2e.test.mjs

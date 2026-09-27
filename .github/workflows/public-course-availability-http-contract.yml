@@ -1,0 +1,102 @@
+name: Public course availability HTTP contract
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/public-course-availability-http-contract.yml"
+      - "app/courses/**"
+      - "components/course-card.tsx"
+      - "components/course-enroll-action.tsx"
+      - "db/seed.sql"
+      - "db/public-course-availability-repository.ts"
+      - "db/provider/**"
+      - "db/repository-adapter/**"
+      - "drizzle/**"
+      - "lib/environment.ts"
+      - "lib/services/course-availability*.ts"
+      - "package.json"
+      - "package-lock.json"
+      - "scripts/run-d1-test-suite.mjs"
+      - "scripts/run-wrangler.mjs"
+      - "tests/public-course-availability-http-contract.test.mjs"
+      - "tests/support/vinext-test-server.mjs"
+      - "verification/public-course-availability-http-contract/**"
+      - "vite.config.ts"
+      - "worker/index.ts"
+      - "wrangler.local.jsonc"
+  push:
+    branches:
+      - "test/public-course-availability-http-contract"
+      - "main"
+    paths:
+      - ".github/workflows/public-course-availability-http-contract.yml"
+      - "app/courses/**"
+      - "components/course-card.tsx"
+      - "components/course-enroll-action.tsx"
+      - "db/seed.sql"
+      - "db/public-course-availability-repository.ts"
+      - "db/provider/**"
+      - "db/repository-adapter/**"
+      - "drizzle/**"
+      - "lib/environment.ts"
+      - "lib/services/course-availability*.ts"
+      - "package.json"
+      - "package-lock.json"
+      - "scripts/run-d1-test-suite.mjs"
+      - "scripts/run-wrangler.mjs"
+      - "tests/public-course-availability-http-contract.test.mjs"
+      - "tests/support/vinext-test-server.mjs"
+      - "verification/public-course-availability-http-contract/**"
+      - "vite.config.ts"
+      - "worker/index.ts"
+      - "wrangler.local.jsonc"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: public-course-availability-http-contract-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: "true"
+  APP_ENV: test
+  AUTH_PROVIDER: sites
+  DB_PROVIDER: d1
+  D1_TEST_MODE: "1"
+  CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV: "false"
+
+jobs:
+  http-contract:
+    name: Vinext HTTP/SSR availability contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out exact tested revision
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22.13.0"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Bind exact tested SHA and record runtime
+        shell: bash
+        run: |
+          expected_sha="${{ github.event.pull_request.head.sha || github.sha }}"
+          test "$(git rev-parse HEAD)" = "$expected_sha"
+          echo "HTTP_CONTRACT_CHECKOUT_SHA=$expected_sha"
+          echo "HTTP_CONTRACT_NODE=$(node --version)"
+          echo "HTTP_CONTRACT_NPM=$(npm --version)"
+          node -e "console.log('HTTP_CONTRACT_VINEXT=' + require('./node_modules/vinext/package.json').version)"
+
+      - name: Run dedicated HTTP contract launcher
+        run: node verification/public-course-availability-http-contract/run.mjs

@@ -5,12 +5,16 @@ on:
     paths:
       - ".github/workflows/digital-forensics-timeline-local-lab.yml"
       - "examples/digital-forensics-timeline-local-lab/**"
+      - "tests/forensics-timeline-input-limits.test.py"
+      - "verification/forensics-timeline-input-limits/**"
   push:
     branches:
       - main
     paths:
       - ".github/workflows/digital-forensics-timeline-local-lab.yml"
       - "examples/digital-forensics-timeline-local-lab/**"
+      - "tests/forensics-timeline-input-limits.test.py"
+      - "verification/forensics-timeline-input-limits/**"
   workflow_dispatch:
 
 permissions:
@@ -71,6 +75,9 @@ jobs:
       - name: Discover and run timeline tests
         working-directory: examples/digital-forensics-timeline-local-lab
         run: python run_tests.py
+
+      - name: Run bounded input-limit regressions
+        run: python tests/forensics-timeline-input-limits.test.py
 
       - name: Remove generated Python caches
         if: always()

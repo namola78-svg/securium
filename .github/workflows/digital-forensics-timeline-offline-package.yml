@@ -9,6 +9,7 @@ on:
       - "examples/digital-forensics-timeline-local-lab/**"
       - "examples/digital-forensics-timeline-rehearsal-kit/**"
       - "examples/digital-forensics-timeline-offline-package/**"
+      - "verification/forensics-learner-preflight/**"
   push:
     branches:
       - main
@@ -19,6 +20,7 @@ on:
       - "examples/digital-forensics-timeline-local-lab/**"
       - "examples/digital-forensics-timeline-rehearsal-kit/**"
       - "examples/digital-forensics-timeline-offline-package/**"
+      - "verification/forensics-learner-preflight/**"
   workflow_dispatch:
 
 permissions:
