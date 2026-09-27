@@ -19,15 +19,15 @@ type RootRow = {
 };
 
 type EventRow = {
-  eventId: string;
-  authorityId: string;
-  sequence: number;
-  schemaVersion: number;
-  eventType: AuthorityEventPersistenceRecord["eventType"];
-  payloadJson: string;
-  idempotencyKey: string;
-  commandHash: string;
-  recordedAt: string;
+  eventId: unknown;
+  authorityId: unknown;
+  sequence: unknown;
+  schemaVersion: unknown;
+  eventType: unknown;
+  payloadJson: unknown;
+  idempotencyKey: unknown;
+  commandHash: unknown;
+  recordedAt: unknown;
 };
 
 export class PostgresRuntimeAuthorityPersistence
@@ -162,14 +162,56 @@ function eventRowToPersistenceRecord(
   row: EventRow,
 ): AuthorityEventPersistenceRecord {
   return parseAuthorityEventPersistenceRecord({
-    eventId: row.eventId,
-    authorityId: row.authorityId,
-    sequence: Number(row.sequence),
-    schemaVersion: Number(row.schemaVersion),
-    eventType: row.eventType,
-    payload: JSON.parse(row.payloadJson),
-    idempotencyKey: row.idempotencyKey,
-    commandHash: row.commandHash,
-    recordedAt: row.recordedAt,
+    eventId: requireDatabaseString(row.eventId),
+    authorityId: requireDatabaseString(row.authorityId),
+    sequence: requireDatabaseInteger(row.sequence),
+    schemaVersion: requireDatabaseInteger(row.schemaVersion),
+    eventType: requireDatabaseString(row.eventType),
+    payload: parseDatabaseJson(row.payloadJson),
+    idempotencyKey: requireDatabaseString(row.idempotencyKey),
+    commandHash: requireDatabaseString(row.commandHash),
+    recordedAt: normalizeDatabaseTimestamp(row.recordedAt),
   });
+}
+
+function requireDatabaseString(value: unknown): string {
+  if (typeof value !== "string") {
+    throw new Error("RUNTIME_AUTHORITY_DATABASE_ROW_INVALID");
+  }
+  return value;
+}
+
+function requireDatabaseInteger(value: unknown): number {
+  const normalized =
+    typeof value === "number" ? value :
+    typeof value === "bigint" ? Number(value) :
+    typeof value === "string" && /^\\d+$/.test(value) ? Number(value) :
+    Number.NaN;
+  if (!Number.isSafeInteger(normalized)) {
+    throw new Error("RUNTIME_AUTHORITY_DATABASE_ROW_INVALID");
+  }
+  return normalized;
+}
+
+function parseDatabaseJson(value: unknown): Record<string, unknown> {
+  if (typeof value === "string") {
+    const parsed: unknown = JSON.parse(value);
+    if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) {
+      return parsed as Record<string, unknown>;
+    }
+  } else if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
+  }
+  throw new Error("RUNTIME_AUTHORITY_DATABASE_ROW_INVALID");
+}
+
+function normalizeDatabaseTimestamp(value: unknown): string {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString();
+  }
+  if (typeof value === "string") {
+    const timestamp = Date.parse(value);
+    if (!Number.isNaN(timestamp)) return new Date(timestamp).toISOString();
+  }
+  throw new Error("RUNTIME_AUTHORITY_DATABASE_ROW_INVALID");
 }
