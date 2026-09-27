@@ -47,7 +47,7 @@ before(async () => {
   sql = postgres(
     `postgres://postgres:${password}@127.0.0.1:${port}/postgres`,
     {
-      max: 4,
+      max: 1,
       prepare: false,
       ssl: false,
     },
