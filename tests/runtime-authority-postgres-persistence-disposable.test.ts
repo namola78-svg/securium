@@ -236,12 +236,14 @@ function createDisposableExecutor(client: NonNullable<typeof sql>): PostgresExec
     query: <Row extends Record<string, unknown>>(text: string, parameters: readonly DatabaseValue[]) =>
       queryWith<Row>(client as never, text, parameters),
     async transaction<T>(callback: (executor: PostgresTransactionExecutor) => Promise<T>): Promise<T> {
-      return client.begin(async (transaction) =>
-        callback({
+      let result!: T;
+      await client.begin(async (transaction) => {
+        result = await callback({
           query: <Row extends Record<string, unknown>>(text: string, parameters: readonly DatabaseValue[]) =>
             queryWith<Row>(transaction as never, text, parameters),
-        }),
-      );
+        });
+      });
+      return result;
     },
     async close() {
       await client.end({ timeout: 5 });
