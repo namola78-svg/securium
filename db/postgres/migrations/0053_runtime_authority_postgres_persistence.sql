@@ -25,23 +25,13 @@ CREATE TABLE public."runtime_authority_events" (
 CREATE INDEX "runtime_authority_events_authority_sequence_idx"
   ON public."runtime_authority_events" ("authority_id", "sequence");
 
-CREATE OR REPLACE FUNCTION public.runtime_authority_events_append_only_guard()
-RETURNS trigger
-LANGUAGE plpgsql
-AS $$
-BEGIN
-  RAISE EXCEPTION 'runtime authority events are append-only'
-    USING ERRCODE = '55000';
-END;
-$$;
+CREATE RULE "runtime_authority_events_no_update" AS
+ON UPDATE TO public."runtime_authority_events"
+DO INSTEAD NOTHING;
 
-CREATE TRIGGER "runtime_authority_events_no_update"
-BEFORE UPDATE ON public."runtime_authority_events"
-FOR EACH ROW EXECUTE FUNCTION public.runtime_authority_events_append_only_guard();
-
-CREATE TRIGGER "runtime_authority_events_no_delete"
-BEFORE DELETE ON public."runtime_authority_events"
-FOR EACH ROW EXECUTE FUNCTION public.runtime_authority_events_append_only_guard();
+CREATE RULE "runtime_authority_events_no_delete" AS
+ON DELETE TO public."runtime_authority_events"
+DO INSTEAD NOTHING;
 
 INSERT INTO app_schema_migrations (id, checksum)
 VALUES ('0053_runtime_authority_postgres_persistence', 'runtime-authority-postgres-persistence-v1')
