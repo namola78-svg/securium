@@ -8,11 +8,10 @@ import {
   persistenceRecordsToCanonicalEvents,
   type AuthorityEventPersistenceRecord,
   type AuthorityIdempotencyLookup,
-  type AuthorityReference,
   type RuntimeAuthorityPersistenceTransaction,
   type RuntimeAuthorityPersistenceTransactionOwner,
 } from "../lib/policy/runtime-authority-persistence-contract.ts";
-import { replayAuthorityLedger } from "../lib/policy/runtime-authority-event-ledger.ts";
+import { replayAuthorityLedger, type AuthorityReference } from "../lib/policy/runtime-authority-event-ledger.ts";
 
 type RootRow = {
   authorityId: string;
