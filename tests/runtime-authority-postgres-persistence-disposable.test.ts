@@ -110,11 +110,11 @@ test("PostgreSQL authority writer appends approval once and exact replay is idem
   assert.equal(replay.outcome, "REPLAY_EXISTING");
   assert.equal(replay.event.eventId, "authority-event-1");
 
-  const rows = await sql`
-    SELECT
+  const rows = await requireSql().unsafe(
+    `SELECT
       (SELECT count(*)::int FROM "runtime_authority_roots") AS roots,
-      (SELECT count(*)::int FROM "runtime_authority_events") AS events
-  `;
+      (SELECT count(*)::int FROM "runtime_authority_events") AS events`,
+  );
   assert.deepEqual(rows[0], { roots: 1, events: 1 });
 });
 
@@ -171,31 +171,45 @@ test("revocation appends sequence two and blocks later new commands", async () =
     (error: unknown) => errorCode(error) === "AUTHORITY_REVOKED",
   );
 
-  const rows = await sql`
-    SELECT "latest_sequence" AS sequence
-    FROM "runtime_authority_roots"
-    WHERE "authority_id" = 'authority-cppg-v1'
-  `;
+  const rows = await requireSql().unsafe(
+    `SELECT "latest_sequence" AS sequence
+     FROM "runtime_authority_roots"
+     WHERE "authority_id" = 'authority-cppg-v1'`,
+  );
   assert.equal(rows[0]?.sequence, 2);
 });
 
 test("authority event table is database-enforced append-only", async () => {
-  await assert.rejects(
-    sql.unsafe(
-      `UPDATE "runtime_authority_events"
-       SET "idempotency_key" = 'tampered'
-       WHERE "event_id" = 'authority-event-1'`,
-    ),
-    (error: unknown) => errorCode(error) === "55000",
+  const before = await requireSql().unsafe(
+    `SELECT "idempotency_key" AS key
+     FROM "runtime_authority_events"
+     WHERE "event_id" = 'authority-event-1'`,
   );
-  await assert.rejects(
-    sql.unsafe(
-      `DELETE FROM "runtime_authority_events"
-       WHERE "event_id" = 'authority-event-1'`,
-    ),
-    (error: unknown) => errorCode(error) === "55000",
+
+  await requireSql().unsafe(
+    `UPDATE "runtime_authority_events"
+     SET "idempotency_key" = 'tampered'
+     WHERE "event_id" = 'authority-event-1'`,
   );
+  await requireSql().unsafe(
+    `DELETE FROM "runtime_authority_events"
+     WHERE "event_id" = 'authority-event-1'`,
+  );
+
+  const after = await requireSql().unsafe(
+    `SELECT "idempotency_key" AS key
+     FROM "runtime_authority_events"
+     WHERE "event_id" = 'authority-event-1'`,
+  );
+  assert.equal(before.length, 1);
+  assert.equal(after.length, 1);
+  assert.equal(after[0]?.key, before[0]?.key);
 });
+
+function requireSql(): NonNullable<typeof sql> {
+  if (!sql) throw new Error("TEST_POSTGRES_CLIENT_UNAVAILABLE");
+  return sql;
+}
 
 function errorCode(error: unknown): string | undefined {
   return typeof error === "object" && error !== null && "code" in error
