@@ -55,7 +55,7 @@ async function seedD1() {
   const tempDir = await mkdtemp(join(tmpdir(), "securium-intelligence-v3-"));
   const sqlPath = join(tempDir, "security-content-intelligence-v3.d1.sql");
   try {
-    await writeFile(sqlPath, generateSecurityContentIntelligenceV3Sql({ dialect: "d1" }), "utf8");
+    await writeFile(sqlPath, generateSecurityContentIntelligenceV3Sql({ dialect: "d1", transactionBoundary: "generated" }), "utf8");
     const result = await runCapture(process.execPath, ["scripts/run-wrangler.mjs", "d1", "execute", "DB", "--local", "--config", configPath, ...persistArgs(), "--file", sqlPath]);
     if (result.code !== 0) fail("SECURITY_CONTENT_INTELLIGENCE_V3_D1_APPLY_FAILED", result.stdout.slice(-800));
   } finally {
@@ -171,9 +171,9 @@ async function postgresConnectedDryRun() {
     let transactionOpen = true;
     try {
       await client.unsafe("SET LOCAL lock_timeout = '5s'; SET LOCAL statement_timeout = '120s';");
-      await client.unsafe(unwrapTransaction(bundle.bootstrapSql));
+      await client.unsafe(bundle.bootstrapSql);
       assertPrerequisiteRows(await client.unsafe(prerequisiteSql(actorId)));
-      await client.unsafe(unwrapTransaction(bundle.intelligenceSql));
+      await client.unsafe(bundle.intelligenceSql);
       const metrics = normalizeMetricRow((await client.unsafe(verificationSql()))[0]);
       assertVerificationRow(metrics);
       const simulatedTarget = normalizeRows(await client.unsafe(targetSnapshotSql()));
@@ -276,9 +276,9 @@ async function postgresProductionApply() {
       const beforeProtected = normalizeRows(await client.unsafe(protectedSnapshotSql()));
       const beforeUser = normalizeRows(await client.unsafe(userSnapshotSql()));
       const beforeTarget = normalizeRows(await client.unsafe(targetSnapshotSql()));
-      await client.unsafe(unwrapTransaction(bundle.bootstrapSql));
+      await client.unsafe(bundle.bootstrapSql);
       assertPrerequisiteRows(await client.unsafe(prerequisiteSql(actorId)));
-      await client.unsafe(unwrapTransaction(bundle.intelligenceSql));
+      await client.unsafe(bundle.intelligenceSql);
       const metrics = normalizeMetricRow((await client.unsafe(verificationSql()))[0]);
       assertVerificationRow(metrics);
       const afterTarget = normalizeRows(await client.unsafe(targetSnapshotSql()));
@@ -358,8 +358,8 @@ async function postgresTransactionBundle(actorId) {
   const sourceRoot = resolve(process.env.SECURIUM_CONTENT_V2_SOURCE_ROOT?.trim() || "securium-content-upgrade-v2");
   const source = JSON.parse(await readFile(join(sourceRoot, "data", "normalized-knowledge-base.json"), "utf8"));
   const bootstrapPlan = buildSecurityContentV3Plan(source);
-  const bootstrapSql = generateSecurityContentV3Sql(source, { dialect: "postgres", actorId });
-  const intelligenceSql = generateSecurityContentIntelligenceV3Sql({ dialect: "postgres", actorId });
+  const bootstrapSql = generateSecurityContentV3Sql(source, { dialect: "postgres", actorId, transactionBoundary: "caller" });
+  const intelligenceSql = generateSecurityContentIntelligenceV3Sql({ dialect: "postgres", actorId, transactionBoundary: "caller" });
   return {
     bootstrapPlan,
     bootstrapSql,
@@ -533,12 +533,6 @@ function connectPostgres(purpose) {
     idle_timeout: 5,
     onnotice: false,
   });
-}
-
-function unwrapTransaction(sqlText) {
-  const body = sqlText.trim().replace(/^BEGIN;\s*/i, "").replace(/\s*COMMIT;$/i, "");
-  if (body === sqlText.trim()) throw new Error("TRANSACTION_WRAPPER_MISSING");
-  return body;
 }
 
 async function readConnectedDryRunReport() {

@@ -9,6 +9,7 @@ import {
   generateSecurityContentIntelligenceV3Sql,
   generateSecurityContentV3Sql,
 } from "../lib/data/security-content-upgrade-v3.mjs";
+import { withPostgresTransaction } from "../scripts/security-content-upgrade-v3.mjs";
 
 const concepts = Object.keys(SECURITY_CONTENT_V3_CONCEPT_MAP);
 
@@ -210,7 +211,9 @@ test("V3 intelligence PostgreSQL connected dry-run은 명시적 승인 후에도
   assert.match(runner, /POSTGRES_VERIFY_URL \|\| process\.env\.DATABASE_URL/);
   assert.match(runner, /BLOCKED_REMOTE_SCHEMA_PREREQUISITE/);
   assert.match(runner, /transactionApplyAttempted: transactionStarted/);
-  assert.match(runner, /generateSecurityContentV3Sql\(source, \{ dialect: "postgres", actorId \}\)/);
+  assert.match(runner, /generateSecurityContentV3Sql\(source, \{ dialect: "postgres", actorId, transactionBoundary: "caller" \}\)/);
+  assert.match(runner, /generateSecurityContentIntelligenceV3Sql\(\{ dialect: "postgres", actorId, transactionBoundary: "caller" \}\)/);
+  assert.doesNotMatch(runner, /unwrapTransaction/);
   assert.match(runner, /canonicalBootstrapIncluded: true/);
   assert.match(runner, /resolveContentActor/);
 });
@@ -224,4 +227,79 @@ test("V3 intelligence PostgreSQL production apply는 이중 승인과 동일 SQL
   assert.match(runner, /postgres-connected-dry-run\.json/);
   assert.match(runner, /connectedReport\.sqlSha256 !== sqlSha256/);
   assert.match(runner, /POSTGRES_MIGRATION_URL \|\| process\.env\.POSTGRES_SEED_URL \|\| process\.env\.DATABASE_URL \|\| process\.env\.DIRECT_URL/);
+});
+
+test("V3 SQL transaction ownership is explicit and preserves the wrapped default", () => {
+  const wrapped = generateSecurityContentV3Sql(fixture(), { dialect: "postgres" });
+  assert.match(wrapped.trimStart(), /^BEGIN;/);
+  assert.match(wrapped.trimEnd(), /COMMIT;$/);
+
+  const callerBody = generateSecurityContentV3Sql(fixture(), {
+    dialect: "postgres",
+    transactionBoundary: "caller",
+  });
+  assert.doesNotMatch(callerBody.trimStart(), /^BEGIN;/);
+  assert.doesNotMatch(callerBody.trimEnd(), /COMMIT;$/);
+  assert.match(callerBody, /SECURITY_CONTENT_V3_IMMUTABLE_CONTENT_GUARD/);
+  assert.throws(
+    () => generateSecurityContentV3Sql(fixture(), { dialect: "d1", transactionBoundary: "caller" }),
+    /SECURITY_CONTENT_V3_CALLER_TRANSACTION_POSTGRES_ONLY/,
+  );
+
+  const intelligenceBody = generateSecurityContentIntelligenceV3Sql({
+    dialect: "postgres",
+    transactionBoundary: "caller",
+  });
+  assert.doesNotMatch(intelligenceBody.trimStart(), /^BEGIN;/);
+  assert.doesNotMatch(intelligenceBody.trimEnd(), /COMMIT;$/);
+});
+
+test("V3 transaction cleanup preserves the first error and does not release a failed rollback connection", async () => {
+  const calls: string[] = [];
+  const originalError = new Error("write failed");
+  const transaction = {
+    unsafe: async (statement: string) => {
+      calls.push(statement);
+      if (statement === "ROLLBACK;") throw new Error("rollback failed");
+      return [];
+    },
+    release: async () => {
+      calls.push("release");
+    },
+  };
+  const sql = {
+    reserve: async () => {
+      calls.push("reserve");
+      return transaction;
+    },
+    end: async () => {
+      calls.push("end");
+    },
+  };
+
+  await assert.rejects(
+    withPostgresTransaction(sql, async () => {
+      throw originalError;
+    }),
+    (error) => error === originalError,
+  );
+  assert.deepEqual(calls, ["reserve", "BEGIN;", "ROLLBACK;", "end"]);
+});
+
+test("V3 transaction cleanup does not replace the first error with a release error", async () => {
+  const originalError = new Error("verification failed");
+  const transaction = {
+    unsafe: async () => [],
+    release: async () => {
+      throw new Error("release failed");
+    },
+  };
+  const sql = { reserve: async () => transaction };
+
+  await assert.rejects(
+    withPostgresTransaction(sql, async () => {
+      throw originalError;
+    }),
+    (error) => error === originalError,
+  );
 });
