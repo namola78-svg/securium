@@ -16,10 +16,10 @@ import {
 
 const password = "runtime-authority-foundation-test-password";
 const ownerToken = randomUUID();
-let ownedContainer;
-let sql;
-let executor;
-let owner;
+let ownedContainer: any;
+let sql: any;
+let executor: PostgresJsExecutor | undefined;
+let owner: PostgresRuntimeAuthorityPersistence;
 
 const subject: RuntimeAuthoritySubject = Object.freeze({
   contractVersion: "SECURIUM_RUNTIME_AUTHORITY_SUBJECT_V1",
@@ -41,6 +41,7 @@ before(async () => {
     name: `securium-runtime-authority-${ownerToken}`,
     ownerToken,
     password,
+    receiptPath: null,
   });
   const port = await getPublishedPostgresPort(ownedContainer);
   sql = postgres(
@@ -49,7 +50,6 @@ before(async () => {
       max: 4,
       prepare: false,
       ssl: false,
-      onnotice: false,
     },
   );
   for (let attempt = 0; attempt < 60; attempt += 1) {
@@ -71,7 +71,7 @@ before(async () => {
       "utf8",
     ),
   );
-  executor = new PostgresJsExecutor(sql, 30_000);
+  executor = new PostgresJsExecutor(sql as any, 30_000);
   owner = new PostgresRuntimeAuthorityPersistence(executor);
 });
 
@@ -127,7 +127,7 @@ test("same authority-local idempotency key with different command fails closed",
         createdAt: "2026-09-28T00:02:00.000Z",
       },
     }),
-    (error) => error?.code === "IDEMPOTENCY_CONFLICT",
+    (error: unknown) => errorCode(error) === "IDEMPOTENCY_CONFLICT",
   );
 });
 
@@ -168,7 +168,7 @@ test("revocation appends sequence two and blocks later new commands", async () =
         now: () => "2026-09-28T00:04:00.000Z",
       },
     ),
-    (error) => error?.code === "AUTHORITY_REVOKED",
+    (error: unknown) => errorCode(error) === "AUTHORITY_REVOKED",
   );
 
   const rows = await sql`
@@ -186,13 +186,19 @@ test("authority event table is database-enforced append-only", async () => {
        SET "idempotency_key" = 'tampered'
        WHERE "event_id" = 'authority-event-1'`,
     ),
-    (error) => error?.code === "55000",
+    (error: unknown) => errorCode(error) === "55000",
   );
   await assert.rejects(
     sql.unsafe(
       `DELETE FROM "runtime_authority_events"
        WHERE "event_id" = 'authority-event-1'`,
     ),
-    (error) => error?.code === "55000",
+    (error: unknown) => errorCode(error) === "55000",
   );
 });
+
+function errorCode(error: unknown): string | undefined {
+  return typeof error === "object" && error !== null && "code" in error
+    ? String((error as { code?: unknown }).code)
+    : undefined;
+}
