@@ -71,6 +71,9 @@ jobs:
       - name: CPPG Runtime Authority Gate B2
         run: npm run test:cppg-gate-b2
 
+      - name: CPPG publication receipt and actor policy
+        run: node --import tsx --test tests/cppg-publication-receipt-schema.test.mjs tests/cppg-publication-gate-service.test.ts
+
       - name: Public discovery view-state tests
         run: npm run test:public-discovery-view-state
 

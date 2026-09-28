@@ -91,7 +91,7 @@ export class PostgresCppgDraftPersistenceAdapter implements CppgDraftPersistence
       return { courseCount: 1, recordCount: result.rows.length, recordIds: ids, semanticHashes: hashes, duplicateAuthorityCount: registration.rows.length === 1 ? 1 : registration.rows.length + 1 };
     }
     const saved = registration.rows[0]!;
-    const expectedRegistrationIdentity = await registrationIdentity(this.binding);
+    const expectedRegistrationIdentity = await computeCppgRegistrationSemanticIdentity(this.binding);
     const expectedRevisionIds = this.binding.projection.contentRevisions.map((record) => record.id);
     if (saved.registrationSemanticIdentity !== expectedRegistrationIdentity || saved.approvalSubjectHash !== this.binding.identity.approvalSubjectHash || saved.authorityId !== this.binding.identity.authorityId || saved.packageKey !== this.binding.identity.subject.packageKey || saved.projectionSemanticHash !== this.binding.projection.projectionSemanticHash || saved.courseSlug !== this.binding.identity.subject.courseSlug || saved.runtimeRevisionId !== this.binding.identity.subject.runtimeRevisionId || JSON.stringify(saved.contentRevisionIds) !== JSON.stringify(expectedRevisionIds) || saved.sourceManifestId !== this.binding.identity.subject.sourceManifestId || saved.sourcePackageHash !== this.binding.identity.subject.sourcePackageHash || saved.foundationId !== this.binding.identity.subject.foundationId || saved.foundationHash !== this.binding.identity.subject.foundationHash || saved.authoritySequence !== this.binding.currentness.authoritySequence || saved.state !== "REGISTERED_UNPUBLISHED" || saved.publicationAuthority !== "NOT_GRANTED") {
       return { courseCount: 1, recordCount: result.rows.length, recordIds: ids, semanticHashes: hashes, duplicateAuthorityCount: 1 };
@@ -112,7 +112,7 @@ export class PostgresCppgDraftPersistenceAdapter implements CppgDraftPersistence
       commit: async () => {
         if (done) throw new Error("CPPG_REGISTRATION_TRANSACTION_CLOSED");
         done = true;
-        const identity = await registrationIdentity(this.binding);
+        const identity = await computeCppgRegistrationSemanticIdentity(this.binding);
         await this.executor.query(
           `INSERT INTO public."cppg_runtime_registrations"
             ("id", "course_id", "course_slug", "package_key", "runtime_revision_id", "content_revision_ids", "projection_semantic_hash",
@@ -153,7 +153,7 @@ export function stageForKind(kind: ProjectionRecord["kind"]): CppgPersistenceSta
   return kind === "COURSE" ? "COURSE" : kind === "CURRICULUM_TREE" ? "CURRICULUM_TREE" : kind === "SUBJECT" ? "SUBJECTS" : kind === "CURRICULUM_NODE" ? "CURRICULUM_NODES" : kind === "TOPIC" ? "TOPICS" : kind === "LEARNING_UNIT" ? "LEARNING_UNITS" : kind === "CONTENT" ? "CONTENTS" : kind === "LESSON" ? "LESSONS" : kind === "COURSE_LESSON" ? "COURSE_LESSONS" : "CONTENT_REVISIONS";
 }
 
-async function registrationIdentity(binding: CppgCanonicalRegistrationBinding): Promise<string> {
+export async function computeCppgRegistrationSemanticIdentity(binding: CppgCanonicalRegistrationBinding): Promise<string> {
   return sha256Canonical({
     contractVersion: "CPPG_CANONICAL_REGISTRATION_V1",
     courseId: binding.projection.courseId,

@@ -9,6 +9,8 @@ export const AUDIT_ACTION_METADATA_ALLOWLIST: Record<string, readonly string[]> 
   COURSE_CREATED: ["courseCode"],
   COURSE_UPDATED: ["changedFields"],
   COURSE_DEACTIVATED: ["previousStatus"],
+  CPPG_CANONICAL_PUBLICATION_SUCCEEDED: ["registrationIdentity", "publicationIdentity", "runtimeRevisionId", "authorityId", "authoritySequence", "result"],
+  CPPG_CANONICAL_PUBLICATION_DENIED: ["registrationIdentity", "reasonCode", "result"],
   QUESTION_CREATED: ["version"],
   QUESTION_UPDATED: ["version"],
   QUESTION_APPROVED: ["fromStatus", "toStatus"],
