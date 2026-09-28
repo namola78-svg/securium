@@ -178,6 +178,10 @@ export function reducePublicDiscoveryViewState(
           stale: false,
           error: null,
         },
+        // A selection made while this search was pending came from the retained
+        // stale result. It must not survive the newer result becoming current.
+        selection: null,
+        outline: createIdleOutlineState(),
       });
 
     case "SEARCH_REQUEST_FAILED":

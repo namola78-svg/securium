@@ -316,6 +316,55 @@ test("explicit refresh retains a stale result until its response completes", () 
   assert.deepEqual(refreshFailure.search.error, { kind: "PROVIDER_ERROR" });
 });
 
+test("new search success invalidates a stale selection and its outline response", () => {
+  const staleSelection = transition([
+    startSearch("initial-search"),
+    {
+      type: "SEARCH_RESULT_RECEIVED",
+      requestId: "initial-search",
+      result: searchResult("OK", "Previous result"),
+    },
+    { type: "SEARCH_REFRESH_REQUESTED", requestId: "refresh-search" },
+    { type: "COURSE_SELECTED", selection: selectionA },
+    startOutline("stale-outline"),
+  ]);
+
+  assert.equal(staleSelection.search.stale, true);
+  assert.deepEqual(staleSelection.selection, selectionA);
+  assert.equal(staleSelection.outline.status, "PENDING");
+
+  const refreshed = reducePublicDiscoveryViewState(staleSelection, {
+    type: "SEARCH_RESULT_RECEIVED",
+    requestId: "refresh-search",
+    result: searchResult("OK", "Authoritative result"),
+  });
+  assert.equal(refreshed.search.result?.results[0]?.name, "Authoritative result");
+  assert.equal(refreshed.search.stale, false);
+  assert.equal(refreshed.selection, null);
+  assert.equal(refreshed.outline.status, "IDLE");
+  assert.equal(refreshed.outline.activeRequestId, null);
+  assert.equal(refreshed.outline.result, null);
+
+  const lateSuccess = reducePublicDiscoveryViewState(refreshed, {
+    type: "OUTLINE_RESULT_RECEIVED",
+    requestId: "stale-outline",
+    selection: selectionA,
+    result: outlineResult(selectionA),
+  });
+  const lateFailure = reducePublicDiscoveryViewState(refreshed, {
+    type: "OUTLINE_REQUEST_FAILED",
+    requestId: "stale-outline",
+    selection: selectionA,
+    failure: { kind: "PROVIDER_ERROR" },
+  });
+
+  assert.strictEqual(lateSuccess, refreshed);
+  assert.strictEqual(lateFailure, refreshed);
+  assert.equal(lateSuccess.selection, null);
+  assert.equal(lateSuccess.outline.status, "IDLE");
+  assert.equal(lateSuccess.outline.result, null);
+});
+
 test("selection B invalidates A outline responses", () => {
   const selectedB = transition([
     { type: "COURSE_SELECTED", selection: selectionA },
