@@ -1,0 +1,73 @@
+name: CPPG canonical registration PostgreSQL
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/cppg-canonical-registration-postgres.yml"
+      - "db/cppg-runtime-postgres-registration.ts"
+      - "db/runtime-authority-postgres-persistence.ts"
+      - "db/postgres/migrations/0054_cppg_canonical_registration.sql"
+      - "lib/services/cppg-runtime-course-registration.ts"
+      - "scripts/owned-postgres-container.mjs"
+      - "tests/cppg-canonical-registration-postgres-disposable.test.ts"
+      - "package.json"
+      - "package-lock.json"
+  push:
+    branches:
+      - "fix/cppg-canonical-postgres-registration"
+    paths:
+      - ".github/workflows/cppg-canonical-registration-postgres.yml"
+      - "db/cppg-runtime-postgres-registration.ts"
+      - "db/runtime-authority-postgres-persistence.ts"
+      - "db/postgres/migrations/0054_cppg_canonical_registration.sql"
+      - "lib/services/cppg-runtime-course-registration.ts"
+      - "scripts/owned-postgres-container.mjs"
+      - "tests/cppg-canonical-registration-postgres-disposable.test.ts"
+      - "package.json"
+      - "package-lock.json"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cppg-canonical-registration-postgres-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: "true"
+  NODE_OPTIONS: "--experimental-strip-types"
+
+jobs:
+  postgres-registration:
+    name: Exact-head disposable PostgreSQL registration
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out exact source SHA
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Verify checked out SHA
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22.13.0"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Apply registration migration and verify transactional PostgreSQL contract
+        run: npm run test:cppg-registration:postgres
+
+      - name: Verify source SHA after test
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"

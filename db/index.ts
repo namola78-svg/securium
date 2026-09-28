@@ -9,6 +9,9 @@ import {
   resolveDatabaseProviderName,
 } from "./provider/provider-factory.ts";
 import { DrizzleD1CompatibilityDatabase } from "./provider/drizzle-d1-compatibility.ts";
+import { AppError } from "../lib/errors.ts";
+import { PostgresRuntimeAuthorityPersistence } from "./runtime-authority-postgres-persistence.ts";
+import { getRuntimePostgresExecutor } from "./postgres/postgres-js-executor.ts";
 
 export function getDb() {
   const environment = databaseEnvironment();
@@ -34,6 +37,21 @@ export function getDb() {
 export async function getDatabaseProvider() {
   const environment = databaseEnvironment();
   return createRuntimeDatabaseProvider(environment, { d1: env.DB });
+}
+
+/** Runtime Authority is deliberately unavailable on the D1 compatibility path. */
+export async function getRuntimeAuthorityPersistenceOwner() {
+  const environment = databaseEnvironment();
+  if (resolveDatabaseProviderName(environment) !== "supabase") {
+    throw new AppError(
+      "Runtime Authority persistence requires the canonical PostgreSQL writer.",
+      503,
+      "RUNTIME_AUTHORITY_POSTGRES_REQUIRED",
+    );
+  }
+  return new PostgresRuntimeAuthorityPersistence(
+    await getRuntimePostgresExecutor(environment),
+  );
 }
 
 export async function getCoreRepositoryAdapters(requestId?: string) {
