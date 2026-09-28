@@ -51,6 +51,7 @@ import {
   type WorkflowAction,
 } from "@/lib/services/question-workflow-service";
 import { AppError } from "@/lib/errors";
+import { assertGenericCppgStatusPublicationAllowed } from "@/lib/services/cppg-generic-publication-guard";
 import { updateReviewScheduleForAttempt } from "./phase3-repositories";
 import { createAuditInsert } from "./audit-repositories";
 import {
@@ -1266,6 +1267,26 @@ export async function transitionQuestion(input: {
     actorId: input.actorUserId,
     createdBy: question.createdBy,
   });
+  if (nextStatus === "PUBLISHED") {
+    const courseIdentities = await Promise.all(
+      question.courseIds.map(async (courseId) => {
+        const [course] = await getDb()
+          .select({ slug: courses.slug, code: courses.code })
+          .from(courses)
+          .where(eq(courses.id, courseId))
+          .limit(1);
+        return { courseId, courseSlug: course?.slug, courseCode: course?.code };
+      }),
+    );
+    for (const identity of courseIdentities) {
+      assertGenericCppgStatusPublicationAllowed(
+        identity,
+        question.status,
+        nextStatus,
+        "PUBLISHED",
+      );
+    }
+  }
   if (["APPROVE", "PUBLISH"].includes(input.action)) {
     const currentVersion = question.versions.find(
       (version) => version.version === question.version,

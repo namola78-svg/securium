@@ -16,6 +16,7 @@ import {
 } from "./schema";
 import { createAuditInsert } from "./audit-repositories";
 import { AppError } from "@/lib/errors";
+import { assertGenericCppgStatusPublicationAllowed } from "@/lib/services/cppg-generic-publication-guard";
 import {
   assertCourseLessonCompletionAllowed,
   assertContentCanBeLinked,
@@ -607,7 +608,7 @@ export async function saveCourseLesson(
 
   const [course, content, node, linkedLesson] = await Promise.all([
     getDb()
-      .select({ id: courses.id })
+      .select({ id: courses.id, slug: courses.slug, code: courses.code })
       .from(courses)
       .where(and(eq(courses.id, input.courseId), isNull(courses.deletedAt)))
       .limit(1)
@@ -692,6 +693,25 @@ export async function saveCourseLesson(
     );
   }
 
+  assertGenericCppgStatusPublicationAllowed(
+    { courseId: input.courseId, courseSlug: course.slug, courseCode: course.code },
+    existing?.status,
+    input.status,
+    "PUBLISHED",
+  );
+  if (
+    existing?.status === "PUBLISHED" &&
+    input.status === "PUBLISHED" &&
+    (existing.contentId !== input.contentId || existing.lessonId !== optionalText(input.lessonId))
+  ) {
+    assertGenericCppgStatusPublicationAllowed(
+      { courseId: input.courseId, courseSlug: course.slug, courseCode: course.code },
+      "DRAFT",
+      "PUBLISHED",
+      "PUBLISHED",
+    );
+  }
+
   const values = {
     courseId: input.courseId,
     curriculumNodeId: optionalText(input.curriculumNodeId),
@@ -745,6 +765,21 @@ export async function saveCourseLessonExtension(
     .where(eq(courseLessonExtensions.courseLessonId, input.courseLessonId))
     .limit(1);
   const id = input.id ?? existing?.id ?? crypto.randomUUID();
+  const [course] = await getDb()
+    .select({ slug: courses.slug, code: courses.code })
+    .from(courses)
+    .where(eq(courses.id, courseLesson.courseId))
+    .limit(1);
+  assertGenericCppgStatusPublicationAllowed(
+    {
+      courseId: courseLesson.courseId,
+      courseSlug: course?.slug,
+      courseCode: course?.code,
+    },
+    existing?.status,
+    input.status,
+    "PUBLISHED",
+  );
 
   const values = {
     courseLessonId: input.courseLessonId,

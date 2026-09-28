@@ -22,6 +22,7 @@ import {
   wrongNotes,
 } from "./schema";
 import { AppError } from "@/lib/errors";
+import { assertGenericCppgStatusPublicationAllowed } from "@/lib/services/cppg-generic-publication-guard";
 import type {
   curriculumNodeArchiveSchema,
   curriculumNodeSchema,
@@ -823,7 +824,7 @@ export async function saveCurriculumTree(
   actorUserId: string,
 ) {
   const [course] = await getDb()
-    .select({ id: courses.id })
+    .select({ id: courses.id, slug: courses.slug, code: courses.code })
     .from(courses)
     .where(and(eq(courses.id, input.courseId), isNull(courses.deletedAt)))
     .limit(1);
@@ -852,6 +853,13 @@ export async function saveCurriculumTree(
       "CURRICULUM_TREE_COURSE_IMMUTABLE",
     );
   }
+
+  assertGenericCppgStatusPublicationAllowed(
+    { courseId: input.courseId, courseSlug: course.slug, courseCode: course.code },
+    existing?.status,
+    input.status,
+    "ACTIVE",
+  );
 
   const duplicateVersionFilters = [
     eq(curriculumTrees.courseId, input.courseId),
@@ -1327,6 +1335,21 @@ export async function saveCurriculumNode(
       "CURRICULUM_NODE_TREE_IMMUTABLE",
     );
   }
+  const [courseIdentity] = await getDb()
+    .select({ slug: courses.slug, code: courses.code })
+    .from(courses)
+    .where(eq(courses.id, tree.courseId))
+    .limit(1);
+  assertGenericCppgStatusPublicationAllowed(
+    {
+      courseId: tree.courseId,
+      courseSlug: courseIdentity?.slug,
+      courseCode: courseIdentity?.code,
+    },
+    existing?.status,
+    input.status,
+    "ACTIVE",
+  );
 
   const parentId = normalizeOptionalText(input.parentId);
   const [nodes, parent] = await Promise.all([
@@ -1387,6 +1410,26 @@ export async function saveCurriculumNode(
     status: input.status,
     updatedAt: sql`CURRENT_TIMESTAMP`,
   };
+  if (
+    existing?.status === "ACTIVE" &&
+    values.status === "ACTIVE" &&
+    parseLinkedContent(values.metadata).some((link) =>
+      !parseLinkedContent(existing.metadata).some(
+        (prior) => prior.type === link.type && prior.id === link.id,
+      ),
+    )
+  ) {
+    assertGenericCppgStatusPublicationAllowed(
+      {
+        courseId: tree.courseId,
+        courseSlug: courseIdentity?.slug,
+        courseCode: courseIdentity?.code,
+      },
+      "DRAFT",
+      "ACTIVE",
+      "ACTIVE",
+    );
+  }
   await assertLinkedContentBelongsToCourse({
     courseId: tree.courseId,
     metadata: values.metadata,

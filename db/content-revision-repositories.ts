@@ -5,6 +5,8 @@ import {
   audioContents,
   contentCourseLinks,
   contentRevisions,
+  courseLessons,
+  courses,
   courseSpecializations,
   ismsStandards,
   learningUnits,
@@ -19,6 +21,7 @@ import {
   userCourseEnrollments,
 } from "./schema";
 import { AppError } from "@/lib/errors";
+import { assertGenericCppgStatusPublicationAllowed } from "@/lib/services/cppg-generic-publication-guard";
 import {
   CONTENT_REVISION_TYPES,
   CONTENT_REVISION_TYPE_LABELS,
@@ -637,6 +640,63 @@ export async function publishContentRevision(
     );
   }
   assertContentType(revision.contentType);
+  const target = await getRevisionTarget(revision.contentType, revision.contentId);
+  const [linkedLessonCourses, governedContentCourses, questionCourseRows] =
+    await Promise.all([
+      getDb()
+        .select({ courseId: courseLessons.courseId })
+        .from(courseLessons)
+        .where(eq(courseLessons.contentId, revision.contentId)),
+      getDb()
+        .select({ courseId: contentCourseLinks.courseId })
+        .from(contentCourseLinks)
+        .where(
+          and(
+            eq(contentCourseLinks.contentType, revision.contentType),
+            eq(contentCourseLinks.contentId, revision.contentId),
+          ),
+        ),
+      revision.contentType === "QUESTION_EXPLANATION"
+        ? getDb()
+            .select({ courseId: questionCourses.courseId })
+            .from(questionCourses)
+            .where(eq(questionCourses.questionId, revision.contentId))
+        : Promise.resolve([]),
+    ]);
+  const courseIds = [
+    ...new Set(
+      [
+        revision.courseId,
+        target?.courseId,
+        ...linkedLessonCourses.map((row) => row.courseId),
+        ...governedContentCourses.map((row) => row.courseId),
+        ...questionCourseRows.map((row) => row.courseId),
+      ].filter(
+        (id): id is string => Boolean(id),
+      ),
+    ),
+  ];
+  const courseIdentities = await Promise.all(
+    courseIds.map(async (courseId) => {
+      const [course] = await getDb()
+        .select({ slug: courses.slug, code: courses.code })
+        .from(courses)
+        .where(eq(courses.id, courseId))
+        .limit(1);
+      return { courseId, courseSlug: course?.slug, courseCode: course?.code };
+    }),
+  );
+  for (const identity of courseIdentities) {
+    assertGenericCppgStatusPublicationAllowed(
+      identity,
+      revision.revisionStatus,
+      "published",
+      "published",
+    );
+  }
+  if (courseIdentities.length === 0) {
+    assertGenericCppgStatusPublicationAllowed({}, revision.revisionStatus, "published", "published");
+  }
   const snapshot = parseRevisionSnapshot(revision.snapshotJson);
   const existing = await getLatestPublishedRevision(
     revision.contentType,

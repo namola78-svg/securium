@@ -5,6 +5,7 @@ import { getDb } from ".";
 import {
   codeAnalysisAnswers,
   contentCourseLinks,
+  courses,
   learningActivities,
   privacyAssessmentAnswers,
   privacyAssessmentScenarios,
@@ -20,6 +21,7 @@ import {
   wrongNotes,
 } from "./schema";
 import { AppError } from "@/lib/errors";
+import { assertGenericCppgPublicationAllowed } from "@/lib/services/cppg-generic-publication-guard";
 import {
   gradeCodeAnalysis,
   gradePrivacyAssessment,
@@ -724,6 +726,32 @@ export async function savePracticalSpecializedContent(
   let courseId: string | null = null;
   switch (input.entity) {
     case "SECURE_WEAKNESS": {
+      if (input.active) {
+        const linkedCourses = await getDb()
+          .select({ courseId: courses.id, slug: courses.slug, code: courses.code })
+          .from(secureCodeSamples)
+          .innerJoin(
+            contentCourseLinks,
+            and(
+              eq(contentCourseLinks.contentId, secureCodeSamples.id),
+              eq(contentCourseLinks.contentType, "SECURE_CODE_SAMPLE"),
+            ),
+          )
+          .innerJoin(courses, eq(contentCourseLinks.courseId, courses.id))
+          .where(
+            and(
+              eq(secureCodeSamples.weaknessId, id),
+              eq(secureCodeSamples.active, true),
+            ),
+          );
+        for (const course of linkedCourses) {
+          assertGenericCppgPublicationAllowed(
+            { courseId: course.courseId, courseSlug: course.slug, courseCode: course.code },
+            { active: false },
+            { active: true },
+          );
+        }
+      }
       const values = {
         code: input.code,
         name: input.name,
@@ -749,6 +777,36 @@ export async function savePracticalSpecializedContent(
     }
     case "SECURE_CODE_SAMPLE": {
       courseId = input.courseId;
+      const [course] = await getDb()
+        .select({ slug: courses.slug, code: courses.code })
+        .from(courses)
+        .where(eq(courses.id, input.courseId))
+        .limit(1);
+      const [existingSample] = input.id
+        ? await getDb()
+            .select({ active: secureCodeSamples.active })
+            .from(secureCodeSamples)
+            .where(eq(secureCodeSamples.id, input.id))
+            .limit(1)
+        : [];
+      const [existingCourseLink] = input.id
+        ? await getDb()
+            .select({ id: contentCourseLinks.id })
+            .from(contentCourseLinks)
+            .where(
+              and(
+                eq(contentCourseLinks.courseId, input.courseId),
+                eq(contentCourseLinks.contentType, "SECURE_CODE_SAMPLE"),
+                eq(contentCourseLinks.contentId, input.id),
+              ),
+            )
+            .limit(1)
+        : [];
+      assertGenericCppgPublicationAllowed(
+        { courseId: input.courseId, courseSlug: course?.slug, courseCode: course?.code },
+        { active: existingSample?.active === true && Boolean(existingCourseLink) },
+        { active: input.active },
+      );
       const values = {
         weaknessId: input.weaknessId,
         questionId: input.questionId || null,
@@ -831,6 +889,23 @@ export async function savePracticalSpecializedContent(
     }
     case "PRIVACY_SCENARIO": {
       courseId = input.courseId;
+      const [course] = await getDb()
+        .select({ slug: courses.slug, code: courses.code })
+        .from(courses)
+        .where(eq(courses.id, input.courseId))
+        .limit(1);
+      const [existingScenario] = input.id
+        ? await getDb()
+            .select({ courseId: privacyAssessmentScenarios.courseId, active: privacyAssessmentScenarios.active })
+            .from(privacyAssessmentScenarios)
+            .where(eq(privacyAssessmentScenarios.id, input.id))
+            .limit(1)
+        : [];
+      assertGenericCppgPublicationAllowed(
+        { courseId: input.courseId, courseSlug: course?.slug, courseCode: course?.code },
+        { active: existingScenario?.courseId === input.courseId && existingScenario.active === true },
+        { active: input.active },
+      );
       const values = {
         courseId: input.courseId,
         title: input.title,
