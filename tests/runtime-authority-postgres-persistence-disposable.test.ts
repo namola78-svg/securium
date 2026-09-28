@@ -267,7 +267,8 @@ test("CPPG approval lifecycle persists, reloads, revokes, and supersedes through
      WHERE "authority_id" = $1 AND "event_type" = 'APPROVAL_CREATED'`,
     [originalAuthority.identity.authorityId],
   );
-  assert.deepEqual(storedPayload, [{ payload_type: "object" }]);
+  assert.equal(storedPayload.length, 1);
+  assert.equal(storedPayload[0]?.payload_type, "object");
 });
 
 async function readCppgFoundationBundle(): Promise<CppgFoundationBundle> {
