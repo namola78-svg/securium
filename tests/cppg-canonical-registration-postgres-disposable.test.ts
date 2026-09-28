@@ -14,6 +14,7 @@ import {
   type CppgFoundationBundle,
 } from "../lib/services/cppg-runtime-course-registration.ts";
 import { PostgresCppgDraftPersistenceAdapter } from "../db/cppg-runtime-postgres-registration.ts";
+import { sha256Canonical } from "../lib/policy/stable-canonical-hash.ts";
 import { cleanupOwnedPostgresContainer, createOwnedPostgresContainer, getPublishedPostgresPort } from "../scripts/owned-postgres-container.mjs";
 
 const password = "cppg-canonical-registration-test-password";
@@ -37,6 +38,7 @@ before(async () => {
   await applyMigration(requireSql(), await readFile("db/postgres/migrations/0053_runtime_authority_postgres_persistence.sql", "utf8"));
   await createProjectionTables(requireSql());
   await applyMigration(requireSql(), await readFile("db/postgres/migrations/0054_cppg_canonical_registration.sql", "utf8"));
+  await applyMigration(requireSql(), await readFile("db/postgres/migrations/0055_cppg_publication_receipts.sql", "utf8"));
   executor = createExecutor(requireSql());
   owner = new PostgresRuntimeAuthorityPersistence(executor);
 });
@@ -48,6 +50,7 @@ after(async () => {
 });
 
 test("PostgreSQL CPPG registration is authority-locked, canonical, unpublished, and idempotent", async () => {
+  assert.equal(Number((await requireSql().unsafe(`SELECT count(*)::int AS count FROM public.cppg_publication_receipts`))[0]?.count), 0, "migration alone must not create a publication receipt");
   const bundle = await readBundle();
   const actorUserId = "cppg-registration-test-actor";
   await requireSql().unsafe(`INSERT INTO public.users(id) VALUES ($1)`, [actorUserId]);
@@ -160,6 +163,51 @@ test("PostgreSQL CPPG registration is authority-locked, canonical, unpublished, 
   const historical = await requireSql().unsafe(`SELECT state,publication_authority FROM public.cppg_runtime_registrations`);
   assert.equal(historical[0]?.state, "REGISTERED_UNPUBLISHED");
   assert.equal(historical[0]?.publication_authority, "NOT_GRANTED");
+});
+
+test("publication receipt binds one exact registration snapshot and leaves registration unpublished", async () => {
+  const receipt = await requireSql().unsafe(`
+    SELECT registration_semantic_identity, course_id, package_key, runtime_revision_id,
+           content_revision_ids, source_manifest_id, source_package_hash, foundation_id,
+           foundation_hash, approval_subject_hash, authority_id, authority_sequence
+    FROM public.cppg_runtime_registrations
+  `);
+  const registration = receipt[0];
+  assert.ok(registration);
+  const publicationSemanticIdentity = await sha256Canonical({
+    contractVersion: "CPPG_PUBLICATION_RECEIPT_V1",
+    registrationSemanticIdentity: registration.registration_semantic_identity,
+  });
+  const insert = `
+    INSERT INTO public.cppg_publication_receipts
+      (publication_id, registration_semantic_identity, course_id, package_key, runtime_revision_id,
+       content_revision_ids, source_manifest_id, source_package_hash, foundation_id, foundation_hash,
+       approval_subject_hash, authority_id, authority_sequence, publication_semantic_identity, published_by)
+    VALUES ($1,$2,$3,$4,$5,$6::text::jsonb,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+  `;
+  const values = ["publication-test-1", registration.registration_semantic_identity, registration.course_id,
+    registration.package_key, registration.runtime_revision_id, JSON.stringify(registration.content_revision_ids),
+    registration.source_manifest_id, registration.source_package_hash, registration.foundation_id,
+    registration.foundation_hash, registration.approval_subject_hash, registration.authority_id,
+    registration.authority_sequence, publicationSemanticIdentity, "schema-test-actor"];
+  await requireSql().unsafe(insert, values);
+  await assert.rejects(() => requireSql().unsafe(insert, ["publication-replay", ...values.slice(1)]));
+  assert.equal(Number((await requireSql().unsafe(`SELECT count(*)::int AS count FROM public.cppg_publication_receipts`))[0]?.count), 1);
+
+  const changedValues = [...values];
+  changedValues[5] = JSON.stringify(["different-content-revision"]);
+  changedValues[13] = await sha256Canonical({ contractVersion: "CPPG_PUBLICATION_RECEIPT_V1", registrationSemanticIdentity: `${registration.registration_semantic_identity}-conflict` });
+  await assert.rejects(() => requireSql().unsafe(insert, ["publication-conflict", ...changedValues.slice(1)]));
+  await requireSql().unsafe(`UPDATE public.cppg_runtime_registrations SET source_package_hash = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'`);
+  await requireSql().unsafe(`UPDATE public.cppg_publication_receipts SET source_package_hash = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'`);
+
+  const states = await requireSql().unsafe(`SELECT state, publication_authority FROM public.cppg_runtime_registrations`);
+  assert.equal(states[0]?.state, "REGISTERED_UNPUBLISHED");
+  assert.equal(states[0]?.publication_authority, "NOT_GRANTED");
+  const persisted = await requireSql().unsafe(`SELECT source_package_hash, publication_state FROM public.cppg_publication_receipts`);
+  assert.equal(persisted[0]?.source_package_hash, registration.source_package_hash);
+  assert.equal(persisted[0]?.publication_state, "PUBLISHED");
+  assert.equal(Number((await requireSql().unsafe(`SELECT count(*)::int AS count FROM public.courses WHERE id='course-cppg' AND published=1`))[0]?.count), 0, "legacy course visibility is not the canonical receipt");
 });
 
 async function readBundle(): Promise<CppgFoundationBundle> {

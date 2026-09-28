@@ -301,7 +301,7 @@ export async function buildCppgCourseTheoryDraftProjection(options: CppgProjecti
   return buildCppgCourseTheoryDraftProjectionFromBundle(await loadCanonicalCppgFoundationBundle(), options);
 }
 
-function cppgAuthorityIdentity(projection: CppgCourseTheoryDraftProjection): Promise<CppgAuthorityIdentity> {
+export function cppgAuthorityIdentity(projection: CppgCourseTheoryDraftProjection): Promise<CppgAuthorityIdentity> {
   return (async () => {
     if (projection.courseId !== CPPG_RUNTIME_COURSE_ID || projection.packageKey !== CPPG_RUNTIME_PACKAGE_KEY) {
       throw new CppgAuthorityBindingError("CPPG_CANONICAL_IDENTITY_MISMATCH", "CPPG authority subject is not bound to the canonical course/package identity");
@@ -342,7 +342,7 @@ function cppgAuthorityIdForSubjectHash(subjectHash: string): string {
   return `runtime-authority:cppg:${subjectHash}`;
 }
 
-async function isCanonicalCppgPredecessor(
+export async function isCanonicalCppgPredecessor(
   authorityId: string,
   subject: RuntimeAuthoritySubject,
   storedApprovalSubjectHash: string,
@@ -375,7 +375,7 @@ async function isCanonicalCppgPredecessor(
   return subject.foundationHash === expectedFoundationHash;
 }
 
-type CppgLedgerState = Readonly<{
+export type CppgLedgerState = Readonly<{
   state: "NONE" | "APPROVED_ACTIVE" | "SUPERSEDED" | "REVOKED";
   subject: RuntimeAuthoritySubject | null;
   approvalSubjectHash: string | null;
@@ -383,7 +383,7 @@ type CppgLedgerState = Readonly<{
   authoritySequence: number;
 }>;
 
-async function loadCppgLedgerState(
+export async function loadCppgLedgerState(
   owner: RuntimeAuthorityPersistenceTransactionOwner,
   authorityId: string,
 ): Promise<CppgLedgerState> {

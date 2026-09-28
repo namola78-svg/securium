@@ -7,7 +7,7 @@ import { inspectMigrationNamespace } from "../scripts/migration-namespace-guard.
 
 test("repository migration namespace is duplicate-free and journal-consistent", async () => {
   const result = await inspectMigrationNamespace();
-  assert.equal(result.postgres.length, 37);
+  assert.equal(result.postgres.length, 38);
   assert.equal(result.d1.length, 46);
   assert.equal(result.journalEntries, 46);
 });

@@ -1,4 +1,4 @@
-name: CPPG canonical registration PostgreSQL
+name: CPPG canonical publication PostgreSQL
 
 on:
   pull_request:
@@ -7,6 +7,7 @@ on:
       - "db/cppg-runtime-postgres-registration.ts"
       - "db/runtime-authority-postgres-persistence.ts"
       - "db/postgres/migrations/0054_cppg_canonical_registration.sql"
+      - "db/postgres/migrations/0055_cppg_publication_receipts.sql"
       - "db/content-revision-repositories.ts"
       - "db/curriculum-repositories.ts"
       - "db/lesson-repositories.ts"
@@ -19,8 +20,13 @@ on:
       - "db/specialized-repositories.ts"
       - "lib/services/cppg-generic-publication-guard.ts"
       - "lib/services/cppg-runtime-course-registration.ts"
+      - "lib/services/cppg-runtime-publication.ts"
+      - "lib/services/audit-service.ts"
       - "scripts/owned-postgres-container.mjs"
       - "tests/cppg-canonical-registration-postgres-disposable.test.ts"
+      - "tests/cppg-atomic-publication-postgres-disposable.test.ts"
+      - "tests/cppg-publication-gate-service.test.ts"
+      - "tests/cppg-publication-receipt-schema.test.mjs"
       - "package.json"
       - "package-lock.json"
   push:
@@ -31,6 +37,7 @@ on:
       - "db/cppg-runtime-postgres-registration.ts"
       - "db/runtime-authority-postgres-persistence.ts"
       - "db/postgres/migrations/0054_cppg_canonical_registration.sql"
+      - "db/postgres/migrations/0055_cppg_publication_receipts.sql"
       - "db/content-revision-repositories.ts"
       - "db/curriculum-repositories.ts"
       - "db/lesson-repositories.ts"
@@ -43,8 +50,13 @@ on:
       - "db/specialized-repositories.ts"
       - "lib/services/cppg-generic-publication-guard.ts"
       - "lib/services/cppg-runtime-course-registration.ts"
+      - "lib/services/cppg-runtime-publication.ts"
+      - "lib/services/audit-service.ts"
       - "scripts/owned-postgres-container.mjs"
       - "tests/cppg-canonical-registration-postgres-disposable.test.ts"
+      - "tests/cppg-atomic-publication-postgres-disposable.test.ts"
+      - "tests/cppg-publication-gate-service.test.ts"
+      - "tests/cppg-publication-receipt-schema.test.mjs"
       - "package.json"
       - "package-lock.json"
 
@@ -61,7 +73,7 @@ env:
 
 jobs:
   postgres-registration:
-    name: Exact-head disposable PostgreSQL registration
+    name: Exact-head disposable PostgreSQL registration and publication
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -86,8 +98,8 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
 
-      - name: Apply registration migration and verify transactional PostgreSQL contract
-        run: npm run test:cppg-registration:postgres
+      - name: Apply registration and publication migrations; verify PostgreSQL contract
+        run: npm run test:cppg-registration:postgres && npm run test:cppg-publication:postgres
 
       - name: Verify source SHA after test
         env:

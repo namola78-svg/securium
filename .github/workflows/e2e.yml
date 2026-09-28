@@ -1,6 +1,7 @@
 name: Full E2E
 
 on:
+  pull_request:
   workflow_dispatch:
   push:
     branches:
