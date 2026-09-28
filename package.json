@@ -119,7 +119,8 @@
     "migration:postgres:import": "node scripts/d1-postgres-migration.mjs import-postgres",
     "migration:verify": "node scripts/d1-postgres-migration.mjs verify-migration",
     "test:public-discovery-view-state": "node --import tsx --test tests/public-discovery-view-state.test.ts",
-    "test:runtime-authority:postgres": "node --import tsx --test tests/runtime-authority-postgres-persistence-disposable.test.ts"
+    "test:runtime-authority:postgres": "node --import tsx --test tests/runtime-authority-postgres-persistence-disposable.test.ts",
+    "test:cppg-gate-b2": "node --import tsx --test tests/cppg-runtime-course-registration.test.ts tests/cppg-source-root-contract.test.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.4",

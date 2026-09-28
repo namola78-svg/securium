@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
-import { readFile, writeFile } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { readdir, readFile, stat, writeFile } from "node:fs/promises";
+import { isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { CPPG_MANIFEST_SOURCE_ROOT, CPPG_SOURCE_ROOT_CONTRACT, resolveCppgSourceRoot } from "./cppg-source-root.mjs";
 
 export const EXPECTED_SUBJECTS = [
   ["CPPG-S1", "개인정보보호의 이해", 10],
@@ -83,18 +84,69 @@ export function validateFoundation(bundle) {
   return { status: "PASS", officialSubjects: 5, theoryUnits: theory.units.length, objectives: objectives.objectives.length, questions: assessment.questions.length, subjectCounts, practicalSpecs: practical.specs.length, ontology: dryRun.summary };
 }
 
-export async function revalidateSourceManifest(sourceManifest) {
-  const observed = await Promise.all(sourceManifest.files.map(async (entry) => {
-    const path = join(sourceManifest.sourceRoot, entry.relativePath);
+async function walkFiles(root, current = root) {
+  const entries = await readdir(current, { withFileTypes: true });
+  const files = [];
+  for (const entry of entries) {
+    const path = join(current, entry.name);
+    if (entry.isDirectory()) files.push(...await walkFiles(root, path));
+    else if (entry.isFile()) files.push(relative(root, path).replaceAll("\\", "/"));
+    else throw new Error(`unsupported source entry type: ${path}`);
+  }
+  return files;
+}
+
+function sourceEntryPath(sourceRoot, relativePath) {
+  if (isAbsolute(relativePath)) throw new Error(`absolute source manifest path is forbidden: ${relativePath}`);
+  const path = resolve(sourceRoot, relativePath);
+  const escaped = relative(sourceRoot, path);
+  if (escaped === "" || escaped.split(/[\\/]/u)[0] === ".." || isAbsolute(escaped)) {
+    throw new Error(`source manifest path escapes the configured root: ${relativePath}`);
+  }
+  return path;
+}
+
+function packageHash(entries) {
+  return createHash("sha256").update(entries
+    .slice()
+    .sort((left, right) => left.relativePath.localeCompare(right.relativePath, "en"))
+    .map((entry) => `${entry.relativePath}\0${entry.observedBytes}\0${entry.observedSha256}`)
+    .join("\n")).digest("hex");
+}
+
+export async function revalidateSourceManifest(sourceManifest, repoRoot) {
+  assert(typeof repoRoot === "string" && repoRoot.length > 0, "server-owned repository root is required");
+  assert(sourceManifest.sourceRoot === CPPG_MANIFEST_SOURCE_ROOT, `source manifest root contract changed: ${sourceManifest.sourceRoot}`);
+  const sourceRoot = resolveCppgSourceRoot(repoRoot);
+  let rootStat;
+  try {
+    rootStat = await stat(sourceRoot);
+  } catch (error) {
+    throw new Error(`configured CPPG source root is unavailable: ${sourceRoot}`, { cause: error });
+  }
+  assert(rootStat.isDirectory(), `configured CPPG source root is not a directory: ${sourceRoot}`);
+
+  const expectedPaths = new Set(sourceManifest.files.map((entry) => entry.relativePath));
+  const actualPaths = new Set(await walkFiles(sourceRoot));
+  const missing = [...expectedPaths].filter((path) => !actualPaths.has(path));
+  const extra = [...actualPaths].filter((path) => !expectedPaths.has(path));
+  const observed = await Promise.all(sourceManifest.files.filter((entry) => !missing.includes(entry.relativePath)).map(async (entry) => {
+    const path = sourceEntryPath(sourceRoot, entry.relativePath);
     const data = await readFile(path);
     return { ...entry, observedBytes: data.byteLength, observedSha256: createHash("sha256").update(data).digest("hex") };
   }));
-  const mismatches = observed.filter((entry) => entry.bytes !== entry.observedBytes || entry.sha256 !== entry.observedSha256);
-  const duplicateHashCount = observed.length - new Set(observed.map((entry) => entry.observedSha256)).size;
-  assert(mismatches.length === 0, `${mismatches.length} source hash mismatches`);
-  assert(duplicateHashCount === 0, `${duplicateHashCount} duplicate source hashes`);
+  const byteMismatches = observed.filter((entry) => entry.bytes !== entry.observedBytes);
+  const hashMismatches = observed.filter((entry) => entry.sha256 !== entry.observedSha256);
+  const duplicateHashGroups = [...Map.groupBy(observed, (entry) => entry.observedSha256).values()].filter((group) => group.length > 1).length;
+  const observedPackageHash = packageHash(observed);
+  assert(missing.length === 0, `${missing.length} source files are missing`);
+  assert(extra.length === 0, `${extra.length} unexpected source files found`);
+  assert(byteMismatches.length === 0, `${byteMismatches.length} source byte mismatches`);
+  assert(hashMismatches.length === 0, `${hashMismatches.length} source hash mismatches`);
+  assert(duplicateHashGroups === 0, `${duplicateHashGroups} duplicate source hash groups`);
   assert(observed.length === 133, `source file count changed: ${observed.length}`);
-  return { filesRevalidated: observed.length, mismatches: mismatches.length, duplicateHashGroups: duplicateHashCount };
+  assert(observedPackageHash === sourceManifest.packageHash, `source package hash mismatch: ${observedPackageHash}`);
+  return { filesRevalidated: observed.length, byteMismatches: byteMismatches.length, hashMismatches: hashMismatches.length, missing: missing.length, extra: extra.length, duplicateHashGroups, packageHash: observedPackageHash, sourceRootContract: CPPG_SOURCE_ROOT_CONTRACT };
 }
 
 export async function loadBundle(repoRoot) {
@@ -107,7 +159,7 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import
   const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
   const bundle = await loadBundle(repoRoot);
   const result = validateFoundation(bundle);
-  const source = await revalidateSourceManifest(bundle.sourceManifest);
+  const source = await revalidateSourceManifest(bundle.sourceManifest, repoRoot);
   const finalResult = { manifestId: "SECURIUM_CPPG_FOUNDATION_VALIDATION_V1", ...result, source, generatedAt: "2026-09-08", mutationTests: "see securium-cppg-foundation-wave-a-mutation-tests.json" };
   await writeFile(join(repoRoot, "reports", "content-audit", "securium-cppg-foundation-wave-a-validation.json"), `${JSON.stringify(finalResult, null, 2)}\n`, "utf8");
   console.log(JSON.stringify(finalResult, null, 2));

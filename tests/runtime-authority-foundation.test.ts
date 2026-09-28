@@ -223,12 +223,8 @@ test("exact replay is allowed, changed-subject replay is not, and reapproval nee
   assert.equal(reduceRuntimeAuthorityLifecycle([event, approval("authority-new", base, "2026-09-21T00:01:00.000Z")]).records.size, 2);
 });
 
-test("CPPG production builder owns material authority and rejects caller injection", () => {
-  const built = buildCppgRuntimeAuthoritySubject();
-  assert.equal(built.subject.courseId, "course-cppg");
-  assert.equal(built.subject.courseSlug, "cppg");
-  assert.equal(built.subject.registrationPurpose, "COURSE_THEORY_DRAFT");
-  assert.equal(built.subject.publicationAuthority, "NOT_GRANTED");
+test("legacy CPPG subject builder refuses to mint placeholder authority and rejects caller injection", () => {
+  expectCode(() => buildCppgRuntimeAuthoritySubject(), "CPPG_CANONICAL_PROJECTION_REQUIRED");
   const runtimeBuilder = buildCppgRuntimeAuthoritySubject as unknown as (...inputs: readonly unknown[]) => unknown;
   expectCode(() => runtimeBuilder({ courseId: base.courseId, courseSlug: base.courseSlug, packageKey: base.packageKey, sourceManifestId: base.sourceManifestId, sourcePackageHash: base.sourcePackageHash, foundationId: base.foundationId, foundationHash: base.foundationHash, runtimeRevisionId: base.runtimeRevisionId, semanticHash: base.semanticHash }), "CPPG_CALLER_AUTHORITY_FIELD_FORBIDDEN:courseId");
   expectCode(() => runtimeBuilder({ sourcePackageHash: hash("z") }), "CPPG_CALLER_AUTHORITY_FIELD_FORBIDDEN:sourcePackageHash");
