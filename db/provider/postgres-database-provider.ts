@@ -8,6 +8,8 @@ import {
   type DatabaseValue,
 } from "./database-provider.ts";
 
+export type PostgresQueryValue = DatabaseValue | Readonly<Record<string, unknown>>;
+
 export type PostgresQueryResult<Row extends Record<string, unknown>> = {
   rows: Row[];
   rowCount: number;
@@ -22,7 +24,7 @@ export type PostgresRawQueryResult = {
 export interface PostgresTransactionExecutor {
   query<Row extends Record<string, unknown>>(
     sql: string,
-    parameters: readonly DatabaseValue[],
+    parameters: readonly PostgresQueryValue[],
   ): Promise<PostgresQueryResult<Row>>;
 }
 
@@ -33,7 +35,7 @@ export interface PostgresExecutor extends PostgresTransactionExecutor {
   close?(): Promise<void>;
   queryRaw?(
     sql: string,
-    parameters: readonly DatabaseValue[],
+    parameters: readonly PostgresQueryValue[],
   ): Promise<PostgresRawQueryResult>;
 }
 

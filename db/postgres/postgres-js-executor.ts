@@ -9,9 +9,9 @@ import {
   normalizeDatabaseError,
   type DatabaseProviderError,
 } from "../provider/database-error.ts";
-import type { DatabaseValue } from "../provider/database-provider.ts";
 import type {
   PostgresExecutor,
+  PostgresQueryValue,
   PostgresQueryResult,
   PostgresTransactionExecutor,
 } from "../provider/postgres-database-provider.ts";
@@ -38,7 +38,7 @@ type PostgresJsPendingValuesQuery = PromiseLike<PostgresJsValuesResult> & {
 type PostgresJsQueryClient = {
   unsafe<Row extends Record<string, unknown>>(
     sql: string,
-    parameters: readonly DatabaseValue[],
+    parameters: readonly PostgresQueryValue[],
   ): PostgresJsPendingQuery<Row>;
 };
 
@@ -83,14 +83,14 @@ export class PostgresJsExecutor implements PostgresExecutor {
 
   async query<Row extends Record<string, unknown>>(
     sql: string,
-    parameters: readonly DatabaseValue[],
+    parameters: readonly PostgresQueryValue[],
   ): Promise<PostgresQueryResult<Row>> {
     return this.queryWithClient<Row>(this.client, sql, parameters);
   }
 
   async queryOne<Row extends Record<string, unknown>>(
     sql: string,
-    parameters: readonly DatabaseValue[],
+    parameters: readonly PostgresQueryValue[],
   ) {
     const result = await this.query<Row>(sql, parameters);
     return result.rows[0] ?? null;
@@ -98,14 +98,14 @@ export class PostgresJsExecutor implements PostgresExecutor {
 
   async execute(
     sql: string,
-    parameters: readonly DatabaseValue[],
+    parameters: readonly PostgresQueryValue[],
   ): Promise<PostgresQueryResult<Record<string, unknown>>> {
     return this.query<Record<string, unknown>>(sql, parameters);
   }
 
   async queryRaw(
     sql: string,
-    parameters: readonly DatabaseValue[],
+    parameters: readonly PostgresQueryValue[],
   ) {
     try {
       const pending = this.client.unsafe(sql, parameters).values?.();
@@ -148,7 +148,7 @@ export class PostgresJsExecutor implements PostgresExecutor {
             const result = await callback({
               query: <Row extends Record<string, unknown>>(
                 sql: string,
-                parameters: readonly DatabaseValue[],
+                parameters: readonly PostgresQueryValue[],
               ) => this.queryWithClient<Row>(reserved, sql, parameters),
             });
             await withQueryTimeout(
@@ -175,7 +175,7 @@ export class PostgresJsExecutor implements PostgresExecutor {
         callback({
           query: <Row extends Record<string, unknown>>(
             sql: string,
-            parameters: readonly DatabaseValue[],
+            parameters: readonly PostgresQueryValue[],
           ) => this.queryWithClient<Row>(transactionClient, sql, parameters),
         }),
       );
@@ -204,7 +204,7 @@ export class PostgresJsExecutor implements PostgresExecutor {
   private async queryWithClient<Row extends Record<string, unknown>>(
     client: PostgresJsQueryClient,
     sql: string,
-    parameters: readonly DatabaseValue[],
+    parameters: readonly PostgresQueryValue[],
   ): Promise<PostgresQueryResult<Row>> {
     try {
       const pending = client.unsafe<Row>(sql, parameters);

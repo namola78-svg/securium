@@ -71,6 +71,10 @@ jobs:
       - name: Public discovery view-state tests
         run: npm run test:public-discovery-view-state
 
+      - name: Runtime Authority PostgreSQL persistence
+        run: npm run test:runtime-authority:postgres
+
+
       - name: Integration smoke tests
         run: npm run test:integration
 
