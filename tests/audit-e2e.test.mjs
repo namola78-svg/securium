@@ -20,7 +20,7 @@ const user = {
   ...admin,
   "oai-authenticated-user-email": "dev-user-1@example.invalid",
 };
-const lessonId = "course-cppg-subject-foundation-topic-core-lesson-01";
+const lessonId = "course-isms-p-subject-foundation-topic-core-lesson-01";
 let server;
 let output = "";
 let revisionId = "";
@@ -188,4 +188,36 @@ test("관리자 감사로그 화면은 필터·상세·페이지네이션을 제
   assert.match(html, /페이지 크기/);
   assert.doesNotMatch(html, /method="(?:post|put|patch|delete)"/i);
   assert.doesNotMatch(html, /data-audit-action="(?:edit|delete)"/i);
+});
+
+test("valid admin cannot publish a CPPG revision through the generic endpoint", async () => {
+  const created = await postRevision(admin, {
+    operation: "CREATE_DRAFT",
+    contentType: "LESSON",
+    contentId: "course-cppg-subject-foundation-topic-core-lesson-01",
+    contentDate: "2026-07-27",
+    version: `cppg-generic-gate-${Date.now()}`,
+    changeSummary: "Generic CPPG publication gate regression",
+    snapshotJson: JSON.stringify({ title: "Gate regression" }),
+  });
+  assert.equal(created.response.status, 201, JSON.stringify(created.payload));
+
+  const denied = await postRevision(admin, {
+    operation: "PUBLISH",
+    revisionId: created.payload.id,
+  });
+  assert.equal(denied.response.status, 409, JSON.stringify(denied.payload));
+  assert.equal(denied.payload.code, "CPPG_PUBLICATION_GATE_REQUIRED");
+
+  const filteredResponse = await fetch(
+    `${baseUrl}/api/admin/audit-logs?action=CONTENT_REVISION_PUBLISHED&resourceId=${created.payload.id}&pageSize=30`,
+    { headers: admin },
+  );
+  const filtered = await filteredResponse.json();
+  assert.equal(filteredResponse.status, 200, JSON.stringify(filtered));
+  const denialEvent = filtered.result.rows.find(
+    (row) => row.action === "CONTENT_REVISION_PUBLISHED",
+  );
+  assert.ok(denialEvent, JSON.stringify(filtered));
+  assert.equal(denialEvent.result, "FAILURE");
 });

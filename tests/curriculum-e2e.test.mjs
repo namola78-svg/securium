@@ -315,8 +315,8 @@ test("자기 자신, 하위 노드, 다른 Tree parent 지정은 차단된다", 
   assert.equal(descendantParent.response.status, 409);
 
   const otherTree = await post("/api/admin/curriculum-trees", admin, {
-    courseId: "course-cppg",
-    title: "CPPG Sprint B 커리큘럼",
+    courseId: "course-isms-p",
+    title: "ISMS-P Sprint B 커리큘럼",
     version: `sprint-b-${Date.now()}`,
     status: "DRAFT",
   });
