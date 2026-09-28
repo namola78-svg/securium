@@ -73,7 +73,9 @@ before(async () => {
     ),
   );
   executor = createDisposableExecutor(requireSql());
-  owner = new PostgresRuntimeAuthorityPersistence(executor);
+  owner = new PostgresRuntimeAuthorityPersistence(executor, (diagnostic) => {
+    console.error(`RUNTIME_AUTHORITY_ROW_PARSE_DIAGNOSTIC ${JSON.stringify(diagnostic)}`);
+  });
 });
 
 after(async () => {

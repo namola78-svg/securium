@@ -30,16 +30,40 @@ type EventRow = {
   recordedAt: unknown;
 };
 
+type RuntimeAuthorityRowParseStage =
+  | "eventId" | "authorityId" | "sequence" | "schemaVersion" | "eventType"
+  | "payloadJson" | "idempotencyKey" | "commandHash" | "recordedAt" | "canonicalRecord";
+
+type RuntimeAuthorityPayloadShape = Readonly<{
+  typeof: string;
+  isNull: boolean;
+  isArray: boolean;
+  stringLength?: number;
+  firstTokenCategory?: "OBJECT" | "ARRAY" | "STRING" | "NUMBER" | "BOOLEAN" | "NULL" | "UNKNOWN";
+  objectTag?: string;
+  keyCount?: number;
+  canonicalKeyNames?: readonly string[];
+}>;
+
+type RuntimeAuthorityRowParseDiagnostic = Readonly<{
+  code: "RUNTIME_AUTHORITY_DATABASE_ROW_INVALID";
+  stage: RuntimeAuthorityRowParseStage;
+  payloadShape?: RuntimeAuthorityPayloadShape;
+}>;
+
 export class PostgresRuntimeAuthorityPersistence
   implements RuntimeAuthorityPersistenceTransactionOwner
 {
-  constructor(private readonly executor: PostgresExecutor) {}
+  constructor(
+    private readonly executor: PostgresExecutor,
+    private readonly onRowParseDiagnostic?: (diagnostic: RuntimeAuthorityRowParseDiagnostic) => void,
+  ) {}
 
   async withTransaction<T>(
     callback: (transaction: RuntimeAuthorityPersistenceTransaction) => Promise<T>,
   ): Promise<T> {
     return this.executor.transaction((executor) =>
-      callback(new PostgresRuntimeAuthorityTransaction(executor)),
+      callback(new PostgresRuntimeAuthorityTransaction(executor, this.onRowParseDiagnostic)),
     );
   }
 }
@@ -47,7 +71,10 @@ export class PostgresRuntimeAuthorityPersistence
 class PostgresRuntimeAuthorityTransaction
   implements RuntimeAuthorityPersistenceTransaction
 {
-  constructor(private readonly executor: PostgresTransactionExecutor) {}
+  constructor(
+    private readonly executor: PostgresTransactionExecutor,
+    private readonly onRowParseDiagnostic?: (diagnostic: RuntimeAuthorityRowParseDiagnostic) => void,
+  ) {}
 
   async loadAuthorityRoot(authorityId: string) {
     const result = await this.executor.query<RootRow>(
@@ -78,7 +105,7 @@ class PostgresRuntimeAuthorityTransaction
        ORDER BY "sequence"`,
       [authorityId],
     );
-    return result.rows.map(eventRowToPersistenceRecord);
+    return result.rows.map((row) => eventRowToPersistenceRecord(row, this.onRowParseDiagnostic));
   }
 
   async findAcceptedByIdempotency(
@@ -102,7 +129,7 @@ class PostgresRuntimeAuthorityTransaction
     );
     const row = result.rows[0];
     if (!row) return { kind: "NOT_FOUND" };
-    const event = eventRowToPersistenceRecord(row);
+    const event = eventRowToPersistenceRecord(row, this.onRowParseDiagnostic);
     return event.commandHash === commandHash
       ? { kind: "REPLAY_EXISTING", event }
       : { kind: "IDEMPOTENCY_CONFLICT", existing: event };
@@ -160,18 +187,75 @@ class PostgresRuntimeAuthorityTransaction
 
 function eventRowToPersistenceRecord(
   row: EventRow,
+  onDiagnostic?: (diagnostic: RuntimeAuthorityRowParseDiagnostic) => void,
 ): AuthorityEventPersistenceRecord {
-  return parseAuthorityEventPersistenceRecord({
-    eventId: requireDatabaseString(row.eventId),
-    authorityId: requireDatabaseString(row.authorityId),
-    sequence: requireDatabaseInteger(row.sequence),
-    schemaVersion: requireDatabaseInteger(row.schemaVersion),
-    eventType: requireDatabaseString(row.eventType),
-    payload: parseDatabaseJson(row.payloadJson),
-    idempotencyKey: requireDatabaseString(row.idempotencyKey),
-    commandHash: requireDatabaseString(row.commandHash),
-    recordedAt: normalizeDatabaseTimestamp(row.recordedAt),
-  });
+  const field = <T>(stage: RuntimeAuthorityRowParseStage, convert: () => T, payloadValue?: unknown): T => {
+    try {
+      return convert();
+    } catch (error) {
+      onDiagnostic?.({
+        code: "RUNTIME_AUTHORITY_DATABASE_ROW_INVALID",
+        stage,
+        ...(stage === "payloadJson" ? { payloadShape: describePayloadShape(payloadValue) } : {}),
+      });
+      throw error;
+    }
+  };
+
+  const eventId = field("eventId", () => requireDatabaseString(row.eventId));
+  const authorityId = field("authorityId", () => requireDatabaseString(row.authorityId));
+  const sequence = field("sequence", () => requireDatabaseInteger(row.sequence));
+  const schemaVersion = field("schemaVersion", () => requireDatabaseInteger(row.schemaVersion));
+  const eventType = field("eventType", () => requireDatabaseString(row.eventType));
+  // Stage A: decode the database representation into an object-shaped payload.
+  const payload = field("payloadJson", () => parseDatabaseJson(row.payloadJson), row.payloadJson);
+  const idempotencyKey = field("idempotencyKey", () => requireDatabaseString(row.idempotencyKey));
+  const commandHash = field("commandHash", () => requireDatabaseString(row.commandHash));
+  const recordedAt = field("recordedAt", () => normalizeDatabaseTimestamp(row.recordedAt));
+
+  // Stage B: validate the normalized row against the canonical persistence contract.
+  try {
+    return parseAuthorityEventPersistenceRecord({
+      eventId, authorityId, sequence, schemaVersion, eventType, payload,
+      idempotencyKey, commandHash, recordedAt,
+    });
+  } catch (error) {
+    onDiagnostic?.({ code: "RUNTIME_AUTHORITY_DATABASE_ROW_INVALID", stage: "canonicalRecord" });
+    throw error;
+  }
+}
+
+function describePayloadShape(value: unknown): RuntimeAuthorityPayloadShape {
+  const shape: {
+    typeof: string;
+    isNull: boolean;
+    isArray: boolean;
+    stringLength?: number;
+    firstTokenCategory?: RuntimeAuthorityPayloadShape["firstTokenCategory"];
+    objectTag?: string;
+    keyCount?: number;
+    canonicalKeyNames?: readonly string[];
+  } = { typeof: typeof value, isNull: value === null, isArray: Array.isArray(value) };
+
+  if (typeof value === "string") {
+    const trimmed = value.trimStart();
+    const first = trimmed[0];
+    shape.stringLength = value.length;
+    shape.firstTokenCategory = first === "{" ? "OBJECT" : first === "[" ? "ARRAY" : first === '"' ? "STRING" :
+      first === "-" || (first !== undefined && /[0-9]/.test(first)) ? "NUMBER" :
+      trimmed.startsWith("true") || trimmed.startsWith("false") ? "BOOLEAN" :
+      trimmed.startsWith("null") ? "NULL" : "UNKNOWN";
+  } else if (typeof value === "object" && value !== null) {
+    shape.objectTag = Object.prototype.toString.call(value);
+    const keys = Object.keys(value);
+    const canonicalKeys = new Set([
+      "subject", "approvalSubjectHash", "createdAt", "successorAuthorityId",
+      "successorSubjectHash", "reason",
+    ]);
+    shape.keyCount = keys.length;
+    shape.canonicalKeyNames = keys.filter((key) => canonicalKeys.has(key));
+  }
+  return shape;
 }
 
 function requireDatabaseString(value: unknown): string {
