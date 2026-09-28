@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, rm } from "node:fs/promises";
+import { mkdtemp, mkdir, rm, stat, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -16,15 +16,27 @@ import { loadBundle, revalidateSourceManifest } from "../scripts/validate-securi
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const expectedSourceRoot = resolveCppgSourceRoot(repoRoot);
 const bundle = await loadBundle(repoRoot);
+const sourcePackageAvailable = await stat(expectedSourceRoot).then((result) => result.isDirectory()).catch(() => false);
+const finalGateAReport = JSON.parse(await readFile(join(repoRoot, "reports", "content-audit", "securium-cppg-foundation-wave-a-final.json"), "utf8"));
 
 function codeOf(error) {
   return error && typeof error === "object" ? error.code : undefined;
 }
 
-test("resolves the established CPPG source root from the repository worktree contract", async () => {
+test("reconfirms Gate A content identity and revalidates source bytes when the package is available", async () => {
   assert.equal(resolveCppgWorkspaceRoot(repoRoot), dirname(dirname(expectedSourceRoot)));
   assert.equal(bundle.sourceManifest.sourceRoot, CPPG_MANIFEST_SOURCE_ROOT);
-  assert.equal((await revalidateSourceManifest(bundle.sourceManifest, repoRoot)).sourceRootContract, CPPG_SOURCE_ROOT_CONTRACT);
+  assert.equal(bundle.sourceManifest.manifestId, "SECURIUM_CPPG_FOUNDATION_SOURCE_SHA256_V1");
+  assert.equal(bundle.sourceManifest.packageHash, finalGateAReport.sourcePackage.packageHash);
+  assert.equal(bundle.sourceManifest.fileCount, finalGateAReport.sourcePackage.files);
+  if (sourcePackageAvailable) {
+    const result = await revalidateSourceManifest(bundle.sourceManifest, repoRoot);
+    assert.equal(result.sourceRootContract, CPPG_SOURCE_ROOT_CONTRACT);
+    assert.equal(result.filesRevalidated, 133);
+    assert.equal(result.packageHash, bundle.sourceManifest.packageHash);
+  } else {
+    await assert.rejects(() => revalidateSourceManifest(bundle.sourceManifest, repoRoot), /configured CPPG source root is unavailable/);
+  }
 });
 
 test("projection resolves the server-owned source root independently of process.cwd and caller sourceRoot", async () => {
@@ -33,9 +45,16 @@ test("projection resolves the server-owned source root independently of process.
   const temporaryCwd = await mkdtemp(join(tmpdir(), "cppg-source-root-cwd-"));
   try {
     process.chdir(temporaryCwd);
-    const projection = await service.buildCppgCourseTheoryDraftProjection({ actorUserId: "source-root-test", sourceRoot: "caller-controlled" });
-    assert.equal(projection.courseId, "course-cppg");
-    assert.equal(projection.packageKey, "course-cppg:foundation:v1");
+    if (sourcePackageAvailable) {
+      const projection = await service.buildCppgCourseTheoryDraftProjection({ actorUserId: "source-root-test", sourceRoot: "caller-controlled" });
+      assert.equal(projection.courseId, "course-cppg");
+      assert.equal(projection.packageKey, "course-cppg:foundation:v1");
+    } else {
+      await assert.rejects(
+        () => service.buildCppgCourseTheoryDraftProjection({ actorUserId: "source-root-test", sourceRoot: "caller-controlled" }),
+        (error) => codeOf(error) === "CPPG_SOURCE_REVALIDATION_BLOCKED",
+      );
+    }
   } finally {
     process.chdir(previousCwd);
     await rm(temporaryCwd, { recursive: true, force: true });
@@ -55,7 +74,7 @@ test("a nonexistent server-owned root fails closed", async () => {
   }
 });
 
-test("a manifest hash mismatch fails closed", async () => {
+test("a manifest hash mismatch fails closed", { skip: !sourcePackageAvailable && "source evidence package is not mounted in this CI checkout" }, async () => {
   const first = bundle.sourceManifest.files[0];
   assert.ok(first);
   const mutatedManifest = { ...bundle.sourceManifest, files: [{ ...first, sha256: "0".repeat(64) }, ...bundle.sourceManifest.files.slice(1)] };

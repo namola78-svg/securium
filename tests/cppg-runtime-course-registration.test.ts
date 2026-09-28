@@ -431,7 +431,7 @@ test("registration remains before adapter begin without a persisted PostgreSQL a
   const adapter = new RecordingAdapter(readbackFor(value));
   await assert.rejects(
     () => persistCppgCourseTheoryDraft(OPTIONS, adapter, authorityOwner),
-    /CPPG authority is not current/,
+    (error: unknown) => ["CPPG_APPROVAL_BINDING_UNAVAILABLE", "CPPG_SOURCE_REVALIDATION_BLOCKED"].includes(String((error as { code?: unknown }).code)),
   );
   assert.equal(adapter.began, 0);
   assert.equal(queries.some((sql) => /^\s*(INSERT|UPDATE|DELETE)\b/i.test(sql)), false);
