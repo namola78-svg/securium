@@ -4,8 +4,7 @@ import { readFile } from "node:fs/promises";
 import { after, before, test } from "node:test";
 import postgres from "postgres";
 
-import type { PostgresExecutor, PostgresTransactionExecutor } from "../db/provider/postgres-database-provider.ts";
-import type { DatabaseValue } from "../db/provider/database-provider.ts";
+import type { PostgresExecutor, PostgresQueryValue, PostgresTransactionExecutor } from "../db/provider/postgres-database-provider.ts";
 import { PostgresRuntimeAuthorityPersistence } from "../db/runtime-authority-postgres-persistence.ts";
 import { approvalSubjectHash, type RuntimeAuthoritySubject } from "../lib/policy/runtime-authority-binding.ts";
 import { executeRuntimeAuthorityCommand } from "../lib/services/runtime-authority-command-service.ts";
@@ -73,9 +72,7 @@ before(async () => {
     ),
   );
   executor = createDisposableExecutor(requireSql());
-  owner = new PostgresRuntimeAuthorityPersistence(executor, (diagnostic) => {
-    console.error(`RUNTIME_AUTHORITY_ROW_PARSE_DIAGNOSTIC ${JSON.stringify(diagnostic)}`);
-  });
+  owner = new PostgresRuntimeAuthorityPersistence(executor);
 });
 
 after(async () => {
@@ -105,6 +102,13 @@ test("PostgreSQL authority writer appends approval once and exact replay is idem
   });
   assert.equal(first.outcome, "APPENDED");
   assert.equal(first.event.sequence, 1);
+
+  const storedPayloadType = await requireSql().unsafe(
+    `SELECT jsonb_typeof("payload_json") AS payload_type
+     FROM "runtime_authority_events"
+     WHERE "event_id" = 'authority-event-1'`,
+  );
+  assert.equal(storedPayloadType[0]?.payload_type, "object");
 
   const replay = await executeRuntimeAuthorityCommand(owner, approval(), {
     eventId: () => "authority-event-unused",
@@ -225,7 +229,7 @@ function createDisposableExecutor(client: NonNullable<typeof sql>): PostgresExec
   const queryWith = async <Row extends Record<string, unknown>>(
     connection: { unsafe: (text: string, parameters?: readonly unknown[]) => PromiseLike<Row[] & { count?: number | null }> },
     text: string,
-    parameters: readonly DatabaseValue[],
+    parameters: readonly PostgresQueryValue[],
   ) => {
     const rows = await connection.unsafe(text, parameters);
     return {
@@ -235,13 +239,13 @@ function createDisposableExecutor(client: NonNullable<typeof sql>): PostgresExec
   };
 
   return {
-    query: <Row extends Record<string, unknown>>(text: string, parameters: readonly DatabaseValue[]) =>
+    query: <Row extends Record<string, unknown>>(text: string, parameters: readonly PostgresQueryValue[]) =>
       queryWith<Row>(client as never, text, parameters),
     async transaction<T>(callback: (executor: PostgresTransactionExecutor) => Promise<T>): Promise<T> {
       let result!: T;
       await client.begin(async (transaction) => {
         result = await callback({
-          query: <Row extends Record<string, unknown>>(text: string, parameters: readonly DatabaseValue[]) =>
+          query: <Row extends Record<string, unknown>>(text: string, parameters: readonly PostgresQueryValue[]) =>
             queryWith<Row>(transaction as never, text, parameters),
         });
       });
