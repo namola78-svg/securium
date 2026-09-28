@@ -51,6 +51,7 @@ import {
   wrongNotes,
 } from "./schema";
 import { AppError } from "@/lib/errors";
+import { assertGenericCppgPublicationAllowed } from "@/lib/services/cppg-generic-publication-guard";
 import {
   applyLevelResult,
   assertLevelAccessible,
@@ -2948,6 +2949,39 @@ export async function saveLevel(input: {
   active: boolean;
   published: boolean;
 }) {
+  const [course] = await getDb()
+    .select({ slug: courses.slug, code: courses.code })
+    .from(courses)
+    .where(eq(courses.id, input.courseId))
+    .limit(1);
+  const existing = input.id
+    ? (
+        await getDb()
+          .select({
+            courseId: levels.courseId,
+            active: levels.active,
+            published: levels.published,
+          })
+          .from(levels)
+          .where(eq(levels.id, input.id))
+          .limit(1)
+      )[0]
+    : null;
+  const [priorCourse] = existing
+    ? await getDb()
+        .select({ slug: courses.slug, code: courses.code })
+        .from(courses)
+        .where(eq(courses.id, existing.courseId))
+        .limit(1)
+    : [];
+  assertGenericCppgPublicationAllowed(
+    { courseId: input.courseId, courseSlug: course?.slug, courseCode: course?.code },
+    existing ?? { active: false, published: false },
+    input,
+    existing
+      ? { courseId: existing.courseId, courseSlug: priorCourse?.slug, courseCode: priorCourse?.code }
+      : {},
+  );
   if (input.requiredLevelId) {
     if (input.requiredLevelId === input.id) {
       throw new AppError(
@@ -2999,12 +3033,35 @@ export async function saveLevelContent(input: {
   required: boolean;
 }) {
   const [level] = await getDb()
-    .select({ courseId: levels.courseId })
+    .select({ courseId: levels.courseId, active: levels.active, published: levels.published })
     .from(levels)
     .where(eq(levels.id, input.levelId))
     .limit(1);
   if (!level) {
     throw new AppError("단계를 찾을 수 없습니다.", 404, "LEVEL_NOT_FOUND");
+  }
+  const [levelContent] = await getDb()
+    .select({ levelId: levelContents.levelId })
+    .from(levelContents)
+    .where(
+      and(
+        eq(levelContents.levelId, input.levelId),
+        eq(levelContents.contentType, input.contentType),
+        eq(levelContents.contentId, input.contentId),
+      ),
+    )
+    .limit(1);
+  if (!levelContent && level.active && level.published) {
+    const [course] = await getDb()
+      .select({ slug: courses.slug, code: courses.code })
+      .from(courses)
+      .where(eq(courses.id, level.courseId))
+      .limit(1);
+    assertGenericCppgPublicationAllowed(
+      { courseId: level.courseId, courseSlug: course?.slug, courseCode: course?.code },
+      { published: false },
+      { published: true },
+    );
   }
   if (input.contentType === "QUESTION") {
     const [linked] = await getDb()
@@ -3113,6 +3170,42 @@ export async function saveMockExam(input: {
   status: string;
   published: boolean;
 }) {
+  const [course] = await getDb()
+    .select({ slug: courses.slug, code: courses.code })
+    .from(courses)
+    .where(eq(courses.id, input.courseId))
+    .limit(1);
+  const existing = input.id
+    ? (
+        await getDb()
+          .select({
+            courseId: mockExams.courseId,
+            status: mockExams.status,
+            published: mockExams.published,
+          })
+          .from(mockExams)
+          .where(eq(mockExams.id, input.id))
+          .limit(1)
+      )[0]
+    : null;
+  const [priorCourse] = existing
+    ? await getDb()
+        .select({ slug: courses.slug, code: courses.code })
+        .from(courses)
+        .where(eq(courses.id, existing.courseId))
+        .limit(1)
+    : [];
+  assertGenericCppgPublicationAllowed(
+    { courseId: input.courseId, courseSlug: course?.slug, courseCode: course?.code },
+    {
+      active: existing?.status === "OPEN",
+      published: existing?.published ?? false,
+    },
+    { active: input.status === "OPEN", published: input.published },
+    existing
+      ? { courseId: existing.courseId, courseSlug: priorCourse?.slug, courseCode: priorCourse?.code }
+      : {},
+  );
   const values = {
     ...input,
     startAt: input.startAt || null,
@@ -3139,7 +3232,7 @@ export async function saveMockExamSection(input: {
   displayOrder: number;
 }) {
   const [exam] = await getDb()
-    .select({ courseId: mockExams.courseId })
+    .select({ courseId: mockExams.courseId, status: mockExams.status, published: mockExams.published })
     .from(mockExams)
     .where(eq(mockExams.id, input.mockExamId))
     .limit(1);
@@ -3148,6 +3241,21 @@ export async function saveMockExamSection(input: {
       "모의고사를 찾을 수 없습니다.",
       404,
       "MOCK_EXAM_NOT_FOUND",
+    );
+  }
+  const existingSection = input.id
+    ? (await getDb().select({ id: mockExamSections.id }).from(mockExamSections).where(and(eq(mockExamSections.id, input.id), eq(mockExamSections.mockExamId, input.mockExamId))).limit(1))[0]
+    : null;
+  if (!existingSection && exam.status === "OPEN" && exam.published) {
+    const [course] = await getDb()
+      .select({ slug: courses.slug, code: courses.code })
+      .from(courses)
+      .where(eq(courses.id, exam.courseId))
+      .limit(1);
+    assertGenericCppgPublicationAllowed(
+      { courseId: exam.courseId, courseSlug: course?.slug, courseCode: course?.code },
+      { published: false },
+      { published: true },
     );
   }
   if (input.subjectId) {
@@ -3191,6 +3299,28 @@ export async function saveMockExamQuestion(input: {
   score: number;
   displayOrder: number;
 }) {
+  const [exam] = await getDb()
+    .select({ courseId: mockExams.courseId, status: mockExams.status, published: mockExams.published })
+    .from(mockExams)
+    .where(eq(mockExams.id, input.mockExamId))
+    .limit(1);
+  const [existingAssignment] = await getDb()
+    .select({ mockExamId: mockExamQuestions.mockExamId })
+    .from(mockExamQuestions)
+    .where(and(eq(mockExamQuestions.mockExamId, input.mockExamId), eq(mockExamQuestions.questionId, input.questionId)))
+    .limit(1);
+  if (exam && !existingAssignment && exam.status === "OPEN" && exam.published) {
+    const [course] = await getDb()
+      .select({ slug: courses.slug, code: courses.code })
+      .from(courses)
+      .where(eq(courses.id, exam.courseId))
+      .limit(1);
+    assertGenericCppgPublicationAllowed(
+      { courseId: exam.courseId, courseSlug: course?.slug, courseCode: course?.code },
+      { published: false },
+      { published: true },
+    );
+  }
   const [examQuestion] = await getDb()
     .select({
       questionId: questions.id,

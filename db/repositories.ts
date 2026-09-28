@@ -30,6 +30,7 @@ import type {
   EnrollmentStatus,
 } from "@/lib/services/enrollment-service";
 import { AppError } from "@/lib/errors";
+import { assertGenericCppgPublicationAllowed, isCppgPublicationTarget } from "@/lib/services/cppg-generic-publication-guard";
 import { ensureLevelProgress } from "./phase3-repositories";
 import {
   buildSwSecurityWeaknessRuntimeProjection,
@@ -796,6 +797,34 @@ export async function listProgressForCourse(userId: string, courseId: string) {
 }
 
 export async function saveCourseGroup(input: CourseGroupInput) {
+  const existing = input.id
+    ? (
+        await getDb()
+          .select({ active: courseGroups.active })
+          .from(courseGroups)
+          .where(eq(courseGroups.id, input.id))
+          .limit(1)
+      )[0]
+    : null;
+  if (input.id && existing) {
+    const childCourses = await getDb()
+      .select({
+        id: courses.id,
+        slug: courses.slug,
+        code: courses.code,
+        active: courses.active,
+        published: courses.published,
+      })
+      .from(courses)
+      .where(eq(courses.courseGroupId, input.id));
+    for (const course of childCourses) {
+      assertGenericCppgPublicationAllowed(
+        { courseId: course.id, courseSlug: course.slug, courseCode: course.code },
+        { active: course.active && existing.active, published: course.published && existing.active },
+        { active: course.active && input.active, published: course.published && input.active },
+      );
+    }
+  }
   const values = {
     code: input.code,
     name: input.name,
@@ -825,6 +854,56 @@ export async function saveCourseGroup(input: CourseGroupInput) {
 }
 
 export async function saveCourse(input: CourseInput) {
+  const current = input.id
+    ? (
+        await getDb()
+          .select({
+            active: courses.active,
+            published: courses.published,
+            courseGroupId: courses.courseGroupId,
+            slug: courses.slug,
+            code: courses.code,
+          })
+          .from(courses)
+          .where(eq(courses.id, input.id))
+          .limit(1)
+      )[0]
+    : null;
+  assertGenericCppgPublicationAllowed(
+    { courseId: input.id, courseSlug: input.slug, courseCode: input.code },
+    current ?? { active: false, published: false },
+    input,
+    current ? { courseId: input.id, courseSlug: current.slug, courseCode: current.code } : {},
+  );
+  if (
+    current &&
+    isCppgPublicationTarget({
+      courseId: input.id,
+      courseSlug: current.slug,
+      courseCode: current.code,
+    })
+  ) {
+    const [priorGroup] = await getDb()
+      .select({ active: courseGroups.active })
+      .from(courseGroups)
+      .where(eq(courseGroups.id, current.courseGroupId))
+      .limit(1);
+    const [nextGroup] = await getDb()
+      .select({ active: courseGroups.active })
+      .from(courseGroups)
+      .where(eq(courseGroups.id, input.courseGroupId))
+      .limit(1);
+    assertGenericCppgPublicationAllowed(
+      { courseId: input.id, courseSlug: input.slug, courseCode: input.code },
+      {
+        published: current.active && current.published && (priorGroup?.active ?? false),
+      },
+      {
+        published: input.active && input.published && (nextGroup?.active ?? false),
+      },
+      { courseId: input.id, courseSlug: current.slug, courseCode: current.code },
+    );
+  }
   const values = {
     courseGroupId: input.courseGroupId,
     code: input.code,
@@ -858,6 +937,25 @@ export async function saveCourse(input: CourseInput) {
 }
 
 export async function saveSubject(input: SubjectInput) {
+  const [course] = await getDb()
+    .select({ slug: courses.slug, code: courses.code })
+    .from(courses)
+    .where(eq(courses.id, input.courseId))
+    .limit(1);
+  const current = input.id
+    ? (
+        await getDb()
+          .select({ active: subjects.active })
+          .from(subjects)
+          .where(eq(subjects.id, input.id))
+          .limit(1)
+      )[0]
+    : null;
+  assertGenericCppgPublicationAllowed(
+    { courseId: input.courseId, courseSlug: course?.slug, courseCode: course?.code },
+    current ?? { active: false },
+    input,
+  );
   const values = {
     courseId: input.courseId,
     code: input.code,
@@ -892,6 +990,34 @@ export async function saveSubject(input: SubjectInput) {
 }
 
 export async function saveTopic(input: TopicInput) {
+  const [subject] = await getDb()
+    .select({
+      courseId: subjects.courseId,
+      courseSlug: courses.slug,
+      courseCode: courses.code,
+    })
+    .from(subjects)
+    .innerJoin(courses, eq(subjects.courseId, courses.id))
+    .where(eq(subjects.id, input.subjectId))
+    .limit(1);
+  const current = input.id
+    ? (
+        await getDb()
+          .select({ active: topics.active })
+          .from(topics)
+          .where(eq(topics.id, input.id))
+          .limit(1)
+      )[0]
+    : null;
+  assertGenericCppgPublicationAllowed(
+    {
+      courseId: subject?.courseId,
+      courseSlug: subject?.courseSlug,
+      courseCode: subject?.courseCode,
+    },
+    current ?? { active: false },
+    input,
+  );
   if (input.parentTopicId) {
     if (input.parentTopicId === input.id) {
       throw new AppError(

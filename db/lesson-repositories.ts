@@ -20,6 +20,7 @@ import type {
   LessonInput,
 } from "@/lib/validation";
 import { AppError } from "@/lib/errors";
+import { assertGenericCppgPublicationAllowed } from "@/lib/services/cppg-generic-publication-guard";
 import {
   assertLessonCompletionAllowed,
   deriveStudySeconds,
@@ -76,8 +77,15 @@ async function getHierarchyScope(input: {
       );
     }
   }
+  const [course] = await getDb()
+    .select({ slug: courses.slug, code: courses.code })
+    .from(courses)
+    .where(eq(courses.id, input.courseId))
+    .limit(1);
   return {
     courseId: input.courseId,
+    courseSlug: course?.slug,
+    courseCode: course?.code,
     subjectId: input.subjectId,
     topicId: input.topicId || null,
   };
@@ -159,6 +167,8 @@ export async function saveLearningUnit(
             courseId: learningUnits.courseId,
             subjectId: learningUnits.subjectId,
             topicId: learningUnits.topicId,
+            active: learningUnits.active,
+            published: learningUnits.published,
           })
           .from(learningUnits)
           .where(
@@ -204,6 +214,11 @@ export async function saveLearningUnit(
       );
     }
   }
+  assertGenericCppgPublicationAllowed(
+    scope,
+    existing ?? { active: false, published: false },
+    input,
+  );
   const id = input.id ?? crypto.randomUUID();
   const values = {
     ...scope,
@@ -379,6 +394,8 @@ export async function saveLesson(input: LessonInput, actorUserId: string) {
             learningUnitId: lessons.learningUnitId,
             topicId: lessons.topicId,
             version: lessons.version,
+            active: lessons.active,
+            published: lessons.published,
           })
           .from(lessons)
           .where(and(eq(lessons.id, input.id), isNull(lessons.deletedAt)))
@@ -399,6 +416,11 @@ export async function saveLesson(input: LessonInput, actorUserId: string) {
       "LESSON_SCOPE_IMMUTABLE",
     );
   }
+  assertGenericCppgPublicationAllowed(
+    scope,
+    existing ?? { active: false, published: false },
+    input,
+  );
   const id = input.id ?? crypto.randomUUID();
   const version = (existing?.version ?? 0) + 1;
   const values = {

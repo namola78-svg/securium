@@ -20,6 +20,7 @@ import {
   writtenAnswerRules,
 } from "./schema";
 import { AppError } from "@/lib/errors";
+import { assertGenericCppgPublicationAllowed } from "@/lib/services/cppg-generic-publication-guard";
 import {
   calculateRisk,
   gradeWrittenAnswer,
@@ -628,6 +629,34 @@ export async function saveSpecializedContent(
   const id = "id" in input && input.id ? input.id : crypto.randomUUID();
   switch (input.entity) {
     case "ISMS_STANDARD": {
+      const [existing] = input.id
+        ? await getDb()
+            .select({ active: ismsStandards.active })
+            .from(ismsStandards)
+            .where(eq(ismsStandards.id, input.id))
+            .limit(1)
+        : [];
+      const linkedCourses = await getDb()
+        .select({ courseId: contentCourseLinks.courseId })
+        .from(contentCourseLinks)
+        .where(
+          and(
+            eq(contentCourseLinks.contentType, "ISMS_STANDARD"),
+            eq(contentCourseLinks.contentId, id),
+          ),
+        );
+      for (const { courseId } of linkedCourses) {
+        const [course] = await getDb()
+          .select({ slug: courses.slug, code: courses.code })
+          .from(courses)
+          .where(eq(courses.id, courseId))
+          .limit(1);
+        assertGenericCppgPublicationAllowed(
+          { courseId, courseSlug: course?.slug, courseCode: course?.code },
+          { active: existing?.active ?? false },
+          { active: input.active },
+        );
+      }
       const values = {
         code: input.code,
         title: input.title,
@@ -671,6 +700,34 @@ export async function saveSpecializedContent(
       break;
     }
     case "LEGAL_ARTICLE": {
+      const [existing] = input.id
+        ? await getDb()
+            .select({ active: legalArticles.active })
+            .from(legalArticles)
+            .where(eq(legalArticles.id, input.id))
+            .limit(1)
+        : [];
+      const linkedCourses = await getDb()
+        .select({ courseId: contentCourseLinks.courseId })
+        .from(contentCourseLinks)
+        .where(
+          and(
+            eq(contentCourseLinks.contentType, "LEGAL_ARTICLE"),
+            eq(contentCourseLinks.contentId, id),
+          ),
+        );
+      for (const { courseId } of linkedCourses) {
+        const [course] = await getDb()
+          .select({ slug: courses.slug, code: courses.code })
+          .from(courses)
+          .where(eq(courses.id, courseId))
+          .limit(1);
+        assertGenericCppgPublicationAllowed(
+          { courseId, courseSlug: course?.slug, courseCode: course?.code },
+          { active: existing?.active ?? false },
+          { active: input.active },
+        );
+      }
       const values = {
         lawName: input.lawName,
         articleNumber: input.articleNumber,
@@ -795,7 +852,46 @@ export async function saveSpecializedContent(
       }
       break;
     }
-    case "CONTENT_LINK":
+    case "CONTENT_LINK": {
+      const [course] = await getDb()
+        .select({ slug: courses.slug, code: courses.code })
+        .from(courses)
+        .where(eq(courses.id, input.courseId))
+        .limit(1);
+      const [existingLink] = await getDb()
+        .select({ id: contentCourseLinks.id })
+        .from(contentCourseLinks)
+        .where(
+          and(
+            eq(contentCourseLinks.courseId, input.courseId),
+            eq(contentCourseLinks.contentType, input.contentType),
+            eq(contentCourseLinks.contentId, input.contentId),
+          ),
+        )
+        .limit(1);
+      let linkedContentIsVisible = input.contentType === "ISMS_DEFECT_CASE" || input.contentType === "RISK_SCENARIO";
+      if (input.contentType === "ISMS_STANDARD") {
+        const [content] = await getDb()
+          .select({ active: ismsStandards.active })
+          .from(ismsStandards)
+          .where(eq(ismsStandards.id, input.contentId))
+          .limit(1);
+        linkedContentIsVisible = content?.active === true;
+      } else if (input.contentType === "LEGAL_ARTICLE") {
+        const [content] = await getDb()
+          .select({ active: legalArticles.active })
+          .from(legalArticles)
+          .where(eq(legalArticles.id, input.contentId))
+          .limit(1);
+        linkedContentIsVisible = content?.active === true;
+      }
+      if (!existingLink && linkedContentIsVisible) {
+        assertGenericCppgPublicationAllowed(
+          { courseId: input.courseId, courseSlug: course?.slug, courseCode: course?.code },
+          { published: false },
+          { published: true },
+        );
+      }
       await getDb()
         .insert(contentCourseLinks)
         .values({
@@ -820,6 +916,7 @@ export async function saveSpecializedContent(
           .onConflictDoNothing();
       }
       break;
+    }
   }
   return id;
 }
