@@ -31,7 +31,9 @@ const nextConfig: NextConfig = {
   ...(isCloudflareBuild
     ? {}
     : {
-        output: "standalone" as const,
+        ...(process.env.VERCEL === "1"
+          ? {}
+          : { output: "standalone" as const }),
         async headers() {
           return [
             {
