@@ -17,6 +17,7 @@ import { replayAuthorityLedger, type AuthorityReference, type AuthorityReplayCon
 import { executeRuntimeAuthorityCommand, type RuntimeAuthorityCommandContext } from "./runtime-authority-command-service.ts";
 import { assertNoCallerAuthorityInjection } from "./cppg-runtime-authority.ts";
 import { PostgresRuntimeAuthorityPersistence } from "../../db/runtime-authority-postgres-persistence.ts";
+import { PostgresCppgDraftPersistenceAdapter } from "../../db/cppg-runtime-postgres-registration.ts";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { contentRevisions, contents, courseLessons, courses, curriculumNodes, curriculumTrees, learningUnits, lessons, subjects, topics } from "../../db/schema.ts";
@@ -139,6 +140,7 @@ export type CppgAuthorityCurrentness = Readonly<{
   state: "CURRENT" | "NOT_CURRENT";
   authorityId: string;
   approvalSubjectHash: string;
+  authoritySequence?: number;
   reason?: string;
 }>;
 
@@ -378,6 +380,7 @@ type CppgLedgerState = Readonly<{
   subject: RuntimeAuthoritySubject | null;
   approvalSubjectHash: string | null;
   supersededByAuthorityId: string | null;
+  authoritySequence: number;
 }>;
 
 async function loadCppgLedgerState(
@@ -387,7 +390,7 @@ async function loadCppgLedgerState(
   return owner.withTransaction(async (transaction) => {
     const root = await transaction.loadAuthorityRoot(authorityId);
     const records = await transaction.loadAcceptedAuthorityEvents(authorityId);
-    if (!root && records.length === 0) return { state: "NONE", subject: null, approvalSubjectHash: null, supersededByAuthorityId: null };
+    if (!root && records.length === 0) return { state: "NONE", subject: null, approvalSubjectHash: null, supersededByAuthorityId: null, authoritySequence: 0 };
     if (!root) throw new CppgAuthorityBindingError("CPPG_APPROVAL_BINDING_UNAVAILABLE", "CPPG authority root is missing for persisted event history");
     const successorIds = new Set<string>();
     for (const event of records) {
@@ -412,6 +415,7 @@ async function loadCppgLedgerState(
       subject: replay.record?.subject ?? null,
       approvalSubjectHash: replay.record?.approvalSubjectHash ?? null,
       supersededByAuthorityId: replay.record?.supersededByAuthorityId ?? null,
+      authoritySequence: replay.lastSequence,
     };
   });
 }
@@ -505,7 +509,7 @@ async function currentCppgProjection(
         resolveLifecycle: (_subject, authorityId) => authorityId === identity.authorityId && ledger.state !== "NONE" ? ledger.state : null,
       },
     });
-    return { state: "CURRENT", authorityId: identity.authorityId, approvalSubjectHash: identity.approvalSubjectHash };
+    return { state: "CURRENT", authorityId: identity.authorityId, approvalSubjectHash: identity.approvalSubjectHash, authoritySequence: ledger.authoritySequence };
   } catch (error) {
     return {
       state: "NOT_CURRENT",
@@ -718,22 +722,50 @@ async function persistCppgCourseTheoryDraftPlan(
 }
 export async function persistCppgCourseTheoryDraft(
   options: CppgProjectionOptions,
-  adapter: CppgDraftPersistenceAdapter,
   authorityOwner: RuntimeAuthorityPersistenceTransactionOwner,
 ): Promise<CppgPersistenceResult> {
   assertProjectionEntryPointOptions(options);
   assertCanonicalPostgresOwner(authorityOwner);
   const projection = await buildCppgCourseTheoryDraftProjection(options);
-  const currentness = await currentCppgProjection(projection, authorityOwner);
-  if (currentness.state !== "CURRENT") {
-    throw new CppgAuthorityBindingError("CPPG_APPROVAL_BINDING_UNAVAILABLE", `CPPG authority is not current (${currentness.reason ?? "NOT_CURRENT"}); Course/Theory Draft registration remains HOLD`);
-  }
-  return persistCppgCourseTheoryDraftPlan(projection, adapter, async () => {
-    const latest = await currentCppgProjection(projection, authorityOwner);
-    if (latest.state !== "CURRENT") {
-      throw new CppgAuthorityBindingError("CPPG_APPROVAL_BINDING_UNAVAILABLE", `CPPG authority is no longer current (${latest.reason ?? "NOT_CURRENT"}); Course/Theory Draft registration remains HOLD`);
+  return persistCppgCourseTheoryDraftProjection(projection, options.actorUserId, authorityOwner);
+}
+
+async function persistCppgCourseTheoryDraftProjection(
+  projection: CppgCourseTheoryDraftProjection,
+  registeredBy: string,
+  authorityOwner: PostgresRuntimeAuthorityPersistence,
+): Promise<CppgPersistenceResult> {
+  return authorityOwner.withRegistrationTransaction(async (transactionAuthorityOwner, executor) => {
+    const identity = await cppgAuthorityIdentity(projection);
+    const currentness = await currentCppgProjection(projection, transactionAuthorityOwner);
+    if (currentness.state !== "CURRENT" || !currentness.authoritySequence) {
+      throw new CppgAuthorityBindingError("CPPG_APPROVAL_BINDING_UNAVAILABLE", `CPPG authority is not current (${currentness.reason ?? "NOT_CURRENT"}); Course/Theory Draft registration remains HOLD`);
     }
+    const adapter = new PostgresCppgDraftPersistenceAdapter(executor, {
+      identity,
+      currentness: { ...currentness, authoritySequence: currentness.authoritySequence },
+      projection,
+      registeredBy,
+    });
+    return persistCppgCourseTheoryDraftPlan(projection, adapter, async () => {
+      const latest = await currentCppgProjection(projection, transactionAuthorityOwner);
+      if (latest.state !== "CURRENT" || latest.approvalSubjectHash !== identity.approvalSubjectHash || latest.authorityId !== identity.authorityId || latest.authoritySequence !== currentness.authoritySequence) {
+        throw new CppgAuthorityBindingError("CPPG_APPROVAL_BINDING_UNAVAILABLE", `CPPG authority changed before registration commit (${latest.reason ?? "NOT_CURRENT"}); Course/Theory Draft registration remains HOLD`);
+      }
+    });
   });
+}
+
+/** PostgreSQL transaction integration seam for tests with canonical projection fixtures. */
+export async function persistCppgCourseTheoryDraftProjectionForTesting(
+  projection: CppgCourseTheoryDraftProjection,
+  registeredBy: string,
+  authorityOwner: RuntimeAuthorityPersistenceTransactionOwner,
+): Promise<CppgPersistenceResult> {
+  const runningNodeTest = typeof process.env.NODE_TEST_CONTEXT === "string";
+  if (process.env.NODE_ENV !== "test" || !runningNodeTest) throw new CppgAuthorityBindingError("CPPG_TEST_ONLY_PERSISTENCE_PRIMITIVE", "projection persistence test primitive is disabled outside the Node test runner");
+  assertCanonicalPostgresOwner(authorityOwner);
+  return persistCppgCourseTheoryDraftProjection(projection, registeredBy, authorityOwner);
 }
 /** Internal transaction tests only; this is never a registration authority entrypoint. */
 export async function persistCppgCourseTheoryDraftForTesting(projection: CppgCourseTheoryDraftProjection, adapter: CppgDraftPersistenceAdapter): Promise<CppgPersistenceResult> {

@@ -33,7 +33,11 @@ type EventRow = {
 export class PostgresRuntimeAuthorityPersistence
   implements RuntimeAuthorityPersistenceTransactionOwner
 {
-  constructor(private readonly executor: PostgresExecutor) {}
+  private readonly executor: PostgresExecutor;
+
+  constructor(executor: PostgresExecutor) {
+    this.executor = executor;
+  }
 
   async withTransaction<T>(
     callback: (transaction: RuntimeAuthorityPersistenceTransaction) => Promise<T>,
@@ -42,12 +46,32 @@ export class PostgresRuntimeAuthorityPersistence
       callback(new PostgresRuntimeAuthorityTransaction(executor)),
     );
   }
+
+  /** Runs application persistence beside authority validation on one locked transaction. */
+  async withRegistrationTransaction<T>(
+    callback: (
+      authorityOwner: RuntimeAuthorityPersistenceTransactionOwner,
+      executor: PostgresTransactionExecutor,
+    ) => Promise<T>,
+  ): Promise<T> {
+    return this.executor.transaction(async (executor) => {
+      const transaction = new PostgresRuntimeAuthorityTransaction(executor);
+      const authorityOwner: RuntimeAuthorityPersistenceTransactionOwner = {
+        withTransaction: (operation) => operation(transaction),
+      };
+      return callback(authorityOwner, executor);
+    });
+  }
 }
 
 class PostgresRuntimeAuthorityTransaction
   implements RuntimeAuthorityPersistenceTransaction
 {
-  constructor(private readonly executor: PostgresTransactionExecutor) {}
+  private readonly executor: PostgresTransactionExecutor;
+
+  constructor(executor: PostgresTransactionExecutor) {
+    this.executor = executor;
+  }
 
   async loadAuthorityRoot(authorityId: string) {
     const result = await this.executor.query<RootRow>(

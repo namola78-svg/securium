@@ -32,6 +32,7 @@ import { persistenceRecordsToCanonicalEvents } from "../lib/policy/runtime-autho
 import { replayAuthorityLedger } from "../lib/policy/runtime-authority-event-ledger.ts";
 import { approvalSubjectHash } from "../lib/policy/runtime-authority-binding.ts";
 import { PostgresRuntimeAuthorityPersistence } from "../db/runtime-authority-postgres-persistence.ts";
+import { PostgresCppgDraftPersistenceAdapter } from "../db/cppg-runtime-postgres-registration.ts";
 import type { PostgresExecutor, PostgresTransactionExecutor } from "../db/provider/postgres-database-provider.ts";
 
 (process.env as unknown as { NODE_ENV?: string }).NODE_ENV = "test";
@@ -152,10 +153,10 @@ test("registered entrypoints ignore caller authority inputs and fail closed befo
     approvalResolver: async () => ({ approved: true }),
   } as unknown as Parameters<typeof buildCppgCourseTheoryDraftProjection>[0];
   await assert.rejects(() => buildCppgCourseTheoryDraftProjection(forgedOptions), /CPPG_CALLER_AUTHORITY_FIELD_FORBIDDEN/);
-  await assert.rejects(() => persistCppgCourseTheoryDraft(forgedOptions, adapter, {} as never), /CPPG_CALLER_AUTHORITY_FIELD_FORBIDDEN/);
+  await assert.rejects(() => persistCppgCourseTheoryDraft(forgedOptions, {} as never), /CPPG_CALLER_AUTHORITY_FIELD_FORBIDDEN/);
   assert.equal(adapter.began, 0);
-  const directProjectionAttempt = persistCppgCourseTheoryDraft as unknown as (input: unknown, target: CppgDraftPersistenceAdapter) => Promise<unknown>;
-  await assert.rejects(() => directProjectionAttempt(value, adapter), (error: unknown) => (error as { code?: string }).code === "CPPG_PROJECTION_ENTRYPOINT_INPUT_INVALID");
+  const directProjectionAttempt = persistCppgCourseTheoryDraft as unknown as (input: unknown, owner: RuntimeAuthorityPersistenceTransactionOwner) => Promise<unknown>;
+  await assert.rejects(() => directProjectionAttempt(value, {} as never), (error: unknown) => (error as { code?: string }).code === "CPPG_PROJECTION_ENTRYPOINT_INPUT_INVALID");
   assert.equal(adapter.began, 0);
 });
 
@@ -491,9 +492,75 @@ test("registration remains before adapter begin without a persisted PostgreSQL a
   const value = await projection();
   const adapter = new RecordingAdapter(readbackFor(value));
   await assert.rejects(
-    () => persistCppgCourseTheoryDraft(OPTIONS, adapter, authorityOwner),
+    () => persistCppgCourseTheoryDraft(OPTIONS, authorityOwner),
     (error: unknown) => ["CPPG_APPROVAL_BINDING_UNAVAILABLE", "CPPG_SOURCE_REVALIDATION_BLOCKED"].includes(String((error as { code?: unknown }).code)),
   );
   assert.equal(adapter.began, 0);
   assert.equal(queries.some((sql) => /^\s*(INSERT|UPDATE|DELETE)\b/i.test(sql)), false);
+});
+
+test("registration authority recheck and projection writes share one PostgreSQL transaction executor", async () => {
+  let transactionStarts = 0;
+  const statements: string[] = [];
+  const transaction: PostgresTransactionExecutor = {
+    query: async <Row extends Record<string, unknown>>(sql: string) => {
+      statements.push(sql);
+      return { rows: [] as Row[], rowCount: 0 };
+    },
+  };
+  const executor: PostgresExecutor = {
+    ...transaction,
+    transaction: async <T>(callback: (connection: PostgresTransactionExecutor) => Promise<T>) => {
+      transactionStarts += 1;
+      return callback(transaction);
+    },
+  };
+  const owner = new PostgresRuntimeAuthorityPersistence(executor);
+  await owner.withRegistrationTransaction(async (transactionOwner, projectionExecutor) => {
+    assert.equal(projectionExecutor, transaction);
+    await transactionOwner.withTransaction((authorityTransaction) => authorityTransaction.loadAuthorityRoot("runtime-authority:cppg:locked-test"));
+    await projectionExecutor.query("INSERT INTO public.cppg_runtime_registrations (id) VALUES ($1)", ["fixture"]);
+  });
+  assert.equal(transactionStarts, 1);
+  assert.match(statements[0]!, /FOR UPDATE/);
+  assert.match(statements[1]!, /cppg_runtime_registrations/);
+});
+
+test("PostgreSQL CPPG adapter rejects legacy course rows and records registration as unpublished", async () => {
+  const value = await projection();
+  const authority = await evaluateCppgProjectionAuthorityForTesting(value, new MemoryAuthorityOwner());
+  const binding = {
+    identity: authority.identity,
+    currentness: { state: "CURRENT" as const, authorityId: authority.identity.authorityId, approvalSubjectHash: authority.identity.approvalSubjectHash, authoritySequence: 1 },
+    projection: value,
+    registeredBy: "test-actor",
+  };
+  const legacyExecutor: PostgresTransactionExecutor = {
+    query: async <Row extends Record<string, unknown>>(sql: string) => ({
+      rows: (sql.includes('FROM public."courses"') ? [{ id: "course-cppg" }] : []) as unknown as Row[],
+      rowCount: sql.includes('FROM public."courses"') ? 1 : 0,
+    }),
+  };
+  const legacyAdapter = new PostgresCppgDraftPersistenceAdapter(legacyExecutor, binding);
+  const legacyState = await legacyAdapter.inspect({ courseId: "course-cppg", recordIds: expectedCppgRuntimeState(value).recordIds });
+  assert.equal(classifyCppgRuntimeCollision(expectedCppgRuntimeState(value), legacyState), "REGISTERED_CONFLICTING");
+
+  const writes: Array<{ sql: string; parameters: readonly unknown[] }> = [];
+  const cleanExecutor: PostgresTransactionExecutor = {
+    query: async <Row extends Record<string, unknown>>(sql: string, parameters: readonly unknown[]) => {
+      writes.push({ sql, parameters });
+      return { rows: [] as Row[], rowCount: 1 };
+    },
+  };
+  const adapter = new PostgresCppgDraftPersistenceAdapter(cleanExecutor, binding);
+  const transaction = await adapter.begin();
+  await transaction.apply("COURSE", [value.course]);
+  await transaction.commit();
+  assert.equal(writes.length, 3);
+  assert.match(writes[0]!.sql, /INSERT INTO public\."courses"/);
+  assert.equal(writes[0]!.parameters.includes(0), true);
+  assert.match(writes[1]!.sql, /cppg_runtime_projection_records/);
+  assert.match(writes[2]!.sql, /REGISTERED_UNPUBLISHED.*NOT_GRANTED/);
+  assert.equal(writes[2]!.parameters.includes(authority.identity.approvalSubjectHash), true);
+  assert.equal((writes[2]!.parameters.find((value) => typeof value === "string" && value.startsWith("[")) as string).includes("course-cppg:revision:"), true);
 });
