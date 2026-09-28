@@ -409,6 +409,67 @@ test("CPPG revocation and supersession are read from the persisted generic lifec
   assert.equal(revokeOwner.roots.get(revocable.identity.authorityId), 2);
 });
 
+test("CPPG supersession rejects generic predecessor identity masquerades without appending events", async () => {
+  const predecessorProjection = await projection();
+  const bundle = await foundationBundle();
+  const firstUnit = bundle.theory.units[0];
+  assert.ok(firstUnit);
+  const successorProjection = await buildCppgCourseTheoryDraftProjectionFromBundle({
+    ...bundle,
+    theory: { ...bundle.theory, units: [{ ...firstUnit, purpose: `${firstUnit.purpose} canonical successor` }, ...bundle.theory.units.slice(1)] },
+  }, OPTIONS);
+
+  const owner = new MemoryAuthorityOwner();
+  const predecessor = await evaluateCppgProjectionAuthorityForTesting(predecessorProjection, owner);
+  const successor = await evaluateCppgProjectionAuthorityForTesting(successorProjection, owner);
+  await successor.approve("canonical-successor-approval");
+
+  const forgedPackageSubject = { ...predecessor.identity.subject, packageKey: "course-cppg:foundation:other" };
+  const genericMasqueradeSubject = { ...predecessor.identity.subject, foundationHash: "e".repeat(64) };
+  const cases = [
+    {
+      name: "wrong packageKey",
+      subject: forgedPackageSubject,
+      authorityId: `runtime-authority:cppg:${approvalSubjectHash(forgedPackageSubject)}`,
+    },
+    {
+      name: "generic authority masquerade",
+      subject: genericMasqueradeSubject,
+      authorityId: `runtime-authority:cppg:${approvalSubjectHash(genericMasqueradeSubject)}`,
+    },
+    {
+      name: "wrong authorityId",
+      subject: predecessor.identity.subject,
+      authorityId: `runtime-authority:cppg:${"f".repeat(64)}`,
+    },
+  ] as const;
+
+  for (const [index, candidate] of cases.entries()) {
+    await executeRuntimeAuthorityCommand(owner, {
+      authorityId: candidate.authorityId,
+      eventType: "APPROVAL_CREATED",
+      payload: {
+        subject: candidate.subject,
+        approvalSubjectHash: approvalSubjectHash(candidate.subject),
+        createdAt: `2026-09-28T00:0${index}:00.000Z`,
+      },
+      idempotencyKey: `generic-masquerade-${index}`,
+    });
+    const beforeEvents = owner.events.get(candidate.authorityId) ?? [];
+    const beforeSequence = owner.roots.get(candidate.authorityId);
+    await assert.rejects(
+      () => successor.supersede(candidate.authorityId, `reject-masquerade-${index}`),
+      (error: unknown) => (error as { code?: string }).code === "CPPG_CANONICAL_IDENTITY_MISMATCH",
+      candidate.name,
+    );
+    assert.equal(owner.events.get(candidate.authorityId)?.length, beforeEvents.length, `${candidate.name}: predecessor history must not change`);
+    assert.equal(owner.roots.get(candidate.authorityId), beforeSequence, `${candidate.name}: predecessor sequence must not change`);
+  }
+
+  assert.equal((await evaluateCppgProjectionAuthorityForTesting(successorProjection, owner)).state.state, "CURRENT");
+  assert.equal(owner.roots.get(successor.identity.authorityId), 1);
+});
+
 test("production CPPG authority APIs reject structural non-PostgreSQL writers", async () => {
   const status = await resolveCppgCourseTheoryDraftCurrentness(OPTIONS, new MemoryAuthorityOwner());
   assert.deepEqual(status, { state: "NOT_CURRENT", authorityId: "", approvalSubjectHash: "", reason: "APPROVAL_BINDING_UNAVAILABLE" });

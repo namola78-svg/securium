@@ -332,8 +332,45 @@ function cppgAuthorityIdentity(projection: CppgCourseTheoryDraftProjection): Pro
       publicationAuthority: NOT_GRANTED,
     });
     const hash = approvalSubjectHash(subject);
-    return Object.freeze({ authorityId: `runtime-authority:cppg:${hash}`, subject, approvalSubjectHash: hash });
+    return Object.freeze({ authorityId: cppgAuthorityIdForSubjectHash(hash), subject, approvalSubjectHash: hash });
   })();
+}
+
+function cppgAuthorityIdForSubjectHash(subjectHash: string): string {
+  return `runtime-authority:cppg:${subjectHash}`;
+}
+
+async function isCanonicalCppgPredecessor(
+  authorityId: string,
+  subject: RuntimeAuthoritySubject,
+  storedApprovalSubjectHash: string,
+): Promise<boolean> {
+  const subjectHash = approvalSubjectHash(subject);
+  if (storedApprovalSubjectHash !== subjectHash || authorityId !== cppgAuthorityIdForSubjectHash(subjectHash)) return false;
+  if (
+    subject.contractVersion !== RUNTIME_AUTHORITY_SUBJECT_CONTRACT_V1 ||
+    subject.registrationPurpose !== COURSE_THEORY_DRAFT ||
+    subject.courseId !== CPPG_RUNTIME_COURSE_ID ||
+    subject.courseSlug !== "cppg" ||
+    subject.packageKey !== CPPG_RUNTIME_PACKAGE_KEY ||
+    subject.sourceManifestId !== CPPG_SOURCE_MANIFEST_ID ||
+    subject.sourcePackageHash !== CPPG_SOURCE_PACKAGE_HASH ||
+    subject.foundationId !== CPPG_FOUNDATION_ID ||
+    subject.publicationAuthority !== NOT_GRANTED
+  ) return false;
+
+  const revisionPrefix = `${CPPG_RUNTIME_PACKAGE_KEY}:revision:`;
+  if (!subject.runtimeRevisionId.startsWith(revisionPrefix)) return false;
+  const revisionIdentity = subject.runtimeRevisionId.slice(revisionPrefix.length);
+  if (!/^[a-f0-9]{64}$/u.test(revisionIdentity)) return false;
+  const expectedFoundationHash = await sha256Canonical({
+    foundationId: CPPG_FOUNDATION_ID,
+    sourceManifestId: CPPG_SOURCE_MANIFEST_ID,
+    sourcePackageHash: CPPG_SOURCE_PACKAGE_HASH,
+    authoritySemanticHash: CPPG_FOUNDATION_SEMANTIC_HASH,
+    revisionIdentity,
+  });
+  return subject.foundationHash === expectedFoundationHash;
 }
 
 type CppgLedgerState = Readonly<{
@@ -580,8 +617,8 @@ async function supersedeCppgProjection(
   if ((prior.state !== "APPROVED_ACTIVE" && !exactSupersessionReplay) || !prior.subject || prior.approvalSubjectHash !== approvalSubjectHash(prior.subject)) {
     throw new CppgAuthorityBindingError("CPPG_APPROVAL_BINDING_UNAVAILABLE", "prior CPPG authority is not an intact active approval");
   }
-  if (prior.subject.courseId !== CPPG_RUNTIME_COURSE_ID || prior.subject.courseSlug !== "cppg" || prior.subject.registrationPurpose !== COURSE_THEORY_DRAFT || prior.subject.sourceManifestId !== CPPG_SOURCE_MANIFEST_ID || prior.subject.sourcePackageHash !== CPPG_SOURCE_PACKAGE_HASH || prior.subject.foundationId !== CPPG_FOUNDATION_ID) {
-    throw new CppgAuthorityBindingError("CPPG_CANONICAL_IDENTITY_MISMATCH", "prior authority does not belong to the Gate A-bound CPPG subject");
+  if (!(await isCanonicalCppgPredecessor(priorAuthorityId, prior.subject, prior.approvalSubjectHash))) {
+    throw new CppgAuthorityBindingError("CPPG_CANONICAL_IDENTITY_MISMATCH", "prior authority is not the canonical Gate A-bound CPPG subject and authority identity");
   }
   if (priorAuthorityId === successor.authorityId) throw new CppgAuthorityBindingError("CPPG_CANONICAL_IDENTITY_MISMATCH", "a CPPG authority cannot supersede itself");
   const desired = { successorAuthorityId: successor.authorityId, successorSubjectHash: successor.approvalSubjectHash, createdAt: (context.now ?? (() => new Date().toISOString()))() };
