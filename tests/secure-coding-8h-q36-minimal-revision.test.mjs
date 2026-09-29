@@ -54,8 +54,8 @@ test("keeps the approved Q36 content change minimal and updates the exact expect
   );
   assert.equal(manifest.questionDistribution.answerPositionDistribution["0"], 9);
   assert.equal(manifest.questionDistribution.answerPositionDistribution["1"], 11);
-  assert.equal(manifest.questionDistribution.answerPositionDistribution["2"], 10);
-  assert.equal(manifest.questionDistribution.answerPositionDistribution["3"], 10);
+  assert.equal(manifest.questionDistribution.answerPositionDistribution["2"], 9);
+  assert.equal(manifest.questionDistribution.answerPositionDistribution["3"], 11);
 
   assert.equal(
     current.prompt,

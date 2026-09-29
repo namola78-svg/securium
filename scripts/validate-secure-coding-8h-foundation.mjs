@@ -79,7 +79,7 @@ for (const question of questions.questions) {
   }
   answerPositions.set(question.answer, (answerPositions.get(question.answer) ?? 0) + 1);
 }
-if (JSON.stringify(Object.fromEntries([...answerPositions].sort())) !== JSON.stringify({ 0: 9, 1: 11, 2: 10, 3: 10 })) {
+if (JSON.stringify(Object.fromEntries([...answerPositions].sort())) !== JSON.stringify({ 0: 9, 1: 11, 2: 9, 3: 11 })) {
   fail("answer-position distribution is biased or not deterministic");
 }
 

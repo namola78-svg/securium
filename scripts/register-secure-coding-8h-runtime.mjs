@@ -2,6 +2,9 @@ import { spawn } from "node:child_process";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 import { loadSecureCoding8HRuntimeModel } from "../lib/services/secure-coding-8h-runtime-adapter.ts";
+import { PostgresRuntimeAuthorityPersistence } from "../db/runtime-authority-postgres-persistence.ts";
+import { createPostgresJsExecutor } from "../db/postgres/postgres-js-executor.ts";
+import { registerSecureCoding8HRuntime } from "../lib/services/secure-coding-8h-runtime-registration.ts";
 
 const REGISTRATION_RECORD = Object.freeze({
   id: "developer-secure-coding-8h-python-vibe",
@@ -143,7 +146,7 @@ async function main() {
       ? await registerD1Local()
       : await registerPostgresNonProduction();
   console.log(JSON.stringify({
-    status: "SECURE_CODING_8H_RUNTIME_REGISTRATION_VERIFIED",
+    status: options.provider === "postgres" ? "SECURE_CODING_8H_CANONICAL_REGISTRATION_VERIFIED" : "SECURE_CODING_8H_COURSE_ROW_ONLY_NONCANONICAL",
     provider: options.provider,
     created: result.created,
     idempotent: !result.created,
@@ -229,38 +232,23 @@ async function registerPostgresNonProduction() {
   } catch {
     throw registrationError("POSTGRES_SEED_URL_INVALID", "The PostgreSQL seed URL is invalid.");
   }
-  if (!/^postgres(?:ql)?:$/.test(parsedUrl.protocol) || /prod/i.test(parsedUrl.hostname)) {
-    throw registrationError("POSTGRES_SEED_URL_INVALID", "The PostgreSQL target is not accepted as non-production.");
+  if (!/^postgres(?:ql)?:$/.test(parsedUrl.protocol) || !["127.0.0.1", "localhost", "::1"].includes(parsedUrl.hostname) || /prod/i.test(parsedUrl.pathname)) {
+    throw registrationError("POSTGRES_SEED_URL_INVALID", "The canonical CLI writer accepts only loopback disposable PostgreSQL.");
   }
-
-  const { default: postgres } = await import("postgres");
-  const sql = postgres(connectionUrl, {
-    max: 1,
-    idle_timeout: 1,
-    connect_timeout: 10,
-    ssl: "require",
+  const actorUserId = process.env.SECURIUM_RUNTIME_REGISTRATION_ACTOR_ID?.trim();
+  if (!actorUserId) throw registrationError("REGISTRATION_ACTOR_REQUIRED", "Set the existing test/non-production actor ID for audited registration.");
+  const executor = await createPostgresJsExecutor({
+    APP_ENV: "test",
+    DATABASE_URL: connectionUrl,
+    POSTGRES_SSL_MODE: "disable",
+    POSTGRES_QUERY_TIMEOUT_MS: "30000",
   });
+  const authorityOwner = new PostgresRuntimeAuthorityPersistence(executor);
   try {
-    const result = await sql.begin(async (transaction) => {
-      const groupRows = await transaction.unsafe(buildCourseGroupLookupSql());
-      if (groupRows.length !== 1 || groupRows[0]?.id !== REGISTRATION_RECORD.courseGroupId) {
-        throw registrationError("COURSE_GROUP_MISSING", "The existing independent course group is unavailable.");
-      }
-      const before = await transaction.unsafe(buildCourseLookupSql());
-      const decision = classifyExistingCourseRows(before);
-      if (decision === "INSERT_REQUIRED") {
-        await transaction.unsafe(buildRegistrationInsertSql("postgres"));
-      }
-      const after = await transaction.unsafe(buildCourseLookupSql());
-      if (after.length !== 1) {
-        throw registrationError("RUNTIME_IDENTITY_MISMATCH", "PostgreSQL registration read-back was not exactly one row.");
-      }
-      assertExactRegistrationRow(normalizeCourseRow(after[0]));
-      return { created: decision === "INSERT_REQUIRED" };
-    });
-    return result;
+    const result = await registerSecureCoding8HRuntime(actorUserId, authorityOwner);
+    return { created: result.outcome === "REGISTERED", outcome: result.outcome, registrationId: result.registrationId, counts: result.binding.projection.counts };
   } finally {
-    await sql.end({ timeout: 1 });
+    await executor.close?.();
   }
 }
 
