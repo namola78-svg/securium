@@ -44,7 +44,7 @@ REVOKE ALL PRIVILEGES ON TABLE public."cppg_publication_revocations" FROM PUBLIC
 ALTER TABLE public."cppg_publication_revocations" ENABLE ROW LEVEL SECURITY;
 
 INSERT INTO public.app_schema_migrations (id, checksum)
-VALUES ('0056_cppg_publication_revocations', 'cppg-publication-revocations-v1')
+VALUES ('0057_cppg_publication_revocations', 'cppg-publication-revocations-v1')
 ON CONFLICT (id) DO NOTHING;
 
 COMMIT;

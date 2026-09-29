@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const migration = await readFile("db/postgres/migrations/0056_cppg_publication_revocations.sql", "utf8");
+const migration = await readFile("db/postgres/migrations/0057_cppg_publication_revocations.sql", "utf8");
 
 test("CPPG revocation migration appends facts bound to the exact immutable receipt", () => {
   assert.match(migration, /CREATE TABLE public\."cppg_publication_revocations"/u);

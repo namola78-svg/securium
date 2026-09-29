@@ -1,0 +1,115 @@
+{
+  "schemaVersion": "SECURIUM_PYTHON_8H_RUNTIME_REGISTRATION_BINDING_CANDIDATE_V1",
+  "candidateStatus": "CANONICAL_SOURCE_CONTENT_CANDIDATE_NOT_APPROVAL",
+  "courseId": "developer-secure-coding-8h-python-vibe",
+  "slug": "secure-coding-8h-python-vibe",
+  "packageKey": "securium-developer-secure-coding-8h-python-vibe-foundation-v1",
+  "selectedPackageIds": [
+    "SECURIUM_PYTHON_8H_SOURCE_PACKAGE_A_V1",
+    "SECURIUM_PYTHON_8H_SOURCE_PACKAGE_B_V1",
+    "SECURIUM_PYTHON_8H_SOURCE_PACKAGE_C_V2"
+  ],
+  "sourceManifestId": "SECURIUM_PYTHON_8H_COMBINED_SOURCE_PACKAGES_A_B_C_V2",
+  "combinedSourcePackageHash": "d3c71a14fd87c6f00d9f8bc55bc83c675dbb0c1f151e99443e0ff1916af87481",
+  "foundationId": "securium-developer-secure-coding-8h-python-vibe-foundation-v1",
+  "foundationHash": "e13bc3abca3dafe8755c835168a302a850c088c594d4fa71e465c5e736f7bd80",
+  "materializationHash": "bc9a5a6e92b29873bb7d76cba5006851217b73ad38050b0895ce0808b7eedfc4",
+  "revisionBindingHash": "e3755239a1510668b54144baa5f70ff3211ac8a82d8dc70c31e06831b4874fcb",
+  "runtimeRevisionId": "securium-developer-secure-coding-8h-python-vibe-foundation-v1:e3755239a1510668b54144baa5f70ff3211ac8a82d8dc70c31e06831b4874fcb",
+  "approvalSubjectHash": "2192a4b177cfba0529f4704516b1c6d61a3fda53e3511612a7670d6adb7d23e3",
+  "authorityId": "runtime-authority-python8h-2192a4b177cfba0529f4704516b1c6d61a3fda53e3511612a7670d6adb7d23e3",
+  "expectedCounts": {
+    "questions": 40,
+    "choices": 160,
+    "versions": 40,
+    "mappings": 40
+  },
+  "q36VersionIdentity": {
+    "foundationQuestionId": "Q36",
+    "runtimeQuestionId": "question-developer-secure-coding-8h-python-vibe-Q36",
+    "runtimeQuestionVersionId": "version-question-developer-secure-coding-8h-python-vibe-Q36-v2",
+    "version": 2,
+    "sourceRevisionId": "q36-answer-binding-repair-candidate",
+    "sourceRevisionVersion": "candidate-1"
+  },
+  "contentReview": {
+    "answerIndexes": {
+      "Q18": 1,
+      "Q29": 2,
+      "Q30": 1,
+      "Q37": 3
+    },
+    "claims": {
+      "Q03": "DERIVED_BUT_TRACEABLE",
+      "Q38": "PEDAGOGICAL_SYNTHESIS",
+      "Q40": "PEDAGOGICAL_SYNTHESIS"
+    },
+    "unsupportedQuestionCount": 0,
+    "contentConflictCount": 0
+  },
+  "rightsState": {
+    "actual": {
+      "realKisaEvidenceAttached": false,
+      "productionRightsGate": "NO",
+      "actualApprovalAllowed": "NO"
+    },
+    "simulation": {
+      "reviewArtifactsExist": true,
+      "productionEvidence": false,
+      "productionAuthorization": false,
+      "use": "NON_PRODUCTION_READINESS_ONLY"
+    }
+  },
+  "runtimeApproval": "NOT_ISSUED",
+  "registration": "NOT_EXECUTED",
+  "supersedes": [
+    {
+      "status": "SUPERSEDED",
+      "sourceSet": "A v1 + B v1 + C v1",
+      "combinedSourcePackageHash": "ffd8373d056eafc05467f7269d36796d2c2a38798089505f2a4dba910df9e75e",
+      "foundationHash": "e13bc3abca3dafe8755c835168a302a850c088c594d4fa71e465c5e736f7bd80",
+      "materializationHash": "bc9a5a6e92b29873bb7d76cba5006851217b73ad38050b0895ce0808b7eedfc4",
+      "revisionBindingHash": "e3755239a1510668b54144baa5f70ff3211ac8a82d8dc70c31e06831b4874fcb",
+      "approvalSubjectHash": "87633137f1ab9b0cc1a0b98c39be784d9c72ca2efd5cbcc355dd47d6f2923b94",
+      "authorityId": "runtime-authority-python8h-87633137f1ab9b0cc1a0b98c39be784d9c72ca2efd5cbcc355dd47d6f2923b94"
+    },
+    {
+      "status": "HISTORICAL_ONLY",
+      "sourceSet": "Earlier source/content candidate",
+      "foundationHash": "1b187542de3fa1201eed8f72657710b5c1e9ef56391abaaada10a2789da0b3aa",
+      "materializationHash": "9529b3efff8b6ea9f218a8accce3ef87970d820bb8b865784a0d30ebf202a767",
+      "revisionBindingHash": "4feec20b86685306c1fc9a14e491e0ae1a622a6a103805542f83d14b3647d59d",
+      "approvalSubjectHash": "64350b09981058cc26e7ba59a5442ec1e22f866afef3abbc25e91036e0f7f820",
+      "authorityId": "runtime-authority-python8h-64350b09981058cc26e7ba59a5442ec1e22f866afef3abbc25e91036e0f7f820"
+    },
+    {
+      "status": "HISTORICAL_ONLY",
+      "sourceSet": "Earlier source/content candidate",
+      "foundationHash": "bfe172f69ce325dcde639974fa99af9dca21493daf1aa831e7684a1a86b4571b",
+      "materializationHash": "d0cf2a4349b0cf59f10e475a42dee507f138d73aa627c2cd923f1fe222b62252",
+      "revisionBindingHash": "ce1db8061aa60c08f36ac7c9df819416cc5cf432e214ca64b8e3fc0f1da70d42",
+      "approvalSubjectHash": "7c00a00c5f84744bd3897718e3df65aa928c5928c1c4702d52a0edcb7c9c1477",
+      "authorityId": "runtime-authority-python8h-7c00a00c5f84744bd3897718e3df65aa928c5928c1c4702d52a0edcb7c9c1477"
+    },
+    {
+      "status": "STALE_FOR_RUNTIME_REGISTRATION",
+      "sourceSet": "A-only",
+      "combinedSourcePackageHash": null,
+      "foundationHash": "bfe172f69ce325dcde639974fa99af9dca21493daf1aa831e7684a1a86b4571b",
+      "materializationHash": "d0cf2a4349b0cf59f10e475a42dee507f138d73aa627c2cd923f1fe222b62252",
+      "revisionBindingHash": "ce1db8061aa60c08f36ac7c9df819416cc5cf432e214ca64b8e3fc0f1da70d42",
+      "approvalSubjectHash": "448332fd758ac42669d9411bfbf26f3f33e770470e4327e07698b541ad1081c5",
+      "authorityId": "runtime-authority-python8h-448332fd758ac42669d9411bfbf26f3f33e770470e4327e07698b541ad1081c5"
+    },
+    {
+      "status": "STALE_FOR_RUNTIME_REGISTRATION",
+      "sourceSet": "Registration-lane older binding",
+      "combinedSourcePackageHash": "27a79eab2dfef0f7c7737b954ac8f119783a510e00ec72af70a97a3c73cb61f5",
+      "foundationHash": "15396403aef4ca881328581e26e3b19bf214a7e9cb3dd2f8c921d5f7b108c4bb",
+      "materializationHash": "d0cf2a4349b0cf59f10e475a42dee507f138d73aa627c2cd923f1fe222b62252",
+      "revisionBindingHash": "ce1db8061aa60c08f36ac7c9df819416cc5cf432e214ca64b8e3fc0f1da70d42",
+      "approvalSubjectHash": "38cf6534a1caf20815d93c11715d0e787a294d7ffeedce1f1372a30049399a51",
+      "authorityId": "runtime-authority-python8h-38cf6534a1caf20815d93c11715d0e787a294d7ffeedce1f1372a30049399a51"
+    }
+  ]
+}

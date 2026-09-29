@@ -13,6 +13,10 @@ import {
   classifyExistingCourseRows,
   normalizeCourseRow,
 } from "../scripts/register-secure-coding-8h-runtime.mjs";
+import {
+  buildSecureCoding8HRegistrationProjection,
+  deriveSecureCoding8HRegistrationBinding,
+} from "../lib/services/secure-coding-8h-runtime-registration.ts";
 
 const registrationContext = {
   id: REGISTRATION_RECORD.id,
@@ -139,8 +143,41 @@ test("registration script has no publication switch and no Foundation payload co
   assert.doesNotMatch(source, /--publish|--active|--public|--sample/);
   assert.match(source, /loadSecureCoding8HRuntimeModel/);
   assert.match(source, /validate-secure-coding-8h-foundation\.mjs/);
+  assert.match(source, /registerSecureCoding8HRuntime/);
+  assert.match(source, /SECURE_CODING_8H_CANONICAL_REGISTRATION_VERIFIED/);
+  assert.match(source, /COURSE_ROW_ONLY_NONCANONICAL/);
+  assert.match(source, /loopback disposable PostgreSQL/);
+  assert.doesNotMatch(source.slice(source.indexOf("async function registerPostgresNonProduction")), /buildRegistrationInsertSql\("postgres"\)/);
   assert.doesNotMatch(source, /What should a reviewer identify first/);
   assert.doesNotMatch(source, /TRIAD-SQL|Q01.*prompt|P01.*scenario/);
   assert.doesNotMatch(adapterSource, /What should a reviewer identify first/);
   assert.doesNotMatch(adapterSource, /TRIAD-SQL|Q01.*prompt|P01.*scenario/);
+});
+
+test("registration binding is derived from the canonical export and exact runtime projection", async () => {
+  const candidate = JSON.parse(await readFile(new URL("../content-drafts/secure-coding-8h-foundation/runtime-registration-binding-candidate-v1.json", import.meta.url), "utf8"));
+  const projection = await buildSecureCoding8HRegistrationProjection();
+  const binding = await deriveSecureCoding8HRegistrationBinding(projection);
+  assert.deepEqual(binding.candidate, candidate);
+  assert.equal(binding.subject.sourcePackageHash, candidate.combinedSourcePackageHash);
+  assert.equal(binding.subject.foundationHash, candidate.foundationHash);
+  assert.equal(binding.subject.semanticHash, candidate.materializationHash);
+  assert.equal(binding.subject.sourceManifestId, candidate.sourceManifestId);
+  assert.equal(binding.subject.packageKey, candidate.packageKey);
+  assert.equal(binding.subject.runtimeRevisionId, candidate.runtimeRevisionId);
+  assert.equal(binding.approvalSubjectHash, candidate.approvalSubjectHash);
+  assert.equal(binding.authorityId, candidate.authorityId);
+  assert.deepEqual(candidate.expectedCounts, { questions: 40, choices: 160, versions: 40, mappings: 40 });
+  assert.equal(candidate.q36VersionIdentity.runtimeQuestionVersionId, "version-question-developer-secure-coding-8h-python-vibe-Q36-v2");
+  assert.equal(candidate.q36VersionIdentity.version, 2);
+  assert.equal(candidate.runtimeApproval, "NOT_ISSUED");
+  assert.equal(candidate.rightsState.actual.realKisaEvidenceAttached, false);
+  assert.equal(candidate.rightsState.actual.productionRightsGate, "NO");
+});
+
+test("production registration stays blocked while the export keeps the actual rights gate closed", async () => {
+  await assert.rejects(
+    () => import("../lib/services/secure-coding-8h-runtime-registration.ts").then(({ registerSecureCoding8HRuntime }) => registerSecureCoding8HRuntime("actor", {})),
+    (error) => error?.code === "PYTHON_8H_PRODUCTION_RIGHTS_GATE_CLOSED",
+  );
 });

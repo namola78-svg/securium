@@ -404,7 +404,7 @@ async function setupDatabase(client: NonNullable<typeof adminSql>) {
   await createProjectionTables(client);
   await applyMigration(client, await readFile("db/postgres/migrations/0054_cppg_canonical_registration.sql", "utf8"));
   await applyMigration(client, await readFile("db/postgres/migrations/0055_cppg_publication_receipts.sql", "utf8"));
-  await applyMigration(client, await readFile("db/postgres/migrations/0056_cppg_publication_revocations.sql", "utf8"));
+  await applyMigration(client, await readFile("db/postgres/migrations/0057_cppg_publication_revocations.sql", "utf8"));
 }
 
 async function createProjectionTables(client: NonNullable<typeof adminSql>) {
