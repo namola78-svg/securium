@@ -13,6 +13,8 @@ import {
   type CppgCourseTheoryDraftProjection,
 } from "../lib/services/cppg-runtime-course-registration.ts";
 import { authorizeAndPublishCppgRegistrationForTesting } from "../lib/services/cppg-runtime-publication.ts";
+import { getCppgPublicationEffectiveState, type CppgPublicationRevocationInput } from "../lib/services/cppg-runtime-publication-revocation.ts";
+import { revokeCppgPublicationForTesting } from "./cppg-publication-revocation-test-support.ts";
 import { cleanupOwnedPostgresContainer, createOwnedPostgresContainer, getPublishedPostgresPort } from "../scripts/owned-postgres-container.mjs";
 
 const ownerToken = randomUUID();
@@ -134,6 +136,91 @@ test("a newer content revision blocks publishing the older registered revision",
   );
   await assert.rejects(publish(fixture, state.projection, state.registrationIdentity), hasCode("REVISION_MISMATCH"));
   await assertUnpublished(fixture);
+});
+
+test("publication revocation appends an immutable event, projects REVOKED, and enforces replay/current authority", async () => {
+  const fixture = await createScenario("revoke-lifecycle");
+  const state = await registerCanonical(fixture);
+  assert.equal((await getCppgPublicationEffectiveState(fixture.executor, state.registrationIdentity)).state, "UNPUBLISHED");
+  const publication = await publish(fixture, state.projection, state.registrationIdentity);
+  const receiptBefore = await fixture.sql.unsafe(`SELECT * FROM cppg_publication_receipts WHERE publication_id=$1`, [publication.publicationId]);
+  const authoritySequence = Number((await fixture.sql.unsafe(`SELECT latest_sequence FROM runtime_authority_roots WHERE authority_id=$1`, [publication.authorityId]))[0]?.latest_sequence);
+  const input: CppgPublicationRevocationInput = {
+    publicationId: publication.publicationId,
+    publicationSemanticIdentity: publication.publicationSemanticIdentity,
+    registrationSemanticIdentity: state.registrationIdentity,
+    authorityId: publication.authorityId,
+    authoritySequence,
+    actor,
+    reasonCode: "POLICY_CORRECTION",
+    details: "Disposable lifecycle fixture",
+    idempotencyKey: `revoke-${ownerToken}-${fixture.databaseName}`,
+  };
+  assert.equal((await getCppgPublicationEffectiveState(fixture.executor, state.registrationIdentity)).state, "PUBLISHED");
+  let releaseRevocation!: () => void;
+  let signalAppend!: () => void;
+  const appended = new Promise<void>((resolve) => { signalAppend = resolve; });
+  const waitToCommit = new Promise<void>((resolve) => { releaseRevocation = resolve; });
+  const revocationPromise = revokeCppgPublicationForTesting(input, fixture.owner, { afterAppend: async () => { signalAppend(); await waitToCommit; } });
+  await appended;
+  let publicationReplaySettled = false;
+  const publicationReplay = publish(fixture, state.projection, state.registrationIdentity).finally(() => { publicationReplaySettled = true; });
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  assert.equal(publicationReplaySettled, false, "publication replay waits for the in-flight revocation root lock");
+  releaseRevocation();
+  const revoked = await revocationPromise;
+  assert.equal(revoked.outcome, "REVOKED");
+  assert.equal((await publicationReplay).outcome, "ALREADY_PUBLISHED");
+  assert.equal((await getCppgPublicationEffectiveState(fixture.executor, state.registrationIdentity)).state, "REVOKED");
+  assert.equal((await revokeCppgPublicationForTesting(input, fixture.owner)).outcome, "ALREADY_REVOKED");
+  await assert.rejects(revokeCppgPublicationForTesting({ ...input, reasonCode: "OTHER_REASON" }, fixture.owner), hasCode("REVOCATION_IDEMPOTENCY_CONFLICT"));
+  await assert.rejects(revokeCppgPublicationForTesting({ ...input, idempotencyKey: `${input.idempotencyKey}-second` }, fixture.owner), hasCode("PUBLICATION_ALREADY_REVOKED"));
+  const receiptAfter = await fixture.sql.unsafe(`SELECT * FROM cppg_publication_receipts WHERE publication_id=$1`, [publication.publicationId]);
+  assert.deepEqual(receiptAfter, receiptBefore);
+  assert.equal(Number((await fixture.sql.unsafe(`SELECT count(*)::int AS count FROM cppg_publication_revocations`))[0]?.count), 1);
+  assert.equal(Number((await fixture.sql.unsafe(`SELECT latest_sequence FROM runtime_authority_roots WHERE authority_id=$1`, [publication.authorityId]))[0]?.latest_sequence), authoritySequence);
+  assert.equal(Number((await fixture.sql.unsafe(`SELECT count(*)::int AS count FROM admin_audit_logs WHERE action='CPPG_PUBLICATION_REVOCATION_SUCCEEDED' AND result='SUCCESS'`))[0]?.count), 1);
+});
+
+test("runtime authority revocation alone does not create a publication revocation", async () => {
+  const fixture = await createScenario("revoke-authority-independent");
+  const state = await registerCanonical(fixture);
+  const publication = await publish(fixture, state.projection, state.registrationIdentity);
+  await state.authority.revoke(`cppg-revoke-independent-${ownerToken}`, "authority-only lifecycle fixture");
+  assert.equal((await getCppgPublicationEffectiveState(fixture.executor, state.registrationIdentity)).state, "PUBLISHED");
+  assert.equal(Number((await fixture.sql.unsafe(`SELECT count(*)::int AS count FROM cppg_publication_revocations WHERE publication_id=$1`, [publication.publicationId]))[0]?.count), 0);
+  await assert.rejects(revokeCppgPublicationForTesting({ publicationId: publication.publicationId, publicationSemanticIdentity: publication.publicationSemanticIdentity,
+    registrationSemanticIdentity: state.registrationIdentity, authorityId: publication.authorityId, authoritySequence: publication.authoritySequence, actor,
+    reasonCode: "POLICY_CORRECTION", idempotencyKey: `stale-${ownerToken}` }, fixture.owner), hasCode("REVOCATION_AUTHORITY_STALE"));
+});
+
+test("revocation rejects missing or mismatched targets and rolls back failures around append", async () => {
+  const fixture = await createScenario("revoke-rollback");
+  const state = await registerCanonical(fixture);
+  const root = await fixture.sql.unsafe(`SELECT authority_id,latest_sequence FROM runtime_authority_roots LIMIT 1`);
+  const base = {
+    publicationId: randomUUID(), publicationSemanticIdentity: "a".repeat(64),
+    registrationSemanticIdentity: state.registrationIdentity, authorityId: String(root[0]?.authority_id),
+    authoritySequence: Number(root[0]?.latest_sequence), actor, reasonCode: "POLICY_CORRECTION",
+    idempotencyKey: `missing-${ownerToken}`,
+  } satisfies CppgPublicationRevocationInput;
+  await assert.rejects(revokeCppgPublicationForTesting(base, fixture.owner), hasCode("PUBLICATION_NOT_FOUND"));
+  assert.equal((await getCppgPublicationEffectiveState(fixture.executor, state.registrationIdentity)).state, "UNPUBLISHED");
+  const published = await publish(fixture, state.projection, state.registrationIdentity);
+  const exact = { ...base, publicationId: published.publicationId, publicationSemanticIdentity: published.publicationSemanticIdentity,
+    authoritySequence: published.authoritySequence, idempotencyKey: `rollback-${ownerToken}` };
+  await assert.rejects(revokeCppgPublicationForTesting({ ...exact, publicationSemanticIdentity: "b".repeat(64) }, fixture.owner), hasCode("PUBLICATION_IDENTITY_MISMATCH"));
+  await assert.rejects(revokeCppgPublicationForTesting(exact, fixture.owner, { beforeAppend: async () => { throw new Error("fixture before append"); } }), hasCode("REVOCATION_POLICY_DENIED"));
+  await assert.rejects(revokeCppgPublicationForTesting(exact, fixture.owner, { afterAppend: async () => { throw new Error("fixture after append"); } }), hasCode("REVOCATION_POLICY_DENIED"));
+  assert.equal((await getCppgPublicationEffectiveState(fixture.executor, state.registrationIdentity)).state, "PUBLISHED");
+  assert.equal(Number((await fixture.sql.unsafe(`SELECT count(*)::int AS count FROM cppg_publication_revocations`))[0]?.count), 0);
+  const concurrentInput = { ...exact, idempotencyKey: `concurrent-${ownerToken}` };
+  const outcomes = await Promise.all([
+    revokeCppgPublicationForTesting(concurrentInput, fixture.owner),
+    revokeCppgPublicationForTesting(concurrentInput, fixture.owner),
+  ]);
+  assert.deepEqual(outcomes.map((item) => item.outcome).sort(), ["ALREADY_REVOKED", "REVOKED"]);
+  assert.equal(Number((await fixture.sql.unsafe(`SELECT count(*)::int AS count FROM cppg_publication_revocations`))[0]?.count), 1);
 });
 
 test("mutable live content and curriculum rows must still match the immutable registration projection", async (t) => {
@@ -317,6 +404,7 @@ async function setupDatabase(client: NonNullable<typeof adminSql>) {
   await createProjectionTables(client);
   await applyMigration(client, await readFile("db/postgres/migrations/0054_cppg_canonical_registration.sql", "utf8"));
   await applyMigration(client, await readFile("db/postgres/migrations/0055_cppg_publication_receipts.sql", "utf8"));
+  await applyMigration(client, await readFile("db/postgres/migrations/0056_cppg_publication_revocations.sql", "utf8"));
 }
 
 async function createProjectionTables(client: NonNullable<typeof adminSql>) {

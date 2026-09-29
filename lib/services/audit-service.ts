@@ -11,6 +11,8 @@ export const AUDIT_ACTION_METADATA_ALLOWLIST: Record<string, readonly string[]> 
   COURSE_DEACTIVATED: ["previousStatus"],
   CPPG_CANONICAL_PUBLICATION_SUCCEEDED: ["registrationIdentity", "publicationIdentity", "runtimeRevisionId", "authorityId", "authoritySequence", "result"],
   CPPG_CANONICAL_PUBLICATION_DENIED: ["registrationIdentity", "reasonCode", "result"],
+  CPPG_PUBLICATION_REVOCATION_SUCCEEDED: ["revocationId", "publicationIdentity", "registrationIdentity", "authorityId", "authoritySequence", "reasonCode", "previousState", "effectiveState", "idempotencyKey", "commandHash", "result"],
+  CPPG_PUBLICATION_REVOCATION_DENIED: ["publicationIdentity", "reasonCode", "result"],
   QUESTION_CREATED: ["version"],
   QUESTION_UPDATED: ["version"],
   QUESTION_APPROVED: ["fromStatus", "toStatus"],
