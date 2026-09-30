@@ -12,7 +12,7 @@ import {
   type CppgFoundationBundle,
   type CppgCourseTheoryDraftProjection,
 } from "../lib/services/cppg-runtime-course-registration.ts";
-import { authorizeAndPublishCppgRegistrationForTesting } from "../lib/services/cppg-runtime-publication.ts";
+import { authorizeAndPublishCppgRegistrationForTesting, hasCurrentCppgCanonicalPublicationForTesting, resolveCppgCanonicalPublicationRowIdsForTesting } from "../lib/services/cppg-runtime-publication.ts";
 import { getCppgPublicationEffectiveState, type CppgPublicationRevocationInput } from "../lib/services/cppg-runtime-publication-revocation.ts";
 import { revokeCppgPublicationForTesting } from "./cppg-publication-revocation-test-support.ts";
 import { cleanupOwnedPostgresContainer, createOwnedPostgresContainer, getPublishedPostgresPort } from "../scripts/owned-postgres-container.mjs";
@@ -53,6 +53,7 @@ after(async () => {
 test("publication and visibility commit atomically; exact replay is idempotent; conflicts fail closed", async () => {
   const fixture = await createScenario("publish");
   const { projection, authority, registrationIdentity } = await registerCanonical(fixture);
+  assert.equal(await hasCurrentCppgCanonicalPublicationForTesting(fixture.owner, projection), "REGISTERED_UNPUBLISHED", "registration without receipt is not learner-visible");
 
   // A failure after several visibility updates must roll those updates back and
   // leave no receipt. This is exercised by a real PostgreSQL trigger.
@@ -82,6 +83,28 @@ test("publication and visibility commit atomically; exact replay is idempotent; 
   const result = await publish(fixture, projection, registrationIdentity);
   assert.equal(result.outcome, "PUBLISHED");
   assert.equal(result.authorityId, authority.identity.authorityId);
+  assert.equal(await hasCurrentCppgCanonicalPublicationForTesting(fixture.owner, projection), "CANONICALLY_PUBLISHED", "a current matching receipt authorizes canonical visibility");
+  const projectedRowIds = await resolveCppgCanonicalPublicationRowIdsForTesting(fixture.owner, projection);
+  assert.deepEqual(projectedRowIds, {
+    subjectIds: projection.subjects.map(({ id }) => id),
+    topicIds: projection.topics.map(({ id }) => id),
+    learningUnitIds: projection.learningUnits.map(({ id }) => id),
+    contentIds: projection.contents.map(({ id }) => id),
+    lessonIds: projection.lessons.map(({ id }) => id),
+    courseLessonIds: projection.courseLessons.map(({ id }) => id),
+    contentRevisionIds: projection.contentRevisions.map(({ id }) => id),
+    questionIds: [],
+    mockExamIds: [],
+    lectureIds: [],
+    audioContentIds: [],
+    specializedFeatureIds: [],
+    specializedLinkIds: [],
+    specializedContentIds: [],
+    specializedContentRevisionIds: [],
+    practicalLinkIds: [],
+    practicalContentIds: [],
+    practicalContentRevisionIds: [],
+  });
   await assertAllCanonicalVisibility(fixture, projection);
   assert.equal(Number((await fixture.sql.unsafe(`SELECT count(*)::int AS count FROM cppg_publication_receipts`))[0]?.count), 1);
   assert.equal(Number((await fixture.sql.unsafe(`SELECT count(*)::int AS count FROM admin_audit_logs WHERE action='CPPG_CANONICAL_PUBLICATION_SUCCEEDED' AND result='SUCCESS'`))[0]?.count), 1);
@@ -92,6 +115,10 @@ test("publication and visibility commit atomically; exact replay is idempotent; 
   await assert.rejects(publish(fixture, projection, registrationIdentity, ["wrong-content-revision"]), hasCode("REVISION_MISMATCH"));
   await assert.rejects(publish(fixture, projection, "a".repeat(64)), hasCode("REGISTRATION_NOT_FOUND"));
   assert.equal(Number((await fixture.sql.unsafe(`SELECT count(*)::int AS count FROM cppg_publication_receipts`))[0]?.count), 1);
+  await fixture.sql.unsafe(`DROP RULE cppg_publication_receipts_no_update ON cppg_publication_receipts`);
+  await fixture.sql.unsafe(`UPDATE cppg_publication_receipts SET publication_semantic_identity = repeat('a', 64)`);
+  assert.equal(await hasCurrentCppgCanonicalPublicationForTesting(fixture.owner, projection), "CANONICAL_STATE_UNAVAILABLE", "a conflicting receipt binding fails closed");
+  assert.equal(await resolveCppgCanonicalPublicationRowIdsForTesting(fixture.owner, projection), null, "receipt identity conflict cannot return projection row identities");
   const savedRegistration = await fixture.sql.unsafe(`SELECT state,publication_authority FROM cppg_runtime_registrations`);
   assert.equal(savedRegistration[0]?.state, "REGISTERED_UNPUBLISHED");
   assert.equal(savedRegistration[0]?.publication_authority, "NOT_GRANTED");
@@ -172,6 +199,8 @@ test("publication revocation appends an immutable event, projects REVOKED, and e
   assert.equal(revoked.outcome, "REVOKED");
   assert.equal((await publicationReplay).outcome, "ALREADY_PUBLISHED");
   assert.equal((await getCppgPublicationEffectiveState(fixture.executor, state.registrationIdentity)).state, "REVOKED");
+  assert.equal(await hasCurrentCppgCanonicalPublicationForTesting(fixture.owner, state.projection), "CANONICAL_STATE_UNAVAILABLE", "revoked publication cannot establish learner visibility");
+  assert.equal(await resolveCppgCanonicalPublicationRowIdsForTesting(fixture.owner, state.projection), null, "revoked publication cannot return learner projection rows");
   assert.equal((await revokeCppgPublicationForTesting(input, fixture.owner)).outcome, "ALREADY_REVOKED");
   await assert.rejects(revokeCppgPublicationForTesting({ ...input, reasonCode: "OTHER_REASON" }, fixture.owner), hasCode("REVOCATION_IDEMPOTENCY_CONFLICT"));
   await assert.rejects(revokeCppgPublicationForTesting({ ...input, idempotencyKey: `${input.idempotencyKey}-second` }, fixture.owner), hasCode("PUBLICATION_ALREADY_REVOKED"));
@@ -277,6 +306,7 @@ test("authority root lock serializes publication against concurrent revocation",
   await revocation;
   assert.equal(revocationSettled, true);
   assert.equal(Number((await fixture.sql.unsafe(`SELECT count(*)::int AS count FROM cppg_publication_receipts`))[0]?.count), 1);
+  assert.equal(await hasCurrentCppgCanonicalPublicationForTesting(fixture.owner, state.projection), "CANONICAL_STATE_UNAVAILABLE", "revoked authority cannot establish current learner visibility");
   await assertAllCanonicalVisibility(fixture, state.projection);
 });
 
@@ -286,6 +316,7 @@ test("legacy published course flags alone do not satisfy canonical publication",
   await fixture.sql.unsafe(`INSERT INTO course_groups(id) VALUES ('legacy-group')`);
   await fixture.sql.unsafe(`INSERT INTO courses(id,course_group_id,code,slug,name,short_name,active,published) VALUES ('course-cppg','legacy-group','CPPG','cppg','legacy','CPPG',1,1)`);
   const projection = await buildCppgCourseTheoryDraftProjectionFromBundle(await readBundle(), { actorUserId: actorId });
+  assert.equal(await hasCurrentCppgCanonicalPublicationForTesting(fixture.owner, projection), "LEGACY_VISIBLE", "legacy active/published flags are classified separately and do not establish canonical visibility");
   await assert.rejects(publish(fixture, projection, "c".repeat(64)), hasCode("REGISTRATION_NOT_FOUND"));
   assert.equal(Number((await fixture.sql.unsafe(`SELECT count(*)::int AS count FROM cppg_publication_receipts`))[0]?.count), 0);
 });

@@ -36,6 +36,12 @@ import {
 } from "./schema";
 import type { QuestionInput } from "@/lib/validation";
 import {
+  filterCppgAssessmentRows,
+  getCanonicalCppgLearnerRowIds,
+  hasCanonicalLearnerVisibility,
+  isCanonicalCppgQuestion,
+} from "@/lib/services/cppg-learner-visibility.ts";
+import {
   gradeQuestion,
   requireSupportedGrade,
   toPublicChoices,
@@ -98,6 +104,8 @@ function safeAnswerConfig(value: string): ShortAnswerConfig {
 }
 
 export async function listPublicQuestions(filters: QuestionFilters) {
+  // The canonical CPPG registration projection excludes assessment questions.
+  if (filters.courseId === "course-cppg") return [];
   if (filters.questionIds && !filters.questionIds.length) return [];
   const conditions = [
     eq(questions.status, "PUBLISHED"),
@@ -195,6 +203,7 @@ export async function listPublicQuestions(filters: QuestionFilters) {
 }
 
 export async function listQuestionFilterSubjectsForCourse(courseId: string) {
+  if (courseId === "course-cppg") return [];
   return getDb()
     .selectDistinct({
       id: subjects.id,
@@ -226,6 +235,7 @@ export async function listQuestionFilterTopicsForSubject(
   courseId: string,
   subjectId: string,
 ) {
+  if (courseId === "course-cppg") return [];
   return getDb()
     .selectDistinct({
       id: topics.id,
@@ -360,8 +370,9 @@ export async function submitQuestionAttempt(input: {
   }
 
   const [enrollment] = await getDb()
-    .select({ id: userCourseEnrollments.id })
+    .select({ id: userCourseEnrollments.id, course: { id: courses.id, slug: courses.slug, code: courses.code } })
     .from(userCourseEnrollments)
+    .innerJoin(courses, eq(userCourseEnrollments.courseId, courses.id))
     .where(
       and(
         eq(userCourseEnrollments.userId, input.userId),
@@ -370,12 +381,15 @@ export async function submitQuestionAttempt(input: {
       ),
     )
     .limit(1);
-  if (!enrollment) {
+  if (!enrollment || !(await hasCanonicalLearnerVisibility(enrollment.course))) {
     throw new AppError(
       "수강 중인 과정의 문제만 풀 수 있습니다.",
       403,
       "ENROLLMENT_REQUIRED",
     );
+  }
+  if (input.courseId === "course-cppg") {
+    throw new AppError("CPPG assessment questions are outside the current canonical projection.", 404, "QUESTION_NOT_FOUND");
   }
 
   const [existing] = await getDb()
@@ -844,6 +858,12 @@ export async function toggleBookmark(input: {
   courseId: string;
 }) {
   if (input.targetType === "QUESTION") {
+    if (input.courseId === "course-cppg") {
+      const projection = await getCanonicalCppgLearnerRowIds(input.courseId);
+      if (!isCanonicalCppgQuestion(input.targetId, projection?.questionIds ?? null)) {
+        throw new AppError("CPPG assessment question is not in the current canonical projection.", 404, "BOOKMARK_TARGET_NOT_FOUND");
+      }
+    }
     const [target] = await getDb()
       .select({ id: questions.id })
       .from(questions)
@@ -886,7 +906,7 @@ export async function toggleBookmark(input: {
 }
 
 export async function listQuestionBookmarks(userId: string, courseId?: string) {
-  return getDb()
+  const rows = await getDb()
     .select({
       id: bookmarks.id,
       courseId: bookmarks.courseId,
@@ -912,6 +932,10 @@ export async function listQuestionBookmarks(userId: string, courseId?: string) {
         : eq(bookmarks.userId, userId),
     )
     .orderBy(desc(bookmarks.createdAt));
+  const hasCppgRows = rows.some(({ courseId: rowCourseId }) => rowCourseId === "course-cppg");
+  if (!hasCppgRows) return rows;
+  const projection = await getCanonicalCppgLearnerRowIds("course-cppg");
+  return filterCppgAssessmentRows(rows, projection?.questionIds ?? null);
 }
 
 export async function listWrongNotes(
@@ -938,7 +962,7 @@ export async function listWrongNotes(
     conditions.push(eq(questionSubjects.subjectId, filters.subjectId));
   }
   if (filters.topicId) conditions.push(eq(questionTopics.topicId, filters.topicId));
-  return getDb()
+  const rows = await getDb()
     .selectDistinct({
       id: wrongNotes.id,
       questionId: wrongNotes.questionId,
@@ -959,6 +983,10 @@ export async function listWrongNotes(
     .leftJoin(questionTopics, eq(questions.id, questionTopics.questionId))
     .where(and(...conditions))
     .orderBy(desc(wrongNotes.updatedAt));
+  const hasCppgRows = rows.some(({ courseId }) => courseId === "course-cppg");
+  if (!hasCppgRows) return rows;
+  const projection = await getCanonicalCppgLearnerRowIds("course-cppg");
+  return filterCppgAssessmentRows(rows, projection?.questionIds ?? null);
 }
 
 export async function listWrongQuestionIds(userId: string, courseId: string) {

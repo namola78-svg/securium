@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { getDb } from ".";
 import {
   contents,
@@ -31,6 +31,7 @@ import type {
 } from "@/lib/services/enrollment-service";
 import { AppError } from "@/lib/errors";
 import { assertGenericCppgPublicationAllowed, isCppgPublicationTarget } from "@/lib/services/cppg-generic-publication-guard";
+import { filterCanonicalCppgVisibility, filterCppgRowsToCanonicalProjection, getCanonicalCppgLearnerRowIds, hasCanonicalLearnerVisibility } from "@/lib/services/cppg-learner-visibility.ts";
 import { ensureLevelProgress } from "./phase3-repositories";
 import {
   buildSwSecurityWeaknessRuntimeProjection,
@@ -96,7 +97,7 @@ export function projectSwSecurityWeaknessRuntimeCourse(
 }
 
 export async function listPublishedCourses(): Promise<CourseListItem[]> {
-  return getDb()
+  const rows = await getDb()
     .select({
       id: courses.id,
       groupName: courseGroups.name,
@@ -149,6 +150,7 @@ export async function listPublishedCourses(): Promise<CourseListItem[]> {
       ),
     )
     .orderBy(asc(courseGroups.displayOrder), asc(courses.displayOrder));
+  return filterCanonicalCppgVisibility(rows);
 }
 
 export async function getPublicCourseBySlug(slug: string) {
@@ -205,7 +207,7 @@ export async function getPublicCourseBySlug(slug: string) {
     )
     .limit(1);
 
-  return course ?? null;
+  return course && await hasCanonicalLearnerVisibility(course) ? course : null;
 }
 
 export async function getLearnCourseAccessBySlug(
@@ -254,7 +256,7 @@ export async function getLearnCourseAccessBySlug(
     )
     .limit(1);
 
-  if (!row) return { course: null, enrollment: null };
+  if (!row || !await hasCanonicalLearnerVisibility(row)) return { course: null, enrollment: null };
   const {
     enrollmentId,
     enrollmentUserId,
@@ -277,6 +279,8 @@ export async function getLearnCourseAccessBySlug(
 }
 
 export async function listCurriculum(courseId: string) {
+  const cppgRows = courseId === "course-cppg" ? await getCanonicalCppgLearnerRowIds(courseId) : null;
+  if (courseId === "course-cppg" && !cppgRows) return [];
   const [subjectRows, topicRows] = await Promise.all([
     getDb()
       .select()
@@ -313,9 +317,11 @@ export async function listCurriculum(courseId: string) {
       .orderBy(asc(topics.displayOrder)),
   ]);
 
-  return subjectRows.map((subject) => ({
+  const visibleSubjects = filterCppgRowsToCanonicalProjection(courseId, subjectRows, cppgRows?.subjectIds ?? null);
+  const visibleTopics = filterCppgRowsToCanonicalProjection(courseId, topicRows, cppgRows?.topicIds ?? null);
+  return visibleSubjects.map((subject) => ({
     ...subject,
-    topics: topicRows.filter((topic) => topic.subjectId === subject.id),
+    topics: visibleTopics.filter((topic) => topic.subjectId === subject.id),
   }));
 }
 
@@ -323,6 +329,8 @@ export async function listCurriculumWithSubjectTheoryProgress(
   userId: string,
   courseId: string,
 ) {
+  const cppgRows = courseId === "course-cppg" ? await getCanonicalCppgLearnerRowIds(courseId) : null;
+  if (courseId === "course-cppg" && !cppgRows) return [];
   const [subjectRows, topicRows, progressRows] = await Promise.all([
     getDb()
       .select()
@@ -381,13 +389,17 @@ export async function listCurriculumWithSubjectTheoryProgress(
           eq(learningUnits.active, true),
           eq(learningUnits.published, true),
           isNull(learningUnits.deletedAt),
+          ...(cppgRows ? [inArray(lessons.id, [...cppgRows.lessonIds])] : []),
         ),
       )
       .groupBy(lessons.subjectId),
   ]);
 
+  const visibleSubjects = filterCppgRowsToCanonicalProjection(courseId, subjectRows, cppgRows?.subjectIds ?? null);
+  const visibleTopics = filterCppgRowsToCanonicalProjection(courseId, topicRows, cppgRows?.topicIds ?? null);
+  const visibleProgressRows = filterCppgRowsToCanonicalProjection(courseId, progressRows.map((row) => ({ ...row, id: row.subjectId })), cppgRows?.subjectIds ?? null);
   const progressBySubjectId = new Map(
-    progressRows.map((row) => {
+    visibleProgressRows.map((row) => {
       const totalLessons = Number(row.totalLessons);
       const completedLessons = Number(row.completedLessons);
       return [
@@ -403,18 +415,20 @@ export async function listCurriculumWithSubjectTheoryProgress(
     }),
   );
 
-  return subjectRows.map((subject) => ({
+  return visibleSubjects.map((subject) => ({
     ...subject,
     theoryProgress: progressBySubjectId.get(subject.id) ?? {
       totalLessons: 0,
       completedLessons: 0,
       progressPercent: 0,
     },
-    topics: topicRows.filter((topic) => topic.subjectId === subject.id),
+    topics: visibleTopics.filter((topic) => topic.subjectId === subject.id),
   }));
 }
 
 export async function listCurriculumForLearnOverview(courseId: string) {
+  const cppgRows = courseId === "course-cppg" ? await getCanonicalCppgLearnerRowIds(courseId) : null;
+  if (courseId === "course-cppg" && !cppgRows) return [];
   const [subjectRows, topicRows] = await Promise.all([
     getDb()
       .select()
@@ -451,14 +465,16 @@ export async function listCurriculumForLearnOverview(courseId: string) {
       .orderBy(asc(topics.displayOrder)),
   ]);
 
-  return subjectRows.map((subject) => ({
+  const visibleSubjects = filterCppgRowsToCanonicalProjection(courseId, subjectRows, cppgRows?.subjectIds ?? null);
+  const visibleTopics = filterCppgRowsToCanonicalProjection(courseId, topicRows, cppgRows?.topicIds ?? null);
+  return visibleSubjects.map((subject) => ({
     ...subject,
     theoryProgress: {
       totalLessons: 0,
       completedLessons: 0,
       progressPercent: 0,
     },
-    topics: topicRows.filter((topic) => topic.subjectId === subject.id),
+    topics: visibleTopics.filter((topic) => topic.subjectId === subject.id),
   }));
 }
 
@@ -504,6 +520,12 @@ export async function getCourseById(courseId: string) {
     .where(and(eq(courses.id, courseId), isNull(courses.deletedAt)))
     .limit(1);
   return course ?? null;
+}
+
+/** Learner-facing ID lookup; administrative reads continue to use getCourseById. */
+export async function getLearnerCourseById(courseId: string) {
+  const course = await getCourseById(courseId);
+  return course && await hasCanonicalLearnerVisibility(course) ? course : null;
 }
 
 export async function getSubjectById(subjectId: string) {
@@ -649,6 +671,8 @@ export function createEnrollmentRepository(): EnrollmentRepository {
       const [course] = await getDb()
         .select({
           id: courses.id,
+          slug: courses.slug,
+          code: courses.code,
           active: courses.active,
           published: courses.published,
           deletedAt: courses.deletedAt,
@@ -656,7 +680,8 @@ export function createEnrollmentRepository(): EnrollmentRepository {
         .from(courses)
         .where(eq(courses.id, courseId))
         .limit(1);
-      return course ?? null;
+      if (!course || !(await hasCanonicalLearnerVisibility(course))) return null;
+      return course;
     },
 
     async findEnrollment(userId, courseId) {
@@ -743,6 +768,7 @@ export async function listUserEnrollments(userId: string) {
       totalXp: userCourseEnrollments.totalXp,
       courseId: courses.id,
       courseSlug: courses.slug,
+      courseCode: courses.code,
       courseName: courses.name,
       shortName: courses.shortName,
       totalLevels: courses.totalLevels,
@@ -759,13 +785,22 @@ export async function listUserEnrollments(userId: string) {
     .where(eq(userCourseEnrollments.userId, userId))
     .orderBy(desc(userCourseEnrollments.updatedAt));
 
-  return enrollmentRows.map((row) => {
+  const visibleEnrollments = await filterCanonicalCppgVisibility(enrollmentRows.map((row) => ({
+    ...row,
+    id: row.courseId,
+    slug: row.courseSlug,
+    code: row.courseCode,
+  })));
+  const visibleCourseIds = new Set(visibleEnrollments.map((row) => row.courseId));
+  return enrollmentRows.filter((row) => visibleCourseIds.has(row.courseId)).map((row) => {
+    const { courseCode: _courseCode, ...publicRow } = row;
+    void _courseCode;
     const totalAnswers = Number(row.totalAnswers ?? 0);
     const correctAnswers = Number(row.correctAnswers ?? 0);
     const theoryTotalLessons = Number(row.theoryTotalLessons ?? 0);
     const theoryCompletedLessons = Number(row.theoryCompletedLessons ?? 0);
     return {
-      ...row,
+      ...publicRow,
       accuracy:
         totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : null,
       lastStudiedAt: row.lastStudiedAt ?? null,

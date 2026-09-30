@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { after, before, test } from "node:test";
 import { computeMockQuestionVersionSemanticHash } from "../lib/services/mock-exam-revision.ts";
+import { createMockExamCompositionSnapshot } from "../lib/services/mock-exam-composition.ts";
+import { computeMockCompositionSemanticHash } from "../lib/services/learning-event-contracts.ts";
 
 const port = 33101;
 const baseUrl = `http://localhost:${port}`;
@@ -12,6 +14,28 @@ const mockExamId = "phase3-e2e-mock";
 const mockQuestionId = "phase3-e2e-question";
 const mockChoiceOneId = "phase3-e2e-question-choice-01";
 const mockChoiceTwoId = "phase3-e2e-question-choice-02";
+const cppgMockExamId = "phase3-e2e-cppg-legacy-mock";
+const cppgHistoricalAttemptId = "phase3-e2e-cppg-historical-attempt";
+const cppgReviewQuestionId = "phase3-e2e-cppg-review-question";
+const cppgReviewScheduleId = "phase3-e2e-cppg-review-schedule";
+const cppgCompositionInput = {
+  items: [{
+    displayOrder: 1,
+    questionIdentity: mockQuestionId,
+    questionVersionSemanticHash: "a".repeat(64),
+    possibleScore: 10,
+    conceptMappingSetHash: "c".repeat(64),
+  }],
+  passingScore: 60,
+  questionCount: 1,
+  randomizeQuestions: false,
+  randomizeChoices: false,
+};
+const cppgCompositionSnapshot = createMockExamCompositionSnapshot({
+  ...cppgCompositionInput,
+  items: cppgCompositionInput.items.map((item) => ({ ...item, questionVersionId: `${mockQuestionId}-version-01` })),
+});
+const cppgCompositionHash = await computeMockCompositionSemanticHash(cppgCompositionInput);
 const mockSnapshotJson = JSON.stringify({
   id: mockQuestionId,
   version: 1,
@@ -50,6 +74,15 @@ before(async () => {
       VALUES ('${mockQuestionId}-version-01', '${mockQuestionId}', 1, ${sqlLiteral(mockSnapshotJson)}, 'Phase 3 mock fixture', '${mockSemanticHash}', '${"b".repeat(64)}', 'user-admin', '2026-09-11T00:00:00.000Z', 'user-admin');
     INSERT OR IGNORE INTO ontology_concepts (id, concept_key, label, normalized_label, status) VALUES ('phase3-mock-concept', 'phase3.mock.concept', 'Phase 3 mock concept', 'phase 3 mock concept', 'ACTIVE');
     INSERT INTO question_concepts (id, question_version_id, concept_id, created_by, relation_type, qualification_json, provenance_json, mapping_status, mapping_version, reviewed_by, reviewed_at) VALUES ('phase3-mock-mapping', '${mockQuestionId}-version-01', 'phase3-mock-concept', 'user-admin', 'MAPS_TO', '{}', '{}', 'APPROVED', 1, 'user-admin', '2026-09-11T00:00:00.000Z');
+    INSERT INTO mock_exams (id, course_id, title, description, exam_type, question_count, time_limit_minutes, passing_score, max_attempts, randomize_questions, randomize_choices, status, published) VALUES ('${cppgMockExamId}', 'course-cppg', 'CPPG legacy exam secret', 'legacy sample exam', 'QUICK', 1, 15, 60, 3, 0, 0, 'OPEN', 1);
+    INSERT INTO mock_exam_sections (id, mock_exam_id, subject_id, title, question_count, score_weight, display_order) VALUES ('${cppgMockExamId}-section', '${cppgMockExamId}', NULL, 'CPPG legacy section', 1, 100, 1);
+    INSERT INTO mock_exam_questions (mock_exam_id, question_id, section_id, score, display_order) VALUES ('${cppgMockExamId}', '${mockQuestionId}', '${cppgMockExamId}-section', 10, 1);
+    INSERT INTO mock_exam_attempts (id, mock_exam_id, user_id, expires_at, status, composition_semantic_hash, composition_snapshot_json) VALUES ('${cppgHistoricalAttemptId}', '${cppgMockExamId}', 'user-learner-1', '2099-01-01T00:00:00.000Z', 'IN_PROGRESS', '${cppgCompositionHash}', ${sqlLiteral(cppgCompositionSnapshot)});
+    INSERT INTO mock_exam_answers (id, attempt_id, question_id, answer_data, answered_at) VALUES ('${cppgHistoricalAttemptId}-answer', '${cppgHistoricalAttemptId}', '${mockQuestionId}', 'historical-answer-preserved', '2026-09-29T00:00:00.000Z');
+    INSERT INTO questions (id, title, content, type, difficulty, explanation, wrong_answer_explanation, status, source, source_date, version, answer_config_json, is_sample, created_by, reviewed_by, published_at)
+      VALUES ('${cppgReviewQuestionId}', 'CPPG due-review private title', 'legacy CPPG review content', 'SINGLE_CHOICE', 'EASY', '', '', 'PUBLISHED', 'phase3-review-test', '2026-09-30', 1, '{}', 1, 'user-admin', 'user-content-reviewer', CURRENT_TIMESTAMP);
+    INSERT INTO review_schedules (id, user_id, course_id, target_type, target_id, next_review_at, interval_days, ease_factor, consecutive_correct, consecutive_wrong, review_count, status)
+      VALUES ('${cppgReviewScheduleId}', 'user-learner-1', 'course-cppg', 'QUESTION', '${cppgReviewQuestionId}', CURRENT_TIMESTAMP, 0, 250, 0, 1, 1, 'DUE');
   `);
   server = spawn(
     process.execPath,
@@ -84,9 +117,11 @@ function localSql(sql) {
       { cwd: process.cwd(), env: process.env, stdio: ["ignore", "pipe", "pipe"], windowsHide: true },
     );
     let errorOutput = "";
+    let standardOutput = "";
+    child.stdout.on("data", (chunk) => { standardOutput += chunk.toString(); });
     child.stderr.on("data", (chunk) => { errorOutput += chunk.toString(); });
     child.on("error", reject);
-    child.on("exit", (code) => code === 0 ? resolve() : reject(new Error(`Local D1 fixture SQL failed (${code}).\n${errorOutput}`)));
+    child.on("exit", (code) => code === 0 ? resolve(standardOutput) : reject(new Error(`Local D1 fixture SQL failed (${code}).\n${errorOutput}`)));
   });
 }
 
@@ -214,6 +249,60 @@ test("모의고사는 동시 제출 하나만 반영하고 실패 요청의 부�
 
   const duplicateResponse = await submitRequest();
   assert.equal(duplicateResponse.status, 409);
+});
+
+test("legacy CPPG due-review history remains stored but is absent from learner summaries", async () => {
+  for (const path of ["/reviews", "/ai-tutor"]) {
+    const response = await fetch(`${baseUrl}${path}`, { headers: userHeader });
+    const html = await response.text();
+    assert.equal(response.status, 200, `${path}: ${html.slice(0, 800)}`);
+    assert.equal(html.includes("CPPG due-review private title"), false, `${path} exposed a non-projected CPPG question title`);
+  }
+
+  const stored = await localSql(`SELECT CASE WHEN COUNT(*) = 1 THEN 'CPPG_REVIEW_ROW_PRESERVED' ELSE 'CPPG_REVIEW_ROW_MISSING' END FROM review_schedules WHERE id = '${cppgReviewScheduleId}';`);
+  assert.match(stored, /CPPG_REVIEW_ROW_PRESERVED/);
+});
+
+test("legacy CPPG mock exams and historical attempts cannot expose or mutate unprojected questions", async () => {
+  const listResponse = await fetch(`${baseUrl}/mock-exams`, { headers: userHeader });
+  const listHtml = await listResponse.text();
+  assert.equal(listResponse.status, 200);
+  assert.doesNotMatch(listHtml, /CPPG legacy exam secret/);
+
+  const startResponse = await fetch(`${baseUrl}/api/mock-exams/start`, {
+    method: "POST",
+    headers: { ...userHeader, "content-type": "application/json", origin: baseUrl },
+    body: JSON.stringify({ mockExamId: cppgMockExamId }),
+  });
+  assert.ok(startResponse.status >= 400, await startResponse.text());
+
+  const attemptResponse = await fetch(`${baseUrl}/mock-exams/attempts/${cppgHistoricalAttemptId}`, { headers: userHeader });
+  const attemptHtml = await attemptResponse.text();
+  assert.equal(attemptResponse.status, 200, attemptHtml.slice(0, 1000));
+  assert.doesNotMatch(attemptHtml, /Phase 3 mock question|Phase 3 mock content|Phase 3 mock explanation/);
+
+  const answerResponse = await fetch(`${baseUrl}/api/mock-exams/answer`, {
+    method: "POST",
+    headers: { ...userHeader, "content-type": "application/json", origin: baseUrl },
+    body: JSON.stringify({ attemptId: cppgHistoricalAttemptId, questionId: mockQuestionId, answer: mockChoiceOneId }),
+  });
+  assert.ok(answerResponse.status >= 400, await answerResponse.text());
+
+  const submitResponse = await fetch(`${baseUrl}/api/mock-exams/submit`, {
+    method: "POST",
+    headers: { ...userHeader, "content-type": "application/json", origin: baseUrl },
+    body: JSON.stringify({ attemptId: cppgHistoricalAttemptId }),
+  });
+  assert.ok(submitResponse.status >= 400, await submitResponse.text());
+
+  const preserved = await localSql(`
+    SELECT CASE WHEN status = 'IN_PROGRESS' THEN 'ATTEMPT_PRESERVED' ELSE 'ATTEMPT_CHANGED' END AS result
+      FROM mock_exam_attempts WHERE id = '${cppgHistoricalAttemptId}';
+    SELECT CASE WHEN answer_data = 'historical-answer-preserved' THEN 'ANSWER_PRESERVED' ELSE 'ANSWER_CHANGED' END AS result
+      FROM mock_exam_answers WHERE id = '${cppgHistoricalAttemptId}-answer';
+  `);
+  assert.match(preserved, /ATTEMPT_PRESERVED/);
+  assert.match(preserved, /ANSWER_PRESERVED/);
 });
 
 test("일반 사용자는 단계 관리자 API에 접근할 수 없다", async () => {

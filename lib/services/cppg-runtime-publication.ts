@@ -21,8 +21,14 @@ import {
 } from "../../db/cppg-runtime-postgres-registration.ts";
 import { PostgresRuntimeAuthorityPersistence } from "../../db/runtime-authority-postgres-persistence.ts";
 import type { PostgresQueryValue, PostgresTransactionExecutor } from "../../db/provider/postgres-database-provider.ts";
+import { getCppgPublicationEffectiveState } from "./cppg-runtime-publication-revocation.ts";
 
 const PUBLICATION_IDENTITY_CONTRACT = "CPPG_PUBLICATION_RECEIPT_V1" as const;
+export type CppgCanonicalPublicationVisibilityState =
+  | "LEGACY_VISIBLE"
+  | "REGISTERED_UNPUBLISHED"
+  | "CANONICALLY_PUBLISHED"
+  | "CANONICAL_STATE_UNAVAILABLE";
 
 export type CppgPublicationActor = Readonly<{
   id: string;
@@ -155,6 +161,153 @@ export async function authorizeAndPublishCppgRegistrationForTesting(
   await authorizePublicationActor(input, owner);
   const projection = await buildCppgCourseTheoryDraftProjectionFromBundle(bundle, { actorUserId: input.actor.id });
   return publishValidatedProjection(input, owner, projection);
+}
+
+/**
+ * Read-only learner visibility proof. Legacy course flags are deliberately
+ * ignored: the exact current projection, registration, authority lifecycle,
+ * live published rows, and append-only publication receipt must all agree.
+ */
+export async function resolveCppgCanonicalPublicationVisibility(
+  owner: PostgresRuntimeAuthorityPersistence,
+): Promise<CppgCanonicalPublicationVisibilityState> {
+  if (!(owner instanceof PostgresRuntimeAuthorityPersistence)) return "CANONICAL_STATE_UNAVAILABLE";
+  try {
+    const projection = await buildCppgCourseTheoryDraftProjection({ actorUserId: "system:cppg-visibility-read" });
+    return hasCurrentCppgCanonicalPublicationForProjection(owner, projection);
+  } catch {
+    return "CANONICAL_STATE_UNAVAILABLE";
+  }
+}
+
+/** Exact learner row identities from the currently published canonical projection. */
+export async function resolveCppgCanonicalPublicationRowIds(
+  owner: PostgresRuntimeAuthorityPersistence,
+): Promise<Readonly<{ subjectIds: readonly string[]; topicIds: readonly string[]; learningUnitIds: readonly string[]; contentIds: readonly string[]; lessonIds: readonly string[]; courseLessonIds: readonly string[]; contentRevisionIds: readonly string[]; questionIds: readonly string[]; mockExamIds: readonly string[]; lectureIds: readonly string[]; audioContentIds: readonly string[]; specializedFeatureIds: readonly string[]; specializedLinkIds: readonly string[]; specializedContentIds: readonly string[]; specializedContentRevisionIds: readonly string[]; practicalLinkIds: readonly string[]; practicalContentIds: readonly string[]; practicalContentRevisionIds: readonly string[] }> | null> {
+  if (!(owner instanceof PostgresRuntimeAuthorityPersistence)) return null;
+  try {
+    const projection = await buildCppgCourseTheoryDraftProjection({ actorUserId: "system:cppg-visibility-read" });
+    if (await hasCurrentCppgCanonicalPublicationForProjection(owner, projection) !== "CANONICALLY_PUBLISHED") return null;
+    return cppgLearnerRowIds(projection);
+  } catch {
+    return null;
+  }
+}
+
+export async function resolveCppgCanonicalPublicationRowIdsForTesting(
+  owner: PostgresRuntimeAuthorityPersistence,
+  projection: CppgCourseTheoryDraftProjection,
+): Promise<ReturnType<typeof cppgLearnerRowIds> | null> {
+  if (process.env.NODE_ENV !== "test" || typeof process.env.NODE_TEST_CONTEXT !== "string") return null;
+  try {
+    return await hasCurrentCppgCanonicalPublicationForProjection(owner, projection) === "CANONICALLY_PUBLISHED"
+      ? cppgLearnerRowIds(projection)
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function cppgLearnerRowIds(projection: CppgCourseTheoryDraftProjection) {
+  return Object.freeze({
+    subjectIds: Object.freeze(projection.subjects.map(({ id }) => id)),
+    topicIds: Object.freeze(projection.topics.map(({ id }) => id)),
+    learningUnitIds: Object.freeze(projection.learningUnits.map(({ id }) => id)),
+    contentIds: Object.freeze(projection.contents.map(({ id }) => id)),
+    lessonIds: Object.freeze(projection.lessons.map(({ id }) => id)),
+    courseLessonIds: Object.freeze(projection.courseLessons.map(({ id }) => id)),
+    contentRevisionIds: Object.freeze(projection.contentRevisions.map(({ id }) => id)),
+    // Assessment, media, specialized and practical identities are absent from this projection.
+    questionIds: Object.freeze([]),
+    mockExamIds: Object.freeze([]),
+    lectureIds: Object.freeze([]),
+    audioContentIds: Object.freeze([]),
+    specializedFeatureIds: Object.freeze([]),
+    specializedLinkIds: Object.freeze([]),
+    specializedContentIds: Object.freeze([]),
+    specializedContentRevisionIds: Object.freeze([]),
+    practicalLinkIds: Object.freeze([]),
+    practicalContentIds: Object.freeze([]),
+    practicalContentRevisionIds: Object.freeze([]),
+  });
+}
+
+/** Test-only seam for exercising visibility against an isolated PostgreSQL fixture. */
+export async function hasCurrentCppgCanonicalPublicationForTesting(
+  owner: PostgresRuntimeAuthorityPersistence,
+  projection: CppgCourseTheoryDraftProjection,
+): Promise<CppgCanonicalPublicationVisibilityState> {
+  if (process.env.NODE_ENV !== "test" || typeof process.env.NODE_TEST_CONTEXT !== "string") return "CANONICAL_STATE_UNAVAILABLE";
+  try {
+    return hasCurrentCppgCanonicalPublicationForProjection(owner, projection);
+  } catch {
+    return "CANONICAL_STATE_UNAVAILABLE";
+  }
+}
+
+async function hasCurrentCppgCanonicalPublicationForProjection(
+  owner: PostgresRuntimeAuthorityPersistence,
+  projection: CppgCourseTheoryDraftProjection,
+): Promise<CppgCanonicalPublicationVisibilityState> {
+  try {
+    const identity = await cppgAuthorityIdentity(projection);
+    const revisions = projection.contentRevisions.map((record) => record.id);
+    return await owner.withRegistrationTransaction(async (transactionOwner, executor) => {
+      const registration = await loadRegistrationForAuthority(executor, identity.authorityId, identity.approvalSubjectHash);
+      if (!registration) return "LEGACY_VISIBLE";
+      const authority = await loadCppgLedgerState(transactionOwner, registration.authorityId);
+      await validateAuthorityCurrentness(authority, registration, identity.subject, identity.authorityId, identity.approvalSubjectHash);
+      await validateRegistrationSnapshot(registration, projection, revisions, authority.authoritySequence);
+      await validateProjectionRecordSnapshot(executor, registration.projectionSemanticHash, projection);
+      const publicationIdentity = await sha256Canonical({
+        contractVersion: PUBLICATION_IDENTITY_CONTRACT,
+        registrationSemanticIdentity: registration.registrationSemanticIdentity,
+      });
+      const receipt = await loadReceipt(executor, registration.registrationSemanticIdentity);
+      if (!receipt) {
+        await validateLiveProjectionRows(executor, projection, false);
+        return "REGISTERED_UNPUBLISHED";
+      }
+      if (!receiptMatches(receipt, registration, revisions, publicationIdentity)) return "CANONICAL_STATE_UNAVAILABLE";
+      const effectivePublication = await getCppgPublicationEffectiveState(executor, registration.registrationSemanticIdentity);
+      if (effectivePublication.state !== "PUBLISHED" ||
+        effectivePublication.publicationId !== receipt.publicationId ||
+        effectivePublication.publicationSemanticIdentity !== receipt.publicationSemanticIdentity ||
+        effectivePublication.registrationSemanticIdentity !== registration.registrationSemanticIdentity) {
+        return "CANONICAL_STATE_UNAVAILABLE";
+      }
+      await validateLiveProjectionRows(executor, projection, true);
+      return "CANONICALLY_PUBLISHED";
+    });
+  } catch {
+    return "CANONICAL_STATE_UNAVAILABLE";
+  }
+}
+
+export async function hasCurrentCppgCanonicalPublication(owner: PostgresRuntimeAuthorityPersistence): Promise<boolean> {
+  return (await resolveCppgCanonicalPublicationVisibility(owner)) === "CANONICALLY_PUBLISHED";
+}
+
+async function loadRegistrationForAuthority(
+  executor: PostgresTransactionExecutor,
+  authorityId: string,
+  approvalSubjectHash: string,
+): Promise<RegistrationRow | null> {
+  const result = await executor.query<RegistrationRow>(
+    `SELECT "id", "course_id" AS "courseId", "course_slug" AS "courseSlug", "package_key" AS "packageKey",
+            "runtime_revision_id" AS "runtimeRevisionId", "content_revision_ids" AS "contentRevisionIds",
+            "projection_semantic_hash" AS "projectionSemanticHash", "source_manifest_id" AS "sourceManifestId",
+            "source_package_hash" AS "sourcePackageHash", "foundation_id" AS "foundationId",
+            "foundation_hash" AS "foundationHash", "approval_subject_hash" AS "approvalSubjectHash",
+            "authority_id" AS "authorityId", "authority_sequence" AS "authoritySequence",
+            "registration_semantic_identity" AS "registrationSemanticIdentity", "state",
+            "publication_authority" AS "publicationAuthority"
+     FROM public."cppg_runtime_registrations"
+     WHERE "course_id" = $1 AND "course_slug" = $2 AND "package_key" = $3
+       AND "authority_id" = $4 AND "approval_subject_hash" = $5`,
+    [CPPG_RUNTIME_COURSE_ID, "cppg", CPPG_RUNTIME_PACKAGE_KEY, authorityId, approvalSubjectHash],
+  );
+  return result.rows.length === 1 ? result.rows[0]! : null;
 }
 
 async function publishValidatedProjection(

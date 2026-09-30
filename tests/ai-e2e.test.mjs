@@ -123,6 +123,41 @@ test("수강 사용자는 Mock 표시와 고지가 포함된 문제 AI 해설을
   generatedRequestId = payload.result.requestId;
 });
 
+test("legacy CPPG enrollment does not authorize new AI explanation or question attempts", async () => {
+  const enrollment = await fetch(`${baseUrl}/api/enrollments`, {
+    method: "POST",
+    headers: learnerHeaders,
+    body: JSON.stringify({ courseId: "course-cppg" }),
+  });
+  const enrollmentPayload = await enrollment.json();
+  assert.equal(enrollment.status, 409, JSON.stringify(enrollmentPayload));
+  assert.equal(enrollmentPayload.code, "COURSE_NOT_ENROLLABLE");
+
+  const explanation = await fetch(`${baseUrl}/api/ai/question-explanations`, {
+    method: "POST",
+    headers: learnerHeaders,
+    body: JSON.stringify({ questionId: "course-isms-p-question-01", courseId: "course-cppg" }),
+  });
+  const explanationPayload = await explanation.json();
+  assert.equal(explanation.status, 403, JSON.stringify(explanationPayload));
+  assert.equal(explanationPayload.code, "AI_ENROLLMENT_REQUIRED");
+
+  const attempt = await fetch(`${baseUrl}/api/question-attempts`, {
+    method: "POST",
+    headers: learnerHeaders,
+    body: JSON.stringify({
+      questionId: "course-isms-p-question-01",
+      courseId: "course-cppg",
+      answer: "course-isms-p-question-01-choice-01",
+      responseTime: 1000,
+      idempotencyKey: `legacy-cppg-deny-${process.pid}-${Date.now()}`,
+    }),
+  });
+  const attemptPayload = await attempt.json();
+  assert.equal(attempt.status, 403, JSON.stringify(attemptPayload));
+  assert.equal(attemptPayload.code, "ENROLLMENT_REQUIRED");
+});
+
 test("AI 기록은 생성한 사용자만 다시 조회할 수 있다", async () => {
   assert.ok(generatedRequestId);
   const ownerResponse = await fetch(

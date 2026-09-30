@@ -5,6 +5,7 @@ import { after, before, test } from "node:test";
 const requestedPort = 0;
 let baseUrl = "";
 const lessonId = "course-isms-p-subject-foundation-topic-core-lesson-01";
+const cppgLegacyLectureRevisionId = "revision-lecture-course-cppg-subject-foundation-lecture-01";
 const user = {
   "content-type": "application/json",
   "oai-authenticated-user-email": "dev-user-1@example.invalid",
@@ -73,6 +74,11 @@ function captureBaseUrl() {
 
 after(() => {
   if (server?.exitCode === null) server.kill();
+});
+
+test("legacy CPPG lecture revision is not learner-visible from historical enrollment", async () => {
+  const response = await fetch(`${baseUrl}/content-versions/${cppgLegacyLectureRevisionId}`, { headers: user, redirect: "manual" });
+  assert.equal(response.status, 404);
 });
 
 async function post(headers, body) {

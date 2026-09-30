@@ -19,6 +19,19 @@ import {
 } from "@/lib/services/audio-service";
 import { getLatestPublishedRevision } from "./content-revision-repositories";
 import { isSamePersistedMediaProgressState } from "@/lib/media-progress-checkpoint";
+import {
+  getCanonicalCppgLearnerRowIds,
+  hasCanonicalLearnerVisibility,
+} from "@/lib/services/cppg-learner-visibility";
+
+async function getCppgAudioProjectionIds(courseId: string) {
+  if (courseId !== "course-cppg") return undefined;
+  const [course] = await getDb().select({ id: courses.id, slug: courses.slug, code: courses.code })
+    .from(courses).where(eq(courses.id, courseId)).limit(1);
+  if (!course || !(await hasCanonicalLearnerVisibility(course))) return [] as readonly string[];
+  const rows = await getCanonicalCppgLearnerRowIds(courseId);
+  return rows?.audioContentIds ?? [];
+}
 
 async function requireAccessibleAudio(
   userId: string,
@@ -30,6 +43,7 @@ async function requireAccessibleAudio(
       lessonId: audioContents.lessonId,
       durationSeconds: audioContents.durationSeconds,
       enrollmentStatus: userCourseEnrollments.status,
+      courseId: courses.id,
     })
     .from(audioContents)
     .innerJoin(lessons, eq(audioContents.lessonId, lessons.id))
@@ -65,6 +79,13 @@ async function requireAccessibleAudio(
       "AUDIO_CONTENT_NOT_FOUND",
     );
   }
+  const canonicalAudioIds = await getCppgAudioProjectionIds(audio.courseId);
+  if (canonicalAudioIds !== undefined && !canonicalAudioIds.includes(audio.id)) {
+    throw new AppError("Audio is not part of the current canonical CPPG projection.", 404, "AUDIO_CONTENT_NOT_FOUND");
+  }
+  if (audio.courseId === "course-cppg" && (!audio.enrollmentStatus || audio.enrollmentStatus === "CANCELLED")) {
+    throw new AppError("CPPG learner enrollment is required.", 403, "AUDIO_ENROLLMENT_INACTIVE");
+  }
   if (audio.enrollmentStatus === "CANCELLED") {
     throw new AppError(
       "취소된 과정의 오디오에는 접근할 수 없습니다.",
@@ -80,6 +101,8 @@ export async function listPublishedAudioForLesson(
   courseId: string,
   lessonId: string,
 ) {
+  const canonicalAudioIds = await getCppgAudioProjectionIds(courseId);
+  if (canonicalAudioIds?.length === 0) return [];
   const rows = await getDb()
     .select({
       id: audioContents.id,
@@ -135,7 +158,7 @@ export async function listPublishedAudioForLesson(
     .orderBy(asc(audioContents.createdAt));
 
   return rows
-    .filter((row) => row.enrollmentStatus !== "CANCELLED")
+    .filter((row) => row.enrollmentStatus !== "CANCELLED" && (canonicalAudioIds === undefined || canonicalAudioIds.includes(row.id)))
     .map((row) => ({
       ...row,
       audioUrl: validateAudioUrl(

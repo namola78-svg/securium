@@ -163,7 +163,7 @@ test("관리자 권한 검증은 일반 사용자를 차단한다", () => {
   assert.doesNotThrow(() => assertCatalogManager(["COURSE_MANAGER"]));
 });
 
-test("public catalog cache uses stable wrappers instead of repository functions", () => {
+test("public catalog cache revalidates CPPG proof and bypasses curriculum cache for CPPG", () => {
   const source = readFileSync("lib/cached-catalog.ts", "utf8");
   assert.doesNotMatch(source, /unstable_cache\(\s*listPublishedCourses\s*,/);
   assert.doesNotMatch(source, /unstable_cache\(\s*getPublicCourseBySlug\s*,/);
@@ -171,6 +171,10 @@ test("public catalog cache uses stable wrappers instead of repository functions"
   assert.match(source, /unstable_cache\(\s*cachedListPublishedCourses\s*,/);
   assert.match(source, /unstable_cache\(\s*cachedGetPublicCourseBySlug\s*,/);
   assert.match(source, /unstable_cache\(\s*cachedListCurriculum\s*,/);
+  assert.match(source, /filterCanonicalCppgVisibility\(await cachedPublishedCourses\(\)\)/);
+  assert.match(source, /hasCanonicalLearnerVisibility\(course\)/);
+  assert.match(source, /shouldBypassCppgCurriculumCache\(courseId\)/);
+  assert.match(source, /cachedCurriculumByCourse\(courseId\)/);
 });
 
 test("admin curriculum tree sorting avoids locale-dependent hydration drift", () => {

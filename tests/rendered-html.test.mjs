@@ -679,7 +679,7 @@ test("과정 목록을 로컬 D1에서 조회한다", async () => {
   const html = await response.text();
   assert.match(html, /ISMS-P/);
   assert.match(html, /정보보안기사/);
-  assert.match(html, /CPPG 개인정보관리사/);
+  assert.doesNotMatch(html, /CPPG 개인정보관리사/);
 });
 
 test("로그인 화면이 플랫폼 소유 인증 경로를 사용한다", async () => {
@@ -783,9 +783,9 @@ test("개발 사용자의 여러 수강 과정과 분리된 진도를 표시한�
   const html = await response.text();
   assert.equal(response.status, 200, html.slice(0, 1200));
   assert.match(html, /\/learn\/isms-p/);
-  assert.match(html, /\/learn\/cppg/);
+  assert.doesNotMatch(html, /\/learn\/cppg/);
   assert.match(html, /\/practice\/isms-p/);
-  assert.match(html, /\/practice\/cppg/);
+  assert.doesNotMatch(html, /\/practice\/cppg/);
   assert.match(html, /과정 진도/);
   assert.match(html, /data-dashboard-recommendation/);
   assert.match(html, /오늘의 추천 학습/);
@@ -797,7 +797,7 @@ test("개발 사용자의 여러 수강 과정과 분리된 진도를 표시한�
   assert.match(html, /진행 중인 학습/);
   assert.match(html, /최근 이어간 과정/);
   assert.match(html, /ISMS-P/);
-  assert.match(html, /CPPG 개인정보관리사/);
+  assert.doesNotMatch(html, /CPPG 개인정보관리사/);
 });
 
 test("관리자가 학습단위와 레슨을 생성·수정하고 학습자는 공개 범위에서 완료한다", async () => {
@@ -987,7 +987,7 @@ test("관리자가 학습단위와 레슨을 생성·수정하고 학습자는 �
     },
   });
   const isolatedCourseHtml = await isolatedCourseResponse.text();
-  assert.equal(isolatedCourseResponse.status, 200);
+  assert.equal(isolatedCourseResponse.status, 404, "legacy published CPPG flags do not grant learner route eligibility");
   assert.doesNotMatch(
     isolatedCourseHtml,
     new RegExp(publicUpdatedTitle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),

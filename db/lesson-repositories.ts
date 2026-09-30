@@ -29,6 +29,7 @@ import {
   type LessonCompletionPolicy,
 } from "@/lib/services/lesson-service";
 import { createAuditInsert } from "./audit-repositories";
+import { getCanonicalCppgLearnerRowIds } from "@/lib/services/cppg-learner-visibility.ts";
 
 function batchItems(items: BatchItem<"sqlite">[]) {
   return items as unknown as Parameters<ReturnType<typeof getDb>["batch"]>[0];
@@ -518,6 +519,7 @@ export async function listPublishedLearningUnitsForSubject(
   courseId: string,
   subjectId: string,
 ) {
+  const cppgRows = courseId === "course-cppg" ? await getCanonicalCppgLearnerRowIds(courseId) : null;
   const rows = await getDb()
     .select({
       unitId: learningUnits.id,
@@ -566,7 +568,12 @@ export async function listPublishedLearningUnitsForSubject(
     )
     .orderBy(asc(learningUnits.displayOrder), asc(lessons.displayOrder));
 
-  return rows.reduce<
+  const projectionRows = courseId === "course-cppg"
+    ? cppgRows
+      ? rows.filter((row) => cppgRows.learningUnitIds.includes(row.unitId) && (!row.lessonId || cppgRows.lessonIds.includes(row.lessonId)))
+      : []
+    : rows;
+  return projectionRows.reduce<
     Array<{
       id: string;
       title: string;
@@ -634,6 +641,8 @@ export async function getCourseTheoryProgress(
   userId: string,
   courseId: string,
 ) {
+  const cppgRows = courseId === "course-cppg" ? await getCanonicalCppgLearnerRowIds(courseId) : null;
+  if (courseId === "course-cppg" && !cppgRows) return { totalLessons: 0, completedLessons: 0, progressPercent: 0, latestLesson: null, nextLesson: null };
   const [summary] = await getDb()
     .select({
       totalLessons: sql<number>`count(${lessons.id})`,
@@ -660,6 +669,7 @@ export async function getCourseTheoryProgress(
         eq(learningUnits.active, true),
         eq(learningUnits.published, true),
         isNull(learningUnits.deletedAt),
+        ...(cppgRows ? [inArray(lessons.id, [...cppgRows.lessonIds])] : []),
       ),
     );
   const [latest] = await getDb()
@@ -677,6 +687,7 @@ export async function getCourseTheoryProgress(
         eq(userLessonProgress.userId, userId),
         eq(userLessonProgress.courseId, courseId),
         isNull(lessons.deletedAt),
+        ...(cppgRows ? [inArray(lessons.id, [...cppgRows.lessonIds])] : []),
       ),
     )
     .orderBy(desc(userLessonProgress.lastViewedAt))
@@ -708,6 +719,7 @@ export async function getCourseTheoryProgress(
         eq(learningUnits.active, true),
         eq(learningUnits.published, true),
         isNull(learningUnits.deletedAt),
+        ...(cppgRows ? [inArray(lessons.id, [...cppgRows.lessonIds])] : []),
         sql`coalesce(${userLessonProgress.status}, 'NOT_STARTED') <> 'COMPLETED'`,
       ),
     )
@@ -731,11 +743,12 @@ export async function listCourseTheoryProgress(
   courseIds: string[],
 ) {
   if (!courseIds.length) return [];
+  const cppgRows = courseIds.includes("course-cppg") ? await getCanonicalCppgLearnerRowIds("course-cppg") : null;
   const rows = await getDb()
     .select({
+      id: courseLessons.id,
       courseId: courseLessons.courseId,
-      totalLessons: sql<number>`count(${courseLessons.id})`,
-      completedLessons: sql<number>`coalesce(sum(case when ${userCourseLessonProgress.status} = 'COMPLETED' then 1 else 0 end), 0)`,
+      completed: sql<boolean>`${userCourseLessonProgress.status} = 'COMPLETED'`,
     })
     .from(courseLessons)
     .innerJoin(
@@ -759,14 +772,21 @@ export async function listCourseTheoryProgress(
         isNull(courseLessons.deletedAt),
         eq(contents.status, "PUBLISHED"),
         isNull(contents.deletedAt),
+        ...(courseIds.includes("course-cppg")
+          ? [sql`(${courseLessons.courseId} <> 'course-cppg' OR ${cppgRows ? inArray(courseLessons.id, [...cppgRows.courseLessonIds]) : sql`false`})`]
+          : []),
       ),
-    )
-    .groupBy(courseLessons.courseId);
-  return rows.map((row) => {
-    const totalLessons = Number(row.totalLessons);
-    const completedLessons = Number(row.completedLessons);
+    );
+  const summaries = new Map<string, { totalLessons: number; completedLessons: number }>();
+  for (const row of rows) {
+    const summary = summaries.get(row.courseId) ?? { totalLessons: 0, completedLessons: 0 };
+    summary.totalLessons += 1;
+    if (row.completed) summary.completedLessons += 1;
+    summaries.set(row.courseId, summary);
+  }
+  return [...summaries].map(([courseId, { totalLessons, completedLessons }]) => {
     return {
-      courseId: row.courseId,
+      courseId,
       totalLessons,
       completedLessons,
       progressPercent: totalLessons
@@ -781,6 +801,10 @@ export async function getSubjectTheoryProgress(
   courseId: string,
   subjectId: string,
 ) {
+  const cppgRows = courseId === "course-cppg" ? await getCanonicalCppgLearnerRowIds(courseId) : null;
+  if (courseId === "course-cppg" && (!cppgRows || !cppgRows.subjectIds.includes(subjectId))) {
+    return { totalLessons: 0, completedLessons: 0, progressPercent: 0 };
+  }
   const [summary] = await getDb()
     .select({
       totalLessons: sql<number>`count(${lessons.id})`,
@@ -808,6 +832,7 @@ export async function getSubjectTheoryProgress(
         eq(learningUnits.active, true),
         eq(learningUnits.published, true),
         isNull(learningUnits.deletedAt),
+        ...(cppgRows ? [inArray(lessons.id, [...cppgRows.lessonIds])] : []),
       ),
     );
   const totalLessons = Number(summary?.totalLessons ?? 0);
@@ -825,6 +850,8 @@ export async function listSubjectTheoryProgress(
   userId: string,
   courseId: string,
 ) {
+  const cppgRows = courseId === "course-cppg" ? await getCanonicalCppgLearnerRowIds(courseId) : null;
+  if (courseId === "course-cppg" && !cppgRows) return [];
   const rows = await getDb()
     .select({
       subjectId: lessons.subjectId,
@@ -852,6 +879,7 @@ export async function listSubjectTheoryProgress(
         eq(learningUnits.active, true),
         eq(learningUnits.published, true),
         isNull(learningUnits.deletedAt),
+        ...(cppgRows ? [inArray(lessons.id, [...cppgRows.lessonIds])] : []),
       ),
     )
     .groupBy(lessons.subjectId);
@@ -874,6 +902,8 @@ export async function getPublishedLessonForUser(
   courseId: string,
   lessonId: string,
 ) {
+  const cppgRows = courseId === "course-cppg" ? await getCanonicalCppgLearnerRowIds(courseId) : null;
+  if (courseId === "course-cppg" && (!cppgRows || !cppgRows.lessonIds.includes(lessonId))) return null;
   const [lesson] = await getDb()
     .select({
       id: lessons.id,
@@ -959,13 +989,14 @@ export async function getPublishedLessonForUser(
       asc(learningUnits.displayOrder),
       asc(lessons.displayOrder),
     );
-  const index = navigation.findIndex((item) => item.id === lesson.id);
+  const visibleNavigation = cppgRows ? navigation.filter(({ id }) => cppgRows.lessonIds.includes(id)) : navigation;
+  const index = visibleNavigation.findIndex((item) => item.id === lesson.id);
   return {
     ...lesson,
-    previousLesson: index > 0 ? navigation[index - 1] : null,
+    previousLesson: index > 0 ? visibleNavigation[index - 1] : null,
     nextLesson:
-      index >= 0 && index < navigation.length - 1
-        ? navigation[index + 1]
+      index >= 0 && index < visibleNavigation.length - 1
+        ? visibleNavigation[index + 1]
         : null,
   };
 }
@@ -1023,6 +1054,12 @@ async function requireAccessibleLesson(userId: string, lessonId: string) {
       404,
       "LESSON_NOT_FOUND",
     );
+  }
+  if (lesson.courseId === "course-cppg") {
+    const cppgRows = await getCanonicalCppgLearnerRowIds(lesson.courseId);
+    if (!cppgRows?.lessonIds.includes(lessonId)) {
+      throw new AppError("CPPG lesson is outside the current canonical projection.", 404, "LESSON_NOT_FOUND");
+    }
   }
   if (lesson.enrollmentStatus === "CANCELLED") {
     throw new AppError(

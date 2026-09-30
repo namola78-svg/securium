@@ -52,6 +52,7 @@ import type {
   RetrievalContext,
 } from "@/lib/ai/types";
 import { AppError } from "@/lib/errors";
+import { hasCanonicalLearnerVisibility } from "@/lib/services/cppg-learner-visibility.ts";
 
 type SearchScope = {
   courseId?: string;
@@ -914,8 +915,9 @@ export async function getAIExplanationRecord(
 
 async function requireEnrolledCourse(userId: string, courseId: string) {
   const [enrollment] = await getDb()
-    .select({ id: userCourseEnrollments.id })
+    .select({ id: userCourseEnrollments.id, course: { id: courses.id, slug: courses.slug, code: courses.code } })
     .from(userCourseEnrollments)
+    .innerJoin(courses, eq(userCourseEnrollments.courseId, courses.id))
     .where(
       and(
         eq(userCourseEnrollments.userId, userId),
@@ -924,7 +926,7 @@ async function requireEnrolledCourse(userId: string, courseId: string) {
       ),
     )
     .limit(1);
-  if (!enrollment) {
+  if (!enrollment || !(await hasCanonicalLearnerVisibility(enrollment.course))) {
     throw new AppError(
       "수강 중인 과정의 문제만 AI 해설을 요청할 수 있습니다.",
       403,

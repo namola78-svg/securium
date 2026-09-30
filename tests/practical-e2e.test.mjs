@@ -183,3 +183,24 @@ test("일반 사용자는 실무형 콘텐츠 관리자 API에 접근할 수 없
   assert.match(html, /실무형 과정 콘텐츠 관리/);
   assert.match(html, /보안 약점 분류\s*·\s*CWE/);
 });
+
+test("legacy CPPG enrollment cannot submit practical learner actions", async () => {
+  const headers = { ...apiHeaders, "oai-authenticated-user-email": "dev-user-1@example.invalid" };
+  const response = await fetch(`${baseUrl}/api/practical/code-analysis`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      courseId: "course-cppg",
+      sampleId: "secure-code-sample-01",
+      selectedLines: [],
+      weaknessId: "weak-sql-injection",
+      selectedCweCode: "CWE-89",
+      truePositive: false,
+      userExplanation: "legacy CPPG action must be denied",
+      remediationCode: "return validator.allowListed(input);",
+      responseTime: 1200,
+      idempotencyKey: `cppg-practical-${Date.now()}`,
+    }),
+  });
+  assert.equal(response.status, 403, await response.text());
+});

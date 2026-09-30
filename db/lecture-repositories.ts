@@ -32,6 +32,26 @@ import {
 } from "@/lib/services/video-provider-service";
 import { getLatestPublishedRevision } from "./content-revision-repositories";
 import { isSamePersistedMediaProgressState } from "@/lib/media-progress-checkpoint";
+import {
+  getCanonicalCppgLearnerRowIds,
+  hasCanonicalLearnerVisibility,
+} from "@/lib/services/cppg-learner-visibility";
+
+async function getCppgLectureProjectionIds(courseId: string) {
+  if (courseId !== "course-cppg") return undefined;
+  const [course] = await getDb().select({ id: courses.id, slug: courses.slug, code: courses.code })
+    .from(courses).where(eq(courses.id, courseId)).limit(1);
+  if (!course || !(await hasCanonicalLearnerVisibility(course))) return [] as readonly string[];
+  const rows = await getCanonicalCppgLearnerRowIds(courseId);
+  return rows?.lectureIds ?? [];
+}
+
+async function requireProjectedCppgLecture(courseId: string, lectureId: string) {
+  const ids = await getCppgLectureProjectionIds(courseId);
+  if (ids !== undefined && !ids.includes(lectureId)) {
+    throw new AppError("Lecture is not part of the current canonical CPPG projection.", 404, "LECTURE_NOT_ACCESSIBLE");
+  }
+}
 
 type LectureFilters = {
   subjectId?: string;
@@ -75,6 +95,8 @@ export async function listPublishedLectures(
   userId: string | null,
   filters: LectureFilters = {},
 ) {
+  const canonicalLectureIds = await getCppgLectureProjectionIds(courseId);
+  if (canonicalLectureIds?.length === 0) return [];
   const viewerId = userId ?? "__anonymous__";
   // D1 limits LIKE patterns by byte length. Keep room for surrounding
   // wildcards and do not split a multi-byte UTF-8 character.
@@ -162,7 +184,7 @@ export async function listPublishedLectures(
   ]);
   const enrolled =
     Boolean(enrollmentStatus) && enrollmentStatus !== "CANCELLED";
-  return rows.flatMap((row) => {
+  return rows.filter((row) => canonicalLectureIds === undefined || canonicalLectureIds.includes(row.id)).flatMap((row) => {
     try {
       const provider = getVideoProviderConfig(row.videoProvider);
       createSafeVideoEmbed(row.videoProvider, row.videoUrl);
@@ -184,6 +206,8 @@ export async function getPublishedLecture(
   lectureId: string,
   userId: string | null,
 ) {
+  const canonicalLectureIds = await getCppgLectureProjectionIds(courseId);
+  if (canonicalLectureIds !== undefined && !canonicalLectureIds.includes(lectureId)) return null;
   const viewerId = userId ?? "__anonymous__";
   const [lectureRows, enrollmentStatus] = await Promise.all([
     getDb()
@@ -402,6 +426,10 @@ async function requireAccessibleLecture(userId: string, lectureId: string) {
       404,
       "LECTURE_NOT_ACCESSIBLE",
     );
+  }
+  await requireProjectedCppgLecture(lecture.courseId, lecture.id);
+  if (lecture.courseId === "course-cppg" && (!lecture.enrollmentStatus || lecture.enrollmentStatus === "CANCELLED")) {
+    throw new AppError("CPPG learner enrollment is required.", 403, "LECTURE_ENROLLMENT_REQUIRED");
   }
   return lecture;
 }
