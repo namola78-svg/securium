@@ -127,8 +127,8 @@
     "test:cppg-publication:postgres": "node --import tsx --test --test-concurrency=1 tests/cppg-atomic-publication-postgres-disposable.test.ts"
   },
   "dependencies": {
-    "@supabase/ssr": "0.12.4",
-    "@supabase/supabase-js": "2.112.2",
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.117.1",
     "drizzle-orm": "0.45.3",
     "next": "16.3.4",
     "postgres": "3.4.9",
