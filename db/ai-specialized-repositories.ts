@@ -41,6 +41,7 @@ import type {
   SpecializedAIResult,
 } from "@/lib/ai/types";
 import { AppError } from "@/lib/errors";
+import { hasCanonicalLearnerVisibility, requireCanonicalCppgLearnerDomainRows } from "@/lib/services/cppg-learner-visibility.ts";
 import {
   gradeWrittenAnswer,
   type WrittenAnswerRuleInput,
@@ -95,6 +96,7 @@ export async function generateSpecializedAI(input: {
   retentionDays: number;
 }) {
   await requireEnrollment(input.userId, input.target.courseId);
+  await requireCanonicalCppgLearnerDomainRows(input.target.courseId, "SPECIALIZED");
   assertDailyAILimit(
     await countTodayAIGenerations(input.userId),
     input.dailyLimit,
@@ -160,6 +162,10 @@ export async function getSpecializedAIRecord(
       ),
     )
     .limit(1);
+  if (row?.courseId === "course-cppg") {
+    await requireEnrollment(userId, row.courseId);
+    await requireCanonicalCppgLearnerDomainRows(row.courseId, "SPECIALIZED");
+  }
   return row ? toPublicRecord(row) : null;
 }
 
@@ -774,8 +780,9 @@ async function courseContexts(
 
 async function requireEnrollment(userId: string, courseId: string) {
   const [enrollment] = await getDb()
-    .select({ id: userCourseEnrollments.id })
+    .select({ id: userCourseEnrollments.id, course: { id: courses.id, slug: courses.slug, code: courses.code } })
     .from(userCourseEnrollments)
+    .innerJoin(courses, eq(userCourseEnrollments.courseId, courses.id))
     .where(
       and(
         eq(userCourseEnrollments.userId, userId),
@@ -784,7 +791,7 @@ async function requireEnrollment(userId: string, courseId: string) {
       ),
     )
     .limit(1);
-  if (!enrollment) {
+  if (!enrollment || !(await hasCanonicalLearnerVisibility(enrollment.course))) {
     throw new AppError(
       "수강 중인 과정의 AI 기능만 이용할 수 있습니다.",
       403,

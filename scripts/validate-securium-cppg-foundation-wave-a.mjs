@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { readdir, readFile, stat, writeFile } from "node:fs/promises";
-import { isAbsolute, join, relative, resolve } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { CPPG_MANIFEST_SOURCE_ROOT, CPPG_SOURCE_ROOT_CONTRACT, resolveCppgSourceRoot } from "./cppg-source-root.mjs";
 
@@ -156,7 +156,7 @@ export async function loadBundle(repoRoot) {
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url))) {
-  const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
+  const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
   const bundle = await loadBundle(repoRoot);
   const result = validateFoundation(bundle);
   const source = await revalidateSourceManifest(bundle.sourceManifest, repoRoot);

@@ -52,6 +52,7 @@ import {
 } from "./schema";
 import { AppError } from "@/lib/errors";
 import { assertGenericCppgPublicationAllowed } from "@/lib/services/cppg-generic-publication-guard";
+import { filterCanonicalCppgVisibility, filterCppgAssessmentRows, getCanonicalCppgLearnerRowIds, hasCanonicalLearnerVisibility, isCanonicalCppgMockExam, isCanonicalCppgReviewTarget } from "@/lib/services/cppg-learner-visibility.ts";
 import {
   applyLevelResult,
   assertLevelAccessible,
@@ -121,6 +122,48 @@ function withoutKeys<T extends object, K extends keyof T>(
 
 function batchItems(items: BatchItem<"sqlite">[]) {
   return items as unknown as Parameters<ReturnType<typeof getDb>["batch"]>[0];
+}
+
+async function getCurrentCppgMockExamProjection(courseId: string) {
+  if (courseId !== "course-cppg") return undefined;
+  const [course] = await getDb()
+    .select({ id: courses.id, slug: courses.slug, code: courses.code })
+    .from(courses)
+    .where(eq(courses.id, courseId))
+    .limit(1);
+  if (!course || !(await hasCanonicalLearnerVisibility(course))) return null;
+  return getCanonicalCppgLearnerRowIds(courseId);
+}
+
+function isCurrentCppgMockExamProjected(
+  courseId: string,
+  mockExamId: string,
+  questionIds: readonly string[],
+  projection: Awaited<ReturnType<typeof getCurrentCppgMockExamProjection>>,
+) {
+  if (courseId !== "course-cppg") return true;
+  return isCanonicalCppgMockExam(mockExamId, questionIds, projection ?? null);
+}
+
+async function listMockExamQuestionIds(mockExamId: string) {
+  const rows = await getDb()
+    .select({ questionId: mockExamQuestions.questionId })
+    .from(mockExamQuestions)
+    .where(eq(mockExamQuestions.mockExamId, mockExamId))
+    .orderBy(asc(mockExamQuestions.displayOrder));
+  return rows.map(({ questionId }) => questionId);
+}
+
+async function requireCurrentMockAttemptProjection(input: {
+  courseId: string;
+  mockExamId: string;
+  questionIds: readonly string[];
+}) {
+  if (input.courseId !== "course-cppg") return;
+  const projection = await getCurrentCppgMockExamProjection(input.courseId);
+  if (!isCurrentCppgMockExamProjected(input.courseId, input.mockExamId, input.questionIds, projection)) {
+    throw new AppError("CPPG mock exam is not in the current canonical publication projection.", 404, "MOCK_EXAM_NOT_FOUND");
+  }
 }
 
 function isUniqueConstraintError(error: unknown) {
@@ -447,7 +490,7 @@ export async function listDueReviews(userId: string, courseId?: string) {
     inArray(reviewSchedules.status, ["DUE", "SCHEDULED"]),
   ];
   if (courseId) conditions.push(eq(reviewSchedules.courseId, courseId));
-  return getDb()
+  const rows = await getDb()
     .select({
       id: reviewSchedules.id,
       courseId: reviewSchedules.courseId,
@@ -472,12 +515,47 @@ export async function listDueReviews(userId: string, courseId?: string) {
     )
     .where(and(...conditions))
     .orderBy(asc(reviewSchedules.nextReviewAt));
+  return filterCanonicalCppgReviewTargets(rows);
+}
+
+async function filterCanonicalCppgReviewTargets<
+  T extends { courseId: string; targetType: string; targetId: string },
+>(rows: readonly T[]): Promise<T[]> {
+  if (!rows.some((row) => row.courseId === "course-cppg")) return [...rows];
+  const projection = await getCanonicalCppgLearnerRowIds("course-cppg");
+  return rows.filter((row) =>
+    row.courseId !== "course-cppg" ||
+    isCanonicalCppgReviewTarget(row.targetType, row.targetId, projection)
+  );
+}
+
+async function countVisibleCompletedReviewsToday(userId: string) {
+  const todayRange = utcDayRange();
+  const rows = await getDb()
+    .select({
+      courseId: reviewSchedules.courseId,
+      targetType: reviewSchedules.targetType,
+      targetId: reviewSchedules.targetId,
+    })
+    .from(reviewSchedules)
+    .where(
+      and(
+        eq(reviewSchedules.userId, userId),
+        gte(reviewSchedules.lastReviewedAt, todayRange.start),
+        lt(reviewSchedules.lastReviewedAt, todayRange.end),
+        gt(reviewSchedules.intervalDays, 0),
+      ),
+    );
+  return (await filterCanonicalCppgReviewTargets(rows)).length;
 }
 
 export async function countDueReviewsForCourse(
   userId: string,
   courseId: string,
 ) {
+  if (courseId === "course-cppg") {
+    return (await listDueReviews(userId, courseId)).length;
+  }
   const now = new Date().toISOString();
   const [row] = await getDb()
     .select({ count: sql<number>`count(*)` })
@@ -496,18 +574,7 @@ export async function countDueReviewsForCourse(
 export async function getReviewSummary(userId: string) {
   const due = await listDueReviews(userId);
   const now = Date.now();
-  const todayRange = utcDayRange();
-  const [completedRow] = await getDb()
-    .select({ count: sql<number>`count(*)` })
-    .from(reviewSchedules)
-    .where(
-      and(
-        eq(reviewSchedules.userId, userId),
-        gte(reviewSchedules.lastReviewedAt, todayRange.start),
-        lt(reviewSchedules.lastReviewedAt, todayRange.end),
-        gt(reviewSchedules.intervalDays, 0),
-      ),
-    );
+  const completedToday = await countVisibleCompletedReviewsToday(userId);
   const byCourse = new Map<
     string,
     { name: string; slug: string; count: number }
@@ -527,10 +594,10 @@ export async function getReviewSummary(userId: string) {
     dueCount: due.length,
     overdueCount: overdue,
     estimatedMinutes: due.length * 2,
-    completedToday: Number(completedRow?.count ?? 0),
+    completedToday,
     completionRate: safeRate(
-      Number(completedRow?.count ?? 0),
-      Number(completedRow?.count ?? 0) + due.length,
+      completedToday,
+      completedToday + due.length,
     ),
     byCourse: [...byCourse.entries()].map(([courseId, value]) => ({
       courseId,
@@ -644,7 +711,21 @@ export async function listPublicMockExams(userId: string, courseId?: string) {
     .from(mockExamAttempts)
     .where(eq(mockExamAttempts.userId, userId))
     .groupBy(mockExamAttempts.mockExamId);
-  return rows.map((row) => ({
+  const cppgRows = rows.filter(({ courseId: rowCourseId }) => rowCourseId === "course-cppg");
+  const projection = cppgRows.length
+    ? await getCurrentCppgMockExamProjection("course-cppg")
+    : undefined;
+  const visibleRows = rows.filter((row) => {
+    if (row.courseId !== "course-cppg") return true;
+    if (!projection?.mockExamIds.includes(row.id)) return false;
+    return true;
+  });
+  const visibleCppgRows = await Promise.all(visibleRows.map(async (row) => {
+    if (row.courseId !== "course-cppg") return row;
+    const questionIds = await listMockExamQuestionIds(row.id);
+    return isCurrentCppgMockExamProjected(row.courseId, row.id, questionIds, projection) ? row : null;
+  }));
+  return visibleCppgRows.filter((row): row is (typeof visibleRows)[number] => row !== null).map((row) => ({
     ...row,
     attemptCount: Number(
       counts.find((count) => count.mockExamId === row.id)?.count ?? 0,
@@ -659,6 +740,9 @@ export async function countPublicMockExamsForCourse(
   userId: string,
   courseId: string,
 ) {
+  if (courseId === "course-cppg") {
+    return (await listPublicMockExams(userId, courseId)).length;
+  }
   const conditions = [
     eq(mockExams.courseId, courseId),
     eq(mockExams.published, true),
@@ -696,6 +780,11 @@ function examIsOpen(exam: {
 
 export async function startMockExam(userId: string, mockExamId: string) {
   const prepared = await prepareMockExamStart(userId, mockExamId);
+  await requireCurrentMockAttemptProjection({
+    courseId: prepared.exam.courseId,
+    mockExamId: prepared.mockExamId,
+    questionIds: prepared.questionRows.map(({ questionId }) => questionId),
+  });
   return commitMockExamStart(prepared, await getDatabaseProvider());
 }
 
@@ -766,6 +855,10 @@ export async function prepareMockExamStart(
     questionRows.some((row) => row.questionStatus !== "PUBLISHED")
   ) {
     throw new AppError("시험 문제 구성이 완료되지 않았습니다.", 409, "EXAM_INCOMPLETE");
+  }
+  const projection = await getCurrentCppgMockExamProjection(exam.courseId);
+  if (!isCurrentCppgMockExamProjected(exam.courseId, exam.id, questionRows.map(({ questionId }) => questionId), projection)) {
+    throw new AppError("CPPG mock exam is not in the current canonical publication projection.", 404, "MOCK_EXAM_NOT_FOUND");
   }
   const versionBindings = await resolveMockQuestionVersionBindings(questionRows);
   const compositionItems: MockCompositionSnapshotItem[] = questionRows.map((row) => {
@@ -858,10 +951,13 @@ export async function getMockExamAttempt(userId: string, attemptId: string) {
       compositionSnapshotJson: mockExamAttempts.compositionSnapshotJson,
       title: mockExams.title,
       courseId: mockExams.courseId,
+      courseSlug: courses.slug,
+      courseCode: courses.code,
       resultOpenAt: mockExams.resultOpenAt,
     })
     .from(mockExamAttempts)
     .innerJoin(mockExams, eq(mockExamAttempts.mockExamId, mockExams.id))
+    .innerJoin(courses, eq(mockExams.courseId, courses.id))
     .where(
       and(
         eq(mockExamAttempts.id, attemptId),
@@ -870,6 +966,39 @@ export async function getMockExamAttempt(userId: string, attemptId: string) {
     )
     .limit(1);
   if (!attempt) throw new AppError("시험 기록을 찾을 수 없습니다.", 404, "EXAM_ATTEMPT_NOT_FOUND");
+  const cppgProjection = attempt.courseId === "course-cppg"
+    ? await getCurrentCppgMockExamProjection(attempt.courseId)
+    : undefined;
+  if (attempt.courseId === "course-cppg" && !cppgProjection?.mockExamIds.includes(attempt.mockExamId)) {
+    const publicAttempt = withoutKeys(attempt, [
+      "compositionSemanticHash",
+      "compositionSnapshotJson",
+      "courseSlug",
+      "courseCode",
+    ]);
+    return { ...publicAttempt, resultsAvailable: false, questions: [] };
+  }
+  let cppgComposition: MockExamCompositionSnapshot | null = null;
+  if (attempt.courseId === "course-cppg") {
+    cppgComposition = await resolveMockExamCompositionSnapshot(
+      attempt.compositionSnapshotJson,
+      attempt.compositionSemanticHash,
+    );
+    if (!isCurrentCppgMockExamProjected(
+      attempt.courseId,
+      attempt.mockExamId,
+      cppgComposition.items.map(({ questionIdentity }) => questionIdentity),
+      cppgProjection,
+    )) {
+      const publicAttempt = withoutKeys(attempt, [
+        "compositionSemanticHash",
+        "compositionSnapshotJson",
+        "courseSlug",
+        "courseCode",
+      ]);
+      return { ...publicAttempt, resultsAvailable: false, questions: [] };
+    }
+  }
   if (
     attempt.status === "IN_PROGRESS" &&
     shouldAutoSubmit(attempt.expiresAt)
@@ -877,13 +1006,15 @@ export async function getMockExamAttempt(userId: string, attemptId: string) {
     await submitMockExam(userId, attemptId, true);
     return getMockExamAttempt(userId, attemptId);
   }
-  const composition = await resolveMockExamCompositionSnapshot(
+  const composition = cppgComposition ?? await resolveMockExamCompositionSnapshot(
     attempt.compositionSnapshotJson,
     attempt.compositionSemanticHash,
   );
   const publicAttempt = withoutKeys(attempt, [
     "compositionSemanticHash",
     "compositionSnapshotJson",
+    "courseSlug",
+    "courseCode",
   ]);
   const rows = await getDb()
     .select({
@@ -1089,8 +1220,9 @@ export async function saveMockExamAnswer(input: {
   answer: string | string[];
 }) {
   const [attempt] = await getDb()
-    .select()
+    .select({ attempt: mockExamAttempts, mockExamId: mockExams.id, courseId: mockExams.courseId })
     .from(mockExamAttempts)
+    .innerJoin(mockExams, eq(mockExamAttempts.mockExamId, mockExams.id))
     .where(
       and(
         eq(mockExamAttempts.id, input.attemptId),
@@ -1099,10 +1231,21 @@ export async function saveMockExamAnswer(input: {
   )
     .limit(1);
   if (!attempt) throw new AppError("시험 기록을 찾을 수 없습니다.", 404, "EXAM_ATTEMPT_NOT_FOUND");
-  assertExamInProgress(attempt);
+  assertExamInProgress(attempt.attempt);
+  if (attempt.courseId === "course-cppg") {
+    const questionIds = await listMockExamQuestionIds(attempt.mockExamId);
+    if (!questionIds.includes(input.questionId)) {
+      throw new AppError("Question is not part of this mock exam.", 404, "EXAM_QUESTION_NOT_FOUND");
+    }
+    await requireCurrentMockAttemptProjection({
+      courseId: attempt.courseId,
+      mockExamId: attempt.mockExamId,
+      questionIds,
+    });
+  }
   await resolveMockExamCompositionSnapshot(
-    attempt.compositionSnapshotJson,
-    attempt.compositionSemanticHash,
+    attempt.attempt.compositionSnapshotJson,
+    attempt.attempt.compositionSemanticHash,
   );
   const [answerRow] = await getDb()
     .update(mockExamAnswers)
@@ -1156,6 +1299,21 @@ export async function submitMockExam(
     attempt.compositionSnapshotJson,
     attempt.compositionSemanticHash,
   );
+  if (attempt.courseId === "course-cppg") {
+    const compositionQuestionIds = composition.items.map(({ questionIdentity }) => questionIdentity);
+    const currentQuestionIds = await listMockExamQuestionIds(attempt.mockExamId);
+    if (
+      compositionQuestionIds.length !== currentQuestionIds.length ||
+      compositionQuestionIds.some((questionId) => !currentQuestionIds.includes(questionId))
+    ) {
+      throw new AppError("CPPG mock exam composition is no longer current.", 409, "MOCK_COMPOSITION_UNAVAILABLE");
+    }
+    await requireCurrentMockAttemptProjection({
+      courseId: attempt.courseId,
+      mockExamId: attempt.mockExamId,
+      questionIds: compositionQuestionIds,
+    });
+  }
   const answerRows = await getDb()
     .select({
       answerId: mockExamAnswers.id,
@@ -1728,6 +1886,9 @@ export async function getCourseStatistics(userId: string, courseId: string) {
     );
   const reviewRows = await getDb()
     .select({
+      courseId: reviewSchedules.courseId,
+      targetType: reviewSchedules.targetType,
+      targetId: reviewSchedules.targetId,
       correct: reviewSchedules.consecutiveCorrect,
       count: reviewSchedules.reviewCount,
     })
@@ -1738,6 +1899,7 @@ export async function getCourseStatistics(userId: string, courseId: string) {
         eq(reviewSchedules.courseId, courseId),
       ),
     );
+  const visibleReviewRows = await filterCanonicalCppgReviewTargets(reviewRows);
   return {
     totalQuestions: rows.length,
     correctAnswers: rows.filter((row) => row.isCorrect).length,
@@ -1750,8 +1912,8 @@ export async function getCourseStatistics(userId: string, courseId: string) {
     recent30Days: days30,
     repeatedWrongCount: Number(wrongCountRow?.count ?? 0),
     reviewSuccessRate: safeRate(
-      reviewRows.filter((row) => row.correct > 0).length,
-      reviewRows.length,
+      visibleReviewRows.filter((row) => row.correct > 0).length,
+      visibleReviewRows.length,
     ),
     levelCompletionRate: safeRate(
       levelRows.filter((row) =>
@@ -1841,11 +2003,12 @@ export async function getLearnCourseActivitySummary(
 }
 
 export async function getIntegratedStatistics(userId: string) {
-  const [enrollments, activityDays] = await Promise.all([
+  const [enrollmentRows, activityDays] = await Promise.all([
     getDb()
       .select({
         courseId: userCourseEnrollments.courseId,
         courseSlug: courses.slug,
+        courseCode: courses.code,
         courseName: courses.shortName,
         progressPercent: userCourseEnrollments.progressPercent,
       })
@@ -1859,6 +2022,14 @@ export async function getIntegratedStatistics(userId: string) {
       .from(learningActivities)
       .where(eq(learningActivities.userId, userId)),
   ]);
+  const visibleEnrollments = await filterCanonicalCppgVisibility(enrollmentRows.map((row) => ({
+    ...row,
+    id: row.courseId,
+    slug: row.courseSlug,
+    code: row.courseCode,
+  })));
+  const visibleCourseIds = new Set(visibleEnrollments.map((row) => row.courseId));
+  const enrollments = enrollmentRows.filter((row) => visibleCourseIds.has(row.courseId));
   const courseIds = enrollments.map((enrollment) => enrollment.courseId);
   const [attemptRows, attemptDayRows, levelRows, courseLessonRows] =
     courseIds.length
@@ -2068,6 +2239,7 @@ type DashboardPlanEnrollment = {
   courseId: string;
   courseSlug: string;
   courseName: string;
+  courseCode?: string;
   status?: string;
 };
 
@@ -2548,19 +2720,16 @@ async function getDashboardTodayPlanSummary(userId: string) {
       items: never[];
     };
   }>(cacheKey);
-  if (cached) return cached;
+  if (cached) {
+    return { ...cached, reviewSummary: await getVisibleDashboardReviewSummary(userId) };
+  }
 
   const result = await readDashboardPlanSharedCache(cacheKey, async () => {
-  const now = new Date().toISOString();
-  const overdueCutoff = new Date(Date.now() - 86_400_000).toISOString();
   const todayRange = utcDayRange();
   const [summary] = await getDb()
     .select({
       dailyQuestionGoal: sql<number>`coalesce((select ${userLearningSettings.dailyQuestionGoal} from ${userLearningSettings} where ${userLearningSettings.userId} = ${userId} limit 1), 20)`,
       dailyStudyMinutes: sql<number>`coalesce((select ${userLearningSettings.dailyStudyMinutes} from ${userLearningSettings} where ${userLearningSettings.userId} = ${userId} limit 1), 30)`,
-      dueCount: sql<number>`coalesce((select count(*) from ${reviewSchedules} where ${reviewSchedules.userId} = ${userId} and ${reviewSchedules.nextReviewAt} <= ${now} and ${reviewSchedules.status} in ('DUE', 'SCHEDULED')), 0)`,
-      overdueCount: sql<number>`coalesce((select count(*) from ${reviewSchedules} where ${reviewSchedules.userId} = ${userId} and ${reviewSchedules.nextReviewAt} < ${overdueCutoff} and ${reviewSchedules.status} in ('DUE', 'SCHEDULED')), 0)`,
-      completedToday: sql<number>`coalesce((select count(*) from ${reviewSchedules} where ${reviewSchedules.userId} = ${userId} and ${reviewSchedules.lastReviewedAt} >= ${todayRange.start} and ${reviewSchedules.lastReviewedAt} < ${todayRange.end} and ${reviewSchedules.intervalDays} > 0), 0)`,
       completedQuestions: sql<number>`coalesce((select count(*) from ${questionAttempts} where ${questionAttempts.userId} = ${userId} and ${questionAttempts.attemptedAt} >= ${todayRange.start} and ${questionAttempts.attemptedAt} < ${todayRange.end}), 0)`,
     })
     .from(users)
@@ -2568,8 +2737,6 @@ async function getDashboardTodayPlanSummary(userId: string) {
     .limit(1);
   const dailyQuestionGoal = Number(summary?.dailyQuestionGoal ?? 20);
   const completedQuestions = Number(summary?.completedQuestions ?? 0);
-  const dueCount = Number(summary?.dueCount ?? 0);
-  const completedToday = Number(summary?.completedToday ?? 0);
   return {
     settings: {
       id: "dashboard-default-learning-settings",
@@ -2581,18 +2748,38 @@ async function getDashboardTodayPlanSummary(userId: string) {
     },
     completedQuestions,
     reviewSummary: {
-      dueCount,
-      overdueCount: Number(summary?.overdueCount ?? 0),
-      estimatedMinutes: dueCount * 2,
-      completedToday,
-      completionRate: safeRate(completedToday, completedToday + dueCount),
+      dueCount: 0,
+      overdueCount: 0,
+      estimatedMinutes: 0,
+      completedToday: 0,
+      completionRate: 0,
       byCourse: [],
       items: [],
     },
   };
   });
-  writeDashboardPlanCache(cacheKey, result);
-  return result;
+  const visibleResult = { ...result, reviewSummary: await getVisibleDashboardReviewSummary(userId) };
+  writeDashboardPlanCache(cacheKey, visibleResult);
+  return visibleResult;
+}
+
+async function getVisibleDashboardReviewSummary(userId: string) {
+  const due = await listDueReviews(userId);
+  const completedToday = await countVisibleCompletedReviewsToday(userId);
+  const dueCount = due.length;
+  const now = Date.now();
+  const overdueCount = due.filter((row) =>
+    new Date(row.nextReviewAt).getTime() < now - 86_400_000
+  ).length;
+  return {
+    dueCount,
+    overdueCount,
+    estimatedMinutes: dueCount * 2,
+    completedToday,
+    completionRate: safeRate(completedToday, completedToday + dueCount),
+    byCourse: [] as never[],
+    items: [] as never[],
+  };
 }
 
 async function timeDashboardPlanStep<T>(
@@ -2631,7 +2818,7 @@ async function getDashboardRecommendations(
     const cacheKey = `recommendations:${userId}`;
     const cached =
       readDashboardPlanCache<RecommendationCandidate[]>(cacheKey);
-    if (cached) return cached;
+    if (cached) return filterUnprojectedCppgAssessmentRecommendations(cached);
 
     const result = await readDashboardPlanSharedCache(cacheKey, async () => {
     const dashboardCandidates: RecommendationCandidate[] = [];
@@ -2640,6 +2827,7 @@ async function getDashboardRecommendations(
         id: wrongNotes.id,
         courseId: wrongNotes.courseId,
         courseSlug: courses.slug,
+        courseCode: courses.code,
         questionId: wrongNotes.questionId,
         wrongCount: wrongNotes.wrongCount,
       })
@@ -2661,8 +2849,25 @@ async function getDashboardRecommendations(
         ),
       )
       .orderBy(desc(wrongNotes.wrongCount))
-      .limit(8);
-    if (!repeatedRows.length) {
+      .limit(64);
+    const visibleWrongNoteRows = await filterCanonicalCppgVisibility(repeatedRows.map((row) => ({
+      ...row,
+      id: row.courseId,
+      slug: row.courseSlug,
+      code: row.courseCode,
+    })));
+    const visibleWrongNoteIds = new Set(visibleWrongNoteRows.map((row) => row.id));
+    const courseVisibleRepeatedRows = repeatedRows
+      .filter((row) => visibleWrongNoteIds.has(row.courseId))
+      .slice(0, 8);
+    const cppgProjection = courseVisibleRepeatedRows.some(({ courseId }) => courseId === "course-cppg")
+      ? await getCanonicalCppgLearnerRowIds("course-cppg")
+      : null;
+    const learnerVisibleRepeatedRows = filterCppgAssessmentRows(
+      courseVisibleRepeatedRows,
+      cppgProjection?.questionIds ?? null,
+    );
+    if (!learnerVisibleRepeatedRows.length) {
       return recommendationService.recommend(dashboardCandidates, 8);
     }
     const questionRows = await getDb()
@@ -2674,14 +2879,14 @@ async function getDashboardRecommendations(
       .where(
         inArray(
           questions.id,
-          repeatedRows.map((item) => item.questionId),
+          learnerVisibleRepeatedRows.map((item) => item.questionId),
         ),
       );
     const questionTitleById = new Map(
       questionRows.map((question) => [question.id, question.title]),
     );
     dashboardCandidates.push(
-      ...repeatedRows.map((item) => ({
+      ...learnerVisibleRepeatedRows.map((item) => ({
         id: item.id,
         kind: "QUESTION" as const,
         title: questionTitleById.get(item.questionId) ?? "추천 문제",
@@ -2707,6 +2912,7 @@ async function getDashboardRecommendations(
           courseId: userCourseEnrollments.courseId,
           courseSlug: courses.slug,
           courseName: courses.shortName,
+          courseCode: courses.code,
           status: userCourseEnrollments.status,
         })
         .from(userCourseEnrollments)
@@ -2718,7 +2924,15 @@ async function getDashboardRecommendations(
           ),
         );
   {
-    const dashboardEnrollments = await enrollmentsPromise;
+    const sourceEnrollments = await enrollmentsPromise;
+    const visibleEnrollments = await filterCanonicalCppgVisibility(sourceEnrollments.map((enrollment) => ({
+      ...enrollment,
+      id: enrollment.courseId,
+      slug: enrollment.courseSlug,
+      code: enrollment.courseCode,
+    })));
+    const visibleEnrollmentIds = new Set(visibleEnrollments.map((enrollment) => enrollment.courseId));
+    const dashboardEnrollments = sourceEnrollments.filter((enrollment) => visibleEnrollmentIds.has(enrollment.courseId));
     const dashboardCandidates: RecommendationCandidate[] = [];
     const dashboardCourseIds = dashboardEnrollments.map(
       (enrollment) => enrollment.courseId,
@@ -2750,7 +2964,11 @@ async function getDashboardRecommendations(
       )
       .orderBy(desc(wrongNotes.wrongCount))
       .limit(8);
-    if (!repeatedRows.length) {
+    const cppgProjection = repeatedRows.some(({ courseId }) => courseId === "course-cppg")
+      ? await getCanonicalCppgLearnerRowIds("course-cppg")
+      : null;
+    const visibleRepeatedRows = filterCppgAssessmentRows(repeatedRows, cppgProjection?.questionIds ?? null);
+    if (!visibleRepeatedRows.length) {
       return recommendationService.recommend(dashboardCandidates, 8);
     }
     const questionRows = await getDb()
@@ -2762,14 +2980,14 @@ async function getDashboardRecommendations(
       .where(
         inArray(
           questions.id,
-          repeatedRows.map((item) => item.questionId),
+          visibleRepeatedRows.map((item) => item.questionId),
         ),
       );
     const questionTitleById = new Map(
       questionRows.map((question) => [question.id, question.title]),
     );
     dashboardCandidates.push(
-      ...repeatedRows.map((item) => {
+      ...visibleRepeatedRows.map((item) => {
         const course = dashboardCourseById.get(item.courseId);
         return {
           id: item.id,
@@ -2790,6 +3008,7 @@ async function getDashboardRecommendations(
         id: reviewSchedules.id,
         courseId: reviewSchedules.courseId,
         targetType: reviewSchedules.targetType,
+        targetId: reviewSchedules.targetId,
         nextReviewAt: reviewSchedules.nextReviewAt,
         questionTitle: questions.title,
       })
@@ -2809,10 +3028,11 @@ async function getDashboardRecommendations(
         ),
       )
       .orderBy(asc(reviewSchedules.nextReviewAt))
-      .limit(8),
+      .limit(64),
     enrollmentsPromise,
   ]);
-  const candidates: RecommendationCandidate[] = reviews.map((review) => {
+  const visibleReviews = (await filterCanonicalCppgReviewTargets(reviews)).slice(0, 8);
+  const candidates: RecommendationCandidate[] = visibleReviews.map((review) => {
     const overdueDays = Math.max(
       0,
       Math.floor(
@@ -2912,6 +3132,23 @@ async function getDashboardRecommendations(
     });
   }
   return recommendationService.recommend(candidates, 8);
+}
+
+function filterUnprojectedCppgAssessmentRecommendations(
+  candidates: readonly RecommendationCandidate[],
+): RecommendationCandidate[] {
+  return candidates.filter((candidate) => {
+    const href = candidate.href;
+    if (!href) return true;
+    const url = new URL(href, "https://securium.invalid");
+    if (candidate.kind === "QUESTION" && url.pathname === "/practice/cppg") return false;
+    if (
+      candidate.kind === "REVIEW" &&
+      url.pathname === "/reviews" &&
+      url.searchParams.get("courseId") === "course-cppg"
+    ) return false;
+    return true;
+  });
 }
 
 export async function listAdminLevels(courseId?: string) {

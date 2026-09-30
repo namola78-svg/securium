@@ -25,6 +25,8 @@ const piaAudioId =
   "course-pia-subject-foundation-topic-core-lesson-01-audio-01";
 const ismsAudioId =
   "course-isms-p-subject-foundation-topic-core-lesson-01-audio-01";
+const cppgLegacyAudioId =
+  "course-cppg-subject-foundation-topic-core-lesson-01-audio-01";
 let server;
 let output = "";
 let outputLineBuffer = "";
@@ -311,6 +313,19 @@ test("same audio progress writes when the canonical published revision changes",
   });
   assert.equal(equalReplay.payload.result.idempotentReplay, true);
   assert.equal(equalReplay.payload.result.contentRevisionId, nextRevisionId);
+});
+
+test("legacy CPPG audio and progress stay unavailable without projected audio identities", async () => {
+  const readUrl = new URL("/api/audio/progress", baseUrl);
+  readUrl.searchParams.set("audioContentId", cppgLegacyAudioId);
+  const read = await fetch(readUrl, { headers: user1 });
+  assert.equal(read.status, 404);
+  const write = await fetch(`${baseUrl}/api/audio/progress`, {
+    method: "POST",
+    headers: user1,
+    body: JSON.stringify({ audioContentId: cppgLegacyAudioId, currentPositionSeconds: 1, complete: false }),
+  });
+  assert.equal(write.status, 404);
 });
 
 test("오디오 재생 위치를 저장하고 레슨에서 이어 듣기를 표시한다", async () => {

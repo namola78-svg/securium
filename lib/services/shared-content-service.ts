@@ -14,6 +14,33 @@ export type CourseLessonScope = {
   status: SharedContentStatus;
 };
 
+export type CourseLessonProgressSummaryRow = Readonly<{
+  id: string;
+  title: string;
+  status: string;
+  lastViewedAt: string | null;
+}>;
+
+export function summarizeCourseLessonProgress(lessons: readonly CourseLessonProgressSummaryRow[]) {
+  const totalLessons = lessons.length;
+  const completedLessons = lessons.filter(({ status }) => status === "COMPLETED").length;
+  const latestLesson = [...lessons]
+    .filter(({ lastViewedAt }) => lastViewedAt !== null)
+    .sort((left, right) => String(right.lastViewedAt).localeCompare(String(left.lastViewedAt)))[0];
+  const nextLesson = lessons.find(({ status }) => status !== "COMPLETED");
+  return {
+    totalLessons,
+    completedLessons,
+    progressPercent: totalLessons ? Math.round((completedLessons / totalLessons) * 100) : 0,
+    nextLesson: nextLesson
+      ? { id: nextLesson.id, title: nextLesson.title, status: nextLesson.status }
+      : null,
+    latestLesson: latestLesson
+      ? { id: latestLesson.id, title: latestLesson.title, status: latestLesson.status }
+      : null,
+  };
+}
+
 export type SharedContentPresentation = {
   contentId: string;
   courseLessonId: string;

@@ -17,6 +17,7 @@ const user2 = {
 const piaFreeLecture = "course-pia-subject-foundation-lecture-01";
 const piaPaidLecture = "course-pia-subject-practice-lecture-01";
 const ismsPaidLecture = "course-isms-p-subject-practice-lecture-01";
+const cppgLegacyLecture = "course-cppg-subject-foundation-lecture-01";
 let server;
 let output = "";
 
@@ -171,6 +172,19 @@ test("same lecture progress writes when the canonical published revision changes
   });
   assert.equal(nullReplay.payload.result.idempotentReplay, true);
   assert.equal(nullReplay.payload.result.contentRevisionId, null);
+});
+
+test("legacy CPPG lectures and learner actions stay unavailable without projected lecture identities", async () => {
+  const detail = await fetch(`${baseUrl}/lectures/cppg/${cppgLegacyLecture}`, { headers: user1, redirect: "manual" });
+  assert.equal(detail.status, 404);
+  for (const [path, body] of [
+    ["/api/lectures/progress", { lectureId: cppgLegacyLecture, currentPositionSeconds: 0, complete: false }],
+    ["/api/lectures/bookmark", { lectureId: cppgLegacyLecture }],
+    ["/api/lectures/note", { lectureId: cppgLegacyLecture, content: "historical note must remain untouched" }],
+  ]) {
+    const { response } = await post(path, user1, body);
+    assert.equal(response.status, 404, path);
+  }
 });
 
 test("과정별 강의 목록은 검색·과목·주제 필터와 접근 상태를 표시한다", async () => {

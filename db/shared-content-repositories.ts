@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
 import { getDb } from ".";
 import {
@@ -24,6 +24,7 @@ import {
   normalizeCourseLessonProgressPercent,
   normalizeCourseLessonTimeSpentSeconds,
   mergeCourseLessonPresentation,
+  summarizeCourseLessonProgress,
 } from "@/lib/services/shared-content-service";
 import {
   SHARED_CONTENT_REVISION_SNAPSHOT_KIND,
@@ -36,6 +37,7 @@ import type {
   sharedContentSchema,
 } from "@/lib/validation";
 import type { z } from "zod";
+import { getCanonicalCppgLearnerRowIds, isCanonicalCppgCourseLesson } from "@/lib/services/cppg-learner-visibility.ts";
 
 type SharedContentInput = z.infer<typeof sharedContentSchema>;
 type CourseLessonInput = z.infer<typeof courseLessonSchema>;
@@ -841,7 +843,9 @@ export async function listSharedContentUsage(contentId: string) {
 export async function listPublishedCourseLessonsForUser(
   userId: string,
   courseId: string,
+  options: { includeLastViewedAt?: boolean } = {},
 ) {
+  const cppgRows = courseId === "course-cppg" ? await getCanonicalCppgLearnerRowIds(courseId) : null;
   const rows = await getDb()
     .select({
       id: courseLessons.id,
@@ -863,6 +867,7 @@ export async function listPublishedCourseLessonsForUser(
       progressStatus: sql<string>`coalesce(${userCourseLessonProgress.status}, 'NOT_STARTED')`,
       progressPercent: sql<number>`coalesce(${userCourseLessonProgress.progressPercent}, 0)`,
       completedAt: userCourseLessonProgress.completedAt,
+      lastViewedAt: userCourseLessonProgress.lastViewedAt,
     })
     .from(courseLessons)
     .innerJoin(contents, eq(courseLessons.contentId, contents.id))
@@ -887,8 +892,13 @@ export async function listPublishedCourseLessonsForUser(
     )
     .orderBy(asc(courseLessons.sortOrder), asc(courseLessons.displayTitle));
 
-  const totalLessons = rows.length;
-  const completedLessons = rows.filter(
+  const visibleRows = courseId === "course-cppg"
+    ? cppgRows
+      ? rows.filter(({ id, contentId }) => cppgRows.courseLessonIds.includes(id) && cppgRows.contentIds.includes(contentId))
+      : []
+    : rows;
+  const totalLessons = visibleRows.length;
+  const completedLessons = visibleRows.filter(
     (row) => row.progressStatus === "COMPLETED",
   ).length;
 
@@ -898,7 +908,7 @@ export async function listPublishedCourseLessonsForUser(
     progressPercent: totalLessons
       ? Math.round((completedLessons / totalLessons) * 100)
       : 0,
-    lessons: rows.map((row) => ({
+    lessons: visibleRows.map((row) => ({
       id: row.id,
       courseId: row.courseId,
       contentId: row.contentId,
@@ -916,6 +926,7 @@ export async function listPublishedCourseLessonsForUser(
       status: row.progressStatus,
       progressPercent: Number(row.progressPercent ?? 0),
       completedAt: row.completedAt,
+      ...(options.includeLastViewedAt ? { lastViewedAt: row.lastViewedAt } : {}),
     })),
   };
 }
@@ -924,123 +935,20 @@ export async function getPublishedCourseLessonProgressSummary(
   userId: string,
   courseId: string,
 ) {
-  const [summaryRows, nextLessonRows, latestLessonRows, lessonList] =
-    await Promise.all([
-    getDb()
-      .select({
-        totalLessons: sql<number>`count(${courseLessons.id})`,
-        completedLessons: sql<number>`coalesce(sum(case when ${userCourseLessonProgress.status} = 'COMPLETED' then 1 else 0 end), 0)`,
-      })
-      .from(courseLessons)
-      .innerJoin(contents, eq(courseLessons.contentId, contents.id))
-      .leftJoin(
-        userCourseLessonProgress,
-        and(
-          eq(userCourseLessonProgress.userId, userId),
-          eq(userCourseLessonProgress.courseId, courseLessons.courseId),
-          eq(userCourseLessonProgress.courseLessonId, courseLessons.id),
-          eq(userCourseLessonProgress.contentId, courseLessons.contentId),
-          eq(userCourseLessonProgress.contentVersion, contents.version),
-        ),
-      )
-      .where(
-        and(
-          eq(courseLessons.courseId, courseId),
-          eq(courseLessons.status, "PUBLISHED"),
-          isNull(courseLessons.deletedAt),
-          eq(contents.status, "PUBLISHED"),
-          isNull(contents.deletedAt),
-        ),
-      ),
-    getDb()
-      .select({
-        id: courseLessons.id,
-        title: courseLessons.displayTitle,
-        contentTitle: contents.title,
-        status: sql<string>`coalesce(${userCourseLessonProgress.status}, 'NOT_STARTED')`,
-      })
-      .from(courseLessons)
-      .innerJoin(contents, eq(courseLessons.contentId, contents.id))
-      .leftJoin(
-        userCourseLessonProgress,
-        and(
-          eq(userCourseLessonProgress.userId, userId),
-          eq(userCourseLessonProgress.courseId, courseLessons.courseId),
-          eq(userCourseLessonProgress.courseLessonId, courseLessons.id),
-          eq(userCourseLessonProgress.contentId, courseLessons.contentId),
-          eq(userCourseLessonProgress.contentVersion, contents.version),
-        ),
-      )
-      .where(
-        and(
-          eq(courseLessons.courseId, courseId),
-          eq(courseLessons.status, "PUBLISHED"),
-          isNull(courseLessons.deletedAt),
-          eq(contents.status, "PUBLISHED"),
-          isNull(contents.deletedAt),
-          sql`coalesce(${userCourseLessonProgress.status}, 'NOT_STARTED') <> 'COMPLETED'`,
-        ),
-      )
-      .orderBy(asc(courseLessons.sortOrder), asc(courseLessons.displayTitle))
-      .limit(1),
-    getDb()
-      .select({
-        id: courseLessons.id,
-        title: courseLessons.displayTitle,
-        contentTitle: contents.title,
-        status: userCourseLessonProgress.status,
-        lastViewedAt: userCourseLessonProgress.lastViewedAt,
-      })
-      .from(userCourseLessonProgress)
-      .innerJoin(
-        courseLessons,
-        eq(userCourseLessonProgress.courseLessonId, courseLessons.id),
-      )
-      .innerJoin(contents, eq(courseLessons.contentId, contents.id))
-      .where(
-        and(
-          eq(userCourseLessonProgress.userId, userId),
-          eq(userCourseLessonProgress.courseId, courseId),
-          eq(courseLessons.courseId, courseId),
-          eq(userCourseLessonProgress.contentId, courseLessons.contentId),
-          eq(userCourseLessonProgress.contentVersion, contents.version),
-          eq(courseLessons.status, "PUBLISHED"),
-          isNull(courseLessons.deletedAt),
-          eq(contents.status, "PUBLISHED"),
-          isNull(contents.deletedAt),
-        ),
-      )
-      .orderBy(desc(userCourseLessonProgress.lastViewedAt))
-      .limit(1),
-      listPublishedCourseLessonsForUser(userId, courseId),
-    ]);
-  const summary = summaryRows[0];
-  const nextLesson = nextLessonRows[0];
-  const latestLesson = latestLessonRows[0];
-
-  const totalLessons = Number(summary?.totalLessons ?? 0);
-  const completedLessons = Number(summary?.completedLessons ?? 0);
+  const lessonList = await listPublishedCourseLessonsForUser(userId, courseId, { includeLastViewedAt: true });
+  const summary = summarizeCourseLessonProgress(lessonList.lessons.map((lesson) => ({
+    id: lesson.id,
+    title: lesson.title,
+    status: lesson.status,
+    lastViewedAt: lesson.lastViewedAt ?? null,
+  })));
   return {
-    totalLessons,
-    completedLessons,
-    progressPercent: totalLessons
-      ? Math.round((completedLessons / totalLessons) * 100)
-      : 0,
-    nextLesson: nextLesson
-      ? {
-          id: nextLesson.id,
-          title: nextLesson.title || nextLesson.contentTitle,
-          status: nextLesson.status ?? "NOT_STARTED",
-        }
-      : null,
-    latestLesson: latestLesson
-      ? {
-          id: latestLesson.id,
-          title: latestLesson.title || latestLesson.contentTitle,
-          status: latestLesson.status ?? "NOT_STARTED",
-        }
-      : null,
-    lessons: lessonList.lessons,
+    ...summary,
+    lessons: lessonList.lessons.map((item) => {
+      const { lastViewedAt, ...lesson } = item;
+      void lastViewedAt;
+      return lesson;
+    }),
   };
 }
 
@@ -1049,6 +957,8 @@ export async function getPublishedCourseLessonForUser(input: {
   courseId: string;
   courseLessonId: string;
 }) {
+  const cppgRows = input.courseId === "course-cppg" ? await getCanonicalCppgLearnerRowIds(input.courseId) : null;
+  if (input.courseId === "course-cppg" && !cppgRows?.courseLessonIds.includes(input.courseLessonId)) return null;
   const [row] = await getDb()
     .select({
       id: courseLessons.id,
@@ -1125,7 +1035,8 @@ export async function getPublishedCourseLessonForUser(input: {
       ),
     )
     .orderBy(asc(courseLessons.sortOrder), asc(courseLessons.displayTitle));
-  const index = navigation.findIndex((lesson) => lesson.id === row.id);
+  const visibleNavigation = cppgRows ? navigation.filter(({ id }) => cppgRows.courseLessonIds.includes(id)) : navigation;
+  const index = visibleNavigation.findIndex((lesson) => lesson.id === row.id);
   const presentation = mergeCourseLessonPresentation({
     content: {
       id: row.contentId,
@@ -1171,10 +1082,10 @@ export async function getPublishedCourseLessonForUser(input: {
     status: row.progressStatus,
     progressPercent: Number(row.progressPercent ?? 0),
     completedAt: row.completedAt,
-    previousLesson: index > 0 ? navigation[index - 1] : null,
+    previousLesson: index > 0 ? visibleNavigation[index - 1] : null,
     nextLesson:
-      index >= 0 && index < navigation.length - 1
-        ? navigation[index + 1]
+      index >= 0 && index < visibleNavigation.length - 1
+        ? visibleNavigation[index + 1]
         : null,
   };
 }
@@ -1221,6 +1132,16 @@ async function requireAccessibleCourseLesson(input: {
       404,
       "COURSE_LESSON_NOT_FOUND",
     );
+  }
+  if (row.courseId === "course-cppg") {
+    const projection = await getCanonicalCppgLearnerRowIds(row.courseId);
+    if (!isCanonicalCppgCourseLesson(row.courseId, row.id, row.contentId, projection)) {
+      throw new AppError(
+        "CPPG course lesson is not in the current canonical publication projection.",
+        404,
+        "COURSE_LESSON_NOT_FOUND",
+      );
+    }
   }
   if (row.enrollmentStatus === "CANCELLED") {
     throw new AppError(

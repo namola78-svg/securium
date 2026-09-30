@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActionButton } from "@/components/design-system-primitives";
 import { getCourseStatistics } from "@/db/phase3-repositories";
-import { getCourseById, getEnrollmentForCourse, listCurriculum } from "@/db/repositories";
+import { getLearnerCourseById, getEnrollmentForCourse, listCurriculum } from "@/db/repositories";
 import { requireCurrentAppUser } from "@/lib/auth";
 import styles from "../analytics-v2.module.css";
 
@@ -25,7 +25,7 @@ export default async function CourseAnalyticsPage({ params }: { params: Promise<
   const { courseId } = await params;
   const user = await requireCurrentAppUser(`/analytics/${courseId}`);
   const [course, enrollment, curriculum] = await Promise.all([
-    getCourseById(courseId),
+    getLearnerCourseById(courseId),
     getEnrollmentForCourse(user.id, courseId),
     listCurriculum(courseId),
   ]);

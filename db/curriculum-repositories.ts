@@ -23,6 +23,7 @@ import {
 } from "./schema";
 import { AppError } from "@/lib/errors";
 import { assertGenericCppgStatusPublicationAllowed } from "@/lib/services/cppg-generic-publication-guard";
+import { getCanonicalCppgLearnerRowIds } from "@/lib/services/cppg-learner-visibility.ts";
 import type {
   curriculumNodeArchiveSchema,
   curriculumNodeSchema,
@@ -50,6 +51,17 @@ type LinkedContent = { type: LinkedContentType; id: string };
 
 function batchItems(items: BatchItem<"sqlite">[]) {
   return items as unknown as Parameters<ReturnType<typeof getDb>["batch"]>[0];
+}
+
+async function filterCppgQuestionReviewRows<T extends { questionId: string }>(
+  courseId: string,
+  rows: readonly T[],
+): Promise<T[]> {
+  if (courseId !== "course-cppg" || rows.length === 0) return [...rows];
+  const projection = await getCanonicalCppgLearnerRowIds(courseId);
+  if (!projection) return [];
+  const questionIds = new Set(projection.questionIds);
+  return rows.filter(({ questionId }) => questionIds.has(questionId));
 }
 
 export async function listCurriculumTrees(courseId?: string) {
@@ -702,6 +714,7 @@ export async function getPublishedCurriculumPathForCourse(
           ).then((chunks) => chunks.flat()),
         ])
       : [[], [], []];
+  const visibleReviewRows = await filterCppgQuestionReviewRows(courseId, reviewRows);
   const attemptsByQuestionId = new Map<
     string,
     Array<{ isCorrect: boolean }>
@@ -716,7 +729,7 @@ export async function getPublishedCurriculumPathForCourse(
     wrongRows.map((row) => [row.questionId, row.wrongCount]),
   );
   const dueReviewQuestionIds = new Set(
-    reviewRows.map((row) => row.questionId),
+    visibleReviewRows.map((row) => row.questionId),
   );
   const nodes = nodeRows.map((node) => {
     const linkedContent = parseLinkedContent(node.metadata);
@@ -1087,6 +1100,7 @@ export async function listCurriculumNodeOperationalStats(treeId: string) {
         ).then((chunks) => chunks.flat()),
       ])
     : [[], [], []];
+  const visibleReviewRows = await filterCppgQuestionReviewRows(tree.courseId, reviewRows);
 
   const attemptsByQuestionId = new Map<
     string,
@@ -1106,7 +1120,7 @@ export async function listCurriculumNodeOperationalStats(treeId: string) {
     );
   }
   const dueReviewCountByQuestionId = new Map<string, number>();
-  for (const review of reviewRows) {
+  for (const review of visibleReviewRows) {
     dueReviewCountByQuestionId.set(
       review.questionId,
       (dueReviewCountByQuestionId.get(review.questionId) ?? 0) + 1,

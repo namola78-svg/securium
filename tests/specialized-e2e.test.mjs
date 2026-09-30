@@ -69,11 +69,11 @@ test("법령 버전을 조회하고 하나의 조문을 여러 과정에서 공�
     `${baseUrl}/specialized/cppg/LEGAL_ARTICLE/sample-legal-article-01`,
     { headers: user1 },
   );
-  const cppgHtml = await cppg.text();
-  assert.equal(cppg.status, 200, cppgHtml.slice(0, 1200));
-  assert.match(cppgHtml, /버전 이력/);
-  assert.match(cppgHtml, /DEV-2026.1/);
-  assert.match(cppgHtml, /ISMS-P/);
+  assert.equal(
+    cppg.status,
+    404,
+    "Legacy CPPG sample flags without canonical publication proof must remain hidden.",
+  );
 
   const engineer = await fetch(
     `${baseUrl}/specialized/information-security-engineer/LEGAL_ARTICLE/sample-legal-article-01`,
@@ -179,3 +179,111 @@ test("관리자는 특화 콘텐츠와 버전·위험등급 관리 화면을 조
   assert.match(html, /법령·조문/);
   assert.match(html, /위험관리 시나리오/);
 });
+
+test("legacy CPPG enrollment cannot authorize specialized AI or bookmark actions", async () => {
+  const headers = { ...user1, origin: baseUrl, "content-type": "application/json" };
+  const ai = await fetch(`${baseUrl}/api/ai/specialized`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ targetType: "WRITTEN_ANSWER", courseId: "course-cppg", questionId: "spec-cppg-question-01", answer: "legacy CPPG sample answer" }),
+  });
+  assert.equal(ai.status, 403, await ai.text());
+
+  const bookmark = await fetch(`${baseUrl}/api/specialized/bookmarks`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ courseId: "course-cppg", contentType: "LEGAL_ARTICLE", contentId: "sample-legal-article-01" }),
+  });
+  assert.equal(bookmark.status, 403, await bookmark.text());
+});
+
+test("legacy CPPG assessment history and course-lesson progress stay hidden without projection proof", async () => {
+  const fixture = {
+    questionId: "course-cppg-question-01",
+    nonCppgQuestionId: "course-isms-p-question-01",
+    title: "CPPG-HISTORICAL-QUESTION-SECRET",
+    attemptId: "cppg-visibility-history-fixture-attempt",
+    bookmarkId: "cppg-visibility-history-fixture-bookmark",
+    wrongNoteId: "cppg-visibility-history-fixture-wrong-note",
+    courseLessonId: "course-lesson-cppg-access-control",
+    contentId: "content-shared-access-control-basics",
+    progressId: "cppg-visibility-history-fixture-progress",
+  };
+  await runLocalSql(`
+    UPDATE questions SET title = '${fixture.title}' WHERE id = '${fixture.questionId}';
+    INSERT OR REPLACE INTO question_attempts
+      (id, idempotency_key, user_id, question_id, course_id, selected_answer, is_correct, score, response_time)
+      VALUES ('${fixture.attemptId}', '${fixture.attemptId}', 'user-learner-1', '${fixture.questionId}', 'course-cppg', '[]', 0, 0, 1);
+    INSERT OR REPLACE INTO bookmarks (id, user_id, target_type, target_id, course_id)
+      VALUES ('${fixture.bookmarkId}', 'user-learner-1', 'QUESTION', '${fixture.questionId}', 'course-cppg');
+    INSERT OR REPLACE INTO wrong_notes (id, user_id, question_id, course_id, last_attempt_id, wrong_count, user_memo)
+      VALUES ('${fixture.wrongNoteId}', 'user-learner-1', '${fixture.questionId}', 'course-cppg', '${fixture.attemptId}', 1, 'historical memo');
+    INSERT OR REPLACE INTO user_course_lesson_progress
+      (id, user_id, course_id, course_lesson_id, content_id, content_version, status, progress_percent, time_spent_seconds)
+      SELECT '${fixture.progressId}', 'user-learner-1', 'course-cppg', cl.id, c.id, c.version, 'IN_PROGRESS', 37, 18
+      FROM course_lessons cl JOIN contents c ON c.id = cl.content_id
+      WHERE cl.id = '${fixture.courseLessonId}' AND cl.content_id = '${fixture.contentId}';
+  `);
+
+  const headers = { ...user1, origin: baseUrl, "content-type": "application/json" };
+  const bookmarkWrite = await fetch(`${baseUrl}/api/bookmarks`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ targetType: "QUESTION", targetId: fixture.questionId, courseId: "course-cppg" }),
+  });
+  assert.equal(bookmarkWrite.status, 404, await bookmarkWrite.text());
+
+  const bookmarksPage = await fetch(`${baseUrl}/bookmarks`, { headers: user1 });
+  const bookmarksHtml = await bookmarksPage.text();
+  assert.equal(bookmarksPage.status, 200, bookmarksHtml.slice(0, 1000));
+  assert.doesNotMatch(bookmarksHtml, new RegExp(fixture.title));
+
+  const wrongNotesPage = await fetch(`${baseUrl}/wrong-notes`, { headers: user1 });
+  const wrongNotesHtml = await wrongNotesPage.text();
+  assert.equal(wrongNotesPage.status, 200, wrongNotesHtml.slice(0, 1000));
+  assert.doesNotMatch(wrongNotesHtml, new RegExp(fixture.title));
+
+  const nonCppgBookmark = await fetch(`${baseUrl}/api/bookmarks`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ targetType: "QUESTION", targetId: fixture.nonCppgQuestionId, courseId: "course-isms-p" }),
+  });
+  assert.equal(nonCppgBookmark.status, 200, await nonCppgBookmark.text());
+
+  const progressWrite = await fetch(`${baseUrl}/api/course-lessons/progress`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ courseLessonId: fixture.courseLessonId, action: "UPDATE", progressPercent: 90, timeSpentSeconds: 99 }),
+  });
+  assert.equal(progressWrite.status, 404, await progressWrite.text());
+
+  const retained = await runLocalSql(`
+    SELECT
+      (SELECT count(*) FROM bookmarks WHERE id = '${fixture.bookmarkId}') AS bookmark_count,
+      (SELECT count(*) FROM wrong_notes WHERE id = '${fixture.wrongNoteId}') AS wrong_note_count,
+      (SELECT count(*) FROM question_attempts WHERE id = '${fixture.attemptId}') AS attempt_count,
+      (SELECT progress_percent FROM user_course_lesson_progress WHERE id = '${fixture.progressId}') AS progress_percent;
+  `, true);
+  assert.match(retained, /"bookmark_count"\s*:\s*1/);
+  assert.match(retained, /"wrong_note_count"\s*:\s*1/);
+  assert.match(retained, /"attempt_count"\s*:\s*1/);
+  assert.match(retained, /"progress_percent"\s*:\s*37/);
+});
+
+function runLocalSql(sql, json = false) {
+  return new Promise((resolve, reject) => {
+    const args = ["scripts/run-wrangler.mjs", "d1", "execute", "DB", "--local", "--config", "wrangler.local.jsonc", "--command", sql];
+    if (json) args.push("--json");
+    const child = spawn(process.execPath, args, {
+      cwd: process.cwd(),
+      env: process.env,
+      stdio: ["ignore", "pipe", "pipe"],
+      windowsHide: true,
+    });
+    let outputText = "";
+    child.stdout.on("data", (chunk) => { outputText += chunk.toString(); });
+    child.stderr.on("data", (chunk) => { outputText += chunk.toString(); });
+    child.on("error", reject);
+    child.on("close", (code) => code === 0 ? resolve(outputText) : reject(new Error(`Disposable D1 fixture SQL failed (${code}).\n${outputText}`)));
+  });
+}
