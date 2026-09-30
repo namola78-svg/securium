@@ -3,7 +3,7 @@ import { execFile } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { promisify } from "node:util";
 import { test } from "node:test";
-import { Miniflare } from "miniflare";
+import { createMiniflareD1Fixture } from "./helpers/miniflare-d1-fixture.mjs";
 import { D1DatabaseProvider } from "../db/provider/d1-database-provider.ts";
 import { PostgresDatabaseProvider } from "../db/provider/postgres-database-provider.ts";
 import { PracticalGovernanceRepository } from "../db/practical-governance-repositories.ts";
@@ -125,7 +125,7 @@ CREATE TABLE practical_version_concept_bindings (id TEXT PRIMARY KEY, practical_
 `;
 
 async function makeD1RoundTripProvider() {
-  const miniflare = new Miniflare({ modules: true, script: "export default { fetch() { return new Response('ok'); } }", compatibilityDate: "2026-05-15", d1Databases: { DB: "evaluation-provider-roundtrip" } });
+  const miniflare = createMiniflareD1Fixture({ databaseId: "evaluation-provider-roundtrip" });
   const database = await miniflare.getD1Database("DB");
   await database.exec(providerSchema);
   return { provider: new D1DatabaseProvider(database), close: () => miniflare.dispose() };

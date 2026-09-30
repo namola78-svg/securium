@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
 import { after, test } from "node:test";
-import { Miniflare } from "miniflare";
+import { createMiniflareD1Fixture } from "./helpers/miniflare-d1-fixture.mjs";
 import { computeConceptMappingSetHash } from "../lib/services/learning-event-contracts.ts";
 import { D1DatabaseProvider } from "../db/provider/d1-database-provider.ts";
 import { EvidenceProjectionRepository, createRecomputeRequest } from "../db/evidence-projection-repository.ts";
@@ -281,13 +281,7 @@ async function enqueueEvent(fixture, sourceEventId, sourceRevisionIdentity = sou
 }
 
 async function openMiniflare(persistPath, databaseName) {
-  return new Miniflare({
-    modules: true,
-    script: "export default { fetch() { return new Response('ok'); } }",
-    compatibilityDate: "2026-05-15",
-    d1Databases: { DB: databaseName },
-    d1Persist: persistPath,
-  });
+  return createMiniflareD1Fixture({ databaseId: databaseName, persistencePath: persistPath });
 }
 
 async function reopen(fixture) {

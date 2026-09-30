@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import { after, before, test } from "node:test";
-import { Miniflare } from "miniflare";
+import { createMiniflareD1Fixture } from "./helpers/miniflare-d1-fixture.mjs";
 import { D1DatabaseProvider } from "../db/provider/d1-database-provider.ts";
 import { registerGovernedPracticalVersion } from "../lib/practical/practical-registration.ts";
 
@@ -12,12 +12,7 @@ let provider;
 let manifest;
 
 before(async () => {
-  miniflare = new Miniflare({
-    modules: true,
-    script: "export default { fetch() { return new Response('ok'); } }",
-    compatibilityDate: "2026-05-15",
-    d1Databases: { DB: "governed-practical-registration" },
-  });
+  miniflare = createMiniflareD1Fixture({ databaseId: "governed-practical-registration" });
   database = await miniflare.getD1Database("DB");
   for (const name of await migrationNames()) {
     const sql = await readFile(`drizzle/${name}`, "utf8");

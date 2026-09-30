@@ -3,7 +3,7 @@ import { execFile } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { promisify } from "node:util";
 import { after, before, test } from "node:test";
-import { Miniflare } from "miniflare";
+import { createMiniflareD1Fixture } from "./helpers/miniflare-d1-fixture.mjs";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/d1";
 import * as schema from "../db/schema.ts";
@@ -20,12 +20,7 @@ let d1Database;
 let postgresClient;
 
 before(async () => {
-  miniflare = new Miniflare({
-    modules: true,
-    script: "export default { fetch() { return new Response('ok'); } }",
-    compatibilityDate: "2026-05-15",
-    d1Databases: { DB: "skill-graph-query-parity" },
-  });
+  miniflare = createMiniflareD1Fixture({ databaseId: "skill-graph-query-parity" });
   d1Database = await miniflare.getD1Database("DB");
   await applyD1Fixture(d1Database);
 });

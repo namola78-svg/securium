@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import { after, before, test } from "node:test";
-import { Miniflare } from "miniflare";
+import { createMiniflareD1Fixture } from "./helpers/miniflare-d1-fixture.mjs";
 import { D1DatabaseProvider } from "../db/provider/d1-database-provider.ts";
 import { FactRepository } from "../db/fact-repositories.ts";
 import { createFactIdentity } from "../lib/facts/fact-domain.ts";
@@ -14,12 +14,7 @@ let database;
 let repository;
 
 before(async () => {
-  miniflare = new Miniflare({
-    modules: true,
-    script: "export default { fetch() { return new Response('ok'); } }",
-    compatibilityDate: "2026-05-15",
-    d1Databases: { DB: "concept-governance" },
-  });
+  miniflare = createMiniflareD1Fixture({ databaseId: "concept-governance" });
   database = await miniflare.getD1Database("DB");
   const migrations = (await readdir("drizzle"))
     .filter((name) => /^\d{4}_.+\.sql$/.test(name) && Number(name.slice(0, 4)) <= 24)
@@ -92,12 +87,7 @@ test("Concept persistence production-like matrix is guarded and deterministic", 
   assert.equal(await scalar("SELECT count(*) FROM fact_concept_bindings WHERE mapping_status = 'SUPERSEDED'"), 1);
   const matrix = (await readFile("reports/content-audit/securium-information-systems-auditor-p0-concept-candidate-matrix.csv", "utf8"))
     .trim().split(/\r?\n/).slice(1).map((line) => line.split(","));
-  const p0Miniflare = new Miniflare({
-    modules: true,
-    script: "export default { fetch() { return new Response('ok'); } }",
-    compatibilityDate: "2026-05-15",
-    d1Databases: { DB: "concept-p0-proof" },
-  });
+  const p0Miniflare = createMiniflareD1Fixture({ databaseId: "concept-p0-proof" });
   const p0Database = await p0Miniflare.getD1Database("DB");
   const migrationNames = (await readdir("drizzle"))
     .filter((name) => /^\d{4}_.+\.sql$/.test(name) && Number(name.slice(0, 4)) <= 24)
