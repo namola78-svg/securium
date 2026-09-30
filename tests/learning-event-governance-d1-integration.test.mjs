@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import { after, before, test } from "node:test";
 import { createMiniflareD1Fixture } from "./helpers/miniflare-d1-fixture.mjs";
+import { adaptMigrationForD1 } from "./helpers/adapt-d1-migration.mjs";
 import { D1DatabaseProvider } from "../db/provider/d1-database-provider.ts";
 import { LearningEventGovernanceRepository } from "../db/learning-event-governance-repository.ts";
 import { LearningEventGovernanceService } from "../lib/services/learning-event-governance.ts";
@@ -15,7 +16,20 @@ before(async () => {
   miniflare = createMiniflareD1Fixture({ databaseId: "learning-event-governance" });
   database = await miniflare.getD1Database("DB");
   const names = (await readdir("drizzle")).filter((name) => /^\d{4}_.+\.sql$/.test(name)).sort();
-  for (const name of names) await applyMigration(await readFile(`drizzle/${name}`, "utf8"));
+  for (const name of names) {
+    const migrationSql = await readFile(`drizzle/${name}`, "utf8");
+    const d1Sql = adaptMigrationForD1(migrationSql, name);
+    if (name === "0040_generic_review_currentness_domain.sql") {
+      const beforeColumns = await database.prepare("PRAGMA table_info(content_review_judgments)").all();
+      const failingMigration = d1Sql.replace(/PRAGMA foreign_keys=ON;\s*$/, "")
+        + "\nINSERT INTO __injected_missing_migration_target__ (id) VALUES ('failure');";
+      await assert.rejects(applyMigration(failingMigration));
+      const afterColumns = await database.prepare("PRAGMA table_info(content_review_judgments)").all();
+      assert.deepEqual(afterColumns.results.map((column) => column.name), beforeColumns.results.map((column) => column.name));
+      assert.equal((await database.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='content_review_judgments__currentness'").first()), null);
+    }
+    await applyMigration(d1Sql);
+  }
   await database.batch([
     database.prepare("INSERT INTO users (id, email, display_name) VALUES ('user-learner-1', 'one@example.invalid', 'One'), ('user-learner-2', 'two@example.invalid', 'Two'), ('user-admin', 'admin@example.invalid', 'Admin')"),
     database.prepare("INSERT INTO course_groups (id, code, name, description) VALUES ('pr-a-group', 'PRA', 'PR A', 'PR A')"),

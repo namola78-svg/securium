@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import { after, before, test } from "node:test";
 import { createMiniflareD1Fixture } from "./helpers/miniflare-d1-fixture.mjs";
+import { adaptMigrationForD1 } from "./helpers/adapt-d1-migration.mjs";
 import { D1DatabaseProvider } from "../db/provider/d1-database-provider.ts";
 import { registerGovernedPracticalVersion } from "../lib/practical/practical-registration.ts";
 
@@ -70,20 +71,6 @@ async function migrationNames() {
   return (await readdir("drizzle"))
     .filter((name) => /^\d{4}_.+\.sql$/.test(name))
     .sort();
-}
-
-function adaptMigrationForD1(sql, migrationName) {
-  const source = String(sql).trim();
-  const prefix = /^PRAGMA\s+foreign_keys\s*=\s*OFF\s*;\s*BEGIN\s+TRANSACTION\s*;\s*/i;
-  const suffix = /\s*COMMIT\s*;\s*PRAGMA\s+foreign_keys\s*=\s*ON\s*;\s*$/i;
-  const hasOuterPrefix = prefix.test(source);
-  const hasOuterSuffix = suffix.test(source);
-  const startsWithUnsupportedTransaction = /^\s*(?:BEGIN(?:\s+TRANSACTION)?|START\s+TRANSACTION)\s*;/i.test(source);
-  if (!hasOuterPrefix && !hasOuterSuffix && !startsWithUnsupportedTransaction) return source;
-  if (!hasOuterPrefix || !hasOuterSuffix) {
-    throw new Error(`UNSUPPORTED_D1_TRANSACTION_WRAPPER:${migrationName}`);
-  }
-  return source.replace(prefix, "PRAGMA foreign_keys=OFF;\n").replace(suffix, "\nPRAGMA foreign_keys=ON;");
 }
 
 test("D1 migration adapter removes only the governed outer wrapper", async () => {
