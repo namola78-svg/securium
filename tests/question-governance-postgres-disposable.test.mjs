@@ -52,6 +52,17 @@ test("disposable PostgreSQL 17 proves governed NEW_SUCCESS and EXACT_REPLAY", as
   client = postgres(`postgres://postgres:${password}@127.0.0.1:${port}/postgres`, { max: 1, prepare: false, ssl: false, onnotice: false });
   await waitForConnection();
   await client.unsafe("CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN; CREATE ROLE service_role NOLOGIN;");
+  // Mirror the baseline contract expected by post-baseline migrations such as 0058.
+  await client.unsafe(`CREATE TABLE public.app_schema_baseline_receipts (
+    baseline_id text PRIMARY KEY,
+    baseline_version text NOT NULL,
+    schema_boundary text NOT NULL,
+    artifact_sha256 text NOT NULL,
+    schema_sha256 text NOT NULL,
+    security_sha256 text NOT NULL,
+    created_from_main_sha text NOT NULL,
+    applied_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`);
   // Existing 0002 references later tables and 0009 validates seed taxonomy
   // data. The disposable question schema proof excludes those pre-existing
   // environment-dependent files; migration syntax/guards remain validated
