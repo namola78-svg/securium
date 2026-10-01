@@ -7,6 +7,25 @@ export const AUTO_GRADED_TYPES = [
   "SHORT_ANSWER",
 ] as const;
 
+export const SUPPORTED_RESPONSE_TYPES = [
+  ...AUTO_GRADED_TYPES,
+  "ESSAY",
+] as const;
+
+export type SupportedResponseType = (typeof SUPPORTED_RESPONSE_TYPES)[number];
+
+export function isSupportedResponseType(
+  value: string,
+): value is SupportedResponseType {
+  return SUPPORTED_RESPONSE_TYPES.includes(value as SupportedResponseType);
+}
+
+export function gradingModeForResponseType(
+  responseType: SupportedResponseType,
+): "AUTOMATIC" | "MANUAL_REVIEW" {
+  return responseType === "ESSAY" ? "MANUAL_REVIEW" : "AUTOMATIC";
+}
+
 export type AutoGradedQuestionType = (typeof AUTO_GRADED_TYPES)[number];
 export type QuestionType =
   | AutoGradedQuestionType
