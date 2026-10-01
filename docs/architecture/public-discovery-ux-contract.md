@@ -231,8 +231,11 @@ formatter의 존재만으로 추가하지 않는다.
 반면 availability query는 공개 course/group predicate를 적용하면서 published
 question 또는 published lesson/content 존재 flag를 별도로 계산한다
 ([availability query](../../db/public-course-availability-repository.ts#L75-L107)).
-화면의 `isPublicCourseAvailable()`는 두 flag 중 하나라도 true인 경우만
-`true`로 판정한다([availability display](../../lib/services/course-availability-display.ts#L3-L9)).
+화면은 두 flag 조합을 `THEORY_CONTENT`, `QUESTION_CONTENT`,
+`THEORY_AND_QUESTION_CONTENT`, `NO_PUBLISHED_LEARNER_CONTENT`로 구분한다
+([availability display](../../lib/services/course-availability-display.ts)). 이 상태는
+게시된 관계의 존재만 표현하며 이론 경로 완전성, 문제 응시 eligibility, practical
+runtime, enrollment readiness를 증명하지 않는다.
 
 따라서 다음을 서로 바꾸어 말하지 않는다.
 
@@ -241,19 +244,21 @@ question 또는 published lesson/content 존재 flag를 별도로 계산한다
 | 검색 결과에 노출 | search `OK` 또는 현재 list의 공개 predicate | 공개 metadata 후보로 발견됨 | 학습 권한, 등록 완료 |
 | 개요 존재 | outline `OK`; `subjects`가 비어 있을 수도 있음 | 공개된 course/subject/topic projection | lesson 본문·문제·정답 공개 |
 | subject/topic count | active·비삭제 구조 count 또는 projection에 포함된 수 | 현재 projection의 과목·주제 수 | 학습 가능한 콘텐츠 수, 전체 과정 완전성 |
-| `questionCount` | 현재 list/detail projection의 `question_courses` 연결 수 | 현재 repository가 계산한 연결 수 | published 문제 수, 학습 가능 |
-| availability | published question 또는 published lesson/content flag | 현재 공개 콘텐츠 flag 기준의 `학습 가능`/`개설 예정` 표시 | 로그인·enrollment·권한, 공식 최신성 |
+| `questionCount` | 현재 list/detail projection의 `question_courses` 연결 수 | 과정에 연결된 문제 수 | published 문제 수, 응시 가능 수 |
+| availability | published question 또는 published lesson/content flag | 게시된 이론 콘텐츠/문제 콘텐츠 연결 상태 | 실제 learner route 완전성, governed QuestionVersion eligibility, practical runtime, enrollment readiness, 공식 최신성 |
 
 availability query의 실제 caller는 현재 `/courses` page의
 `listPublicCourseAvailability(courses.map(...))`와 상세 page의
 `getPublicCourseAvailability(course.id)`다. `CourseCard`와 상세 CTA는 그
-결과를 `isPublicCourseAvailable()`로 표시용 상태에만 사용한다
+결과를 네 가지 게시 콘텐츠 상태로 표시하고
 ([목록 caller](../../app/courses/page.tsx#L27-L43), [상세 caller](../../app/courses/%5BcourseSlug%5D/page.tsx#L22-L31), [display helper](../../lib/services/course-availability-display.ts#L3-L9)).
 
-`CourseCard`의 현재 `학습 가능`/`개설 예정` 문구와 detail의 수치 표시는
-기존 UI 계약으로 기록하되, 새 search summary에 availability나 `questionCount`가
-없다는 이유로 값을 합성하지 않는다. availability filter를 discovery에 추가하는
-것은 별도의 server composition과 정책 결정 사항이다.
+카탈로그는 `이론 콘텐츠 있음`, `문제 콘텐츠 있음`, `이론·문제 콘텐츠 있음`,
+`콘텐츠 준비 중`을 표시한다. 상세 CTA는 이론 flag가 있으면 `/learn/[courseSlug]`,
+문제만 있으면 `/practice/[courseSlug]`로 보낸다. 문제 전용 안내는 응시 가능성을
+약속하지 않고, practice route의 empty state를 그대로 유지한다. `questionCount`는
+관계 수이므로 UI에는 `연결 문제 수`로 표시한다. 실무(practical)는 availability
+query에 포함하지 않는다.
 
 ### 5.2 안전한 문구 원칙
 
@@ -263,8 +268,8 @@ availability query의 실제 caller는 현재 `/courses` page의
   삭제·비공개·권한 부족 중 하나를 확인한 것처럼 쓰지 않는다.
 - 빈 outline은 `현재 공개된 과목과 주제 개요가 없습니다.`로 표시할 수 있지만
   오류나 학습 콘텐츠 부재로 자동 번역하지 않는다.
-- `학습 가능`은 availability의 기존 OR semantics에만 사용하며
-  subject/topic/question count에서 추론하지 않는다.
+- 게시 콘텐츠 상태는 availability의 두 flag 조합에서만 판정하며
+  subject/topic/question count나 practical 정의에서 추론하지 않는다.
 - query, raw ID, slug, 내부 error/reason, 내부 sentinel, 다른 과정의 이름은
   오류 문구에 반사하지 않는다.
 - 정상 projection의 공개 제목·설명·groupName만 표시한다. `updatedAt`은
@@ -447,7 +452,7 @@ CSS나 component를 변경하지 않는다.
 | --- | --- | --- |
 | search provider owner와 route/API 연결 | adapter interface만 있고 current route call site 없음 | 익명 공개 endpoint, transport envelope, provider 오류 code |
 | list/detail/group public predicate | list와 detail 조건이 다름 | 검색 선택 후 detail이 항상 같은 공개 집합이라는 보장 |
-| search result availability composition | search summary에는 availability/questionCount 없음 | search card의 `학습 가능`/`개설 예정` 표시와 status filter |
+| search result availability composition | `/courses` server page가 별도 availability query를 조합하며 search summary 자체에는 availability/questionCount 없음 | 외부 search summary의 availability; catalog status는 별도 query의 게시 콘텐츠 상태 |
 | outline provider 선택 | strict provider와 generic helper가 모두 존재하나 app route 미연결 | group predicate, query count, empty/cap을 어느 호출자가 책임지는지 |
 | cursor·비동기 policy | adapter cursor는 있으나 `/courses` UI는 full list/in-memory filter | snapshot semantics, stale result 허용 window, retry/cost budget |
 | selection UI owner | service call site 없음 | same-page panel인지 route인지, URL에 selection을 반영할지 |
@@ -475,9 +480,8 @@ CSS나 component를 변경하지 않는다.
 3. search request sequence, query/path cursor binding, selection invalidation,
    append failure preservation을 구현한다. 자동 retry·자동 navigation·자동
    대체 과정 선택은 넣지 않는다.
-4. availability를 표시할 필요가 있으면 dedicated availability read와
-   questionCount/subject/topic metadata를 별도 field로 조합하고, existing
-   `isPublicCourseAvailable` semantics를 재사용한다.
+4. availability는 dedicated read가 반환하는 이론/문제 게시 flag 조합만 표시한다.
+   이 상태로 eligibility·practical·enrollment readiness를 추론하지 않는다.
 5. 정상 projection·source disclosure가 같은 승인된 scope를 사용하는지와
    login/enrollment CTA owner가 변경되지 않는지 정적/단위 검증을 추가한다.
 
