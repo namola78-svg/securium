@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { after, before, test } from "node:test";
-import { Miniflare } from "miniflare";
+import { createMiniflareD1Fixture } from "./helpers/miniflare-d1-fixture.mjs";
 import { DatabaseEvidenceSourceResolver } from "../db/evidence-source-adapters.ts";
 import { EvidenceProjectionRepository, createRecomputeRequest } from "../db/evidence-projection-repository.ts";
 import { D1DatabaseProvider } from "../db/provider/d1-database-provider.ts";
@@ -20,12 +20,7 @@ let executor;
 let mappingHash;
 
 before(async () => {
-  miniflare = new Miniflare({
-    modules: true,
-    script: "export default { fetch() { return new Response('ok'); } }",
-    compatibilityDate: "2026-05-15",
-    d1Databases: { DB: "question-attempt-evidence-event-executor" },
-  });
+  miniflare = createMiniflareD1Fixture({ databaseId: "question-attempt-evidence-event-executor" });
   database = await miniflare.getD1Database("DB");
   mappingHash = await computeConceptMappingSetHash([
     { conceptIdentity: "concept:one", mappingVersion: 1, qualification: null, provenance: null, status: "APPROVED" },

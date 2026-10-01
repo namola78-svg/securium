@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { after, before, test } from "node:test";
 import { randomUUID } from "node:crypto";
-import { Miniflare } from "miniflare";
+import { createMiniflareD1Fixture } from "./helpers/miniflare-d1-fixture.mjs";
 import postgres from "postgres";
 import {
   createOwnedPostgresContainer,
@@ -183,13 +183,7 @@ test("empty and invalid availability inputs do not execute a query", async () =>
 
 async function setupD1() {
   d1PersistPath = await mkdtemp(join(tmpdir(), `securium-public-course-availability-d1-${runId}-`));
-  miniflare = new Miniflare({
-    modules: true,
-    script: "export default { fetch() { return new Response('ok'); } }",
-    compatibilityDate: "2026-05-15",
-    d1Databases: { DB: `public-course-availability-${runId}` },
-    d1Persist: d1PersistPath,
-  });
+  miniflare = createMiniflareD1Fixture({ databaseId: `public-course-availability-${runId}`, persistencePath: d1PersistPath });
   d1 = await miniflare.getD1Database("DB");
   for (const statement of D1_SCHEMA) await d1.prepare(statement).run();
   for (const statement of FIXTURE_SQL) await d1.prepare(statement).run();

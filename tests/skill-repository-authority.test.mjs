@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { after, before, test } from "node:test";
-import { Miniflare } from "miniflare";
+import { createMiniflareD1Fixture } from "./helpers/miniflare-d1-fixture.mjs";
 import { drizzle } from "drizzle-orm/d1";
 import * as schema from "../db/schema.ts";
 import { resolveSkillFromDatabaseUsing } from "../db/skill-repository-query.ts";
@@ -16,12 +16,7 @@ let database;
 let db;
 
 before(async () => {
-  miniflare = new Miniflare({
-    modules: true,
-    script: "export default { fetch() { return new Response('ok'); } }",
-    compatibilityDate: "2026-05-15",
-    d1Databases: { DB: "skill-authority-repository" },
-  });
+  miniflare = createMiniflareD1Fixture({ databaseId: "skill-authority-repository" });
   database = await miniflare.getD1Database("DB");
   await execute("PRAGMA foreign_keys = ON");
   await execute("CREATE TABLE users (id TEXT PRIMARY KEY NOT NULL)");

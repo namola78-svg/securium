@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import { after, before, test } from "node:test";
-import { Miniflare } from "miniflare";
+import { createMiniflareD1Fixture } from "./helpers/miniflare-d1-fixture.mjs";
 import { D1DatabaseProvider } from "../db/provider/d1-database-provider.ts";
 import { saveGovernedQuestionCandidate } from "../db/question-governance-repository.ts";
 
@@ -21,7 +21,7 @@ let database;
 let provider;
 
 before(async () => {
-  miniflare = new Miniflare({ modules: true, script: "export default { fetch() { return new Response('ok'); } }", compatibilityDate: "2026-05-15", d1Databases: { DB: "question-governance" } });
+  miniflare = createMiniflareD1Fixture({ databaseId: "question-governance" });
   database = await miniflare.getD1Database("DB");
   const migrations = (await readdir("drizzle")).filter((name) => /^\d{4}_.+\.sql$/.test(name) && Number(name.slice(0, 4)) <= 25).sort();
   for (const name of migrations) await applyMigration(await readFile(`drizzle/${name}`, "utf8"));

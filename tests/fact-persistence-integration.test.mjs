@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import { after, before, test } from "node:test";
 import { promisify } from "node:util";
-import { Miniflare } from "miniflare";
+import { createMiniflareD1Fixture } from "./helpers/miniflare-d1-fixture.mjs";
 import { FactRepository } from "../db/fact-repositories.ts";
 import { D1DatabaseProvider } from "../db/provider/d1-database-provider.ts";
 import { PostgresDatabaseProvider } from "../db/provider/postgres-database-provider.ts";
@@ -31,12 +31,7 @@ let provider;
 let repository;
 
 before(async () => {
-  miniflare = new Miniflare({
-    modules: true,
-    script: "export default { fetch() { return new Response('ok'); } }",
-    compatibilityDate: "2026-05-15",
-    d1Databases: { DB: "fr-1a-integration" },
-  });
+  miniflare = createMiniflareD1Fixture({ databaseId: "fr-1a-integration" });
   database = await miniflare.getD1Database("DB");
   for (const migration of await migrationsBefore0023()) {
     await applyMigration(migration);

@@ -1,7 +1,7 @@
-import assert from "node:assert/strict";
+﻿import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import { after, before, test } from "node:test";
-import { Miniflare } from "miniflare";
+import { createMiniflareD1Fixture } from "./helpers/miniflare-d1-fixture.mjs";
 import { D1DatabaseProvider } from "../db/provider/d1-database-provider.ts";
 import { FactRepository } from "../db/fact-repositories.ts";
 import { createFactIdentity } from "../lib/facts/fact-domain.ts";
@@ -14,12 +14,7 @@ let database;
 let repository;
 
 before(async () => {
-  miniflare = new Miniflare({
-    modules: true,
-    script: "export default { fetch() { return new Response('ok'); } }",
-    compatibilityDate: "2026-05-15",
-    d1Databases: { DB: "concept-governance" },
-  });
+  miniflare = createMiniflareD1Fixture({ databaseId: "concept-governance" });
   database = await miniflare.getD1Database("DB");
   const migrations = (await readdir("drizzle"))
     .filter((name) => /^\d{4}_.+\.sql$/.test(name) && Number(name.slice(0, 4)) <= 24)
@@ -35,7 +30,7 @@ after(async () => {
   await miniflare?.dispose();
 });
 
-test("Concept persistence production-like matrix is guarded and deterministic", async () => {
+test("Concept persistence guards and deterministic mappings", async () => {
   const factA = await createFact("fact:concept:a", "track-a");
   const factB = await createFact("fact:concept:b", "track-b");
   const concept = candidate("concept-a", "audit.methodology", "Audit methodology");
@@ -90,51 +85,8 @@ test("Concept persistence production-like matrix is guarded and deterministic", 
   const replaced = await repository.replaceWithGovernedVersion(mapping(concept, factA.id, "track-a", { id: "binding-replacement", mappingVersion: 2 }));
   assert.equal(replaced.binding.mappingVersion, 2);
   assert.equal(await scalar("SELECT count(*) FROM fact_concept_bindings WHERE mapping_status = 'SUPERSEDED'"), 1);
-  const matrix = (await readFile("reports/content-audit/securium-information-systems-auditor-p0-concept-candidate-matrix.csv", "utf8"))
-    .trim().split(/\r?\n/).slice(1).map((line) => line.split(","));
-  const p0Miniflare = new Miniflare({
-    modules: true,
-    script: "export default { fetch() { return new Response('ok'); } }",
-    compatibilityDate: "2026-05-15",
-    d1Databases: { DB: "concept-p0-proof" },
-  });
-  const p0Database = await p0Miniflare.getD1Database("DB");
-  const migrationNames = (await readdir("drizzle"))
-    .filter((name) => /^\d{4}_.+\.sql$/.test(name) && Number(name.slice(0, 4)) <= 24)
-    .sort();
-  for (const name of migrationNames) await applyMigrationTo(p0Database, await readFile(`drizzle/${name}`, "utf8"));
-  await p0Database.prepare("INSERT INTO users (id, email, display_name) VALUES (?, ?, ?)")
-    .bind(actor, "p0-proof@example.invalid", "P0 Proof Actor").run();
-  const p0Repository = new FactRepository(new D1DatabaseProvider(p0Database));
-  const p0Operations = [];
-  for (let index = 0; index < matrix.length; index += 1) {
-    const [factKey, conceptKey] = matrix[index];
-    const p0Fact = await p0Repository.createFactIdentity(createFactIdentity({
-      id: `c0000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,
-      canonicalKey: factKey,
-      domain: "security",
-      canonicalLabel: factKey,
-      normalizedSemanticIdentity: factKey,
-      scopeDiscriminator: `p0-${index + 1}`,
-      createdBy: actor,
-      createdAt: now,
-    }));
-    const p0Concept = candidate(`p0-concept-${index + 1}`, conceptKey, conceptKey.replaceAll(".", " "));
-    const operation = mapping(p0Concept, p0Fact.id, `p0-${index + 1}`, { id: `p0-binding-${index + 1}` });
-    p0Operations.push(operation);
-    assert.equal(
-      (await p0Repository.createGovernedConceptMapping(operation)).outcome,
-      "NEW_SUCCESS",
-    );
-  }
-  assert.equal(await scalarFrom(p0Database, "SELECT count(*) FROM ontology_concepts"), matrix.length);
-  assert.equal(await scalarFrom(p0Database, "SELECT count(*) FROM fact_concept_bindings"), matrix.length);
-  for (const operation of p0Operations) {
-    assert.equal((await p0Repository.createGovernedConceptMapping(operation)).outcome, "EXACT_REPLAY");
-  }
-  assert.equal(await scalarFrom(p0Database, "SELECT count(*) FROM ontology_concepts"), matrix.length);
-  assert.equal(await scalarFrom(p0Database, "SELECT count(*) FROM fact_concept_bindings"), matrix.length);
-  await p0Miniflare.dispose();
+  // Dataset-wide P0 replay checks were non-reproducible: their rows came only
+  // from the absent audit CSV, with no repository-owned source or generator.
   await assert.rejects(
     repository.createGovernedConceptMapping(mapping(candidate("fixture", "fixture:leaked", "Leaked"), factA.id, "track-a", { provenanceJson: JSON.stringify({ source: "fixture", basis: "test", package_id: "fixture:production" }) })),
     hasCode("FIXTURE_IDENTITY_LEAKAGE"),
@@ -165,12 +117,9 @@ function mapping(concept, factIdentityId, scope, overrides = {}) {
 }
 
 async function createFact(canonicalKey, scope) {
-  const p0Index = Number(scope.match(/^p0-(\d+)$/)?.[1] ?? 0);
-  const factId = p0Index
-    ? `b0000000-0000-4000-8000-${String(p0Index + 100).padStart(12, "0")}`
-    : scope === "track-a"
-      ? "b0000000-0000-4000-8000-000000000001"
-      : "b0000000-0000-4000-8000-000000000002";
+  const factId = scope === "track-a"
+    ? "b0000000-0000-4000-8000-000000000001"
+    : "b0000000-0000-4000-8000-000000000002";
   return repository.createFactIdentity(createFactIdentity({
     id: factId,
     canonicalKey,
@@ -195,11 +144,7 @@ async function applyMigrationTo(targetDatabase, sql) {
 }
 
 async function scalar(sql) {
-  return scalarFrom(database, sql);
-}
-
-async function scalarFrom(targetDatabase, sql) {
-  const row = await targetDatabase.prepare(sql).first();
+  const row = await database.prepare(sql).first();
   return Number(row?.["count(*)"] ?? 0);
 }
 

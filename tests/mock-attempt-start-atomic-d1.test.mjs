@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
-import { Miniflare } from "miniflare";
+import { createMiniflareD1Fixture } from "./helpers/miniflare-d1-fixture.mjs";
 import { D1DatabaseProvider } from "../db/provider/d1-database-provider.ts";
 import { commitMockExamStart } from "../db/mock-exam-start-atomic.ts";
 import { computeMockQuestionVersionSemanticHash } from "../lib/services/mock-exam-revision.ts";
@@ -20,12 +20,7 @@ let miniflare;
 let database;
 
 before(async () => {
-  miniflare = new Miniflare({
-    modules: true,
-    script: "export default { fetch() { return new Response('ok'); } }",
-    compatibilityDate: "2026-05-15",
-    d1Databases: { DB: "mock-start-atomic-d1" },
-  });
+  miniflare = createMiniflareD1Fixture({ databaseId: "mock-start-atomic-d1" });
   database = await miniflare.getD1Database("DB");
   await runSql(`
     PRAGMA foreign_keys = ON;

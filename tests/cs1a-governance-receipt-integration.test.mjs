@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { execFile as execFileCallback } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { promisify } from "node:util";
-import { Miniflare } from "miniflare";
+import { createMiniflareD1Fixture } from "./helpers/miniflare-d1-fixture.mjs";
 import { after, before, test } from "node:test";
 import { drizzle } from "drizzle-orm/d1";
 import postgres from "postgres";
@@ -61,7 +61,7 @@ async function insertD1Receipt(row) {
 }
 
 before(async () => {
-  miniflare = new Miniflare({ modules: true, script: "export default { fetch() { return new Response('ok'); } }", compatibilityDate: "2026-05-15", d1Databases: { DB: "cs1a-r3" } });
+  miniflare = createMiniflareD1Fixture({ databaseId: "cs1a-r3" });
   database = await miniflare.getD1Database("DB");
   for (const path of ["drizzle/0032_concept_persistence_cp_a.sql", "drizzle/0033_cs1a_governance_receipts.sql"]) {
     const sql = await readFile(path, "utf8");

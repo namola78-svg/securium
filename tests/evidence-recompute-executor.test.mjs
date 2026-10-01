@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { after, before, test } from "node:test";
-import { Miniflare } from "miniflare";
+import { createMiniflareD1Fixture } from "./helpers/miniflare-d1-fixture.mjs";
 import { D1DatabaseProvider } from "../db/provider/d1-database-provider.ts";
 import { createRecomputeRequest, EvidenceProjectionRepository } from "../db/evidence-projection-repository.ts";
 
@@ -11,7 +11,7 @@ let provider;
 let repository;
 
 before(async () => {
-  miniflare = new Miniflare({ modules: true, script: "export default { fetch() { return new Response('ok'); } }", compatibilityDate: "2026-05-15", d1Databases: { DB: "e2a" } });
+  miniflare = createMiniflareD1Fixture({ databaseId: "e2a" });
   db = await miniflare.getD1Database("DB");
   await exec("PRAGMA foreign_keys=ON; CREATE TABLE users (id text PRIMARY KEY); CREATE TABLE ontology_concepts (id text PRIMARY KEY, concept_key text NOT NULL, status text NOT NULL); INSERT INTO users VALUES ('u1'); INSERT INTO ontology_concepts VALUES ('c1', 'concept:c1', 'ACTIVE');");
   await apply("drizzle/0027_evidence_projection_foundation.sql");
