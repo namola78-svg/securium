@@ -1,6 +1,10 @@
 import { spawn, spawnSync } from "node:child_process";
 import { createServer } from "node:net";
 import process from "node:process";
+import {
+  restoreNextGeneratedTypes,
+  snapshotNextGeneratedTypes,
+} from "../../scripts/next-generated-type-preservation.mjs";
 
 const host = "127.0.0.1";
 const defaultReadinessTimeoutMs = 120_000;
@@ -24,6 +28,7 @@ export async function startVinextE2EServer({
     throw new RangeError("Invalid Vinext E2E port: " + selectedPort);
   }
   const baseUrl = "http://" + host + ":" + selectedPort;
+  const nextTypesSnapshot = await snapshotNextGeneratedTypes();
   const command = process.execPath;
   const args = [
     "node_modules/vite/bin/vite.js",
@@ -71,6 +76,7 @@ export async function startVinextE2EServer({
     });
   } catch (error) {
     if (child.pid) await stopChild(child);
+    await restoreNextGeneratedTypes(nextTypesSnapshot);
     const details = [
       error.message,
       "Command: " + command + " " + args.join(" "),
@@ -84,7 +90,13 @@ export async function startVinextE2EServer({
   return {
     baseUrl,
     child,
-    stop: () => stopChild(child),
+    stop: async () => {
+      try {
+        await stopChild(child);
+      } finally {
+        await restoreNextGeneratedTypes(nextTypesSnapshot);
+      }
+    },
   };
 }
 

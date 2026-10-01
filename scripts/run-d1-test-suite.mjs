@@ -3,15 +3,23 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import process from "node:process";
+import {
+  restoreNextGeneratedTypes,
+  snapshotNextGeneratedTypes,
+} from "./next-generated-type-preservation.mjs";
 
 const argumentsToNode = process.argv.slice(2);
-const SUBPROCESS_TIMEOUT_MS = 10 * 60 * 1_000;
+// The complete D1-backed E2E suite exceeds ten minutes on the reviewed
+// Cloudflare cohort even while tests continue to pass. Keep the longer budget
+// in the standard wrapper so the repository command can report a full result.
+const SUBPROCESS_TIMEOUT_MS = 15 * 60 * 1_000;
 if (argumentsToNode[0] !== "--test") {
   console.error("This wrapper only runs Node test suites.");
   process.exit(1);
 }
 
 const persistTo = await mkdtemp(join(tmpdir(), "securium-d1-suite-"));
+const nextTypesSnapshot = await snapshotNextGeneratedTypes();
 const environment = {
   ...process.env,
   // The suite owns a temporary D1 fixture and never reuses a developer's
@@ -53,6 +61,13 @@ try {
   exitCode = 1;
 } finally {
   try {
+    await restoreNextGeneratedTypes(nextTypesSnapshot);
+    console.log("SECURIUM_NEXT_GENERATED_TYPES_RESTORATION PASS");
+  } catch (error) {
+    console.error(`SECURIUM_NEXT_GENERATED_TYPES_RESTORATION FAIL: ${error?.stack ?? error}`);
+    exitCode = 1;
+  }
+  try {
     await rm(persistTo, { recursive: true, force: true });
     console.log("SECURIUM_D1_FIXTURE_CLEANUP PASS");
   } catch (error) {
@@ -66,6 +81,7 @@ function run(executable, args, returnCode = false) {
   return new Promise((resolvePromise, rejectPromise) => {
     let settled = false;
     let forceKillTimer;
+    let timeoutError;
     const child = spawn(executable, args, {
       stdio: "inherit",
       windowsHide: true,
@@ -73,11 +89,10 @@ function run(executable, args, returnCode = false) {
     });
     const timeout = setTimeout(() => {
       if (settled) return;
-      settled = true;
+      timeoutError = new Error(`D1 test subprocess timed out after ${SUBPROCESS_TIMEOUT_MS}ms: ${executable} ${args.join(" ")}`);
       child.kill("SIGTERM");
       forceKillTimer = setTimeout(() => child.kill("SIGKILL"), 5_000);
       forceKillTimer.unref?.();
-      rejectPromise(new Error(`D1 test subprocess timed out after ${SUBPROCESS_TIMEOUT_MS}ms: ${executable} ${args.join(" ")}`));
     }, SUBPROCESS_TIMEOUT_MS);
     child.on("error", (error) => {
       if (settled) return;
@@ -90,6 +105,10 @@ function run(executable, args, returnCode = false) {
       clearTimeout(forceKillTimer);
       if (settled) return;
       settled = true;
+      if (timeoutError) {
+        rejectPromise(timeoutError);
+        return;
+      }
       if (signal) {
         rejectPromise(new Error(`D1 test process stopped by ${signal}.`));
         return;
