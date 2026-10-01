@@ -63,7 +63,7 @@ env:
 
 jobs:
   d1-executor:
-    name: D1 QUESTION_ATTEMPT executor (19 tests)
+    name: D1 QUESTION_ATTEMPT executor (20 tests)
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -131,7 +131,7 @@ jobs:
           test "${skipped:-1}" = "0"
           test "${todo:-1}" = "0"
           test "${failed:-1}" = "0"
-          test "${passed:-0}" = "7"
+          test "${passed:-0}" = "8"
 
       - name: Run HTTP producer to CLI D1 integration tests
         shell: bash
