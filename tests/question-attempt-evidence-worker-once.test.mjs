@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFile as execFileCallback } from "node:child_process";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -101,6 +101,40 @@ test("D1 subprocess processes at most one eligible request and leaves replay/no-
     const afterThree = await reopen(fixture);
     assert.equal(await scalar(afterThree.database, "SELECT count(*) FROM evidence_projections WHERE lifecycle = 'ACTIVE'"), "4");
     await afterThree.miniflare.dispose();
+  } finally {
+    if (fixture.miniflare) await fixture.miniflare.dispose().catch(() => {});
+  }
+});
+
+test("once subprocess reopens D1 data from Wrangler's v3 resource persistence root", async () => {
+  const fixture = await createD1Fixture();
+  try {
+    await insertAttempt(fixture, "once-attempt-wrangler-persist-root");
+    const request = await enqueueEvent(fixture, "once-attempt-wrangler-persist-root");
+    await fixture.miniflare.dispose();
+
+    const resourcePersistencePath = join(fixture.persistPath, "v3");
+    await mkdir(resourcePersistencePath, { recursive: true });
+    await rename(
+      join(fixture.persistPath, "d1"),
+      join(resourcePersistencePath, "d1"),
+    );
+
+    const result = await runOnce(fixture);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.result.status, "COMPLETED");
+    assert.equal(result.result.requestId, request.id);
+
+    const reopened = createMiniflareD1Fixture({
+      databaseId: fixture.databaseName,
+      persistencePath: resourcePersistencePath,
+    });
+    try {
+      const database = await reopened.getD1Database("DB");
+      assert.equal(await status(database, request.id), "COMPLETED");
+    } finally {
+      await reopened.dispose();
+    }
   } finally {
     if (fixture.miniflare) await fixture.miniflare.dispose().catch(() => {});
   }

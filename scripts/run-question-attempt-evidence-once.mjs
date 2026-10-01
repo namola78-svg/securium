@@ -185,10 +185,11 @@ async function assertOwnedD1Fixture(options) {
     throw configurationError("D1_FIXTURE_OWNERSHIP_INVALID");
   }
 
-  const wranglerD1Path = join(persistPath, "v3", "d1");
+  const wranglerResourcePersistencePath = join(persistPath, "v3");
+  const wranglerD1Path = join(wranglerResourcePersistencePath, "d1");
   if (existsSync(wranglerD1Path)) {
     await assertRealDirectory(wranglerD1Path, "D1_PERSISTENCE_NOT_FOUND", "D1_PERSISTENCE_LINK_FORBIDDEN");
-    return wranglerD1Path;
+    return wranglerResourcePersistencePath;
   }
   return persistPath;
 }
