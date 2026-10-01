@@ -27,6 +27,10 @@ const legacyRlsMigration = {
   id: "0041_legacy_concept_rls_hardening",
   sql: readFileSync("db/postgres/migrations/0041_legacy_concept_rls_hardening.sql", "utf8"),
 };
+const baselineReceiptRlsMigration = {
+  id: "0058_app_schema_baseline_receipts_rls_hardening",
+  sql: readFileSync("db/postgres/migrations/0058_app_schema_baseline_receipts_rls_hardening.sql", "utf8"),
+};
 
 test("case 1: exact session settings pass before DDL", async () => {
   const state = createFakeSession();
@@ -89,6 +93,22 @@ test("0041 legacy Concept RLS migration uses its approved checksum", async () =>
   assert.equal(state.ddlStatementsExecuted, 0);
 });
 
+test("0058 baseline receipt RLS migration is limited to enabling RLS", async () => {
+  assert.equal(expectedMigrationChecksum(baselineReceiptRlsMigration), "app-schema-baseline-receipts-rls-hardening-v1");
+  assert.match(baselineReceiptRlsMigration.sql, /ALTER TABLE public\.app_schema_baseline_receipts ENABLE ROW LEVEL SECURITY/i);
+  assert.doesNotMatch(baselineReceiptRlsMigration.sql, /CREATE\s+POLICY|FORCE\s+ROW\s+LEVEL\s+SECURITY|\bGRANT\b|\bREVOKE\b|\bUPDATE\s+public\.app_schema_baseline_receipts|\bDELETE\s+FROM\s+public\.app_schema_baseline_receipts/i);
+  const state = createFakeSession({
+    migrationLedgerRows: [{ id: baselineReceiptRlsMigration.id, checksum: "app-schema-baseline-receipts-rls-hardening-v1" }],
+  });
+  const result = await executeGuardedMigration({
+    session: state.session,
+    migration: baselineReceiptRlsMigration,
+    logger: () => {},
+  });
+  assert.equal(result.applied, false);
+  assert.equal(state.ddlStatementsExecuted, 0);
+});
+
 test("missing, null, and empty migration ledger checksums fail closed", async () => {
   for (const checksum of [null, ""]) {
     const state = createFakeSession({
@@ -128,7 +148,7 @@ test("all governed PostgreSQL migrations expose the existing checksum convention
   const files = (await readdir("db/postgres/migrations"))
     .filter((file) => /^\d{4}_.+\.sql$/.test(file))
     .sort();
-  assert.equal(files.length, 40);
+  assert.equal(files.length, 41);
   for (const file of files) {
     const migration = {
       id: file.replace(/\.sql$/, ""),
