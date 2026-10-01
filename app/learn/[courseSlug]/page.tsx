@@ -42,11 +42,22 @@ export default async function LearnCoursePage({
 
   const theory = lessonSummary.totalLessons ? lessonSummary : legacyTheory;
   const nextLesson = lessonSummary.nextLesson ?? legacyTheory?.nextLesson ?? null;
+  const firstPublishedCourseLesson = lessonSummary.lessons[0] ?? null;
+  const fallbackTheoryHref = firstPublishedCourseLesson
+    ? `/learn/${course.slug}/course-lessons/${firstPublishedCourseLesson.id}`
+    : legacyTheory?.latestLesson
+      ? `/learn/${course.slug}/lessons/${legacyTheory.latestLesson.id}`
+      : null;
   const continueHref = nextLesson
     ? lessonSummary.nextLesson
       ? `/learn/${course.slug}/course-lessons/${nextLesson.id}`
       : `/learn/${course.slug}/lessons/${nextLesson.id}`
-    : `/practice/${course.slug}?random=1&count=10`;
+    : fallbackTheoryHref ?? `/practice/${course.slug}?random=1&count=10`;
+  const continueLabel = nextLesson
+    ? "이어서 학습"
+    : fallbackTheoryHref
+      ? "이론 다시 보기"
+      : "문제 콘텐츠 보기";
   const isSecurityCertificationCourse =
     course.id === "course-ise" || course.id === "course-isie";
   const conceptEntries = curriculum
@@ -82,11 +93,13 @@ export default async function LearnCoursePage({
         <section className={styles.overviewGrid} aria-label="현재 과정 학습 상태">
           <article className={styles.nextLearning} data-learn-primary="">
             <p className={styles.eyebrow}>다음 학습</p>
-            <h2>{nextLesson ? publicCopy(nextLesson.title) : "문제로 학습 시작하기"}</h2>
+            <h2>{nextLesson ? publicCopy(nextLesson.title) : fallbackTheoryHref ? "확인한 이론 다시 보기" : "문제 콘텐츠 확인하기"}</h2>
             <p>
               {nextLesson
                 ? "최근 학습 흐름을 이어서 핵심 개념을 확인합니다."
-                : "공개된 다음 레슨이 없어 문제 연습으로 이동합니다."}
+                : fallbackTheoryHref
+                  ? "이어 볼 새 이론 레슨이 없어 게시된 레슨을 다시 확인합니다."
+                  : "이어 볼 이론 레슨이 없습니다. 문제 콘텐츠 화면에서 현재 공개 상태를 확인하세요."}
             </p>
             <div className={styles.nextMeta}>
               <span>{theory.completedLessons}/{theory.totalLessons} 레슨 완료</span>
@@ -95,7 +108,7 @@ export default async function LearnCoursePage({
               ) : null}
             </div>
             <Link className={styles.primaryButton} href={continueHref}>
-              {nextLesson ? "이어서 학습" : "문제 연습하기"}
+              {continueLabel}
               <span aria-hidden="true">→</span>
             </Link>
           </article>

@@ -3,8 +3,10 @@ import { spawn } from "node:child_process";
 import { after, before, test } from "node:test";
 import { startVinextTestServer } from "./support/vinext-test-server.mjs";
 
-const AVAILABLE_LABEL = "\uD559\uC2B5 \uAC00\uB2A5";
-const PLANNED_LABEL = "\uAC1C\uC124 \uC608\uC815";
+const THEORY_LABEL = "\uC774\uB860 \uCF58\uD150\uCE20 \uC788\uC74C";
+const QUESTION_LABEL = "\uBB38\uC81C \uCF58\uD150\uCE20 \uC788\uC74C";
+const BOTH_LABEL = "\uC774\uB860\u00B7\uBB38\uC81C \uCF58\uD150\uCE20 \uC788\uC74C";
+const PLANNED_LABEL = "\uCF58\uD150\uCE20 \uC900\uBE44 \uC911";
 const EMPTY_STATE_LABEL = "\uC870\uAC74\uC5D0 \uB9DE\uB294 \uACFC\uC815\uC774 \uC5C6\uC2B5\uB2C8\uB2E4";
 const HTTP_REQUEST_TIMEOUT_MS = 15_000;
 const FIXTURE_EXECUTION_TIMEOUT_MS = 60_000;
@@ -25,35 +27,41 @@ const FIXTURE = Object.freeze({
       name: "HTTP contract fixture published lesson",
       displayOrder: 2,
     },
+    both: {
+      id: "http-contract-course-both",
+      slug: "http-contract-both",
+      name: "HTTP contract fixture published theory and question",
+      displayOrder: 3,
+    },
     outline: {
       id: "http-contract-course-outline",
       slug: "http-contract-outline",
       name: "HTTP contract fixture outline-only course with a deliberately long name",
-      displayOrder: 3,
+      displayOrder: 4,
     },
     draft: {
       id: "http-contract-course-draft",
       slug: "http-contract-draft",
       name: "HTTP contract fixture draft-only content",
-      displayOrder: 4,
+      displayOrder: 5,
     },
     crossCourse: {
       id: "http-contract-course-cross-course",
       slug: "http-contract-cross-course",
       name: "HTTP contract fixture content belongs to another course",
-      displayOrder: 5,
+      displayOrder: 6,
     },
     unpublished: {
       id: "http-contract-course-unpublished",
       slug: "http-contract-unpublished",
       name: "HTTP contract fixture unpublished course",
-      displayOrder: 6,
+      displayOrder: 7,
     },
     inactive: {
       id: "http-contract-course-inactive",
       slug: "http-contract-inactive",
       name: "HTTP contract fixture inactive course",
-      displayOrder: 7,
+      displayOrder: 8,
     },
   }),
 });
@@ -61,6 +69,7 @@ const FIXTURE = Object.freeze({
 const PUBLIC_COURSES = [
   FIXTURE.courses.question,
   FIXTURE.courses.lesson,
+  FIXTURE.courses.both,
   FIXTURE.courses.outline,
   FIXTURE.courses.draft,
   FIXTURE.courses.crossCourse,
@@ -121,8 +130,9 @@ test("public catalog renders availability from published question/lesson relatio
 
   assert.equal(courseCard(response.html, FIXTURE.courses.unpublished), null);
   assert.equal(courseCard(response.html, FIXTURE.courses.inactive), null);
-  assertAvailableCard(response.html, FIXTURE.courses.question);
-  assertAvailableCard(response.html, FIXTURE.courses.lesson);
+  assertAvailableCard(response.html, FIXTURE.courses.question, QUESTION_LABEL);
+  assertAvailableCard(response.html, FIXTURE.courses.lesson, THEORY_LABEL);
+  assertAvailableCard(response.html, FIXTURE.courses.both, BOTH_LABEL);
   assertPlannedCard(response.html, FIXTURE.courses.outline);
   assertPlannedCard(response.html, FIXTURE.courses.draft);
   assertPlannedCard(response.html, FIXTURE.courses.crossCourse);
@@ -135,6 +145,7 @@ test("server-side availability filters select only the matching fixture cards", 
   assertFixtureCardPresence(available.html, {
     question: true,
     lesson: true,
+    both: true,
     outline: false,
     draft: false,
     crossCourse: false,
@@ -146,6 +157,7 @@ test("server-side availability filters select only the matching fixture cards", 
   assertFixtureCardPresence(planned.html, {
     question: false,
     lesson: false,
+    both: false,
     outline: true,
     draft: true,
     crossCourse: true,
@@ -153,11 +165,19 @@ test("server-side availability filters select only the matching fixture cards", 
 });
 
 test("public detail responses preserve the card availability contract", async () => {
-  for (const course of [FIXTURE.courses.question, FIXTURE.courses.lesson]) {
+  for (const [course, label] of [
+    [FIXTURE.courses.question, QUESTION_LABEL],
+    [FIXTURE.courses.lesson, THEORY_LABEL],
+    [FIXTURE.courses.both, BOTH_LABEL],
+  ]) {
     const response = await fetchHtml(`/courses/${course.slug}`);
     assert.match(response.html, new RegExp(`<h1[^>]*>${escapeRegExp(course.name)}`));
+    assert.match(response.html, new RegExp(escapeRegExp(label)));
+    assert.match(response.html, /확인된 콘텐츠로 이동하기/);
     assert.doesNotMatch(response.html, /class="enroll-action course-unavailable"/);
     assert.doesNotMatch(response.html, new RegExp(escapeRegExp(PLANNED_LABEL)));
+    assert.match(response.html, /연결 문제 수/);
+    assert.doesNotMatch(response.html, /공개 문제 수/);
   }
 
   for (const course of [
@@ -239,12 +259,12 @@ function emptyState(html) {
   return match?.[1] ?? null;
 }
 
-function assertAvailableCard(html, course) {
+function assertAvailableCard(html, course, label) {
   const card = courseCard(html, course);
   assert.ok(card, `${course.slug} available card is missing`);
   assert.match(
     card,
-    new RegExp(`class="course-status available">${escapeRegExp(AVAILABLE_LABEL)}<\\/span>`),
+    new RegExp(`class="course-status available">${escapeRegExp(label)}<\\/span>`),
   );
   assert.match(card, new RegExp(`href="/courses/${escapeRegExp(course.slug)}"`));
   assert.match(card, /course-card-cta/);
@@ -258,9 +278,8 @@ function assertPlannedCard(html, course) {
     card,
     new RegExp(`class="course-status planned">${escapeRegExp(PLANNED_LABEL)}<\\/span>`),
   );
-  assert.match(card, /disabled/);
-  assert.doesNotMatch(card, new RegExp(`href="/courses/${escapeRegExp(course.slug)}"`));
-  assert.doesNotMatch(card, new RegExp(escapeRegExp(AVAILABLE_LABEL)));
+  assert.match(card, new RegExp(`href="/courses/${escapeRegExp(course.slug)}"`));
+  assert.doesNotMatch(card, /학습 가능/);
 }
 
 function assertFixtureCardPresence(html, expected) {
@@ -284,10 +303,12 @@ function buildFixtureSql() {
     `INSERT INTO questions (id, title, content, type, difficulty, explanation, wrong_answer_explanation, status, version, answer_config_json, is_sample, created_by, published_at) VALUES ('http-contract-question-published', 'HTTP contract published question', 'Synthetic published question body', 'SINGLE_CHOICE', 'EASY', '', '', 'PUBLISHED', 1, '{}', 0, ${sql(FIXTURE.authorId)}, CURRENT_TIMESTAMP)`,
     `INSERT INTO questions (id, title, content, type, difficulty, explanation, wrong_answer_explanation, status, version, answer_config_json, is_sample, created_by) VALUES ('http-contract-question-draft', 'HTTP contract draft question', 'Synthetic draft question body', 'SINGLE_CHOICE', 'EASY', '', '', 'DRAFT', 1, '{}', 0, ${sql(FIXTURE.authorId)})`,
     `INSERT INTO question_courses (question_id, course_id, weight) VALUES ('http-contract-question-published', ${sql(c.question.id)}, 100)`,
+    `INSERT INTO question_courses (question_id, course_id, weight) VALUES ('http-contract-question-published', ${sql(c.both.id)}, 100)`,
     `INSERT INTO question_courses (question_id, course_id, weight) VALUES ('http-contract-question-draft', ${sql(c.draft.id)}, 100)`,
     `INSERT INTO contents (id, slug, canonical_key, title, summary, body, body_format, version, status, created_by) VALUES ('http-contract-content-published', 'http-contract-content-published', 'http.contract.published', 'HTTP contract published lesson', 'Synthetic published lesson summary', 'Synthetic published lesson body', 'PLAIN_TEXT', '1.0.0', 'PUBLISHED', ${sql(FIXTURE.authorId)})`,
     `INSERT INTO contents (id, slug, canonical_key, title, summary, body, body_format, version, status, created_by) VALUES ('http-contract-content-draft', 'http-contract-content-draft', 'http.contract.draft', 'HTTP contract draft lesson', 'Synthetic draft lesson summary', 'Synthetic draft lesson body', 'PLAIN_TEXT', '1.0.0', 'DRAFT', ${sql(FIXTURE.authorId)})`,
     `INSERT INTO course_lessons (id, course_id, content_id, display_title, sort_order, estimated_minutes, is_required, completion_rule, status) VALUES ('http-contract-lesson-published', ${sql(c.lesson.id)}, 'http-contract-content-published', 'HTTP contract published lesson', 1, 10, 1, 'MANUAL', 'PUBLISHED')`,
+    `INSERT INTO course_lessons (id, course_id, content_id, display_title, sort_order, estimated_minutes, is_required, completion_rule, status) VALUES ('http-contract-lesson-both', ${sql(c.both.id)}, 'http-contract-content-published', 'HTTP contract both content lesson', 1, 10, 1, 'MANUAL', 'PUBLISHED')`,
     `INSERT INTO course_lessons (id, course_id, content_id, display_title, sort_order, estimated_minutes, is_required, completion_rule, status) VALUES ('http-contract-lesson-draft-content', ${sql(c.draft.id)}, 'http-contract-content-draft', 'HTTP contract draft content lesson', 1, 10, 1, 'MANUAL', 'PUBLISHED')`,
   ].join(";\n") + ";";
 }

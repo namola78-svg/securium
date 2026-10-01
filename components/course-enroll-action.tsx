@@ -20,6 +20,8 @@ type ActionStatus =
 type CourseEnrollActionProps = {
   courseId: string;
   courseSlug: string;
+  learnerHref: string;
+  learnerActionLabel: string;
   initialSignedIn: boolean;
   initialEnrollmentStatus?: EnrollmentStatus | null;
 };
@@ -31,8 +33,6 @@ const TEXT = {
     "\uACFC\uC815\uC744 \uCD94\uAC00\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574\uC8FC\uC138\uC694.",
   loginAndAdd:
     "\uB85C\uADF8\uC778\uD558\uACE0 \uACFC\uC815 \uCD94\uAC00",
-  continueLearning: "\uD559\uC2B5 \uACC4\uC18D\uD558\uAE30",
-  review: "\uBCF5\uC2B5\uD558\uAE30",
   retry: "\uB2E4\uC2DC \uC2DC\uB3C4",
   enrolling:
     "\uB0B4 \uD559\uC2B5\uC5D0 \uCD94\uAC00\uD558\uB294 \uC911",
@@ -44,6 +44,8 @@ const ENROLLMENT_SYNC_EVENT = "securium:course-enrolled";
 export function CourseEnrollAction({
   courseId,
   courseSlug,
+  learnerHref,
+  learnerActionLabel,
   initialSignedIn,
   initialEnrollmentStatus = null,
 }: CourseEnrollActionProps) {
@@ -141,8 +143,8 @@ export function CourseEnrollAction({
   if (renderStatus === "enrolled") {
     return (
       <div className="enroll-action">
-        <ActionButton href={`/learn/${courseSlug}`} variant="dark" className="full-width">
-          {TEXT.continueLearning}
+        <ActionButton href={learnerHref} variant="dark" className="full-width">
+          {learnerActionLabel}
         </ActionButton>
         {message ? <p className="enroll-message success">{message}</p> : null}
       </div>
@@ -153,11 +155,11 @@ export function CourseEnrollAction({
     return (
       <div className="enroll-action">
         <ActionButton
-          href={`/practice/${courseSlug}?mode=review`}
+          href={learnerHref}
           variant="dark"
           className="full-width"
         >
-          {TEXT.review}
+          {learnerActionLabel}
         </ActionButton>
       </div>
     );
