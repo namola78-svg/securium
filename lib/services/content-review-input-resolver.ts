@@ -1,8 +1,6 @@
 import type { DatabaseProvider } from "../../db/provider/database-provider.ts";
 import { AppError } from "../errors.ts";
-import { CONTENT_REVIEW_DOMAINS, sha256, type ContentReviewDomain, type ContentReviewJudgmentInput, type ContentReviewSubjectBinding } from "../policy/content-review-judgment.ts";
-import { buildSecureCodingReviewedInput } from "./secure-coding-review-adapter.ts";
-import { assertIseWaveAGovernanceDependencies, buildIseWaveAGovernanceContext } from "./ise-wave-a-reviewed-input-adapter.ts";
+import { sha256, type ContentReviewDomain, type ContentReviewJudgmentInput, type ContentReviewSubjectBinding } from "../policy/content-review-judgment.ts";
 
 export type ServerOwnedReviewedInputContext = Readonly<{
   resourceType: string;
@@ -18,59 +16,6 @@ export type ServerOwnedReviewedInputContext = Readonly<{
 }>;
 
 export type ServerOwnedReviewedInputResolver = (database: DatabaseProvider) => Promise<ServerOwnedReviewedInputContext>;
-
-const SECURE_CODING_REQUIRED_DOMAINS = Object.freeze(
-  CONTENT_REVIEW_DOMAINS.filter((domain) => domain !== "CURRENTNESS"),
-);
-
-export async function resolveSecureCodingReviewedInputContext(): Promise<ServerOwnedReviewedInputContext> {
-  const current = buildSecureCodingReviewedInput();
-  return {
-    resourceType: current.resource,
-    resourceId: current.subjects[0]?.resourceRevisionId ?? "V1",
-    scope: current.scope,
-    reviewedInputIdentity: current.reviewedInputIdentity,
-    reviewedInputSnapshot: current.snapshot,
-    subjects: current.subjects,
-    requiredDomains: SECURE_CODING_REQUIRED_DOMAINS,
-    requiredReviewerCount: 2,
-    riskClass: "HIGH_TRUST",
-    subjectBindingMode: "SUBSET",
-  };
-}
-
-export async function resolveIseWaveAReviewedInputContext(database: DatabaseProvider): Promise<ServerOwnedReviewedInputContext> {
-  const context = await buildIseWaveAGovernanceContext(database);
-  assertIseWaveAGovernanceDependencies(context);
-  const reviewed = context.reviewedInput;
-  return {
-    resourceType: reviewed.resourceType,
-    resourceId: reviewed.resourceId,
-    scope: reviewed.scope,
-    reviewedInputIdentity: reviewed.reviewedInputIdentity,
-    reviewedInputSnapshot: reviewed.snapshot,
-    subjects: reviewed.subjects.map((subject) => ({
-      subjectIdentity: subject.subjectIdentity,
-      resourceRevisionId: subject.resourceRevisionId,
-      contentSemanticHash: subject.contentSemanticHash,
-      semanticOrdinal: subject.semanticOrdinal,
-    })),
-    requiredDomains: reviewed.requiredDomains,
-    requiredReviewerCount: reviewed.requiredReviewerCount,
-    riskClass: reviewed.riskClass,
-    subjectBindingMode: "EXACT",
-  };
-}
-
-/**
- * Resource type is supplied only by a server-owned execution boundary. It is
- * never read from reviewer intent or persisted as caller authority.
- */
-export async function resolveReviewedInputContextByResourceType(resourceType: string, database: DatabaseProvider): Promise<ServerOwnedReviewedInputContext> {
-  if (resourceType === "CONTENT_REVISION") return resolveSecureCodingReviewedInputContext();
-  if (resourceType === "CONTENT_REVISION_REGISTRATION") return resolveIseWaveAReviewedInputContext(database);
-  throw new AppError("No approved reviewed-input adapter exists for this resource type.", 400, "CONTENT_REVIEW_RESOURCE_TYPE_UNSUPPORTED");
-}
 
 export function assertReviewDomainRequired(context: ServerOwnedReviewedInputContext, domain: ContentReviewDomain): void {
   if (!context.requiredDomains.includes(domain)) throw new AppError("The review domain is not required for this server-owned reviewed input.", 409, "CONTENT_REVIEW_DOMAIN_NOT_REQUIRED");
