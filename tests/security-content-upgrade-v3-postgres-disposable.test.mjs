@@ -156,7 +156,23 @@ async function withScenarioDatabase(label, callback) {
   const client = postgres(postgresUrl.replace(/\/postgres$/, `/${databaseName}`), postgresOptions(`scenario-${label}`));
   try {
     await waitForConnection(client);
+    await client.unsafe(`CREATE TABLE public.app_schema_baseline_receipts (
+      baseline_id text PRIMARY KEY,
+      baseline_version text NOT NULL,
+      schema_boundary text NOT NULL,
+      artifact_sha256 text NOT NULL,
+      schema_sha256 text NOT NULL,
+      security_sha256 text NOT NULL,
+      created_from_main_sha text NOT NULL,
+      applied_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`);
     await applyMigrations(client);
+    const [baselineReceipt] = await client`
+      SELECT relrowsecurity
+      FROM pg_class
+      WHERE oid = 'public.app_schema_baseline_receipts'::regclass
+    `;
+    assert.equal(baselineReceipt.relrowsecurity, true);
     await seedBaseline(client);
     return await callback(client);
   } finally {
