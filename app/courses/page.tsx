@@ -4,7 +4,7 @@ import { CourseCard } from "@/components/course-card";
 import { EmptyState } from "@/components/state-ui";
 import { listPublishedCoursesCached } from "@/lib/cached-catalog";
 import { courseAudienceLabel, courseDescription, courseTypeLabel } from "@/lib/course-display";
-import { isPublicCourseAvailable, listPublicCourseAvailability } from "@/lib/services/course-availability";
+import { getPublicCourseAvailabilityState, listPublicCourseAvailability } from "@/lib/services/course-availability";
 
 export const metadata: Metadata = {
   title: "과정 둘러보기",
@@ -38,8 +38,10 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
       .toLocaleLowerCase("ko-KR");
     const matchesQuery = !normalizedQuery || searchable.includes(normalizedQuery);
     const matchesPath = path === "all" || (path === "certification" ? isCertificationCourse(course) : !isCertificationCourse(course));
-    const available = isPublicCourseAvailable(availabilityByCourseId.get(course.id));
-    const matchesStatus = status === "all" || (status === "available" ? available : !available);
+    const availabilityState = getPublicCourseAvailabilityState(availabilityByCourseId.get(course.id));
+    const matchesStatus = status === "all" || (status === "available"
+      ? availabilityState !== "NO_PUBLISHED_LEARNER_CONTENT"
+      : availabilityState === "NO_PUBLISHED_LEARNER_CONTENT");
     return matchesQuery && matchesPath && matchesStatus;
   });
   const grouped = Map.groupBy(filteredCourses, (course) => course.groupName);
@@ -68,7 +70,7 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
           <form action="/courses" className="filter-row" method="get">
             <label className="ds-control-label">과정 검색<input className="ds-input" name="q" placeholder="과정명, 주제, 학습 대상 검색" type="search" defaultValue={query} /></label>
             <label className="ds-control-label">탐색 경로<select className="ds-select" defaultValue={path} name="path"><option value="all">모든 과정</option><option value="certification">자격증 과정</option><option value="professional">전문·실무 과정</option></select></label>
-            <label className="ds-control-label">공개 상태<select className="ds-select" defaultValue={status} name="status"><option value="all">전체 상태</option><option value="available">학습 가능</option><option value="planned">개설 예정</option></select></label>
+            <label className="ds-control-label">콘텐츠 상태<select className="ds-select" defaultValue={status} name="status"><option value="all">전체 상태</option><option value="available">공개 콘텐츠 있음</option><option value="planned">콘텐츠 준비 중</option></select></label>
             <button className="button button-primary" type="submit">검색·필터 적용</button>
           </form>
           {hasFilters ? <Link className="text-link" href="/courses">조건 초기화</Link> : null}

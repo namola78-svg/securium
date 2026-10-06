@@ -18,6 +18,13 @@ test("course overview prioritizes one next-learning action before curriculum", (
   assert.match(overview, /필기·실기 과정 구성/);
 });
 
+test("course overview revisits published theory instead of falling through to practice when theory is complete", () => {
+  assert.match(overview, /firstPublishedCourseLesson = lessonSummary\.lessons\[0\]/);
+  assert.match(overview, /fallbackTheoryHref \?\? `\/practice\/\$\{course\.slug\}/);
+  assert.match(overview, /fallbackTheoryHref\s*\?\s*"이론 다시 보기"/);
+  assert.match(overview, /이어 볼 새 이론 레슨이 없어 게시된 레슨을 다시 확인합니다/);
+});
+
 test("subject page presents current lesson before topic inventory", () => {
   assert.ok(subject.indexOf("지금 배울 내용") < subject.indexOf("이 과목에서 다루는 주제"));
   assert.match(subject, /aria-current=\{lesson\.id === nextLesson\?\.id \? "step"/);
