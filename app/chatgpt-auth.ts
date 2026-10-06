@@ -2,9 +2,11 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import {
   getSupabaseAuthenticatedIdentity,
+  getSupabaseVerifiedApplicationIdentity,
   getSupabaseSessionCookieIdentity,
   resolveAuthProvider,
 } from "@/lib/auth-provider";
+import type { AuthenticatedApplicationIdentity } from "@/lib/auth-provider";
 import { authApiRedirectHref, authRedirectHref, safeAuthReturnPath } from "@/lib/auth-routing";
 
 export type ChatGPTUser = {
@@ -42,6 +44,12 @@ export async function getChatGPTUser(): Promise<ChatGPTUser | null> {
     email,
     fullName,
   };
+}
+
+/** Identity material suitable for binding lookup; Sites currently exposes no subject. */
+export async function getChatGPTApplicationIdentity(): Promise<AuthenticatedApplicationIdentity | null> {
+  if (resolveAuthProvider() !== "supabase") return null;
+  return getSupabaseVerifiedApplicationIdentity();
 }
 
 export async function getChatGPTUserForDisplay(): Promise<ChatGPTUser | null> {

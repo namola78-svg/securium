@@ -208,7 +208,7 @@ function validateMigrations(migrations) {
       fail("POSTGRES_MIGRATION_REGISTRATION_MISSING");
     }
     tableCount += [
-      ...migration.sql.matchAll(/\bCREATE TABLE(?: IF NOT EXISTS)? "(?!app_schema_migrations)([^"]+)"/g),
+      ...migration.sql.matchAll(/\bCREATE TABLE(?: IF NOT EXISTS)? (?:public\.)?"(?!app_schema_migrations)([^"]+)"/g),
     ].length;
   }
   return {

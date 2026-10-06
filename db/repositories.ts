@@ -33,6 +33,8 @@ import { AppError } from "@/lib/errors";
 import { assertGenericCppgPublicationAllowed, isCppgPublicationTarget } from "@/lib/services/cppg-generic-publication-guard";
 import { filterCanonicalCppgVisibility, filterCppgRowsToCanonicalProjection, getCanonicalCppgLearnerRowIds, hasCanonicalLearnerVisibility } from "@/lib/services/cppg-learner-visibility.ts";
 import { ensureLevelProgress } from "./phase3-repositories";
+
+export { findUserWithRoleCodesById } from "./application-user-auth-repository.ts";
 import {
   buildSwSecurityWeaknessRuntimeProjection,
   SW_SECURITY_WEAKNESS_RUNTIME_IDENTITY,

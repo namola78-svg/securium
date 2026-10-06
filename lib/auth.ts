@@ -6,6 +6,7 @@ import { ensureUser, findUserWithRoleCodesByEmail } from "@/db/repositories";
 import { AppError } from "./errors";
 import { assertCatalogManager } from "./services/catalog-service";
 import { assertQuestionEditor } from "./services/question-workflow-service";
+import { resolveProductionApplicationAuth } from "./services/resolve-production-application-auth";
 
 export type AppUser = {
   id: string;
@@ -47,16 +48,16 @@ function runtimeDevAuthEmail() {
 }
 
 async function resolveCurrentAppUser(): Promise<AppUser | null> {
+  if (process.env.NODE_ENV === "production") {
+    return resolveProductionApplicationAuth();
+  }
+
   const identity = await getIdentity();
   if (!identity) return null;
-
-  const existingUser = await findUserWithRoleCodesByEmail(identity.email);
-  const user =
-    existingUser ??
-    (await ensureUser({
-      email: identity.email,
-      displayName: identity.displayName,
-    }));
+  const user = await findUserWithRoleCodesByEmail(identity.email) ?? await ensureUser({
+    email: identity.email,
+    displayName: identity.displayName,
+  });
   if (user.status !== "ACTIVE") {
     throw new AppError("비활성화된 사용자입니다.", 403, "USER_INACTIVE");
   }
