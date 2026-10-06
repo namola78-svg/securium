@@ -64,6 +64,17 @@ before(async () => {
   });
   await waitForConnection();
   await client.unsafe("CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN; CREATE ROLE service_role NOLOGIN;");
+  // Mirror the baseline contract expected by post-baseline migrations such as 0058.
+  await client.unsafe(`CREATE TABLE public.app_schema_baseline_receipts (
+    baseline_id text PRIMARY KEY,
+    baseline_version text NOT NULL,
+    schema_boundary text NOT NULL,
+    artifact_sha256 text NOT NULL,
+    schema_sha256 text NOT NULL,
+    security_sha256 text NOT NULL,
+    created_from_main_sha text NOT NULL,
+    applied_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`);
 
   const migrations = (await readdir("db/postgres/migrations"))
     .filter((name) => /^\d{4}_.+\.sql$/.test(name))
