@@ -4319,6 +4319,162 @@ export const temporalAssertions = sqliteTable(
   ],
 );
 
+/** Profile identity is independent from canonical lesson and requirement identity. */
+export const ismsProfiles = sqliteTable(
+  "isms_profiles",
+  {
+    id: text("id").primaryKey(),
+    profileKey: text("profile_key").notNull(),
+    profileType: text("profile_type").notNull(),
+    officialIdentifier: text("official_identifier"),
+    canonicalLabel: text("canonical_label").notNull(),
+    criteriaState: text("criteria_state").notNull(),
+    lifecycleState: text("lifecycle_state").notNull().default("CURRENT"),
+    effectiveFrom: text("effective_from"),
+    effectiveTo: text("effective_to"),
+    criteriaAssertionId: text("criteria_assertion_id").references(
+      () => temporalAssertions.id,
+      { onDelete: "restrict" },
+    ),
+    eligibilityAssertionId: text("eligibility_assertion_id").references(
+      () => temporalAssertions.id,
+      { onDelete: "restrict" },
+    ),
+    version: integer("version").notNull().default(1),
+    supersedesProfileId: text("supersedes_profile_id").references(
+      (): AnySQLiteColumn => ismsProfiles.id,
+      { onDelete: "restrict" },
+    ),
+    createdBy: text("created_by").references(() => users.id, {
+      onDelete: "restrict",
+    }),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("isms_profiles_key_unique").on(table.profileKey),
+    index("isms_profiles_state_idx").on(
+      table.lifecycleState,
+      table.criteriaState,
+      table.effectiveFrom,
+      table.effectiveTo,
+    ),
+    check(
+      "isms_profiles_type_check",
+      sql`${table.profileType} IN ('GENERAL', 'SIMPLIFIED', 'STRENGTHENED', 'OTHER')`,
+    ),
+    check(
+      "isms_profiles_criteria_state_check",
+      sql`${table.criteriaState} IN ('CURRENT_EFFECTIVE', 'PENDING_OFFICIAL_CRITERIA', 'SUPERSEDED', 'NOT_APPLICABLE', 'UNRESOLVED')`,
+    ),
+    check(
+      "isms_profiles_lifecycle_check",
+      sql`${table.lifecycleState} IN ('CURRENT', 'SUPERSEDED', 'INACTIVE')`,
+    ),
+    check(
+      "isms_profiles_interval_check",
+      sql`${table.effectiveTo} IS NULL OR (${table.effectiveFrom} IS NOT NULL AND ${table.effectiveTo} > ${table.effectiveFrom})`,
+    ),
+    check(
+      "isms_profiles_version_check",
+      sql`${table.version} > 0`,
+    ),
+    check(
+      "isms_profiles_pending_has_no_criteria_authority_check",
+      sql`${table.criteriaState} != 'PENDING_OFFICIAL_CRITERIA' OR ${table.criteriaAssertionId} IS NULL`,
+    ),
+    check(
+      "isms_profiles_current_has_criteria_authority_check",
+      sql`${table.criteriaState} != 'CURRENT_EFFECTIVE' OR ${table.criteriaAssertionId} IS NOT NULL`,
+    ),
+  ],
+);
+
+/** Historical, authority-linked applicability of a canonical requirement in a profile. */
+export const ismsProfileRequirementMappings = sqliteTable(
+  "isms_profile_requirement_mappings",
+  {
+    id: text("id").primaryKey(),
+    profileId: text("profile_id")
+      .notNull()
+      .references(() => ismsProfiles.id, { onDelete: "restrict" }),
+    standardId: text("standard_id")
+      .notNull()
+      .references(() => ismsStandards.id, { onDelete: "restrict" }),
+    profileRequirementCode: text("profile_requirement_code"),
+    applicabilityState: text("applicability_state").notNull(),
+    mappingState: text("mapping_state").notNull(),
+    effectiveFrom: text("effective_from"),
+    effectiveTo: text("effective_to"),
+    rationale: text("rationale").notNull().default(""),
+    version: integer("version").notNull().default(1),
+    authorityAssertionId: text("authority_assertion_id").references(
+      () => temporalAssertions.id,
+      { onDelete: "restrict" },
+    ),
+    supersedesMappingId: text("supersedes_mapping_id").references(
+      (): AnySQLiteColumn => ismsProfileRequirementMappings.id,
+      { onDelete: "restrict" },
+    ),
+    createdBy: text("created_by").references(() => users.id, {
+      onDelete: "restrict",
+    }),
+    reviewedBy: text("reviewed_by").references(() => users.id, {
+      onDelete: "restrict",
+    }),
+    reviewedAt: text("reviewed_at"),
+    ...timestamps,
+  },
+  (table) => [
+    index("isms_profile_requirement_mappings_profile_idx").on(
+      table.profileId,
+      table.mappingState,
+      table.effectiveFrom,
+      table.effectiveTo,
+    ),
+    index("isms_profile_requirement_mappings_standard_idx").on(
+      table.standardId,
+      table.profileId,
+    ),
+    uniqueIndex("isms_profile_mappings_active_identity_unique").on(
+      table.profileId,
+      table.standardId,
+      table.profileRequirementCode,
+    ).where(sql`${table.mappingState} IN ('CURRENT', 'PENDING')`),
+    uniqueIndex("isms_profile_mappings_active_null_code_unique").on(
+      table.profileId,
+      table.standardId,
+    ).where(sql`${table.profileRequirementCode} IS NULL AND ${table.mappingState} IN ('CURRENT', 'PENDING')`),
+    check(
+      "isms_profile_mappings_applicability_check",
+      sql`${table.applicabilityState} IN ('APPLIES', 'NOT_APPLICABLE', 'VARIANT', 'UNRESOLVED')`,
+    ),
+    check(
+      "isms_profile_mappings_state_check",
+      sql`${table.mappingState} IN ('CURRENT', 'PENDING', 'SUPERSEDED')`,
+    ),
+    check(
+      "isms_profile_mappings_interval_check",
+      sql`${table.effectiveTo} IS NULL OR (${table.effectiveFrom} IS NOT NULL AND ${table.effectiveTo} > ${table.effectiveFrom})`,
+    ),
+    check(
+      "isms_profile_mappings_version_check",
+      sql`${table.version} > 0`,
+    ),
+    check(
+      "isms_profile_mappings_current_has_authority_check",
+      sql`${table.mappingState} != 'CURRENT' OR ${table.authorityAssertionId} IS NOT NULL`,
+    ),
+    check(
+      "isms_profile_mappings_current_is_resolved_check",
+      sql`${table.mappingState} != 'CURRENT' OR ${table.applicabilityState} != 'UNRESOLVED'`,
+    ),
+    check(
+      "isms_profile_mappings_variant_has_profile_code_check",
+      sql`${table.applicabilityState} != 'VARIANT' OR ${table.profileRequirementCode} IS NOT NULL`,
+    ),
+  ],
+);
+
 export const sourceIdentities = sqliteTable(
   "source_identities",
   {
