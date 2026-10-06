@@ -36,15 +36,44 @@ test("Windows teardown accepts taskkill success followed by child exit", async (
   assert.equal(child.exitCode, 0);
 });
 
-test("Windows taskkill failure reports promptly when the child does not exit", async () => {
+test("Windows taskkill failure reports promptly when the child does not exit", async (t) => {
   const child = fakeChild();
-  const startedAt = Date.now();
+  const requestedTimeouts = [];
+  t.mock.method(globalThis, "setTimeout", (callback, delay, ...args) => {
+    requestedTimeouts.push(delay);
+    queueMicrotask(() => callback(...args));
+    return 0;
+  });
+
   await assert.rejects(stopChild(child, {
     platform: "win32",
     timeoutMs: 20,
     spawnSyncImpl: () => ({ status: 1, stderr: "denied" }),
   }), /taskkill\.exe failed.*denied/);
-  assert.ok(Date.now() - startedAt < 1_000);
+  assert.deepEqual(requestedTimeouts, [20]);
+  assert.equal(child.exitCode, null);
+  assert.equal(child.signalCode, null);
+  assert.equal(child.listenerCount("exit"), 0);
+});
+
+test("Windows taskkill timeout reports promptly when the child does not exit", async (t) => {
+  const child = fakeChild();
+  const requestedTimeouts = [];
+  t.mock.method(globalThis, "setTimeout", (callback, delay, ...args) => {
+    requestedTimeouts.push(delay);
+    queueMicrotask(() => callback(...args));
+    return 0;
+  });
+
+  await assert.rejects(stopChild(child, {
+    platform: "win32",
+    timeoutMs: 20,
+    spawnSyncImpl: () => ({ error: Object.assign(new Error("taskkill timed out"), { code: "ETIMEDOUT" }) }),
+  }), /taskkill\.exe failed.*timed out/);
+  assert.deepEqual(requestedTimeouts, [20]);
+  assert.equal(child.exitCode, null);
+  assert.equal(child.signalCode, null);
+  assert.equal(child.listenerCount("exit"), 0);
 });
 
 test("Windows teardown bounds waiting when the child never emits exit", async () => {
