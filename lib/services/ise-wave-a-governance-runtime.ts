@@ -20,7 +20,7 @@ import {
   assertIseWaveAGovernanceDependencies,
   buildIseWaveAGovernanceContext,
 } from "./ise-wave-a-reviewed-input-adapter.ts";
-import { recordAuthenticatedIseWaveAReviewJudgment } from "./content-review-judgment-service.ts";
+import { recordAuthenticatedIseWaveAReviewJudgment } from "./ise-wave-a-review-judgment-service.ts";
 import { readCanonicalDatabaseIdentity } from "./canonical-database-identity.ts";
 
 export const ISE_WAVE_A_GOVERNANCE_RESOURCE_TYPE =
