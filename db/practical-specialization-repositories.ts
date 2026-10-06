@@ -22,6 +22,7 @@ import {
 } from "./schema";
 import { AppError } from "@/lib/errors";
 import { assertGenericCppgPublicationAllowed } from "@/lib/services/cppg-generic-publication-guard";
+import { hasCanonicalCppgLearnerDomainRow, hasCanonicalLearnerVisibility, requireCanonicalCppgLearnerDomainRows } from "@/lib/services/cppg-learner-visibility.ts";
 import {
   gradeCodeAnalysis,
   gradePrivacyAssessment,
@@ -52,8 +53,9 @@ function batchItems(items: BatchItem<"sqlite">[]) {
 
 async function requireEnrollment(userId: string, courseId: string) {
   const [enrollment] = await getDb()
-    .select({ id: userCourseEnrollments.id })
+    .select({ id: userCourseEnrollments.id, course: { id: courses.id, slug: courses.slug, code: courses.code } })
     .from(userCourseEnrollments)
+    .innerJoin(courses, eq(userCourseEnrollments.courseId, courses.id))
     .where(
       and(
         eq(userCourseEnrollments.userId, userId),
@@ -62,7 +64,7 @@ async function requireEnrollment(userId: string, courseId: string) {
       ),
     )
     .limit(1);
-  if (!enrollment) {
+  if (!enrollment || !(await hasCanonicalLearnerVisibility(enrollment.course))) {
     throw new AppError(
       "수강 중인 과정의 실무 콘텐츠만 이용할 수 있습니다.",
       403,
@@ -99,6 +101,7 @@ async function requireContentLink(
 
 export async function getPracticalOverview(userId: string, courseId: string) {
   await requireEnrollment(userId, courseId);
+  if (courseId === "course-cppg") return { codeSamples: [], privacyScenarios: [] };
   const links = await getDb()
     .select({
       contentType: contentCourseLinks.contentType,
@@ -175,6 +178,9 @@ export async function getCodeSampleForUser(
   sampleId: string,
 ) {
   await requireEnrollment(userId, courseId);
+  if (courseId === "course-cppg" && !await hasCanonicalCppgLearnerDomainRow(courseId, "PRACTICAL", sampleId)) {
+    throw new AppError("CPPG practical content is outside the current canonical publication projection.", 404, "PRACTICAL_CONTENT_NOT_FOUND");
+  }
   await requireContentLink(courseId, "SECURE_CODE_SAMPLE", sampleId);
   const [sample] = await getDb()
     .select({
@@ -233,6 +239,10 @@ export async function submitCodeAnalysis(
   input: CodeSubmission,
 ) {
   await requireEnrollment(userId, input.courseId);
+  await requireCanonicalCppgLearnerDomainRows(input.courseId, "PRACTICAL");
+  if (input.courseId === "course-cppg" && !await hasCanonicalCppgLearnerDomainRow(input.courseId, "PRACTICAL", input.sampleId)) {
+    throw new AppError("CPPG practical content is outside the current canonical publication projection.", 404, "PRACTICAL_CONTENT_NOT_FOUND");
+  }
   await requireContentLink(input.courseId, "SECURE_CODE_SAMPLE", input.sampleId);
   const [existing] = await getDb()
     .select({
@@ -426,6 +436,9 @@ export async function getPrivacyScenarioForUser(
   scenarioId: string,
 ) {
   await requireEnrollment(userId, courseId);
+  if (courseId === "course-cppg" && !await hasCanonicalCppgLearnerDomainRow(courseId, "PRACTICAL", scenarioId)) {
+    throw new AppError("CPPG practical content is outside the current canonical publication projection.", 404, "PRACTICAL_CONTENT_NOT_FOUND");
+  }
   await requireContentLink(courseId, "PRIVACY_SCENARIO", scenarioId);
   const [scenario] = await getDb()
     .select({
@@ -541,6 +554,10 @@ export async function savePrivacyAssessmentAnswer(
     );
   }
   await requireEnrollment(userId, scenario.courseId);
+  await requireCanonicalCppgLearnerDomainRows(scenario.courseId, "PRACTICAL");
+  if (scenario.courseId === "course-cppg" && !await hasCanonicalCppgLearnerDomainRow(scenario.courseId, "PRACTICAL", input.scenarioId)) {
+    throw new AppError("CPPG practical content is outside the current canonical publication projection.", 404, "PRACTICAL_CONTENT_NOT_FOUND");
+  }
   await requireContentLink(
     scenario.courseId,
     "PRIVACY_SCENARIO",
@@ -664,8 +681,9 @@ export async function getPrivacyAssessmentAnswer(
   answerId: string,
 ) {
   const [answer] = await getDb()
-    .select()
+    .select({ answer: privacyAssessmentAnswers, courseId: privacyAssessmentScenarios.courseId })
     .from(privacyAssessmentAnswers)
+    .innerJoin(privacyAssessmentScenarios, eq(privacyAssessmentAnswers.scenarioId, privacyAssessmentScenarios.id))
     .where(
       and(
         eq(privacyAssessmentAnswers.id, answerId),
@@ -680,7 +698,11 @@ export async function getPrivacyAssessmentAnswer(
       "PRIVACY_ANSWER_NOT_FOUND",
     );
   }
-  return answer;
+  await requireEnrollment(userId, answer.courseId);
+  if (answer.courseId === "course-cppg" && !await hasCanonicalCppgLearnerDomainRow(answer.courseId, "PRACTICAL", answer.answer.scenarioId)) {
+    throw new AppError("CPPG practical content is outside the current canonical publication projection.", 404, "PRACTICAL_CONTENT_NOT_FOUND");
+  }
+  return answer.answer;
 }
 
 export async function getAdminPracticalData() {

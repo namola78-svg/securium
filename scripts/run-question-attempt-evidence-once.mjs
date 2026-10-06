@@ -14,6 +14,7 @@ import {
 } from "../lib/services/evidence-recompute-executor.ts";
 import { EvidenceRecomputeService } from "../lib/services/evidence-recompute.ts";
 import { createEvidenceRecomputeWorkerIdentity } from "./run-evidence-recompute-worker.mjs";
+import { createMiniflareD1Fixture } from "../tests/helpers/miniflare-d1-fixture.mjs";
 
 const execFile = promisify(execFileCallback);
 const EXIT_OK = 0;
@@ -147,14 +148,7 @@ async function openDisposableTarget(options) {
 
 async function openD1Target(options) {
   const persistPath = await assertOwnedD1Fixture(options);
-  const { Miniflare } = await import("miniflare");
-  const miniflare = new Miniflare({
-    modules: true,
-    script: "export default { fetch() { return new Response('ok'); } }",
-    compatibilityDate: "2026-05-15",
-    d1Databases: { DB: options.d1DatabaseName },
-    d1Persist: persistPath,
-  });
+  const miniflare = createMiniflareD1Fixture({ databaseId: options.d1DatabaseName, persistencePath: persistPath });
   try {
     const database = await miniflare.getD1Database("DB");
     const provider = new D1DatabaseProvider(database);
@@ -191,10 +185,11 @@ async function assertOwnedD1Fixture(options) {
     throw configurationError("D1_FIXTURE_OWNERSHIP_INVALID");
   }
 
-  const wranglerD1Path = join(persistPath, "v3", "d1");
+  const wranglerResourcePersistencePath = join(persistPath, "v3");
+  const wranglerD1Path = join(wranglerResourcePersistencePath, "d1");
   if (existsSync(wranglerD1Path)) {
     await assertRealDirectory(wranglerD1Path, "D1_PERSISTENCE_NOT_FOUND", "D1_PERSISTENCE_LINK_FORBIDDEN");
-    return wranglerD1Path;
+    return wranglerResourcePersistencePath;
   }
   return persistPath;
 }

@@ -30,6 +30,11 @@ import {
   parseRevisionSnapshot,
   type ContentRevisionType,
 } from "@/lib/services/content-revision-service";
+import {
+  getCanonicalCppgLearnerRowIds,
+  isCanonicalCppgContentRevision,
+  hasCanonicalLearnerVisibility,
+} from "@/lib/services/cppg-learner-visibility";
 
 export { saveGovernedTheoryRevision } from "./content-revision-governance-repositories.ts";
 
@@ -399,9 +404,45 @@ export async function getLatestPublishedRevision(
         eq(contentRevisions.revisionStatus, "published"),
         eq(contentRevisions.isLatest, true),
       ),
-    )
+  )
     .limit(1);
-  return revision ?? null;
+  if (!revision) return null;
+  return await isLearnerVisibleCppgRevision(revision) ? revision : null;
+}
+
+async function isLearnerVisibleCppgRevision(revision: {
+  id: string;
+  courseId: string | null;
+  contentId: string;
+  contentType: string;
+  revisionStatus: string;
+  isLatest: boolean;
+}) {
+  const targetCourseId = (await getRevisionTarget(
+    revision.contentType as ContentRevisionType,
+    revision.contentId,
+  ))?.courseId ?? null;
+  if (revision.courseId && revision.courseId !== "course-cppg") {
+    return targetCourseId !== "course-cppg";
+  }
+  if (revision.courseId === "course-cppg" && targetCourseId && targetCourseId !== "course-cppg") return false;
+  if (!revision.courseId && targetCourseId !== "course-cppg") return true;
+  const courseId = revision.courseId ?? targetCourseId;
+  if (courseId !== "course-cppg") return true;
+  const [course] = await getDb()
+    .select({ id: courses.id, slug: courses.slug, code: courses.code })
+    .from(courses)
+    .where(eq(courses.id, courseId))
+    .limit(1);
+  if (!course || !(await hasCanonicalLearnerVisibility(course))) return false;
+  const projection = await getCanonicalCppgLearnerRowIds(courseId);
+  return isCanonicalCppgContentRevision({
+    revisionId: revision.id,
+    contentId: revision.contentId,
+    contentType: revision.contentType,
+    revisionStatus: revision.revisionStatus,
+    isLatest: revision.isLatest,
+  }, projection);
 }
 
 export async function getPublicContentRevision(
@@ -419,14 +460,25 @@ export async function getPublicContentRevision(
   ) {
     return null;
   }
-  if (revision.courseId) {
+  const targetCourseId = revision.courseId === "course-cppg" || !revision.courseId
+    ? (await getRevisionTarget(
+      revision.contentType as ContentRevisionType,
+      revision.contentId,
+    ))?.courseId ?? null
+    : null;
+  const revisionCourseId = revision.courseId ?? targetCourseId;
+  // The current CPPG projection has lesson revisions only. A historical,
+  // superseded, lecture, audio, or otherwise unprojected revision is not a
+  // learner-visible fallback.
+  if (!(await isLearnerVisibleCppgRevision(revision))) return null;
+  if (revision.courseId || revisionCourseId === "course-cppg") {
     const [enrollment] = await getDb()
       .select({ status: userCourseEnrollments.status })
       .from(userCourseEnrollments)
       .where(
         and(
           eq(userCourseEnrollments.userId, userId),
-          eq(userCourseEnrollments.courseId, revision.courseId),
+          eq(userCourseEnrollments.courseId, revisionCourseId!),
         ),
       )
       .limit(1);

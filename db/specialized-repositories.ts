@@ -21,6 +21,7 @@ import {
 } from "./schema";
 import { AppError } from "@/lib/errors";
 import { assertGenericCppgPublicationAllowed } from "@/lib/services/cppg-generic-publication-guard";
+import { hasCanonicalCppgLearnerDomainRow, hasCanonicalLearnerVisibility, requireCanonicalCppgLearnerDomainRows } from "@/lib/services/cppg-learner-visibility.ts";
 import {
   calculateRisk,
   gradeWrittenAnswer,
@@ -46,8 +47,9 @@ function parseJson<T>(value: string, fallback: T): T {
 
 async function requireEnrollment(userId: string, courseId: string) {
   const [enrollment] = await getDb()
-    .select({ id: userCourseEnrollments.id })
+    .select({ id: userCourseEnrollments.id, course: { id: courses.id, slug: courses.slug, code: courses.code } })
     .from(userCourseEnrollments)
+    .innerJoin(courses, eq(userCourseEnrollments.courseId, courses.id))
     .where(
       and(
         eq(userCourseEnrollments.userId, userId),
@@ -56,7 +58,7 @@ async function requireEnrollment(userId: string, courseId: string) {
       ),
     )
     .limit(1);
-  if (!enrollment) {
+  if (!enrollment || !(await hasCanonicalLearnerVisibility(enrollment.course))) {
     throw new AppError(
       "수강 중인 과정의 특화 콘텐츠만 이용할 수 있습니다.",
       403,
@@ -66,6 +68,7 @@ async function requireEnrollment(userId: string, courseId: string) {
 }
 
 export async function listCourseSpecializations(courseId: string) {
+  if (courseId === "course-cppg") return [];
   return getDb()
     .select()
     .from(courseSpecializations)
@@ -83,6 +86,9 @@ export async function getSpecializedOverview(
   courseId: string,
 ) {
   await requireEnrollment(userId, courseId);
+  if (courseId === "course-cppg") {
+    return { features: [], standards: [], defectCases: [], legalArticles: [], riskScenarios: [], writtenQuestions: [] };
+  }
   const [features, links] = await Promise.all([
     listCourseSpecializations(courseId),
     getDb()
@@ -203,6 +209,9 @@ export async function getSpecializedContent(
   contentId: string,
 ) {
   await requireEnrollment(userId, courseId);
+  if (courseId === "course-cppg" && !await hasCanonicalCppgLearnerDomainRow(courseId, "SPECIALIZED", contentId)) {
+    throw new AppError("CPPG specialized content is outside the current canonical publication projection.", 404, "SPECIALIZED_CONTENT_NOT_FOUND");
+  }
   const [link] = await getDb()
     .select({ id: contentCourseLinks.id })
     .from(contentCourseLinks)
@@ -360,6 +369,7 @@ export async function toggleContentBookmark(input: {
   contentId: string;
 }) {
   await requireEnrollment(input.userId, input.courseId);
+  await requireCanonicalCppgLearnerDomainRows(input.courseId, "SPECIALIZED");
   const [existing] = await getDb()
     .select({ id: contentBookmarks.id })
     .from(contentBookmarks)
@@ -415,6 +425,7 @@ export async function gradeWrittenQuestion(input: {
     );
   }
   await requireEnrollment(input.userId, row.courseId);
+  await requireCanonicalCppgLearnerDomainRows(row.courseId, "SPECIALIZED");
   return gradeWrittenAnswer(input.answer, {
     modelAnswer: row.modelAnswer,
     requiredKeywords: parseJson<string[]>(row.requiredKeywordsJson, []),
@@ -491,11 +502,12 @@ export async function calculateRiskWithMethod(input: {
 }
 
 export async function listRiskRegister(userId: string) {
-  return getDb()
+  const rows = await getDb()
     .select({
       id: riskRegisterItems.id,
       scenarioId: riskRegisterItems.scenarioId,
       scenarioTitle: riskScenarios.title,
+      courseId: riskScenarios.courseId,
       asset: riskRegisterItems.asset,
       threat: riskRegisterItems.threat,
       vulnerability: riskRegisterItems.vulnerability,
@@ -514,6 +526,12 @@ export async function listRiskRegister(userId: string) {
     )
     .where(eq(riskRegisterItems.userId, userId))
     .orderBy(desc(riskRegisterItems.updatedAt));
+  const visibleRows = rows.filter((row) => row.courseId !== "course-cppg");
+  return visibleRows.map((visibleRow) => {
+    const { courseId, ...row } = visibleRow;
+    void courseId;
+    return row;
+  });
 }
 
 export async function saveRiskRegisterItem(
@@ -536,6 +554,7 @@ export async function saveRiskRegisterItem(
     );
   }
   await requireEnrollment(userId, scenario.courseId);
+  await requireCanonicalCppgLearnerDomainRows(scenario.courseId, "SPECIALIZED");
   const calculated = await calculateRiskWithMethod({
     methodId: scenario.calculationMethodId,
     likelihood: input.likelihood,

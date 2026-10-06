@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { after, before, test } from "node:test";
-import { Miniflare } from "miniflare";
+import { createMiniflareD1Fixture } from "./helpers/miniflare-d1-fixture.mjs";
 import { D1DatabaseProvider } from "../db/provider/d1-database-provider.ts";
 import { DatabaseEvidenceSourceResolver } from "../db/evidence-source-adapters.ts";
 import { buildEvidenceCandidates } from "../lib/services/evidence-projection.ts";
@@ -12,12 +12,7 @@ let database;
 let resolver;
 
 before(async () => {
-  miniflare = new Miniflare({
-    modules: true,
-    script: "export default { fetch() { return new Response('ok'); } }",
-    compatibilityDate: "2026-05-15",
-    d1Databases: { DB: "course-lesson-revision-evidence" },
-  });
+  miniflare = createMiniflareD1Fixture({ databaseId: "course-lesson-revision-evidence" });
   database = await miniflare.getD1Database("DB");
   const snapshotA = snapshot("content-a", "v1", "A");
   const snapshotB = snapshot("content-b", "v1", "B");

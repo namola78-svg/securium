@@ -301,9 +301,16 @@ test("Learn overview uses the generic published CourseLesson listing", () => {
   );
   assert.match(
     summaryFunction,
-    /listPublishedCourseLessonsForUser\(userId, courseId\)/,
+    /listPublishedCourseLessonsForUser\(\s*userId,\s*courseId,\s*\{\s*includeLastViewedAt:\s*true\s*\},?\s*\)/,
   );
-  assert.match(summaryFunction, /lessons: lessonList\.lessons/);
+  assert.match(
+    summaryFunction,
+    /summarizeCourseLessonProgress\(lessonList\.lessons\.map\(\(lesson\) => \(\{[\s\S]*?lastViewedAt: lesson\.lastViewedAt/,
+  );
+  assert.match(
+    summaryFunction,
+    /lessons: lessonList\.lessons\.map\(\(item\) => \{[\s\S]*?const \{ lastViewedAt, \.\.\.lesson \} = item;[\s\S]*?return lesson;/,
+  );
   assert.doesNotMatch(summaryFunction, /lessons:\s*\[\]/);
 });
 

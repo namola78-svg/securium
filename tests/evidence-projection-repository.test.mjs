@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { after, before, test } from "node:test";
-import { Miniflare } from "miniflare";
+import { createMiniflareD1Fixture } from "./helpers/miniflare-d1-fixture.mjs";
 import { D1DatabaseProvider } from "../db/provider/d1-database-provider.ts";
 import { createRecomputeRequest, EvidenceProjectionRepository } from "../db/evidence-projection-repository.ts";
 import { DatabaseEvidenceSourceResolver } from "../db/evidence-source-adapters.ts";
@@ -17,12 +17,7 @@ let provider;
 let repository;
 
 before(async () => {
-  miniflare = new Miniflare({
-    modules: true,
-    script: "export default { fetch() { return new Response('ok'); } }",
-    compatibilityDate: "2026-05-15",
-    d1Databases: { DB: "evidence-e1" },
-  });
+  miniflare = createMiniflareD1Fixture({ databaseId: "evidence-e1" });
   database = await miniflare.getD1Database("DB");
   await exec(`PRAGMA foreign_keys=ON;
     CREATE TABLE users (id text PRIMARY KEY);

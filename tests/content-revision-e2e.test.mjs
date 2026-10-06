@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
+import { startVinextE2EServer } from "./helpers/vinext-e2e-server.mjs";
 import { after, before, test } from "node:test";
 
-const requestedPort = 0;
 let baseUrl = "";
 const lessonId = "course-isms-p-subject-foundation-topic-core-lesson-01";
+const cppgLegacyLectureRevisionId = "revision-lecture-course-cppg-subject-foundation-lecture-01";
 const user = {
   "content-type": "application/json",
   "oai-authenticated-user-email": "dev-user-1@example.invalid",
@@ -14,65 +14,32 @@ const admin = {
   "oai-authenticated-user-email": "dev-admin@example.invalid",
 };
 let server;
-let output = "";
 let draftId = "";
 let latestId = "";
 
 before(async () => {
-  server = spawn(
-    process.execPath,
-    [
-      "node_modules/vinext/dist/cli.js",
-      "dev",
-      "--host",
-      "127.0.0.1",
-      "--port",
-      String(requestedPort),
-    ],
-    {
-      cwd: process.cwd(),
-      env: { ...process.env, WRANGLER_LOG_PATH: ".wrangler/wrangler.log" },
-      stdio: ["ignore", "pipe", "pipe"],
-      windowsHide: true,
-    },
-  );
-  server.stdout.on("data", (chunk) => {
-    output += chunk.toString();
-    captureBaseUrl();
-  });
-  server.stderr.on("data", (chunk) => {
-    output += chunk.toString();
-    captureBaseUrl();
-  });
-  for (let attempt = 0; attempt < 480; attempt += 1) {
-    if (server.exitCode !== null) {
-      throw new Error(`Content revision E2E server stopped.\n${output}`);
-    }
-    try {
-      if (baseUrl) {
-        const response = await fetch(baseUrl);
-        if (response.status > 0) {
-          user.origin = baseUrl;
-          admin.origin = baseUrl;
-          return;
-        }
+  server = await startVinextE2EServer({
+    readinessPath: "/api/health",
+    env: { WRANGLER_LOG_PATH: ".wrangler/wrangler.log" },
+    validateResponse: async (response) => {
+      if (!response.ok || !response.headers.get("content-type")?.includes("application/json")) {
+        return false;
       }
-    } catch {
-      // Server is starting.
-    }
-    await new Promise((resolve) => setTimeout(resolve, 250));
-  }
-  throw new Error(`Content revision E2E server did not start.\n${output}`);
+      const health = await response.json();
+      return health.status === "ok" && health.database === "ok" && health.runtime === "nodejs";
+    },
+  });
+  baseUrl = server.baseUrl;
+  user.origin = baseUrl;
+  admin.origin = baseUrl;
 });
 
-function captureBaseUrl() {
-  const cleanOutput = output.replace(/\u001b\[[0-?]*[ -/]*[@-~]/g, "");
-  const match = cleanOutput.match(/Local:\s+https?:\/\/localhost:(\d+)\//);
-  if (match) baseUrl = `http://localhost:${match[1]}`;
-}
-
-after(() => {
-  if (server?.exitCode === null) server.kill();
+after(async () => {
+  await server?.stop();
+});
+test("legacy CPPG lecture revision is not learner-visible from historical enrollment", async () => {
+  const response = await fetch(`${baseUrl}/content-versions/${cppgLegacyLectureRevisionId}`, { headers: user, redirect: "manual" });
+  assert.equal(response.status, 404);
 });
 
 async function post(headers, body) {

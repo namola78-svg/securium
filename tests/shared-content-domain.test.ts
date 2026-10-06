@@ -6,7 +6,9 @@ import {
   createCourseLessonProgressKey,
   mergeCourseLessonPresentation,
   normalizeCanonicalKey,
+  summarizeCourseLessonProgress,
 } from "../lib/services/shared-content-service.ts";
+import { filterCppgRowsToCanonicalProjection } from "../lib/services/cppg-learner-visibility.ts";
 
 test("canonicalKey는 공통 콘텐츠 식별자로 소문자 정규화한다", () => {
   assert.equal(
@@ -107,4 +109,23 @@ test("CourseLessonExtension은 원본 Content를 바꾸지 않고 과정별 표�
   assert.match(presentation.body, /공통 본문/);
   assert.match(presentation.body, /과정 전용 보충 설명/);
   assert.deepEqual(presentation.examPoints, ["증적 확인", "권한 검토"]);
+});
+
+test("CPPG progress summary derives next/latest metadata only from projected lessons", () => {
+  const legacy = { id: "legacy-course-lesson", title: "legacy secret", status: "IN_PROGRESS", lastViewedAt: "2026-09-29T12:00:00.000Z" };
+  const projectedCompleted = { id: "canonical-complete", title: "canonical complete", status: "COMPLETED", lastViewedAt: "2026-09-29T09:00:00.000Z" };
+  const projectedNext = { id: "canonical-next", title: "canonical next", status: "NOT_STARTED", lastViewedAt: null };
+  const projected = filterCppgRowsToCanonicalProjection(
+    "course-cppg",
+    [legacy, projectedCompleted, projectedNext],
+    [projectedCompleted.id, projectedNext.id],
+  );
+  const summary = summarizeCourseLessonProgress(projected);
+  assert.deepEqual(summary, {
+    totalLessons: 2,
+    completedLessons: 1,
+    progressPercent: 50,
+    nextLesson: { id: "canonical-next", title: "canonical next", status: "NOT_STARTED" },
+    latestLesson: { id: "canonical-complete", title: "canonical complete", status: "COMPLETED" },
+  });
 });

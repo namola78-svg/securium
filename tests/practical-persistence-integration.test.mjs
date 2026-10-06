@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { after, before, test } from "node:test";
-import { Miniflare } from "miniflare";
+import { createMiniflareD1Fixture } from "./helpers/miniflare-d1-fixture.mjs";
 import { PracticalRepository } from "../db/practical-repositories.ts";
 import { D1DatabaseProvider } from "../db/provider/d1-database-provider.ts";
 import { PracticalAttemptService } from "../lib/services/practical-attempt-service.ts";
@@ -22,12 +22,7 @@ const responseSpec = [
 ];
 
 before(async () => {
-  miniflare = new Miniflare({
-    modules: true,
-    script: "export default { fetch() { return new Response('ok'); } }",
-    compatibilityDate: "2026-05-15",
-    d1Databases: { DB: "sw-p1a-integration" },
-  });
+  miniflare = createMiniflareD1Fixture({ databaseId: "sw-p1a-integration" });
   database = await miniflare.getD1Database("DB");
   const migrations = await migrationFiles(false);
   for (const migration of migrations) await applyMigration(migration.sql);
