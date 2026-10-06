@@ -4,6 +4,7 @@ import {
   buildSupabaseAuthIdentityTuple,
   expiredSupabaseSessionCookieSpecs,
   getSupabaseIdentityFromAccessToken,
+  resolveSupabaseVerifiedApplicationIdentity,
   isSupabaseSsrAuthCookieName,
   resolveAuthProvider,
   resolveAuthIdentityEnvironmentClass,
@@ -69,6 +70,73 @@ test("Supabase binding tuple uses configured project and verified provider subje
   }), null);
   assert.equal(buildSupabaseAuthIdentityTuple({
     projectUrl: "not-a-trusted-url", provider: "google", subject: "id", environmentClass: "production",
+  }), null);
+});
+
+test("verified Supabase user response produces identity and exact application binding tuple", async () => {
+  let requestedUrl = "";
+  let requestInit: RequestInit | undefined;
+  const result = await resolveSupabaseVerifiedApplicationIdentity({
+    accessToken: "verified-access-token",
+    environment: {
+      SUPABASE_URL: "https://project.supabase.co",
+      SUPABASE_ANON_KEY: "test-anon-key-which-is-long-enough-12345",
+      VERCEL_ENV: "production",
+      NODE_ENV: "production",
+    },
+    fetcher: async (input, init) => {
+      requestedUrl = String(input);
+      requestInit = init;
+      return new Response(JSON.stringify({
+        id: "stable-user-id",
+        email: "Learner@Example.COM",
+        app_metadata: { provider: "google" },
+        user_metadata: { full_name: "Learner Name" },
+      }), { status: 200, headers: { "content-type": "application/json" } });
+    },
+  });
+
+  assert.equal(requestedUrl, "https://project.supabase.co/auth/v1/user");
+  assert.equal(new Headers(requestInit?.headers).get("authorization"), "Bearer verified-access-token");
+  assert.equal(new Headers(requestInit?.headers).get("apikey"), "test-anon-key-which-is-long-enough-12345");
+  assert.equal(requestInit?.cache, "no-store");
+  assert.deepEqual(result, {
+    identity: {
+      email: "learner@example.com",
+      displayName: "Learner Name",
+      fullName: "Learner Name",
+    },
+    authTuple: {
+      authSystem: "securium-application-auth-v1",
+      authProvider: "supabase:google",
+      authIssuer: "https://project.supabase.co/auth/v1",
+      authProjectRef: "project",
+      environmentClass: "production",
+      authSubject: "stable-user-id",
+    },
+  });
+});
+
+test("unverified or malformed Supabase user responses fail closed", async () => {
+  const input = {
+    accessToken: "access-token",
+    environment: {
+      SUPABASE_URL: "https://project.supabase.co",
+      SUPABASE_ANON_KEY: "test-anon-key-which-is-long-enough-12345",
+      VERCEL_ENV: "production",
+      NODE_ENV: "production",
+    },
+  };
+  assert.equal(await resolveSupabaseVerifiedApplicationIdentity({
+    ...input,
+    fetcher: async () => new Response("{}", { status: 401 }),
+  }), null);
+  assert.equal(await resolveSupabaseVerifiedApplicationIdentity({
+    ...input,
+    fetcher: async () => new Response(JSON.stringify({
+      email: "attacker@example.invalid",
+      app_metadata: { provider: "google" },
+    }), { status: 200 }),
   }), null);
 });
 
