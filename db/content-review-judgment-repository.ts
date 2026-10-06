@@ -4,7 +4,7 @@ import { CONTENT_REVIEW_JUDGMENT_CONTRACT_V1, findingSemanticIdentity, semanticR
 import { CONTENT_REVIEWER_SEPARATION_POLICY_V1, recomputeReviewerSeparationSemanticIdentity, type ReviewerSeparationEvaluation } from "../lib/policy/content-reviewer-separation.ts";
 import { findPolicyEvaluationsByJudgmentId } from "./content-review-policy-evaluation-repository.ts";
 import { findActiveOwnerAttestation } from "./content-review-owner-attestation-repository.ts";
-import { assertJudgmentBoundToReviewedInput, resolveSecureCodingReviewedInputContext, type ServerOwnedReviewedInputResolver } from "../lib/services/content-review-input-resolver.ts";
+import { assertJudgmentBoundToReviewedInput, type ServerOwnedReviewedInputResolver } from "../lib/services/content-review-input-resolver.ts";
 import { evaluateReviewerSeparation } from "../lib/policy/content-reviewer-separation.ts";
 
 export const CONTENT_REVIEW_JUDGMENT_AUDIT_ACTION = "CONTENT_REVIEW_JUDGMENT_RECORDED";
@@ -12,7 +12,7 @@ export type ContentReviewJudgmentRecord = { judgmentId: string; contractVersion:
 type JudgmentRow = Record<string, unknown> & { judgment_id: string; contract_version: typeof CONTENT_REVIEW_JUDGMENT_CONTRACT_V1; review_domain: ContentReviewJudgmentInput["reviewDomain"]; reviewed_input_identity: string; reviewed_input_snapshot_json: string; semantic_review_identity: string; result: ContentReviewResult; lifecycle_state: ContentReviewLifecycle; reviewer_user_id: string; audit_log_id: string; idempotency_key: string; supersedes_judgment_id: string | null; created_at: string };
 const select = "judgment_id, contract_version, review_domain, reviewed_input_identity, reviewed_input_snapshot_json, semantic_review_identity, result, lifecycle_state, reviewer_user_id, audit_log_id, idempotency_key, supersedes_judgment_id, created_at";
 
-export async function saveContentReviewJudgment(input: ContentReviewJudgmentInput, actor: AuthenticatedContentReviewer, database: DatabaseProvider, policyEvaluation: ReviewerSeparationEvaluation, resolver: ServerOwnedReviewedInputResolver = resolveSecureCodingReviewedInputContext): Promise<{ outcome: "NEW_JUDGMENT" | "IDEMPOTENT_DUPLICATE"; judgment: ContentReviewJudgmentRecord }> {
+export async function saveContentReviewJudgment(input: ContentReviewJudgmentInput, actor: AuthenticatedContentReviewer, database: DatabaseProvider, policyEvaluation: ReviewerSeparationEvaluation, resolver: ServerOwnedReviewedInputResolver): Promise<{ outcome: "NEW_JUDGMENT" | "IDEMPOTENT_DUPLICATE"; judgment: ContentReviewJudgmentRecord }> {
   const canonical = await rebuildCanonicalWriteContext(input, actor, database, policyEvaluation, resolver);
   input = canonical.input;
   policyEvaluation = canonical.evaluation;

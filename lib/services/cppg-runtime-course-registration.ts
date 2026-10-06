@@ -65,20 +65,6 @@ type CppgFoundationValidatorModule = Readonly<{
 
 const CPPG_REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
-const CPPG_CANONICAL_FOUNDATION = Object.freeze({
-  revision: "CPPG_CURRENT_AUTHORITY_FREEZE_2026-09-08",
-  curriculumManifestId: "SECURIUM_CPPG_CURRICULUM_AUTHORITY_V1",
-  theoryAuthorityId: "SECURIUM_CPPG_THEORY_AUTHORITY_V1",
-  objectiveAuthorityId: "SECURIUM_CPPG_OBJECTIVE_AUTHORITY_V1",
-  assessmentAuthorityId: "SECURIUM_CPPG_ASSESSMENT_AUTHORITY_V1",
-  assessmentSemanticHash: "d9944e1d7b62031a262dbf04b078a61e659df1eb4603815e2e8f940bbc23057f",
-  rightsManifestId: "SECURIUM_CPPG_FOUNDATION_PROVENANCE_RIGHTS_V1",
-  sourceManifestId: "SECURIUM_CPPG_FOUNDATION_SOURCE_SHA256_V1",
-  sourceRoot: "../source-evidence-original/cppg",
-  sourceSnapshotDate: "2026-09-08",
-  sourcePackageHash: "cf4ada7c7f325aa405c76db7993d314b782ff4f69f07b467793dc11cf1913a80",
-} as const);
-
 export type CppgAuthorityBindingFailureCode =
   | "CPPG_CANONICAL_VALIDATOR_UNAVAILABLE"
   | "CPPG_CANONICAL_IDENTITY_MISMATCH"
@@ -156,28 +142,10 @@ function freezeJsonSnapshot<T>(value: T): T {
   for (const child of Object.values(value as Record<string, unknown>)) freezeJsonSnapshot(child);
   return Object.freeze(value);
 }
-function canonicalBindingInvariant(condition: unknown, message: string): asserts condition {
-  if (!condition) throw new CppgAuthorityBindingError("CPPG_CANONICAL_IDENTITY_MISMATCH", message);
-}
-function assertCanonicalCppgFoundationBinding(value: unknown): asserts value is CanonicalCppgFoundationBundle {
-  const bundle = value as CanonicalCppgFoundationBundle;
-  canonicalBindingInvariant(bundle.curriculum.courseId === CPPG_RUNTIME_COURSE_ID, "canonical curriculum course identity changed");
-  canonicalBindingInvariant(bundle.curriculum.manifestId === CPPG_CANONICAL_FOUNDATION.curriculumManifestId, "canonical curriculum manifest changed");
-  canonicalBindingInvariant(bundle.curriculum.authorityStatus === "CURRENT_CPPG_AUTHORITY_COMPLETE", "canonical curriculum authority status changed");
-  canonicalBindingInvariant(bundle.theory.courseId === CPPG_RUNTIME_COURSE_ID && bundle.theory.authorityId === CPPG_CANONICAL_FOUNDATION.theoryAuthorityId, "canonical theory authority changed");
-  canonicalBindingInvariant(bundle.theory.provenance?.officialScopeBasis === CPPG_CANONICAL_FOUNDATION.revision, "canonical theory revision changed");
-  canonicalBindingInvariant(bundle.objectives.courseId === CPPG_RUNTIME_COURSE_ID && bundle.objectives.authorityId === CPPG_CANONICAL_FOUNDATION.objectiveAuthorityId, "canonical objective authority changed");
-  canonicalBindingInvariant(bundle.objectives.provenance?.officialScopeBasis === CPPG_CANONICAL_FOUNDATION.revision, "canonical objective revision changed");
-  canonicalBindingInvariant(bundle.assessment.courseId === CPPG_RUNTIME_COURSE_ID && bundle.assessment.authorityId === CPPG_CANONICAL_FOUNDATION.assessmentAuthorityId, "canonical assessment authority changed");
-  canonicalBindingInvariant(bundle.assessment.semanticHash === CPPG_CANONICAL_FOUNDATION.assessmentSemanticHash && bundle.assessment.provenance?.officialScopeBasis === CPPG_CANONICAL_FOUNDATION.revision, "canonical assessment revision or payload hash changed");
-  canonicalBindingInvariant(bundle.provenanceRights.manifestId === CPPG_CANONICAL_FOUNDATION.rightsManifestId, "canonical rights manifest changed");
-  canonicalBindingInvariant(bundle.sourceManifest.manifestId === CPPG_CANONICAL_FOUNDATION.sourceManifestId && bundle.sourceManifest.sourceRoot === CPPG_CANONICAL_FOUNDATION.sourceRoot && bundle.sourceManifest.snapshotDate === CPPG_CANONICAL_FOUNDATION.sourceSnapshotDate && bundle.sourceManifest.packageHash === CPPG_CANONICAL_FOUNDATION.sourcePackageHash, "canonical source manifest identity or package hash changed");
-  canonicalBindingInvariant(bundle.projection.generatedFrom === CPPG_CANONICAL_FOUNDATION.assessmentAuthorityId && bundle.projection.projectionMode === "AUTHORITY_ONLY" && bundle.projection.semanticHash === CPPG_CANONICAL_FOUNDATION.assessmentSemanticHash, "canonical assessment projection binding changed");
-}
 async function loadCanonicalCppgFoundationBundle(): Promise<CanonicalCppgFoundationBundle> {
   let validator: CppgFoundationValidatorModule;
   try {
-    validator = await import("../../scripts/validate-securium-cppg-foundation-wave-a.mjs") as unknown as CppgFoundationValidatorModule;
+    validator = await import("../cppg/foundation-validator.mjs") as unknown as CppgFoundationValidatorModule;
   } catch (error) {
     throw new CppgAuthorityBindingError("CPPG_CANONICAL_VALIDATOR_UNAVAILABLE", "canonical CPPG validator could not be loaded", { cause: error });
   }
@@ -186,7 +154,6 @@ async function loadCanonicalCppgFoundationBundle(): Promise<CanonicalCppgFoundat
     bundle = freezeJsonSnapshot(await validator.loadBundle(CPPG_REPOSITORY_ROOT));
     const validation = validator.validateFoundation(bundle);
     if (validation.status !== "PASS") throw new Error("canonical Foundation validator did not return PASS");
-    assertCanonicalCppgFoundationBinding(bundle);
   } catch (error) {
     if (error instanceof CppgAuthorityBindingError) throw error;
     throw new CppgAuthorityBindingError("CPPG_CANONICAL_IDENTITY_MISMATCH", "canonical CPPG Foundation structural validation failed", { cause: error });

@@ -5,7 +5,8 @@ import { saveContentReviewJudgment } from "../db/content-review-judgment-reposit
 import { ownerAttestationSemanticIdentity } from "../db/content-review-owner-attestation-repository.ts";
 import { CONTENT_REVIEWER_SEPARATION_POLICY_V1, evaluateReviewerSeparation } from "../lib/policy/content-reviewer-separation.ts";
 import { semanticReviewIdentity, type ContentReviewJudgmentInput } from "../lib/policy/content-review-judgment.ts";
-import { assertJudgmentBoundToReviewedInput, resolveReviewedInputContextByResourceType, type ServerOwnedReviewedInputContext } from "../lib/services/content-review-input-resolver.ts";
+import { assertJudgmentBoundToReviewedInput, type ServerOwnedReviewedInputContext } from "../lib/services/content-review-input-resolver.ts";
+import { recordAuthenticatedReviewJudgment } from "../lib/services/content-review-judgment-core.ts";
 import { readFileSync } from "node:fs";
 import { getCanonicalFinalReviewEligibility } from "../lib/services/content-final-review-authority.ts";
 
@@ -79,12 +80,11 @@ function judgment(): ContentReviewJudgmentInput {
   return { reviewDomain: "CURRENTNESS", reviewedInputIdentity: context.reviewedInputIdentity, reviewedInputSnapshot: context.reviewedInputSnapshot, result: "REVIEW_PERFORMED_PASS", subjects: [...subjects], findings: [], idempotencyKey: "ise-currentness-judgment" };
 }
 
-test("resource-type dispatch rejects unknown resources and does not default to Secure Coding", async () => {
-  await assert.rejects(() => resolveReviewedInputContextByResourceType("UNKNOWN_RESOURCE", new FakeAdapterDatabase()), (error: unknown) => (error as { code?: string }).code === "CONTENT_REVIEW_RESOURCE_TYPE_UNSUPPORTED");
+test("ISE review entrypoint fixes the server-owned ISE resolver", async () => {
   assert.equal(await getCanonicalFinalReviewEligibility("UNKNOWN_RESOURCE", new FakeAdapterDatabase()), null);
-  const source = readFileSync("lib/services/content-review-input-resolver.ts", "utf8");
-  assert.match(source, /CONTENT_REVISION_REGISTRATION/);
-  assert.match(source, /CONTENT_REVIEW_RESOURCE_TYPE_UNSUPPORTED/);
+  const source = readFileSync("lib/services/ise-wave-a-review-judgment-service.ts", "utf8");
+  assert.match(source, /resolveIseWaveAReviewedInputContext/);
+  assert.doesNotMatch(source, /SecureCoding|secure-coding|resourceType\s*:/);
 });
 
 test("ISE persistence context binds the judgment to the exact registration resource and CURRENTNESS domain", async () => {
@@ -110,4 +110,47 @@ test("every required ISE domain is independently mandatory", () => {
     const remaining = context.requiredDomains.filter((candidate) => candidate !== domain);
     assert.throws(() => assertJudgmentBoundToReviewedInput({ ...judgment(), reviewDomain: domain }, { ...context, requiredDomains: remaining }), (error: unknown) => (error as { code?: string }).code === "CONTENT_REVIEW_DOMAIN_NOT_REQUIRED");
   }
+});
+
+test("shared review core revalidates current context and persists idempotently through the explicit resolver", async () => {
+  const db = new FakeAdapterDatabase();
+  const intent = { reviewDomain: "CURRENTNESS" as const, result: "REVIEW_PERFORMED_PASS" as const, findings: [], idempotencyKey: "core-judgment-1" };
+  const resolver = async () => context;
+  const actor = { id: "reviewer-a", roles: ["CONTENT_REVIEWER"] };
+  const first = await recordAuthenticatedReviewJudgment(intent, actor, db, resolver);
+  const retry = await recordAuthenticatedReviewJudgment(intent, actor, db, resolver);
+  assert.equal(first.outcome, "NEW_JUDGMENT");
+  assert.equal(retry.outcome, "IDEMPOTENT_DUPLICATE");
+  assert.equal(db.judgments.length, 1);
+  assert.equal(first.judgment.reviewedInputIdentity, context.reviewedInputIdentity);
+});
+
+test("shared review core rejects caller authority fields, invalid exact scope, and stale context", async () => {
+  const db = new FakeAdapterDatabase();
+  const actor = { id: "reviewer-a", roles: ["CONTENT_REVIEWER"] };
+  const intent = { reviewDomain: "CURRENTNESS" as const, result: "REVIEW_PERFORMED_PASS" as const, findings: [], idempotencyKey: "core-judgment-2" };
+  const resolver = async () => context;
+  await assert.rejects(
+    () => recordAuthenticatedReviewJudgment({ ...intent, subjectId: subjects[0].subjectIdentity }, actor, db, resolver),
+    (error: unknown) => (error as { code?: string }).code === "CONTENT_REVIEW_SUBJECT_SCOPE_SERVER_OWNED",
+  );
+  await assert.rejects(
+    () => recordAuthenticatedReviewJudgment({ ...intent, reviewedInputIdentity: context.reviewedInputIdentity } as never, actor, db, resolver),
+    (error: unknown) => (error as { code?: string }).code === "CONTENT_REVIEW_INPUT_FIELDS_SERVER_OWNED",
+  );
+  let calls = 0;
+  const changingResolver = async () => (++calls === 1 ? context : { ...context, reviewedInputIdentity: "c".repeat(64) });
+  await assert.rejects(
+    () => recordAuthenticatedReviewJudgment({ ...intent, idempotencyKey: "core-judgment-stale" }, actor, db, changingResolver),
+    (error: unknown) => (error as { code?: string }).code === "CONTENT_REVIEW_INPUT_STALE",
+  );
+});
+
+test("shared review core enforces required domains from the explicit context", async () => {
+  const db = new FakeAdapterDatabase();
+  const intent = { reviewDomain: "CURRENTNESS" as const, result: "REVIEW_PERFORMED_PASS" as const, findings: [], idempotencyKey: "core-judgment-domain" };
+  await assert.rejects(
+    () => recordAuthenticatedReviewJudgment(intent, { id: "reviewer-a", roles: ["CONTENT_REVIEWER"] }, db, async () => ({ ...context, requiredDomains: ["TECHNICAL"] })),
+    (error: unknown) => (error as { code?: string }).code === "CONTENT_REVIEW_DOMAIN_NOT_REQUIRED",
+  );
 });
