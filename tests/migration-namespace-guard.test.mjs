@@ -13,8 +13,8 @@ test("repository migration namespace is duplicate-free and journal-consistent", 
   assert.equal(result.postgres.some((name) => name === "0058_app_schema_baseline_receipts_rls_hardening.sql"), true);
   assert.equal(result.postgres.some((name) => name === "0059_auth_identity_binding_contract.sql"), true);
   assert.equal(result.postgres.length, 42);
-  assert.equal(result.d1.length, 46);
-  assert.equal(result.journalEntries, 46);
+  assert.equal(result.d1.length, 47);
+  assert.equal(result.journalEntries, 47);
 });
 
 test("D1 numeric ID collisions fail closed even with different tags", async () => {
