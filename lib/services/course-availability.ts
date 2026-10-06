@@ -7,7 +7,10 @@ import { RepositoryContext } from "@/db/repository-adapter/repository-context";
 import { hasCanonicalLearnerVisibility } from "./cppg-learner-visibility.ts";
 
 export type { PublicCourseAvailability } from "@/db/public-course-availability-repository";
-export { isPublicCourseAvailable } from "./course-availability-display";
+export {
+  getPublicCourseAvailabilityState,
+  type PublicCourseAvailabilityState,
+} from "./course-availability-display";
 
 export async function listPublicCourseAvailability(courseIds: readonly string[]) {
   if (courseIds.length === 0) return new Map<string, PublicCourseAvailability>();

@@ -9,7 +9,7 @@ const exec = promisify(execFile);
 const password = "legacy-concept-rls-disposable-password";
 const configuredContainer = process.env.SECURIUM_LEGACY_CONCEPT_RLS_PG_CONTAINER?.trim();
 const container = configuredContainer || `securium-legacy-concept-rls-${Date.now()}`;
-const targetTables = ["concept_labels", "concept_versions", "concepts"];
+const targetTables = ["app_schema_baseline_receipts", "concept_labels", "concept_versions", "concepts"];
 
 if (!/^securium-legacy-concept-rls-[A-Za-z0-9][A-Za-z0-9_.-]*$/.test(container)) {
   throw new Error("LEGACY_CONCEPT_RLS_CONTAINER_NAME_INVALID");
@@ -84,6 +84,8 @@ test("legacy Concept tables are server-only before and after the RLS hardening m
     await client.unsafe(
       await readFile("db/postgres/baselines/POSTGRES_FRESH_BASELINE_V1.sql", "utf8"),
     );
+    // Mirror the target Supabase project's pre-existing service_role grant.
+    await client.unsafe("GRANT ALL PRIVILEGES ON TABLE public.app_schema_baseline_receipts TO service_role");
     await client.unsafe(
       await readFile("db/postgres/migrations/0020_concept_persistence_cp_a.sql", "utf8"),
     );
@@ -104,6 +106,12 @@ test("legacy Concept tables are server-only before and after the RLS hardening m
         "utf8",
       ),
     );
+    await client.unsafe(
+      await readFile(
+        "db/postgres/migrations/0058_app_schema_baseline_receipts_rls_hardening.sql",
+        "utf8",
+      ),
+    );
 
     const after = await securityState(client);
     assert.deepEqual(
@@ -116,7 +124,7 @@ test("legacy Concept tables are server-only before and after the RLS hardening m
     assert.ok(after.every((row) => row.service_select && row.service_insert && row.service_update && row.service_delete));
 
     const policies = await client.unsafe(
-      "SELECT tablename, policyname, roles, cmd, qual, with_check FROM pg_policies WHERE schemaname = 'public' AND tablename IN ('concepts', 'concept_versions', 'concept_labels')",
+      "SELECT tablename, policyname, roles, cmd, qual, with_check FROM pg_policies WHERE schemaname = 'public' AND tablename IN ('app_schema_baseline_receipts', 'concepts', 'concept_versions', 'concept_labels')",
     );
     assert.equal(policies.length, 0, "server-only legacy tables must have no client policies");
 
@@ -130,6 +138,9 @@ test("legacy Concept tables are server-only before and after the RLS hardening m
 
     await withRole(client, "service_role", async (connection) => {
       await assertAssertionRole(connection, "service_role");
+      const receipts = await connection.unsafe("SELECT count(*)::int AS count FROM public.app_schema_baseline_receipts");
+      assert.equal(receipts[0].count, 1, "service_role must retain internal baseline receipt reads");
+      probeStats.serviceOperations += 1;
       await connection.unsafe(
         "INSERT INTO concepts (id, stable_key, status) VALUES ('rls-c-1', 'legacy.security.access-control', 'ACTIVE')",
       );
@@ -161,6 +172,9 @@ test("legacy Concept tables are server-only before and after the RLS hardening m
       probeStats.serviceOperations += 1;
     });
 
+    const postgresReceiptRead = await client.unsafe("SELECT count(*)::int AS count FROM public.app_schema_baseline_receipts");
+    assert.equal(postgresReceiptRead[0].count, 1, "postgres migration/server role must retain baseline receipt reads");
+
     assert.equal(Number((await scalar(client, "SELECT count(*) FROM ontology_concepts"))[0].count), 0);
     assert.equal(Number((await scalar(client, "SELECT count(*) FROM ontology_aliases"))[0].count), 0);
     assert.equal(Number((await scalar(client, "SELECT count(*) FROM ontology_edges"))[0].count), 0);
@@ -187,6 +201,14 @@ test("legacy Concept tables are server-only before and after the RLS hardening m
 });
 
 function clientProbes(table) {
+  if (table === "app_schema_baseline_receipts") {
+    return [
+      "SELECT * FROM app_schema_baseline_receipts",
+      "INSERT INTO app_schema_baseline_receipts (baseline_id, baseline_version, schema_boundary, artifact_sha256, schema_sha256, security_sha256, created_from_main_sha) VALUES ('blocked', '1', '0019', 'x', 'y', 'z', 'main')",
+      "UPDATE app_schema_baseline_receipts SET baseline_version = 'blocked' WHERE baseline_id = 'POSTGRES_FRESH_BASELINE_V1'",
+      "DELETE FROM app_schema_baseline_receipts WHERE baseline_id = 'POSTGRES_FRESH_BASELINE_V1'",
+    ];
+  }
   if (table === "concept_versions") {
     return [
       "SELECT * FROM concept_versions",
@@ -253,7 +275,7 @@ async function securityState(client) {
       has_table_privilege('service_role', 'public.' || quote_ident(c.relname), 'DELETE') AS service_delete
     FROM pg_class c
     JOIN pg_namespace n ON n.oid = c.relnamespace
-    WHERE n.nspname = 'public' AND c.relname IN ('concepts', 'concept_versions', 'concept_labels')
+    WHERE n.nspname = 'public' AND c.relname IN ('app_schema_baseline_receipts', 'concepts', 'concept_versions', 'concept_labels')
     ORDER BY c.relname
   `);
 }

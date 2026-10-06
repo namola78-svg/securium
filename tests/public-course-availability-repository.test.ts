@@ -13,7 +13,7 @@ import type {
   DatabaseQueryResult,
   DatabaseStatement,
 } from "../db/provider/database-provider.ts";
-import { isPublicCourseAvailable } from "../lib/services/course-availability-display.ts";
+import { getPublicCourseAvailabilityState } from "../lib/services/course-availability-display.ts";
 
 test("availability repository returns only minimal flags and deduplicates input", async () => {
   const provider = new RecordingProvider("d1", [
@@ -40,6 +40,7 @@ test("availability repository returns only minimal flags and deduplicates input"
   assert.match(provider.statements[0]?.sql ?? "", /questions/);
   assert.match(provider.statements[0]?.sql ?? "", /course_lessons/);
   assert.match(provider.statements[0]?.sql ?? "", /contents/);
+  assert.doesNotMatch(provider.statements[0]?.sql ?? "", /practical/i);
 });
 
 test("availability repository has an empty-input fast path and bounded set batches", async () => {
@@ -85,24 +86,49 @@ test("availability repository rejects invalid input, null flags, and query error
   );
 });
 
-test("the display helper uses availability only and preserves sample content as a valid result", () => {
+test("availability distinguishes theory, question, both, and no published learner content", () => {
   assert.equal(
-    isPublicCourseAvailable({
-      courseId: "course-sample",
+    getPublicCourseAvailabilityState({
+      courseId: "course-theory",
+      hasPublishedQuestion: false,
+      hasPublishedLessonContent: true,
+    }),
+    "THEORY_CONTENT",
+  );
+  assert.equal(
+    getPublicCourseAvailabilityState({
+      courseId: "course-questions",
       hasPublishedQuestion: true,
       hasPublishedLessonContent: false,
     }),
-    true,
+    "QUESTION_CONTENT",
   );
   assert.equal(
-    isPublicCourseAvailable({
+    getPublicCourseAvailabilityState({
+      courseId: "course-both",
+      hasPublishedQuestion: true,
+      hasPublishedLessonContent: true,
+    }),
+    "THEORY_AND_QUESTION_CONTENT",
+  );
+  assert.equal(
+    getPublicCourseAvailabilityState({
       courseId: "course-outline",
       hasPublishedQuestion: false,
       hasPublishedLessonContent: false,
     }),
-    false,
+    "NO_PUBLISHED_LEARNER_CONTENT",
   );
-  assert.equal(isPublicCourseAvailable(null), false);
+  assert.equal(getPublicCourseAvailabilityState(null), "NO_PUBLISHED_LEARNER_CONTENT");
+  assert.equal(
+    getPublicCourseAvailabilityState({
+      courseId: "course-practical-only",
+      hasPublishedQuestion: false,
+      hasPublishedLessonContent: false,
+      hasPracticalContent: true,
+    } as never),
+    "NO_PUBLISHED_LEARNER_CONTENT",
+  );
 });
 
 test("target callers use the explicit availability result without changing the common course DTO", () => {
@@ -112,11 +138,19 @@ test("target callers use the explicit availability result without changing the c
   const repositories = readFileSync("db/repositories.ts", "utf8");
 
   assert.match(coursePage, /listPublicCourseAvailability/);
-  assert.match(coursePage, /isPublicCourseAvailable\(availabilityByCourseId\.get\(course\.id\)\)/);
+  assert.match(coursePage, /getPublicCourseAvailabilityState\(availabilityByCourseId\.get\(course\.id\)\)/);
   assert.match(courseCard, /availability:/);
-  assert.match(courseCard, /isPublicCourseAvailable\(availability\)/);
+  assert.match(courseCard, /getPublicCourseAvailabilityState\(availability\)/);
   assert.match(detailPage, /getPublicCourseAvailability\(course\.id\)/);
-  assert.match(detailPage, /isPublicCourseAvailable\(availability\)/);
+  assert.match(detailPage, /getPublicCourseAvailabilityState\(availability\)/);
+  assert.match(detailPage, /availabilityState === "QUESTION_CONTENT"[\s\S]*?`\/practice\/\$\{course\.slug\}`/);
+  assert.match(detailPage, /availabilityState === "QUESTION_CONTENT"[\s\S]*?"문제 콘텐츠 확인"/);
+  assert.match(detailPage, /contentMissing = availabilityState === "NO_PUBLISHED_LEARNER_CONTENT"/);
+  const enrollAction = readFileSync("components/course-enroll-action.tsx", "utf8");
+  assert.match(enrollAction, /href=\{learnerHref\}/);
+  assert.doesNotMatch(enrollAction, /href=\{`\/learn\/\$\{courseSlug\}`\}/);
+  const practicePage = readFileSync("app/practice/[courseSlug]/page.tsx", "utf8");
+  assert.match(practicePage, /title="조건에 맞는 문제가 없습니다"/);
   assert.doesNotMatch(repositories, /publishedLessonCount/);
   assert.doesNotMatch(repositories, /questions\.status.*PUBLISHED/);
 });

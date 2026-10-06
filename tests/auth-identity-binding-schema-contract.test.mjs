@@ -4,7 +4,7 @@ import test from "node:test";
 import { DatabaseSync } from "node:sqlite";
 
 const d1 = await readFile("drizzle/0046_auth_identity_binding_contract.sql", "utf8");
-const postgres = await readFile("db/postgres/migrations/0058_auth_identity_binding_contract.sql", "utf8");
+const postgres = await readFile("db/postgres/migrations/0059_auth_identity_binding_contract.sql", "utf8");
 const model = await readFile("db/schema.ts", "utf8");
 
 const tupleColumns = [
@@ -47,7 +47,7 @@ test("migration namespaces advance without changing an applied migration", async
   const journal = JSON.parse(await readFile("drizzle/meta/_journal.json", "utf8"));
   assert.equal(journal.entries.at(-1).tag, "0046_auth_identity_binding_contract");
   assert.equal(journal.entries.at(-1).idx, 46);
-  assert.match(postgres, /0058_auth_identity_binding_contract/);
+  assert.match(postgres, /0059_auth_identity_binding_contract/);
 });
 
 test("D1 migration enforces tuple history and lifecycle invariants in SQLite", () => {

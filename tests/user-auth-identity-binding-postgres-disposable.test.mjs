@@ -41,7 +41,7 @@ test("disposable PostgreSQL enforces historical identity and service-role histor
       CREATE TABLE app_schema_migrations (id text PRIMARY KEY, checksum text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now());
       CREATE TABLE public.users (id text PRIMARY KEY, status text NOT NULL DEFAULT 'ACTIVE');
       INSERT INTO public.users (id) VALUES ('user-1');`);
-    await client.unsafe(await readFile("db/postgres/migrations/0058_auth_identity_binding_contract.sql", "utf8"));
+    await client.unsafe(await readFile("db/postgres/migrations/0059_auth_identity_binding_contract.sql", "utf8"));
 
     const tuple = { auth_system: "supabase", auth_provider: "google", auth_issuer: "https://issuer.invalid", auth_project_ref: "project-1", environment_class: "nonprod", auth_subject: "subject-1" };
     const insert = async (id, values = {}, status = "ACTIVE", revokedAt = null, revokedBy = null) => client`

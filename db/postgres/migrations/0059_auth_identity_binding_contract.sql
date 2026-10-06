@@ -62,7 +62,7 @@ GRANT SELECT, INSERT, UPDATE ON TABLE public."user_auth_identity_bindings" TO se
 ALTER TABLE public."user_auth_identity_bindings" ENABLE ROW LEVEL SECURITY;
 
 INSERT INTO public.app_schema_migrations (id, checksum)
-VALUES ('0058_auth_identity_binding_contract', 'auth-identity-binding-contract-v1')
+VALUES ('0059_auth_identity_binding_contract', 'auth-identity-binding-contract-v1')
 ON CONFLICT (id) DO NOTHING;
 
 COMMIT;

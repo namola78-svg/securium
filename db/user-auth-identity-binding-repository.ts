@@ -1,6 +1,10 @@
 import { and, eq } from "drizzle-orm";
-import { getDb } from "./index.ts";
+import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { userAuthIdentityBindings, users } from "./schema.ts";
+
+export type AuthIdentityBindingLookupDatabase = DrizzleD1Database<
+  typeof import("./schema.ts")
+>;
 
 export type AuthIdentityTuple = {
   authSystem: string;
@@ -21,8 +25,10 @@ export type VerifiedApplicationActorRow = {
 /** Reads every exact tuple match (bounded at two) so unexpected ambiguity fails closed. */
 export async function findVerifiedApplicationActorRows(
   tuple: AuthIdentityTuple,
+  database?: AuthIdentityBindingLookupDatabase,
 ): Promise<VerifiedApplicationActorRow[]> {
-  return getDb()
+  const db = database ?? (await import("./index.ts")).getDb();
+  return db
     .select({
       bindingId: userAuthIdentityBindings.id,
       bindingStatus: userAuthIdentityBindings.status,
