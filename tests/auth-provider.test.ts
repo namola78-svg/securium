@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  buildSupabaseAuthIdentityTuple,
   expiredSupabaseSessionCookieSpecs,
   getSupabaseIdentityFromAccessToken,
   isSupabaseSsrAuthCookieName,
   resolveAuthProvider,
+  resolveAuthIdentityEnvironmentClass,
   resolveSupabaseAuthConfig,
   supabaseSessionCookieNamesForLogout,
   validateAuthForm,
@@ -39,6 +41,74 @@ test("supabase auth config uses credential-free HTTPS project URL", () => {
       SUPABASE_URL: "postgresql://user:pass@example.test/db",
       SUPABASE_ANON_KEY: "a".repeat(32),
     }),
+  );
+});
+
+test("Supabase binding tuple uses configured project and verified provider subject dimensions", () => {
+  assert.deepEqual(buildSupabaseAuthIdentityTuple({
+    projectUrl: "https://project.supabase.co",
+    provider: "google",
+    subject: "stable-user-id",
+    environmentClass: "production",
+  }), {
+    authSystem: "securium-application-auth-v1",
+    authProvider: "supabase:google",
+    authIssuer: "https://project.supabase.co/auth/v1",
+    authProjectRef: "project",
+    environmentClass: "production",
+    authSubject: "stable-user-id",
+  });
+  assert.equal(buildSupabaseAuthIdentityTuple({
+    projectUrl: "https://project.supabase.co", provider: "google", subject: " ", environmentClass: "production",
+  }), null);
+  assert.equal(buildSupabaseAuthIdentityTuple({
+    projectUrl: "https://project.supabase.co", provider: "google", subject: "id",
+  }), null);
+  assert.equal(buildSupabaseAuthIdentityTuple({
+    projectUrl: "https://project.supabase.co", subject: "id", environmentClass: "production",
+  }), null);
+  assert.equal(buildSupabaseAuthIdentityTuple({
+    projectUrl: "not-a-trusted-url", provider: "google", subject: "id", environmentClass: "production",
+  }), null);
+});
+
+test("identity environment classification trusts Vercel deployment environment", () => {
+  assert.equal(resolveAuthIdentityEnvironmentClass({
+    VERCEL_ENV: "production",
+    NODE_ENV: "production",
+  }), "production");
+  assert.equal(resolveAuthIdentityEnvironmentClass({
+    VERCEL_ENV: "preview",
+    NODE_ENV: "production",
+  }), "preview");
+  assert.equal(resolveAuthIdentityEnvironmentClass({
+    VERCEL_ENV: "development",
+    NODE_ENV: "development",
+  }), "development");
+  assert.equal(resolveAuthIdentityEnvironmentClass({
+    NODE_ENV: "development",
+  }), "development");
+});
+
+test("identity environment classification fails closed for missing or unsupported deployment state", () => {
+  assert.throws(
+    () => resolveAuthIdentityEnvironmentClass({ NODE_ENV: "production" }),
+    { code: "AUTH_IDENTITY_ENVIRONMENT_UNRESOLVED" },
+  );
+  assert.throws(
+    () => resolveAuthIdentityEnvironmentClass({ VERCEL_ENV: "staging", NODE_ENV: "production" }),
+    { code: "AUTH_IDENTITY_ENVIRONMENT_UNRESOLVED" },
+  );
+  assert.throws(
+    () => resolveAuthIdentityEnvironmentClass({ VERCEL_ENV: "", NODE_ENV: "production", VERCEL: "1" }),
+    { code: "AUTH_IDENTITY_ENVIRONMENT_UNRESOLVED" },
+  );
+});
+
+test("production-mode runtime cannot enter the development binding namespace", () => {
+  assert.throws(
+    () => resolveAuthIdentityEnvironmentClass({ VERCEL_ENV: "development", NODE_ENV: "production" }),
+    { code: "AUTH_IDENTITY_ENVIRONMENT_UNRESOLVED" },
   );
 });
 

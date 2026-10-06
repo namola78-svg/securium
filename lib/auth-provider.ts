@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { AppError } from "./errors.ts";
+import type { AuthIdentityTuple } from "../db/user-auth-identity-binding-repository.ts";
 
 export type AuthProviderName = "sites" | "supabase";
 
@@ -8,6 +9,75 @@ export type AuthenticatedIdentity = {
   displayName: string;
   fullName: string | null;
 };
+
+export type AuthenticatedApplicationIdentity = {
+  identity: AuthenticatedIdentity;
+  authTuple: AuthIdentityTuple;
+};
+
+export type AuthIdentityEnvironmentClass =
+  | "production"
+  | "preview"
+  | "development";
+
+export function resolveAuthIdentityEnvironmentClass(
+  environment: Record<string, string | undefined> = process.env,
+): AuthIdentityEnvironmentClass {
+  const vercelEnvironment = environment.VERCEL_ENV?.trim().toLowerCase();
+  if (
+    vercelEnvironment === "production" ||
+    vercelEnvironment === "preview"
+  ) {
+    return vercelEnvironment;
+  }
+  if (vercelEnvironment === "development") {
+    if (environment.NODE_ENV === "development") return "development";
+    throw new AppError(
+      "Deployment environment for identity binding could not be classified.",
+      503,
+      "AUTH_IDENTITY_ENVIRONMENT_UNRESOLVED",
+    );
+  }
+  if (vercelEnvironment) {
+    throw new AppError(
+      "Deployment environment for identity binding could not be classified.",
+      503,
+      "AUTH_IDENTITY_ENVIRONMENT_UNRESOLVED",
+    );
+  }
+  if (environment.NODE_ENV === "development" && environment.VERCEL !== "1") {
+    return "development";
+  }
+  throw new AppError(
+    "Deployment environment for identity binding could not be classified.",
+    503,
+    "AUTH_IDENTITY_ENVIRONMENT_UNRESOLVED",
+  );
+}
+
+export function buildSupabaseAuthIdentityTuple(input: {
+  projectUrl: string;
+  provider?: string;
+  subject?: string;
+  environmentClass?: string;
+}): AuthIdentityTuple | null {
+  const provider = input.provider?.trim();
+  const subject = input.subject?.trim();
+  if (!provider || !subject || !input.environmentClass) return null;
+  let projectUrl: URL;
+  try { projectUrl = new URL(input.projectUrl); } catch { return null; }
+  if (projectUrl.protocol !== "https:") return null;
+  const projectRef = projectUrl.hostname.split(".")[0];
+  if (!projectRef) return null;
+  return {
+    authSystem: "securium-application-auth-v1",
+    authProvider: `supabase:${provider}`,
+    authIssuer: `${projectUrl.origin}/auth/v1`,
+    authProjectRef: projectRef,
+    environmentClass: input.environmentClass,
+    authSubject: subject,
+  };
+}
 
 export const SUPABASE_ACCESS_COOKIE = "sa_access_token";
 export const SUPABASE_REFRESH_COOKIE = "sa_refresh_token";
@@ -33,12 +103,55 @@ export type SupabaseRequestAuthState = {
 };
 
 type SupabaseUserPayload = {
+  id?: string;
   email?: string;
+  app_metadata?: { provider?: string };
   user_metadata?: {
     full_name?: string;
     name?: string;
   };
 };
+
+/** Uses Supabase's verified /user response. JWT payload decoding is intentionally excluded. */
+export async function resolveSupabaseVerifiedApplicationIdentity(input: {
+  accessToken: string;
+  environment?: Record<string, string | undefined>;
+  fetcher?: typeof fetch;
+}): Promise<AuthenticatedApplicationIdentity | null> {
+  const environment = input.environment ?? process.env;
+  const config = resolveSupabaseAuthConfig(environment);
+  const environmentClass = resolveAuthIdentityEnvironmentClass(environment);
+  try {
+    const response = await (input.fetcher ?? fetch)(`${config.authUrl}/user`, {
+      headers: { apikey: config.anonKey, authorization: `Bearer ${input.accessToken}` },
+      cache: "no-store",
+    });
+    if (!response.ok) return null;
+    const payload = await response.json() as SupabaseUserPayload;
+    const identity = supabasePayloadToIdentity(payload);
+    if (!identity) return null;
+    const authTuple = buildSupabaseAuthIdentityTuple({
+      projectUrl: config.supabaseUrl,
+      provider: payload.app_metadata?.provider,
+      subject: payload.id,
+      environmentClass,
+    });
+    if (!authTuple) return null;
+    return {
+      identity,
+      authTuple,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function getSupabaseVerifiedApplicationIdentity(): Promise<AuthenticatedApplicationIdentity | null> {
+  const cookieStore = await getCookieStore();
+  const accessToken = cookieStore.get(SUPABASE_ACCESS_COOKIE)?.value;
+  if (!accessToken) return null;
+  return resolveSupabaseVerifiedApplicationIdentity({ accessToken });
+}
 
 type SupabaseAccessTokenPayload = SupabaseUserPayload & {
   exp?: number;

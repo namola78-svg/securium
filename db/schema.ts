@@ -32,6 +32,35 @@ export const users = sqliteTable(
   ],
 );
 
+export const userAuthIdentityBindings = sqliteTable(
+  "user_auth_identity_bindings",
+  {
+    id: text("id").primaryKey(),
+    authSystem: text("auth_system").notNull(),
+    authProvider: text("auth_provider").notNull(),
+    authIssuer: text("auth_issuer").notNull(),
+    authProjectRef: text("auth_project_ref").notNull(),
+    environmentClass: text("environment_class").notNull(),
+    authSubject: text("auth_subject").notNull(),
+    applicationUserId: text("application_user_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+    status: text("status").notNull(),
+    revokedAt: text("revoked_at"),
+    revokedBy: text("revoked_by"),
+    revocationReason: text("revocation_reason"),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    createdBy: text("created_by").notNull(),
+  },
+  (table) => [
+    uniqueIndex("user_auth_identity_bindings_tuple_unique").on(
+      table.authSystem, table.authProvider, table.authIssuer,
+      table.authProjectRef, table.environmentClass, table.authSubject,
+    ),
+    index("user_auth_identity_bindings_user_status_idx").on(table.applicationUserId, table.status),
+    check("user_auth_identity_bindings_status_check", sql`${table.status} IN ('PENDING', 'ACTIVE', 'REVOKED', 'SUPERSEDED')`),
+    check("user_auth_identity_bindings_revocation_check", sql`(${table.status} IN ('REVOKED', 'SUPERSEDED') AND ${table.revokedAt} IS NOT NULL AND ${table.revokedBy} IS NOT NULL) OR (${table.status} IN ('PENDING', 'ACTIVE') AND ${table.revokedAt} IS NULL AND ${table.revokedBy} IS NULL AND ${table.revocationReason} IS NULL)`),
+  ],
+);
+
 export const roles = sqliteTable("roles", {
   id: text("id").primaryKey(),
   code: text("code").notNull().unique(),
