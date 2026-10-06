@@ -5,8 +5,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-import { CPPG_MANIFEST_SOURCE_ROOT, resolveCppgSourceRoot } from "../lib/cppg/source-root.mjs";
-import { revalidateSourceManifest } from "../lib/cppg/foundation-validator.mjs";
+import { CPPG_MANIFEST_SOURCE_ROOT } from "../lib/cppg/source-root.mjs";
+import { resolveCppgSourceRoot } from "../scripts/cppg-source-root.mjs";
+import { revalidateSourceManifest } from "../scripts/cppg-source-validation.mjs";
 
 const hash = (data) => createHash("sha256").update(data).digest("hex");
 
