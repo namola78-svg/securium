@@ -60,7 +60,6 @@ type CanonicalCppgFoundationBundle = CppgFoundationBundle & Readonly<{
 type CppgFoundationValidatorModule = Readonly<{
   loadBundle(repoRoot: string): Promise<unknown>;
   validateFoundation(bundle: unknown): Readonly<{ status: string }>;
-  revalidateSourceManifest(sourceManifest: unknown, repoRoot: string): Promise<unknown>;
 }>;
 
 const CPPG_REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -68,7 +67,6 @@ const CPPG_REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), ".
 export type CppgAuthorityBindingFailureCode =
   | "CPPG_CANONICAL_VALIDATOR_UNAVAILABLE"
   | "CPPG_CANONICAL_IDENTITY_MISMATCH"
-  | "CPPG_SOURCE_REVALIDATION_BLOCKED"
   | "CPPG_APPROVAL_BINDING_UNAVAILABLE"
   | "CPPG_PROJECTION_ENTRYPOINT_INPUT_INVALID"
   | "CPPG_TEST_ONLY_PERSISTENCE_PRIMITIVE";
@@ -157,11 +155,6 @@ async function loadCanonicalCppgFoundationBundle(): Promise<CanonicalCppgFoundat
   } catch (error) {
     if (error instanceof CppgAuthorityBindingError) throw error;
     throw new CppgAuthorityBindingError("CPPG_CANONICAL_IDENTITY_MISMATCH", "canonical CPPG Foundation structural validation failed", { cause: error });
-  }
-  try {
-    await validator.revalidateSourceManifest((bundle as CanonicalCppgFoundationBundle).sourceManifest, CPPG_REPOSITORY_ROOT);
-  } catch (error) {
-    throw new CppgAuthorityBindingError("CPPG_SOURCE_REVALIDATION_BLOCKED", "canonical CPPG source manifest could not be revalidated; registration remains blocked", { cause: error });
   }
   return bundle as CanonicalCppgFoundationBundle;
 }

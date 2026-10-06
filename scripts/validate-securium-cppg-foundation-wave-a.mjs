@@ -1,5 +1,7 @@
-export { EXPECTED_SUBJECTS, validateFoundation, revalidateSourceManifest, loadBundle } from "../lib/cppg/foundation-validator.mjs";
-import { loadBundle, validateFoundation, revalidateSourceManifest } from "../lib/cppg/foundation-validator.mjs";
+export { EXPECTED_SUBJECTS, validateFoundation, loadBundle } from "../lib/cppg/foundation-validator.mjs";
+export { revalidateSourceManifest } from "./cppg-source-validation.mjs";
+import { loadBundle, validateFoundation } from "../lib/cppg/foundation-validator.mjs";
+import { revalidateSourceManifest } from "./cppg-source-validation.mjs";
 import { writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";

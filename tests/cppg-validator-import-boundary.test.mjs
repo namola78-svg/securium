@@ -51,12 +51,16 @@ test("CPPG CLI and runtime expose the same canonical validation functions", asyn
   const runtime = await import("../lib/cppg/foundation-validator.mjs");
   assert.equal(cli.validateFoundation, runtime.validateFoundation);
   assert.equal(cli.loadBundle, runtime.loadBundle);
-  assert.equal(cli.revalidateSourceManifest, runtime.revalidateSourceManifest);
+  assert.equal(typeof cli.revalidateSourceManifest, "function");
+  assert.equal("revalidateSourceManifest" in runtime, false);
 });
 
 test("ISE production import ancestry contains no repository scripts", async () => {
   const ancestry = await sourceImportAncestry(new URL("../app/api/admin/ise-wave-a/governance/route.ts", import.meta.url));
   const scripts = ancestry.filter((file) => new URL(file).pathname.includes("/scripts/"));
+  const gitDiscovery = await Promise.all(ancestry.map(async (file) => ({ file, source: await readFile(new URL(file), "utf8") })))
+    .then((sources) => sources.filter(({ source }) => /\.git|commondir/u.test(source)).map(({ file }) => file));
   assert.deepEqual(scripts, []);
+  assert.equal(gitDiscovery.length, 0);
   assert.ok(ancestry.some((file) => new URL(file).pathname.endsWith("/lib/cppg/foundation-validator.mjs")));
 });

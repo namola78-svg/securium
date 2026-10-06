@@ -11,7 +11,8 @@ import {
   resolveCppgSourceRoot,
   resolveCppgWorkspaceRoot,
 } from "../scripts/cppg-source-root.mjs";
-import { loadBundle, revalidateSourceManifest } from "../scripts/validate-securium-cppg-foundation-wave-a.mjs";
+import { loadBundle, validateFoundation } from "../scripts/validate-securium-cppg-foundation-wave-a.mjs";
+import { revalidateSourceManifest } from "../scripts/cppg-source-validation.mjs";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const expectedSourceRoot = resolveCppgSourceRoot(repoRoot);
@@ -39,26 +40,25 @@ test("reconfirms Gate A content identity and revalidates source bytes when the p
   }
 });
 
-test("projection resolves the server-owned source root independently of process.cwd and caller sourceRoot", async () => {
+test("production projection uses the server-owned reviewed manifest, independent of cwd and caller sourceRoot", async () => {
   const service = await import("../lib/services/cppg-runtime-course-registration.ts");
   const previousCwd = process.cwd();
   const temporaryCwd = await mkdtemp(join(tmpdir(), "cppg-source-root-cwd-"));
   try {
     process.chdir(temporaryCwd);
-    if (sourcePackageAvailable) {
-      const projection = await service.buildCppgCourseTheoryDraftProjection({ actorUserId: "source-root-test", sourceRoot: "caller-controlled" });
-      assert.equal(projection.courseId, "course-cppg");
-      assert.equal(projection.packageKey, "course-cppg:foundation:v1");
-    } else {
-      await assert.rejects(
-        () => service.buildCppgCourseTheoryDraftProjection({ actorUserId: "source-root-test", sourceRoot: "caller-controlled" }),
-        (error) => codeOf(error) === "CPPG_SOURCE_REVALIDATION_BLOCKED",
-      );
-    }
+    const projection = await service.buildCppgCourseTheoryDraftProjection({ actorUserId: "source-root-test", sourceRoot: "caller-controlled" });
+    assert.equal(projection.courseId, "course-cppg");
+    assert.equal(projection.packageKey, "course-cppg:foundation:v1");
   } finally {
     process.chdir(previousCwd);
     await rm(temporaryCwd, { recursive: true, force: true });
   }
+});
+
+test("production structural validation rejects file-list edits outside the pinned package hash", () => {
+  const tampered = structuredClone(bundle);
+  tampered.sourceManifest.files[0].sha256 = "0".repeat(64);
+  assert.throws(() => validateFoundation(tampered), /reviewed package hash/u);
 });
 
 test("a nonexistent server-owned root fails closed", async () => {
