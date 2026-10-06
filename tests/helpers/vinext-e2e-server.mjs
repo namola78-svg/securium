@@ -11,6 +11,7 @@ import {
 const host = "127.0.0.1";
 const defaultReadinessTimeoutMs = 120_000;
 const requestTimeoutMs = 1_000;
+const childExitTimeoutMs = 5_000;
 const pollIntervalMs = 250;
 const outputLimit = 64 * 1024;
 const transientNetworkCodes = new Set(["ECONNREFUSED", "ECONNRESET"]);
@@ -93,16 +94,14 @@ export async function startVinextE2EServer({
       readinessMs: readinessElapsedMs,
     }));
   } catch (error) {
-    if (child.pid) {
-      await stopChild(child);
-      await removeOwnedVinextDevLock({
-        cwd: process.cwd(),
-        child,
-        port: selectedPort,
-        baseUrl,
-      });
-    }
-    await restoreNextGeneratedTypes(nextTypesSnapshot);
+    const cleanupErrors = await cleanupStartupFailure({
+      child,
+      stop: () => child.pid ? stopChild(child) : Promise.resolve(),
+      removeLock: () => child.pid ? removeOwnedVinextDevLock({
+        cwd: process.cwd(), child, port: selectedPort, baseUrl,
+      }) : Promise.resolve(false),
+      restore: () => restoreNextGeneratedTypes(nextTypesSnapshot),
+    });
     const details = [
       error.message,
       "Command: " + command + " " + args.join(" "),
@@ -110,6 +109,7 @@ export async function startVinextE2EServer({
     ];
     if (stdout) details.push("stdout:\n" + stdout);
     if (stderr) details.push("stderr:\n" + stderr);
+    for (const cleanupError of cleanupErrors) details.push("Cleanup: " + cleanupError.message);
     throw new Error(details.join("\n"), { cause: error });
   }
 
@@ -176,6 +176,26 @@ export async function removeOwnedVinextDevLock({ cwd, child, port, baseUrl }) {
   if ((await readFile(lockPath, "utf8")) !== serialized) return false;
   await unlink(lockPath);
   return true;
+}
+
+export async function cleanupStartupFailure({ stop, removeLock, restore }) {
+  const errors = [];
+  try {
+    await stop();
+  } catch (error) {
+    errors.push(error);
+  }
+  try {
+    await removeLock();
+  } catch (error) {
+    errors.push(error);
+  }
+  try {
+    await restore();
+  } catch (error) {
+    errors.push(error);
+  }
+  return errors;
 }
 
 export async function waitForHttpReadiness({
@@ -397,14 +417,24 @@ async function reserveLoopbackPort() {
   return address.port;
 }
 
-async function stopChild(child) {
+export async function stopChild(child, {
+  platform = process.platform,
+  spawnSyncImpl = spawnSync,
+  timeoutMs = childExitTimeoutMs,
+} = {}) {
   if (child.exitCode !== null || child.signalCode !== null) return;
-  const exited = new Promise((resolve) => child.once("exit", resolve));
-  if (process.platform === "win32" && child.pid) {
-    spawnSync("taskkill.exe", ["/PID", String(child.pid), "/T", "/F"], {
+  const exited = waitForChildExit(child, timeoutMs);
+  if (platform === "win32" && child.pid) {
+    const result = spawnSyncImpl("taskkill.exe", ["/PID", String(child.pid), "/T", "/F"], {
       stdio: "ignore",
       windowsHide: true,
+      timeout: timeoutMs,
     });
+    if (result.error || result.status !== 0) {
+      const settled = await exited;
+      if (settled) return;
+      throw new Error("taskkill.exe failed to stop Vinext child " + child.pid + ": " + (result.error?.message ?? result.stderr ?? "exit status " + result.status));
+    }
   } else if (child.pid) {
     try {
       process.kill(-child.pid, "SIGTERM");
@@ -412,25 +442,29 @@ async function stopChild(child) {
       child.kill("SIGTERM");
     }
   }
-  const graceful = await Promise.race([
-    exited.then(() => true),
-    new Promise((resolve) => {
-      const timer = setTimeout(() => resolve(false), 5_000);
-      timer.unref?.();
-    }),
-  ]);
-  if (graceful) return;
-  if (process.platform === "win32" && child.pid) {
-    spawnSync("taskkill.exe", ["/PID", String(child.pid), "/T", "/F"], {
-      stdio: "ignore",
-      windowsHide: true,
-    });
-  } else if (child.pid) {
+  if (await exited) return;
+  if (platform !== "win32" && child.pid) {
     try {
       process.kill(-child.pid, "SIGKILL");
     } catch {
       child.kill("SIGKILL");
     }
   }
-  await exited;
+  if (await waitForChildExit(child, timeoutMs)) return;
+  throw new Error("Vinext child " + (child.pid ?? "unknown") + " did not exit within " + timeoutMs + "ms.");
+}
+
+export function waitForChildExit(child, timeoutMs) {
+  if (child.exitCode !== null || child.signalCode !== null) return Promise.resolve(true);
+  return new Promise((resolve) => {
+    let timer;
+    const finish = (exited) => {
+      clearTimeout(timer);
+      child.removeListener("exit", onExit);
+      resolve(exited);
+    };
+    const onExit = () => finish(true);
+    child.once("exit", onExit);
+    timer = setTimeout(() => finish(child.exitCode !== null || child.signalCode !== null), timeoutMs);
+  });
 }

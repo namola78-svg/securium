@@ -6,10 +6,79 @@ import { createServer as createNetServer } from "node:net";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { test } from "node:test";
+import { EventEmitter } from "node:events";
 import {
+  cleanupStartupFailure,
   removeOwnedVinextDevLock,
+  stopChild,
   waitForHttpReadiness,
 } from "./helpers/vinext-e2e-server.mjs";
+
+function fakeChild() {
+  const child = new EventEmitter();
+  child.pid = 43210;
+  child.exitCode = null;
+  child.signalCode = null;
+  return child;
+}
+
+test("Windows teardown accepts taskkill success followed by child exit", async () => {
+  const child = fakeChild();
+  await stopChild(child, {
+    platform: "win32",
+    timeoutMs: 100,
+    spawnSyncImpl: () => {
+      child.exitCode = 0;
+      child.emit("exit", 0, null);
+      return { status: 0 };
+    },
+  });
+  assert.equal(child.exitCode, 0);
+});
+
+test("Windows taskkill failure reports promptly when the child does not exit", async () => {
+  const child = fakeChild();
+  const startedAt = Date.now();
+  await assert.rejects(stopChild(child, {
+    platform: "win32",
+    timeoutMs: 20,
+    spawnSyncImpl: () => ({ status: 1, stderr: "denied" }),
+  }), /taskkill\.exe failed.*denied/);
+  assert.ok(Date.now() - startedAt < 1_000);
+});
+
+test("Windows teardown bounds waiting when the child never emits exit", async () => {
+  const child = fakeChild();
+  await assert.rejects(stopChild(child, {
+    platform: "win32",
+    timeoutMs: 20,
+    spawnSyncImpl: () => ({ status: 0 }),
+  }), /did not exit within 20ms/);
+});
+
+test("already exited child needs no Windows taskkill", async () => {
+  const child = fakeChild();
+  child.exitCode = 0;
+  await stopChild(child, { platform: "win32", spawnSyncImpl: () => assert.fail("unexpected taskkill") });
+});
+
+for (const failures of [["stop"], ["removeLock"], ["stop", "removeLock"]]) {
+  test("startup cleanup always restores generated types when " + failures.join(" and ") + " fails", async () => {
+    const calls = [];
+    const operation = (name) => async () => {
+      calls.push(name);
+      if (failures.includes(name)) throw new Error(name + " failed");
+    };
+    const errors = await cleanupStartupFailure({
+      stop: operation("stop"),
+      removeLock: operation("removeLock"),
+      restore: operation("restore"),
+    });
+    assert.deepEqual(calls, ["stop", "removeLock", "restore"]);
+    assert.equal(errors.length, failures.length);
+    assert.deepEqual(errors.map((error) => error.message), failures.map((name) => name + " failed"));
+  });
+}
 
 test("Vinext cleanup removes only a lock owned by the stopped helper child", async () => {
   const cwd = await mkdtemp(path.join(tmpdir(), "vinext-owned-lock-"));
