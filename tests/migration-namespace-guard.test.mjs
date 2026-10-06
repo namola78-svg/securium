@@ -12,9 +12,12 @@ test("repository migration namespace is duplicate-free and journal-consistent", 
   assert.equal(result.postgres.some((name) => name === "0057_cppg_publication_revocations.sql"), true);
   assert.equal(result.postgres.some((name) => name === "0058_app_schema_baseline_receipts_rls_hardening.sql"), true);
   assert.equal(result.postgres.some((name) => name === "0059_auth_identity_binding_contract.sql"), true);
-  assert.equal(result.postgres.length, 42);
-  assert.equal(result.d1.length, 47);
-  assert.equal(result.journalEntries, 47);
+  assert.equal(result.postgres.some((name) => name === "0060_isms_profile_mapping_foundation.sql"), true);
+  assert.equal(result.postgres.length, 43);
+  assert.equal(result.d1.some((name) => name === "0046_auth_identity_binding_contract.sql"), true);
+  assert.equal(result.d1.some((name) => name === "0047_isms_profile_mapping_foundation.sql"), true);
+  assert.equal(result.d1.length, 48);
+  assert.equal(result.journalEntries, 48);
 });
 
 test("D1 numeric ID collisions fail closed even with different tags", async () => {

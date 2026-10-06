@@ -330,6 +330,13 @@
       "when": 1790831000000,
       "tag": "0046_auth_identity_binding_contract",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "6",
+      "when": 1791259185706,
+      "tag": "0047_isms_profile_mapping_foundation",
+      "breakpoints": true
     }
   ]
 }

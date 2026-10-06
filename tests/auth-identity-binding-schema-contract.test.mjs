@@ -45,8 +45,10 @@ test("history deletion is blocked in D1 and PostgreSQL service-role grants", () 
 
 test("migration namespaces advance without changing an applied migration", async () => {
   const journal = JSON.parse(await readFile("drizzle/meta/_journal.json", "utf8"));
-  assert.equal(journal.entries.at(-1).tag, "0046_auth_identity_binding_contract");
-  assert.equal(journal.entries.at(-1).idx, 46);
+  assert.equal(journal.entries[46].tag, "0046_auth_identity_binding_contract");
+  assert.equal(journal.entries[46].idx, 46);
+  assert.equal(journal.entries[47].tag, "0047_isms_profile_mapping_foundation");
+  assert.equal(journal.entries[47].idx, 47);
   assert.match(postgres, /0059_auth_identity_binding_contract/);
 });
 
