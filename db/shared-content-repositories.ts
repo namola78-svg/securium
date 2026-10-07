@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull, sql } from "drizzle-orm";
+import { and, asc, eq, exists, isNull, sql } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
 import { getDb } from ".";
 import {
@@ -10,7 +10,9 @@ import {
   curriculumNodes,
   curriculumTrees,
   learningActivities,
+  learningUnits,
   lessons,
+  subjects,
   userCourseEnrollments,
   userCourseLessonProgress,
 } from "./schema";
@@ -843,9 +845,30 @@ export async function listSharedContentUsage(contentId: string) {
 export async function listPublishedCourseLessonsForUser(
   userId: string,
   courseId: string,
-  options: { includeLastViewedAt?: boolean } = {},
+  options: { includeLastViewedAt?: boolean; subjectId?: string } = {},
 ) {
   const cppgRows = courseId === "course-cppg" ? await getCanonicalCppgLearnerRowIds(courseId) : null;
+  // The linked Lesson and LearningUnit prove subject membership on the server.
+  // Keep the existing subject publication boundary; labels and node titles do
+  // not establish a subject relationship.
+  const subjectScope = options.subjectId === undefined ? undefined : exists(
+    getDb().select({ id: lessons.id }).from(lessons)
+      .innerJoin(learningUnits, and(
+        eq(lessons.learningUnitId, learningUnits.id),
+        eq(learningUnits.courseId, lessons.courseId),
+        eq(learningUnits.subjectId, lessons.subjectId),
+      ))
+      .innerJoin(subjects, and(eq(lessons.subjectId, subjects.id), eq(subjects.courseId, lessons.courseId)))
+      .where(and(
+        eq(lessons.id, courseLessons.lessonId),
+        eq(lessons.courseId, courseLessons.courseId),
+        eq(subjects.id, options.subjectId),
+        eq(subjects.active, true), isNull(subjects.deletedAt),
+        eq(lessons.active, true), eq(lessons.published, true), isNull(lessons.deletedAt),
+        eq(learningUnits.active, true), eq(learningUnits.published, true), isNull(learningUnits.deletedAt),
+        courseId === "course-cppg" && !cppgRows?.subjectIds.includes(options.subjectId) ? sql`false` : undefined,
+      )),
+  );
   const rows = await getDb()
     .select({
       id: courseLessons.id,
@@ -888,6 +911,7 @@ export async function listPublishedCourseLessonsForUser(
         isNull(courseLessons.deletedAt),
         eq(contents.status, "PUBLISHED"),
         isNull(contents.deletedAt),
+        subjectScope,
       ),
     )
     .orderBy(asc(courseLessons.sortOrder), asc(courseLessons.displayTitle));
