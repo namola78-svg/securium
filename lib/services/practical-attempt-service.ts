@@ -4,6 +4,7 @@ import {
   type PracticalElevatedReadContext,
 } from "../../db/practical-repositories.ts";
 import { AppError } from "../errors.ts";
+import { requirePracticalServerAuthority } from "../policy/practical-registration-authority.ts";
 import {
   PRACTICAL_JSON_LIMITS,
   createPracticalAttempt,
@@ -64,7 +65,7 @@ export class PracticalAttemptService {
       "RUBRIC_SNAPSHOT_FORMAT_VERSION",
     );
     const snapshot = await digestPracticalJson(input.snapshot);
-    return this.repository.insertRubricVersion({
+    const versionInput = {
       id,
       rubricId,
       version,
@@ -72,7 +73,9 @@ export class PracticalAttemptService {
       snapshotJson: snapshot.canonicalJson,
       snapshotDigest: snapshot.digest,
       effectiveFrom: optionalTimestamp(input.effectiveFrom),
-    });
+    };
+    requirePracticalServerAuthority();
+    return this.repository.insertRubricVersion(versionInput);
   }
 
   async storeDefinitionVersion(
@@ -91,7 +94,7 @@ export class PracticalAttemptService {
       fail("RUBRIC_VERSION_NOT_FOUND", 404);
     }
     const snapshot = await digestPracticalJson(input.snapshot);
-    return this.repository.insertDefinitionVersion({
+    const versionInput = {
       id,
       practicalId,
       version: requirePositiveInteger(input.version, "PRACTICAL_VERSION"),
@@ -103,7 +106,9 @@ export class PracticalAttemptService {
       snapshotJson: snapshot.canonicalJson,
       snapshotDigest: snapshot.digest,
       effectiveFrom: optionalTimestamp(input.effectiveFrom),
-    });
+    };
+    requirePracticalServerAuthority();
+    return this.repository.insertDefinitionVersion(versionInput);
   }
 
   async createAttempt(input: CreateAttemptInput) {

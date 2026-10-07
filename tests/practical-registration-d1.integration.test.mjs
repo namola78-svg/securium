@@ -5,6 +5,7 @@ import { createMiniflareD1Fixture } from "./helpers/miniflare-d1-fixture.mjs";
 import { adaptMigrationForD1 } from "./helpers/adapt-d1-migration.mjs";
 import { D1DatabaseProvider } from "../db/provider/d1-database-provider.ts";
 import { registerGovernedPracticalVersion } from "../lib/practical/practical-registration.ts";
+import { PRACTICAL_SERVER_AUTHORITY_REQUIRED } from "../lib/policy/practical-registration-authority.ts";
 
 const manifestPath = "reports/content-audit/governed-practical-registration-manifest-2026-09-08.json";
 let miniflare;
@@ -41,28 +42,18 @@ after(async () => {
   await miniflare?.dispose();
 });
 
-test("approved Digital Forensics practicals register and replay idempotently in disposable D1", async () => {
-  const firstResults = [];
-  for (const registration of manifest.registrations) {
-    firstResults.push(await registerGovernedPracticalVersion(provider, registration));
+test("historical caller-approved manifest and replay create zero canonical rows in disposable D1", async () => {
+  assert.equal(manifest.registrations.length, 8);
+  for (let replay = 0; replay < 2; replay += 1) {
+    for (const registration of manifest.registrations) {
+      await assert.rejects(() => registerGovernedPracticalVersion(provider, registration), {
+        name: "AppError", code: PRACTICAL_SERVER_AUTHORITY_REQUIRED, status: 503,
+      });
+    }
+    for (const table of ["canonical_practicals", "practical_governance_versions", "practical_rubric_versions", "practical_reviewer_material_versions", "practical_version_concept_bindings"]) {
+      assert.equal(await scalar(`SELECT count(*) AS value FROM ${table}`), 0, table);
+    }
   }
-  assert.equal(firstResults.length, 8);
-  assert.equal(firstResults.filter((result) => result.outcome === "NEW_SUCCESS").length, 8);
-  assert.equal(firstResults.every((result) => result.resolvedConcepts.length === 1), true);
-  assert.equal(firstResults.every((result) => result.resolvedConcepts[0].id === "oc-digital-forensics"), true);
-
-  const replayResults = [];
-  for (const registration of manifest.registrations) {
-    replayResults.push(await registerGovernedPracticalVersion(provider, registration));
-  }
-  assert.equal(replayResults.filter((result) => result.outcome === "EXACT_REPLAY").length, 8);
-
-  assert.equal(await scalar("SELECT count(*) AS value FROM canonical_practicals"), 8);
-  assert.equal(await scalar("SELECT count(*) AS value FROM practical_governance_versions"), 8);
-  assert.equal(await scalar("SELECT count(*) AS value FROM practical_version_concept_bindings"), 8);
-  assert.equal(await scalar("SELECT count(DISTINCT practical_id) AS value FROM practical_governance_versions"), 8);
-  assert.equal(await scalar("SELECT count(DISTINCT practical_version_id) AS value FROM practical_version_concept_bindings"), 8);
-  assert.equal(await scalar("SELECT count(*) AS value FROM practical_version_concept_bindings WHERE concept_id <> 'oc-digital-forensics'"), 0);
   assert.equal(await scalar("SELECT count(*) AS value FROM ontology_concepts"), 1);
   assert.equal(await scalar("SELECT count(*) AS value FROM ontology_aliases"), 1);
 });

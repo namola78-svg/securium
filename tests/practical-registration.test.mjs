@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { PRACTICAL_SERVER_AUTHORITY_REQUIRED } from "../lib/policy/practical-registration-authority.ts";
 import {
   registerGovernedPracticalVersion,
   resolveCanonicalConcept,
@@ -41,6 +42,8 @@ class FakeDatabase {
   constructor() {
     this.transactions = [];
     this.queries = [];
+    this.executions = [];
+    this.repositoryReads = 0;
     this.aliasRows = aliases;
   }
 
@@ -59,6 +62,7 @@ class FakeDatabase {
   }
 
   async queryOne() {
+    this.repositoryReads += 1;
     return null;
   }
 
@@ -67,7 +71,8 @@ class FakeDatabase {
     return statements.map(() => ({ affectedRows: 1, returnedRows: [], metadata: { provider: "d1" } }));
   }
 
-  async execute() {
+  async execute(statement) {
+    this.executions.push(statement);
     return { affectedRows: 1, returnedRows: [], metadata: { provider: "d1" } };
   }
 
@@ -134,17 +139,43 @@ test("ambiguous registered aliases fail closed", async () => {
   assert.equal(db.transactions.length, 0);
 });
 
-test("registration resolves Concepts before using the shared governance transaction", async () => {
+test("valid registration intent resolves Concepts but cannot persist without server authority", async () => {
   const db = new FakeDatabase();
-  const result = await registerGovernedPracticalVersion(db, input());
-  assert.equal(result.outcome, "NEW_SUCCESS");
-  assert.equal(result.practicalId, "practical:digital-forensics:df-l01");
-  assert.equal(result.practicalVersionId, "practical-version:practical:digital-forensics:df-l01:v1");
-  assert.equal(result.resolvedConcepts.length, 1);
-  assert.equal(db.transactions.length, 1);
-  assert.equal(db.transactions[0].filter((statement) => statement.sql.includes("ontology_")).length, 0);
-  assert.equal(db.transactions[0].filter((statement) => statement.sql.includes("practical_version_concept_bindings")).length, 1);
+  await assert.rejects(() => registerGovernedPracticalVersion(db, input()), {
+    name: "AppError", code: PRACTICAL_SERVER_AUTHORITY_REQUIRED, status: 503,
+  });
+  assert.equal(db.queries.length, 1);
+  assert.equal(db.repositoryReads, 0);
+  assert.deepEqual(db.transactions, []);
+  assert.deepEqual(db.executions, []);
 });
+
+const callerClaims = [
+  ["review hashes", { governance: { ...governance, humanReviewHash: "1".repeat(64), safetyReviewHash: "2".repeat(64) } }],
+  ["rights and provenance approvals", { governance: { ...governance, rightsBinding: "APPROVED:ORIGINAL", provenanceBinding: "APPROVED:CURRENT" } }],
+  ["human-approved lifecycle", { governance: { ...governance, lifecycle: "HUMAN_APPROVED" } }],
+  ["canonical-unpublished lifecycle", { governance: { ...governance, lifecycle: "CANONICAL_UNPUBLISHED" } }],
+  ["approved mapping", { conceptCandidates: [{ reference: { conceptKey: "forensics.evidence" }, mappingSource: "caller:approved", mappingStatus: "APPROVED" }] }],
+  ["mutation label", { mutation: "CANONICAL_CONTENT_REGISTRATION", mutationLabel: "APPROVED_PRACTICAL_WRITE" }],
+  ["replay state", { outcome: "EXACT_REPLAY", replay: { accepted: true, authorityId: "caller-authority" } }],
+  ["capability state", { capability: { authorized: true, revoked: false, token: "caller-token" } }],
+  ["theory authority", { authority: { registrationPurpose: "COURSE_THEORY_DRAFT", lifecycle: "APPROVED_ACTIVE" }, authorization: { approved: true } }],
+];
+
+for (const [claim, overrides] of callerClaims) {
+  test(`caller ${claim} cannot authorize practical registration`, async () => {
+    const db = new FakeDatabase();
+    const intent = JSON.parse(JSON.stringify(input(overrides)));
+    for (let replay = 0; replay < 2; replay += 1) {
+      await assert.rejects(() => registerGovernedPracticalVersion(db, intent), {
+        name: "AppError", code: PRACTICAL_SERVER_AUTHORITY_REQUIRED, status: 503,
+      });
+    }
+    assert.equal(db.repositoryReads, 0);
+    assert.deepEqual(db.transactions, []);
+    assert.deepEqual(db.executions, []);
+  });
+}
 
 test("duplicate semantic Concept mappings fail before persistence", async () => {
   const db = new FakeDatabase();

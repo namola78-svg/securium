@@ -1,4 +1,5 @@
 import { AppError } from "../lib/errors.ts";
+import { requirePracticalServerAuthority } from "../lib/policy/practical-registration-authority.ts";
 import {
   PRACTICAL_JSON_LIMITS,
   canonicalizePracticalJson,
@@ -608,6 +609,7 @@ export class PracticalRepository {
   }
 
   private async executeImmutableInsert(statement: DatabaseStatement) {
+    requirePracticalServerAuthority();
     try {
       await this.database.execute(statement);
     } catch (error) {
