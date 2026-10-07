@@ -17,6 +17,10 @@ import {
 import { requireCurrentAppUser } from "@/lib/auth";
 import { listPublishedCourseLessonsForUser } from "@/db/shared-content-repositories";
 import { publicCopy } from "@/lib/public-copy";
+import {
+  filterCppgRowsToCanonicalProjection,
+  getCanonicalCppgLearnerRowIds,
+} from "@/lib/services/cppg-learner-visibility";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -41,10 +45,16 @@ export default async function SubjectPage({
   const enrollment = await getEnrollmentForCourse(user.id, course.id);
   if (!enrollment) redirect(`/courses/${course.slug}`);
 
-  const [topics, canonicalTheory] = await Promise.all([
+  const cppgRows = await getCanonicalCppgLearnerRowIds(course.id);
+  if (!filterCppgRowsToCanonicalProjection(course.id, [subject], cppgRows?.subjectIds ?? null).length) {
+    notFound();
+  }
+
+  const [topicRows, canonicalTheory] = await Promise.all([
     listTopicsForSubject(subject.id),
     listPublishedCourseLessonsForUser(user.id, course.id, { subjectId: subject.id }),
   ]);
+  const topics = filterCppgRowsToCanonicalProjection(course.id, topicRows, cppgRows?.topicIds ?? null);
   const hasCanonicalTheory = canonicalTheory.totalLessons > 0;
   const [learningUnits, theoryProgress] = hasCanonicalTheory
     ? [canonicalTheory.lessons.map((lesson) => ({
