@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { createPublicCourseOutlineAdapter } from "../lib/services/public-course-outline-adapter.ts";
 import {
+  createPublicCourseSearchAdapter,
   PUBLIC_COURSE_SEARCH_CONTRACT_VERSION,
   type PublicCourseSearchResult,
 } from "../lib/services/public-course-search-adapter.ts";
@@ -9,10 +11,18 @@ import {
   composePublicDiscoveryPresentation,
   type PublicDiscoveryPresentation,
 } from "../lib/services/public-discovery-presentation.ts";
+import { createPublicDiscoverySelectionService } from "../lib/services/public-discovery-selection.ts";
 import {
+  formatPublicSourceDisclosure,
   PUBLIC_SOURCE_DISCLOSURE_MISSING_NOTICE,
   PUBLIC_SOURCE_DISCLOSURE_PROJECTION_KIND,
 } from "../lib/services/public-source-disclosure.ts";
+import {
+  SYNTHETIC_COURSE_ID,
+  SYNTHETIC_COURSE_SLUG,
+  SYNTHETIC_SEARCH_DESCRIPTION,
+  SyntheticPublicDiscoveryRepository,
+} from "../verification/public-discovery-offline-evaluation/fixtures.ts";
 
 const searchSummary = {
   id: "course-a",
@@ -211,6 +221,54 @@ test("successful selection composes the public outline with the existing formatt
   });
 });
 
+test("actual search, outline, and selection outputs compose into the public presentation", async () => {
+  const repository = new SyntheticPublicDiscoveryRepository();
+  const searchAdapter = createPublicCourseSearchAdapter(repository);
+  const selectionService = createPublicDiscoverySelectionService(
+    createPublicCourseOutlineAdapter(repository),
+  );
+  const search = await searchAdapter.searchPublicCourses({ query: "synthetic", limit: 8 });
+  assert.equal(search.status, "OK");
+  const selected = search.results[0];
+  assert.ok(selected);
+  assert.equal(selected.id, SYNTHETIC_COURSE_ID);
+  assert.equal(selected.slug, SYNTHETIC_COURSE_SLUG);
+
+  const searchPresentation = composePublicDiscoveryPresentation({
+    source: "SEARCH_RESULT",
+    result: search,
+  });
+  assert.equal(searchPresentation.kind, "SEARCH_RESULT");
+  assert.deepEqual(searchPresentation.search, search);
+  assert.equal(searchPresentation.outline, null);
+  assert.equal(searchPresentation.guidance.category, "SEARCH_RESULTS");
+  assert.equal(searchPresentation.disclosure, null);
+
+  const selection = await selectionService.getSelectedCourseOutline({
+    courseId: selected.id,
+    courseSlug: selected.slug,
+  });
+  assert.equal(selection.status, "OK");
+  const presentation = composePublicDiscoveryPresentation({
+    source: "SELECTION_RESULT",
+    result: selection,
+    sourceProjection: fullSourceProjection,
+  });
+  assert.equal(presentation.kind, "SELECTION_RESULT");
+  assert.equal(presentation.search, null);
+  assert.deepEqual(presentation.outline, selection);
+  assert.equal(presentation.outline?.course.id, selected.id);
+  assert.equal(presentation.outline?.course.slug, selected.slug);
+  assert.equal(presentation.outline?.course.description, SYNTHETIC_SEARCH_DESCRIPTION);
+  assert.equal(presentation.guidance.category, "OUTLINE_READY");
+  assert.deepEqual(presentation.guidance.actions, []);
+  assert.deepEqual(presentation.disclosure, formatPublicSourceDisclosure(fullSourceProjection));
+  assert.doesNotMatch(
+    JSON.stringify({ searchPresentation, presentation }),
+    /SYNTHETIC_(?:INTERNAL|PERSONAL)_|"(?:passingScore|questionCount|active|published|deletedAt)"/,
+  );
+});
+
 test("an empty outline remains successful and keeps the disclosure contract", () => {
   let projectionReads = 0;
   const projection = {};
@@ -277,7 +335,7 @@ test("selection failure does not call the disclosure formatter even when project
   assert.equal(projectionReads, 0);
 });
 
-test("absent, partial, and malformed source projections use the existing disclosure formatter contract", () => {
+test("incomplete source disclosure preserves successful outline and guidance", () => {
   const absent = composePublicDiscoveryPresentation({
     source: "SELECTION_RESULT",
     result: successfulOutline,
@@ -292,6 +350,10 @@ test("absent, partial, and malformed source projections use the existing disclos
       officialSource: {
         institutionName: "Known institution",
         documentTitle: "Known document",
+        updatedAt: "2026-09-12T00:00:00.000Z",
+        published: true,
+        validatorPassed: true,
+        sourceHash: "a".repeat(64),
       },
       securiumExplanation: { scope: "Independent explanation" },
     },
@@ -326,6 +388,16 @@ test("absent, partial, and malformed source projections use the existing disclos
   });
   assertEmptyDisclosure(malformed);
   assert.doesNotMatch(JSON.stringify(malformed), /PRIVATE_SOURCE_SENTINEL|PRIVATE_NOTE_SENTINEL/);
+
+  for (const presentation of [absent, partial, malformed]) {
+    assert.equal(presentation.kind, "SELECTION_RESULT");
+    assert.equal(presentation.search, null);
+    assert.equal(presentation.outline?.status, "OK");
+    assert.deepEqual(presentation.outline, successfulOutline);
+    assert.equal(presentation.guidance.category, "OUTLINE_READY");
+    assert.deepEqual(presentation.guidance.actions, []);
+    assert.deepEqual(presentation.guidance, absent.guidance);
+  }
 });
 
 test("malformed inputs and result envelopes fail closed without promoting success", () => {
@@ -382,35 +454,74 @@ test("malformed inputs and result envelopes fail closed without promoting succes
   );
 });
 
-test("A success, failure, and B success are independent calls rather than stored view state", () => {
+test("A success, A failure, B success, and repeated B isolate source disclosure", () => {
+  const secondOutline = {
+    ...successfulOutline,
+    course: {
+      ...successfulOutline.course,
+      id: "course-b",
+      slug: "public-course-b",
+      code: "PUB-B",
+      name: "Public course B",
+      shortName: "Course B",
+    },
+    subjects: [{
+      ...outlineSubject,
+      id: "subject-b",
+      courseId: "course-b",
+      code: "SUB-B",
+      name: "Public subject B",
+      topics: [{
+        ...outlineTopic,
+        id: "topic-b",
+        subjectId: "subject-b",
+        code: "TOP-B",
+        name: "Public topic B",
+      }],
+    }],
+  };
+  const secondProjection = {
+    projectionKind: PUBLIC_SOURCE_DISCLOSURE_PROJECTION_KIND,
+    officialSource: {
+      institutionName: "Course B Standards Body",
+      documentTitle: "Course B Standard",
+      sourceUrl: "https://standards.example/course-b",
+      sourceCheckedAt: "2026-09-13",
+    },
+    securiumExplanation: { scope: "Course B independent explanation" },
+  };
+  const projectionsBefore = structuredClone([fullSourceProjection, secondProjection]);
   const first = composePublicDiscoveryPresentation({
-    source: "SEARCH_RESULT",
-    result: searchResult,
+    source: "SELECTION_RESULT",
+    result: successfulOutline,
+    sourceProjection: fullSourceProjection,
   });
   const failure = composePublicDiscoveryPresentation({
     source: "SELECTION_RESULT",
-    result: { status: "SELECTION_ERROR", code: "IDENTITY_MISMATCH" },
+    result: { status: "NOT_FOUND" },
+    sourceProjection: fullSourceProjection,
   });
-  const secondResult: PublicCourseSearchResult = {
-    ...searchResult,
-    results: [{
-      ...searchSummary,
-      id: "course-b",
-      slug: "public-course-b",
-      name: "Public course B",
-    }],
+  const secondInput = {
+    source: "SELECTION_RESULT" as const,
+    result: secondOutline,
+    sourceProjection: secondProjection,
   };
-  const second = composePublicDiscoveryPresentation({
-    source: "SEARCH_RESULT",
-    result: secondResult,
-  });
+  const second = composePublicDiscoveryPresentation(secondInput);
+  const repeated = composePublicDiscoveryPresentation(secondInput);
 
-  assert.equal(first.search?.results[0]?.id, "course-a");
+  assert.deepEqual(first.outline, successfulOutline);
+  assert.deepEqual(first.disclosure, formatPublicSourceDisclosure(fullSourceProjection));
   assert.equal(failure.outline, null);
   assert.equal(failure.disclosure, null);
-  assert.equal(second.search?.results[0]?.id, "course-b");
-  assert.equal(JSON.stringify(second).includes("course-a"), false);
-  assert.equal(JSON.stringify(second).includes("Public course B"), true);
+  assert.equal(failure.guidance.category, "COURSE_UNAVAILABLE");
+  assert.deepEqual(second.outline, secondOutline);
+  assert.deepEqual(second.disclosure, formatPublicSourceDisclosure(secondProjection));
+  assert.doesNotMatch(
+    JSON.stringify(second),
+    /course-a|subject-a|topic-a|National Standards Body|Public Security Standard|public-security-standard/,
+  );
+  assert.deepEqual(repeated, second);
+  assert.deepEqual([fullSourceProjection, secondProjection], projectionsBefore);
 });
 
 test("equal inputs are deterministic, input objects remain unchanged, and sentinels are not copied", () => {
