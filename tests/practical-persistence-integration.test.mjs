@@ -5,6 +5,8 @@ import { createMiniflareD1Fixture } from "./helpers/miniflare-d1-fixture.mjs";
 import { PracticalRepository } from "../db/practical-repositories.ts";
 import { D1DatabaseProvider } from "../db/provider/d1-database-provider.ts";
 import { PracticalAttemptService } from "../lib/services/practical-attempt-service.ts";
+import { digestPracticalJson } from "../lib/practical/practical-attempt.ts";
+import { PRACTICAL_SERVER_AUTHORITY_REQUIRED } from "../lib/policy/practical-registration-authority.ts";
 
 let miniflare;
 let database;
@@ -77,14 +79,14 @@ test("SW-P1A I01 fresh D1 migration creates exactly four P1A tables with foreign
   }
 });
 
-test("SW-P1A I02 rubric and definition versions enforce immutable compatible identities", async () => {
-  const rubric = await service.storeRubricVersion({
+test("SW-P1A I02 legacy registration denies writes; synthetic existing versions retain reads and constraints", async () => {
+  const rubricIntent = {
     id: rubricVersionId,
     rubricId,
     version: 1,
     snapshot: { dimensions: [{ key: "core:detection" }] },
-  });
-  const definition = await service.storeDefinitionVersion({
+  };
+  const definitionIntent = {
     id: practicalVersionId,
     practicalId,
     version: 1,
@@ -94,21 +96,39 @@ test("SW-P1A I02 rubric and definition versions enforce immutable compatible ide
       supportingObjectiveIds: [],
       responseSpec,
     },
-  });
+  };
+  const rubricSnapshot = await digestPracticalJson(rubricIntent.snapshot);
+  const definitionSnapshot = await digestPracticalJson(definitionIntent.snapshot);
+  const rubricInput = { ...rubricIntent, snapshotFormatVersion: 1, snapshotJson: rubricSnapshot.canonicalJson, snapshotDigest: rubricSnapshot.digest, effectiveFrom: null };
+  const definitionInput = { ...definitionIntent, snapshotFormatVersion: 1, snapshotJson: definitionSnapshot.canonicalJson, snapshotDigest: definitionSnapshot.digest, effectiveFrom: null };
+  await assert.rejects(service.storeRubricVersion(rubricIntent), hasCode(PRACTICAL_SERVER_AUTHORITY_REQUIRED));
+  await assert.rejects(repository.insertRubricVersion(rubricInput), hasCode(PRACTICAL_SERVER_AUTHORITY_REQUIRED));
+  await assert.rejects(repository.insertDefinitionVersion(definitionInput), hasCode(PRACTICAL_SERVER_AUTHORITY_REQUIRED));
+  assert.equal(await scalar("SELECT count(*) AS value FROM practical_rubric_versions"), 0);
+  assert.equal(await scalar("SELECT count(*) AS value FROM practical_definition_versions"), 0);
+  // Test-only pre-existing rows support the unchanged attempt/evaluation flow;
+  // fixture setup is not affirmative practical authority.
+  await database.batch([
+    database.prepare("INSERT INTO practical_rubric_versions (id, rubric_id, version, snapshot_format_version, snapshot_json, snapshot_digest) VALUES (?, ?, 1, 1, ?, ?)")
+      .bind(rubricVersionId, rubricId, rubricSnapshot.canonicalJson, rubricSnapshot.digest),
+    database.prepare("INSERT INTO practical_definition_versions (id, practical_id, version, rubric_version_id, snapshot_format_version, snapshot_json, snapshot_digest) VALUES (?, ?, 1, ?, 1, ?, ?)")
+      .bind(practicalVersionId, practicalId, rubricVersionId, definitionSnapshot.canonicalJson, definitionSnapshot.digest),
+  ]);
+  const rubric = await repository.getRubricVersion(rubricVersionId);
+  const definition = await repository.getDefinitionVersion(practicalVersionId);
   assert.match(rubric.snapshotDigest, /^[0-9a-f]{64}$/);
   assert.match(definition.snapshotDigest, /^[0-9a-f]{64}$/);
-  await assert.rejects(
-    service.storeRubricVersion({
-      id: `${rubricVersionId}-duplicate`,
-      rubricId,
-      version: 1,
-      snapshot: { dimensions: [] },
-    }),
-  );
+  await assert.rejects(service.storeRubricVersion(rubricIntent), hasCode(PRACTICAL_SERVER_AUTHORITY_REQUIRED));
+  await assert.rejects(service.storeDefinitionVersion(definitionIntent), hasCode(PRACTICAL_SERVER_AUTHORITY_REQUIRED));
+  await assert.rejects(repository.insertRubricVersion(rubricInput), hasCode(PRACTICAL_SERVER_AUTHORITY_REQUIRED));
+  await assert.rejects(repository.insertDefinitionVersion(definitionInput), hasCode(PRACTICAL_SERVER_AUTHORITY_REQUIRED));
+  await assert.rejects(database.prepare("INSERT INTO practical_rubric_versions (id, rubric_id, version, snapshot_json, snapshot_digest) VALUES (?, ?, 1, '{}', ?)")
+    .bind(`${rubricVersionId}-duplicate`, rubricId, "a".repeat(64)).run());
   assert.equal(
     await scalar("SELECT count(*) AS value FROM practical_rubric_versions"),
     1,
   );
+  assert.equal(await scalar("SELECT count(*) AS value FROM practical_definition_versions"), 1);
   await assert.rejects(rawAttemptInsert("fk-user", "missing-user", practicalVersionId, rubricVersionId));
   await assert.rejects(rawAttemptInsert("fk-definition", "user-a", "missing-definition", rubricVersionId));
   await assert.rejects(rawAttemptInsert("fk-rubric", "user-a", practicalVersionId, "missing-rubric"));

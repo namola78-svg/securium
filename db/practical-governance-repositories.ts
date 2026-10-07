@@ -1,4 +1,5 @@
 import type { DatabaseProvider, DatabaseStatement } from "./provider/database-provider.ts";
+import { requirePracticalServerAuthority } from "../lib/policy/practical-registration-authority.ts";
 import {
   assertReviewerOnlyVisibility,
   comparePracticalGovernanceReplay,
@@ -26,6 +27,8 @@ export class PracticalGovernanceRepository {
     const governed = semanticInput === undefined ? null : validateGovernedEvaluationV1(semanticInput, input.evaluationSemanticHash);
     const persistedInput: PracticalGovernanceInput = governed ? { ...input, evaluationSemanticHash: governed.evaluationSemanticHash, rubricSnapshotJson: governed.canonicalPayload, rubricSnapshotDigest: governed.snapshotDigest } : input;
     validatePracticalGovernanceInput(persistedInput);
+    // Direct entry and exact replay require the same server authority as registration.
+    requirePracticalServerAuthority();
     const existing = await this.database.queryOne<Record<string, unknown>>({
       sql: `SELECT p.id AS practical_id, v.id AS version_id, v.version, v.semantic_hash, v.human_review_hash,
         v.safety_review_hash, v.concept_mapping_hash, r.evaluation_semantic_hash
@@ -119,6 +122,7 @@ export class PracticalGovernanceRepository {
 
   async transitionLifecycle(practicalVersionId: string, from: PracticalGovernanceLifecycle, to: PracticalGovernanceLifecycle) {
     validateLifecycleTransition({ from, to });
+    requirePracticalServerAuthority();
     const result = await this.database.execute({
       sql: `UPDATE practical_governance_versions SET lifecycle = ? WHERE id = ? AND lifecycle = ?`,
       parameters: [to, practicalVersionId, from],
@@ -127,6 +131,7 @@ export class PracticalGovernanceRepository {
   }
 
   async supersedeVersion(previousVersionId: string, replacementVersionId: string) {
+    requirePracticalServerAuthority();
     const result = await this.database.execute({
       sql: `UPDATE practical_governance_versions
         SET lifecycle = 'SUPERSEDED', superseded_by_id = ?

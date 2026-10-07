@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { createRuntimeDatabaseProvider } from "../db/provider/provider-factory.ts";
 import { registerGovernedPracticalVersion } from "../lib/practical/practical-registration.ts";
+import { PRACTICAL_SERVER_AUTHORITY_REQUIRED, requirePracticalServerAuthority } from "../lib/policy/practical-registration-authority.ts";
 
 const args = new Set(process.argv.slice(2));
 const manifestFlag = process.argv.indexOf("--manifest");
@@ -29,14 +30,17 @@ if (!Array.isArray(manifest.registrations) || manifest.registrations.length === 
 if (!apply) {
   console.log(JSON.stringify({
     mode: "DRY_RUN",
-    authority: manifest.authority,
+    authority: "NOT_GRANTED",
+    denialCode: PRACTICAL_SERVER_AUTHORITY_REQUIRED,
     registrationCount: manifest.registrations.length,
     writes: 0,
-    nextStep: "Use --apply --nonprod only with a reviewed manifest and an approved non-production provider.",
+    nextStep: "Practical apply is blocked until compatible server-owned practical authority is available.",
   }, null, 2));
   process.exit(0);
 }
 
+// Deny before provider initialization; reviewed manifests and --nonprod are not authority.
+requirePracticalServerAuthority();
 const database = await createRuntimeDatabaseProvider(process.env);
 const results = [];
 for (const registration of manifest.registrations) {

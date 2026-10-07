@@ -1,5 +1,6 @@
 import type { DatabaseProvider } from "../../db/provider/database-provider.ts";
 import { PracticalGovernanceRepository } from "../../db/practical-governance-repositories.ts";
+import { requirePracticalServerAuthority } from "../policy/practical-registration-authority.ts";
 import {
   hashPracticalGovernanceSemantics,
   stableGovernanceJson,
@@ -257,10 +258,9 @@ function buildBinding(
 }
 
 /**
- * Register one approved practical version through the existing shared
- * governance repository. Canonical concept resolution completes before the
- * repository is called, so unresolved or ambiguous references cause zero
- * practical/version/binding writes.
+ * Validate a practical registration intent without treating its governance
+ * claims as approval. Persistence remains denied until Runtime Authority
+ * supports server-owned practical authorization.
  */
 export async function registerGovernedPracticalVersion(
   database: DatabaseProvider,
@@ -298,6 +298,7 @@ export async function registerGovernedPracticalVersion(
     conceptBindings: bindings,
   };
   validatePracticalGovernanceInput(governanceInput);
+  requirePracticalServerAuthority();
   const result = await new PracticalGovernanceRepository(database).createGovernedPractical(
     governanceInput,
   );
