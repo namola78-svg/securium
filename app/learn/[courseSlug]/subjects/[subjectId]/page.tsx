@@ -21,6 +21,10 @@ import {
   filterCppgRowsToCanonicalProjection,
   getCanonicalCppgLearnerRowIds,
 } from "@/lib/services/cppg-learner-visibility";
+import {
+  filterCppgRowsToCanonicalProjection,
+  getCanonicalCppgLearnerRowIds,
+} from "@/lib/services/cppg-learner-visibility";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -42,6 +46,10 @@ export default async function SubjectPage({
     getSubjectById(resolvedSubjectId),
   ]);
   if (!course || !subject || subject.courseId !== course.id) notFound();
+  const cppgRows = course.id === "course-cppg"
+    ? await getCanonicalCppgLearnerRowIds(course.id)
+    : null;
+  if (course.id === "course-cppg" && (!cppgRows || !cppgRows.subjectIds.includes(subject.id))) notFound();
   const enrollment = await getEnrollmentForCourse(user.id, course.id);
   if (!enrollment) redirect(`/courses/${course.slug}`);
 
