@@ -57,6 +57,14 @@ function nowIso() {
   return new Date().toISOString();
 }
 
+function rejectLegacyQuestionRevisionPublication(): never {
+  throw new AppError(
+    "Question semantic changes require an explicit governed question version operation.",
+    409,
+    "QUESTION_GOVERNED_VERSION_REQUIRED",
+  );
+}
+
 function assertContentType(value: string): asserts value is ContentRevisionType {
   if (!CONTENT_REVISION_TYPES.includes(value as ContentRevisionType)) {
     throw new AppError(
@@ -648,14 +656,7 @@ function applySnapshot(
         })
         .where(eq(lessons.id, contentId));
     case "QUESTION_EXPLANATION":
-      return getDb()
-        .update(questions)
-        .set({
-          ...(snapshot as Partial<typeof questions.$inferInsert>),
-          sourceDate: revision.contentDate,
-          updatedAt,
-        })
-        .where(eq(questions.id, contentId));
+      return rejectLegacyQuestionRevisionPublication();
     case "AUDIO_CONTENT":
       return getDb()
         .update(audioContents)
@@ -748,6 +749,10 @@ export async function publishContentRevision(
   }
   if (courseIdentities.length === 0) {
     assertGenericCppgStatusPublicationAllowed({}, revision.revisionStatus, "published", "published");
+  }
+  // These legacy snapshots cannot advance or rebind the governed question version.
+  if (revision.contentType === "QUESTION_EXPLANATION") {
+    rejectLegacyQuestionRevisionPublication();
   }
   const snapshot = parseRevisionSnapshot(revision.snapshotJson);
   const existing = await getLatestPublishedRevision(
