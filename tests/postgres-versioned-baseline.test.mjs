@@ -58,6 +58,77 @@ async function establishInitialConnectivity({ connect, verify, sleep = (ms) => n
   throw new Error("Initial PostgreSQL connectivity attempts were exhausted.");
 }
 
+const DIAGNOSTIC_DOCKER_MAX_CHARS = 1024;
+const DIAGNOSTIC_LOG_MAX_CHARS = 4096;
+const DIAGNOSTIC_ERROR_MAX_CHARS = 512;
+
+function diagnosticText(value, maxChars, tail = false) {
+  let text = String(value ?? "");
+  const secrets = [password, ...Object.entries(process.env)
+    .filter(([name]) => /password|token|secret|credential|authorization|(?:database|direct)_url|api_?key/i.test(name))
+    .map(([, secret]) => secret)].filter(Boolean).sort((a, b) => b.length - a.length);
+  for (const secret of secrets) {
+    text = text.replaceAll(secret, "[REDACTED]").replaceAll(encodeURIComponent(secret), "[REDACTED]");
+  }
+  // Redact before truncation so a boundary cannot expose part of a credential.
+  text = text
+    .replace(/\b[a-z][a-z0-9+.-]*:\/\/[^\s"'<>]+/gi, "[REDACTED_URL]")
+    .replace(/\b(?:Basic|Bearer)\s+[^\s"',;]+/gi, "[REDACTED]")
+    .replace(/["']?(?:[a-z0-9_-]*(?:password|token|secret|credentials?)|DATABASE_URL|DIRECT_URL|api[_-]?key|authorization)["']?\s*[:=]\s*(?:"[^"]*"|'[^']*'|[^\s,;]+)/gi, "[REDACTED]")
+    .replace(/(?:[a-z]:[\\/]|\/)[^\s"'<>]+/gi, "[REDACTED_PATH]");
+  return tail ? text.slice(-maxChars) : text.slice(0, maxChars);
+}
+
+async function withStartupFailureDiagnostics(stage, operation, {
+  attemptCount = () => 1,
+  run = execFile,
+  emit = (message) => console.error(message),
+} = {}) {
+  try {
+    return await operation();
+  } catch (error) {
+    try {
+      const docker = Object.fromEntries(await Promise.all([
+        ["containerState", ["inspect", "--format", '{"running":{{.State.Running}},"status":{{json .State.Status}},"exitCode":{{.State.ExitCode}},"imageTag":{{json .Config.Image}},"imageId":{{json .Image}}}', container], DIAGNOSTIC_DOCKER_MAX_CHARS],
+        ["mappedPort", ["port", container, "5432/tcp"], DIAGNOSTIC_DOCKER_MAX_CHARS],
+        ["pgIsready", ["exec", container, "pg_isready", "-U", "postgres"], DIAGNOSTIC_DOCKER_MAX_CHARS],
+        ["postgresLogTail", ["logs", "--tail", "40", container], DIAGNOSTIC_LOG_MAX_CHARS],
+      ].map(async ([name, args, maxChars]) => {
+        let result;
+        let status = { exitCode: 0 };
+        try {
+          result = await run("docker", args, { timeout: 3000, maxBuffer: 16 * 1024 });
+        } catch (commandError) {
+          result = commandError;
+          status = {
+            exitCode: Number.isInteger(commandError?.code) ? commandError.code : null,
+            errorCode: diagnosticText(commandError?.code, 64) || null,
+            errorMessage: diagnosticText(commandError?.message, DIAGNOSTIC_ERROR_MAX_CHARS),
+            killed: commandError?.killed === true,
+          };
+        }
+        return [name, {
+          ...status,
+          stdout: diagnosticText(result?.stdout, maxChars, name === "postgresLogTail"),
+          stderr: diagnosticText(result?.stderr, maxChars, name === "postgresLogTail"),
+        }];
+      })));
+      await emit(JSON.stringify({
+        event: "BASE01_STARTUP_FAILURE",
+        stage,
+        attemptCount: attemptCount(),
+        finalErrorCode: diagnosticText(error?.code, 64) || null,
+        errorMessage: diagnosticText(error?.message, DIAGNOSTIC_ERROR_MAX_CHARS),
+        image: "postgres:17.6",
+        docker,
+      }));
+    } catch {
+      // Best-effort diagnostics must preserve the original error and cleanup.
+    }
+    throw error;
+  }
+}
+
 test.before(async () => {
   await execFile("docker", ["run", "--detach", "--rm", "--name", container, "--env", `POSTGRES_PASSWORD=${password}`, "--publish", "127.0.0.1::5432", "postgres:17.6"]);
   let readinessSucceeded = false;
@@ -65,7 +136,7 @@ test.before(async () => {
     try { await execFile("docker", ["exec", container, "pg_isready", "-U", "postgres"]); readinessSucceeded = true; break; }
     catch { await new Promise((resolve) => setTimeout(resolve, 500)); }
   }
-  requireReadinessSucceeded(readinessSucceeded);
+  await withStartupFailureDiagnostics("readiness", () => requireReadinessSucceeded(readinessSucceeded), { attemptCount: () => 60 });
   const portOutput = await execFile("docker", ["port", container, "5432/tcp"]).catch(async () => {
     await execFile("docker", ["stop", container]);
     throw new Error("Docker port mapping was unavailable.");
@@ -73,11 +144,12 @@ test.before(async () => {
   port = portOutput.stdout.trim().match(/:(\d+)$/)?.[1];
   assert.ok(port);
   const postgres = (await import("postgres")).default;
-  sql = await establishInitialConnectivity({
+  let connectivityAttempts = 0;
+  sql = await withStartupFailureDiagnostics("initial-connectivity", () => establishInitialConnectivity({
     connect: () => postgres(`postgres://postgres:${password}@127.0.0.1:${port}/postgres`, { max: 1, prepare: false, ssl: false, onnotice: false }),
-    verify: (candidate) => candidate`SELECT 1`,
-  });
-  await sql`CREATE ROLE anon NOLOGIN`;
+    verify: (candidate) => { connectivityAttempts += 1; return candidate`SELECT 1`; },
+  }), { attemptCount: () => connectivityAttempts });
+  await withStartupFailureDiagnostics("first-mutation", () => sql`CREATE ROLE anon NOLOGIN`);
   await sql`CREATE ROLE authenticated NOLOGIN`;
   await sql`CREATE ROLE service_role NOLOGIN`;
   ({ artifact, manifest } = await validateBaselineFiles());
@@ -172,6 +244,284 @@ test("BASE-06 semantic SQL errors are not retried as transport transients", asyn
 test("BASE-06A readiness exhaustion fails before SQL connectivity", () => {
   assert.throws(() => requireReadinessSucceeded(false), /readiness checks exhausted/);
   assert.doesNotThrow(() => requireReadinessSucceeded(true));
+});
+
+const diagnosticFixtureSecrets = [
+  password, "fixture-url-password", "fixture-token", "fixture-bearer-token",
+  "fixture-api-key", "fixture-credential", "fixture.invalid",
+  "C:\\Users\\fixture\\private.env", "/home/fixture/private.env",
+];
+const unsafeDiagnosticFixture = password + " DATABASE_URL=postgresql://fixture:fixture-url-password@fixture.invalid/db"
+  + " DIRECT_URL='postgresql://fixture:fixture-url-password@fixture.invalid/db'"
+  + ' {"token":"fixture-token","api_key":"fixture-api-key","credentials":"fixture-credential"}'
+  + " Authorization: Bearer fixture-bearer-token C:\\Users\\fixture\\private.env /home/fixture/private.env";
+
+function startupDiagnosticFixture({ failCommands = false } = {}) {
+  const messages = [];
+  const calls = [];
+  return {
+    messages, calls,
+    emit: (message) => { messages.push(message); },
+    run: async (file, args, options) => {
+      calls.push({ file, args, options });
+      const streams = {
+        stdout: "fixture stdout " + unsafeDiagnosticFixture + " " + "x".repeat(10_000) + " final stdout " + unsafeDiagnosticFixture,
+        stderr: "fixture stderr " + unsafeDiagnosticFixture + " " + "y".repeat(10_000) + " final stderr " + unsafeDiagnosticFixture,
+      };
+      if (failCommands) throw Object.assign(new Error(unsafeDiagnosticFixture.repeat(20)), { code: 1, ...streams });
+      return streams;
+    },
+  };
+}
+
+function readSafeDiagnosticFixture(fixture) {
+  assert.equal(fixture.messages.length, 1);
+  for (const secret of diagnosticFixtureSecrets) assert.equal(fixture.messages[0].includes(secret), false);
+  return JSON.parse(fixture.messages[0]);
+}
+
+test("DIAG-01 credentials, URLs and host paths are redacted before output is bounded", () => {
+  const redacted = diagnosticText(unsafeDiagnosticFixture, DIAGNOSTIC_DOCKER_MAX_CHARS);
+  for (const secret of diagnosticFixtureSecrets) assert.equal(redacted.includes(secret), false);
+  assert.match(redacted, /\[REDACTED\]/);
+  const boundary = diagnosticText("x".repeat(25) + password, 30);
+  assert.equal(boundary.length, 30);
+  assert.equal(boundary.includes(password.slice(0, 5)), false);
+  assert.equal(diagnosticText("z".repeat(10_000), DIAGNOSTIC_ERROR_MAX_CHARS).length, DIAGNOSTIC_ERROR_MAX_CHARS);
+});
+
+test("DIAG-02 readiness exhaustion emits one bounded block with both streams before cleanup", async () => {
+  const fixture = startupDiagnosticFixture();
+  let original;
+  let cleaned = false;
+  await assert.rejects(withStartupFailureDiagnostics("readiness", () => {
+    try { requireReadinessSucceeded(false); }
+    catch (error) { original = error; throw error; }
+  }, {
+    ...fixture,
+    attemptCount: () => 60,
+    emit: (message) => { assert.equal(cleaned, false); fixture.emit(message); },
+    run: async (file, args, options) => {
+      const streams = await fixture.run(file, args, options);
+      if (args[0] === "exec") throw Object.assign(new Error("fixture not ready"), { code: 2, ...streams });
+      return streams;
+    },
+  }).finally(() => { cleaned = true; }), (error) => error === original);
+  const block = readSafeDiagnosticFixture(fixture);
+  assert.equal(cleaned, true);
+  assert.equal(block.stage, "readiness");
+  assert.equal(block.attemptCount, 60);
+  assert.match(block.errorMessage, /readiness checks exhausted/);
+  assert.equal(block.docker.pgIsready.exitCode, 2);
+  assert.equal(fixture.calls.length, 4);
+  for (const { file, args, options } of fixture.calls) {
+    assert.equal(file, "docker");
+    assert.equal(options.timeout, 3000);
+    assert.equal(options.maxBuffer, 16 * 1024);
+    assert.equal(args.join(" ").includes(".Env"), false);
+  }
+  for (const [name, output] of Object.entries(block.docker)) {
+    const maxChars = name === "postgresLogTail" ? DIAGNOSTIC_LOG_MAX_CHARS : DIAGNOSTIC_DOCKER_MAX_CHARS;
+    assert.ok(output.stdout.length <= maxChars);
+    assert.ok(output.stderr.length <= maxChars);
+    assert.match(output.stdout, /stdout/);
+    assert.match(output.stderr, /stderr/);
+  }
+  assert.match(block.docker.postgresLogTail.stdout, /final stdout/);
+  assert.match(block.docker.postgresLogTail.stderr, /final stderr/);
+});
+
+test("DIAG-03 initial connectivity exhaustion emits only after the existing bounded retry", async () => {
+  const fixture = startupDiagnosticFixture();
+  const original = Object.assign(new Error("fixture socket reset"), { code: "ECONNRESET" });
+  let attempts = 0;
+  let closed = 0;
+  await assert.rejects(withStartupFailureDiagnostics("initial-connectivity", () => establishInitialConnectivity({
+    connect: () => ({ end: async () => { closed += 1; } }),
+    verify: async () => { attempts += 1; throw original; },
+    sleep: async () => {},
+  }), { ...fixture, attemptCount: () => attempts }), (error) => error === original);
+  const block = readSafeDiagnosticFixture(fixture);
+  assert.equal(attempts, INITIAL_CONNECTIVITY_MAX_ATTEMPTS);
+  assert.equal(closed, INITIAL_CONNECTIVITY_MAX_ATTEMPTS);
+  assert.equal(block.stage, "initial-connectivity");
+  assert.equal(block.attemptCount, INITIAL_CONNECTIVITY_MAX_ATTEMPTS);
+  assert.equal(block.finalErrorCode, "ECONNRESET");
+});
+
+test("DIAG-04 first mutation failure is diagnosed once without retrying mutation", async () => {
+  const fixture = startupDiagnosticFixture();
+  const original = Object.assign(new Error("fixture permission denied"), { code: "42501" });
+  let mutations = 0;
+  await assert.rejects(withStartupFailureDiagnostics("first-mutation", () => {
+    mutations += 1;
+    throw original;
+  }, fixture), (error) => error === original);
+  const block = readSafeDiagnosticFixture(fixture);
+  assert.equal(mutations, 1);
+  assert.equal(block.stage, "first-mutation");
+  assert.equal(block.attemptCount, 1);
+  assert.equal(block.finalErrorCode, "42501");
+});
+
+test("DIAG-05 success including a recovered connectivity reset collects and emits nothing", async () => {
+  const fixture = startupDiagnosticFixture();
+  await withStartupFailureDiagnostics("readiness", () => requireReadinessSucceeded(true), fixture);
+  let attempts = 0;
+  const candidate = { end: async () => {} };
+  const result = await withStartupFailureDiagnostics("initial-connectivity", () => establishInitialConnectivity({
+    connect: () => candidate,
+    verify: async () => {
+      attempts += 1;
+      if (attempts === 1) throw Object.assign(new Error("fixture reset"), { code: "ECONNRESET" });
+    },
+    sleep: async () => {},
+  }), fixture);
+  assert.equal(result, candidate);
+  assert.equal(attempts, 2);
+  assert.equal(await withStartupFailureDiagnostics("first-mutation", () => "fixture result", fixture), "fixture result");
+  assert.deepEqual(fixture.calls, []);
+  assert.deepEqual(fixture.messages, []);
+});
+
+test("DIAG-06 all failed diagnostic commands retain bounded streams and the original error", async () => {
+  const fixture = startupDiagnosticFixture({ failCommands: true });
+  const original = Object.assign(new Error(unsafeDiagnosticFixture.repeat(20)), { code: "ECONNREFUSED" });
+  await assert.rejects(withStartupFailureDiagnostics("initial-connectivity", () => { throw original; }, fixture), (error) => error === original);
+  const block = readSafeDiagnosticFixture(fixture);
+  assert.equal(block.finalErrorCode, "ECONNREFUSED");
+  assert.ok(block.errorMessage.length <= DIAGNOSTIC_ERROR_MAX_CHARS);
+  assert.equal(original.message, unsafeDiagnosticFixture.repeat(20));
+  for (const [name, output] of Object.entries(block.docker)) {
+    const maxChars = name === "postgresLogTail" ? DIAGNOSTIC_LOG_MAX_CHARS : DIAGNOSTIC_DOCKER_MAX_CHARS;
+    assert.equal(output.exitCode, 1);
+    assert.ok(output.errorMessage.length <= DIAGNOSTIC_ERROR_MAX_CHARS);
+    assert.ok(output.stdout.length <= maxChars);
+    assert.ok(output.stderr.length <= maxChars);
+    assert.match(output.stdout, /stdout/);
+    assert.match(output.stderr, /stderr/);
+  }
+});
+
+test("DIAG-07 diagnostic emission failure cannot replace the original startup error", async () => {
+  const fixture = startupDiagnosticFixture();
+  const original = new Error("fixture original failure");
+  await assert.rejects(withStartupFailureDiagnostics("readiness", () => { throw original; }, {
+    ...fixture,
+    emit: async () => { throw new Error("fixture diagnostic sink unavailable"); },
+  }), (error) => error === original);
+});
+
+test("DIAG-08 Basic and Bearer credentials are redacted with or without a header", () => {
+  for (const [input, credential] of [
+    ["Authorization: Basic dXNlcjpzZWNyZXQ=", "dXNlcjpzZWNyZXQ="],
+    ["authorization: basic dXNlcjpzZWNyZXQ=", "dXNlcjpzZWNyZXQ="],
+    ["Basic dXNlcjpzZWNyZXQ=", "dXNlcjpzZWNyZXQ="],
+    ["bAsIc\tdXNlcjpzZWNyZXQ=", "dXNlcjpzZWNyZXQ="],
+    ["Bearer synthetic-token", "synthetic-token"],
+    ["authorization: bearer synthetic-token", "synthetic-token"],
+  ]) {
+    const redacted = diagnosticText(input, DIAGNOSTIC_DOCKER_MAX_CHARS);
+    assert.equal(redacted.includes(credential), false, input);
+    assert.match(redacted, /\[REDACTED\]/);
+  }
+});
+
+test("DIAG-09 authorization environment names and existing secret names redact raw and encoded values", () => {
+  const names = [
+    "AUTHORIZATION", "authorization", "HTTP_AUTHORIZATION", "proxy_authorization",
+    "SERVICE_AUTHORIZATION_HEADER", "password", "token", "secret", "credential",
+    "DATABASE_URL", "DIRECT_URL", "API_KEY", "APIKEY",
+  ];
+  for (const [index, name] of names.entries()) {
+    const previous = process.env[name];
+    try {
+      const value = `fixture-env-value ${index}`;
+      process.env[name] = value;
+      for (const representation of [value, encodeURIComponent(value)]) {
+        assert.equal(diagnosticText(`before ${representation} after`, DIAGNOSTIC_DOCKER_MAX_CHARS), "before [REDACTED] after", name);
+      }
+    } finally {
+      if (previous === undefined) delete process.env[name];
+      else process.env[name] = previous;
+    }
+    assert.equal(process.env[name], previous);
+  }
+});
+
+test("DIAG-10 raw Basic authorization environment value is redacted without its key", () => {
+  const previous = process.env.AUTHORIZATION;
+  try {
+    process.env.AUTHORIZATION = "Basic synthetic-env-secret";
+    assert.equal(diagnosticText(process.env.AUTHORIZATION, DIAGNOSTIC_DOCKER_MAX_CHARS), "[REDACTED]");
+  } finally {
+    if (previous === undefined) delete process.env.AUTHORIZATION;
+    else process.env.AUTHORIZATION = previous;
+  }
+  assert.equal(process.env.AUTHORIZATION, previous);
+});
+
+test("DIAG-11 authorization credentials are redacted before head and tail truncation", () => {
+  const previous = process.env.AUTHORIZATION;
+  try {
+    process.env.AUTHORIZATION = "fixture-boundary-authorization-env-value";
+    const before = "x".repeat(24) + " ";
+    const after = " " + "x".repeat(24);
+    for (const input of ["Basic dXNlcjpzZWNyZXQ=", "Bearer synthetic-token", process.env.AUTHORIZATION]) {
+      assert.equal(diagnosticText(before + input, 32), (before + "[REDACTED]").slice(0, 32));
+      assert.equal(diagnosticText(input + after, 32, true), ("[REDACTED]" + after).slice(-32));
+    }
+  } finally {
+    if (previous === undefined) delete process.env.AUTHORIZATION;
+    else process.env.AUTHORIZATION = previous;
+  }
+  assert.equal(process.env.AUTHORIZATION, previous);
+});
+
+test("DIAG-12 authorization is redacted independently from both streams while metadata and original errors survive", async () => {
+  const previous = process.env.AUTHORIZATION;
+  try {
+    process.env.AUTHORIZATION = "fixture-raw-authorization-env-value";
+    const stdout = JSON.stringify({
+      stream: "stdout", running: false, status: "exited", exitCode: 1, imageTag: "postgres:17.6",
+      authorization: "Basic dXNlcjpzZWNyZXQ=", rawAuthorization: process.env.AUTHORIZATION,
+    });
+    const stderr = `stderr authorization: basic dXNlcjpzZWNyZXQ= Authorization: Bearer synthetic-stream-token ${process.env.AUTHORIZATION}`;
+    for (const failCommands of [false, true]) {
+      const messages = [];
+      const original = Object.assign(new Error(stdout + " " + stderr), { code: "ECONNRESET" });
+      await assert.rejects(withStartupFailureDiagnostics("initial-connectivity", () => { throw original; }, {
+        attemptCount: () => 3,
+        emit: (message) => { messages.push(message); },
+        run: async () => {
+          if (failCommands) throw Object.assign(new Error(stdout + " " + stderr), { code: 1, stdout, stderr });
+          return { stdout, stderr };
+        },
+      }), (error) => error === original);
+      assert.equal(messages.length, 1);
+      for (const secret of ["dXNlcjpzZWNyZXQ=", "synthetic-stream-token", process.env.AUTHORIZATION]) {
+        assert.equal(messages[0].includes(secret), false);
+      }
+      const block = JSON.parse(messages[0]);
+      assert.equal(block.stage, "initial-connectivity");
+      assert.equal(block.attemptCount, 3);
+      assert.equal(block.finalErrorCode, "ECONNRESET");
+      assert.equal(block.image, "postgres:17.6");
+      for (const output of Object.values(block.docker)) {
+        assert.equal(output.exitCode, failCommands ? 1 : 0);
+        assert.match(output.stdout, /"stream":"stdout"/);
+        assert.match(output.stdout, /"running":false/);
+        assert.match(output.stdout, /"status":"exited"/);
+        assert.match(output.stdout, /"exitCode":1/);
+        assert.match(output.stdout, /"imageTag":"postgres:17\.6"/);
+        assert.match(output.stderr, /^stderr /);
+      }
+    }
+  } finally {
+    if (previous === undefined) delete process.env.AUTHORIZATION;
+    else process.env.AUTHORIZATION = previous;
+  }
+  assert.equal(process.env.AUTHORIZATION, previous);
 });
 
 test("CANON-01 canonical LF bytes produce the authoritative digest", () => {
