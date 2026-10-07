@@ -37,11 +37,19 @@ test("source guard: repository identity query excludes email and uses exact subj
   assert.doesNotMatch(binding, /email|findUserWithRoleCodesByEmail|ensureUser/i);
 });
 
-const productionEnvironment = {
-  NODE_ENV: "production",
-  VERCEL_ENV: "production",
-  SUPABASE_URL: "https://project.supabase.co",
-  SUPABASE_ANON_KEY: "test-anon-key-which-is-long-enough-12345",
+const expectedAuthTuple = {
+  authSystem: "securium-application-auth-v1",
+  authProvider: "supabase:google",
+  authIssuer: "https://project.supabase.co/auth/v1",
+  authProjectRef: "project",
+  environmentClass: "production",
+  authSubject: "subject-production-1",
+};
+
+const verifiedIdentity = {
+  email: "shared@example.invalid",
+  displayName: "Verified Name",
+  fullName: "Verified Name",
 };
 
 function createAdversarialAuthDatabase() {
@@ -87,60 +95,70 @@ function createAdversarialAuthDatabase() {
   const queries = [];
   const database = drizzleProxy(async (sql, params) => {
     queries.push({ sql, params: [...params] });
-    const statement = sqlite.prepare(sql);
-    statement.setReturnArrays(true);
-    return { rows: statement.all(...params) };
+    let sqliteSql = sql;
+    const selection = /^select (.+?) from /is.exec(sql);
+    if (selection) {
+      const columns = selection[1].split(", ");
+      const aliasedColumns = columns.map((column, index) => `${column} AS "__result_${index}"`);
+      sqliteSql = sql.replace(selection[0], `select ${aliasedColumns.join(", ")} from `);
+    }
+    const statement = sqlite.prepare(sqliteSql);
+    if (typeof statement.setReturnArrays === "function") {
+      statement.setReturnArrays(true);
+      return { rows: statement.all(...params) };
+    }
+    const rows = statement.all(...params).map((row) => Object.values(row));
+    return { rows };
   });
   return { sqlite, database, queries };
 }
 
 test("runtime production composition uses module-owned identity and DB providers", async (t) => {
   const { sqlite, database, queries } = createAdversarialAuthDatabase();
-  const originalEnvironment = Object.fromEntries([
-    "NODE_ENV", "VERCEL_ENV", "VERCEL", "AUTH_PROVIDER", "SUPABASE_URL",
-    "SUPABASE_ANON_KEY", "NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-  ].map((name) => [name, process.env[name]]));
-  let currentSubject = "subject-production-1";
-  let currentProvider = "supabase";
-  const originalFetch = globalThis.fetch;
-  process.env.NODE_ENV = productionEnvironment.NODE_ENV;
-  process.env.VERCEL_ENV = productionEnvironment.VERCEL_ENV;
-  process.env.VERCEL = "1";
-  process.env.AUTH_PROVIDER = "supabase";
-  process.env.SUPABASE_URL = productionEnvironment.SUPABASE_URL;
-  process.env.SUPABASE_ANON_KEY = productionEnvironment.SUPABASE_ANON_KEY;
+  const identityState = {
+    applicationIdentity: { identity: verifiedIdentity, authTuple: expectedAuthTuple },
+    displayIdentity: verifiedIdentity,
+  };
+  let databaseProviderCalls = 0;
+  const applicationAuthUrl = new URL("../app/chatgpt-auth.ts", import.meta.url).href;
+  const databaseModuleUrl = new URL("../db/index.ts", import.meta.url).href;
+  assert.equal(import.meta.resolve("../app/chatgpt-auth.ts"), applicationAuthUrl);
+  assert.equal(import.meta.resolve("../db/index.ts"), databaseModuleUrl);
+  const productionServiceUrl = new URL("../lib/services/resolve-production-application-auth.ts", import.meta.url);
+  assert.equal(new URL("../../app/chatgpt-auth.ts", productionServiceUrl).href, applicationAuthUrl);
+  for (const repositoryPath of [
+    "../db/user-auth-identity-binding-repository.ts",
+    "../db/application-user-auth-repository.ts",
+  ]) {
+    assert.equal(new URL("./index.ts", new URL(repositoryPath, import.meta.url)).href, databaseModuleUrl);
+  }
 
-  mock.module("next/headers", {
-    exports: {
-      cookies: async () => ({
-        get: (name) => name === "sa_access_token" ? { value: "test-access-token" } : undefined,
-        getAll: () => [],
-      }),
-      headers: async () => new Headers(currentProvider === "sites"
-        ? { "oai-authenticated-user-email": "shared@example.invalid" }
-        : {}),
+  mock.module(applicationAuthUrl, {
+    cache: true,
+    namedExports: {
+      getChatGPTApplicationIdentity: async () => identityState.applicationIdentity,
+      getChatGPTUser: async () => identityState.displayIdentity,
     },
   });
-  mock.module(new URL("../db/index.ts", import.meta.url).href, {
-    exports: { getDb: () => database },
+  mock.module(databaseModuleUrl, {
+    cache: true,
+    namedExports: {
+      getDb: () => {
+        databaseProviderCalls += 1;
+        return database;
+      },
+    },
   });
-  globalThis.fetch = async (url, init) => {
-    assert.equal(url, "https://project.supabase.co/auth/v1/user");
-    assert.equal(new Headers(init.headers).get("authorization"), "Bearer test-access-token");
-    assert.equal(new Headers(init.headers).get("apikey"), productionEnvironment.SUPABASE_ANON_KEY);
-    return new Response(JSON.stringify({
-      id: currentSubject,
-      email: "shared@example.invalid",
-      app_metadata: { provider: "google" },
-      user_metadata: { full_name: "Verified Name" },
-    }), { status: 200, headers: { "content-type": "application/json" } });
-  };
 
   try {
     const { resolveProductionApplicationAuth } = await import("../lib/services/resolve-production-application-auth.ts");
     assert.equal(resolveProductionApplicationAuth.length, 0, "public production API accepts no dependencies");
 
     await t.test("verified subject selects bound user and roles by resolved ID", async () => {
+      assert.deepEqual(identityState.applicationIdentity, {
+        identity: verifiedIdentity,
+        authTuple: expectedAuthTuple,
+      });
       const result = await resolveProductionApplicationAuth({
         getVerifiedIdentity: async () => ({ authTuple: { authSubject: "attacker" } }),
         database: { select: () => { throw new Error("caller database must be ignored"); } },
@@ -154,14 +172,19 @@ test("runtime production composition uses module-owned identity and DB providers
       assert.equal(queries.length, 2);
       assert.ok(queries[0].sql.includes("user_auth_identity_bindings"));
       assert.ok(queries[1].sql.includes("user_roles"));
-      assert.ok(queries[0].params.includes("subject-production-1"));
-      assert.ok(queries[0].params.includes("production"));
+      for (const dimension of Object.values(expectedAuthTuple)) {
+        assert.ok(queries[0].params.includes(dimension), `binding query includes ${dimension}`);
+      }
       assert.ok(queries[1].params.includes("user-by-subject"));
       assert.ok(queries[1].sql.includes('"users"."id" = ?'));
+      assert.equal(databaseProviderCalls, 2, "both repositories obtain the module-owned database");
     });
 
     await t.test("unbound same-email subject fails without lookup or provisioning", async () => {
-      currentSubject = "unbound-subject";
+      identityState.applicationIdentity = {
+        identity: verifiedIdentity,
+        authTuple: { ...expectedAuthTuple, authSubject: "unbound-subject" },
+      };
       queries.length = 0;
       const before = {
         users: sqlite.prepare("SELECT count(*) AS count FROM users").get().count,
@@ -175,21 +198,21 @@ test("runtime production composition uses module-owned identity and DB providers
       assert.deepEqual(after, before);
       assert.equal(queries.length, 1);
       assert.ok(queries[0].params.includes("unbound-subject"));
+      assert.ok(!queries[0].sql.includes('"users"."email"'), "binding lookup does not fall back to email");
     });
 
     await t.test("Sites email-only identity fails closed without repository lookup", async () => {
-      currentProvider = "sites";
-      process.env.AUTH_PROVIDER = "sites";
+      identityState.applicationIdentity = null;
+      identityState.displayIdentity = {
+        email: "shared@example.invalid",
+        displayName: "shared@example.invalid",
+        fullName: null,
+      };
       queries.length = 0;
       await assert.rejects(resolveProductionApplicationAuth(), { code: "AUTH_IDENTITY_BINDING_REQUIRED" });
       assert.equal(queries.length, 0);
     });
   } finally {
-    globalThis.fetch = originalFetch;
     sqlite.close();
-    for (const [name, value] of Object.entries(originalEnvironment)) {
-      if (value === undefined) delete process.env[name];
-      else process.env[name] = value;
-    }
   }
 });
