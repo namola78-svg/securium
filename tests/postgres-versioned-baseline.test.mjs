@@ -65,7 +65,7 @@ const DIAGNOSTIC_ERROR_MAX_CHARS = 512;
 function diagnosticText(value, maxChars, tail = false) {
   let text = String(value ?? "");
   const secrets = [password, ...Object.entries(process.env)
-    .filter(([name]) => /password|token|secret|credential|(?:database|direct)_url|api_?key/i.test(name))
+    .filter(([name]) => /password|token|secret|credential|authorization|(?:database|direct)_url|api_?key/i.test(name))
     .map(([, secret]) => secret)].filter(Boolean).sort((a, b) => b.length - a.length);
   for (const secret of secrets) {
     text = text.replaceAll(secret, "[REDACTED]").replaceAll(encodeURIComponent(secret), "[REDACTED]");
@@ -73,7 +73,7 @@ function diagnosticText(value, maxChars, tail = false) {
   // Redact before truncation so a boundary cannot expose part of a credential.
   text = text
     .replace(/\b[a-z][a-z0-9+.-]*:\/\/[^\s"'<>]+/gi, "[REDACTED_URL]")
-    .replace(/\bBearer\s+[^\s"',;]+/gi, "[REDACTED]")
+    .replace(/\b(?:Basic|Bearer)\s+[^\s"',;]+/gi, "[REDACTED]")
     .replace(/["']?(?:[a-z0-9_-]*(?:password|token|secret|credentials?)|DATABASE_URL|DIRECT_URL|api[_-]?key|authorization)["']?\s*[:=]\s*(?:"[^"]*"|'[^']*'|[^\s,;]+)/gi, "[REDACTED]")
     .replace(/(?:[a-z]:[\\/]|\/)[^\s"'<>]+/gi, "[REDACTED_PATH]");
   return tail ? text.slice(-maxChars) : text.slice(0, maxChars);
@@ -410,6 +410,118 @@ test("DIAG-07 diagnostic emission failure cannot replace the original startup er
     ...fixture,
     emit: async () => { throw new Error("fixture diagnostic sink unavailable"); },
   }), (error) => error === original);
+});
+
+test("DIAG-08 Basic and Bearer credentials are redacted with or without a header", () => {
+  for (const [input, credential] of [
+    ["Authorization: Basic dXNlcjpzZWNyZXQ=", "dXNlcjpzZWNyZXQ="],
+    ["authorization: basic dXNlcjpzZWNyZXQ=", "dXNlcjpzZWNyZXQ="],
+    ["Basic dXNlcjpzZWNyZXQ=", "dXNlcjpzZWNyZXQ="],
+    ["bAsIc\tdXNlcjpzZWNyZXQ=", "dXNlcjpzZWNyZXQ="],
+    ["Bearer synthetic-token", "synthetic-token"],
+    ["authorization: bearer synthetic-token", "synthetic-token"],
+  ]) {
+    const redacted = diagnosticText(input, DIAGNOSTIC_DOCKER_MAX_CHARS);
+    assert.equal(redacted.includes(credential), false, input);
+    assert.match(redacted, /\[REDACTED\]/);
+  }
+});
+
+test("DIAG-09 authorization environment names and existing secret names redact raw and encoded values", () => {
+  const names = [
+    "AUTHORIZATION", "authorization", "HTTP_AUTHORIZATION", "proxy_authorization",
+    "SERVICE_AUTHORIZATION_HEADER", "password", "token", "secret", "credential",
+    "DATABASE_URL", "DIRECT_URL", "API_KEY", "APIKEY",
+  ];
+  for (const [index, name] of names.entries()) {
+    const previous = process.env[name];
+    try {
+      const value = `fixture-env-value ${index}`;
+      process.env[name] = value;
+      for (const representation of [value, encodeURIComponent(value)]) {
+        assert.equal(diagnosticText(`before ${representation} after`, DIAGNOSTIC_DOCKER_MAX_CHARS), "before [REDACTED] after", name);
+      }
+    } finally {
+      if (previous === undefined) delete process.env[name];
+      else process.env[name] = previous;
+    }
+    assert.equal(process.env[name], previous);
+  }
+});
+
+test("DIAG-10 raw Basic authorization environment value is redacted without its key", () => {
+  const previous = process.env.AUTHORIZATION;
+  try {
+    process.env.AUTHORIZATION = "Basic synthetic-env-secret";
+    assert.equal(diagnosticText(process.env.AUTHORIZATION, DIAGNOSTIC_DOCKER_MAX_CHARS), "[REDACTED]");
+  } finally {
+    if (previous === undefined) delete process.env.AUTHORIZATION;
+    else process.env.AUTHORIZATION = previous;
+  }
+  assert.equal(process.env.AUTHORIZATION, previous);
+});
+
+test("DIAG-11 authorization credentials are redacted before head and tail truncation", () => {
+  const previous = process.env.AUTHORIZATION;
+  try {
+    process.env.AUTHORIZATION = "fixture-boundary-authorization-env-value";
+    const before = "x".repeat(24) + " ";
+    const after = " " + "x".repeat(24);
+    for (const input of ["Basic dXNlcjpzZWNyZXQ=", "Bearer synthetic-token", process.env.AUTHORIZATION]) {
+      assert.equal(diagnosticText(before + input, 32), (before + "[REDACTED]").slice(0, 32));
+      assert.equal(diagnosticText(input + after, 32, true), ("[REDACTED]" + after).slice(-32));
+    }
+  } finally {
+    if (previous === undefined) delete process.env.AUTHORIZATION;
+    else process.env.AUTHORIZATION = previous;
+  }
+  assert.equal(process.env.AUTHORIZATION, previous);
+});
+
+test("DIAG-12 authorization is redacted independently from both streams while metadata and original errors survive", async () => {
+  const previous = process.env.AUTHORIZATION;
+  try {
+    process.env.AUTHORIZATION = "fixture-raw-authorization-env-value";
+    const stdout = JSON.stringify({
+      stream: "stdout", running: false, status: "exited", exitCode: 1, imageTag: "postgres:17.6",
+      authorization: "Basic dXNlcjpzZWNyZXQ=", rawAuthorization: process.env.AUTHORIZATION,
+    });
+    const stderr = `stderr authorization: basic dXNlcjpzZWNyZXQ= Authorization: Bearer synthetic-stream-token ${process.env.AUTHORIZATION}`;
+    for (const failCommands of [false, true]) {
+      const messages = [];
+      const original = Object.assign(new Error(stdout + " " + stderr), { code: "ECONNRESET" });
+      await assert.rejects(withStartupFailureDiagnostics("initial-connectivity", () => { throw original; }, {
+        attemptCount: () => 3,
+        emit: (message) => { messages.push(message); },
+        run: async () => {
+          if (failCommands) throw Object.assign(new Error(stdout + " " + stderr), { code: 1, stdout, stderr });
+          return { stdout, stderr };
+        },
+      }), (error) => error === original);
+      assert.equal(messages.length, 1);
+      for (const secret of ["dXNlcjpzZWNyZXQ=", "synthetic-stream-token", process.env.AUTHORIZATION]) {
+        assert.equal(messages[0].includes(secret), false);
+      }
+      const block = JSON.parse(messages[0]);
+      assert.equal(block.stage, "initial-connectivity");
+      assert.equal(block.attemptCount, 3);
+      assert.equal(block.finalErrorCode, "ECONNRESET");
+      assert.equal(block.image, "postgres:17.6");
+      for (const output of Object.values(block.docker)) {
+        assert.equal(output.exitCode, failCommands ? 1 : 0);
+        assert.match(output.stdout, /"stream":"stdout"/);
+        assert.match(output.stdout, /"running":false/);
+        assert.match(output.stdout, /"status":"exited"/);
+        assert.match(output.stdout, /"exitCode":1/);
+        assert.match(output.stdout, /"imageTag":"postgres:17\.6"/);
+        assert.match(output.stderr, /^stderr /);
+      }
+    }
+  } finally {
+    if (previous === undefined) delete process.env.AUTHORIZATION;
+    else process.env.AUTHORIZATION = previous;
+  }
+  assert.equal(process.env.AUTHORIZATION, previous);
 });
 
 test("CANON-01 canonical LF bytes produce the authoritative digest", () => {
