@@ -3,6 +3,7 @@ import { spawn } from "node:child_process";
 import { after, before, beforeEach, test } from "node:test";
 import { startVinextTestServer } from "./support/vinext-test-server.mjs";
 import { getSecurityCertificationDeepNodeCoverageSummary } from "../lib/curriculum/security-certification-content-map.ts";
+import { buildCppgCourseTheoryDraftProjection } from "../lib/services/cppg-runtime-course-registration.ts";
 import {
   flattenOfficialCurriculumTree,
   SECURITY_CERTIFICATION_CURRICULUM_TREES,
@@ -25,6 +26,115 @@ beforeEach((context) => {
   context.skip(
     `Shared Vinext process failed once; causal harness failure: ${server.failure.classification}`,
   );
+});
+
+test("canonical subject delivery shares overview identities and revision-bound progress, with legacy-only fallback", async () => {
+  assert.equal(process.env.D1_TEST_MODE, "1", "This fixture requires the disposable D1 suite.");
+  const courseId = `delivery-${runId}`;
+  const subjectId = `${courseId}-subject`;
+  const legacySubjectId = `${courseId}-legacy-subject`;
+  const otherSubjectId = `${courseId}-other-subject`;
+  const contentId = `${courseId}-content`;
+  const canonicalId = `${courseId}-canonical`;
+  const pairedLegacyId = `${courseId}-paired`;
+  const legacyId = `${courseId}-legacy`;
+  const projection = await buildCppgCourseTheoryDraftProjection({ actorUserId: "rendered-fixture" });
+  // Real authority bytes in an unrelated synthetic course test the generic
+  // renderer; this fixture does not confer CPPG publication authority.
+  const cppgBody = projection.contents[0].payload.body;
+  const sqlText = (value) => `'${value.replaceAll("'", "''")}'`;
+  const execute = async (sql) => {
+    const result = await runCommand(process.execPath, ["scripts/run-wrangler.mjs", "d1", "execute", "DB", "--local", "--config", "wrangler.local.jsonc", "--command", sql]);
+    assert.equal(result.code, 0, result.output);
+  };
+  const read = async (path, email = "dev-user-1@example.invalid") => {
+    const response = await fetch(`${baseUrl}${path}`, { redirect: "manual", headers: email ? { "oai-authenticated-user-email": email } : {} });
+    return { status: response.status, html: await response.text() };
+  };
+  try {
+    await execute(`
+      INSERT INTO courses (id,course_group_id,code,slug,name,short_name,active,published)
+        VALUES ('${courseId}','group-independent','${courseId}','${courseId}','Canonical delivery fixture','Delivery',1,1);
+      INSERT INTO subjects (id,course_id,code,name,active) VALUES
+        ('${subjectId}','${courseId}','CANONICAL','Canonical subject',1),
+        ('${legacySubjectId}','${courseId}','LEGACY','Legacy subject',1),
+        ('${otherSubjectId}','${courseId}','OTHER','Other subject',1);
+      INSERT INTO topics (id,subject_id,code,name,active) VALUES
+        ('${subjectId}-topic','${subjectId}','CORE','Canonical topic',1),
+        ('${legacySubjectId}-topic','${legacySubjectId}','CORE','Legacy topic',1),
+        ('${otherSubjectId}-topic','${otherSubjectId}','CORE','Other topic',1);
+      INSERT INTO learning_units (id,course_id,subject_id,topic_id,code,title,active,published) VALUES
+        ('${subjectId}-unit','${courseId}','${subjectId}','${subjectId}-topic','CORE','Canonical unit',1,1),
+        ('${legacySubjectId}-unit','${courseId}','${legacySubjectId}','${legacySubjectId}-topic','CORE','Legacy unit',1,1),
+        ('${otherSubjectId}-unit','${courseId}','${otherSubjectId}','${otherSubjectId}-topic','CORE','Other unit',1,1);
+      INSERT INTO lessons (id,learning_unit_id,course_id,subject_id,topic_id,code,title,content,active,published) VALUES
+        ('${pairedLegacyId}','${subjectId}-unit','${courseId}','${subjectId}','${subjectId}-topic','PAIR','Legacy paired lesson','Legacy paired body',1,1),
+        ('${legacyId}','${legacySubjectId}-unit','${courseId}','${legacySubjectId}','${legacySubjectId}-topic','LEGACY','Legacy-only lesson','Legacy-only body',1,1),
+        ('${courseId}-other-legacy','${otherSubjectId}-unit','${courseId}','${otherSubjectId}','${otherSubjectId}-topic','OTHER','Other subject lesson','Other body',1,1);
+      INSERT INTO contents (id,slug,canonical_key,title,body,body_format,version,status)
+        VALUES ('${contentId}','${contentId}','${contentId}','Canonical delivery body',${sqlText(cppgBody)},'STRUCTURED_JSON','v1','PUBLISHED');
+      INSERT INTO course_lessons (id,course_id,lesson_id,content_id,display_title,sort_order,status) VALUES
+        ('${canonicalId}','${courseId}','${pairedLegacyId}','${contentId}','Canonical paired lesson',1,'PUBLISHED'),
+        ('${courseId}-other-canonical','${courseId}','${courseId}-other-legacy','${contentId}','Other canonical lesson',2,'PUBLISHED'),
+        ('${courseId}-cross-course','course-isms-p','${pairedLegacyId}','${contentId}','Cross course lesson',99999,'PUBLISHED');
+      INSERT INTO user_course_enrollments (id,user_id,course_id,status)
+        VALUES ('${courseId}-enrollment','user-learner-1','${courseId}','ACTIVE');
+      INSERT INTO user_course_lesson_progress (id,user_id,course_id,course_lesson_id,content_id,content_version,status,progress_percent)
+        VALUES ('${courseId}-progress','user-learner-1','${courseId}','${canonicalId}','${contentId}','v1','COMPLETED',100);
+      INSERT INTO user_lesson_progress (id,user_id,course_id,lesson_id,status,progress_percent)
+        VALUES ('${courseId}-legacy-progress','user-learner-1','${courseId}','${legacyId}','COMPLETED',100);
+    `);
+    const overview = await read(`/learn/${courseId}`);
+    const subject = await read(`/learn/${courseId}/subjects/${subjectId}`);
+    assert.equal(overview.status, 200, overview.html.slice(0, 1200));
+    assert.equal(subject.status, 200, subject.html.slice(0, 1200));
+    for (const html of [overview.html, subject.html]) {
+      assert.ok(html.includes(`/learn/${courseId}/course-lessons/${canonicalId}`), "canonical identity missing");
+      assert.match(html, /data-status="COMPLETED"/);
+    }
+    assert.match(subject.html, /100%/);
+    assert.match(subject.html.replace(/<!--.*?-->/gs, ""), /1\/1 레슨 완료/);
+    assert.doesNotMatch(subject.html, new RegExp(`/lessons/${pairedLegacyId}|${courseId}-other-canonical|${courseId}-cross-course`));
+
+    const lesson = await read(`/learn/${courseId}/course-lessons/${canonicalId}`);
+    assert.equal(lesson.status, 200, lesson.html.slice(0, 1200));
+    assert.match(lesson.html, /개인정보는 특정 개인을 식별하거나/);
+    assert.match(lesson.html, /처리 목적과 권리 영향의 관계/);
+    assert.doesNotMatch(lesson.html, /학습 본문을 표시할 수 없습니다/);
+
+    const legacy = await read(`/learn/${courseId}/subjects/${legacySubjectId}`);
+    assert.equal(legacy.status, 200, legacy.html.slice(0, 1200));
+    assert.ok(legacy.html.includes(`/learn/${courseId}/lessons/${legacyId}`));
+    assert.match(legacy.html, /100%/);
+    const legacyLesson = await read(`/learn/${courseId}/lessons/${legacyId}`);
+    assert.equal(legacyLesson.status, 200);
+    assert.match(legacyLesson.html, /Legacy-only body/);
+
+    assert.equal((await read(`/learn/isms-p/subjects/${subjectId}`)).status, 404);
+    assert.equal((await read(`/learn/${courseId}/course-lessons/${courseId}-cross-course`)).status, 404);
+    assert.equal((await read(`/learn/${courseId}/subjects/${subjectId}`, "dev-user-2@example.invalid")).status, 307);
+    assert.equal((await read(`/learn/${courseId}/course-lessons/${canonicalId}`, "dev-user-2@example.invalid")).status, 307);
+    assert.equal((await read(`/learn/${courseId}/subjects/${subjectId}`, null)).status, 307);
+    await execute(`UPDATE contents SET version = 'v2' WHERE id = '${contentId}'`);
+    const stale = await read(`/learn/${courseId}/subjects/${subjectId}`);
+    assert.equal(stale.status, 200);
+    assert.match(stale.html, /data-status="NOT_STARTED"/);
+    assert.match(stale.html, /0%/);
+    assert.doesNotMatch(stale.html, /data-status="COMPLETED"/);
+  } finally {
+    await execute(`
+      DELETE FROM user_course_lesson_progress WHERE id = '${courseId}-progress';
+      DELETE FROM user_lesson_progress WHERE id = '${courseId}-legacy-progress';
+      DELETE FROM user_course_enrollments WHERE course_id = '${courseId}';
+      DELETE FROM course_lessons WHERE content_id = '${contentId}';
+      DELETE FROM contents WHERE id = '${contentId}';
+      DELETE FROM lessons WHERE course_id = '${courseId}';
+      DELETE FROM learning_units WHERE course_id = '${courseId}';
+      DELETE FROM topics WHERE subject_id IN ('${subjectId}','${legacySubjectId}','${otherSubjectId}');
+      DELETE FROM subjects WHERE course_id = '${courseId}';
+      DELETE FROM courses WHERE id = '${courseId}';
+    `);
+  }
 });
 
 test("network security practice flow stays scoped to engineer and industrial engineer courses", async () => {

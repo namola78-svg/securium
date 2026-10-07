@@ -15,6 +15,7 @@ import {
   listTopicsForSubject,
 } from "@/db/repositories";
 import { requireCurrentAppUser } from "@/lib/auth";
+import { listPublishedCourseLessonsForUser } from "@/db/shared-content-repositories";
 import { publicCopy } from "@/lib/public-copy";
 
 export const dynamic = "force-dynamic";
@@ -30,20 +31,36 @@ export default async function SubjectPage({
 }) {
   const { courseSlug, subjectId } = await params;
   const user = await requireCurrentAppUser(`/learn/${courseSlug}/subjects/${subjectId}`);
+  // Native Next route params are URI encoded; canonical IDs contain colons.
+  const resolvedSubjectId = decodeURIComponent(subjectId);
   const [course, subject] = await Promise.all([
     getPublicCourseBySlug(courseSlug),
-    getSubjectById(subjectId),
+    getSubjectById(resolvedSubjectId),
   ]);
   if (!course || !subject || subject.courseId !== course.id) notFound();
   const enrollment = await getEnrollmentForCourse(user.id, course.id);
   if (!enrollment) redirect(`/courses/${course.slug}`);
 
-  const [topics, learningUnits, theoryProgress] = await Promise.all([
+  const [topics, canonicalTheory] = await Promise.all([
     listTopicsForSubject(subject.id),
-    listPublishedLearningUnitsForSubject(user.id, course.id, subject.id),
-    getSubjectTheoryProgress(user.id, course.id, subject.id),
+    listPublishedCourseLessonsForUser(user.id, course.id, { subjectId: subject.id }),
   ]);
-  const allLessons = learningUnits.flatMap((unit) => unit.lessons);
+  const hasCanonicalTheory = canonicalTheory.totalLessons > 0;
+  const [learningUnits, theoryProgress] = hasCanonicalTheory
+    ? [canonicalTheory.lessons.map((lesson) => ({
+        id: lesson.id,
+        title: lesson.title,
+        description: lesson.summary,
+        topicName: null,
+        progressPercent: lesson.progressPercent,
+        lessons: [lesson],
+      })), canonicalTheory]
+    : await Promise.all([
+        listPublishedLearningUnitsForSubject(user.id, course.id, subject.id),
+        getSubjectTheoryProgress(user.id, course.id, subject.id),
+      ]);
+  const lessonRoute = hasCanonicalTheory ? "course-lessons" : "lessons";
+  const allLessons = learningUnits.flatMap<{ id: string; title: string; summary: string; status: string }>((unit) => unit.lessons);
   const nextLesson = allLessons.find((lesson) => lesson.status !== "COMPLETED") ?? allLessons[0];
 
   return (
@@ -77,7 +94,7 @@ export default async function SubjectPage({
               <h2 id="subject-next-title">{publicCopy(nextLesson.title)}</h2>
               <p>{publicCopy(nextLesson.summary)}</p>
             </div>
-            <Link className={styles.primaryButton} href={`/learn/${course.slug}/lessons/${nextLesson.id}`}>
+            <Link className={styles.primaryButton} href={`/learn/${course.slug}/${lessonRoute}/${nextLesson.id}`}>
               {nextLesson.status === "IN_PROGRESS" ? "이어서 학습" : "레슨 시작"}
               <span aria-hidden="true">→</span>
             </Link>
@@ -109,7 +126,7 @@ export default async function SubjectPage({
                     {unit.lessons.map((lesson, lessonIndex) => (
                       <Link
                         className={styles.lessonRow}
-                        href={`/learn/${course.slug}/lessons/${lesson.id}`}
+                        href={`/learn/${course.slug}/${lessonRoute}/${lesson.id}`}
                         key={lesson.id}
                         aria-current={lesson.id === nextLesson?.id ? "step" : undefined}
                       >

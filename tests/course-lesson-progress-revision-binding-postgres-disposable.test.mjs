@@ -1,11 +1,14 @@
 import assert from "node:assert/strict";
-import { execFile as execFileCallback } from "node:child_process";
+import { execFile as execFileCallback, spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { readFile, readdir } from "node:fs/promises";
+import { register } from "node:module";
+import { createServer } from "node:net";
+import { readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { after, before, test } from "node:test";
 import { promisify } from "node:util";
 import { startVinextTestServer } from "./support/vinext-test-server.mjs";
 import { generateSecurityContentV3Sql } from "../lib/data/security-content-upgrade-v3.mjs";
+import { restoreNextGeneratedTypes, snapshotNextGeneratedTypes } from "../scripts/next-generated-type-preservation.mjs";
 
 const execFileAsync = promisify(execFileCallback);
 const EXEC_FILE_TIMEOUT_MS = 5 * 60 * 1_000;
@@ -37,8 +40,13 @@ let ownerLabel;
 let client;
 let server;
 let postgresUrl;
+let sharedRepository;
+let legacyRepository;
+let disconnectRuntimePostgresExecutor;
+let suiteNextTypesSnapshot;
 
 before(async () => {
+  suiteNextTypesSnapshot = await snapshotNextGeneratedTypes();
   containerName = `securium-course-lesson-revision-${runId}`;
   ownerLabel = `${ownerLabelKey}=${runId}`;
   const password = "course-lesson-revision-test-password";
@@ -87,6 +95,15 @@ before(async () => {
   assert.equal(Number(ledger[0].count), migrations.length);
   await seedFixture();
 
+  Object.assign(process.env, {
+    NODE_ENV: "test", APP_ENV: "test", DB_PROVIDER: "supabase", DATABASE_URL: postgresUrl,
+    POSTGRES_SSL_MODE: "disable", POSTGRES_MAX_CONNECTIONS: "1",
+  });
+  register("./support/node-runtime-loader.mjs", import.meta.url);
+  sharedRepository = await import("../db/shared-content-repositories.ts");
+  legacyRepository = await import("../db/lesson-repositories.ts");
+  ({ disconnectRuntimePostgresExecutor } = await import("../db/postgres/postgres-js-executor.ts"));
+
   server = await startVinextTestServer({
     label: "CourseLesson revision binding PostgreSQL repository",
     env: {
@@ -110,11 +127,196 @@ before(async () => {
 });
 
 after(async () => {
+  await disconnectRuntimePostgresExecutor?.().catch(() => {});
   await client?.unsafe("DROP FUNCTION IF EXISTS test_course_lesson_progress_activity_failure() CASCADE").catch(() => {});
   await server?.stop().catch(() => {});
   await client?.end({ timeout: 5 }).catch(() => {});
   await cleanupOwnedContainer();
+  await restoreNextGeneratedTypes(suiteNextTypesSnapshot);
 });
+
+test("canonical subject repository uses the overview query, rejects foreign scopes, and ignores stale progress", async () => {
+  const courseId = "pg-delivery-course";
+  const subjectId = "pg-delivery-subject";
+  const canonicalId = "pg-delivery-canonical";
+  const contentId = "pg-delivery-content";
+  await client.unsafe(`
+    INSERT INTO courses (id,course_group_id,code,slug,name,short_name,active,published)
+      VALUES ('${courseId}','pg-revision-group','PG_DELIVERY','pg-delivery','Delivery','Delivery',1,1);
+    INSERT INTO subjects (id,course_id,code,name,active) VALUES
+      ('${subjectId}','${courseId}','MAIN','Main subject',1),
+      ('pg-delivery-other-subject','${courseId}','OTHER','Other subject',1);
+    INSERT INTO topics (id,subject_id,code,name,active) VALUES
+      ('pg-delivery-topic','${subjectId}','MAIN','Main topic',1),
+      ('pg-delivery-other-topic','pg-delivery-other-subject','OTHER','Other topic',1);
+    INSERT INTO learning_units (id,course_id,subject_id,topic_id,code,title,active,published) VALUES
+      ('pg-delivery-unit','${courseId}','${subjectId}','pg-delivery-topic','MAIN','Main unit',1,1),
+      ('pg-delivery-other-unit','${courseId}','pg-delivery-other-subject','pg-delivery-other-topic','OTHER','Other unit',1,1);
+    INSERT INTO lessons (id,learning_unit_id,course_id,subject_id,topic_id,code,title,content,active,published) VALUES
+      ('pg-delivery-legacy','pg-delivery-unit','${courseId}','${subjectId}','pg-delivery-topic','MAIN','Paired legacy','Legacy body',1,1),
+      ('pg-delivery-other-legacy','pg-delivery-other-unit','${courseId}','pg-delivery-other-subject','pg-delivery-other-topic','OTHER','Other legacy','Other body',1,1);
+    INSERT INTO contents (id,slug,canonical_key,title,body,version,status)
+      VALUES ('${contentId}','${contentId}','${contentId}','Delivery content','Delivery body','v1','PUBLISHED');
+    INSERT INTO course_lessons (id,course_id,lesson_id,content_id,display_title,sort_order,status) VALUES
+      ('${canonicalId}','${courseId}','pg-delivery-legacy','${contentId}','Canonical main',1,'PUBLISHED'),
+      ('pg-delivery-other-canonical','${courseId}','pg-delivery-other-legacy','${contentId}','Canonical other',2,'PUBLISHED'),
+      ('pg-delivery-cross-course','${courseB}','pg-delivery-legacy','${contentId}','Foreign course',99999,'PUBLISHED');
+    INSERT INTO user_course_lesson_progress (id,user_id,course_id,course_lesson_id,content_id,content_version,status,progress_percent)
+      VALUES ('pg-delivery-progress','${userOne}','${courseId}','${canonicalId}','${contentId}','v1','COMPLETED',100);
+  `);
+  const overview = await sharedRepository.listPublishedCourseLessonsForUser(userOne, courseId);
+  const legacy = await legacyRepository.listPublishedLearningUnitsForSubject(userOne, courseId, subjectId);
+  const legacySummary = await legacyRepository.getSubjectTheoryProgress(userOne, courseId, subjectId);
+  assert.equal(legacy[0].lessons[0].id, "pg-delivery-legacy");
+  assert.equal(legacy[0].lessons[0].status, "NOT_STARTED");
+  assert.equal(legacySummary.completedLessons, 0);
+  assert.equal(overview.lessons.find(({ id }) => id === canonicalId).status, "COMPLETED");
+  console.log("G1_REPRODUCED: legacy subject completion=0, canonical overview completion=1 for the same paired learning unit");
+
+  const selected = await sharedRepository.listPublishedCourseLessonsForUser(userOne, courseId, { subjectId });
+  assert.deepEqual(selected.lessons, overview.lessons.filter(({ id }) => id === canonicalId));
+  assert.deepEqual([selected.totalLessons, selected.completedLessons, selected.progressPercent], [1, 1, 100]);
+  for (const scope of ["missing-subject", `${courseId}-forged-label`]) {
+    assert.equal((await sharedRepository.listPublishedCourseLessonsForUser(userOne, courseId, { subjectId: scope })).totalLessons, 0);
+  }
+  assert.equal((await sharedRepository.listPublishedCourseLessonsForUser(userOne, courseB, { subjectId })).totalLessons, 0);
+  assert.equal((await sharedRepository.listPublishedCourseLessonsForUser(userTwo, courseId, { subjectId })).completedLessons, 0);
+  await client.unsafe(`UPDATE contents SET version = 'v2' WHERE id = '${contentId}'`);
+  const stale = await sharedRepository.listPublishedCourseLessonsForUser(userOne, courseId, { subjectId });
+  assert.deepEqual([stale.completedLessons, stale.lessons[0].status, stale.lessons[0].progressPercent], [0, "NOT_STARTED", 0]);
+  await client.unsafe(`UPDATE contents SET status = 'DRAFT' WHERE id = '${contentId}'`);
+  assert.equal((await sharedRepository.listPublishedCourseLessonsForUser(userOne, courseId, { subjectId })).totalLessons, 0);
+});
+
+test("real CPPG subject and lesson delivery requires canonical publication proof and preserves all 25 bodies", async () => {
+  const registration = await import("../lib/services/cppg-runtime-course-registration.ts");
+  const { authorizeAndPublishCppgRegistration } = await import("../lib/services/cppg-runtime-publication.ts");
+  const { getRuntimeAuthorityPersistenceOwner } = await import("../db/index.ts");
+  const projection = await registration.buildCppgCourseTheoryDraftProjection({ actorUserId: "pg-revision-admin" });
+  const owner = await getRuntimeAuthorityPersistenceOwner();
+  const subjectId = projection.subjects[0].id;
+  const courseLessonId = projection.courseLessons[0].id;
+  const contentId = projection.contents[0].id;
+  const bodies = projection.contents.map(({ payload }) => payload.body);
+  await client.unsafe("INSERT INTO course_groups(id,code,name) VALUES ('group-independent','INDEPENDENT','Independent')");
+  const authority = await registration.evaluateCppgProjectionAuthorityForTesting(projection, owner);
+  await authority.approve(`delivery-approval-${runId}`);
+  await registration.persistCppgCourseTheoryDraftProjectionForTesting(projection, "pg-revision-admin", owner);
+  assert.equal((await sharedRepository.listPublishedCourseLessonsForUser(userOne, "course-cppg", { subjectId })).totalLessons, 0);
+  const [receipt] = await client.unsafe("SELECT registration_semantic_identity FROM cppg_runtime_registrations");
+  await authorizeAndPublishCppgRegistration({
+    actor: { id: "pg-revision-admin", roles: ["ADMIN"] },
+    registrationSemanticIdentity: receipt.registration_semantic_identity,
+    requestedContentRevisionIds: projection.contentRevisions.map(({ id }) => id),
+  }, owner);
+  await client.unsafe(`
+    INSERT INTO lessons(id,learning_unit_id,course_id,subject_id,topic_id,code,title,content,active,published)
+      VALUES ('pg-cppg-generic-legacy','${projection.learningUnits[0].id}','course-cppg','${subjectId}','${projection.topics[0].id}','GENERIC','Generic lesson','Generic body',1,1);
+    INSERT INTO course_lessons(id,course_id,lesson_id,content_id,display_title,sort_order,status)
+      VALUES ('pg-cppg-generic','course-cppg','pg-cppg-generic-legacy','${contentId}','Generic published impostor',99999,'PUBLISHED');
+    INSERT INTO user_course_lesson_progress(id,user_id,course_id,course_lesson_id,content_id,content_version,status,progress_percent)
+      VALUES ('pg-cppg-progress','${userOne}','course-cppg','${courseLessonId}','${contentId}','1.0.0','COMPLETED',100);
+    INSERT INTO user_course_enrollments(id,user_id,course_id,status)
+      VALUES ('pg-cppg-enrollment','${userOne}','course-cppg','ACTIVE');
+  `);
+  const overview = await sharedRepository.listPublishedCourseLessonsForUser(userOne, "course-cppg");
+  const subject = await sharedRepository.listPublishedCourseLessonsForUser(userOne, "course-cppg", { subjectId });
+  assert.equal(overview.totalLessons, 25);
+  assert.equal(subject.totalLessons, 5);
+  assert.equal(subject.completedLessons, 1);
+  assert.equal(subject.progressPercent, 20);
+  assert.deepEqual(subject.lessons, overview.lessons.slice(0, 5));
+  assert.ok(!subject.lessons.some(({ id }) => id === "pg-cppg-generic"));
+  const publicRepository = await import("../db/repositories.ts");
+  assert.equal((await publicRepository.getPublicCourseBySlug("cppg"))?.id, "course-cppg");
+  assert.equal((await publicRepository.getPublicCourseBySlug(courseA))?.id, courseA);
+  assert.equal((await publicRepository.getSubjectById(subjectId))?.courseId, "course-cppg");
+  // The canonical source loader uses Node filesystem access. Exercise this
+  // publication-backed flow in the primary Next runtime, not workerd.
+  const nextServer = await startNativeNextFixture();
+  const read = async (path) => {
+    const response = await fetch(`${nextServer.baseUrl}${path}`);
+    const html = await response.text();
+    assert.equal(response.status, 200, html.slice(0, 1200));
+    return html;
+  };
+  try {
+    const html = await read(`/learn/cppg/subjects/${subjectId}`);
+    const lessonHtml = await read(`/learn/cppg/course-lessons/${courseLessonId}`);
+    console.log(`NATIVE_CPPG_DELIVERY subject404=${html.includes("NEXT_HTTP_ERROR_FALLBACK;404")} lesson404=${lessonHtml.includes("NEXT_HTTP_ERROR_FALLBACK;404")}`);
+    assert.ok(html.includes(`/learn/cppg/course-lessons/${courseLessonId}`), "Published canonical CPPG subject must render its canonical lesson route.");
+    assert.match(html, /20(?:<!-- -->)?%/);
+    assert.match(html, /data-status="COMPLETED"/);
+    assert.match(lessonHtml, /개인정보는 특정 개인을 식별하거나/);
+    assert.match(lessonHtml, /처리 목적과 권리 영향의 관계/);
+    assert.doesNotMatch(lessonHtml, /학습 본문을 표시할 수 없습니다/);
+    for (const path of [
+      "/learn/cppg/course-lessons/pg-cppg-generic",
+      `/learn/${courseA}/course-lessons/${courseLessonId}`,
+      `/learn/${courseA}/subjects/${subjectId}`,
+    ]) {
+      const rejected = await fetch(`${nextServer.baseUrl}${path}`, { redirect: "manual" });
+      const rejectedHtml = await rejected.text();
+      assert.ok(rejected.status === 404 || rejectedHtml.includes("NEXT_HTTP_ERROR_FALLBACK;404"), path);
+    }
+    await client.unsafe("DELETE FROM user_course_enrollments WHERE id = 'pg-cppg-enrollment'");
+    for (const path of [`/learn/cppg/subjects/${subjectId}`, `/learn/cppg/course-lessons/${courseLessonId}`]) {
+      const denied = await fetch(`${nextServer.baseUrl}${path}`, { redirect: "manual" });
+      const deniedHtml = await denied.text();
+      assert.ok(denied.status === 307 || deniedHtml.includes("NEXT_REDIRECT;replace;/courses/cppg;307"), path);
+    }
+  } finally {
+    await nextServer.stop();
+  }
+  const stored = await client.unsafe("SELECT body FROM contents WHERE id = ANY($1::text[]) ORDER BY id", [projection.contents.map(({ id }) => id)]);
+  assert.deepEqual(stored.map(({ body }) => body), bodies);
+});
+
+async function startNativeNextFixture() {
+  const nextTypesSnapshot = await snapshotNextGeneratedTypes();
+  const generatedInstructions = await Promise.all(["AGENTS.md", "CLAUDE.md"].map(async (path) => ({
+    path, body: await readFile(path).catch((error) => { if (error.code !== "ENOENT") throw error; return null; }),
+  })));
+  const socket = createServer();
+  await new Promise((resolve, reject) => { socket.once("error", reject); socket.listen(0, "127.0.0.1", resolve); });
+  const port = socket.address().port;
+  await new Promise((resolve) => socket.close(resolve));
+  const baseUrl = `http://127.0.0.1:${port}`;
+  const child = spawn(process.execPath, ["node_modules/next/dist/bin/next", "dev", "--hostname", "127.0.0.1", "--port", String(port)], {
+    windowsHide: true, stdio: ["ignore", "pipe", "pipe"],
+    env: { ...process.env, NODE_ENV: "development", APP_BUILD_TARGET: "vercel", DEV_AUTH_EMAIL: "pg-revision-user-1@example.invalid" },
+  });
+  let output = "";
+  child.stdout.on("data", (chunk) => { output = (output + chunk).slice(-8000); });
+  child.stderr.on("data", (chunk) => { output = (output + chunk).slice(-8000); });
+  const stop = async () => {
+    if (child.exitCode === null && child.signalCode === null) {
+      if (process.platform === "win32") await execFile("taskkill", ["/pid", String(child.pid), "/T", "/F"]);
+      else child.kill("SIGTERM");
+      await new Promise((resolve) => { if (child.exitCode !== null || child.signalCode !== null) resolve(); else child.once("exit", resolve); });
+    }
+    await restoreNextGeneratedTypes(nextTypesSnapshot);
+    for (const { path, body } of generatedInstructions) {
+      if (body === null) await rm(path, { force: true });
+      else await writeFile(path, body);
+    }
+  };
+  try {
+    const deadline = Date.now() + 120_000;
+    while (Date.now() < deadline) {
+      if (child.exitCode !== null) throw new Error(`Next fixture exited: ${output}`);
+      try {
+        const response = await fetch(`${baseUrl}/api/health`, { signal: AbortSignal.timeout(1000) });
+        if (response.ok) return { baseUrl, stop };
+      } catch { /* Wait for the owned local process to start. */ }
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+    throw new Error(`Next fixture readiness timed out: ${output}`);
+  } catch (error) {
+    await stop();
+    throw error;
+  }
+}
 
 test("PostgreSQL migration and app repository preserve CourseLesson revision identity", async () => {
   const first = await save(userOne, {

@@ -23,6 +23,8 @@ export default async function CourseLessonPage({
 }) {
   const { courseSlug, courseLessonId } = await params;
   const user = await requireCurrentAppUser(`/learn/${courseSlug}/course-lessons/${courseLessonId}`);
+  // Native Next route params are URI encoded; canonical IDs contain colons.
+  const resolvedCourseLessonId = decodeURIComponent(courseLessonId);
   const course = await getPublicCourseBySlug(courseSlug);
   if (!course) notFound();
   const enrollment = await getEnrollmentForCourse(user.id, course.id);
@@ -30,7 +32,7 @@ export default async function CourseLessonPage({
   const lesson = await getPublishedCourseLessonForUser({
     userId: user.id,
     courseId: course.id,
-    courseLessonId,
+    courseLessonId: resolvedCourseLessonId,
   });
   if (!lesson) notFound();
 
