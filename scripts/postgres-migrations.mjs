@@ -15,6 +15,7 @@ import {
   migrationsAfterBoundary,
   validateBaselineFiles,
 } from "./postgres-baseline.mjs";
+import { classifyMigrationApplicability } from "./postgres-migration-applicability.mjs";
 
 const migrationsDirectory = resolve("db/postgres/migrations");
 const command = process.argv[2] ?? "validate";
@@ -46,7 +47,8 @@ let runnerIndex = 0;
 let runner = await createPostgresMigrationRunner(migrationUrls[runnerIndex]);
 
 if (command === "status") {
-  const state = await inspectDatabaseState(runner);
+  const { state, baselineRelationExists, appliedMigrationIds } =
+    await inspectDatabaseState(runner);
   if (state === "TRUE_EMPTY") {
     await runner.close();
     console.log(`POSTGRES_BASELINE_PENDING ${BASELINE_ID}`);
@@ -94,7 +96,13 @@ if (command === "status") {
     failWithDetail("POSTGRES_MIGRATION_STATUS_FAILED", result.errorCode);
   }
   const applied = new Set(result.stdout.split(/\r?\n/).filter(Boolean));
-  const pending = migrations
+  const { applicable, notApplicable } = classifyMigrationApplicability(migrations, {
+    databaseState: state,
+    baselineRelationExists,
+    appliedMigrationIds,
+  });
+  reportNotApplicableMigrations(notApplicable);
+  const pending = applicable
     .map((migration) => migration.id)
     .filter((id) => !applied.has(id));
   console.log(
@@ -111,7 +119,8 @@ if (
 ) {
   fail("POSTGRES_MIGRATION_APPROVAL_REQUIRED");
 }
-const databaseState = await inspectDatabaseState(runner);
+const { state: databaseState, baselineRelationExists, appliedMigrationIds } =
+  await inspectDatabaseState(runner);
 if (["AMBIGUOUS_NONEMPTY", "PARTIAL_BASELINE", "UNKNOWN"].includes(databaseState)) {
   await runner.close();
   fail(`POSTGRES_BASELINE_STATE_${databaseState}`);
@@ -135,7 +144,13 @@ if (databaseState === "TRUE_EMPTY" || databaseState === "BASELINE_DATABASE") {
   migrationsToApply = migrationsAfterBoundary(migrations, BASELINE_BOUNDARY)
     .filter((migration) => !applied.has(migration.id));
 } else {
-  migrationsToApply = migrations;
+  const { applicable, notApplicable } = classifyMigrationApplicability(migrations, {
+    databaseState,
+    baselineRelationExists,
+    appliedMigrationIds,
+  });
+  reportNotApplicableMigrations(notApplicable);
+  migrationsToApply = applicable;
 }
 for (const migration of migrationsToApply) {
   const result = await runner.deployMigration(migration);
@@ -145,6 +160,14 @@ for (const migration of migrationsToApply) {
 }
 await runner.close();
 console.log("POSTGRES_MIGRATIONS_DEPLOYED");
+
+function reportNotApplicableMigrations(migrations) {
+  for (const migration of migrations) {
+    console.log(
+      `POSTGRES_MIGRATION_NOT_APPLICABLE migration=${migration.id} lineage=HISTORICAL_DATABASE reason=BASELINE_RECEIPT_TABLE_ABSENT receipt=NONE`,
+    );
+  }
+}
 
 async function queryWithConnectionFallback(statement) {
   while (true) {
@@ -352,7 +375,7 @@ async function createPostgresMigrationRunner(directUrl) {
 }
 
 async function inspectDatabaseState(runner) {
-  if (!runner.queryRows) return "UNKNOWN";
+  if (!runner.queryRows) return { state: "UNKNOWN", baselineRelationExists: null };
   const relationRows = await runner.queryRows(`
     SELECT count(*)::int AS count
     FROM pg_class c
@@ -373,7 +396,7 @@ async function inspectDatabaseState(runner) {
   const baseline = appRows[0]?.baseline_relation
     ? await runner.queryRows(`SELECT count(*)::int AS count, bool_and(baseline_id = '${BASELINE_ID}' AND schema_boundary = '${BASELINE_BOUNDARY}') AS valid FROM public.app_schema_baseline_receipts`)
     : [{ count: 0, valid: false }];
-  return classifyBaselineState({
+  const state = classifyBaselineState({
     applicationRelationCount: Number(relationRows[0]?.count ?? 0),
     historicalReceiptCount: historical.length,
     baselineReceiptCount: Number(baseline[0]?.count ?? 0),
@@ -382,6 +405,11 @@ async function inspectDatabaseState(runner) {
     postBoundaryMigrationIds: postBoundary,
     expectedPostBoundaryMigrationIds: migrationsAfterBoundary(migrations, BASELINE_BOUNDARY).map((migration) => migration.id),
   });
+  return {
+    state,
+    baselineRelationExists: Boolean(appRows[0]?.baseline_relation),
+    appliedMigrationIds: migrationRows.map((row) => row.id),
+  };
 }
 
 async function maybeFindPsql() {
