@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
+import { register } from "node:module";
 import { after, test } from "node:test";
 import { PostgresDatabaseProvider } from "../db/provider/postgres-database-provider.ts";
 import { saveGovernedQuestionCandidate } from "../db/question-governance-repository.ts";
@@ -99,6 +100,59 @@ test("disposable PostgreSQL 17 proves governed NEW_SUCCESS and EXACT_REPLAY", as
     assert.deepEqual(Object.values(rows[0]).map(Number), [0, 0, 0, 0], `${stage} left partial rows`);
   }
 });
+
+test("canonical PostgreSQL rejects legacy publication without changing published question authority or superseding prior revision", async () => {
+  assert.ok(client && createdContainer, "The owned PostgreSQL fixture must be initialized");
+  const questionId = "pg-swsec-question-001";
+  // Synthetic approval metadata for this disposable database only.
+  await client.unsafe("UPDATE questions SET status = 'PUBLISHED', reviewed_by = $1, published_at = '2026-10-01T00:00:00.000Z' WHERE id = $2", [actor, questionId]);
+  await client.unsafe("UPDATE question_versions SET human_review_hash = $1, human_reviewed_by = $2, human_reviewed_at = '2026-10-01T00:00:00.000Z', governance_json = $3 WHERE question_id = $4", ["b".repeat(64), actor, JSON.stringify({ rightsStatus: "PASS", similarityStatus: "PASS_LOW_SIMILARITY", reviewedSemanticHash: (await client.unsafe("SELECT semantic_hash FROM question_versions WHERE question_id = $1", [questionId]))[0].semantic_hash }), questionId]);
+  await client.unsafe("INSERT INTO content_revisions (id, content_type, content_id, title, content_date, version, revision_status, snapshot_json, reviewed_by, reviewed_at, published_at, is_latest, created_by) VALUES ('synthetic-pg-prior-question-revision', 'QUESTION_EXPLANATION', $1, 'Prior synthetic revision', '2026-10-01', 'legacy-1', 'published', '{}', $2, '2026-10-01T00:00:00.000Z', '2026-10-01T00:00:00.000Z', 1, $2)", [questionId, actor]);
+
+  const environment = {
+    APP_ENV: "development", DB_PROVIDER: "supabase", DATABASE_URL: `postgres://postgres:question-governance-test-password@127.0.0.1:${await getPublishedPostgresPort(createdContainer)}/postgres`,
+    POSTGRES_SSL_MODE: "disable", POSTGRES_MAX_CONNECTIONS: "1", POSTGRES_QUERY_TIMEOUT_MS: "5000",
+  };
+  const previous = Object.fromEntries(Object.keys(environment).map((key) => [key, process.env[key]]));
+  Object.assign(process.env, environment);
+  register("./support/node-runtime-loader.mjs", import.meta.url);
+  const { createContentRevisionDraft, publishContentRevision } = await import("../db/content-revision-repositories.ts");
+  const { disconnectRuntimePostgresExecutor } = await import("../db/postgres/postgres-js-executor.ts");
+  try {
+    const changes = [
+      { title: "Changed title" }, { explanation: "Changed explanation" },
+      { wrongAnswerExplanation: "Changed feedback" }, { source: "synthetic:changed" },
+      { sourceDate: "2026-10-06" }, undefined,
+    ];
+    for (const [index, snapshot] of changes.entries()) {
+      const revisionId = await createContentRevisionDraft({
+        contentType: "QUESTION_EXPLANATION", contentId: questionId, contentDate: "2026-10-07",
+        version: `synthetic-legacy-${index + 2}`, changeSummary: "Synthetic version-boundary regression",
+        snapshotJson: snapshot === undefined ? undefined : JSON.stringify(snapshot), userId: actor,
+      });
+      const before = await questionAuthorityState(questionId);
+      await assert.rejects(publishContentRevision(revisionId, actor), (error) => error?.code === "QUESTION_GOVERNED_VERSION_REQUIRED");
+      assert.deepEqual(await questionAuthorityState(questionId), before);
+      const [draft] = await client.unsafe("SELECT revision_status, is_latest, reviewed_by, published_at FROM content_revisions WHERE id = $1", [revisionId]);
+      assert.deepEqual({ ...draft }, { revision_status: "draft", is_latest: 0, reviewed_by: null, published_at: null });
+    }
+  } finally {
+    await disconnectRuntimePostgresExecutor();
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key]; else process.env[key] = value;
+    }
+  }
+});
+
+async function questionAuthorityState(questionId) {
+  return Promise.all([
+    client.unsafe("SELECT * FROM questions WHERE id = $1", [questionId]),
+    client.unsafe("SELECT * FROM question_versions WHERE question_id = $1 ORDER BY version", [questionId]),
+    client.unsafe("SELECT * FROM question_concepts WHERE question_version_id IN (SELECT id FROM question_versions WHERE question_id = $1) ORDER BY id", [questionId]),
+    client.unsafe("SELECT * FROM content_revisions WHERE content_id = $1 ORDER BY id", [questionId]),
+    client.unsafe("SELECT * FROM question_choices WHERE question_id = $1 ORDER BY id", [questionId]),
+  ]);
+}
 
 function makeProvider(failAt = null) {
   return new PostgresDatabaseProvider({

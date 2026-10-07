@@ -96,7 +96,7 @@ jobs:
           passed="$(awk '/^# pass / { print $3 }' "$result_path" | tail -n 1)"
           test "${skipped:-1}" = "0"
           test "${todo:-1}" = "0"
-          test "${passed:-0}" = "3"
+          test "${passed:-0}" = "4"
 
       - name: Cleanup owned disposable PostgreSQL containers
         if: always()
