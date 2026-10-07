@@ -1,4 +1,4 @@
-const BASELINE_RECEIPT_RLS_MIGRATION =
+export const BASELINE_RECEIPT_RLS_MIGRATION =
   "0058_app_schema_baseline_receipts_rls_hardening";
 
 export function classifyMigrationApplicability(

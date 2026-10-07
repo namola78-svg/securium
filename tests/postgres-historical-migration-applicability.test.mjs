@@ -7,6 +7,7 @@ import test from "node:test";
 import { promisify } from "node:util";
 import postgres from "postgres";
 import { classifyMigrationApplicability } from "../scripts/postgres-migration-applicability.mjs";
+import { validateHistoricalMigrationLedger } from "../scripts/postgres-historical-ledger.mjs";
 import { expectedMigrationChecksum } from "../scripts/postgres-migration-guard.mjs";
 import { validateBaselineFiles } from "../scripts/postgres-baseline.mjs";
 import {
@@ -50,6 +51,34 @@ test("applicability never exempts other migrations or migration-number lookalike
   assert.deepEqual(classifyMigrationApplicability(others, {
     databaseState: "HISTORICAL_DATABASE", baselineRelationExists: false, appliedMigrationIds: [],
   }), { applicable: others, notApplicable: [] });
+});
+
+test("historical ledger proof rejects missing evidence, duplicates, and missing checksums without mutating input", async () => {
+  const names = (await readdir("db/postgres/migrations")).filter(name => /^\d{4}_.+\.sql$/.test(name)).sort();
+  const migrations = await Promise.all(names.map(async name => ({ id: name.slice(0, -4), sql: await readFile(`db/postgres/migrations/${name}`, "utf8") })));
+  const rows = migrations.slice(0, 12).map(m => Object.freeze({ id: m.id, checksum: expectedMigrationChecksum(m) }));
+  const validate = (migrationRows, baselineRelationExists = false) => validateHistoricalMigrationLedger(migrations, { migrationRows, baselineRelationExists });
+  assert.equal(validate(Object.freeze(rows)), true);
+  assert.equal(validate(Object.freeze([rows[0], rows[2], rows[1], ...rows.slice(3)])), true);
+  for (const missing of [undefined, null, []]) {
+    assert.throws(() => validate(missing), /MIGRATION_GUARD_MIGRATION_LEDGER_INVALID/);
+  }
+  for (const checksum of [undefined, null, "", "different-registered-identity"]) {
+    assert.throws(() => validate([{ ...rows[0], checksum }, ...rows.slice(1)]), /MIGRATION_GUARD_MIGRATION_CHECKSUM_MISMATCH/);
+  }
+  assert.throws(() => validate([...rows, rows[0]]), /MIGRATION_GUARD_MIGRATION_LEDGER_DUPLICATE/);
+  assert.throws(() => validate([{ id: "unregistered_supplementary_receipt", checksum: "unresolved" }, ...rows]), /POSTGRES_HISTORICAL_LEDGER_UNKNOWN_RECEIPT/);
+  assert.throws(() => validate([rows[0], rows[3], rows[1], rows[2], ...rows.slice(4)]), /POSTGRES_HISTORICAL_LEDGER_PROGRESSION_ORDER_INVALID/);
+  assert.throws(() => validate([rows[1], ...rows.slice(2)]), /POSTGRES_HISTORICAL_LEDGER_PROGRESSION_GAP/);
+  const postBoundary = migrations.filter(m => m.id.slice(0, 4) > "0019").map(m => ({ id: m.id, checksum: expectedMigrationChecksum(m) }));
+  assert.throws(() => validate(postBoundary, true), /POSTGRES_HISTORICAL_LEDGER_HISTORICAL_RECEIPT_REQUIRED/);
+  const complete = migrations.map(m => ({ id: m.id, checksum: expectedMigrationChecksum(m) }));
+  const without0058 = complete.filter(row => row.id !== baselineRlsId);
+  assert.equal(validate(without0058), true);
+  assert.equal(validate(complete, true), true);
+  assert.throws(() => validate(without0058, true), /POSTGRES_HISTORICAL_LEDGER_PROGRESSION_GAP/);
+  assert.throws(() => validate(complete), /POSTGRES_BASELINE_RLS_RECEIPT_WITHOUT_TABLE/);
+  assert.deepEqual(rows.map(row => row.id), migrations.slice(0, 12).map(m => m.id));
 });
 
 test("owned PostgreSQL proves historical upgrade, resume, fresh RLS, and fail-closed invariants", async (t) => {
@@ -124,6 +153,54 @@ test("owned PostgreSQL proves historical upgrade, resume, fresh RLS, and fail-cl
     await admin`SELECT pg_reload_conf()`;
     await new Promise(r => setTimeout(r, 500));
 
+    const invalidLedgers = [
+      ["invalid_checksum", "MIGRATION_GUARD_MIGRATION_CHECKSUM_MISMATCH", async sql => {
+        await sql`UPDATE app_schema_migrations SET checksum='synthetic-invalid-checksum' WHERE id=${historical[0].id}`;
+      }],
+      ["ledger_gap", "POSTGRES_HISTORICAL_LEDGER_PROGRESSION_GAP", async sql => {
+        await sql`DELETE FROM app_schema_migrations WHERE id=${historical[5].id}`;
+      }],
+      ["unregistered_receipt", "POSTGRES_HISTORICAL_LEDGER_UNKNOWN_RECEIPT", async sql => {
+        await sql`INSERT INTO app_schema_migrations (id,checksum) VALUES ('0000_unregistered_synthetic_receipt','synthetic-not-registered')`;
+      }],
+      ["gap_and_late_checksum", "MIGRATION_GUARD_MIGRATION_CHECKSUM_MISMATCH", async sql => {
+        await sql`DELETE FROM app_schema_migrations WHERE id=${historical[5].id}`;
+        await sql`UPDATE app_schema_migrations SET checksum='synthetic-invalid-late-checksum' WHERE id=${pending.find(m => m.id.startsWith("0057_")).id}`;
+      }],
+      ["duplicate_receipt", "MIGRATION_GUARD_MIGRATION_LEDGER_DUPLICATE", async sql => {
+        await sql.unsafe("ALTER TABLE app_schema_migrations DROP CONSTRAINT app_schema_migrations_pkey");
+        await sql`INSERT INTO app_schema_migrations (id,checksum,applied_at) SELECT id,checksum,applied_at FROM app_schema_migrations WHERE id=${historical[0].id}`;
+      }],
+      ["out_of_order", "POSTGRES_HISTORICAL_LEDGER_PROGRESSION_ORDER_INVALID", async sql => {
+        await sql`UPDATE app_schema_migrations SET applied_at=(SELECT applied_at FROM app_schema_migrations WHERE id=${pending.find(m => m.id.startsWith("0056_")).id}) - interval '1 microsecond' WHERE id=${pending.find(m => m.id.startsWith("0057_")).id}`;
+      }],
+    ];
+    for (const [name, error, invalidate] of invalidLedgers) {
+      await t.test(`historical ledger ${name} rejects both commands before exemption or DDL`, async () => {
+        const databaseName = `preflight_${name}`;
+        const sql = await fixture(databaseName);
+        for (const m of pending.filter(m => m.id.slice(0, 4) < "0058")) await sql.unsafe(m.sql);
+        await invalidate(sql);
+        const before = Array.from(await sql`SELECT id,checksum,applied_at FROM app_schema_migrations ORDER BY id`);
+        const catalog = () => sql`SELECT c.relname,c.relkind,c.relrowsecurity,c.relforcerowsecurity FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind IN ('r','v','m') ORDER BY c.relname`;
+        const catalogBefore = Array.from(await catalog());
+        const status = await run(databaseName, "status");
+        const deploy = await run(databaseName);
+        const after = Array.from(await sql`SELECT id,checksum,applied_at FROM app_schema_migrations ORDER BY id`);
+        evidence.stages[name] = { status, deploy, ledgerBefore: before.length, ledgerAfter: after.length };
+        for (const result of [status, deploy]) {
+          assert.equal(result.code, 1, result.stdout);
+          assert.match(result.stderr, new RegExp(error));
+          assert.doesNotMatch(result.stdout, /POSTGRES_MIGRATION_NOT_APPLICABLE|action=EXECUTE/);
+        }
+        assert.equal(status.stderr.trim(), deploy.stderr.trim());
+        assert.deepEqual(after, before, "invalid receipts must not be repaired or normalized");
+        assert.deepEqual(Array.from(await catalog()), catalogBefore);
+        assert.equal((await sql`SELECT to_regclass('public.app_schema_baseline_receipts') AS relation`)[0].relation, null);
+        evidence.stages[name].ledgerAndCatalogUnchanged = true;
+      });
+    }
+
     await t.test("literal 0001-0012 replay records the pre-existing 0002 dependency defect", async () => {
       const sql = await database("preflight_literal");
       await sql.unsafe(historical[0].sql);
@@ -176,6 +253,43 @@ test("owned PostgreSQL proves historical upgrade, resume, fresh RLS, and fail-cl
       verifyLedger(await ledger(sql), migrations.filter(m => m.id !== baselineRlsId));
       assert.equal((await sql`SELECT to_regclass('public.app_schema_baseline_receipts') AS relation`)[0].relation, null);
       evidence.stages.partialUpgradeResume = { code: result.code, ledgerBefore: 40, ledgerAfter: 42, baselineRelationAbsent: true, no0058Receipt: true };
+    });
+
+    await t.test("historical 0058 receipt without its table rejects both commands without changing the ledger", async () => {
+      const sql = await fixture("preflight_inconsistent");
+      for (const m of pending.filter(m => m.id.slice(0, 4) < "0058")) await sql.unsafe(m.sql);
+      // Deliberately inconsistent synthetic evidence; never a real receipt claim.
+      await sql`INSERT INTO app_schema_migrations (id,checksum) VALUES (${baselineRlsId},${expectedMigrationChecksum(migrations.find(m => m.id === baselineRlsId))})`;
+      const before = await ledger(sql);
+      const status = await run("preflight_inconsistent", "status");
+      const deploy = await run("preflight_inconsistent");
+      for (const result of [status, deploy]) {
+        assert.equal(result.code, 1);
+        assert.match(result.stderr, /POSTGRES_BASELINE_RLS_RECEIPT_WITHOUT_TABLE/);
+        assert.doesNotMatch(result.stdout, /POSTGRES_MIGRATION_NOT_APPLICABLE|action=EXECUTE/);
+      }
+      assert.equal(status.stderr.trim(), deploy.stderr.trim());
+      assert.deepEqual(await ledger(sql), before);
+      evidence.stages.inconsistentReceipt = { status, deploy, ledgerUnchanged: true };
+    });
+
+    await t.test("an existing historical baseline control table keeps 0058 applicable without any baseline receipt", async () => {
+      const sql = await fixture("preflight_existing_table");
+      for (const m of pending.filter(m => m.id.slice(0, 4) < "0058")) await sql.unsafe(m.sql);
+      const { artifact } = await validateBaselineFiles();
+      await sql.unsafe(artifact.match(/CREATE TABLE app_schema_baseline_receipts \([\s\S]+?\n\);/)[0]);
+      const status = await run("preflight_existing_table", "status");
+      const deploy = await run("preflight_existing_table");
+      for (const result of [status, deploy]) {
+        assert.equal(result.code, 0, result.stderr);
+        assert.doesNotMatch(result.stdout, /POSTGRES_MIGRATION_NOT_APPLICABLE/);
+      }
+      assert.match(status.stdout, /POSTGRES_MIGRATIONS_PENDING 0058_/);
+      assert.match(deploy.stdout, /migration=0058_app_schema_baseline_receipts_rls_hardening .*action=EXECUTE/);
+      verifyLedger(await ledger(sql), migrations);
+      assert.equal((await sql`SELECT count(*)::int AS count FROM app_schema_baseline_receipts`)[0].count, 0);
+      assert.equal((await sql`SELECT relrowsecurity FROM pg_class WHERE oid='public.app_schema_baseline_receipts'::regclass`)[0].relrowsecurity, true);
+      evidence.stages.existingBaselineTable = { status, deploy, migration0058Applied: true, baselineReceiptRows: 0 };
     });
 
     await t.test("fresh baseline still receives 0058 and preserves its real receipt digests", async () => {
