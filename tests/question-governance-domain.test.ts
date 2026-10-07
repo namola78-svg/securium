@@ -50,6 +50,17 @@ test("semantic hash preserves ordered choices while normalizing set-like course 
   assert.notEqual(first, reordered, "choice order is semantic");
 });
 
+test("every legacy question explanation field is bound to the governed semantic hash", async () => {
+  const original = projection();
+  const hash = await computeQuestionSemanticHash(original);
+  for (const [field, value] of Object.entries({
+    title: "Changed title", explanation: "Changed explanation", wrongAnswerExplanation: "Changed feedback",
+    source: "synthetic:source", sourceDate: "2026-10-07",
+  })) {
+    assert.notEqual(await computeQuestionSemanticHash({ ...original, [field]: value }), hash, field);
+  }
+});
+
 test("rights and similarity governance rejects missing or blocked state", () => {
   assert.doesNotThrow(() => assertGovernanceInput(governance));
   assert.throws(

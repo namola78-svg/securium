@@ -4,6 +4,7 @@ import { after, before, test } from "node:test";
 import { createMiniflareD1Fixture } from "./helpers/miniflare-d1-fixture.mjs";
 import { D1DatabaseProvider } from "../db/provider/d1-database-provider.ts";
 import { saveGovernedTheoryRevision } from "../db/content-revision-governance-repositories.ts";
+import { computeTheoryRevisionSemanticHash, stableJson } from "../lib/services/content-revision-service.ts";
 
 const actor = "a0000000-0000-4000-8000-000000000101";
 const reviewer = "a0000000-0000-4000-8000-000000000102";
@@ -28,34 +29,57 @@ before(async () => {
 
 after(async () => { await miniflare?.dispose(); });
 
-test("NEW_SUCCESS then EXACT_REPLAY, conflict, and new revision contract", async () => {
+test("caller review claims are denied before any database access, including retry or changed semantics", async () => {
   const candidate = makeCandidate();
-  const first = await saveGovernedTheoryRevision(candidate, actor, provider);
-  assert.equal(first.outcome, "NEW_SUCCESS");
-  assert.equal((await saveGovernedTheoryRevision(candidate, actor, provider)).outcome, "EXACT_REPLAY");
-  await assert.rejects(saveGovernedTheoryRevision({ ...candidate, body: "changed" }, actor, provider), hasCode("THEORY_REVISION_CONFLICT"));
-  await assert.rejects(saveGovernedTheoryRevision({ ...candidate, version: "2.0.0" }, actor, provider), hasCode("THEORY_NEW_REVISION_REQUIRED"));
-  assert.equal(await scalar("SELECT COUNT(*) AS count FROM content_revisions"), 1);
-  assert.equal(await scalar("SELECT COUNT(*) AS count FROM content_revision_concepts"), 1);
+  const before = await canonicalState();
+  let databaseCalls = 0;
+  const inaccessibleDatabase = new Proxy(provider, { get() { databaseCalls += 1; throw new Error("Review rejection must precede database access"); } });
+  for (const input of [candidate, candidate, { ...candidate, body: "changed" }, { ...candidate, version: "2.0.0" }]) {
+    await assert.rejects(saveGovernedTheoryRevision(input, actor, inaccessibleDatabase), hasCode("THEORY_SERVER_REVIEW_AUTHORITY_REQUIRED"));
+  }
+  assert.equal(databaseCalls, 0);
+  assert.deepEqual(await canonicalState(), before);
 });
 
-test("missing actor and duplicate mapping rollback leave no partial rows", async () => {
-  const missingActor = makeCandidate("missing-actor");
-  await assert.rejects(saveGovernedTheoryRevision(missingActor, "missing-actor", provider), hasCode("ACTOR_NOT_FOUND"));
+test("APPROVED mapping claims, duplicate mappings, and missing parents leave no partial rows", async () => {
+  const before = await canonicalState();
+  const approved = makeCandidate();
+  approved.conceptMappings = [{ ...approved.conceptMappings[0], mappingStatus: "APPROVED", reviewedBy: actor, reviewedAt: approved.governance.humanReviewedAt }];
+  approved.governance.humanReviewedBy = actor;
+  await assert.rejects(saveGovernedTheoryRevision(approved, actor, provider), hasCode("THEORY_SERVER_REVIEW_AUTHORITY_REQUIRED"));
+  await assert.rejects(saveGovernedTheoryRevision(makeCandidate("missing-actor"), "missing-actor", provider), hasCode("THEORY_SERVER_REVIEW_AUTHORITY_REQUIRED"));
   const duplicate = makeCandidate("rollback");
   duplicate.conceptMappings = [duplicate.conceptMappings[0], duplicate.conceptMappings[0]];
-  await assert.rejects(saveGovernedTheoryRevision(duplicate, actor, provider));
-  assert.equal(await scalar("SELECT COUNT(*) AS count FROM content_revisions WHERE content_id = ?", [`${contentId}-primary`]), 1);
+  await assert.rejects(saveGovernedTheoryRevision(duplicate, actor, provider), hasCode("THEORY_SERVER_REVIEW_AUTHORITY_REQUIRED"));
   const missingConcept = makeCandidate("missing-concept");
   missingConcept.conceptMappings = [{ ...missingConcept.conceptMappings[0], conceptId: "missing-concept" }];
-  await assert.rejects(saveGovernedTheoryRevision(missingConcept, actor, provider), hasCode("CONCEPT_NOT_FOUND"));
+  await assert.rejects(saveGovernedTheoryRevision(missingConcept, actor, provider), hasCode("THEORY_SERVER_REVIEW_AUTHORITY_REQUIRED"));
+  assert.deepEqual(await canonicalState(), before);
+  assert.equal(await scalar("SELECT COUNT(*) AS count FROM content_revisions"), 0);
+  assert.equal(await scalar("SELECT COUNT(*) AS count FROM content_revision_concepts"), 0);
 });
 
-test("concurrent identical writes converge to one success and one replay", async () => {
+test("concurrent unverified claims are all denied with zero canonical delta", async () => {
   const candidate = makeCandidate("concurrent");
-  const results = await Promise.all([saveGovernedTheoryRevision(candidate, actor, provider), saveGovernedTheoryRevision(candidate, actor, provider)]);
-  assert.deepEqual(results.map((result) => result.outcome).sort(), ["EXACT_REPLAY", "NEW_SUCCESS"]);
-  assert.equal(await scalar("SELECT COUNT(*) AS count FROM content_revisions WHERE content_id = ?", [`${contentId}-concurrent`]), 1);
+  const before = await canonicalState();
+  const results = await Promise.allSettled([saveGovernedTheoryRevision(candidate, actor, provider), saveGovernedTheoryRevision(candidate, actor, provider)]);
+  assert.ok(results.every((result) => result.status === "rejected" && result.reason.code === "THEORY_SERVER_REVIEW_AUTHORITY_REQUIRED"));
+  assert.deepEqual(await canonicalState(), before);
+});
+
+test("a preexisting legacy review claim cannot be blessed by EXACT_REPLAY", async () => {
+  const candidate = makeCandidate();
+  const { contentId, ...projection } = candidate;
+  const semanticHash = await computeTheoryRevisionSemanticHash(projection);
+  const snapshot = stableJson({ title: candidate.title, body: candidate.body, bodyFormat: candidate.bodyFormat, learningObjectives: candidate.learningObjectives, examples: candidate.examples, selfChecks: candidate.selfChecks, governance: candidate.governance });
+  await database.prepare("INSERT INTO content_revisions (id, content_type, content_id, title, content_date, version, revision_status, snapshot_json, reviewed_at, reviewed_by, created_by, semantic_hash, human_review_hash) VALUES ('synthetic-existing-review', 'LEARNING_UNIT', ?, ?, '2026-10-01', ?, 'review', ?, ?, ?, ?, ?, ?)")
+    .bind(contentId, candidate.title, candidate.version, snapshot, candidate.governance.humanReviewedAt, reviewer, actor, semanticHash, candidate.governance.humanReviewHash).run();
+  const mapping = candidate.conceptMappings[0];
+  await database.prepare("INSERT INTO content_revision_concepts (id, revision_id, concept_id, created_by, qualification_json, provenance_json, mapping_status) VALUES ('synthetic-existing-mapping', 'synthetic-existing-review', ?, ?, ?, ?, 'SUGGESTED')")
+    .bind(mapping.conceptId, actor, mapping.qualificationJson, mapping.provenanceJson).run();
+  const before = await canonicalState();
+  await assert.rejects(saveGovernedTheoryRevision(candidate, actor, provider), hasCode("THEORY_SERVER_REVIEW_AUTHORITY_REQUIRED"));
+  assert.deepEqual(await canonicalState(), before);
 });
 
 function makeCandidate(suffix = "primary") {
@@ -76,4 +100,8 @@ function makeCandidate(suffix = "primary") {
 
 async function applyMigration(sql) { const statements = sql.split("--> statement-breakpoint").map((value) => value.trim()).filter(Boolean); for (const statement of statements) await database.prepare(statement).run(); }
 async function scalar(sql, parameters = []) { const row = await database.prepare(sql).bind(...parameters).first(); return Number(row?.count ?? 0); }
+async function canonicalState() {
+  const rows = await Promise.all(["contents", "content_revisions", "content_revision_concepts"].map((table) => database.prepare(`SELECT * FROM ${table} ORDER BY id`).all()));
+  return rows.map((result) => result.results);
+}
 function hasCode(code) { return (error) => error?.code === code; }

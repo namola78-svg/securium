@@ -163,6 +163,7 @@ export async function computeTheoryRevisionSemanticHash(
     .join("");
 }
 
+/** Validates candidate claims only; this does not establish server-verified review authority. */
 export function assertTheoryRevisionCandidate(
   candidate: GovernedTheoryRevisionCandidate,
   actorUserId: string,

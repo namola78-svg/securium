@@ -18,7 +18,7 @@ after(async () => {
   if (container) await execFile("docker", ["rm", "--force", container]).catch(() => {});
 });
 
-test("disposable PostgreSQL proves Theory NEW_SUCCESS, EXACT_REPLAY, and conflict", async () => {
+test("disposable PostgreSQL rejects unverified Theory review and mapping authority with zero canonical delta", async () => {
   container = `securium-theory-governance-${randomUUID()}`;
   const password = "theory-governance-test-password";
   await execFile("docker", ["run", "--detach", "--rm", "--name", container, "--env", `POSTGRES_PASSWORD=${password}`, "--publish", "127.0.0.1::5432", "postgres:17.6"]);
@@ -29,6 +29,14 @@ test("disposable PostgreSQL proves Theory NEW_SUCCESS, EXACT_REPLAY, and conflic
   client = postgres(`postgres://postgres:${password}@127.0.0.1:${port}/postgres`, { max: 1, prepare: false, ssl: false, onnotice: false });
   await waitForConnection();
   await client.unsafe("CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN; CREATE ROLE service_role NOLOGIN;");
+  // Match the current baseline prerequisite used by later migrations (including 0058).
+  await client.unsafe(`CREATE TABLE public.app_schema_baseline_receipts (
+    baseline_id text PRIMARY KEY, baseline_version text NOT NULL,
+    schema_boundary text NOT NULL, artifact_sha256 text NOT NULL,
+    schema_sha256 text NOT NULL, security_sha256 text NOT NULL,
+    created_from_main_sha text NOT NULL,
+    applied_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`);
   const migrations = (await readdir("db/postgres/migrations")).filter((name) => /^\d{4}_.+\.sql$/.test(name) && !["0002_server_only_rls_lockdown.sql", "0009_security_certification_taxonomy_cleanup.sql"].includes(name)).sort();
   for (const name of migrations) await client.unsafe(await readFile(`db/postgres/migrations/${name}`, "utf8"));
   await client.unsafe("INSERT INTO users (id, email, display_name) VALUES ($1, $2, $3), ($4, $5, $6)", [actor, "pg-actor@example.invalid", "Actor", reviewer, "pg-reviewer@example.invalid", "Reviewer"]);
@@ -39,12 +47,16 @@ test("disposable PostgreSQL proves Theory NEW_SUCCESS, EXACT_REPLAY, and conflic
     transaction: async (callback) => client.begin(async (tx) => callback({ query: async (sql, parameters) => { const rows = await tx.unsafe(sql, parameters); return { rows, rowCount: rows.length }; } })),
   });
   const candidate = makeCandidate();
-  assert.equal((await saveGovernedTheoryRevision(candidate, actor, provider)).outcome, "NEW_SUCCESS");
-  assert.equal((await saveGovernedTheoryRevision(candidate, actor, provider)).outcome, "EXACT_REPLAY");
-  await assert.rejects(saveGovernedTheoryRevision({ ...candidate, body: "changed" }, actor, provider), (error) => error?.code === "THEORY_REVISION_CONFLICT");
+  const before = await client.unsafe("SELECT * FROM contents ORDER BY id");
+  const approved = { ...candidate, conceptMappings: [{ ...candidate.conceptMappings[0], mappingStatus: "APPROVED", reviewedBy: actor, reviewedAt: candidate.governance.humanReviewedAt }] };
+  const selfReviewed = { ...candidate, governance: { ...candidate.governance, humanReviewedBy: actor } };
+  for (const input of [candidate, candidate, approved, selfReviewed, { ...candidate, body: "changed" }]) {
+    await assert.rejects(saveGovernedTheoryRevision(input, actor, provider), (error) => error?.code === "THEORY_SERVER_REVIEW_AUTHORITY_REQUIRED");
+  }
   const rows = await client.unsafe("SELECT count(*)::int AS revisions, (SELECT count(*)::int FROM content_revision_concepts) AS concepts FROM content_revisions");
-  assert.equal(Number(rows[0].revisions), 1);
-  assert.equal(Number(rows[0].concepts), 1);
+  assert.equal(Number(rows[0].revisions), 0);
+  assert.equal(Number(rows[0].concepts), 0);
+  assert.deepEqual(await client.unsafe("SELECT * FROM contents ORDER BY id"), before);
 });
 
 function makeCandidate() {
