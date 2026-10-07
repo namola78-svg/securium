@@ -1,27 +1,81 @@
-import { readFile, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const manifestPath = resolve("db/postgres/schema-manifest.json");
-const outputPath = resolve(
-  "db/postgres/migrations/0002_server_only_rls_lockdown.sql",
-);
-const checkOnly = process.argv.includes("--check");
-const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
-const tableNames = ["app_schema_migrations", ...manifest.tableOrder];
-const sql = buildMigration(tableNames);
+// Published LF migration bytes define the historical contract, not today's
+// manifest. New manifest tables must name their own reviewed security owner.
+const historicalMigrationId = "0002_server_only_rls_lockdown";
+const historicalSha256 = "289b707321fab2573780f401ec65e62053e3fba7062361e86e8b5f2fd6fce1cd";
+const forwardSecurityOwners = Object.freeze({
+  foundation_question_bindings: Object.freeze({
+    migrationId: "0050_sw_foundation_identity_version_binding",
+    sha256: "ec5730411e45abf0d6a37e0c41b175c4a1e87097b955f6573ef66991f4e51043",
+    requireForceRls: false,
+  }),
+});
 
-validateMigration(sql, tableNames.length);
-
-if (checkOnly) {
-  const current = await readFile(outputPath, "utf8").catch(() => "");
-  if (current !== sql) {
-    console.error("POSTGRES_RLS_MIGRATION_OUT_OF_DATE");
-    process.exit(1);
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  try {
+    const manifest = JSON.parse(await readFile(resolve("db/postgres/schema-manifest.json"), "utf8"));
+    const historicalSql = await readMigration(historicalMigrationId);
+    const forwardMigrations = Object.fromEntries(await Promise.all(
+      Object.values(forwardSecurityOwners).map(async ({ migrationId }) => [migrationId, await readMigration(migrationId)]),
+    ));
+    const result = validateRlsMigrationContracts({ manifest, historicalSql, forwardMigrations });
+    // Both the legacy generation command and --check are now read-only. Never
+    // regenerate a published migration from a changing application manifest.
+    console.log(`POSTGRES_RLS_MIGRATION_VALID tables=${result.currentTableCount} historical_tables=${result.historicalTableCount} forward_tables=${result.forwardTableCount}`);
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 1;
   }
-  console.log(`POSTGRES_RLS_MIGRATION_VALID tables=${tableNames.length}`);
-} else {
-  await writeFile(outputPath, sql, "utf8");
-  console.log(`POSTGRES_RLS_MIGRATION_GENERATED tables=${tableNames.length}`);
+}
+
+async function readMigration(id) {
+  return readFile(resolve(`db/postgres/migrations/${id}.sql`), "utf8");
+}
+
+export function validateRlsMigrationContracts({ manifest, historicalSql, forwardMigrations }) {
+  if (!Array.isArray(manifest.tableOrder) || manifest.tableCount !== manifest.tableOrder.length) {
+    fail("POSTGRES_RLS_MANIFEST_TABLES_INVALID");
+  }
+  const tableNames = ["app_schema_migrations", ...manifest.tableOrder];
+  tableNames.forEach(identifier);
+  if (new Set(tableNames).size !== tableNames.length) fail("POSTGRES_RLS_MANIFEST_TABLES_INVALID");
+  if (digest(historicalSql) !== historicalSha256) fail("POSTGRES_RLS_IMMUTABLE_MIGRATION_CHANGED");
+  const historicalNames = [...historicalSql.matchAll(/^ALTER TABLE public\."([^"]+)" ENABLE ROW LEVEL SECURITY;$/gm)].map(match => match[1]);
+  if (historicalSql !== buildMigration(historicalNames)) fail("POSTGRES_RLS_MIGRATION_OUT_OF_DATE");
+  validateMigration(historicalSql, historicalNames.length);
+  if (historicalNames.some(name => !tableNames.includes(name)) ||
+      Object.keys(forwardSecurityOwners).some(name => !tableNames.includes(name))) {
+    fail("POSTGRES_RLS_MANIFEST_TABLES_INVALID");
+  }
+  const laterNames = tableNames.filter(name => !historicalNames.includes(name));
+  for (const name of laterNames) {
+    const owner = forwardSecurityOwners[name];
+    if (!owner) fail(`POSTGRES_RLS_SECURITY_OWNER_MISSING table=${name}`);
+    const source = forwardMigrations[owner.migrationId];
+    if (typeof source !== "string") fail(`POSTGRES_RLS_SECURITY_MIGRATION_MISSING table=${name}`);
+    const sql = source.replace(/\/\*[\s\S]*?\*\/|--[^\r\n]*/g, "").replace(/\s+/g, " ");
+    const table = `public.${identifier(name)}`;
+    if (!sql.includes(`CREATE TABLE ${table} (`) ||
+        !sql.includes(`REVOKE ALL PRIVILEGES ON TABLE ${table} FROM PUBLIC, anon, authenticated;`) ||
+        !sql.includes(`ALTER TABLE ${table} ENABLE ROW LEVEL SECURITY;`) ||
+        (owner.requireForceRls && !sql.includes(`ALTER TABLE ${table} FORCE ROW LEVEL SECURITY;`))) {
+      fail(`POSTGRES_RLS_TABLE_PROTECTION_MISSING table=${name} migration=${owner.migrationId}`);
+    }
+    validateMigration(source, 1);
+    if (/\bDISABLE ROW LEVEL SECURITY\b/i.test(sql)) fail("POSTGRES_RLS_TABLE_PROTECTION_DISABLED");
+    // Also reject edits that preserve matching snippets but change the published
+    // contract elsewhere (e.g. hiding protection in a string or granting access).
+    if (digest(source) !== owner.sha256) fail(`POSTGRES_RLS_IMMUTABLE_MIGRATION_CHANGED migration=${owner.migrationId}`);
+  }
+  return { currentTableCount: tableNames.length, historicalTableCount: historicalNames.length, forwardTableCount: laterNames.length };
+}
+
+function digest(sql) {
+  return createHash("sha256").update(sql, "utf8").digest("hex");
 }
 
 function buildMigration(names) {
@@ -61,7 +115,7 @@ function buildMigration(names) {
 }
 
 function validateMigration(value, expectedTableCount) {
-  if (!value.startsWith("-- GENERATED") || !/\bCOMMIT;\s*$/i.test(value)) {
+  if (!/\bBEGIN;/.test(value) || !/\bCOMMIT;\s*$/i.test(value)) {
     fail("POSTGRES_RLS_MIGRATION_TRANSACTION_REQUIRED");
   }
   const enabledCount = [
@@ -89,6 +143,5 @@ function identifier(value) {
 }
 
 function fail(code) {
-  console.error(code);
-  process.exit(1);
+  throw new Error(code);
 }

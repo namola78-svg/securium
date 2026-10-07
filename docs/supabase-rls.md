@@ -17,6 +17,18 @@
 `db/postgres/migrations/0002_server_only_rls_lockdown.sql`은 현재 서버
 Repository 구조를 위한 별도 보안 migration이다.
 
+`npm run db:postgres:security:validate`는 immutable `0002`의 역사적 71개
+relation을 검증한다. 현재 manifest에는 `app_schema_migrations`를 포함해
+72개 relation이 있다. 이후 추가된 `foundation_question_bindings`는 생성과
+보안을 소유하는 `0050_sw_foundation_identity_version_binding`에서 검증한다.
+`0050`은 RLS를 활성화하고 `PUBLIC`, `anon`, `authenticated` 권한을
+제거한다. 서버 DB owner 접근을 유지하는 이 계약은 FORCE RLS를 요구하지 않는다.
+
+기존 `db:postgres:security:generate` 명령도 읽기 전용 검증을 수행한다.
+게시된 migration을 현재 manifest에서 다시 생성하지 않는다. 새 manifest
+테이블은 검토된 migration의 보안 계약을 명시해야 하며, 누락된 소유자나
+RLS·권한 회수, 게시된 SQL 변경은 검증 실패로 처리한다.
+
 - 68개 애플리케이션 테이블과 `app_schema_migrations`에서 `PUBLIC`,
   `anon`, `authenticated`의 직접 테이블 권한을 제거한다.
 - 모든 대상 테이블에서 RLS를 활성화한다.

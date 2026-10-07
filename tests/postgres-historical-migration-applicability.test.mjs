@@ -20,6 +20,55 @@ const execFile = promisify(execFileCallback);
 const baselineRlsId = "0058_app_schema_baseline_receipts_rls_hardening";
 const sample = [{ id: "0057_before" }, { id: baselineRlsId }, { id: "0059_after" }];
 
+async function foundationSecurity(sql) {
+  const [relation] = await sql`
+    SELECT c.relrowsecurity, c.relforcerowsecurity, pg_get_userbyid(c.relowner) AS owner,
+      (SELECT count(*)::int FROM pg_policies WHERE schemaname='public' AND tablename=c.relname) AS policies
+    FROM pg_class c WHERE c.oid='public.foundation_question_bindings'::regclass
+  `;
+  assert.deepEqual(relation, { relrowsecurity: true, relforcerowsecurity: false, owner: "postgres", policies: 0 });
+  const privileges = Array.from(await sql`
+    SELECT role, privilege, has_table_privilege(role,'public.foundation_question_bindings',privilege) AS allowed
+    FROM unnest(ARRAY['anon','authenticated','service_role','postgres']) AS r(role)
+    CROSS JOIN unnest(ARRAY['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER','MAINTAIN']) AS p(privilege)
+    ORDER BY role, privilege
+  `);
+  for (const row of privileges) assert.equal(row.allowed, row.role === "service_role" || row.role === "postgres", `${row.role}:${row.privilege}`);
+  const publicAcl = Array.from(await sql`
+    SELECT privilege_type FROM pg_class c CROSS JOIN LATERAL aclexplode(c.relacl) a
+    WHERE c.oid='public.foundation_question_bindings'::regclass AND a.grantee=0
+  `);
+  assert.equal(publicAcl.length, 0);
+  return { relation, privileges, publicAcl, serviceGrantAuthority: "SYNTHETIC_PRE_EXISTING_DEFAULT_ACL" };
+}
+
+async function proveFoundationRoleAccess(sql) {
+  const rollback = new Error("ROLLBACK_SYNTHETIC_RLS_PROBE");
+  await assert.rejects(sql.begin(async tx => {
+    await tx.unsafe("INSERT INTO course_groups (id,code,name) VALUES ('synthetic-rls-group','SYNTHETIC_RLS','Synthetic RLS'); INSERT INTO courses (id,course_group_id,code,slug,name,short_name) VALUES ('synthetic-rls-course','synthetic-rls-group','SYNTHETIC_RLS','synthetic-rls','Synthetic RLS','RLS')");
+    await tx`INSERT INTO foundation_question_bindings (id,course_id,foundation_binding_key,foundation_version,foundation_question_id,semantic_hash) VALUES ('synthetic-rls-binding','synthetic-rls-course','synthetic-rls','1','synthetic-question',${"d".repeat(64)})`;
+    for (const role of ["postgres", "service_role"]) {
+      await tx.unsafe(`SET LOCAL ROLE ${role}`);
+      assert.equal((await tx`SELECT count(*)::int AS count FROM foundation_question_bindings WHERE id='synthetic-rls-binding'`)[0].count, 1);
+      assert.equal((await tx`UPDATE foundation_question_bindings SET lifecycle_state='ACTIVE' WHERE id='synthetic-rls-binding' RETURNING id`).length, 1);
+    }
+    await tx.unsafe("SET LOCAL ROLE postgres");
+    for (const role of ["anon", "authenticated"]) {
+      await assert.rejects(tx.savepoint(async probe => {
+        await probe.unsafe(`SET LOCAL ROLE ${role}`);
+        await probe`SELECT * FROM foundation_question_bindings`;
+      }), { code: "42501" });
+      // With temporary SELECT privileges, enabled RLS still denies every row.
+      await tx.unsafe(`GRANT SELECT ON foundation_question_bindings TO ${role}`);
+      await tx.unsafe(`SET LOCAL ROLE ${role}`);
+      assert.equal((await tx`SELECT count(*)::int AS count FROM foundation_question_bindings`)[0].count, 0);
+      await tx.unsafe("SET LOCAL ROLE postgres");
+    }
+    throw rollback;
+  }), error => error === rollback);
+  return { postgresReadWrite: "PASS", serviceRoleReadWrite: "PASS", browserSelectSqlstate: "42501", browserRowsWithTemporarySelectGrant: 0, probeRolledBack: true };
+}
+
 test("only the absent baseline control table on a historical lineage is not applicable", () => {
   const plan = classifyMigrationApplicability(sample, {
     databaseState: "HISTORICAL_DATABASE", baselineRelationExists: false, appliedMigrationIds: [],
@@ -236,6 +285,11 @@ test("owned PostgreSQL proves historical upgrade, resume, fresh RLS, and fail-cl
       const afterStatus = await run("preflight_historical", "status");
       assert.match(afterStatus.stdout, /POSTGRES_MIGRATIONS_APPLIED/);
       evidence.stages.historicalUpgrade = { code: result.code, applicablePendingBefore: 30, ledgerCount: expected.length, ledger: await ledger(sql), baselineRelationAbsent: true, no0058Receipt: true, legacyAttemptPreserved: true, authorityRegistrationPublicationAndBindingRows: 0, browserAccessibleTables: 0, repeatDeploy: "PASS", statusAfter: afterStatus.stdout.trim() };
+      const security = await foundationSecurity(sql);
+      const roleAccess = await proveFoundationRoleAccess(sql);
+      assert.deepEqual(await foundationSecurity(sql), security);
+      verifyLedger(await ledger(sql), expected);
+      evidence.stages.historicalUpgrade.foundationQuestionBindings = { ...security, roleAccess };
       await sql`UPDATE app_schema_migrations SET checksum='synthetic-invalid-checksum' WHERE id=${historical.at(-1).id}`;
       const mismatch = await run("preflight_historical");
       assert.equal(mismatch.code, 1);
@@ -305,6 +359,23 @@ test("owned PostgreSQL proves historical upgrade, resume, fresh RLS, and fail-cl
       const replay = await run("preflight_fresh");
       assert.equal(replay.code, 0, replay.stderr);
       evidence.stages.freshBaseline = { code: result.code, ledgerCount: 24, baselineReceiptCount: 1, genuineBaselineExecution: true, baselineDigestsPreserved: true, migration0058Applied: true, baselineReceiptRlsEnabled: true, repeatDeploy: "PASS" };
+      const security = await foundationSecurity(sql);
+      const roleAccess = await proveFoundationRoleAccess(sql);
+      assert.deepEqual(await foundationSecurity(sql), security);
+      assert.deepEqual(security, Object.fromEntries(Object.entries(evidence.stages.historicalUpgrade.foundationQuestionBindings).filter(([key]) => key !== "roleAccess")));
+      verifyLedger(await ledger(sql), migrations.filter(m => m.id.slice(0, 4) > "0019"));
+      evidence.stages.freshBaseline.foundationQuestionBindings = { ...security, roleAccess };
+      evidence.stages.freshBaseline.ledger = await ledger(sql);
+      evidence.stages.freshBaseline.baselineReceipts = Array.from(receipts);
+      // Missing protection must make the live security proof fail; each
+      // deliberate mutation rolls back without changing receipts or grants.
+      for (const mutation of ["ALTER TABLE foundation_question_bindings DISABLE ROW LEVEL SECURITY", "GRANT SELECT ON foundation_question_bindings TO anon"]) {
+        await assert.rejects(sql.begin(async tx => {
+          await tx.unsafe(mutation);
+          await foundationSecurity(tx);
+        }), { name: "AssertionError" });
+      }
+      assert.deepEqual(await foundationSecurity(sql), security);
     });
 
     await t.test("existing Evidence rows still stop 0017 and roll back its NOT NULL addition", async () => {
