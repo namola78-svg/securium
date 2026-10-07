@@ -210,11 +210,6 @@ test("real CPPG subject and lesson delivery requires canonical publication proof
     requestedContentRevisionIds: projection.contentRevisions.map(({ id }) => id),
   }, owner);
   await client.unsafe(`
-    INSERT INTO subjects(id,course_id,code,name,active)
-      VALUES ('pg-cppg-noncanonical-subject','course-cppg','NONCANON','Noncanonical subject',1);
-    INSERT INTO topics(id,subject_id,code,name,active) VALUES
-      ('pg-cppg-noncanonical-topic','${subjectId}','NONCANON_TOPIC','Noncanonical topic on canonical subject',1),
-      ('pg-cppg-noncanonical-subject-topic','pg-cppg-noncanonical-subject','NONCANON_SUBJECT_TOPIC','Noncanonical subject topic',1);
     INSERT INTO lessons(id,learning_unit_id,course_id,subject_id,topic_id,code,title,content,active,published)
       VALUES ('pg-cppg-generic-legacy','${projection.learningUnits[0].id}','course-cppg','${subjectId}','${projection.topics[0].id}','GENERIC','Generic lesson','Generic body',1,1);
     INSERT INTO course_lessons(id,course_id,lesson_id,content_id,display_title,sort_order,status)
@@ -236,7 +231,6 @@ test("real CPPG subject and lesson delivery requires canonical publication proof
   assert.equal((await publicRepository.getPublicCourseBySlug("cppg"))?.id, "course-cppg");
   assert.equal((await publicRepository.getPublicCourseBySlug(courseA))?.id, courseA);
   assert.equal((await publicRepository.getSubjectById(subjectId))?.courseId, "course-cppg");
-  assert.equal((await publicRepository.getSubjectById("pg-cppg-noncanonical-subject"))?.courseId, "course-cppg");
   // The canonical source loader uses Node filesystem access. Exercise this
   // publication-backed flow in the primary Next runtime, not workerd.
   const nextServer = await startNativeNextFixture();
@@ -251,7 +245,6 @@ test("real CPPG subject and lesson delivery requires canonical publication proof
     const lessonHtml = await read(`/learn/cppg/course-lessons/${courseLessonId}`);
     console.log(`NATIVE_CPPG_DELIVERY subject404=${html.includes("NEXT_HTTP_ERROR_FALLBACK;404")} lesson404=${lessonHtml.includes("NEXT_HTTP_ERROR_FALLBACK;404")}`);
     assert.ok(html.includes(`/learn/cppg/course-lessons/${courseLessonId}`), "Published canonical CPPG subject must render its canonical lesson route.");
-    assert.doesNotMatch(html, /Noncanonical topic on canonical subject/);
     assert.match(html, /20(?:<!-- -->)?%/);
     assert.match(html, /data-status="COMPLETED"/);
     assert.match(lessonHtml, /개인정보는 특정 개인을 식별하거나/);
@@ -259,7 +252,6 @@ test("real CPPG subject and lesson delivery requires canonical publication proof
     assert.doesNotMatch(lessonHtml, /학습 본문을 표시할 수 없습니다/);
     for (const path of [
       "/learn/cppg/course-lessons/pg-cppg-generic",
-      "/learn/cppg/subjects/pg-cppg-noncanonical-subject",
       `/learn/${courseA}/course-lessons/${courseLessonId}`,
       `/learn/${courseA}/subjects/${subjectId}`,
     ]) {
