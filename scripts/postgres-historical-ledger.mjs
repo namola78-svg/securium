@@ -6,6 +6,21 @@ import {
   MigrationGuardError,
 } from "./postgres-migration-guard.mjs";
 
+const productionHistoricalOrder = [
+  "0001_d1_compatibility_schema",
+  "0002_server_only_rls_lockdown",
+  "0003_curriculum_tree",
+  "0004_shared_content_lesson",
+  "0005_course_lesson_lesson_progress",
+  "0006_question_attempt_lookup_index",
+  "0009_security_certification_taxonomy_cleanup",
+  "0007_ai_explainability_feedback",
+  "0008_ontology_graph_storage",
+  "0010_practical_attempt_evaluation_foundation",
+  "0011_canonical_fact_foundation",
+  "0012_fact_concept_mapping_governance",
+];
+
 // Validate the complete read-only snapshot before classifying applicability.
 // Unknown receipts cannot establish historical authority for this runner.
 export function validateHistoricalMigrationLedger(
@@ -71,15 +86,21 @@ export function validateHistoricalMigrationLedger(
 
   // Published 0002 depends on 0003. Accept that explicit historical bootstrap
   // ordering as well as canonical ordering, without rewriting either ledger.
-  const bootstrapOrder = prefix[0]?.id.startsWith("0001_") &&
+  const bootstrapPrefixOrder = prefix[0]?.id.startsWith("0001_") &&
     prefix[1]?.id.startsWith("0002_") && prefix[2]?.id.startsWith("0003_") &&
     numberedRows[0]?.id === prefix[0].id &&
     numberedRows[1]?.id === prefix[2].id && numberedRows[2]?.id === prefix[1].id;
-  for (let index = 0; index < numberedRows.length; index++) {
-    const expectedIndex = bootstrapOrder && (index === 1 || index === 2) ? 3 - index : index;
-    if (numberedRows[index].id !== prefix[expectedIndex]?.id) {
-      throw new MigrationGuardError("POSTGRES_HISTORICAL_LEDGER_PROGRESSION_ORDER_INVALID");
-    }
+  const bootstrapOrder = bootstrapPrefixOrder && numberedRows
+    .slice(3)
+    .every((row, index) => row.id === prefix[index + 3]?.id);
+  const productionOrder = numberedRows.length >= productionHistoricalOrder.length &&
+    productionHistoricalOrder.every((id, index) => numberedRows[index]?.id === id) &&
+    numberedRows.slice(productionHistoricalOrder.length).every((row, index) =>
+      row.id === prefix[productionHistoricalOrder.length + index]?.id,
+    );
+  const canonicalOrder = numberedRows.every((row, index) => row.id === prefix[index]?.id);
+  if (!canonicalOrder && !bootstrapOrder && !productionOrder) {
+    throw new MigrationGuardError("POSTGRES_HISTORICAL_LEDGER_PROGRESSION_ORDER_INVALID");
   }
   return true;
 }
