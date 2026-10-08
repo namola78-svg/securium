@@ -231,6 +231,14 @@ test("duration normalization accepts supported equivalents exactly", () => {
     assertMigrationConnectionUrl("postgres://u:p@host:5432/db"),
     { mode: "DIRECT_OR_SESSION_5432", port: "5432" },
   );
+  assert.deepEqual(
+    assertMigrationConnectionUrl("postgres://u:p@127.0.0.1:55432/db"),
+    { mode: "LOOPBACK_DISPOSABLE_CUSTOM_PORT", port: "55432" },
+  );
+  assert.throws(
+    () => assertMigrationConnectionUrl("postgres://u:p@db.example.test:55432/db"),
+    hasGuardCode("MIGRATION_GUARD_REMOTE_CUSTOM_PORT_FORBIDDEN"),
+  );
 });
 
 test("repository deploy runner preserves approval and rejects unsafe transports", async () => {
@@ -264,6 +272,16 @@ test("repository deploy runner preserves approval and rejects unsafe transports"
       POSTGRES_MIGRATION_APPROVED: "APPLY_REVIEWED_MIGRATIONS",
     },
     "MIGRATION_GUARD_TRANSACTION_POOLING_FORBIDDEN",
+  );
+  await assertNodeFailure(
+    ["scripts/postgres-migrations.mjs", "deploy", "--confirm"],
+    {
+      ...baseEnvironment,
+      POSTGRES_MIGRATION_URL:
+        "postgres://migration:test-password@db.example.test:55432/test",
+      POSTGRES_MIGRATION_APPROVED: "APPLY_REVIEWED_MIGRATIONS",
+    },
+    "MIGRATION_GUARD_REMOTE_CUSTOM_PORT_FORBIDDEN",
   );
 });
 
