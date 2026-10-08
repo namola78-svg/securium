@@ -49,6 +49,11 @@ jobs:
       - name: Validate Drizzle schema and migrations
         run: npm run db:check
 
+      - name: Validate PostgreSQL migration boundaries and historical upgrade
+        run: |
+          npm run db:postgres:validate
+          node --test --test-concurrency=1 tests/postgres-historical-migration-applicability.test.mjs tests/postgres-historical-supplementary-receipts.test.mjs tests/postgres-versioned-baseline.test.mjs
+
       - name: Prepare isolated local D1
         run: npm run db:setup
 

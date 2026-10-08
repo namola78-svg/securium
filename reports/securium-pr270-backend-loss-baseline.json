@@ -1,0 +1,430 @@
+{
+  "BASE_SHA": "71e62a12d01d1bfabc6c106d94b34c4d6b8e2738",
+  "authority": "OWNED_DISPOSABLE_ONLY",
+  "node22": {
+    "authority": "OWNED_DISPOSABLE_SYNTHETIC_FIXTURES",
+    "node": "v22.13.0",
+    "driver": "postgres.js 3.4.9",
+    "stages": {
+      "before_begin": {
+        "exit": {
+          "code": 1,
+          "signal": null
+        },
+        "events": [
+          "ready",
+          "reserving",
+          "reserved",
+          "barrier",
+          "closed"
+        ],
+        "databaseAfterInterruption": {
+          "fixture": null,
+          "next": null,
+          "rows": []
+        },
+        "uncaughtTypeError": true,
+        "unhandledRejection": false,
+        "verifiedRetry": "PASS"
+      },
+      "after_begin": {
+        "exit": {
+          "code": 1,
+          "signal": null
+        },
+        "events": [
+          "ready",
+          "reserving",
+          "reserved",
+          "barrier",
+          "closed"
+        ],
+        "databaseAfterInterruption": {
+          "fixture": null,
+          "next": null,
+          "rows": []
+        },
+        "uncaughtTypeError": true,
+        "unhandledRejection": false,
+        "verifiedRetry": "PASS"
+      },
+      "after_controls": {
+        "exit": {
+          "code": 1,
+          "signal": null
+        },
+        "events": [
+          "ready",
+          "reserving",
+          "reserved",
+          "barrier",
+          "closed"
+        ],
+        "databaseAfterInterruption": {
+          "fixture": null,
+          "next": null,
+          "rows": []
+        },
+        "uncaughtTypeError": true,
+        "unhandledRejection": false,
+        "verifiedRetry": "PASS"
+      },
+      "ddl": {
+        "exit": {
+          "code": 1,
+          "signal": null
+        },
+        "events": [
+          "ready",
+          "reserving",
+          "reserved",
+          "barrier",
+          "closed"
+        ],
+        "databaseAfterInterruption": {
+          "fixture": null,
+          "next": null,
+          "rows": []
+        },
+        "uncaughtTypeError": true,
+        "unhandledRejection": false,
+        "verifiedRetry": "PASS"
+      },
+      "before_commit": {
+        "exit": {
+          "code": 1,
+          "signal": null
+        },
+        "events": [
+          "ready",
+          "reserving",
+          "reserved",
+          "barrier",
+          "closed"
+        ],
+        "databaseAfterInterruption": {
+          "fixture": null,
+          "next": null,
+          "rows": []
+        },
+        "uncaughtTypeError": true,
+        "unhandledRejection": false,
+        "verifiedRetry": "PASS"
+      },
+      "rollback": {
+        "exit": {
+          "code": 1,
+          "signal": null
+        },
+        "events": [
+          "ready",
+          "reserving",
+          "reserved",
+          "barrier",
+          "closed"
+        ],
+        "databaseAfterInterruption": {
+          "fixture": null,
+          "next": null,
+          "rows": []
+        },
+        "uncaughtTypeError": true,
+        "unhandledRejection": false,
+        "verifiedRetry": "PASS"
+      },
+      "release": {
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "result": {
+          "event": "result",
+          "result": {
+            "code": 0,
+            "stdout": "",
+            "ddlStarted": true,
+            "rollbackAttempted": false,
+            "rollbackSucceeded": false,
+            "applied": true,
+            "ddlStatementsExecuted": 1
+          },
+          "closeResult": {
+            "code": 0
+          }
+        },
+        "events": [
+          "ready",
+          "reserving",
+          "reserved",
+          "barrier",
+          "closed",
+          "result"
+        ],
+        "databaseAfterInterruption": {
+          "fixture": "loss_fixture",
+          "next": null,
+          "rows": [
+            {
+              "id": "loss_fixture",
+              "checksum": "loss-fixture-v1"
+            }
+          ]
+        },
+        "uncaughtTypeError": false,
+        "unhandledRejection": false,
+        "verifiedRetry": "PASS"
+      },
+      "shutdown": {
+        "exit": {
+          "code": 1,
+          "signal": null
+        },
+        "result": {
+          "event": "result",
+          "result": {
+            "code": 1,
+            "stdout": "",
+            "ddlStarted": true,
+            "rollbackAttempted": true,
+            "rollbackSucceeded": true,
+            "errorCode": "P0001"
+          },
+          "closeResult": {
+            "code": 0
+          }
+        },
+        "events": [
+          "ready",
+          "reserving",
+          "reserved",
+          "barrier",
+          "closed",
+          "result"
+        ],
+        "databaseAfterInterruption": {
+          "fixture": null,
+          "next": null,
+          "rows": []
+        },
+        "uncaughtTypeError": false,
+        "unhandledRejection": false,
+        "verifiedRetry": "PASS"
+      }
+    },
+    "server": "17.6 (Debian 17.6-2.pgdg13+1)",
+    "cleanup": "REMOVED"
+  },
+  "node24": {
+    "authority": "OWNED_DISPOSABLE_SYNTHETIC_FIXTURES",
+    "node": "v24.19.0",
+    "driver": "postgres.js 3.4.9",
+    "stages": {
+      "before_begin": {
+        "exit": {
+          "code": 1,
+          "signal": null
+        },
+        "events": [
+          "ready",
+          "reserving",
+          "reserved",
+          "barrier",
+          "closed"
+        ],
+        "databaseAfterInterruption": {
+          "fixture": null,
+          "next": null,
+          "rows": []
+        },
+        "uncaughtTypeError": true,
+        "unhandledRejection": false,
+        "verifiedRetry": "PASS"
+      },
+      "after_begin": {
+        "exit": {
+          "code": 1,
+          "signal": null
+        },
+        "events": [
+          "ready",
+          "reserving",
+          "reserved",
+          "barrier",
+          "closed"
+        ],
+        "databaseAfterInterruption": {
+          "fixture": null,
+          "next": null,
+          "rows": []
+        },
+        "uncaughtTypeError": true,
+        "unhandledRejection": false,
+        "verifiedRetry": "PASS"
+      },
+      "after_controls": {
+        "exit": {
+          "code": 1,
+          "signal": null
+        },
+        "events": [
+          "ready",
+          "reserving",
+          "reserved",
+          "barrier",
+          "closed"
+        ],
+        "databaseAfterInterruption": {
+          "fixture": null,
+          "next": null,
+          "rows": []
+        },
+        "uncaughtTypeError": true,
+        "unhandledRejection": false,
+        "verifiedRetry": "PASS"
+      },
+      "ddl": {
+        "exit": {
+          "code": 1,
+          "signal": null
+        },
+        "events": [
+          "ready",
+          "reserving",
+          "reserved",
+          "barrier",
+          "closed"
+        ],
+        "databaseAfterInterruption": {
+          "fixture": null,
+          "next": null,
+          "rows": []
+        },
+        "uncaughtTypeError": true,
+        "unhandledRejection": false,
+        "verifiedRetry": "PASS"
+      },
+      "before_commit": {
+        "exit": {
+          "code": 1,
+          "signal": null
+        },
+        "events": [
+          "ready",
+          "reserving",
+          "reserved",
+          "barrier",
+          "closed"
+        ],
+        "databaseAfterInterruption": {
+          "fixture": null,
+          "next": null,
+          "rows": []
+        },
+        "uncaughtTypeError": true,
+        "unhandledRejection": false,
+        "verifiedRetry": "PASS"
+      },
+      "rollback": {
+        "exit": {
+          "code": 1,
+          "signal": null
+        },
+        "events": [
+          "ready",
+          "reserving",
+          "reserved",
+          "barrier",
+          "closed"
+        ],
+        "databaseAfterInterruption": {
+          "fixture": null,
+          "next": null,
+          "rows": []
+        },
+        "uncaughtTypeError": true,
+        "unhandledRejection": false,
+        "verifiedRetry": "PASS"
+      },
+      "release": {
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "result": {
+          "event": "result",
+          "result": {
+            "code": 0,
+            "stdout": "",
+            "ddlStarted": true,
+            "rollbackAttempted": false,
+            "rollbackSucceeded": false,
+            "applied": true,
+            "ddlStatementsExecuted": 1
+          },
+          "closeResult": {
+            "code": 0
+          }
+        },
+        "events": [
+          "ready",
+          "reserving",
+          "reserved",
+          "barrier",
+          "closed",
+          "result"
+        ],
+        "databaseAfterInterruption": {
+          "fixture": "loss_fixture",
+          "next": null,
+          "rows": [
+            {
+              "id": "loss_fixture",
+              "checksum": "loss-fixture-v1"
+            }
+          ]
+        },
+        "uncaughtTypeError": false,
+        "unhandledRejection": false,
+        "verifiedRetry": "PASS"
+      },
+      "shutdown": {
+        "exit": {
+          "code": 1,
+          "signal": null
+        },
+        "result": {
+          "event": "result",
+          "result": {
+            "code": 1,
+            "stdout": "",
+            "ddlStarted": true,
+            "rollbackAttempted": true,
+            "rollbackSucceeded": true,
+            "errorCode": "P0001"
+          },
+          "closeResult": {
+            "code": 0
+          }
+        },
+        "events": [
+          "ready",
+          "reserving",
+          "reserved",
+          "barrier",
+          "closed",
+          "result"
+        ],
+        "databaseAfterInterruption": {
+          "fixture": null,
+          "next": null,
+          "rows": []
+        },
+        "uncaughtTypeError": false,
+        "unhandledRejection": false,
+        "verifiedRetry": "PASS"
+      }
+    },
+    "server": "17.6 (Debian 17.6-2.pgdg13+1)",
+    "cleanup": "REMOVED"
+  }
+}

@@ -1,20 +1,20 @@
 # Securium production PostgreSQL migration execution runbook
 
-**Status:** Ready as an operator plan; this document does not authorize execution.
-**Frozen candidate:** `ddee4c0280064bb057103227cbca59a1261ee432`
+**Status:** HOLD for production; pending fresh approval after corrected implementation CI, independent review and release verification. This document does not authorize execution.
+**Production candidate:** Pending fresh approval. No final approved SHA exists in this runbook.
 **Scope:** Historical production lineage with numbered receipts through `0012`, six validated supplementary receipts, and no `app_schema_baseline_receipts` table.
 
 This is a future execution procedure. No production connection or mutation was made while preparing it. The repository runner at `scripts/postgres-migrations.mjs` is authoritative. Do not apply migration SQL manually or bypass its guards.
 
 ## 1. Candidate and migration plan
 
-Before the change window, check out the frozen candidate and confirm `git rev-parse HEAD` equals the SHA above and `git status --short` is empty. Do not substitute a later or locally modified tree. Run the local, read-only static check:
+Before the change window, obtain a fresh candidate SHA in the owner-approved release record after CI, independent transport/identity review and release verification pass. Check out that candidate and confirm `git rev-parse HEAD` equals the approved release record and `git status --short` is empty. Run the local, read-only static check:
 
 ```sh
 npm run db:postgres:validate
 ```
 
-Expected output for this candidate:
+Expected unchanged SQL inventory (revalidate on the freshly approved candidate):
 
 ```text
 POSTGRES_MIGRATIONS_VALID files=43 tables=133 checksum=f2a06a5a4fc461df
@@ -96,11 +96,11 @@ ORDER BY applied_at, id;
 
 ```
 
-The relation lookup confirms the baseline receipt table is absent without querying a missing relation. The first query must show `current_user=postgres` and the previously observed identity. This role is an observed production fact; the repository runner itself does not enforce a particular role name.
+The relation lookup confirms the baseline receipt table is absent without querying a missing relation. The first query must match the freshly approved target database and role, including `session_user`. The earlier observed `postgres` role is historical evidence, not fresh production authority. The runner enforces the approved database and role on connection and again inside every migration transaction.
 
 Proceed to the status command only when the read-only snapshot confirms all of the following:
 
-- historical numbered receipts through `0012` are present in the accepted production order and checksums match the frozen migrations;
+- historical numbered receipts through `0012` are present in the accepted production order and checksums match the freshly approved migrations;
 - all six supplementary receipt IDs and checksums match the repository allowlist (they do not count as numbered migration progress);
 - no unknown, duplicate, malformed, out-of-order, or checksum-mismatched receipt exists;
 - `app_schema_baseline_receipts`, `evidence_projections`, and `content_review_policy_evaluations` are absent;
@@ -127,10 +127,15 @@ Do not proceed if stdout differs, status exits nonzero, or any error appears. Sa
 
 For the future deploy invocation:
 
-- Set `POSTGRES_MIGRATION_URL` explicitly to the authorized production **direct** PostgreSQL URL, stored outside the command transcript. `DIRECT_URL` is the fallback; `DATABASE_URL` is the last fallback. A dedicated migration URL is preferred.
-- Use a direct connection or session-mode connection on port `5432`, or an approved direct custom port. Transaction-pooling port `6543` is rejected by the runner. Do not use transaction pooling.
-- The runner uses one reserved `postgres` driver connection for all guarded operations, requires SSL, and verifies the same PostgreSQL backend session identity immediately before each migration. Do not enable `POSTGRES_MIGRATION_USE_PSQL=1`; deploy rejects it with `MIGRATION_GUARD_SINGLE_SESSION_REQUIRED`.
-- Per migration, the runner sets and reads back `lock_timeout=5s`, `statement_timeout=60s`, and `idle_in_transaction_session_timeout=60s`. Each must match exactly. Do not override or bypass these controls.
+- Set `POSTGRES_MIGRATION_URL` explicitly to the authorized production URL outside the command transcript. If it is absent, the runner selects `DIRECT_URL`, then `DATABASE_URL`; it never retries using a different URL. Never print these values.
+- Production is disabled while `db/postgres/migration-targets.json` has an empty `approvedTargets` array. Before release, independently verify the provider dashboard/project and endpoint mode, obtain owner approval, and review the target record as part of the release. Set `POSTGRES_MIGRATION_TARGET` to its exact ID. Environment variables alone cannot supply a target approval.
+- Each reviewed record must bind `id`, `provider` (`supabase`), `project` (project reference), `host` (exact provider hostname), `port` (`5432`), `database`, `user` (connection username), `role` (actual PostgreSQL role), `mode` (`direct` or `session`), `approvalReference`, `modeEvidence`, `approvedAt`, and `expiresAt`. Approval and mode evidence references must identify independent owner/provider evidence; their mere presence does not establish authenticity. Release review must verify those records and their currentness. Synthetic test fixtures do not establish production authority.
+- For direct connections, the host must be `db.<project>.supabase.co` and the connection username must equal the approved role. For session connections, copy the exact shared pooler host from the provider and bind the project through `<role>.<project>` in the connection username. A port of `5432`, TLS or stable backend identity alone never establishes connection mode. Reject transaction mode, unverified mode and unsupported providers.
+- The canonical plan rejects hostless/opaque URLs, encoded endpoint delimiters, multiple hosts, ambiguous IPv6, URL overrides, fragments and inherited `PG*` settings. Remote custom ports are forbidden. postgres.js receives explicit single-element host/port arrays and explicit database/user, with no URL to reinterpret; the runner checks its parsed options before connecting.
+- Remote TLS requires a validated certificate chain and hostname verification for the approved host. `sslmode=verify-full` is accepted; weaker modes are rejected. Default trust is the explicit Node bundled root set. If the provider needs its own CA, independently verify it, record its exact `caSha256` in the approved target and supply the PEM through `POSTGRES_MIGRATION_TLS_CA_FILE`. Missing/untrusted chains and hostname mismatches stop execution. Never disable verification to restore connectivity.
+- Disposable tests require `POSTGRES_MIGRATION_DISPOSABLE_RECEIPT` for an owned container. The runner inspects its exact container ID, owner label, running state and published `127.0.0.1` port. Only that loopback port and the `postgres` role are eligible for plaintext. Literal `localhost` is pinned to `127.0.0.1`; aliases, IPv6 aliases, a remote endpoint or a production target selection cannot use this exception. This receipt is not production authority.
+- One reserved postgres.js connection executes each complete migration transaction. Do not enable `POSTGRES_MIGRATION_USE_PSQL=1`; connected commands reject it with `MIGRATION_GUARD_SINGLE_SESSION_REQUIRED`.
+- Per migration and fresh baseline, the runner validates and separates the single outer SQL `BEGIN`/`COMMIT` wrapper, begins the execution transaction once, then sets `SET LOCAL` and reads back `lock_timeout=5s`, `statement_timeout=60s`, and `idle_in_transaction_session_timeout=60s` before DDL. It verifies backend identity across `BEGIN`, database/role inside the transaction, and the exact migration checksum ledger. The SQL body and receipt/checksum values are unchanged. Receipt verification precedes commit. Guard/SQL failures roll back on a usable session. A disconnected session or failed rollback invalidates and closes the client, stops execution, and requires fresh verification of the transaction outcome.
 - For this historical lineage, runner startup must not classify it as `TRUE_EMPTY`, `BASELINE_DATABASE`, `POST_BOUNDARY_DATABASE`, `UNKNOWN`, `PARTIAL_BASELINE`, or `AMBIGUOUS_NONEMPTY`.
 
 ## 4. Approval gate and future mutating step
@@ -151,12 +156,12 @@ npm run db:postgres:deploy -- --confirm
 
 ## 5. Expected deploy output and stop conditions
 
-For `postgres` driver execution, expect the connection announcement to identify `mode=DIRECT_OR_SESSION_5432` (or the explicitly approved direct custom-port mode), `driver=postgresjs`, and the approved port. Expect the exact `0058` NOT_APPLICABLE line shown above and no `0058` guard or execution line. For each of the 30 applicable migration IDs in the order above, expect these three setting readbacks followed by an execute pass:
+For production postgres.js execution, expect the connection announcement to identify the independently approved `mode=direct` or `mode=session`, `driver=postgresjs`, `port=5432`, `tls=VERIFY_FULL`, and `authority=supabase`. Any different mode, authority, TLS status or remote custom port is a stop condition. Expect the exact `0058` NOT_APPLICABLE line shown above and no `0058` guard or execution line. Previously applied IDs receive `action=ALREADY_APPLIED_VALID` after exact checksum verification. For each of the 30 pending applicable migration IDs in the order above, expect these three setting readbacks followed by an execute pass:
 
 ```text
-MIGRATION_GUARD_SETTING name=lock_timeout expected_ms=5000 observed_ms=5000 result=PASS
-MIGRATION_GUARD_SETTING name=statement_timeout expected_ms=60000 observed_ms=60000 result=PASS
-MIGRATION_GUARD_SETTING name=idle_in_transaction_session_timeout expected_ms=60000 observed_ms=60000 result=PASS
+MIGRATION_GUARD_SETTING name=lock_timeout expected_ms=5000 observed_ms=5000 result=PASS boundary=TRANSACTION
+MIGRATION_GUARD_SETTING name=statement_timeout expected_ms=60000 observed_ms=60000 result=PASS boundary=TRANSACTION
+MIGRATION_GUARD_SETTING name=idle_in_transaction_session_timeout expected_ms=60000 observed_ms=60000 result=PASS boundary=TRANSACTION
 MIGRATION_GUARD_PASS migration=<current applicable migration ID> session=<numeric backend pid> action=EXECUTE
 ```
 
@@ -172,7 +177,7 @@ Stop immediately and do not try another runner, manually apply SQL, clear receip
 - the read-only state differs from the stated facts or the expected status output / exact pending list differs;
 - runner exits nonzero or emits any `MIGRATION_GUARD_*`, `POSTGRES_BASELINE_STATE_*`, `POSTGRES_HISTORICAL_LEDGER_*`, `POSTGRES_MIGRATION_*_FAILED`, unknown receipt, duplicate, progression gap/order, or checksum error;
 - any concurrent schema/ledger activity makes the approved pre-deploy status stale or changes the expected next migration;
-- port is `6543`, connection mode is not direct/session, the wrong driver is used, reserved-session identity changes, or any required timeout setting fails readback;
+- the approved provider/project, host, database or role does not match; TLS chain or hostname validation fails; remote port is not `5432`; independently verified connection mode is not `direct` or `session`; the wrong driver is used; backend identity changes across `BEGIN`; or any required timeout setting fails transaction readback;
 - `0017` raises `EVIDENCE_E1_EXISTING_PROJECTIONS_REQUIRE_EXPLICIT_REVIEW` or any SQL error; or
 - an unexpected `0058` execution/receipt, baseline receipt table creation, missing expected `MIGRATION_GUARD_PASS`, missing terminal success line, or any other unreviewed output appears.
 
@@ -182,13 +187,17 @@ On stop, preserve the full redacted output and read-only database snapshot, aler
 
 Each numbered migration file is a transaction and is applied separately by the repository runner. A migration whose transaction fails must not leave its DDL or receipt committed. Migrations that completed and committed before an interruption remain applied; there is no batch-wide rollback. Do not manually undo completed migrations.
 
+Backend loss preserves the first failure code and reports secondary cleanup errors separately. `transaction=VERIFICATION_REQUIRED` and `POSTGRES_MIGRATION_VERIFICATION_REQUIRED` mean the runner has not established whether the interrupted migration committed. It does not claim that rollback succeeded or that the migration is unapplied. A lost COMMIT response can leave a committed receipt. The invalidated client cannot run another migration and is closed without requeuing its reserved connection.
+
 After any stop or interruption:
 
 1. Stop the current operator session and capture the runner's exit and last reported migration ID.
-2. Re-run only the read-only SQL snapshot and `npm run db:postgres:status` against the same target. Do not immediately rerun deploy.
+2. Use a fresh, separately authorized connection to re-run only the read-only SQL snapshot and `npm run db:postgres:status` against the same approved target, including catalog checks for the interrupted migration's DDL. Do not reuse the failed client or immediately rerun deploy.
 3. Confirm the completed receipt IDs/checksums form the valid historical prefix followed by a contiguous prefix of the pending order, the six supplementary receipts remain valid, the baseline receipt table and `0058` receipt remain absent, and the exact status output lists only the remaining applicable migrations with the same `0058` NOT_APPLICABLE line.
-4. Diagnose the stop condition. If state and cause are understood and the authorized owner gives fresh approval for resumption, reissue the same guarded runner command with both required approval controls. The runner filters already-applied valid receipts and executes only the still-pending applicable IDs; per-migration guards run again. It will not manufacture `0058` for this historical lineage.
+4. Diagnose the stop condition. If state and cause are understood and the authorized owner gives fresh approval for resumption, reissue the same guarded runner command with both required approval controls and a current approved endpoint record. The runner rechecks already-applied receipts inside guarded transactions and executes only still-pending applicable IDs. It will not manufacture `0058` for this historical lineage.
 5. If receipts are unknown, inconsistent, duplicated, reordered, checksum-mismatched, or not a contiguous progression, keep the deployment on hold. Do not repair the ledger manually.
+
+Separate bootstrap release gate: a truly empty database uses validated fresh baseline V1 and then post-boundary migrations. An accepted partial historical database with only the `0001` receipt instead attempts `0002` in ascending order and fails with SQLSTATE `42P01`, because `0003` introduces the curriculum relations required by `0002`. Real disposable runner testing reproduces this reachable partial-bootstrap failure. That path remains on HOLD pending a separately reviewed bootstrap policy. Do not reorder published `0002`/`0003`, rewrite receipts, or infer fresh production authorization from synthetic historical fixtures. The complete `0012` lineage and its 30 forward upgrades are tested separately.
 
 ## 7. Read-only post-deploy verification
 
@@ -275,4 +284,4 @@ The repository provides no down-migration or whole-batch rollback command. Trans
 - Required approval point: immediately before that future command, after the read-only gate and plan review.
 - Production DB mutation in this preparation: **NONE**.
 - Vercel environment mutation: **NONE**.
-- Git mutation: **NONE**.
+- Remote Git mutation: **NONE**. The transport repair is reviewed through an isolated local worktree and local commit; no push or merge is authorized here.
