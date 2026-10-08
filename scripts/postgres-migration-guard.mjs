@@ -1,7 +1,11 @@
 import { migrationTransactionBody } from "./postgres-migration-transaction.mjs";
 import { MigrationGuardError } from "./postgres-migration-error.mjs";
+import {
+  assertMigrationClientUsable, closeMigrationClient, invalidateMigrationClient,
+  isDisconnectedMigrationError, migrationClientLifecycle, migrationQuery, safeMigrationErrorCode,
+} from "./postgres-migration-lifecycle.mjs";
 export { MigrationGuardError } from "./postgres-migration-error.mjs";
-export { assertMigrationConnectionUrl, createMigrationClient } from "./postgres-migration-connection.mjs";
+export { assertMigrationConnectionUrl, createMigrationClient, closeMigrationClient } from "./postgres-migration-connection.mjs";
 
 export const MIGRATION_SESSION_CONTROLS = Object.freeze({
   lockTimeoutMs: 5_000,
@@ -162,17 +166,23 @@ async function executeGuardedTransaction({
 }) {
   const body = migrationTransactionBody(transactionSql);
   // Outside evidence detects a switch at BEGIN; endpoint approval establishes mode.
-  const outsideIdentity = normalizeSessionIdentity(await session.readSessionIdentity());
   let beginAttempted = false;
   try {
+    const outsideIdentity = normalizeSessionIdentity(await session.readSessionIdentity());
     beginAttempted = true;
     await session.beginTransaction();
     try {
       for (const statement of CONTROL_STATEMENTS) await session.executeControl(statement);
-    } catch { throw new MigrationGuardError("MIGRATION_GUARD_TIMEOUT_SET_FAILED"); }
+    } catch (error) {
+      if (isDisconnectedMigrationError(error) || session.isUsable?.() === false) throw error;
+      throw new MigrationGuardError("MIGRATION_GUARD_TIMEOUT_SET_FAILED", { cause: error });
+    }
     let observed;
     try { observed = await session.readControls(); }
-    catch { throw new MigrationGuardError("MIGRATION_GUARD_TIMEOUT_READBACK_FAILED"); }
+    catch (error) {
+      if (isDisconnectedMigrationError(error) || session.isUsable?.() === false) throw error;
+      throw new MigrationGuardError("MIGRATION_GUARD_TIMEOUT_READBACK_FAILED", { cause: error });
+    }
     const guardedIdentity = normalizeSessionIdentity(observed.sessionIdentity);
     if (guardedIdentity !== outsideIdentity) throw new MigrationGuardError("MIGRATION_GUARD_SESSION_CHANGED");
     if (expectedIdentity && (
@@ -189,8 +199,11 @@ async function executeGuardedTransaction({
     return result;
   } catch (error) {
     if (beginAttempted) {
-      try { await session.rollbackTransaction(); }
-      catch { throw new MigrationGuardError("MIGRATION_GUARD_ROLLBACK_FAILED"); }
+      if (session.isUsable?.() === false) session.requireTransactionVerification?.();
+      else {
+        try { await session.rollbackTransaction(); }
+        catch (cleanupError) { session.recordCleanupFailure?.("ROLLBACK", cleanupError); }
+      }
     }
     throw error;
   }
@@ -198,20 +211,56 @@ async function executeGuardedTransaction({
 
 async function onReservedConnection({ sql, operation }) {
   let reserved;
-  const state = { ddlStarted: false, rollbackAttempted: false, rollbackSucceeded: false };
+  let result;
+  let primaryError;
+  let phase = "RESERVE";
+  let failurePhase;
+  const lifecycle = migrationClientLifecycle(sql);
+  const state = {
+    ddlStarted: false, rollbackAttempted: false, rollbackSucceeded: false,
+    transactionOutcome: "NOT_STARTED", connectionInvalidated: false, cleanupErrors: [],
+  };
+  const requireTransactionVerification = () => { state.transactionOutcome = "VERIFICATION_REQUIRED"; };
+  const recordCleanupFailure = (stage, error) => {
+    state.cleanupErrors.push({ stage, errorCode: safeMigrationErrorCode(error) });
+    invalidateMigrationClient(sql, { connectionLost: isDisconnectedMigrationError(error) });
+    if (stage === "ROLLBACK") requireTransactionVerification();
+  };
+  const query = async (statement, parameters = [], stage = "GUARD") => {
+    phase = stage;
+    try { return await migrationQuery(sql, reserved, statement, parameters); }
+    catch (error) { if (stage !== "ROLLBACK") failurePhase ??= stage; throw error; }
+  };
   try {
+    assertMigrationClientUsable(sql);
     reserved = await sql.reserve();
+    assertMigrationClientUsable(sql);
     const session = {
-      beginTransaction: () => reserved.unsafe("BEGIN"),
-      commitTransaction: () => reserved.unsafe("COMMIT"),
-      rollbackTransaction: async () => {
-        state.rollbackAttempted = true;
-        await reserved.unsafe("ROLLBACK");
-        state.rollbackSucceeded = true;
+      isUsable: () => !lifecycle.invalidated && !lifecycle.ending,
+      requireTransactionVerification,
+      recordCleanupFailure,
+      executeQuery: query,
+      beginTransaction: async () => {
+        state.transactionOutcome = "BEGIN_ATTEMPTED";
+        await query("BEGIN", [], "BEGIN");
+        state.transactionOutcome = "OPEN";
       },
-      executeControl: statement => reserved.unsafe(statement),
+      commitTransaction: async () => {
+        state.transactionOutcome = "COMMIT_ATTEMPTED";
+        await query("COMMIT", [], "COMMIT");
+        state.transactionOutcome = "COMMITTED";
+      },
+      rollbackTransaction: async () => {
+        // Recheck at dispatch: the socket may close while cleanup is awaiting.
+        assertMigrationClientUsable(sql);
+        state.rollbackAttempted = true;
+        await query("ROLLBACK", [], "ROLLBACK");
+        state.rollbackSucceeded = true;
+        state.transactionOutcome = "ROLLED_BACK";
+      },
+      executeControl: statement => query(statement, [], "SESSION_CONTROLS"),
       readControls: async () => {
-        const [row] = await reserved.unsafe(READBACK_STATEMENT);
+        const [row] = await query(READBACK_STATEMENT, [], "CONTROLS_READBACK");
         if (!row) throw new MigrationGuardError("MIGRATION_GUARD_TIMEOUT_READBACK_FAILED");
         return {
           lockTimeout: row.lock_timeout, statementTimeout: row.statement_timeout,
@@ -222,28 +271,54 @@ async function onReservedConnection({ sql, operation }) {
       },
       readMigrationLedger: async migrationId => {
         // Catching undefined_table inside a transaction would leave it aborted.
-        const [row] = await reserved.unsafe("SELECT to_regclass('public.app_schema_migrations') AS relation");
+        const [row] = await query("SELECT to_regclass('public.app_schema_migrations') AS relation", [], "LEDGER");
         if (!row) throw new MigrationGuardError("MIGRATION_GUARD_MIGRATION_LEDGER_INVALID");
         if (row.relation === null) return [];
-        return reserved.unsafe("SELECT id, checksum FROM public.app_schema_migrations WHERE id = $1", [migrationId]);
+        return query("SELECT id, checksum FROM public.app_schema_migrations WHERE id = $1", [migrationId], "LEDGER");
       },
       readSessionIdentity: async () => {
-        const [row] = await reserved.unsafe(IDENTITY_STATEMENT);
+        const [row] = await query(IDENTITY_STATEMENT, [], "IDENTITY");
         return row?.session_identity;
       },
       executeMigration: async migrationSql => {
         state.ddlStarted = true;
-        await reserved.unsafe(migrationSql);
+        await query(migrationSql, [], "DDL");
       },
     };
-    const result = await operation({ session, reserved });
-    return { code: 0, stdout: "", ...state, ...result };
+    result = await operation({ session });
   } catch (error) {
-    if (state.rollbackAttempted && !state.rollbackSucceeded) await sql.end?.({ timeout: 0 });
-    return { code: 1, stdout: "", ...state, errorCode: safeGuardErrorCode(error) };
-  } finally {
-    if (reserved) await reserved.release();
+    primaryError = error && typeof error === "object" ? error : new MigrationGuardError("UNKNOWN", { cause: error });
+    if (!reserved || isDisconnectedMigrationError(error)) invalidateMigrationClient(sql, { connectionLost: isDisconnectedMigrationError(error) });
+    failurePhase ??= phase;
   }
+  if (!lifecycle.invalidated && reserved) {
+    try {
+      assertMigrationClientUsable(sql);
+      await reserved.release();
+      assertMigrationClientUsable(sql);
+    } catch (error) {
+      recordCleanupFailure("RELEASE", error);
+      primaryError ??= lifecycle.connectionLost ? new MigrationGuardError("CONNECTION_CLOSED")
+        : new MigrationGuardError("MIGRATION_GUARD_RELEASE_FAILED", { cause: error });
+      failurePhase ??= "RELEASE";
+    }
+  }
+  if (lifecycle.invalidated) {
+    // release() requeues even a closed postgres.js connection. Retire the whole
+    // max=1 pool instead, and prohibit every subsequent migration on this client.
+    state.connectionInvalidated = true;
+    if (lifecycle.connectionLost) requireTransactionVerification();
+    primaryError ??= new MigrationGuardError("CONNECTION_CLOSED");
+    failurePhase ??= "RELEASE";
+    const closed = await closeMigrationClient(sql, { timeout: 0 });
+    state.shutdownSucceeded = closed.shutdownSucceeded;
+    if (!closed.shutdownSucceeded) state.cleanupErrors.push({ stage: "SHUTDOWN", errorCode: closed.errorCode });
+  }
+  if (primaryError) return {
+    code: 1, stdout: "", ...state, errorCode: safeMigrationErrorCode(primaryError),
+    originalErrorCode: safeMigrationErrorCode(primaryError.cause ?? primaryError), failureStage: failurePhase,
+  };
+  return { code: 0, stdout: "", ...state, ...result };
 }
 
 export function deployMigrationOnReservedConnection({ sql, migration, identity, logger = defaultLogger }) {
@@ -258,7 +333,7 @@ export function deployMigrationOnReservedConnection({ sql, migration, identity, 
 export function deployBaselineOnReservedConnection({ sql, baseline, identity, logger = defaultLogger }) {
   return onReservedConnection({
     sql,
-    operation: ({ session, reserved }) => executeGuardedTransaction({
+    operation: ({ session }) => executeGuardedTransaction({
       session, transactionSql: baseline.artifact, expectedIdentity: identity, logger,
       run: async ({ body }) => {
         const manifest = baseline.manifest;
@@ -266,9 +341,9 @@ export function deployBaselineOnReservedConnection({ sql, baseline, identity, lo
           ["securium.baseline_artifact_sha256", manifest.artifactDigest],
           ["securium.baseline_schema_sha256", manifest.schemaDigest],
           ["securium.baseline_security_sha256", manifest.securityDigest],
-        ]) await reserved.unsafe("SELECT set_config($1, $2, true)", [name, value]);
+        ]) await session.executeQuery("SELECT set_config($1, $2, true)", [name, value]);
         await session.executeMigration(body);
-        const receipts = await reserved.unsafe(
+        const receipts = await session.executeQuery(
           "SELECT baseline_id, artifact_sha256, schema_sha256, security_sha256 FROM public.app_schema_baseline_receipts WHERE baseline_id = $1",
           [manifest.baselineId],
         );
@@ -295,18 +370,6 @@ function normalizeSessionIdentity(value) {
     throw new MigrationGuardError("MIGRATION_GUARD_SESSION_CHANGED");
   }
   return normalized;
-}
-
-function safeGuardErrorCode(error) {
-  if (error instanceof MigrationGuardError) return error.code;
-  return safeDatabaseErrorCode(error);
-}
-
-function safeDatabaseErrorCode(error) {
-  if (!error || typeof error !== "object") return "UNKNOWN";
-  const code = "code" in error ? error.code : undefined;
-  if (typeof code === "string" && /^[A-Z0-9_]+$/.test(code)) return code;
-  return "UNKNOWN";
 }
 
 function defaultLogger(message) {

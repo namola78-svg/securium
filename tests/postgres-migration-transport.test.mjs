@@ -154,7 +154,7 @@ test("postgres.js inherited PGPORT bypass is reproduced without opening a connec
   }
 });
 
-test("a failed rollback destroys the driver before releasing the reserved connection", async () => {
+test("a failed rollback preserves the primary cause and retires the pool without requeuing the connection", async () => {
   const events = [];
   const sql = {
     end: async () => events.push("END"),
@@ -163,7 +163,7 @@ test("a failed rollback destroys the driver before releasing the reserved connec
       unsafe: async statement => {
         if (/pg_backend_pid/.test(statement) && !/current_setting/.test(statement)) return [{ session_identity: "901" }];
         if (statement === "ROLLBACK") { events.push("ROLLBACK"); throw new Error("synthetic rollback failure"); }
-        if (/SET LOCAL/.test(statement)) throw new Error("synthetic setting failure");
+        if (/SET LOCAL/.test(statement)) throw Object.assign(new Error("synthetic setting failure"), { code: "42501" });
         return [];
       },
     }),
@@ -172,9 +172,13 @@ test("a failed rollback destroys the driver before releasing the reserved connec
     id: "guard_rollback", sql: "BEGIN; CREATE TABLE guard_rollback(id int); INSERT INTO app_schema_migrations (id, checksum) VALUES ('guard_rollback','rollback'); COMMIT;",
   } });
   assert.equal(result.code, 1);
-  assert.equal(result.errorCode, "MIGRATION_GUARD_ROLLBACK_FAILED");
+  assert.equal(result.errorCode, "MIGRATION_GUARD_TIMEOUT_SET_FAILED");
+  assert.equal(result.originalErrorCode, "42501");
+  assert.equal(result.transactionOutcome, "VERIFICATION_REQUIRED");
+  assert.equal(result.connectionInvalidated, true);
+  assert.deepEqual(result.cleanupErrors, [{ stage: "ROLLBACK", errorCode: "UNKNOWN" }]);
   assert.equal(result.ddlStarted, false);
-  assert.deepEqual(events, ["ROLLBACK", "END", "RELEASE"]);
+  assert.deepEqual(events, ["ROLLBACK", "END"]);
 });
 
 test("owned literal localhost maps to a deterministic IPv4 driver endpoint", async () => {

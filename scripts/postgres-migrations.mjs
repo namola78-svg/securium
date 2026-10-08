@@ -17,20 +17,29 @@ import { migrationTransactionBody } from "./postgres-migration-transaction.mjs";
 import {
   readOwnedPostgresReceipt, inspectOwnedPostgresContainer, getPublishedPostgresPort,
 } from "./owned-postgres-container.mjs";
+import { closeMigrationClient, migrationQuery } from "./postgres-migration-lifecycle.mjs";
 
 const migrationsDirectory = resolve("db/postgres/migrations");
 const command = process.argv[2] ?? "validate";
 let migrations;
 let runner;
+let primaryFailure = false;
 try {
   await main();
 } catch (error) {
+  primaryFailure = true;
   // Never print driver messages, stack traces, URLs, query text or credentials.
   console.error(error instanceof MigrationGuardError ? error.code : safeErrorCode(error));
   process.exitCode = 1;
 } finally {
   if (runner) {
-    try { await runner.close(); }
+    try {
+      const closed = await runner.close();
+      if (closed.code !== 0 && (!primaryFailure || !closed.shutdownSucceeded)) {
+        console.error("POSTGRES_MIGRATION_CONNECTION_CLEANUP_FAILED reason=" + closed.errorCode);
+        process.exitCode = 1;
+      }
+    }
     catch { console.error("POSTGRES_MIGRATION_CONNECTION_CLEANUP_FAILED"); process.exitCode = 1; }
   }
 }
@@ -70,7 +79,7 @@ async function main() {
   }
   if (state === "TRUE_EMPTY") {
     const result = await runner.applyBaseline();
-    if (result.code !== 0) failWithDetail("POSTGRES_BASELINE_DEPLOY_FAILED", result.errorCode);
+    if (result.code !== 0) reportDeploymentFailure("POSTGRES_BASELINE_DEPLOY_FAILED", result);
   }
   const applicable = ["TRUE_EMPTY", "BASELINE_DATABASE", "POST_BOUNDARY_DATABASE"].includes(state)
     ? migrationsAfterBoundary(migrations, BASELINE_BOUNDARY)
@@ -78,7 +87,7 @@ async function main() {
   // Even previously applied migrations pass through exact checksum validation.
   for (const migration of applicable) {
     const result = await runner.deployMigration(migration);
-    if (result.code !== 0) failWithDetail("POSTGRES_MIGRATION_DEPLOY_FAILED", result.errorCode);
+    if (result.code !== 0) reportDeploymentFailure("POSTGRES_MIGRATION_DEPLOY_FAILED", result);
   }
   console.log("POSTGRES_MIGRATIONS_DEPLOYED");
 }
@@ -111,16 +120,16 @@ async function createPostgresMigrationRunner(migrationUrl) {
   const sql = createMigrationClient(postgres, plan);
   const identity = { database: plan.database, role: plan.role };
   try {
-    const [row] = await sql.unsafe("SELECT current_database() AS database_name, current_user AS current_user, session_user AS session_user");
+    const [row] = await migrationQuery(sql, sql, "SELECT current_database() AS database_name, current_user AS current_user, session_user AS session_user");
     if (row?.database_name !== identity.database || row?.current_user !== identity.role || row?.session_user !== identity.role) fail("MIGRATION_GUARD_DATABASE_ROLE_MISMATCH");
   } catch (error) {
-    await sql.end({ timeout: 5 });
+    await closeMigrationClient(sql);
     throw error;
   }
   console.log("MIGRATION_GUARD_CONNECTION mode=" + plan.mode + " port=" + plan.port + " driver=postgresjs tls=" + plan.tls + " authority=" + plan.provider);
   return {
-    close: () => sql.end({ timeout: 5 }),
-    queryRows: statement => sql.unsafe(statement),
+    close: () => closeMigrationClient(sql),
+    queryRows: statement => migrationQuery(sql, sql, statement),
     deployMigration: migration => deployMigrationOnReservedConnection({ sql, migration, identity }),
     applyBaseline: async () => deployBaselineOnReservedConnection({
       sql, baseline: await validateBaselineFiles(), identity,
@@ -252,6 +261,14 @@ async function inspectDatabaseState(runner) {
 
 function fail(code) { throw new MigrationGuardError(code); }
 function failWithDetail(code, detail) { fail(detail ? code + ":" + detail : code); }
+function reportDeploymentFailure(code, result) {
+  console.error("POSTGRES_MIGRATION_FAILURE reason=" + result.errorCode + " original=" + result.originalErrorCode +
+    " stage=" + result.failureStage + " transaction=" + result.transactionOutcome +
+    " connection=" + (result.connectionInvalidated ? "INVALIDATED" : "USABLE"));
+  for (const cleanup of result.cleanupErrors) console.error("POSTGRES_MIGRATION_CLEANUP_FAILURE stage=" + cleanup.stage + " reason=" + cleanup.errorCode);
+  if (result.transactionOutcome === "VERIFICATION_REQUIRED") console.error("POSTGRES_MIGRATION_VERIFICATION_REQUIRED ledger=FRESH_AUTHORIZED_CONNECTION database_state=UNKNOWN resume=REAPPROVAL_REQUIRED");
+  failWithDetail(code, result.errorCode);
+}
 function safeErrorCode(error) {
   const code = error?.code;
   return typeof code === "string" && /^[A-Z0-9_]+$/.test(code) ? code : "POSTGRES_MIGRATION_FAILED";

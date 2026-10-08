@@ -32,7 +32,7 @@
     "test:course-lesson-progress-revision-binding:postgres": "node --test --test-concurrency=1 tests/course-lesson-progress-revision-binding-postgres-disposable.test.mjs",
     "test:security-content-upgrade-v3:postgres": "node --test --test-concurrency=1 tests/security-content-upgrade-v3-postgres-disposable.test.mjs",
     "test:theory-revision-integrity": "node --test --test-concurrency=1 tests/evidence-source-adapters-course-lesson-revision.test.mjs && node scripts/run-d1-test-suite.mjs --test --test-concurrency=1 tests/theory-revision-integrity-d1-e2e.test.mjs && node --test --test-concurrency=1 tests/course-lesson-progress-revision-binding-postgres-disposable.test.mjs",
-    "test:postgres-migration-guard": "node --test --test-concurrency=1 tests/postgres-migration-guard.test.mjs tests/postgres-migration-transport.test.mjs",
+    "test:postgres-migration-guard": "node --test --test-concurrency=1 tests/postgres-migration-guard.test.mjs tests/postgres-migration-transport.test.mjs tests/postgres-migration-lifecycle.test.mjs tests/postgres-migration-backend-loss.test.mjs",
     "test:legacy-concept-rls": "node --test --test-concurrency=1 tests/legacy-concept-rls-hardening-postgres-disposable.test.mjs",
     "test:legacy-concept-shadow": "node --test --test-concurrency=1 tests/canonical-concept-shadow-authority.test.ts",
     "test:e2e": "npm run build && node scripts/run-d1-test-suite.mjs --test --test-concurrency=1 tests/rendered-html.test.mjs tests/phase3-e2e.test.mjs tests/specialized-e2e.test.mjs tests/practical-e2e.test.mjs tests/ai-e2e.test.mjs tests/ai-specialized-e2e.test.mjs tests/audio-e2e.test.mjs tests/lecture-e2e.test.mjs tests/content-revision-e2e.test.mjs tests/audit-e2e.test.mjs tests/curriculum-e2e.test.mjs",

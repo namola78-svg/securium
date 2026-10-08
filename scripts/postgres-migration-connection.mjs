@@ -2,6 +2,8 @@ import { createHash } from "node:crypto";
 import { isIP } from "node:net";
 import { checkServerIdentity, rootCertificates } from "node:tls";
 import { MigrationGuardError } from "./postgres-migration-error.mjs";
+import { observeMigrationConnectionClose, closeMigrationClient } from "./postgres-migration-lifecycle.mjs";
+export { closeMigrationClient } from "./postgres-migration-lifecycle.mjs";
 
 // Credentials and driver options are private; a caller cannot forge or weaken a plan.
 const plans = new WeakMap();
@@ -104,18 +106,20 @@ export function createMigrationClient(postgres, plan) {
   const secrets = plans.get(plan);
   if (!secrets) deny("MIGRATION_GUARD_CONNECTION_PLAN_INVALID");
   // No URL is given to the driver. Arrays also avoid postgres.js's host:port split.
-  const sql = postgres({
+  let sql;
+  const onclose = () => observeMigrationConnectionClose(sql);
+  sql = postgres({
     host: [plan.host], port: [plan.port], database: plan.database, user: plan.user,
     password: secrets.password, ssl: secrets.ssl,
     max: 1, max_pipeline: 1, idle_timeout: 5, connect_timeout: 10,
     max_lifetime: null, backoff: 0, keep_alive: 30, fetch_types: false,
-    prepare: false, debug: false, onnotice: false, sslnegotiation: null,
+    prepare: false, debug: false, onnotice: false, onclose, sslnegotiation: null,
     publications: "alltables", target_session_attrs: null,
     connection: { application_name: "securium-postgres-migrations", search_path: "public", standard_conforming_strings: "on" },
   });
   const options = sql.options;
-  if (options.host?.length !== 1 || options.host[0] !== plan.host || options.port?.length !== 1 || options.port[0] !== plan.port || options.database !== plan.database || options.user !== plan.user || options.path || options.socket || options.ssl !== secrets.ssl || options.target_session_attrs || options.max !== 1 || options.prepare !== false || options.connection?.search_path !== "public" || options.connection?.standard_conforming_strings !== "on" || ["user", "database", "role", "options"].some(key => key in options.connection)) {
-    void sql.end({ timeout: 0 }).catch(() => {});
+  if (options.host?.length !== 1 || options.host[0] !== plan.host || options.port?.length !== 1 || options.port[0] !== plan.port || options.database !== plan.database || options.user !== plan.user || options.path || options.socket || options.ssl !== secrets.ssl || options.onclose !== onclose || options.target_session_attrs || options.max !== 1 || options.prepare !== false || options.connection?.search_path !== "public" || options.connection?.standard_conforming_strings !== "on" || ["user", "database", "role", "options"].some(key => key in options.connection)) {
+    void closeMigrationClient(sql, { timeout: 0 });
     deny("MIGRATION_GUARD_DRIVER_ENDPOINT_MISMATCH");
   }
   return sql;

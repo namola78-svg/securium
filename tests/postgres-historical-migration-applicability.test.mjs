@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { execFile as execFileCallback } from "node:child_process";
+import { execFile as execFileCallback, spawn } from "node:child_process";
 import { randomBytes, randomUUID } from "node:crypto";
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -10,6 +10,7 @@ import { classifyMigrationApplicability } from "../scripts/postgres-migration-ap
 import { validateHistoricalMigrationLedger } from "../scripts/postgres-historical-ledger.mjs";
 import { expectedMigrationChecksum } from "../scripts/postgres-migration-guard.mjs";
 import { validateBaselineFiles } from "../scripts/postgres-baseline.mjs";
+import { HISTORICAL_SUPPLEMENTARY_RECEIPTS } from "../scripts/postgres-historical-supplementary-receipts.mjs";
 import {
   cleanupOwnedPostgresContainer,
   createOwnedPostgresContainer,
@@ -172,19 +173,47 @@ test("owned PostgreSQL proves historical upgrade, resume, fresh RLS, and fail-cl
     await sql.unsafe("INSERT INTO users (id,email,display_name) VALUES ('synthetic-user','synthetic@example.invalid','Synthetic'); INSERT INTO questions (id,title,content,type,created_by) VALUES ('synthetic-question','Synthetic','Synthetic','TRUE_FALSE','synthetic-user'); INSERT INTO question_versions (id,question_id,version,snapshot_json,created_by) VALUES ('synthetic-version','synthetic-question',1,'{}','synthetic-user'); INSERT INTO question_attempts (id,idempotency_key,user_id,question_id,course_id,selected_answer,is_correct) VALUES ('synthetic-attempt','synthetic-key','synthetic-user','synthetic-question','course-ise','true',1);");
     return sql;
   }
-  async function run(name, command = "deploy") {
+  function runnerEnvironment(name, command = "deploy") {
     assert.match(name, /^preflight_[a-z_]+$/);
     const env = { ...process.env };
     for (const key of Object.keys(env)) if (/^(DATABASE_URL|DIRECT_URL|POSTGRES_|PGHOST|PGPORT|PGDATABASE|PGUSER|PGPASSWORD|PGSERVICE|PGOPTIONS)/.test(key)) delete env[key];
     env.POSTGRES_MIGRATION_URL = `postgres://postgres:${password}@127.0.0.1:${port}/${name}`;
     env.POSTGRES_MIGRATION_DISPOSABLE_RECEIPT = owned.receiptPath;
     if (command === "deploy") env.POSTGRES_MIGRATION_APPROVED = "APPLY_REVIEWED_MIGRATIONS";
+    return env;
+  }
+  async function run(name, command = "deploy") {
+    const env = runnerEnvironment(name, command);
     try {
       const result = await execFile(process.execPath, ["scripts/postgres-migrations.mjs", command, ...(command === "deploy" ? ["--confirm"] : [])], { env, windowsHide: true, timeout: 180_000, maxBuffer: 4 * 1024 * 1024 });
       return { code: 0, stdout: result.stdout, stderr: result.stderr };
     } catch (error) {
       return { code: typeof error.code === "number" ? error.code : 1, stdout: error.stdout ?? "", stderr: error.stderr ?? "" };
     }
+  }
+  const completeLedger = async sql => Array.from(await sql.unsafe("SELECT id, checksum, applied_at FROM app_schema_migrations ORDER BY applied_at, id"));
+  async function productionLineageFixture(name) {
+    const sql = await fixture(name);
+    // Construct synthetic timestamps for the exact reviewed receipt order. This
+    // is fixture initialization, not production evidence or a deployment repair.
+    const numberedOrder = [0, 1, 2, 3, 4, 5, 8, 6, 7, 9, 10, 11].map(index => historical[index].id);
+    const seeds = Object.entries(HISTORICAL_SUPPLEMENTARY_RECEIPTS);
+    const expected = [];
+    let sequence = 0;
+    for (let index = 0; index < numberedOrder.length; index++) {
+      const id = numberedOrder[index];
+      const timestamp = new Date(Date.UTC(2026, 0, 1) + sequence++ * 1000);
+      await sql.unsafe("UPDATE app_schema_migrations SET applied_at=$1 WHERE id=$2", [timestamp, id]);
+      expected.push(id);
+      if (index < seeds.length) {
+        const [seedId, checksum] = seeds[index];
+        await sql.unsafe("INSERT INTO app_schema_migrations(id,checksum,applied_at) VALUES ($1,$2,$3)", [seedId, checksum, new Date(Date.UTC(2026, 0, 1) + sequence++ * 1000)]);
+        expected.push(seedId);
+      }
+    }
+    assert.deepEqual((await completeLedger(sql)).map(row => row.id), expected);
+    assert.equal(validateHistoricalMigrationLedger(migrations, { migrationRows: await completeLedger(sql), baselineRelationExists: false }), true);
+    return sql;
   }
   const legacyAttempt = sql => sql`SELECT id,user_id,question_id,course_id,selected_answer,is_correct,score,attempted_at FROM question_attempts ORDER BY id`;
   try {
@@ -258,6 +287,15 @@ test("owned PostgreSQL proves historical upgrade, resume, fresh RLS, and fail-cl
       await sql.unsafe("ROLLBACK");
       verifyLedger(await ledger(sql), [historical[0]]);
       evidence.stages.literalReplay = { firstFailure: historical[1].id, code: "42P01", ledgerCount: 1 };
+      const supported = await run("preflight_literal");
+      assert.equal(supported.code, 1);
+      assert.match(supported.stderr, /POSTGRES_MIGRATION_DEPLOY_FAILED:42P01/);
+      assert.match(supported.stdout, /migration=0002_server_only_rls_lockdown .*action=EXECUTE/);
+      verifyLedger(await ledger(sql), [historical[0]]);
+      evidence.stages.ascendingBootstrapDisposition = {
+        emptyDatabasePath: "VALIDATED_BASELINE_V1", acceptedHistorical0001Prefix: "REACHABLE_RUNNER_FAILURE_42P01",
+        gate: "SEPARATE_RELEASE_GATE_HOLD", migrationSqlChanged: false,
+      };
     });
 
     await t.test("0012 advances through all 30 applicable migrations without baseline fabrication", async () => {
@@ -297,6 +335,78 @@ test("owned PostgreSQL proves historical upgrade, resume, fresh RLS, and fail-cl
       assert.match(mismatch.stderr, /MIGRATION_GUARD_MIGRATION_CHECKSUM_MISMATCH/);
       assert.doesNotMatch(mismatch.stdout, /action=EXECUTE/);
       evidence.stages.checksumMismatch = { code: mismatch.code, failure: mismatch.stderr.trim(), ddlExecuted: false };
+    });
+
+    await t.test("exact production receipt order and six supplementary receipts survive all 30 upgrades and an idempotent run", async () => {
+      const sql = await productionLineageFixture("preflight_exact_lineage");
+      const original = await completeLedger(sql);
+      const status = await run("preflight_exact_lineage", "status");
+      assert.equal(status.code, 0, status.stderr);
+      assert.equal(status.stdout.match(/POSTGRES_MIGRATIONS_PENDING (.+)/)[1].split(",").length, 30);
+      const deployed = await run("preflight_exact_lineage");
+      assert.equal(deployed.code, 0, deployed.stderr);
+      assert.equal((deployed.stdout.match(/action=EXECUTE/g) ?? []).length, 30);
+      assert.deepEqual((await completeLedger(sql)).slice(0, 18), original);
+      assert.equal((await completeLedger(sql)).length, 48);
+      assert.equal((await sql`SELECT to_regclass('public.app_schema_baseline_receipts') AS relation`)[0].relation, null);
+      assert.equal((await sql`SELECT id FROM app_schema_migrations WHERE id=${baselineRlsId}`).length, 0);
+      const beforeRepeat = await completeLedger(sql);
+      const repeat = await run("preflight_exact_lineage");
+      assert.equal(repeat.code, 0, repeat.stderr);
+      assert.doesNotMatch(repeat.stdout, /action=EXECUTE/);
+      assert.deepEqual(await completeLedger(sql), beforeRepeat);
+      evidence.stages.exactProductionLineage = { authority: "SYNTHETIC_SCHEMA_AND_RECEIPTS_IN_REVIEWED_PRODUCTION_ORDER", original, pending: 30, applied: 30, finalLedgerCount: 48, originalReceiptsUnchanged: true, secondRun: "IDEMPOTENT", no0058Receipt: true };
+    });
+
+    await t.test("real CLI backend interruption stops before 0014 and resumes only after a fresh ledger and catalog check", async () => {
+      const name = "preflight_backend_loss";
+      const sql = await productionLineageFixture(name);
+      const original = await completeLedger(sql);
+      const blocker = connect(name);
+      let child;
+      let output = "";
+      let errors = "";
+      let exit;
+      try {
+        await blocker.unsafe("BEGIN; LOCK TABLE public.question_versions IN ACCESS SHARE MODE");
+        child = spawn(process.execPath, ["--unhandled-rejections=strict", "scripts/postgres-migrations.mjs", "deploy", "--confirm"], { env: runnerEnvironment(name), windowsHide: true });
+        child.stdout.on("data", chunk => { output += chunk; });
+        child.stderr.on("data", chunk => { errors += chunk; });
+        const exited = new Promise((resolveExit, reject) => { child.once("error", reject); child.once("exit", (code, signal) => resolveExit({ code, signal })); });
+        const timer = setTimeout(() => child.kill(), 20_000);
+        try {
+          let backend;
+          for (let attempt = 0; attempt < 200; attempt++) {
+            [backend] = await admin.unsafe("SELECT pid FROM pg_stat_activity WHERE datname=$1 AND application_name='securium-postgres-migrations' AND wait_event_type='Lock'", [name]);
+            if (backend) break;
+            await new Promise(resolve => setTimeout(resolve, 25));
+          }
+          assert.ok(backend, "the real 0013 ALTER must reach its deterministic lock barrier");
+          assert.equal((await admin.unsafe("SELECT pg_terminate_backend($1,5000) AS terminated", [backend.pid]))[0].terminated, true);
+          exit = await exited;
+        } finally { clearTimeout(timer); }
+      } finally {
+        if (child?.exitCode === null) child.kill();
+        await blocker.unsafe("ROLLBACK");
+        await blocker.end({ timeout: 0 });
+      }
+      assert.deepEqual(exit, { code: 1, signal: null });
+      assert.match(errors, /POSTGRES_MIGRATION_FAILURE reason=(57P01|CONNECTION_CLOSED) original=(57P01|CONNECTION_CLOSED) stage=DDL transaction=VERIFICATION_REQUIRED connection=INVALIDATED/);
+      assert.match(errors, /POSTGRES_MIGRATION_VERIFICATION_REQUIRED/);
+      assert.doesNotMatch(output + errors, /TypeError|UnhandledPromiseRejection|postgres:\/\/|POSTGRES_MIGRATIONS_DEPLOYED|migration=0014_.*action=EXECUTE/);
+      assert.equal((output + errors).includes(password), false);
+      const fresh = connect(name);
+      assert.deepEqual(await completeLedger(fresh), original);
+      assert.equal((await fresh.unsafe("SELECT count(*)::int AS count FROM pg_attribute WHERE attrelid='public.question_versions'::regclass AND attname='semantic_hash' AND NOT attisdropped"))[0].count, 0);
+      assert.equal((await fresh`SELECT to_regclass('public.question_concepts') AS relation`)[0].relation, null);
+      // Only this verified fresh snapshot authorizes the disposable resume.
+      const resumed = await run(name);
+      assert.equal(resumed.code, 0, resumed.stderr);
+      assert.equal((resumed.stdout.match(/action=EXECUTE/g) ?? []).length, 30);
+      assert.deepEqual((await completeLedger(fresh)).slice(0, 18), original);
+      assert.equal((await completeLedger(fresh)).length, 48);
+      assert.equal((await fresh`SELECT id FROM app_schema_migrations WHERE id=${baselineRlsId}`).length, 0);
+      evidence.stages.backendLossResume = { authority: "SYNTHETIC_EXACT_LINEAGE_OWNED_DISPOSABLE", exit, failure: errors.trim(), freshLedgerUnchanged: true, interruptedDdlAbsent: true, subsequentMigrationStarted: false, resumed: "30/30", historicalAndSupplementaryReceiptsUnchanged: true };
     });
 
     await t.test("resume at 0057 uses guards and does not manufacture a 0058 receipt", async () => {

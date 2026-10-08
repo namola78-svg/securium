@@ -1,6 +1,6 @@
 export class MigrationGuardError extends Error {
-  constructor(code) {
-    super(code);
+  constructor(code, options) {
+    super(code, options);
     this.name = "MigrationGuardError";
     this.code = code;
   }
