@@ -128,7 +128,7 @@ Do not proceed if stdout differs, status exits nonzero, or any error appears. Sa
 For the future deploy invocation:
 
 - Set `POSTGRES_MIGRATION_URL` explicitly to the authorized production **direct** PostgreSQL URL, stored outside the command transcript. `DIRECT_URL` is the fallback; `DATABASE_URL` is the last fallback. A dedicated migration URL is preferred.
-- Use a direct connection or session-mode connection on port `5432`, or an approved direct custom port. Transaction-pooling port `6543` is rejected by the runner. Do not use transaction pooling.
+- For any remote production endpoint, use only a direct connection or session-mode connection on port `5432`. Transaction-pooling port `6543` and every other remote custom port are rejected by the runner. Non-5432 custom ports are reserved only for loopback disposable PostgreSQL used by tests. Do not use transaction pooling.
 - The runner uses one reserved `postgres` driver connection for all guarded operations, requires SSL, and verifies the same PostgreSQL backend session identity immediately before each migration. Do not enable `POSTGRES_MIGRATION_USE_PSQL=1`; deploy rejects it with `MIGRATION_GUARD_SINGLE_SESSION_REQUIRED`.
 - Per migration, the runner sets and reads back `lock_timeout=5s`, `statement_timeout=60s`, and `idle_in_transaction_session_timeout=60s`. Each must match exactly. Do not override or bypass these controls.
 - For this historical lineage, runner startup must not classify it as `TRUE_EMPTY`, `BASELINE_DATABASE`, `POST_BOUNDARY_DATABASE`, `UNKNOWN`, `PARTIAL_BASELINE`, or `AMBIGUOUS_NONEMPTY`.
@@ -151,7 +151,7 @@ npm run db:postgres:deploy -- --confirm
 
 ## 5. Expected deploy output and stop conditions
 
-For `postgres` driver execution, expect the connection announcement to identify `mode=DIRECT_OR_SESSION_5432` (or the explicitly approved direct custom-port mode), `driver=postgresjs`, and the approved port. Expect the exact `0058` NOT_APPLICABLE line shown above and no `0058` guard or execution line. For each of the 30 applicable migration IDs in the order above, expect these three setting readbacks followed by an execute pass:
+For production `postgres` driver execution, expect the connection announcement to identify `mode=DIRECT_OR_SESSION_5432`, `driver=postgresjs`, and port `5432`. Any remote custom-port mode is a stop condition. Expect the exact `0058` NOT_APPLICABLE line shown above and no `0058` guard or execution line. For each of the 30 applicable migration IDs in the order above, expect these three setting readbacks followed by an execute pass:
 
 ```text
 MIGRATION_GUARD_SETTING name=lock_timeout expected_ms=5000 observed_ms=5000 result=PASS
@@ -172,7 +172,7 @@ Stop immediately and do not try another runner, manually apply SQL, clear receip
 - the read-only state differs from the stated facts or the expected status output / exact pending list differs;
 - runner exits nonzero or emits any `MIGRATION_GUARD_*`, `POSTGRES_BASELINE_STATE_*`, `POSTGRES_HISTORICAL_LEDGER_*`, `POSTGRES_MIGRATION_*_FAILED`, unknown receipt, duplicate, progression gap/order, or checksum error;
 - any concurrent schema/ledger activity makes the approved pre-deploy status stale or changes the expected next migration;
-- port is `6543`, connection mode is not direct/session, the wrong driver is used, reserved-session identity changes, or any required timeout setting fails readback;
+- port is not `5432` for the remote production endpoint, connection mode is not `DIRECT_OR_SESSION_5432`, the wrong driver is used, reserved-session identity changes, or any required timeout setting fails readback;
 - `0017` raises `EVIDENCE_E1_EXISTING_PROJECTIONS_REQUIRE_EXPLICIT_REVIEW` or any SQL error; or
 - an unexpected `0058` execution/receipt, baseline receipt table creation, missing expected `MIGRATION_GUARD_PASS`, missing terminal success line, or any other unreviewed output appears.
 
