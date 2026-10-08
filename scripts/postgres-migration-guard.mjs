@@ -269,17 +269,35 @@ export function assertMigrationConnectionUrl(value) {
   } catch {
     throw new MigrationGuardError("DIRECT_URL_INVALID");
   }
-  if (!['postgres:', 'postgresql:'].includes(url.protocol)) {
+  if (!["postgres:", "postgresql:"].includes(url.protocol)) {
     throw new MigrationGuardError("DIRECT_URL_INVALID");
   }
+
   const port = url.port || "5432";
   if (port === "6543") {
     throw new MigrationGuardError(
       "MIGRATION_GUARD_TRANSACTION_POOLING_FORBIDDEN",
     );
   }
+
+  const hostname = url.hostname.toLowerCase();
+  const loopback =
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "[::1]" ||
+    hostname === "::1";
+
+  if (port !== "5432" && !loopback) {
+    throw new MigrationGuardError(
+      "MIGRATION_GUARD_REMOTE_CUSTOM_PORT_FORBIDDEN",
+    );
+  }
+
   return {
-    mode: port === "5432" ? "DIRECT_OR_SESSION_5432" : "DIRECT_CUSTOM_PORT",
+    mode:
+      port === "5432"
+        ? "DIRECT_OR_SESSION_5432"
+        : "LOOPBACK_DISPOSABLE_CUSTOM_PORT",
     port,
   };
 }
