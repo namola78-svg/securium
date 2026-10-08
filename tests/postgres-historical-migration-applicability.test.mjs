@@ -21,6 +21,11 @@ const execFile = promisify(execFileCallback);
 const baselineRlsId = "0058_app_schema_baseline_receipts_rls_hardening";
 const sample = [{ id: "0057_before" }, { id: baselineRlsId }, { id: "0059_after" }];
 
+function stableDiagnostics(stderr) {
+  // Keep all diagnostics; only ExperimentalWarning process IDs vary between runs.
+  return stderr.replace(/^\(node:\d+\)(?= ExperimentalWarning:)/gm, "(node:<pid>)").trim();
+}
+
 async function foundationSecurity(sql) {
   const [relation] = await sql`
     SELECT c.relrowsecurity, c.relforcerowsecurity, pg_get_userbyid(c.relowner) AS owner,
@@ -272,7 +277,7 @@ test("owned PostgreSQL proves historical upgrade, resume, fresh RLS, and fail-cl
           assert.match(result.stderr, new RegExp(error));
           assert.doesNotMatch(result.stdout, /POSTGRES_MIGRATION_NOT_APPLICABLE|action=EXECUTE/);
         }
-        assert.equal(status.stderr.trim(), deploy.stderr.trim());
+        assert.equal(stableDiagnostics(status.stderr), stableDiagnostics(deploy.stderr));
         assert.deepEqual(after, before, "invalid receipts must not be repaired or normalized");
         assert.deepEqual(Array.from(await catalog()), catalogBefore);
         assert.equal((await sql`SELECT to_regclass('public.app_schema_baseline_receipts') AS relation`)[0].relation, null);
@@ -433,7 +438,7 @@ test("owned PostgreSQL proves historical upgrade, resume, fresh RLS, and fail-cl
         assert.match(result.stderr, /POSTGRES_BASELINE_RLS_RECEIPT_WITHOUT_TABLE/);
         assert.doesNotMatch(result.stdout, /POSTGRES_MIGRATION_NOT_APPLICABLE|action=EXECUTE/);
       }
-      assert.equal(status.stderr.trim(), deploy.stderr.trim());
+      assert.equal(stableDiagnostics(status.stderr), stableDiagnostics(deploy.stderr));
       assert.deepEqual(await ledger(sql), before);
       evidence.stages.inconsistentReceipt = { status, deploy, ledgerUnchanged: true };
     });
