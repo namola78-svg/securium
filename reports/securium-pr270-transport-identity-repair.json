@@ -1,0 +1,156 @@
+{
+  "FINAL_STATUS": "SECURIUM_PR270_TRANSPORT_IDENTITY_REPAIR_PASS",
+  "BASE_SHA": "6e14a768acc27c62baede4d83e1135526edbbc68",
+  "WORKTREE": "C:\\Users\\user\\Documents\\Codex\\2026-07-24\\securium-pr270-transport-identity-repair-verified",
+  "FILES_CHANGED": [
+    ".github/workflows/ci.yml",
+    "db/postgres/migration-targets.json",
+    "docs/runbooks/securium-postgres-production-migration-execution.md",
+    "package.json",
+    "reports/securium-pr270-transport-identity-repair.json",
+    "scripts/postgres-migration-connection.mjs",
+    "scripts/postgres-migration-error.mjs",
+    "scripts/postgres-migration-guard.mjs",
+    "scripts/postgres-migration-transaction.mjs",
+    "scripts/postgres-migrations.mjs",
+    "tests/fixtures/postgres-migration-tls/README.md",
+    "tests/fixtures/postgres-migration-tls/ca.crt",
+    "tests/fixtures/postgres-migration-tls/server.crt",
+    "tests/fixtures/postgres-migration-tls/server.key",
+    "tests/postgres-historical-migration-applicability.test.mjs",
+    "tests/postgres-migration-guard.test.mjs",
+    "tests/postgres-migration-transport.test.mjs"
+  ],
+  "CANONICAL_CONNECTION_PLAN": "Strict URL grammar; explicit database/user/password; exactly one host and numeric port; no driver URL parsing. PG* inheritance, opaque/hostless URLs, encoded endpoint delimiters, multiple hosts, ambiguous IPv6 and unsupported overrides rejected. Literal localhost is pinned to 127.0.0.1 only after disposable ownership verification.",
+  "DRIVER_EFFECTIVE_ENDPOINT": {
+    "driver": "postgres.js 3.4.9",
+    "verified": "Actual parsed driver host/port arrays and database/user equal the canonical plan; startup overrides and inconsistent TLS/connection options rejected.",
+    "productionEndpoint": null,
+    "disposable": "Owned container ID/owner label/running state and exact 127.0.0.1 published port verified before connection."
+  },
+  "PRODUCTION_ENDPOINT_AUTHORITY": {
+    "status": "UNVERIFIED_AND_DISABLED",
+    "approvedTargets": [],
+    "requirements": "Reviewed repository target record binding provider/project/host/port/database/connection user/server role/direct-or-session mode, independent approval and provider mode evidence, approval time and expiry. No environment-supplied approval payload or network fallback."
+  },
+  "TLS_CERTIFICATE_VALIDATION": {
+    "enforcement": "rejectUnauthorized=true; explicit Node bundled roots, or approval-bound CA SHA-256. Weaker sslmode and NODE_TLS_REJECT_UNAUTHORIZED=0 rejected.",
+    "validation": "Real postgres.js TLS handshake against owned loopback protocol fixture rejects an unknown chain before PostgreSQL startup; trusted chain with approved CA succeeds.",
+    "productionTrustVerified": false
+  },
+  "TLS_HOSTNAME_VERIFICATION": "Explicit approved servername and Node checkServerIdentity bound to the canonical hostname; trusted but wrong-host certificate rejected before startup in a real driver handshake.",
+  "TRANSACTION_BOUNDARY": "Validate and separate the single outer BEGIN/COMMIT wrapper lexically; execute one BEGIN on the reserved connection, SET LOCAL/readback/identity/ledger checks before unchanged SQL body, receipt verification before one COMMIT. No nested transaction.",
+  "SESSION_IDENTITY": "Compare pre-BEGIN backend PID to the execution transaction readback; enforce current_database/current_user/session_user against approved identity inside the transaction; repeat PID check before migration body. Backend evidence does not establish endpoint mode.",
+  "ROLLBACK_BEHAVIOR": "Guard, SQL and receipt failures explicitly ROLLBACK before release. Real PostgreSQL proves failed DDL and receipt changes absent and subsequent queries usable. Failed rollback destroys the client before release.",
+  "APPROVAL_GUARD": "--confirm plus exact POSTGRES_MIGRATION_APPROVED=APPLY_REVIEWED_MIGRATIONS required before connection; missing/wrong approval or flag fails. Remote target approval is independently required.",
+  "NEGATIVE_TESTS": {
+    "beforeRepair": {
+      "tests": 13,
+      "pass": 0,
+      "fail": 13,
+      "baseline": "Exact BASE_SHA; all confirmed defect regression groups failed before implementation."
+    },
+    "finalGuardTransportSuite": {
+      "tests": 40,
+      "pass": 40,
+      "fail": 0,
+      "skipped": 0,
+      "nodeVersions": [
+        "24.19.0",
+        "22.13.0"
+      ]
+    },
+    "coverage": [
+      "PGPORT=6543 and PGHOST fallback",
+      "missing/opaque/hostless URL",
+      "encoded endpoint/multiple hosts/malformed IPv6",
+      "URL overrides and inconsistent parsed driver options",
+      "absent/wrong/expired target approval and wrong provider/project/database/role/mode",
+      "localhost aliases, absent/incorrect ownership receipt, mismatched disposable port and remote-with-disposable-receipt",
+      "weak/nonverified TLS, wrong CA trust and hostname mismatch",
+      "backend switch at BEGIN and invalid session/timeouts",
+      "pre-DDL checksum/duplicate/null ledger failures",
+      "post-DDL SQL/missing-receipt/changed-checksum rollback and rollback failure cleanup",
+      "absent/wrong invocation approval"
+    ]
+  },
+  "HISTORICAL_REPLAY": {
+    "authority": "SYNTHETIC_DISPOSABLE_ONLY",
+    "suite": {
+      "tests": 74,
+      "pass": 74,
+      "fail": 0,
+      "skipped": 0
+    },
+    "applicableUpgrade": "30/30 PASS",
+    "numberedLedgerCount": 42,
+    "numberedLedgerSha256": "6d116727c201668ef71fd93a17eb799e9ed9f700469cb4af2c869e03a3954882",
+    "repeatDeploy": "PASS",
+    "legacyAttemptPreserved": true,
+    "no0058Receipt": true,
+    "freshBaselineNumberedReceipts": 24,
+    "baselineDigests": {
+      "artifact": "2742f0b0b2c11b596d9c7336deb35489f14737e451f4956278f19611ff73f32a",
+      "schema": "05539edb00d8aad15f7ef86e43fc736f9f889df7fa0f470131207c5b73ee5ea2",
+      "security": "61ce56b51c7169cf7c98e4ec5cdcddc8720e06c292a93543de4ecb2f43eb8ba0"
+    },
+    "migrationSqlChanges": "NONE",
+    "applicabilityAndHistoricalGovernanceChanges": "NONE",
+    "staticValidation": "files=43 tables=133 checksum=f2a06a5a4fc461df",
+    "literalAscendingReplay": {
+      "firstFailure": "0002_server_only_rls_lockdown",
+      "code": "42P01",
+      "ledgerCount": 1
+    }
+  },
+  "RUNBOOK_DISPOSITION": "Obsolete frozen SHA removed. Production candidate pending fresh approval after CI, independent review and release verification; no final approved production SHA invented.",
+  "BUILD_TYPECHECK": {
+    "npm run typecheck": {
+      "exitCode": 0,
+      "result": "PASS"
+    },
+    "npm run build": {
+      "exitCode": 0,
+      "result": "PASS"
+    },
+    "focusedEslint": {
+      "exitCode": 0,
+      "result": "PASS"
+    },
+    "gitDiffCheck": {
+      "exitCode": 0,
+      "result": "PASS"
+    }
+  },
+  "EXECUTED_COMMANDS": [
+    "node --test --test-concurrency=1 tests/postgres-migration-transport.test.mjs (red reproduction on exact base)",
+    "npm run test:postgres-migration-guard",
+    "npm run db:postgres:validate",
+    "node --test --test-concurrency=1 tests/postgres-historical-migration-applicability.test.mjs tests/postgres-historical-supplementary-receipts.test.mjs tests/postgres-versioned-baseline.test.mjs",
+    "npx --yes --package=node@22.13.0 node --test --test-concurrency=1 tests/postgres-migration-guard.test.mjs tests/postgres-migration-transport.test.mjs",
+    "npm run typecheck",
+    "npm run build",
+    "npx eslint (all changed migration scripts and tests)",
+    "git diff --check"
+  ],
+  "CI_DISPOSITION": "Guard/transport tests are included through the existing integration command. Workflow now additionally validates PostgreSQL wrappers and executes historical disposable/baseline tests. Remote CI has not been triggered by this task.",
+  "UNRESOLVED_RISKS": [
+    "No actual production provider/project/mode or production CA has been independently approved in this task. Remote connections remain disabled by the empty approved-target registry.",
+    "Remote CI, independent review, release verification and fresh production approval are pending; local validation PASS does not authorize production execution.",
+    "The pre-existing literal ascending historical replay still fails at 0002 with SQLSTATE 42P01. The accepted synthetic historical fixture and all 30 forward upgrades remain valid; no historical SQL dependency was rewritten.",
+    "A commit acknowledgement lost after server commit can require read-only ledger inspection before a separately approved resume, as with any migration runner."
+  ],
+  "DISPOSABLE_DB_MUTATIONS": "Owned PostgreSQL 17.6 containers only: synthetic fixture setup, historical upgrades, baseline execution, deliberate negative receipt/DDL probes and cleanup.",
+  "PRIMARY_WORKTREE_MUTATION": "NONE",
+  "PRODUCTION_DB_CONNECTION": "NONE",
+  "PRODUCTION_DB_MUTATION": "NONE",
+  "REMOTE_MUTATION": "NONE",
+  "NEXT_STEP": "Review the focused local commit, obtain CI and independent release review, then independently approve the real endpoint/trust record and a fresh production candidate. No push, merge or production execution performed.",
+  "SOURCE_INSPECTION": [
+    "Installed postgres.js 3.4.9 src/index.js parseOptions/parseUrl/reserve and src/connection.js secure/ReadyForQuery/StartupMessage",
+    "https://github.com/porsager/postgres/blob/v3.4.9/src/index.js",
+    "https://github.com/porsager/postgres/blob/v3.4.9/src/connection.js",
+    "https://nodejs.org/api/tls.html",
+    "https://supabase.com/docs/guides/database/connecting-to-postgres"
+  ]
+}

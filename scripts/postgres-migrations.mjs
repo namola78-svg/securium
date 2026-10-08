@@ -1,174 +1,138 @@
 import { createHash } from "node:crypto";
-import { access, readdir, readFile } from "node:fs/promises";
-import { spawn } from "node:child_process";
+import { readdir, readFile } from "node:fs/promises";
 import process from "node:process";
 import { resolve } from "node:path";
 import {
-  assertMigrationConnectionUrl,
-  deployMigrationOnReservedConnection,
+  assertMigrationConnectionUrl, createMigrationClient,
+  deployMigrationOnReservedConnection, deployBaselineOnReservedConnection,
   MigrationGuardError,
 } from "./postgres-migration-guard.mjs";
 import {
-  BASELINE_BOUNDARY,
-  BASELINE_ID,
-  classifyBaselineState,
-  migrationsAfterBoundary,
-  validateBaselineFiles,
+  BASELINE_BOUNDARY, BASELINE_ID, classifyBaselineState,
+  migrationsAfterBoundary, validateBaselineFiles,
 } from "./postgres-baseline.mjs";
 import { classifyMigrationApplicability } from "./postgres-migration-applicability.mjs";
 import { validateHistoricalMigrationLedger } from "./postgres-historical-ledger.mjs";
+import { migrationTransactionBody } from "./postgres-migration-transaction.mjs";
+import {
+  readOwnedPostgresReceipt, inspectOwnedPostgresContainer, getPublishedPostgresPort,
+} from "./owned-postgres-container.mjs";
 
 const migrationsDirectory = resolve("db/postgres/migrations");
 const command = process.argv[2] ?? "validate";
-
-if (!["validate", "status", "deploy"].includes(command)) {
-  fail("POSTGRES_MIGRATION_COMMAND_INVALID");
+let migrations;
+let runner;
+try {
+  await main();
+} catch (error) {
+  // Never print driver messages, stack traces, URLs, query text or credentials.
+  console.error(error instanceof MigrationGuardError ? error.code : safeErrorCode(error));
+  process.exitCode = 1;
+} finally {
+  if (runner) {
+    try { await runner.close(); }
+    catch { console.error("POSTGRES_MIGRATION_CONNECTION_CLEANUP_FAILED"); process.exitCode = 1; }
+  }
 }
 
-const migrations = await loadMigrations();
-const validation = validateMigrations(migrations);
-
-if (command === "validate") {
-  await validateBaselineFiles();
-  console.log(
-    `POSTGRES_MIGRATIONS_VALID files=${validation.fileCount} tables=${validation.tableCount} checksum=${validation.checksum}`,
-  );
-  process.exit(0);
-}
-
-const migrationUrls = resolveMigrationUrls();
-if (!migrationUrls.length) fail("DIRECT_URL_REQUIRED");
-if (
-  command === "deploy" &&
-  process.env.POSTGRES_MIGRATION_USE_PSQL === "1"
-) {
-  fail("MIGRATION_GUARD_SINGLE_SESSION_REQUIRED");
-}
-let runnerIndex = 0;
-let runner = await createPostgresMigrationRunner(migrationUrls[runnerIndex]);
-
-if (command === "status") {
-  const { state, baselineRelationExists, appliedMigrationIds } =
-    await inspectDatabaseState(runner);
+async function main() {
+  if (!["validate", "status", "deploy"].includes(command)) fail("POSTGRES_MIGRATION_COMMAND_INVALID");
+  migrations = await loadMigrations();
+  const validation = validateMigrations(migrations);
+  if (command === "validate") {
+    const baseline = await validateBaselineFiles();
+    migrationTransactionBody(baseline.artifact);
+    console.log("POSTGRES_MIGRATIONS_VALID files=" + validation.fileCount + " tables=" + validation.tableCount + " checksum=" + validation.checksum);
+    return;
+  }
+  if (process.env.POSTGRES_MIGRATION_USE_PSQL === "1") fail("MIGRATION_GUARD_SINGLE_SESSION_REQUIRED");
+  if (command === "deploy" && (!process.argv.includes("--confirm") ||
+    process.env.POSTGRES_MIGRATION_APPROVED !== "APPLY_REVIEWED_MIGRATIONS"
+  )) fail("POSTGRES_MIGRATION_APPROVAL_REQUIRED");
+  const migrationUrl = process.env.POSTGRES_MIGRATION_URL ?? process.env.DIRECT_URL ?? process.env.DATABASE_URL;
+  if (!migrationUrl) fail("DIRECT_URL_REQUIRED");
+  runner = await createPostgresMigrationRunner(migrationUrl);
+  const { state, baselineRelationExists, appliedMigrationIds } = await inspectDatabaseState(runner);
+  if (["AMBIGUOUS_NONEMPTY", "PARTIAL_BASELINE", "UNKNOWN"].includes(state)) fail("POSTGRES_BASELINE_STATE_" + state);
+  if (command === "status") {
+    if (state === "TRUE_EMPTY") { console.log("POSTGRES_BASELINE_PENDING " + BASELINE_ID); return; }
+    if (state === "BASELINE_DATABASE") {
+      console.log("POSTGRES_BASELINE_APPLIED_PENDING " + (migrationsAfterBoundary(migrations, BASELINE_BOUNDARY).map(m => m.id).join(",") || "NONE"));
+      return;
+    }
+    const applicable = state === "POST_BOUNDARY_DATABASE"
+      ? migrationsAfterBoundary(migrations, BASELINE_BOUNDARY)
+      : historicalApplicability(state, baselineRelationExists, appliedMigrationIds);
+    const applied = new Set(appliedMigrationIds);
+    const pending = applicable.map(m => m.id).filter(id => !applied.has(id));
+    console.log(pending.length ? "POSTGRES_MIGRATIONS_PENDING " + pending.join(",") : "POSTGRES_MIGRATIONS_APPLIED");
+    return;
+  }
   if (state === "TRUE_EMPTY") {
-    await runner.close();
-    console.log(`POSTGRES_BASELINE_PENDING ${BASELINE_ID}`);
-    process.exit(0);
+    const result = await runner.applyBaseline();
+    if (result.code !== 0) failWithDetail("POSTGRES_BASELINE_DEPLOY_FAILED", result.errorCode);
   }
-  if (state === "BASELINE_DATABASE") {
-    await runner.close();
-    console.log(`POSTGRES_BASELINE_APPLIED_PENDING ${migrationsAfterBoundary(migrations, BASELINE_BOUNDARY).map((migration) => migration.id).join(",") || "NONE"}`);
-    process.exit(0);
+  const applicable = ["TRUE_EMPTY", "BASELINE_DATABASE", "POST_BOUNDARY_DATABASE"].includes(state)
+    ? migrationsAfterBoundary(migrations, BASELINE_BOUNDARY)
+    : historicalApplicability(state, baselineRelationExists, appliedMigrationIds);
+  // Even previously applied migrations pass through exact checksum validation.
+  for (const migration of applicable) {
+    const result = await runner.deployMigration(migration);
+    if (result.code !== 0) failWithDetail("POSTGRES_MIGRATION_DEPLOY_FAILED", result.errorCode);
   }
-  if (state === "POST_BOUNDARY_DATABASE") {
-    const result = await queryWithConnectionFallback(
-      "SELECT id FROM app_schema_migrations ORDER BY applied_at",
-    );
-    await runner.close();
-    if (result.code !== 0) failWithDetail("POSTGRES_MIGRATION_STATUS_FAILED", result.errorCode);
-    const applied = new Set(result.stdout.split(/\r?\n/).filter(Boolean));
-    const pending = migrationsAfterBoundary(migrations, BASELINE_BOUNDARY)
-      .map((migration) => migration.id)
-      .filter((id) => !applied.has(id));
-    console.log(
-      pending.length
-        ? `POSTGRES_MIGRATIONS_PENDING ${pending.join(",")}`
-        : "POSTGRES_MIGRATIONS_APPLIED",
-    );
-    process.exit(0);
-  }
-  if (["AMBIGUOUS_NONEMPTY", "PARTIAL_BASELINE", "UNKNOWN"].includes(state)) {
-    await runner.close();
-    fail(`POSTGRES_BASELINE_STATE_${state}`);
-  }
-  await runner.close();
-  const applied = new Set(appliedMigrationIds);
-  const { applicable, notApplicable } = classifyMigrationApplicability(migrations, {
-    databaseState: state,
-    baselineRelationExists,
-    appliedMigrationIds,
-  });
-  reportNotApplicableMigrations(notApplicable);
-  const pending = applicable
-    .map((migration) => migration.id)
-    .filter((id) => !applied.has(id));
-  console.log(
-    pending.length
-      ? `POSTGRES_MIGRATIONS_PENDING ${pending.join(",")}`
-      : "POSTGRES_MIGRATIONS_APPLIED",
-  );
-  process.exit(0);
+  console.log("POSTGRES_MIGRATIONS_DEPLOYED");
 }
 
-if (
-  !process.argv.includes("--confirm") ||
-  process.env.POSTGRES_MIGRATION_APPROVED !== "APPLY_REVIEWED_MIGRATIONS"
-) {
-  fail("POSTGRES_MIGRATION_APPROVAL_REQUIRED");
-}
-const { state: databaseState, baselineRelationExists, appliedMigrationIds } =
-  await inspectDatabaseState(runner);
-if (["AMBIGUOUS_NONEMPTY", "PARTIAL_BASELINE", "UNKNOWN"].includes(databaseState)) {
-  await runner.close();
-  fail(`POSTGRES_BASELINE_STATE_${databaseState}`);
-}
-if (databaseState === "TRUE_EMPTY") {
-  await validateBaselineFiles();
-  await runner.applyBaseline();
-}
-let migrationsToApply;
-if (databaseState === "TRUE_EMPTY" || databaseState === "BASELINE_DATABASE") {
-  migrationsToApply = migrationsAfterBoundary(migrations, BASELINE_BOUNDARY);
-} else if (databaseState === "POST_BOUNDARY_DATABASE") {
-  const result = await queryWithConnectionFallback(
-    "SELECT id FROM app_schema_migrations ORDER BY applied_at",
-  );
-  if (result.code !== 0) {
-    await runner.close();
-    failWithDetail("POSTGRES_MIGRATION_STATUS_FAILED", result.errorCode);
-  }
-  const applied = new Set(result.stdout.split(/\r?\n/).filter(Boolean));
-  migrationsToApply = migrationsAfterBoundary(migrations, BASELINE_BOUNDARY)
-    .filter((migration) => !applied.has(migration.id));
-} else {
+function historicalApplicability(databaseState, baselineRelationExists, appliedMigrationIds) {
   const { applicable, notApplicable } = classifyMigrationApplicability(migrations, {
-    databaseState,
-    baselineRelationExists,
-    appliedMigrationIds,
+    databaseState, baselineRelationExists, appliedMigrationIds,
   });
   reportNotApplicableMigrations(notApplicable);
-  migrationsToApply = applicable;
+  return applicable;
 }
-for (const migration of migrationsToApply) {
-  const result = await runner.deployMigration(migration);
-  if (result.code !== 0) {
-    failWithDetail("POSTGRES_MIGRATION_DEPLOY_FAILED", result.errorCode);
-  }
-}
-await runner.close();
-console.log("POSTGRES_MIGRATIONS_DEPLOYED");
 
+async function createPostgresMigrationRunner(migrationUrl) {
+  const registry = JSON.parse(await readFile(new URL("../db/postgres/migration-targets.json", import.meta.url), "utf8"));
+  if (registry.version !== 1 || !Array.isArray(registry.approvedTargets)) fail("MIGRATION_GUARD_TARGET_REGISTRY_INVALID");
+  let disposable = null;
+  if (process.env.POSTGRES_MIGRATION_DISPOSABLE_RECEIPT) {
+    const receipt = await readOwnedPostgresReceipt(process.env.POSTGRES_MIGRATION_DISPOSABLE_RECEIPT);
+    if (!receipt?.containerId) fail("MIGRATION_GUARD_DISPOSABLE_OWNERSHIP_REQUIRED");
+    const actual = await inspectOwnedPostgresContainer(receipt);
+    if (!actual?.running || actual.id !== receipt.containerId || actual.name !== "/" + receipt.containerName || actual.ownerToken !== receipt.ownerToken) fail("MIGRATION_GUARD_DISPOSABLE_OWNERSHIP_MISMATCH");
+    disposable = { port: Number(await getPublishedPostgresPort(receipt)) };
+  }
+  const ca = process.env.POSTGRES_MIGRATION_TLS_CA_FILE
+    ? await readFile(process.env.POSTGRES_MIGRATION_TLS_CA_FILE, "utf8") : null;
+  const plan = assertMigrationConnectionUrl(migrationUrl, { approvedTargets: registry.approvedTargets, disposable, ca });
+  let postgres;
+  try { postgres = (await import("postgres")).default; }
+  catch { fail("POSTGRES_DRIVER_UNAVAILABLE"); }
+  const sql = createMigrationClient(postgres, plan);
+  const identity = { database: plan.database, role: plan.role };
+  try {
+    const [row] = await sql.unsafe("SELECT current_database() AS database_name, current_user AS current_user, session_user AS session_user");
+    if (row?.database_name !== identity.database || row?.current_user !== identity.role || row?.session_user !== identity.role) fail("MIGRATION_GUARD_DATABASE_ROLE_MISMATCH");
+  } catch (error) {
+    await sql.end({ timeout: 5 });
+    throw error;
+  }
+  console.log("MIGRATION_GUARD_CONNECTION mode=" + plan.mode + " port=" + plan.port + " driver=postgresjs tls=" + plan.tls + " authority=" + plan.provider);
+  return {
+    close: () => sql.end({ timeout: 5 }),
+    queryRows: statement => sql.unsafe(statement),
+    deployMigration: migration => deployMigrationOnReservedConnection({ sql, migration, identity }),
+    applyBaseline: async () => deployBaselineOnReservedConnection({
+      sql, baseline: await validateBaselineFiles(), identity,
+    }),
+  };
+}
 function reportNotApplicableMigrations(migrations) {
   for (const migration of migrations) {
+    migrationTransactionBody(migration.sql);
     console.log(
       `POSTGRES_MIGRATION_NOT_APPLICABLE migration=${migration.id} lineage=HISTORICAL_DATABASE reason=BASELINE_RECEIPT_TABLE_ABSENT receipt=NONE`,
     );
-  }
-}
-
-async function queryWithConnectionFallback(statement) {
-  while (true) {
-    const result = await runner.query(statement);
-    if (
-      result.code === 0 ||
-      !isConnectionFallbackError(result.errorCode) ||
-      runnerIndex >= migrationUrls.length - 1
-    ) {
-      return result;
-    }
-    await runner.close();
-    runnerIndex += 1;
-    runner = await createPostgresMigrationRunner(migrationUrls[runnerIndex]);
   }
 }
 
@@ -235,132 +199,6 @@ function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function resolveMigrationUrls() {
-  const explicitUrl = process.env.POSTGRES_MIGRATION_URL?.trim();
-  if (explicitUrl) return [explicitUrl];
-  return uniqueValues([
-    process.env.DIRECT_URL?.trim(),
-    process.env.DATABASE_URL?.trim(),
-  ]);
-}
-
-function uniqueValues(values) {
-  const seen = new Set();
-  const result = [];
-  for (const value of values) {
-    if (!value || seen.has(value)) continue;
-    seen.add(value);
-    result.push(value);
-  }
-  return result;
-}
-
-function isConnectionFallbackError(code) {
-  return [
-    "EACCES",
-    "ECONNREFUSED",
-    "ENETUNREACH",
-    "ENOTFOUND",
-    "EHOSTUNREACH",
-    "ETIMEDOUT",
-  ].includes(code);
-}
-
-async function createPostgresMigrationRunner(directUrl) {
-  let connectionPlan = null;
-  if (command === "deploy") {
-    try {
-      connectionPlan = assertMigrationConnectionUrl(directUrl);
-    } catch (error) {
-      if (error instanceof MigrationGuardError) fail(error.code);
-      fail("DIRECT_URL_INVALID");
-    }
-  }
-  const preferPsql = process.env.POSTGRES_MIGRATION_USE_PSQL === "1";
-  const connectionEnvironment = preferPsql
-    ? createLibpqEnvironment(directUrl)
-    : null;
-  const psql = preferPsql ? await maybeFindPsql() : null;
-  if (psql) {
-    return {
-      close: async () => {},
-      deployMigration: async () => ({
-        code: 1,
-        stdout: "",
-        ddlStarted: false,
-        errorCode: "MIGRATION_GUARD_SINGLE_SESSION_REQUIRED",
-      }),
-      query: (sql) =>
-        runProcess(psql, ["-At", "-c", sql], connectionEnvironment),
-    };
-  }
-
-  let postgres;
-  try {
-    postgres = (await import("postgres")).default;
-  } catch {
-    if (preferPsql) fail("PSQL_NOT_AVAILABLE");
-    fail("POSTGRES_DRIVER_UNAVAILABLE");
-  }
-  const sql = postgres(directUrl, {
-    max: 1,
-    idle_timeout: 5,
-    connect_timeout: 10,
-    prepare: false,
-    ssl: "require",
-    onnotice: false,
-    debug: false,
-    connection: {
-      application_name: "securium-postgres-migrations",
-    },
-  });
-  if (command === "deploy") {
-    console.log(
-      `MIGRATION_GUARD_CONNECTION mode=${connectionPlan?.mode} port=${connectionPlan?.port} driver=postgresjs`,
-    );
-  }
-  return {
-    close: async () => {
-      await sql.end({ timeout: 5 });
-    },
-    deployMigration: (migration) =>
-      deployMigrationOnReservedConnection({ sql, migration }),
-    query: async (statement) => {
-      try {
-        const rows = await sql.unsafe(statement);
-        return {
-          code: 0,
-          stdout: rows
-            .map((row) => Object.values(row).join("|"))
-            .join("\n"),
-        };
-      } catch (error) {
-        return { code: 1, errorCode: safeErrorCode(error), stdout: "" };
-      }
-    },
-    queryRows: async (statement) => sql.unsafe(statement),
-    applyBaseline: async () => {
-      const baseline = await validateBaselineFiles();
-      const reserved = await sql.reserve();
-      try {
-        await reserved.unsafe(`SET securium.baseline_artifact_sha256 = '${baseline.manifest.artifactDigest}'`);
-        await reserved.unsafe(`SET securium.baseline_schema_sha256 = '${baseline.manifest.schemaDigest}'`);
-        await reserved.unsafe(`SET securium.baseline_security_sha256 = '${baseline.manifest.securityDigest}'`);
-        await reserved.unsafe(baseline.artifact);
-        const receipts = await reserved.unsafe(
-          `SELECT baseline_id, baseline_version, schema_boundary, artifact_sha256, schema_sha256, security_sha256
-           FROM app_schema_baseline_receipts WHERE baseline_id = '${BASELINE_ID}'`,
-        );
-        if (receipts.length !== 1 || receipts[0].artifact_sha256 !== baseline.manifest.artifactDigest || receipts[0].schema_sha256 !== baseline.manifest.schemaDigest || receipts[0].security_sha256 !== baseline.manifest.securityDigest) {
-          throw new Error("POSTGRES_BASELINE_RECEIPT_VERIFICATION_FAILED");
-        }
-      } finally {
-        await reserved.release();
-      }
-    },
-  };
-}
-
 async function inspectDatabaseState(runner) {
   if (!runner.queryRows) return { state: "UNKNOWN", baselineRelationExists: null };
   const relationRows = await runner.queryRows(`
@@ -391,7 +229,7 @@ async function inspectDatabaseState(runner) {
         baselineRelationExists: Boolean(appRows[0]?.baseline_relation),
       });
     } catch (error) {
-      await runner.close();
+
       if (error instanceof MigrationGuardError) fail(error.code);
       throw error;
     }
@@ -412,80 +250,9 @@ async function inspectDatabaseState(runner) {
   };
 }
 
-async function maybeFindPsql() {
-  const candidates =
-    process.platform === "win32"
-      ? ["psql.exe", "C:\\Program Files\\PostgreSQL\\17\\bin\\psql.exe"]
-      : ["psql"];
-  for (const candidate of candidates) {
-    try {
-      if (candidate.includes("\\") || candidate.includes("/")) {
-        await access(candidate);
-      }
-      const result = await runProcess(candidate, ["--version"], process.env);
-      if (result.code === 0) return candidate;
-    } catch {
-      // Try the next approved local executable.
-    }
-  }
-  return null;
-}
-
-function createLibpqEnvironment(value) {
-  let url;
-  try {
-    url = new URL(value);
-  } catch {
-    fail("DIRECT_URL_INVALID");
-  }
-  if (!["postgres:", "postgresql:"].includes(url.protocol)) {
-    fail("DIRECT_URL_INVALID");
-  }
-  return {
-    ...process.env,
-    PGHOST: url.hostname,
-    PGPORT: url.port || "5432",
-    PGUSER: decodeURIComponent(url.username),
-    PGPASSWORD: decodeURIComponent(url.password),
-    PGDATABASE: decodeURIComponent(url.pathname.slice(1)),
-    PGSSLMODE: url.searchParams.get("sslmode") ?? "require",
-  };
-}
-
-function runProcess(executable, args, environment) {
-  return new Promise((resolvePromise) => {
-    const child = spawn(executable, args, {
-      env: environment,
-      stdio: ["ignore", "pipe", "pipe"],
-      windowsHide: true,
-    });
-    let stdout = "";
-    child.stdout.on("data", (chunk) => {
-      stdout += chunk.toString();
-    });
-    child.stderr.on("data", () => {});
-    child.on("error", () => resolvePromise({ code: 1, stdout: "" }));
-    child.on("close", (code) =>
-      resolvePromise({ code: code ?? 1, stdout }),
-    );
-  });
-}
-
-function fail(code) {
-  console.error(code);
-  process.exit(1);
-}
-
-function failWithDetail(code, detail) {
-  console.error(detail ? `${code}:${detail}` : code);
-  process.exit(1);
-}
-
+function fail(code) { throw new MigrationGuardError(code); }
+function failWithDetail(code, detail) { fail(detail ? code + ":" + detail : code); }
 function safeErrorCode(error) {
-  if (!error || typeof error !== "object") return "UNKNOWN";
-  const code = "code" in error ? error.code : undefined;
-  if (typeof code === "string" && /^[A-Z0-9_]+$/.test(code)) return code;
-  const name = "name" in error ? error.name : undefined;
-  if (typeof name === "string" && /^[A-Za-z0-9_]+$/.test(name)) return name;
-  return "UNKNOWN";
+  const code = error?.code;
+  return typeof code === "string" && /^[A-Z0-9_]+$/.test(code) ? code : "POSTGRES_MIGRATION_FAILED";
 }

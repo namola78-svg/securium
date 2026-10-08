@@ -177,6 +177,7 @@ test("owned PostgreSQL proves historical upgrade, resume, fresh RLS, and fail-cl
     const env = { ...process.env };
     for (const key of Object.keys(env)) if (/^(DATABASE_URL|DIRECT_URL|POSTGRES_|PGHOST|PGPORT|PGDATABASE|PGUSER|PGPASSWORD|PGSERVICE|PGOPTIONS)/.test(key)) delete env[key];
     env.POSTGRES_MIGRATION_URL = `postgres://postgres:${password}@127.0.0.1:${port}/${name}`;
+    env.POSTGRES_MIGRATION_DISPOSABLE_RECEIPT = owned.receiptPath;
     if (command === "deploy") env.POSTGRES_MIGRATION_APPROVED = "APPLY_REVIEWED_MIGRATIONS";
     try {
       const result = await execFile(process.execPath, ["scripts/postgres-migrations.mjs", command, ...(command === "deploy" ? ["--confirm"] : [])], { env, windowsHide: true, timeout: 180_000, maxBuffer: 4 * 1024 * 1024 });

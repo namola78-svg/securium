@@ -1,3 +1,8 @@
+import { migrationTransactionBody } from "./postgres-migration-transaction.mjs";
+import { MigrationGuardError } from "./postgres-migration-error.mjs";
+export { MigrationGuardError } from "./postgres-migration-error.mjs";
+export { assertMigrationConnectionUrl, createMigrationClient } from "./postgres-migration-connection.mjs";
+
 export const MIGRATION_SESSION_CONTROLS = Object.freeze({
   lockTimeoutMs: 5_000,
   statementTimeoutMs: 60_000,
@@ -5,9 +10,9 @@ export const MIGRATION_SESSION_CONTROLS = Object.freeze({
 });
 
 const CONTROL_STATEMENTS = Object.freeze([
-  "SET SESSION lock_timeout = '5s'",
-  "SET SESSION statement_timeout = '60s'",
-  "SET SESSION idle_in_transaction_session_timeout = '60s'",
+  "SET LOCAL lock_timeout = '5s'",
+  "SET LOCAL statement_timeout = '60s'",
+  "SET LOCAL idle_in_transaction_session_timeout = '60s'",
 ]);
 
 const READBACK_STATEMENT = `
@@ -15,19 +20,14 @@ SELECT
   current_setting('lock_timeout') AS lock_timeout,
   current_setting('statement_timeout') AS statement_timeout,
   current_setting('idle_in_transaction_session_timeout') AS idle_in_transaction_session_timeout,
-  pg_backend_pid()::text AS session_identity
+  pg_backend_pid()::text AS session_identity,
+  current_database() AS database_name,
+  current_user AS current_user,
+  session_user AS session_user
 `;
 
 const IDENTITY_STATEMENT =
-  "SELECT pg_backend_pid()::text AS session_identity";
-
-export class MigrationGuardError extends Error {
-  constructor(code) {
-    super(code);
-    this.name = "MigrationGuardError";
-    this.code = code;
-  }
-}
+  "SELECT pg_backend_pid()::text AS session_identity, current_database() AS database_name, current_user AS current_user, session_user AS session_user";
 
 export function parsePostgresDurationMilliseconds(value) {
   if (typeof value !== "string") {
@@ -124,184 +124,164 @@ export function expectedMigrationChecksum(migration) {
 }
 
 export async function executeGuardedMigration({
-  session,
-  migration,
-  logger = defaultLogger,
+  session, migration, expectedIdentity, logger = defaultLogger,
 }) {
-  try {
-    for (const statement of CONTROL_STATEMENTS) {
-      await session.executeControl(statement);
-    }
-  } catch {
-    throw new MigrationGuardError("MIGRATION_GUARD_TIMEOUT_SET_FAILED");
-  }
-
-  let observed;
-  try {
-    observed = await session.readControls();
-  } catch {
-    throw new MigrationGuardError("MIGRATION_GUARD_TIMEOUT_READBACK_FAILED");
-  }
-  const normalized = assertMigrationSessionControls(observed);
-  for (const [name, expected] of [
-    ["lock_timeout", MIGRATION_SESSION_CONTROLS.lockTimeoutMs],
-    ["statement_timeout", MIGRATION_SESSION_CONTROLS.statementTimeoutMs],
-    [
-      "idle_in_transaction_session_timeout",
-      MIGRATION_SESSION_CONTROLS.idleInTransactionSessionTimeoutMs,
-    ],
-  ]) {
-    logger(
-      `MIGRATION_GUARD_SETTING name=${name} expected_ms=${expected} observed_ms=${normalized[name]} result=PASS`,
-    );
-  }
-
   const expectedChecksum = expectedMigrationChecksum(migration);
-  const guardedIdentity = normalizeSessionIdentity(observed.sessionIdentity);
-  const ledgerRows = await session.readMigrationLedger(migration.id);
-  if (!Array.isArray(ledgerRows)) {
-    throw new MigrationGuardError("MIGRATION_GUARD_MIGRATION_LEDGER_INVALID");
-  }
-  if (ledgerRows.length > 1) {
-    throw new MigrationGuardError("MIGRATION_GUARD_MIGRATION_LEDGER_DUPLICATE");
-  }
-  if (ledgerRows.length === 1) {
-    if (ledgerRows[0]?.id !== migration.id || ledgerRows[0]?.checksum !== expectedChecksum) {
-      throw new MigrationGuardError("MIGRATION_GUARD_MIGRATION_CHECKSUM_MISMATCH");
-    }
-    logger(
-      `MIGRATION_GUARD_PASS migration=${migration.id} session=${guardedIdentity} action=ALREADY_APPLIED_VALID`,
-    );
-    return { applied: false, ddlStatementsExecuted: 0 };
-  }
-
-  let executionIdentity;
-  try {
-    executionIdentity = normalizeSessionIdentity(
-      await session.readSessionIdentity(),
-    );
-  } catch (error) {
-    if (error instanceof MigrationGuardError) throw error;
-    throw new MigrationGuardError("MIGRATION_GUARD_SESSION_CHANGED");
-  }
-  if (executionIdentity !== guardedIdentity) {
-    throw new MigrationGuardError("MIGRATION_GUARD_SESSION_CHANGED");
-  }
-
-  logger(
-    `MIGRATION_GUARD_PASS migration=${migration.id} session=${guardedIdentity} action=EXECUTE`,
-  );
-  await session.executeMigration(migration.sql);
-  return { applied: true, ddlStatementsExecuted: 1 };
+  return executeGuardedTransaction({
+    session, transactionSql: migration.sql, expectedIdentity, logger,
+    run: async ({ body, guardedIdentity }) => {
+      const rows = await session.readMigrationLedger(migration.id);
+      assertLedgerRows(rows, migration.id, expectedChecksum);
+      if (rows.length === 1) {
+        logger("MIGRATION_GUARD_PASS migration=" + migration.id + " session=" + guardedIdentity + " action=ALREADY_APPLIED_VALID");
+        return { applied: false, ddlStatementsExecuted: 0 };
+      }
+      if (normalizeSessionIdentity(await session.readSessionIdentity()) !== guardedIdentity) {
+        throw new MigrationGuardError("MIGRATION_GUARD_SESSION_CHANGED");
+      }
+      logger("MIGRATION_GUARD_PASS migration=" + migration.id + " session=" + guardedIdentity + " action=EXECUTE");
+      await session.executeMigration(body);
+      const receipts = await session.readMigrationLedger(migration.id);
+      assertLedgerRows(receipts, migration.id, expectedChecksum);
+      if (receipts.length !== 1) throw new MigrationGuardError("MIGRATION_GUARD_MIGRATION_RECEIPT_MISSING");
+      return { applied: true, ddlStatementsExecuted: 1 };
+    },
+  });
 }
 
-export async function deployMigrationOnReservedConnection({
-  sql,
-  migration,
-  logger,
+function assertLedgerRows(rows, id, checksum) {
+  if (!Array.isArray(rows)) throw new MigrationGuardError("MIGRATION_GUARD_MIGRATION_LEDGER_INVALID");
+  if (rows.length > 1) throw new MigrationGuardError("MIGRATION_GUARD_MIGRATION_LEDGER_DUPLICATE");
+  if (rows.length === 1 && (rows[0]?.id !== id || rows[0]?.checksum !== checksum)) {
+    throw new MigrationGuardError("MIGRATION_GUARD_MIGRATION_CHECKSUM_MISMATCH");
+  }
+}
+
+async function executeGuardedTransaction({
+  session, transactionSql, expectedIdentity, logger, run,
 }) {
-  const reserved = await sql.reserve();
-  let ddlStarted = false;
+  const body = migrationTransactionBody(transactionSql);
+  // Outside evidence detects a switch at BEGIN; endpoint approval establishes mode.
+  const outsideIdentity = normalizeSessionIdentity(await session.readSessionIdentity());
+  let beginAttempted = false;
   try {
+    beginAttempted = true;
+    await session.beginTransaction();
+    try {
+      for (const statement of CONTROL_STATEMENTS) await session.executeControl(statement);
+    } catch { throw new MigrationGuardError("MIGRATION_GUARD_TIMEOUT_SET_FAILED"); }
+    let observed;
+    try { observed = await session.readControls(); }
+    catch { throw new MigrationGuardError("MIGRATION_GUARD_TIMEOUT_READBACK_FAILED"); }
+    const guardedIdentity = normalizeSessionIdentity(observed.sessionIdentity);
+    if (guardedIdentity !== outsideIdentity) throw new MigrationGuardError("MIGRATION_GUARD_SESSION_CHANGED");
+    if (expectedIdentity && (
+      observed.databaseName !== expectedIdentity.database ||
+      observed.currentUser !== expectedIdentity.role ||
+      observed.sessionUser !== expectedIdentity.role
+    )) throw new MigrationGuardError("MIGRATION_GUARD_DATABASE_ROLE_MISMATCH");
+    const normalized = assertMigrationSessionControls(observed);
+    for (const [name, milliseconds] of Object.entries(normalized)) {
+      logger("MIGRATION_GUARD_SETTING name=" + name + " expected_ms=" + milliseconds + " observed_ms=" + milliseconds + " result=PASS boundary=TRANSACTION");
+    }
+    const result = await run({ body, guardedIdentity });
+    await session.commitTransaction();
+    return result;
+  } catch (error) {
+    if (beginAttempted) {
+      try { await session.rollbackTransaction(); }
+      catch { throw new MigrationGuardError("MIGRATION_GUARD_ROLLBACK_FAILED"); }
+    }
+    throw error;
+  }
+}
+
+async function onReservedConnection({ sql, operation }) {
+  let reserved;
+  const state = { ddlStarted: false, rollbackAttempted: false, rollbackSucceeded: false };
+  try {
+    reserved = await sql.reserve();
     const session = {
-      executeControl: async (statement) => {
-        await reserved.unsafe(statement);
+      beginTransaction: () => reserved.unsafe("BEGIN"),
+      commitTransaction: () => reserved.unsafe("COMMIT"),
+      rollbackTransaction: async () => {
+        state.rollbackAttempted = true;
+        await reserved.unsafe("ROLLBACK");
+        state.rollbackSucceeded = true;
       },
+      executeControl: statement => reserved.unsafe(statement),
       readControls: async () => {
-        const rows = await reserved.unsafe(READBACK_STATEMENT);
-        const row = rows[0];
-        if (!row) {
-          throw new MigrationGuardError(
-            "MIGRATION_GUARD_TIMEOUT_READBACK_FAILED",
-          );
-        }
+        const [row] = await reserved.unsafe(READBACK_STATEMENT);
+        if (!row) throw new MigrationGuardError("MIGRATION_GUARD_TIMEOUT_READBACK_FAILED");
         return {
-          lockTimeout: row.lock_timeout,
-          statementTimeout: row.statement_timeout,
-          idleInTransactionSessionTimeout:
-            row.idle_in_transaction_session_timeout,
-          sessionIdentity: row.session_identity,
+          lockTimeout: row.lock_timeout, statementTimeout: row.statement_timeout,
+          idleInTransactionSessionTimeout: row.idle_in_transaction_session_timeout,
+          sessionIdentity: row.session_identity, databaseName: row.database_name,
+          currentUser: row.current_user, sessionUser: row.session_user,
         };
       },
-      readMigrationLedger: async (migrationId) => {
-        try {
-          const rows = await reserved.unsafe(
-            "SELECT id, checksum FROM app_schema_migrations WHERE id = $1",
-            [migrationId],
-          );
-          return rows;
-        } catch (error) {
-          if (safeDatabaseErrorCode(error) === "42P01") return [];
-          throw error;
-        }
+      readMigrationLedger: async migrationId => {
+        // Catching undefined_table inside a transaction would leave it aborted.
+        const [row] = await reserved.unsafe("SELECT to_regclass('public.app_schema_migrations') AS relation");
+        if (!row) throw new MigrationGuardError("MIGRATION_GUARD_MIGRATION_LEDGER_INVALID");
+        if (row.relation === null) return [];
+        return reserved.unsafe("SELECT id, checksum FROM public.app_schema_migrations WHERE id = $1", [migrationId]);
       },
       readSessionIdentity: async () => {
-        const rows = await reserved.unsafe(IDENTITY_STATEMENT);
-        return rows[0]?.session_identity;
+        const [row] = await reserved.unsafe(IDENTITY_STATEMENT);
+        return row?.session_identity;
       },
-      executeMigration: async (migrationSql) => {
-        ddlStarted = true;
+      executeMigration: async migrationSql => {
+        state.ddlStarted = true;
         await reserved.unsafe(migrationSql);
       },
     };
-    const result = await executeGuardedMigration({
-      session,
-      migration,
-      logger,
-    });
-    return { code: 0, stdout: "", ddlStarted, ...result };
+    const result = await operation({ session, reserved });
+    return { code: 0, stdout: "", ...state, ...result };
   } catch (error) {
-    return {
-      code: 1,
-      stdout: "",
-      ddlStarted,
-      errorCode: safeGuardErrorCode(error),
-    };
+    if (state.rollbackAttempted && !state.rollbackSucceeded) await sql.end?.({ timeout: 0 });
+    return { code: 1, stdout: "", ...state, errorCode: safeGuardErrorCode(error) };
   } finally {
-    await reserved.release();
+    if (reserved) await reserved.release();
   }
 }
 
-export function assertMigrationConnectionUrl(value) {
-  let url;
-  try {
-    url = new URL(value);
-  } catch {
-    throw new MigrationGuardError("DIRECT_URL_INVALID");
-  }
-  if (!["postgres:", "postgresql:"].includes(url.protocol)) {
-    throw new MigrationGuardError("DIRECT_URL_INVALID");
-  }
-
-  const port = url.port || "5432";
-  if (port === "6543") {
-    throw new MigrationGuardError(
-      "MIGRATION_GUARD_TRANSACTION_POOLING_FORBIDDEN",
-    );
-  }
-
-  const hostname = url.hostname.toLowerCase();
-  const loopback =
-    hostname === "localhost" ||
-    hostname === "127.0.0.1" ||
-    hostname === "[::1]" ||
-    hostname === "::1";
-
-  if (port !== "5432" && !loopback) {
-    throw new MigrationGuardError(
-      "MIGRATION_GUARD_REMOTE_CUSTOM_PORT_FORBIDDEN",
-    );
-  }
-
-  return {
-    mode:
-      port === "5432"
-        ? "DIRECT_OR_SESSION_5432"
-        : "LOOPBACK_DISPOSABLE_CUSTOM_PORT",
-    port,
-  };
+export function deployMigrationOnReservedConnection({ sql, migration, identity, logger = defaultLogger }) {
+  return onReservedConnection({
+    sql,
+    operation: ({ session }) => executeGuardedMigration({
+      session, migration, expectedIdentity: identity, logger,
+    }),
+  });
 }
 
+export function deployBaselineOnReservedConnection({ sql, baseline, identity, logger = defaultLogger }) {
+  return onReservedConnection({
+    sql,
+    operation: ({ session, reserved }) => executeGuardedTransaction({
+      session, transactionSql: baseline.artifact, expectedIdentity: identity, logger,
+      run: async ({ body }) => {
+        const manifest = baseline.manifest;
+        for (const [name, value] of [
+          ["securium.baseline_artifact_sha256", manifest.artifactDigest],
+          ["securium.baseline_schema_sha256", manifest.schemaDigest],
+          ["securium.baseline_security_sha256", manifest.securityDigest],
+        ]) await reserved.unsafe("SELECT set_config($1, $2, true)", [name, value]);
+        await session.executeMigration(body);
+        const receipts = await reserved.unsafe(
+          "SELECT baseline_id, artifact_sha256, schema_sha256, security_sha256 FROM public.app_schema_baseline_receipts WHERE baseline_id = $1",
+          [manifest.baselineId],
+        );
+        if (receipts.length !== 1 || receipts[0].baseline_id !== manifest.baselineId ||
+          receipts[0].artifact_sha256 !== manifest.artifactDigest ||
+          receipts[0].schema_sha256 !== manifest.schemaDigest ||
+          receipts[0].security_sha256 !== manifest.securityDigest
+        ) throw new MigrationGuardError("POSTGRES_BASELINE_RECEIPT_VERIFICATION_FAILED");
+        return { applied: true };
+      },
+    }),
+  });
+}
 function exactNonNegativeMilliseconds(value) {
   if (!Number.isFinite(value) || value < 0 || !Number.isInteger(value)) {
     throw new MigrationGuardError("MIGRATION_GUARD_TIMEOUT_PARSE_FAILED");
